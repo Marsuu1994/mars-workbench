@@ -2,18 +2,16 @@
 
 import { ArrowRightIcon, PaperClipIcon } from "@heroicons/react/16/solid";
 import { useState } from "react";
+import { useChatStore } from "@/store/chatStore";
 
-export interface ChatInputProps {
-  onSendMessage: (content: string) => void;
-  isLoading: boolean;
-}
-
-export function ChatInput({ onSendMessage, isLoading }: ChatInputProps) {
+export function ChatInput() {
   const [messageContent, setMessageContent] = useState('');
+  const sendMessage = useChatStore((state) => state.sendMessage);
+  const isLoading = useChatStore((state) => state.isLoading);
 
   const handleSend = () => {
     if (!messageContent.trim() || isLoading) return;
-    onSendMessage(messageContent);
+    sendMessage(messageContent);
     setMessageContent('');
   };
 

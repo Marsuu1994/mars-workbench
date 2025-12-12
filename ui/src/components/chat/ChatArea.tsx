@@ -1,17 +1,14 @@
 'use client'
 
-import { Message } from "@/app/home/page";
 import { JSX, useEffect, useRef } from "react";
 import { ChatBubble } from "@/components/chat/ChatBubble";
 import { WelcomeMessage } from "@/components/chat/WelcomeMessage";
 import { LoadingIndicator } from "@/components/chat/LoadingIndicator";
+import { useChatStore } from "@/store/chatStore";
 
-export interface ChatAreaProps {
-  messages: Message[];
-  isLoading: boolean;
-}
-
-export function ChatArea({ messages, isLoading }: ChatAreaProps): JSX.Element {
+export function ChatArea(): JSX.Element {
+  const messages = useChatStore((state) => state.messages);
+  const isLoading = useChatStore((state) => state.isLoading);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isEmpty = messages.length === 0 && !isLoading;
 
