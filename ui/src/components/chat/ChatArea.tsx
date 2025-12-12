@@ -3,18 +3,16 @@
 import { JSX, useEffect, useRef } from "react";
 import { ChatBubble } from "@/components/chat/ChatBubble";
 import { WelcomeMessage } from "@/components/chat/WelcomeMessage";
-import { LoadingIndicator } from "@/components/chat/LoadingIndicator";
-import { useChatStore } from "@/store/chatStore";
+import { useChat } from "@/hooks/useChat";
 
 export function ChatArea(): JSX.Element {
-  const messages = useChatStore((state) => state.messages);
-  const isLoading = useChatStore((state) => state.isLoading);
+  const { messages } = useChat();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const isEmpty = messages.length === 0 && !isLoading;
+  const isEmpty = messages.length === 0;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isLoading]);
+  }, [messages]);
 
   if (isEmpty) {
     return <WelcomeMessage />;
@@ -29,7 +27,6 @@ export function ChatArea(): JSX.Element {
               {messages.map((message, i) => (
                 <ChatBubble key={`chat-bubble-key-${i}`} message={message} />
               ))}
-              {isLoading && <LoadingIndicator />}
               <div ref={messagesEndRef} />
             </div>
           </div>

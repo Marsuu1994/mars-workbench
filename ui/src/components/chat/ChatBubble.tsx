@@ -6,7 +6,7 @@ export interface ChatBubbleType {
 }
 
 export function ChatBubble({ message }: ChatBubbleType): JSX.Element {
-  const { type, content } = message;
+  const { type, content, isStreaming } = message;
 
   const chatBubbleClassName = `chat-bubble ${
     type === 'user' ?
@@ -18,6 +18,7 @@ export function ChatBubble({ message }: ChatBubbleType): JSX.Element {
     <div className={`chat ${type === 'user' ? 'chat-end' : 'chat-start'}`}>
       <div className={chatBubbleClassName}>
         {content}
+        {isStreaming && <span className="inline-block w-2 h-4 ml-1 bg-current animate-pulse" />}
       </div>
     </div>
   );
