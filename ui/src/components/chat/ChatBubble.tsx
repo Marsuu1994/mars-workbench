@@ -6,16 +6,16 @@ export interface ChatBubbleType {
 }
 
 export function ChatBubble({ message }: ChatBubbleType): JSX.Element {
-  const { type, content, isStreaming } = message;
+  const { role, content, isStreaming } = message;
 
   const chatBubbleClassName = `chat-bubble ${
-    type === 'user' ?
-      'bg-success/80 backdrop-blur-lg text-black' :
-      'bg-base-200 backdrop-blur-lg text-base-content'
+    role === 'user'
+      ? 'bg-success/80 backdrop-blur-lg text-black'
+      : 'bg-base-200 backdrop-blur-lg text-base-content'
   }`;
 
   return (
-    <div className={`chat ${type === 'user' ? 'chat-end' : 'chat-start'}`}>
+    <div className={`chat ${role === 'user' ? 'chat-end' : 'chat-start'}`}>
       <div className={chatBubbleClassName}>
         {content}
         {isStreaming && <span className="inline-block w-2 h-4 ml-1 bg-current animate-pulse" />}

@@ -1,4 +1,4 @@
-import { useChatStore } from '@/store/chatStore';
+import { useChatStore, Message } from '@/store/chatStore';
 
 export function useChat() {
   const messages = useChatStore((state) => state.messages);
@@ -12,17 +12,23 @@ export function useChat() {
     if (!content.trim() || isLoading) return;
 
     // Add user message
-    addMessage({ content, type: 'user' });
+    addMessage({ content, role: 'user' });
     setLoading(true);
 
-    // Add empty bot message placeholder with streaming flag
-    addMessage({ content: '', type: 'bot', isStreaming: true });
+    // Add empty assistant message placeholder with streaming flag
+    addMessage({ content: '', role: 'assistant', isStreaming: true });
+
+    // Get current messages (including the new user message, excluding the empty streaming placeholder)
+    const currentMessages = useChatStore.getState().messages;
+    const messagesToSend: Message[] = currentMessages.filter(
+      (msg) => !(msg.isStreaming && msg.content === '')
+    );
 
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: content }),
+        body: JSON.stringify({ messages: messagesToSend }),
       });
 
       if (!response.ok) {

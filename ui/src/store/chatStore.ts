@@ -2,7 +2,7 @@ import { create } from 'zustand';
 
 export interface Message {
   content: string;
-  type: 'user' | 'bot';
+  role: 'user' | 'assistant';
   isStreaming?: boolean;
 }
 

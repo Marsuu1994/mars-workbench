@@ -1,49 +1,56 @@
 import { NextRequest } from 'next/server';
+import OpenAI from 'openai';
 
-const words = [
-  'Hello', 'this', 'is', 'a', 'mock', 'streaming', 'response', 'from',
-  'the', 'API', 'endpoint.', 'It', 'simulates', 'how', 'an', 'LLM',
-  'would', 'stream', 'tokens', 'back', 'to', 'the', 'client.', 'Each',
-  'word', 'arrives', 'with', 'a', 'small', 'delay', 'to', 'mimic',
-  'real', 'AI', 'generation.', 'Pretty', 'cool', 'right?', 'This',
-  'helps', 'test', 'the', 'frontend', 'streaming', 'implementation.',
-];
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
-function getRandomWords(min: number, max: number): string[] {
-  const count = Math.floor(Math.random() * (max - min + 1)) + min;
-  const result: string[] = [];
-  for (let i = 0; i < count; i++) {
-    result.push(words[Math.floor(Math.random() * words.length)]);
-  }
-  return result;
+interface ChatMessage {
+  content: string;
+  role: 'user' | 'assistant';
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+const SYSTEM_INSTRUCTIONS = `You are a helpful assistant in development mode.
+Keep your responses short and concise - maximum 3 sentences.`;
 
 export async function POST(request: NextRequest) {
-  // Read the request body (for future use)
-  const body = await request.json();
-  console.log('Received message:', body.message);
+  const { messages } = await request.json() as { messages: ChatMessage[] };
 
-  // Generate random length response (10-30 words)
-  const responseWords = getRandomWords(10, 30);
+  if (!process.env.OPENAI_API_KEY) {
+    return new Response('OpenAI API key not configured', { status: 500 });
+  }
+
+  // Messages already in OpenAI format
+  const input = messages.map((msg) => ({
+    role: msg.role,
+    content: msg.content,
+  }));
+
+  const stream = await openai.responses.create({
+    model: 'gpt-5-nano',
+    tools: [
+      { type: "web_search" },
+    ],
+    instructions: SYSTEM_INSTRUCTIONS,
+    reasoning: { effort: 'low' },
+    input,
+    stream: true,
+  });
 
   const encoder = new TextEncoder();
 
-  const stream = new ReadableStream({
+  const readableStream = new ReadableStream({
     async start(controller) {
-      for (const word of responseWords) {
-        controller.enqueue(encoder.encode(word + ' '));
-        // Random delay between 50-150ms per word
-        await sleep(Math.floor(Math.random() * 100) + 50);
+      for await (const event of stream) {
+        if (event.type === 'response.output_text.delta') {
+          controller.enqueue(encoder.encode(event.delta));
+        }
       }
       controller.close();
     },
   });
 
-  return new Response(stream, {
+  return new Response(readableStream, {
     headers: {
       'Content-Type': 'text/plain; charset=utf-8',
       'Transfer-Encoding': 'chunked',
