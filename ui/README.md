@@ -13,9 +13,11 @@ Open [http://localhost:3000](http://localhost:3000)
 ## Update Log
 
 ### 2026-02-05
-- Sidebar chat list: menu button hidden by default, appears on hover
+- Collapsible sidebar with smooth width/opacity transitions
+- Sidebar refactored into three regions: header (toggle), functions (new chat), chats list
+- Extracted Sidebar and ChatHeader into separate components
+- Sidebar menu button hidden by default, appears on hover
 - Current chat highlighted in sidebar
-- Menu hover state persists while dropdown is open
 - Chat bubble styling adjustments (accent colors, transparency)
 
 ### 2026-02-04

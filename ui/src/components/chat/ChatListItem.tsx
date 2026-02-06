@@ -30,7 +30,7 @@ export default function ChatListItem({ chat }: ChatListItemProps) {
   return (
     <>
       <li className="relative group">
-        <div className={`relative flex items-center rounded ${isMenuOpen || isActive ? 'menu-active' : ''}`}>
+        <div className={`relative flex px-0.5 py-1 items-center rounded ${isActive ? 'menu-active' : isMenuOpen ? 'menu-focus' : ''}`}>
           <Link
             href={`/chat/${chat.id}`}
             className="truncate px-1.5 py-1 text-xs rounded pr-6 w-full"
