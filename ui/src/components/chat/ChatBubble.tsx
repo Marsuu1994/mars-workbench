@@ -10,8 +10,8 @@ export function ChatBubble({ message }: ChatBubbleType): JSX.Element {
 
   const chatBubbleClassName = `chat-bubble ${
     role === 'user'
-      ? 'bg-success/80 backdrop-blur-lg text-black'
-      : 'bg-base-200 backdrop-blur-lg text-base-content'
+      ? 'bg-accent/50 backdrop-blur-lg text-gray-200'
+      : 'bg-base-200/50 backdrop-blur-lg text-base-content'
   }`;
 
   return (

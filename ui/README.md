@@ -12,6 +12,12 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## Update Log
 
+### 2026-02-05
+- Sidebar chat list: menu button hidden by default, appears on hover
+- Current chat highlighted in sidebar
+- Menu hover state persists while dropdown is open
+- Chat bubble styling adjustments (accent colors, transparency)
+
 ### 2026-02-04
 - New chat flow: first message on `/chat` creates a chat, generates title via LLM, streams response, then navigates to `/chat/[chatId]` with sidebar refresh
 - Auto-generated chat titles using `/api/llm/summarizeTitle` (runs in parallel with streaming for minimal latency)

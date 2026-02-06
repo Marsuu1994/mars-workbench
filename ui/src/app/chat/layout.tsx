@@ -12,7 +12,7 @@ export default async function ChatLayout({
   return (
     <div className="flex h-screen bg-base-300 text-base-content overflow-hidden">
       {/* Sidebar - will be extracted to component */}
-      <aside className="flex w-65 flex-col border-r border-base-200 bg-base-300">
+      <aside className="flex w-60 flex-col border-r border-base-200 bg-base-300">
         {/* Toggle button */}
         <div className="flex items-center px-1.5 py-1 border-b border-base-200">
           <button className="btn btn-ghost btn-square btn-xs">
