@@ -54,3 +54,6 @@ Thumbs.db
 
 # logs
 *.log
+
+# designs
+**/design-doc

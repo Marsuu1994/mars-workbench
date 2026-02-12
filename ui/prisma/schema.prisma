@@ -39,3 +39,102 @@ model Message {
   @@index([chatId, createdAt], name: "idx_messages_chat_id_created_at")
   @@map("messages")
 }
+
+// ── Kanban Period Planner ──────────────────────────────────────────────
+
+enum PeriodType {
+  WEEKLY
+}
+
+enum PlanStatus {
+  ACTIVE
+  PENDING_UPDATE
+  COMPLETED
+}
+
+enum TaskType {
+  DAILY
+  WEEKLY
+}
+
+enum TaskStatus {
+  TODO
+  DOING
+  DONE
+  EXPIRED
+}
+
+model Plan {
+  id          String         @id @default(uuid()) @db.Uuid
+  userId      String?        @map("user_id") @db.Uuid
+  periodType  PeriodType     @map("period_type")
+  periodKey   String         @map("period_key")
+  description String?
+  status      PlanStatus
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  planTemplates PlanTemplate[]
+  tasks         Task[]
+
+  @@index([userId, status], name: "idx_plans_user_id_status")
+  @@map("plans")
+}
+
+model TaskTemplate {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String?  @map("user_id") @db.Uuid
+  title       String
+  description String
+  points      Int
+  type        TaskType
+  frequency   Int
+  isArchived  Boolean  @default(false) @map("is_archived")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  planTemplates PlanTemplate[]
+  tasks         Task[]
+
+  @@index([userId, isArchived], name: "idx_task_templates_user_id_is_archived")
+  @@map("task_templates")
+}
+
+model PlanTemplate {
+  id         String   @id @default(uuid()) @db.Uuid
+  planId     String   @map("plan_id") @db.Uuid
+  templateId String   @map("template_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  plan     Plan         @relation(fields: [planId], references: [id], onDelete: Cascade)
+  template TaskTemplate @relation(fields: [templateId], references: [id])
+
+  @@unique([planId, templateId], name: "uq_plan_template")
+  @@index([templateId], name: "idx_plan_templates_template_id")
+  @@map("plan_templates")
+}
+
+model Task {
+  id            String      @id @default(uuid()) @db.Uuid
+  planId        String      @map("plan_id") @db.Uuid
+  templateId    String      @map("template_id") @db.Uuid
+  title         String
+  description   String?
+  points        Int
+  status        TaskStatus
+  forDate       DateTime?   @map("for_date") @db.Date
+  periodKey     String?     @map("period_key")
+  instanceIndex Int         @map("instance_index")
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  doneAt        DateTime?   @map("done_at") @db.Timestamptz
+
+  plan     Plan         @relation(fields: [planId], references: [id], onDelete: Cascade)
+  template TaskTemplate @relation(fields: [templateId], references: [id])
+
+  @@unique([planId, templateId, forDate, instanceIndex], name: "uq_task_daily")
+  @@unique([planId, templateId, periodKey, instanceIndex], name: "uq_task_weekly")
+  @@index([planId, status], name: "idx_tasks_plan_id_status")
+  @@index([planId, forDate], name: "idx_tasks_plan_id_for_date")
+  @@map("tasks")
+}
