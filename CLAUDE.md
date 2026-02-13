@@ -56,6 +56,8 @@ ui/
 - Always reference enums via their named constant (e.g., `TaskType.WEEKLY`) instead of raw strings (`"WEEKLY"`).
 - Use `switch/case/default` instead of `if/else if` when branching on enum values.
 - Prefer batch operations (e.g., `createMany`, `updateMany`) over loops with individual database calls unless unavoidable.
+- Extract large chunks of UI JSX into separate components to improve readability and modularity.
+- Use Heroicons as JSX imports (e.g., `<PlusIcon />`) instead of inline SVG.
 
 ## Commands
 

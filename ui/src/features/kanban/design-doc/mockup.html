@@ -215,6 +215,20 @@
   .template-info { flex: 1; }
   .template-name { font-size: 14px; font-weight: 500; color: #e2e5ed; }
   .template-detail { font-size: 12px; color: #6b7280; margin-top: 2px; }
+  .template-edit-btn {
+    background: none; border: none; cursor: pointer; color: #6b7280;
+    padding: 6px; border-radius: 6px; transition: all 0.15s; flex-shrink: 0;
+  }
+  .template-edit-btn:hover { background: #2a2e3e; color: #e2e5ed; }
+  .template-group-header {
+    font-size: 12px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.05em; color: #6b7280; margin-top: 12px; margin-bottom: 4px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .template-group-header:first-child { margin-top: 0; }
+  .template-group-header::after {
+    content: ''; flex: 1; height: 1px; background: #2a2e3e;
+  }
 
   /* Annotations */
   .annotation {
@@ -572,13 +586,13 @@
         <h2 style="font-size:24px;font-weight:700;color:#e2e5ed;margin-bottom:4px">Create Weekly Plan</h2>
         <p style="color:#6b7280;margin-bottom:28px">Set up your task templates and start a new week.</p>
 
-        <div class="form-group">
-          <label class="form-label">Period</label>
-          <div style="display:flex;gap:8px">
-            <div style="flex:1;padding:10px 12px;background:#1e3a2f;border:1px solid #6ee7b7;border-radius:8px;font-size:14px;color:#6ee7b7;text-align:center;cursor:pointer">Weekly</div>
-            <div style="flex:1;padding:10px 12px;background:#151825;border:1px solid #2a2e3e;border-radius:8px;font-size:14px;color:#6b7280;text-align:center;cursor:not-allowed;opacity:0.5">Biweekly</div>
-          </div>
-        </div>
+<!--        <div class="form-group">-->
+<!--          <label class="form-label">Period</label>-->
+<!--          <div style="display:flex;gap:8px">-->
+<!--            <div style="flex:1;padding:10px 12px;background:#1e3a2f;border:1px solid #6ee7b7;border-radius:8px;font-size:14px;color:#6ee7b7;text-align:center;cursor:pointer">Weekly</div>-->
+<!--            <div style="flex:1;padding:10px 12px;background:#151825;border:1px solid #2a2e3e;border-radius:8px;font-size:14px;color:#6b7280;text-align:center;cursor:not-allowed;opacity:0.5">Biweekly</div>-->
+<!--          </div>-->
+<!--        </div>-->
 
         <div class="form-group">
           <label class="form-label">Description (optional)</label>
@@ -594,17 +608,19 @@
         </div>
 
         <div class="template-list">
+          <div class="template-group-header">Daily Tasks</div>
+
           <div class="template-item selected">
             <div class="template-check">
               <svg viewBox="0 0 24 24" fill="none" stroke="#151825" stroke-width="3" style="width:12px;height:12px"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
             <div class="template-info">
               <div class="template-name">Solve 3 LeetCode problems</div>
-              <div class="template-detail">
-                <span class="task-badge badge-daily" style="font-size:9px;padding:2px 6px">Daily</span>
-                &nbsp; 10 pts &middot; 1x per day
-              </div>
+              <div class="template-detail">10 pts &middot; 1x per day</div>
             </div>
+            <button class="template-edit-btn" title="Edit template">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
           </div>
 
           <div class="template-item selected">
@@ -613,11 +629,11 @@
             </div>
             <div class="template-info">
               <div class="template-name">Morning jog 5km</div>
-              <div class="template-detail">
-                <span class="task-badge badge-daily" style="font-size:9px;padding:2px 6px">Daily</span>
-                &nbsp; 4 pts &middot; 1x per day
-              </div>
+              <div class="template-detail">4 pts &middot; 1x per day</div>
             </div>
+            <button class="template-edit-btn" title="Edit template">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
           </div>
 
           <div class="template-item selected">
@@ -626,12 +642,14 @@
             </div>
             <div class="template-info">
               <div class="template-name">Read 30 pages</div>
-              <div class="template-detail">
-                <span class="task-badge badge-daily" style="font-size:9px;padding:2px 6px">Daily</span>
-                &nbsp; 5 pts &middot; 1x per day
-              </div>
+              <div class="template-detail">5 pts &middot; 1x per day</div>
             </div>
+            <button class="template-edit-btn" title="Edit template">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
           </div>
+
+          <div class="template-group-header">Weekly Tasks</div>
 
           <div class="template-item selected">
             <div class="template-check">
@@ -639,22 +657,22 @@
             </div>
             <div class="template-info">
               <div class="template-name">Go to gym</div>
-              <div class="template-detail">
-                <span class="task-badge badge-weekly" style="font-size:9px;padding:2px 6px">Weekly</span>
-                &nbsp; 6 pts &middot; 3x per week
-              </div>
+              <div class="template-detail">6 pts &middot; 3x per week</div>
             </div>
+            <button class="template-edit-btn" title="Edit template">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
           </div>
 
           <div class="template-item">
             <div class="template-check"></div>
             <div class="template-info">
               <div class="template-name">Write blog post</div>
-              <div class="template-detail">
-                <span class="task-badge badge-weekly" style="font-size:9px;padding:2px 6px">Weekly</span>
-                &nbsp; 12 pts &middot; 1x per week
-              </div>
+              <div class="template-detail">12 pts &middot; 1x per week</div>
             </div>
+            <button class="template-edit-btn" title="Edit template">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
           </div>
         </div>
 

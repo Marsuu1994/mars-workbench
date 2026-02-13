@@ -1,17 +1,11 @@
 import { fetchBoard } from "@/features/kanban/lib/boardSync";
+import EmptyBoard from "@/features/kanban/components/EmptyBoard";
 
 export default async function KanbanPage() {
   const board = await fetchBoard();
 
   if (!board) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <h1 className="text-2xl font-bold">No Active Plan</h1>
-        <p className="text-base-content/70">
-          Create a plan to get started with your weekly kanban board.
-        </p>
-      </div>
-    );
+    return <EmptyBoard />;
   }
 
   return (
