@@ -72,6 +72,7 @@ model Plan {
   description String?
   status      PlanStatus
   createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  lastSyncDate DateTime?      @map("last_sync_date") @db.Date
   updatedAt   DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
   planTemplates PlanTemplate[]

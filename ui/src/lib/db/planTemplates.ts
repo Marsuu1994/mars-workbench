@@ -38,6 +38,19 @@ export async function createPlanTemplate(
 }
 
 /**
+ * Bulk link multiple templates to a plan
+ */
+export async function createManyPlanTemplates(
+  planId: string,
+  templateIds: string[]
+): Promise<{ count: number }> {
+  return prisma.planTemplate.createMany({
+    data: templateIds.map((templateId) => ({ planId, templateId })),
+    skipDuplicates: true,
+  });
+}
+
+/**
  * Bulk delete all plan-template links for a plan (used for plan rebuild)
  */
 export async function deletePlanTemplatesByPlanId(planId: string): Promise<void> {

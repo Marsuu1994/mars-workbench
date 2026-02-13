@@ -8,6 +8,7 @@ export type PlanItem = {
   periodKey: string;
   description: string | null;
   status: PlanStatus;
+  lastSyncDate: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -35,6 +36,7 @@ const planSelect = {
   periodKey: true,
   description: true,
   status: true,
+  lastSyncDate: true,
   createdAt: true,
   updatedAt: true,
 } as const;
@@ -132,5 +134,18 @@ export async function updatePlanStatus(
     where: { id: planId },
     data: { status },
     select: planSelect,
+  });
+}
+
+/**
+ * Set the last sync date for a plan
+ */
+export async function updateLastSyncDate(
+  planId: string,
+  date: Date
+): Promise<void> {
+  await prisma.plan.update({
+    where: { id: planId },
+    data: { lastSyncDate: date },
   });
 }

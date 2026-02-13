@@ -44,8 +44,6 @@ yarn-error.log*
 # IDE
 .idea/
 .vscode/
-.claude/
-CLAUDE.md
 *.swp
 *.swo
 
@@ -54,6 +52,3 @@ Thumbs.db
 
 # logs
 *.log
-
-# designs
-**/design-doc
