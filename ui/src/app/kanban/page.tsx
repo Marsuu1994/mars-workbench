@@ -1,5 +1,6 @@
 import { fetchBoard } from "@/features/kanban/lib/boardSync";
 import EmptyBoard from "@/features/kanban/components/EmptyBoard";
+import KanbanBoard from "@/features/kanban/components/KanbanBoard";
 
 export default async function KanbanPage() {
   const board = await fetchBoard();
@@ -8,22 +9,22 @@ export default async function KanbanPage() {
     return <EmptyBoard />;
   }
 
+  const templateTypeMap: Record<string, string> = {};
+  for (const pt of board.plan.planTemplates) {
+    templateTypeMap[pt.templateId] = pt.template.type;
+  }
+
   return (
-    <div className="p-4">
+    <div className="flex flex-col h-screen p-4">
       <h1 className="text-2xl font-bold mb-4">
         Kanban Board — {board.plan.periodKey}
       </h1>
       <p className="text-base-content/70 mb-6">
         Points earned: {board.todayPoints} | Tasks: {board.tasks.length}
       </p>
-      {/* KanbanBoard client component will be added here */}
-      <pre className="text-xs opacity-50">
-        {JSON.stringify(
-          { planId: board.plan.id, taskCount: board.tasks.length },
-          null,
-          2
-        )}
-      </pre>
+      <div className="flex-1 min-h-0">
+        <KanbanBoard tasks={board.tasks} templateTypeMap={templateTypeMap} />
+      </div>
     </div>
   );
 }

@@ -4,11 +4,10 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 
 ## Current State
 
-Backend complete (schema, DAL, server actions, board sync). Empty state and create plan flow implemented — `/kanban` shows a styled empty state when no active plan exists, linking to `/kanban/plans/new` where users pick from grouped task templates, enter an optional description, and submit to generate a new weekly plan. Board UI (columns, drag-and-drop) not yet implemented.
+Backend complete (schema, DAL, server actions, board sync). Full board UI implemented — `/kanban` displays a three-column kanban board (Todo, In Progress, Done) with task cards showing title, description, type badge, and points. Columns and cards use glassmorphism styling (frosted-glass translucency). Cards have hover lift+shadow effects. Layout is responsive full-height with independently scrollable columns. Empty state and create plan flow available when no active plan exists. Drag-and-drop not yet implemented.
 
 ## Backlog
 ### High Priority
-- [ ] Kanban board page (`/kanban`) — three columns (Todo, Doing, Done)
 - [ ] Drag and drop task cards between columns with optimistic UI
 - [ ] Create/edit task template modal — title, description, type, points, frequency
 
@@ -34,11 +33,13 @@ Backend complete (schema, DAL, server actions, board sync). Empty state and crea
 ## Update Log
 
 ### 2026-02-13
-- Added styled empty state component (`EmptyBoard`) for `/kanban` when no active plan exists
-- Implemented create plan page (`/kanban/plans/new`) with template picker grouped by Daily/Weekly, description input, summary bar, and form submission via `createPlanAction`
-- Created `TemplateItem` component with custom checkbox, points/frequency detail, and placeholder edit icon
-- Added client-safe enum constants (`features/kanban/utils/enums.ts`) to avoid importing Prisma client in `"use client"` components
-- Updated `CLAUDE.md` with conventions for component extraction and Heroicon JSX usage
+- Implemented three-column kanban board (Todo, In Progress, Done) with `KanbanBoard`, `BoardColumn`, and `TaskCard` components
+- Task cards display title, description, type badge (Daily/Weekly), and star-rated points
+- Added glassmorphism styling on columns (`bg-base-200/60 backdrop-blur-xl`) and cards (`bg-base-100/70 backdrop-blur-md`)
+- Card hover effect with lift, shadow increase, and brighter border
+- Responsive full-height layout — columns stretch to fill viewport, task lists scroll independently
+- Added task sorting utility (`taskSort.ts`) and `TaskStatus` enum
+- Added styled empty state and create plan flow (`EmptyBoard`, `/kanban/plans/new`)
 
 ### 2026-02-12
 - Refactored `syncAndFetchBoard()` into `runDailySync()` + `fetchBoard()` — sync logic is now standalone and reusable by future cron job
@@ -54,6 +55,7 @@ Backend complete (schema, DAL, server actions, board sync). Empty state and crea
 - UI mockups created (board, empty state, create plan, create/edit template)
 
 ## Done
+- [x] Kanban board page (`/kanban`) — three columns (Todo, In Progress, Done) with glassmorphism styling
 - [x] No-plan empty state with "Create Plan" prompt
 - [x] Create plan flow — period selector, description, template picker
 - [x] Write design doc with schema, API specs, entities, and key flows

@@ -10,6 +10,14 @@ export const TaskType = {
 } as const;
 export type TaskType = (typeof TaskType)[keyof typeof TaskType];
 
+export const TaskStatus = {
+  TODO: "TODO",
+  DOING: "DOING",
+  DONE: "DONE",
+  EXPIRED: "EXPIRED",
+} as const;
+export type TaskStatus = (typeof TaskStatus)[keyof typeof TaskStatus];
+
 export const PeriodType = {
   WEEKLY: "WEEKLY",
 } as const;
