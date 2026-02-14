@@ -32,7 +32,7 @@ export default function TaskCard({ task, taskType }: TaskCardProps) {
           <p className="text-xs text-base-content/60">{task.description}</p>
         )}
 
-        <div className="flex items-center gap-2 mt-1">
+        <div className="flex items-center gap-2 mt-2">
           <span
             className={`badge badge-xs font-bold uppercase ${
               isDaily ? "badge-info" : "badge-secondary"
@@ -41,9 +41,9 @@ export default function TaskCard({ task, taskType }: TaskCardProps) {
             {isDaily ? "DAILY" : "WEEKLY"}
           </span>
 
-          <span className="inline-flex items-center gap-0.5 text-xs text-base-content/70 ml-auto leading-none">
-            <StarIcon className="size-3 text-warning shrink-0" />
-            {task.points} {task.points === 1 ? "pt" : "pts"}
+          <span className="flex gap-0.5 text-xs ml-auto">
+            <StarIcon className="size-4 text-warning" />
+            <span className="text-base-content/70 font-bold">{`${task.points} ${task.points === 1 ? "pt" : "pts"}`}</span>
           </span>
         </div>
       </div>
