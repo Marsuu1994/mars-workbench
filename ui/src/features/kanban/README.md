@@ -4,19 +4,22 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 
 ## Current State
 
-Backend complete (schema, DAL, server actions, board sync). Full board UI with drag-and-drop — `/kanban` displays a three-column kanban board (Todo, In Progress, Done) with task cards that can be dragged between columns. Moves use optimistic UI with server-side persistence and automatic rollback on failure. Task cards show title, description, type badge, and points. Cards have hover lift+shadow effects. Layout is responsive full-height with independently scrollable columns. Empty state and create plan flow available when no active plan exists.
+Backend complete (schema, DAL, server actions, board sync). Full board UI with drag-and-drop — `/kanban` displays a three-column kanban board (Todo, In Progress, Done) with task cards that can be dragged between columns. Moves use optimistic UI with server-side persistence and automatic rollback on failure. Task cards show title, description, type badge, and points. Cards have hover lift+shadow effects. Layout is responsive full-height with independently scrollable columns. Board header shows "Kanban Planner" title with a week date-range badge and Edit Plan button. Empty state and create plan flow available when no active plan exists.
 
 ## Backlog
 ### High Priority
+- [ ] Add edit plan flow, basically same as create plan flow but with preselected task template
 - [ ] Create/edit task template modal — title, description, type, points, frequency
 
 ### MVP
 - [ ] Score bar — today's points, tasks done count, week progress
 - [ ] Add end of period sync flow
 - [ ] Add preselect task template from pending_update plan
-- [ ] Create common header for kanban page
 
 ### Future
+- [ ] Support same group ordering for drag and drop within same column
+- [ ] Design better way to handle task templates
+- [ ] Add subtitle field to task template to support different titles
 - [ ] Create common landing page for Mars workbench to navigate between features
 - [ ] Make all DB actions using transactions
 - [ ] Task overlap visualization (stacked cards)
@@ -30,6 +33,10 @@ Backend complete (schema, DAL, server actions, board sync). Full board UI with d
 - [ ] Design way to manage UI effect when there are too many task templates
 
 ## Update Log
+
+### 2026-02-14
+- Added board header with "Kanban Planner" title, week date-range badge (e.g. "Week 06 · Feb 3 – Feb 9"), and Edit Plan button
+- Added `getWeekDateRange()` utility to derive Monday–Sunday range from ISO week key
 
 ### 2026-02-13
 - Added drag-and-drop between columns using `@hello-pangea/dnd` with optimistic UI and server rollback
@@ -54,6 +61,7 @@ Backend complete (schema, DAL, server actions, board sync). Full board UI with d
 - UI mockups created (board, empty state, create plan, create/edit template)
 
 ## Done
+- [x] Board header with title, week date-range badge, and Edit Plan button
 - [x] Kanban board page (`/kanban`) — three columns (Todo, In Progress, Done) with glassmorphism styling
 - [x] No-plan empty state with "Create Plan" prompt
 - [x] Create plan flow — period selector, description, template picker
