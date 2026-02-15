@@ -4,9 +4,10 @@ import { getWeekDateRange } from "@/features/kanban/utils/dateUtils";
 
 interface BoardHeaderProps {
   periodKey: string;
+  planId: string;
 }
 
-export default function BoardHeader({ periodKey }: BoardHeaderProps) {
+export default function BoardHeader({ periodKey, planId }: BoardHeaderProps) {
   const dateRange = getWeekDateRange(periodKey);
 
   return (
@@ -20,7 +21,7 @@ export default function BoardHeader({ periodKey }: BoardHeaderProps) {
         </span>
       </div>
 
-      <Link href="/kanban/plans/new" className="btn btn-ghost btn-sm text-sm gap-1 border border-base-content/15">
+      <Link href={`/kanban/plans/${planId}`} className="btn btn-ghost btn-sm text-sm gap-1 border border-base-content/15">
         <PencilSquareIcon className="w-4 h-4" />
         Edit Plan
       </Link>

@@ -4,11 +4,10 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 
 ## Current State
 
-Backend complete (schema, DAL, server actions, board sync). Full board UI with drag-and-drop — `/kanban` displays a three-column kanban board (Todo, In Progress, Done) with task cards that can be dragged between columns. Moves use optimistic UI with server-side persistence and automatic rollback on failure. Task cards show title, description, type badge, and points. Cards have hover lift+shadow effects. Layout is responsive full-height with independently scrollable columns. Board header shows "Kanban Planner" title with a week date-range badge and Edit Plan button. Empty state and create plan flow available when no active plan exists.
+Backend complete (schema, DAL, server actions, board sync). Full board UI with drag-and-drop — `/kanban` displays a three-column kanban board (Todo, In Progress, Done) with task cards that can be dragged between columns. Moves use optimistic UI with server-side persistence and automatic rollback on failure. Task cards show title, description, type badge, and points. Cards have hover lift+shadow effects. Layout is responsive full-height with independently scrollable columns. Board header shows "Kanban Planner" title with a week date-range badge and Edit Plan button linking to the edit plan page. Create plan flow at `/kanban/plans/new` and edit plan flow at `/kanban/plans/[id]` share a unified `PlanForm` component and layout. Edit plan prefills description and preselects linked templates. Points calculation includes both daily and weekly templates.
 
 ## Backlog
 ### High Priority
-- [ ] Add edit plan flow, basically same as create plan flow but with preselected task template
 - [ ] Create/edit task template modal — title, description, type, points, frequency
 
 ### MVP
@@ -17,6 +16,7 @@ Backend complete (schema, DAL, server actions, board sync). Full board UI with d
 - [ ] Add preselect task template from pending_update plan
 
 ### Future
+- [ ] When remove a task template during edit plan, add modal to check if user want to delete existing tasks on board
 - [ ] Support same group ordering for drag and drop within same column
 - [ ] Design better way to handle task templates
 - [ ] Add subtitle field to task template to support different titles
@@ -35,8 +35,12 @@ Backend complete (schema, DAL, server actions, board sync). Full board UI with d
 ## Update Log
 
 ### 2026-02-14
-- Added board header with "Kanban Planner" title, week date-range badge (e.g. "Week 06 · Feb 3 – Feb 9"), and Edit Plan button
-- Added `getWeekDateRange()` utility to derive Monday–Sunday range from ISO week key
+- Added edit plan flow at `/kanban/plans/[id]` with prefilled description and preselected templates
+- Unified create/edit into shared `PlanForm` component with mode-based header and submit label
+- Extracted shared plans layout (`/kanban/plans/layout.tsx`) for create and edit pages
+- Edit Plan button in board header now links to the current plan's edit page
+- Points calculation now includes both daily and weekly template points
+- Added board header with "Kanban Planner" title, week date-range badge, and Edit Plan button
 
 ### 2026-02-13
 - Added drag-and-drop between columns using `@hello-pangea/dnd` with optimistic UI and server rollback
@@ -61,6 +65,7 @@ Backend complete (schema, DAL, server actions, board sync). Full board UI with d
 - UI mockups created (board, empty state, create plan, create/edit template)
 
 ## Done
+- [x] Edit plan flow with prefilled description and preselected templates
 - [x] Board header with title, week date-range badge, and Edit Plan button
 - [x] Kanban board page (`/kanban`) — three columns (Todo, In Progress, Done) with glassmorphism styling
 - [x] No-plan empty state with "Create Plan" prompt

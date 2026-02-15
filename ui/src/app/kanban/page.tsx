@@ -17,7 +17,7 @@ export default async function KanbanPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <BoardHeader periodKey={board.plan.periodKey} />
+      <BoardHeader periodKey={board.plan.periodKey} planId={board.plan.id} />
       <div className="flex-1 min-h-0 p-4">
         <KanbanBoard tasks={board.tasks} templateTypeMap={templateTypeMap} />
       </div>

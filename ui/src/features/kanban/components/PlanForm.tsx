@@ -6,24 +6,36 @@ import Link from "next/link";
 import { CheckIcon } from "@heroicons/react/24/outline";
 import { TaskType, PeriodType } from "@/features/kanban/utils/enums";
 import type { TaskTemplateItem } from "@/lib/db/taskTemplates";
-import { createPlanAction } from "@/features/kanban/actions/planActions";
+import { createPlanAction, updatePlanAction } from "@/features/kanban/actions/planActions";
 import TemplateItem from "./TemplateItem";
 
-interface CreatePlanFormProps {
+interface PlanFormProps {
   templates: TaskTemplateItem[];
+  mode: "create" | "edit";
+  planId?: string;
+  initialSelectedIds?: string[];
+  initialDescription?: string;
 }
 
-export default function CreatePlanForm({ templates }: CreatePlanFormProps) {
+export default function PlanForm({
+  templates,
+  mode,
+  planId,
+  initialSelectedIds = [],
+  initialDescription = "",
+}: PlanFormProps) {
   const router = useRouter();
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [description, setDescription] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(
+    new Set(initialSelectedIds)
+  );
+  const [description, setDescription] = useState(initialDescription);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const dailyTemplates = templates.filter((t) => t.type === TaskType.DAILY);
   const weeklyTemplates = templates.filter((t) => t.type === TaskType.WEEKLY);
 
-  const maxDailyPoints = dailyTemplates
+  const maxDailyPoints = templates
     .filter((t) => selectedIds.has(t.id))
     .reduce((sum, t) => sum + t.points * t.frequency, 0);
 
@@ -44,11 +56,24 @@ export default function CreatePlanForm({ templates }: CreatePlanFormProps) {
     setError(null);
     setIsSubmitting(true);
 
-    const result = await createPlanAction({
-      periodType: PeriodType.WEEKLY,
-      description: description.trim() || undefined,
-      templateIds: Array.from(selectedIds),
-    });
+    const templateIds = Array.from(selectedIds);
+
+    let result;
+    switch (mode) {
+      case "create":
+        result = await createPlanAction({
+          periodType: PeriodType.WEEKLY,
+          description: description.trim() || undefined,
+          templateIds,
+        });
+        break;
+      case "edit":
+        result = await updatePlanAction(planId!, {
+          description: description.trim() || undefined,
+          templateIds,
+        });
+        break;
+    }
 
     if (result.error) {
       const err = result.error;
@@ -87,6 +112,16 @@ export default function CreatePlanForm({ templates }: CreatePlanFormProps) {
   }
 
   return (
+    <>
+      <h2 className="text-2xl font-bold mb-1">
+        {mode === "create" ? "Create Weekly Plan" : "Update Weekly Plan"}
+      </h2>
+      {mode === "create" && (
+        <p className="text-base-content/50 mb-7">
+          Set up your task templates and start a new week.
+        </p>
+      )}
+      {mode === "edit" && <div className="mb-6" />}
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       {/* Description */}
       <div className="form-control">
@@ -163,10 +198,11 @@ export default function CreatePlanForm({ templates }: CreatePlanFormProps) {
             ) : (
               <CheckIcon className="size-4" />
             )}
-            Start Week
+            {mode === "create" ? "Start Week" : "Update Plan"}
           </button>
         </div>
       </div>
     </form>
+    </>
   );
 }
