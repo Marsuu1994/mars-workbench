@@ -60,6 +60,9 @@ ui/
 - Use Heroicons as JSX imports (e.g., `<PlusIcon />`) instead of inline SVG.
 - Group logically related utility functions into a single file (e.g., `taskUtils.ts` for sorting and grouping tasks) rather than splitting each function into its own file.
 - Use `text-warning` for all star/points icons to maintain visual consistency across the app.
+- When you need both a full dataset and a filtered subset, fetch once from the DB and filter in-memory on the server side. Do not issue multiple DB queries for overlapping data.
+  - Bad: `boardTasks = getTasksByStatus([TODO, DOING, DONE])` + `allTasks = getTasksByStatus([TODO, DOING, DONE, EXPIRED])`
+  - Good: `allTasks = getTasksByPlanId(planId)` then `boardTasks = allTasks.filter(t => t.status !== EXPIRED)`
 
 ## Commands
 

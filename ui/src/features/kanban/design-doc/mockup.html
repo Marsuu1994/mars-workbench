@@ -52,26 +52,43 @@
   }
   .header-right { display: flex; align-items: center; gap: 12px; }
 
-  /* Score bar */
-  .score-bar {
+  /* Progress Dashboard */
+  .progress-dashboard {
     padding: 12px 24px; display: flex; align-items: center; gap: 24px;
     border-bottom: 1px solid #2a2e3e; background: #171b2a;
   }
-  .score-item { display: flex; align-items: center; gap: 6px; font-size: 13px; }
-  .score-value { font-weight: 700; font-size: 20px; }
-  .score-value.green { color: #6ee7b7; }
-  .score-value.amber { color: #fbbf24; }
-  .score-value.blue { color: #60a5fa; }
-  .score-label { color: #8b8fa3; font-size: 12px; }
-  .score-divider { width: 1px; height: 28px; background: #2a2e3e; }
-  .progress-bar-bg {
-    flex: 1; height: 6px; background: #2a2e3e; border-radius: 999px; overflow: hidden;
+  .ring-group { display: flex; align-items: center; gap: 12px; }
+  .progress-ring { position: relative; width: 48px; height: 48px; flex-shrink: 0; }
+  .progress-ring svg { transform: rotate(-90deg); }
+  .ring-track { fill: none; stroke: #2a2e3e; stroke-width: 4; }
+  .ring-fill { fill: none; stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset 0.5s ease; }
+  .ring-fill { stroke: #6ee7b7; }
+  .ring-center {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: #e2e5ed;
   }
-  .progress-bar-fill {
+  .ring-label { display: flex; flex-direction: column; gap: 1px; }
+  .ring-label-title { font-size: 13px; font-weight: 600; color: #e2e5ed; }
+  .ring-label-sub { font-size: 12px; color: #8b8fa3; }
+  .dash-divider { width: 1px; height: 32px; background: #2a2e3e; }
+  .stat-item { display: flex; flex-direction: column; gap: 1px; }
+  .stat-value { font-size: 18px; font-weight: 700; }
+  .stat-value.green { color: #6ee7b7; }
+  .stat-value.blue { color: #60a5fa; }
+  .stat-value.amber { color: #fbbf24; }
+  .stat-label { font-size: 12px; color: #8b8fa3; }
+  .week-bar-group { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .week-bar-header { display: flex; justify-content: space-between; align-items: center; }
+  .week-bar-title { font-size: 13px; font-weight: 600; color: #e2e5ed; }
+  .week-bar-pct { font-size: 12px; font-weight: 600; color: #60a5fa; }
+  .week-bar-sub { font-size: 12px; color: #8b8fa3; }
+  .week-bar-track {
+    height: 6px; background: #2a2e3e; border-radius: 999px; overflow: hidden;
+  }
+  .week-bar-fill {
     height: 100%; border-radius: 999px;
-    background: linear-gradient(90deg, #6ee7b7, #34d399);
-    width: 35%;
-    transition: width 0.5s ease;
+    background: linear-gradient(90deg, #60a5fa, #6ee7b7);
+    width: 19%; transition: width 0.5s ease;
   }
 
   /* Board */
@@ -323,35 +340,54 @@
       </div>
     </div>
 
-    <!-- Score bar -->
-    <div class="score-bar">
-      <div class="score-item">
-        <div>
-          <div class="score-value green">24</div>
-          <div class="score-label">Today's Points</div>
+    <!-- Progress Dashboard -->
+    <div class="progress-dashboard">
+      <!-- Today ring -->
+      <div class="ring-group">
+        <div class="progress-ring">
+          <svg viewBox="0 0 52 52" width="48" height="48">
+            <circle class="ring-track" cx="26" cy="26" r="22"/>
+            <!-- 3/10 = 30%: circumference = 2π×22 ≈ 138.23; offset = 138.23 × (1 - 0.30) ≈ 96.76 -->
+            <circle class="ring-fill green" cx="26" cy="26" r="22" stroke-dasharray="138.23" stroke-dashoffset="96.76"/>
+          </svg>
+          <div class="ring-center">30%</div>
+        </div>
+        <div class="ring-label">
+          <span class="ring-label-title">Today</span>
+          <span class="ring-label-sub">3 of 10 tasks</span>
         </div>
       </div>
-      <div class="score-divider"></div>
-      <div class="score-item">
-        <div>
-          <div class="score-value amber">8 / 42</div>
-          <div class="score-label">Tasks Done</div>
-        </div>
+
+      <div class="dash-divider"></div>
+
+      <!-- Today Points -->
+      <div class="stat-item">
+        <div class="stat-value green">3 / 10</div>
+        <div class="stat-label">Today Points</div>
       </div>
-      <div class="score-divider"></div>
-      <div class="score-item">
-        <div>
-          <div class="score-value blue">156</div>
-          <div class="score-label">Week Points</div>
-        </div>
+
+      <!-- Week Points -->
+      <div class="stat-item">
+        <div class="stat-value blue">48 / 156</div>
+        <div class="stat-label">Week Points</div>
       </div>
-      <div class="score-divider"></div>
-      <div style="flex:1">
-        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-          <span class="score-label">Week Progress</span>
-          <span style="font-size:12px;color:#6ee7b7;font-weight:600">35%</span>
+
+      <!-- Daily Avg -->
+      <div class="stat-item">
+        <div class="stat-value amber">6.8</div>
+        <div class="stat-label">Daily Avg</div>
+      </div>
+
+      <div class="dash-divider"></div>
+
+      <!-- Week Progress Bar -->
+      <div class="week-bar-group">
+        <div class="week-bar-header">
+          <span class="week-bar-title">Week Progress</span>
+          <span class="week-bar-pct">19%</span>
         </div>
-        <div class="progress-bar-bg"><div class="progress-bar-fill"></div></div>
+        <div class="week-bar-track"><div class="week-bar-fill"></div></div>
+        <span class="week-bar-sub">8 of 42 tasks</span>
       </div>
     </div>
 

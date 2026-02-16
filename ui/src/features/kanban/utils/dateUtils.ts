@@ -7,10 +7,20 @@ export function getTodayDate(): Date {
 }
 
 /**
- * Parses a periodKey like "2026-W06" and returns a formatted string
- * like "Week 06 · Feb 3 – Feb 9" (Monday–Sunday range).
+ * Returns true if `a` and `b` share the same year/month/day.
+ * Returns false if `a` is null.
  */
-export function getWeekDateRange(periodKey: string): string {
+export function sameDay(a: Date | null, b: Date): boolean {
+  if (!a) return false;
+  const az = new Date(a.getFullYear(), a.getMonth(), a.getDate());
+  const bz = new Date(b.getFullYear(), b.getMonth(), b.getDate());
+  return az.getTime() === bz.getTime();
+}
+
+/**
+ * Parses a periodKey like "2026-W06" and returns the Monday of that ISO week.
+ */
+export function getMondayFromPeriodKey(periodKey: string): Date {
   const [yearStr, weekStr] = periodKey.split("-W");
   const year = Number(yearStr);
   const week = Number(weekStr);
@@ -21,6 +31,16 @@ export function getWeekDateRange(periodKey: string): string {
   const jan4Day = jan4.getDay() || 7; // Mon=1 … Sun=7
   const monday = new Date(jan4);
   monday.setDate(jan4.getDate() - jan4Day + 1 + (week - 1) * 7);
+  return monday;
+}
+
+/**
+ * Parses a periodKey like "2026-W06" and returns a formatted string
+ * like "Week 06 · Feb 3 – Feb 9" (Monday–Sunday range).
+ */
+export function getWeekDateRange(periodKey: string): string {
+  const weekStr = periodKey.split("-W")[1];
+  const monday = getMondayFromPeriodKey(periodKey);
 
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);

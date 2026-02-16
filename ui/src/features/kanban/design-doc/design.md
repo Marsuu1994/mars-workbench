@@ -76,6 +76,28 @@ Sync logic lives in `runDailySync(planId, today)` — a standalone function reus
 - Idempotency key: `(plan_id, template_id, forDate, instance_index)`.
 - Plan creation and template updates also set `lastSyncDate` to avoid redundant sync on next page load.
 
+### Progress tracking flow
+
+A progress dashboard sits between the board header and the kanban columns in a single row:
+
+**Today Ring (left):** Circular SVG progress ring showing `todayDoneCount / todayTotalCount`. Label: "Today · {done} of {total} tasks". Color: success/green.
+- `todayDoneCount`: tasks with `status = DONE` and `doneAt = today`
+- `todayTotalCount`: all non-expired tasks on the board (TODO + DOING + DONE). These represent today's actionable work.
+
+**Stat metrics (center, separated by dividers):**
+
+1. **Today Points** — `{todayDonePoints} / {todayTotalPoints}` showing points earned today vs available today. Color: success/green.
+2. **Week Points** — `{weekDonePoints} / {weekTotalPoints}`. Includes expired tasks in total. Color: info/blue.
+3. **Daily Avg** — `weekDonePoints / daysElapsed` where `daysElapsed` is the number of days since the plan's week started (1–7). Color: warning/amber.
+
+**Week Progress Bar (right, fills remaining space):** Horizontal bar with gradient fill (blue → green) showing `weekDoneCount / weekTotalCount` as a percentage. Label: "Week Progress · {done} of {total} tasks".
+- `weekDoneCount`: all tasks with `status = DONE` in the plan
+- `weekTotalCount`: ALL tasks in the plan (TODO + DOING + DONE + EXPIRED). Expired tasks count toward the total to reflect the full scope of work planned.
+
+All metrics are computed server-side in `fetchBoard()` and returned as part of `BoardData`. No new database queries are needed — values are derived from the existing tasks array (which includes all statuses for counting, but only returns non-expired tasks for board rendering).
+
+Note: the current `todayPoints` calculation in `fetchBoard()` does not filter by today's date — it sums all DONE tasks. This must be fixed to filter where `doneAt` matches today.
+
 ## Schema
 
 ### Plan
@@ -198,11 +220,54 @@ The `/kanban` page is a Server Component that calls `fetchBoard()` directly — 
 
 ```
 BoardData {
-  plan:        PlanWithTemplates   // Active plan with linked templates
-  tasks:       TaskItem[]          // All non-expired tasks (TODO, DOING, DONE)
-  todayPoints: number              // Sum of completed task points
+  plan:            PlanWithTemplates   // Active plan with linked templates
+  tasks:           TaskItem[]          // Non-expired tasks for board rendering (TODO, DOING, DONE)
+  todayDoneCount:  number              // Tasks completed today (status=DONE, doneAt=today)
+  todayTotalCount: number              // Board tasks (TODO + DOING + DONE)
+  todayDonePoints: number              // Points from tasks completed today
+  todayTotalPoints:number              // Points from all board tasks (TODO + DOING + DONE)
+  weekDoneCount:   number              // DONE tasks in the plan
+  weekTotalCount:  number              // ALL tasks (TODO + DOING + DONE + EXPIRED)
+  weekDonePoints:  number              // Points from DONE tasks
+  weekTotalPoints: number              // Points from ALL tasks (TODO + DOING + DONE + EXPIRED)
+  daysElapsed:     number              // Days into the week (1–7), for daily avg
 }
 ```
+
+#### `fetchBoard()` computation details
+
+Two DB queries are needed: one for board tasks (non-expired), one for all tasks (including expired). The existing `getTasksByPlanIdAndStatus(planId, statuses)` DAL function supports both.
+
+```
+today       = getTodayDate()
+boardTasks  = getTasksByPlanIdAndStatus(planId, [TODO, DOING, DONE])
+allTasks    = getTasksByPlanIdAndStatus(planId, [TODO, DOING, DONE, EXPIRED])
+
+// — Today Ring —
+todayDoneCount  = boardTasks.filter(t => t.status == DONE && sameDay(t.doneAt, today)).length
+todayTotalCount = boardTasks.length
+
+// — Today Points (done / total for board tasks) —
+todayDonePoints  = boardTasks.filter(t => t.status == DONE && sameDay(t.doneAt, today)).sum(points)
+todayTotalPoints = boardTasks.sum(points)
+
+// — Week Points (done / total including expired) —
+weekDoneCount   = allTasks.filter(t => t.status == DONE).length
+weekTotalCount  = allTasks.length
+weekDonePoints  = allTasks.filter(t => t.status == DONE).sum(points)
+weekTotalPoints = allTasks.sum(points)
+
+// — Days Elapsed (for Daily Avg) —
+weekStart   = getMondayFromPeriodKey(plan.periodKey)   // e.g. "2026-W06" → Feb 3
+daysElapsed = daysBetween(weekStart, today) + 1        // Mon=1 … Sun=7, clamped to 1–7
+
+// — Daily Avg (derived client-side or server-side) —
+dailyAvg = weekDonePoints / daysElapsed
+```
+
+`sameDay(a, b)` compares year/month/day of two dates (ignoring time). Can reuse `getTodayDate()` from `dateUtils.ts` which already zeroes time components — compare via `getTime()` equality after zeroing `doneAt`'s time.
+
+`getMondayFromPeriodKey(periodKey)` parses `"2026-W06"` into the Monday of that ISO week. The existing `getWeekDateRange()` in `dateUtils.ts` already computes this Monday — extract the Monday calculation into a reusable helper.
 
 ### Server Actions (Mutations)
 

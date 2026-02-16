@@ -6,17 +6,25 @@ import {
 import {
   expireStaleDailyTasks,
   createManyTasks,
-  getTasksByPlanIdAndStatus,
+  getTasksByPlanId,
 } from "@/lib/db/tasks";
 import type { PlanWithTemplates } from "@/lib/db/plans";
 import type { TaskItem } from "@/lib/db/tasks";
 import { TaskType, TaskStatus } from "@/generated/prisma/client";
-import { getTodayDate } from "../utils/dateUtils";
+import { getTodayDate, sameDay, getMondayFromPeriodKey } from "../utils/dateUtils";
 
 export type BoardData = {
   plan: PlanWithTemplates;
   tasks: TaskItem[];
-  todayPoints: number;
+  todayDoneCount: number;
+  todayTotalCount: number;
+  todayDonePoints: number;
+  todayTotalPoints: number;
+  weekDoneCount: number;
+  weekTotalCount: number;
+  weekDonePoints: number;
+  weekTotalPoints: number;
+  daysElapsed: number;
 };
 
 /**
@@ -82,17 +90,44 @@ export async function fetchBoard(): Promise<BoardData | null> {
   const planWithTemplates = await getPlanWithTemplates(activePlan.id);
   if (!planWithTemplates) return null;
 
-  // Fetch all non-expired tasks
-  const tasks = await getTasksByPlanIdAndStatus(activePlan.id, [
-    TaskStatus.TODO,
-    TaskStatus.DOING,
-    TaskStatus.DONE,
-  ]);
+  // Single query: fetch all tasks for the plan (including expired)
+  const allTasks = await getTasksByPlanId(activePlan.id);
 
-  // Calculate today's completed points
-  const todayPoints = tasks
-    .filter((t) => t.status === TaskStatus.DONE && t.doneAt !== null)
-    .reduce((sum, t) => sum + t.points, 0);
+  // Filter in-memory: board tasks exclude expired
+  const boardTasks = allTasks.filter((t) => t.status !== TaskStatus.EXPIRED);
 
-  return { plan: planWithTemplates, tasks, todayPoints };
+  // — Today metrics (from board tasks) —
+  const todayDone = boardTasks.filter(
+    (t) => t.status === TaskStatus.DONE && sameDay(t.doneAt, today)
+  );
+  const todayDoneCount = todayDone.length;
+  const todayTotalCount = boardTasks.length;
+  const todayDonePoints = todayDone.reduce((sum, t) => sum + t.points, 0);
+  const todayTotalPoints = boardTasks.reduce((sum, t) => sum + t.points, 0);
+
+  // — Week metrics (from all tasks including expired) —
+  const weekDone = allTasks.filter((t) => t.status === TaskStatus.DONE);
+  const weekDoneCount = weekDone.length;
+  const weekTotalCount = allTasks.length;
+  const weekDonePoints = weekDone.reduce((sum, t) => sum + t.points, 0);
+  const weekTotalPoints = allTasks.reduce((sum, t) => sum + t.points, 0);
+
+  // — Days elapsed (1–7) —
+  const weekStart = getMondayFromPeriodKey(planWithTemplates.periodKey);
+  const diffMs = today.getTime() - weekStart.getTime();
+  const daysElapsed = Math.min(7, Math.max(1, Math.floor(diffMs / 86400000) + 1));
+
+  return {
+    plan: planWithTemplates,
+    tasks: boardTasks,
+    todayDoneCount,
+    todayTotalCount,
+    todayDonePoints,
+    todayTotalPoints,
+    weekDoneCount,
+    weekTotalCount,
+    weekDonePoints,
+    weekTotalPoints,
+    daysElapsed,
+  };
 }
