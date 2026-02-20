@@ -104,8 +104,6 @@ A progress dashboard sits between the board header and the kanban columns in a s
 
 All metrics are computed server-side in `fetchBoard()` and returned as part of `BoardData`. No new database queries are needed — values are derived from the existing tasks array (which includes all statuses for counting, but only returns non-expired tasks for board rendering).
 
-Note: the current `todayPoints` calculation in `fetchBoard()` does not filter by today's date — it sums all DONE tasks. This must be fixed to filter where `doneAt` matches today.
-
 ## Schema
 
 ### Plan
@@ -245,12 +243,12 @@ BoardData {
 
 #### `fetchBoard()` computation details
 
-Two DB queries are needed: one for board tasks (non-expired), one for all tasks (including expired). The existing `getTasksByPlanIdAndStatus(planId, statuses)` DAL function supports both.
+Single DB query fetches all tasks via `getTasksByPlanId(planId)`, then filters in-memory:
 
 ```
-today       = getTodayDate()
-boardTasks  = getTasksByPlanIdAndStatus(planId, [TODO, DOING, DONE])
-allTasks    = getTasksByPlanIdAndStatus(planId, [TODO, DOING, DONE, EXPIRED])
+today      = getTodayDate()
+allTasks   = getTasksByPlanId(planId)
+boardTasks = allTasks.filter(t => t.status !== EXPIRED)
 
 // — Today Ring —
 todayDoneCount  = boardTasks.filter(t => t.status == DONE && sameDay(t.doneAt, today)).length
@@ -273,10 +271,6 @@ daysElapsed = daysBetween(weekStart, today) + 1        // Mon=1 … Sun=7, clamp
 // — Daily Avg (derived client-side or server-side) —
 dailyAvg = weekDonePoints / daysElapsed
 ```
-
-`sameDay(a, b)` compares year/month/day of two dates (ignoring time). Can reuse `getTodayDate()` from `dateUtils.ts` which already zeroes time components — compare via `getTime()` equality after zeroing `doneAt`'s time.
-
-`getMondayFromPeriodKey(periodKey)` parses `"2026-W06"` into the Monday of that ISO week. The existing `getWeekDateRange()` in `dateUtils.ts` already computes this Monday — extract the Monday calculation into a reusable helper.
 
 ### Server Actions (Mutations)
 

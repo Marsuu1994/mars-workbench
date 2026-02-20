@@ -4,11 +4,11 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 
 ## Current State
 
-Backend complete (schema, DAL, server actions, board sync). Full board UI with drag-and-drop — `/kanban` displays a three-column kanban board (Todo, In Progress, Done) with task cards that can be dragged between columns. Moves use optimistic UI with server-side persistence and automatic rollback on failure. Task cards show title, description, unified type badge (`TaskTypeBadge`), and points. Cards have hover lift+shadow effects. Layout is responsive full-height with independently scrollable columns. Board header shows "Kanban Planner" title with a week date-range badge and Edit Plan button linking to the edit plan page. Plans pages show a "Planning Mode" header. Progress dashboard sits between the header and board columns showing: Today progress ring (SVG circle with percentage), three stat metrics (Today Points, Week Points, Daily Avg), and a Week Progress Bar with gradient fill. All metrics are computed server-side from a single DB query. End-of-period sync automatically detects when a new week starts, expires all undone tasks, and transitions the plan to `PENDING_UPDATE`. Create plan flow at `/kanban/plans/new` preselects templates from the previous plan; on submission the old plan is archived to `COMPLETED`. Edit plan flow at `/kanban/plans/[id]` shares a unified `PlanForm` component and layout with create. Edit plan prefills description and preselects linked templates. Points calculation includes both daily and weekly templates. Create/edit task template modal (refactored into `template-modal/` directory with sub-components) available from the plan form — supports title, description, type (Daily/Weekly), points, frequency with live preview. Modal cannot be dismissed by clicking outside. Type is immutable on edit. Edit icon reveals on template row hover.
+Backend complete (schema, DAL, server actions, board sync). Full board UI with drag-and-drop — `/kanban` displays a three-column kanban board (Todo, In Progress, Done) with task cards that can be dragged between columns. Moves use optimistic UI with server-side persistence and automatic rollback on failure. Task cards show title, description, unified type badge (`TaskTypeBadge`), and points. Cards have hover lift+shadow effects. Layout is responsive full-height with independently scrollable columns. Board header shows "Kanban Planner" title with a week date-range badge and Edit Plan button linking to the edit plan page. Plans pages show a "Planning Mode" header. Progress dashboard sits between the header and board columns showing: Today progress ring (SVG circle with percentage), three stat metrics (Today Points, Week Points, Daily Avg), and a Week Progress Bar with gradient fill. All metrics are computed server-side from a single DB query. End-of-period sync automatically detects when a new week starts, expires all undone tasks, and transitions the plan to `PENDING_UPDATE`. Create plan flow at `/kanban/plans/new` preselects templates from the previous plan; on submission the old plan is archived to `COMPLETED`. Edit plan flow at `/kanban/plans/[id]` shares a unified `PlanForm` component and layout with create. Edit plan prefills description and preselects linked templates. Points calculation includes both daily and weekly templates. Create/edit task template modal (refactored into `template-modal/` directory with sub-components) available from the plan form — supports title, description, type (Daily/Weekly), points, frequency with live preview. Modal cannot be dismissed by clicking outside. Type is immutable on edit. Edit icon reveals on template row hover. Skeleton loading states for board page and plan form pages via Next.js `loading.tsx` convention.
 
 ## Backlog
 ### High Priority
-- [ ] Add uniform loading state between pages
+- [ ] Adjust weekly total point tasks calculation flow
 
 ### MVP V2
 - [ ] Design the AI generated task instance flow
@@ -32,6 +32,10 @@ Backend complete (schema, DAL, server actions, board sync). Full board UI with d
 - [ ] Design way to manage UI effect when there are too many task templates
 
 ## Update Log
+
+### 2026-02-19
+- Added skeleton loading states for board page (`/kanban`) and plan form pages (`/kanban/plans/*`) using Next.js `loading.tsx`
+- Fixed stale design doc: removed outdated todayPoints bug note and updated fetchBoard pseudocode to reflect single-query approach
 
 ### 2026-02-15
 - Added progress dashboard with Today ring, stat metrics (Today Points, Week Points, Daily Avg), and Week Progress Bar
@@ -77,6 +81,7 @@ Backend complete (schema, DAL, server actions, board sync). Full board UI with d
 - UI mockups created (board, empty state, create plan, create/edit template)
 
 ## Done
+- [x] Uniform loading states for board and plan pages
 - [x] Unified task type badge, planning mode header, refactored template modal into sub-components, disabled backdrop close
 - [x] End-of-period sync — auto-detect new week, expire undone tasks, transition plan to PENDING_UPDATE
 - [x] Preselect task templates from previous plan when creating a new plan; archive old plan to COMPLETED
