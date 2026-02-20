@@ -44,7 +44,8 @@ ui/
 │   │       ├── components/        # UI components
 │   │       ├── utils/             # dateUtils, taskUtils, enums
 │   │       ├── schemas.ts         # Zod validation schemas
-│   │       └── design/            # Design docs (baseline, flows, api, mockup)
+│   │       └── design/            # Design docs (baseline.md, flows.md, api.md)
+│   │           └── mockup/        # Per-flow HTML mockups + shared styles.css
 │   └── components/
 │       └── common/
 │           └── Header.tsx         # Shared header component
@@ -68,7 +69,7 @@ Read the relevant feature's design docs **only when the task involves logic, dat
 | `baseline.md` | Schema or entity changes                        |
 | `flows.md`    | Flow changes or additions                       |
 | `api.md`      | REST API routes or server action or DAL changes |
-| `mockup.html` | UI tasks with complex interactions              |
+| `mockup/mockup-[flow].html` | UI mockups by flow                |
 
 ### Adding a New Flow
 
@@ -79,6 +80,31 @@ Follow these steps in order. Do not proceed to the next step without explicit us
 3. **Mockup** *(if UI is involved)* — Create an HTML mockup and present for approval before writing any logic
 4. **Plan + Actions** — Write the implementation plan and fill in `actions.md` with pseudocode and DAL contracts, present for approval
 5. **Implement** — Implement based on approved actions
+
+## UI Workflow
+
+### Initial Design for a Complex Feature
+
+When creating mockups for a new feature with multiple flows or pages, split them into separate files — one per flow or page — rather than one monolithic file. Place them in `features/[feature]/design/mockup/` alongside a shared `styles.css`:
+
+```
+design/mockup/
+├── styles.css                   # shared colors, layout, components
+├── mockup-board.html            # one file per distinct flow or page
+├── mockup-plan-form.html
+└── mockup-remove-instances.html
+```
+
+Each file should be self-contained (link to `./styles.css`) and represent only the screens relevant to that flow.
+
+### Adding a New Element to Existing UI
+
+1. Generate a **temporary HTML mockup** showing a side-by-side Before / After to illustrate the change
+2. Present for user review and approval before touching any code
+3. After approval:
+   - Implement the change in code
+   - Update the relevant `mockup/mockup-[flow].html` to reflect the new UI state
+   - Delete the temporary mockup file
 
 ## Layers
 

@@ -1,8 +1,17 @@
+import Link from "next/link";
+import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+
 export default function PlansLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col h-screen">
       <div className="flex items-center justify-between px-4 py-3 border-b border-base-content/10">
         <div className="flex items-center gap-3">
+          <Link
+            href="/kanban"
+            className="p-1.5 rounded-md text-base-content hover:bg-base-content/8 transition-colors"
+          >
+            <ChevronLeftIcon className="size-5" />
+          </Link>
           <h1 className="text-xl font-bold">
             <span className="text-success">Kanban</span> Planner
           </h1>

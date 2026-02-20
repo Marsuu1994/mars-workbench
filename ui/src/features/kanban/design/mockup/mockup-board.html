@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kanban — Board View</title>
+<link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/></svg>
+      <span style="font-weight:600;color:#e2e5ed">Mars Workbench</span>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Features</div>
+      <div class="sidebar-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        AI Chat
+      </div>
+      <div class="sidebar-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Kanban Planner
+      </div>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="sidebar-item" style="color:#6b7280">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        Settings
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="header">
+      <div class="header-left">
+        <span class="header-title"><span>Kanban</span> Planner</span>
+        <span class="header-badge">Week 08 &middot; Feb 17 – Feb 23</span>
+      </div>
+      <div class="header-right">
+        <div class="view-tabs">
+          <button class="view-tab active">Board</button>
+          <button class="view-tab">Templates</button>
+        </div>
+        <button class="btn btn-ghost" style="padding:8px 14px;font-size:13px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Edit Plan
+        </button>
+      </div>
+    </div>
+
+    <div class="progress-dashboard">
+      <div class="ring-group">
+        <div class="progress-ring">
+          <svg viewBox="0 0 52 52" width="48" height="48">
+            <circle class="ring-track" cx="26" cy="26" r="22"/>
+            <circle class="ring-fill" cx="26" cy="26" r="22" stroke-dasharray="138.23" stroke-dashoffset="96.76"/>
+          </svg>
+          <div class="ring-center">30%</div>
+        </div>
+        <div class="ring-label">
+          <span class="ring-label-title">Today</span>
+          <span class="ring-label-sub">3 of 10 tasks</span>
+        </div>
+      </div>
+      <div class="dash-divider"></div>
+      <div class="stat-item">
+        <div class="stat-value green">3 / 10</div>
+        <div class="stat-label">Today Points</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value blue">48 / 156</div>
+        <div class="stat-label">Week Points</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value amber">6.8</div>
+        <div class="stat-label">Daily Avg</div>
+      </div>
+      <div class="dash-divider"></div>
+      <div class="week-bar-group">
+        <div class="week-bar-header">
+          <span class="week-bar-title">Week Progress</span>
+          <span class="week-bar-pct">19%</span>
+        </div>
+        <div class="week-bar-track"><div class="week-bar-fill"></div></div>
+        <span class="week-bar-sub">8 of 42 tasks</span>
+      </div>
+    </div>
+
+    <div class="board">
+      <!-- Todo -->
+      <div class="column col-todo">
+        <div class="column-header"><span>Todo</span><span class="column-count">5</span></div>
+        <div class="column-body">
+          <div class="task-card">
+            <div class="task-title">Solve 3 LeetCode problems</div>
+            <div class="task-desc">Focus on dynamic programming</div>
+            <div class="task-meta">
+              <span class="task-badge badge-daily">Daily</span>
+              <span style="font-size:11px;color:#6b7280">1 of 1</span>
+              <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>10 pts</span>
+            </div>
+          </div>
+          <div class="task-card">
+            <div class="task-title">Read 30 pages</div>
+            <div class="task-desc">System Design Interview book</div>
+            <div class="task-meta">
+              <span class="task-badge badge-daily">Daily</span>
+              <span style="font-size:11px;color:#6b7280">1 of 1</span>
+              <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>5 pts</span>
+            </div>
+          </div>
+          <div class="task-card">
+            <div class="task-title">Practice mock interview</div>
+            <div class="task-meta">
+              <span class="task-badge badge-daily">Daily</span>
+              <span style="font-size:11px;color:#6b7280">1 of 1</span>
+              <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>8 pts</span>
+            </div>
+          </div>
+          <div class="task-card">
+            <div class="task-title">Go to gym – Leg day</div>
+            <div class="task-desc">30 min workout</div>
+            <div class="task-meta">
+              <span class="task-badge badge-weekly">Weekly</span>
+              <span style="font-size:11px;color:#6b7280">2 of 3</span>
+              <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>6 pts</span>
+            </div>
+          </div>
+          <div class="task-card">
+            <div class="task-title">Write blog post</div>
+            <div class="task-desc">Technical blog about React patterns</div>
+            <div class="task-meta">
+              <span class="task-badge badge-weekly">Weekly</span>
+              <span style="font-size:11px;color:#6b7280">1 of 1</span>
+              <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>12 pts</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Doing -->
+      <div class="column col-doing">
+        <div class="column-header"><span>In Progress</span><span class="column-count">2</span></div>
+        <div class="column-body">
+          <div class="task-card" style="border-color:#fbbf2440">
+            <div class="task-title">Morning jog 5km</div>
+            <div class="task-meta">
+              <span class="task-badge badge-daily">Daily</span>
+              <span style="font-size:11px;color:#6b7280">1 of 1</span>
+              <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>4 pts</span>
+            </div>
+          </div>
+          <div class="task-card" style="border-color:#fbbf2440">
+            <div class="task-title">Go to gym – Upper body</div>
+            <div class="task-desc">30 min workout</div>
+            <div class="task-meta">
+              <span class="task-badge badge-weekly">Weekly</span>
+              <span style="font-size:11px;color:#6b7280">3 of 3</span>
+              <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>6 pts</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Done -->
+      <div class="column col-done">
+        <div class="column-header"><span>Done</span><span class="column-count">3</span></div>
+        <div class="column-body">
+          <div class="task-card done-card" style="border-color:#6ee7b730">
+            <div class="task-title">Solve 3 LeetCode problems</div>
+            <div class="task-meta">
+              <span class="task-badge badge-daily">Daily</span>
+              <span style="font-size:11px;color:#6b7280">Yesterday</span>
+              <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>10 pts</span>
+            </div>
+          </div>
+          <div class="task-card done-card" style="border-color:#6ee7b730">
+            <div class="task-title">Morning jog 5km</div>
+            <div class="task-meta">
+              <span class="task-badge badge-daily">Daily</span>
+              <span style="font-size:11px;color:#6b7280">Yesterday</span>
+              <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>4 pts</span>
+            </div>
+          </div>
+          <div class="task-card done-card" style="border-color:#6ee7b730">
+            <div class="task-title">Go to gym – Push day</div>
+            <div class="task-desc">30 min workout</div>
+            <div class="task-meta">
+              <span class="task-badge badge-weekly">Weekly</span>
+              <span style="font-size:11px;color:#6b7280">1 of 3</span>
+              <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>6 pts</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

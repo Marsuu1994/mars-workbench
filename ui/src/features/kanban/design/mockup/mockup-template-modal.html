@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kanban — Template Modal (New / Edit)</title>
+<link rel="stylesheet" href="./styles.css" />
+<style>
+  .dimmed { flex: 1; overflow-y: auto; padding: 32px; opacity: 0.3; pointer-events: none; }
+</style>
+</head>
+<body>
+
+<div class="screen-nav">
+  <button class="screen-btn active" onclick="show('new')">New Template</button>
+  <button class="screen-btn" onclick="show('edit')">Edit Template</button>
+</div>
+
+<!-- NEW TEMPLATE -->
+<div id="screen-new" class="app">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/></svg>
+      <span style="font-weight:600;color:#e2e5ed">Mars Workbench</span>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Kanban Planner
+      </div>
+    </div>
+  </aside>
+  <div class="main" style="position:relative">
+    <div class="header">
+      <div class="header-left">
+        <div class="back-btn"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+        <span class="header-title"><span>Kanban</span> Planner</span>
+        <span class="header-badge" style="background:#2a1e1e;color:#f87171;">Planning Mode</span>
+      </div>
+    </div>
+    <div class="dimmed">
+      <div style="max-width:640px;margin:0 auto">
+        <h2 style="font-size:24px;font-weight:700;color:#e2e5ed;margin-bottom:24px">Create Weekly Plan</h2>
+        <div class="template-list">
+          <div class="template-item selected"><div class="template-check"></div><div class="template-info"><div class="template-name">Solve 3 LeetCode problems</div></div></div>
+          <div class="template-item selected"><div class="template-check"></div><div class="template-info"><div class="template-name">Morning jog 5km</div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title">Create Task Template</div>
+          <button style="background:none;border:none;cursor:pointer;color:#6b7280;padding:4px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Title <span style="color:#f87171">*</span></label>
+            <input class="form-input" placeholder="e.g. Solve 3 LeetCode problems" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-input" rows="3" placeholder="e.g. Focus on dynamic programming and graph problems" style="resize:vertical;font-family:inherit"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Type <span style="color:#f87171">*</span></label>
+            <div style="display:flex;gap:8px">
+              <div style="flex:1;padding:12px;background:#1e2a4a;border:2px solid #60a5fa;border-radius:10px;cursor:pointer;text-align:center">
+                <div style="font-size:20px;margin-bottom:4px">🔄</div>
+                <div style="font-size:14px;font-weight:600;color:#60a5fa">Daily</div>
+                <div style="font-size:11px;color:#6b7280;margin-top:2px">Repeats every day</div>
+              </div>
+              <div style="flex:1;padding:12px;background:#151825;border:2px solid #2a2e3e;border-radius:10px;cursor:pointer;text-align:center">
+                <div style="font-size:20px;margin-bottom:4px">📅</div>
+                <div style="font-size:14px;font-weight:600;color:#8b8fa3">Weekly</div>
+                <div style="font-size:11px;color:#6b7280;margin-top:2px">Set times per week</div>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Points <span style="color:#f87171">*</span></label>
+              <div style="position:relative">
+                <input class="form-input" type="number" placeholder="10" style="padding-left:32px" />
+                <svg viewBox="0 0 24 24" fill="#fbbf24" style="width:16px;height:16px;position:absolute;left:10px;top:50%;transform:translateY(-50%)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>
+              </div>
+              <div style="font-size:11px;color:#6b7280;margin-top:4px">Points earned when completed</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Frequency <span style="color:#f87171">*</span></label>
+              <div style="position:relative">
+                <input class="form-input" type="number" placeholder="1" style="padding-left:32px" />
+                <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;color:#60a5fa;font-weight:600">&times;</span>
+              </div>
+              <div style="font-size:11px;color:#6b7280;margin-top:4px">Instances generated per day</div>
+            </div>
+          </div>
+          <div style="margin-top:8px;padding:14px;background:#151825;border:1px dashed #2a2e3e;border-radius:10px">
+            <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Preview</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="task-badge badge-daily">Daily</span>
+              <span style="font-size:13px;color:#e2e5ed;font-weight:500">Untitled task</span>
+              <span class="task-points" style="margin-left:auto"><svg viewBox="0 0 24 24" fill="currentColor" style="width:12px;height:12px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>0 pts</span>
+            </div>
+            <div style="font-size:11px;color:#6b7280;margin-top:6px">Generates 1 task per day &middot; 7 per week &middot; 0 pts/week potential</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost">Cancel</button>
+          <button class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+            Create Template
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT TEMPLATE -->
+<div id="screen-edit" class="app" style="display:none">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/></svg>
+      <span style="font-weight:600;color:#e2e5ed">Mars Workbench</span>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Kanban Planner
+      </div>
+    </div>
+  </aside>
+  <div class="main" style="position:relative">
+    <div class="header">
+      <div class="header-left">
+        <div class="back-btn"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+        <span class="header-title"><span>Kanban</span> Planner</span>
+        <span class="header-badge" style="background:#2a1e1e;color:#f87171;">Planning Mode</span>
+      </div>
+    </div>
+    <div class="dimmed">
+      <div style="max-width:640px;margin:0 auto">
+        <h2 style="font-size:24px;font-weight:700;color:#e2e5ed;margin-bottom:24px">Create Weekly Plan</h2>
+        <div class="template-list">
+          <div class="template-item selected"><div class="template-check"></div><div class="template-info"><div class="template-name">Solve 3 LeetCode problems</div></div></div>
+          <div class="template-item selected"><div class="template-check"></div><div class="template-info"><div class="template-name">Morning jog 5km</div></div></div>
+          <div class="template-item selected"><div class="template-check"></div><div class="template-info"><div class="template-name">Go to gym</div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title">Edit Task Template</div>
+          <button style="background:none;border:none;cursor:pointer;color:#6b7280;padding:4px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Title <span style="color:#f87171">*</span></label>
+            <input class="form-input" value="Go to gym" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-input" rows="3" style="resize:vertical;font-family:inherit">30 min workout focusing on compound lifts</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Type <span style="font-size:11px;color:#6b7280;font-weight:400;text-transform:none">(immutable after creation)</span></label>
+            <div style="display:flex;gap:8px">
+              <div style="flex:1;padding:12px;background:#151825;border:2px solid #2a2e3e;border-radius:10px;opacity:0.5;text-align:center;cursor:not-allowed">
+                <div style="font-size:20px;margin-bottom:4px">🔄</div>
+                <div style="font-size:14px;font-weight:600;color:#8b8fa3">Daily</div>
+              </div>
+              <div style="flex:1;padding:12px;background:#2a1e4a;border:2px solid #a78bfa;border-radius:10px;text-align:center;cursor:not-allowed">
+                <div style="font-size:20px;margin-bottom:4px">📅</div>
+                <div style="font-size:14px;font-weight:600;color:#a78bfa">Weekly</div>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Points <span style="color:#f87171">*</span></label>
+              <div style="position:relative">
+                <input class="form-input" type="number" value="6" style="padding-left:32px" />
+                <svg viewBox="0 0 24 24" fill="#fbbf24" style="width:16px;height:16px;position:absolute;left:10px;top:50%;transform:translateY(-50%)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Frequency <span style="color:#f87171">*</span></label>
+              <div style="position:relative">
+                <input class="form-input" type="number" value="3" style="padding-left:32px" />
+                <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;color:#a78bfa;font-weight:600">&times;</span>
+              </div>
+              <div style="font-size:11px;color:#6b7280;margin-top:4px">Instances generated per week</div>
+            </div>
+          </div>
+          <div style="margin-top:8px;padding:14px;background:#151825;border:1px dashed #2a2e3e;border-radius:10px">
+            <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Preview</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="task-badge badge-weekly">Weekly</span>
+              <span style="font-size:13px;color:#e2e5ed;font-weight:500">Go to gym</span>
+              <span style="font-size:11px;color:#6b7280">1 of 3</span>
+              <span class="task-points" style="margin-left:auto"><svg viewBox="0 0 24 24" fill="currentColor" style="width:12px;height:12px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>6 pts</span>
+            </div>
+            <div style="font-size:11px;color:#6b7280;margin-top:6px">Generates 3 tasks per week &middot; 18 pts/week potential</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost">Cancel</button>
+          <button class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M5 13l4 4L19 7" stroke-linecap="round"/></svg>
+            Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(name) {
+  document.querySelectorAll('.app').forEach(el => el.style.display = 'none');
+  document.getElementById('screen-' + name).style.display = 'flex';
+  document.querySelectorAll('.screen-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.toLowerCase().includes(name));
+  });
+}
+</script>
+</body>
+</html>

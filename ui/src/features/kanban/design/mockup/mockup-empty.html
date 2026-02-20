@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kanban — Empty State</title>
+<link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/></svg>
+      <span style="font-weight:600;color:#e2e5ed">Mars Workbench</span>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Features</div>
+      <div class="sidebar-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        AI Chat
+      </div>
+      <div class="sidebar-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Kanban Planner
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="header">
+      <div class="header-left">
+        <span class="header-title"><span>Kanban</span> Planner</span>
+      </div>
+    </div>
+    <div class="empty-state">
+      <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="3" width="7" height="7" rx="1.5" stroke-dasharray="3 2"/>
+        <rect x="14" y="3" width="7" height="7" rx="1.5" stroke-dasharray="3 2"/>
+        <rect x="3" y="14" width="7" height="7" rx="1.5" stroke-dasharray="3 2"/>
+        <rect x="14" y="14" width="7" height="7" rx="1.5" stroke-dasharray="3 2"/>
+      </svg>
+      <div class="empty-title">No active plan</div>
+      <div class="empty-desc">Create a weekly plan to start tracking your tasks. Set up templates, assign points, and visualize your progress.</div>
+      <button class="btn btn-primary" style="margin-top:8px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+        Create Your First Plan
+      </button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
