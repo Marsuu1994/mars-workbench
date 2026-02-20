@@ -1,4 +1,4 @@
-Before committing, perform these documentation updates for each affected feature (`features/chat/README.md`, `features/kanban/README.md`, etc.):
+Before committing, perform these documentation updates for each affected feature (`features/chat/README.md`, `features/kanban/README.md`, etc.) and/or `claude.md`:
 
 1. **Move finished Backlog items to Done**:
    - Find all items marked with `[x]` in the Backlog section
@@ -13,5 +13,8 @@ Before committing, perform these documentation updates for each affected feature
 
 3. **Re-summarize Current State**:
    - Update the Current State section to reflect the latest state of the feature
+
+4. **Update claude.md**:
+   - Update tech stack, project structure, and feature section to reflect changes
 
 Then commit all staged and unstaged changes with a descriptive commit message, and push to remote.
