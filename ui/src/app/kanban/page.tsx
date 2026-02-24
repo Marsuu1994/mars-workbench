@@ -26,7 +26,11 @@ export default async function KanbanPage() {
         daysElapsed={board.daysElapsed}
       />
       <div className="flex-1 min-h-0 p-4">
-        <KanbanBoard tasks={board.tasks} />
+        <KanbanBoard
+          tasks={board.tasks}
+          daysElapsed={board.daysElapsed}
+          planTemplates={board.plan.planTemplates}
+        />
       </div>
     </div>
   );

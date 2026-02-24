@@ -13,8 +13,10 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 3. **Plan creation** — User creates a weekly plan by selecting task templates. First-time users create new templates; returning users can load templates from their last plan.
 4. **Task templates** — Reusable blueprints with title and description only. Type, frequency, and points are configured per-plan in PlanTemplate.
 5. **Auto-generation** — After plan creation, generate all necessary task instances. Daily tasks are regenerated each day.
-6. **Daily status recompute** — On first load each day, expire unfinished daily tasks from previous days and generate today's daily tasks. Idempotent.
+6. **Daily status recompute** — On first load each day, expire unfinished daily tasks older than yesterday and generate today's daily tasks. Idempotent. Yesterday's unfinished tasks carry over for one extra day with a distinct "rolled over" visual treatment.
 7. **Points tracking** — Each task carries a point value. Today's total points are displayed on the board.
+8. **Daily task rollover** — Unfinished daily tasks from yesterday roll over to the board for one extra day, shown with a "↩ Mon, Feb 23" date badge. Tasks older than yesterday are expired.
+9. **Risk level visualization** — Tasks display color-coded risk badges (warning / danger) based on task type, time of day, days elapsed in the period, and completion progress.
 
 ### Planned: V2
 

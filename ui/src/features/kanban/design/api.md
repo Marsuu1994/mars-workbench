@@ -34,6 +34,7 @@ BoardData {
 
 ```
 today      = getTodayDate()
+yesterday  = today - 1 day
 allTasks   = getTasksByPlanId(planId)
 boardTasks = allTasks.filter(t => t.status !== EXPIRED)
 
@@ -224,5 +225,6 @@ taskQueries.ts
   createTasks(data[])                                               // batch
   updateTaskStatus(taskId, status, doneAt?)
   deleteTasksByPlanAndTemplate(planId, templateId, statuses[])      // replaces expireTasks for edit plan flow
+  expireStaleDailyTasks(planId, cutoffDate)                         // expire DAILY tasks where forDate < cutoffDate (= yesterday); excludes DONE
   expireTasks(taskIds[])                                            // batch status → EXPIRED; excludes AD_HOC type
 ```

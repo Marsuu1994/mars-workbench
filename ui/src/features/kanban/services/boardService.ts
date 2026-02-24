@@ -14,7 +14,7 @@ import {
 import type { PlanWithTemplates } from "@/lib/db/plans";
 import type { TaskItem } from "@/lib/db/tasks";
 import { TaskType, TaskStatus, PlanStatus } from "@/generated/prisma/client";
-import { getTodayDate, getISOWeekKey, sameDay, getMondayFromPeriodKey, getSundayFromPeriodKey } from "../utils/dateUtils";
+import { getTodayDate, getYesterdayDate, getISOWeekKey, sameDay, getMondayFromPeriodKey, getSundayFromPeriodKey } from "../utils/dateUtils";
 
 export type BoardData = {
   plan: PlanWithTemplates;
@@ -59,9 +59,13 @@ export async function runDailySync(planId: string, today: Date): Promise<void> {
     }
   }
 
+  // 1-day rollover buffer: expire tasks older than yesterday, not older than today.
+  // Yesterday's tasks stay active for one more day before expiring.
+  const yesterday = getYesterdayDate();
+
   await prisma.$transaction(async (tx) => {
     await updateLastSyncDate(planId, today, tx);
-    await expireStaleDailyTasks(planId, today, tx);
+    await expireStaleDailyTasks(planId, yesterday, tx);
     if (dailyTaskData.length > 0) {
       await createManyTasks(dailyTaskData, tx);
     }
@@ -113,6 +117,8 @@ export async function fetchBoard(): Promise<BoardData | null> {
 
   // Filter in-memory: board tasks exclude expired
   const boardTasks = allTasks.filter((t) => t.status !== TaskStatus.EXPIRED);
+
+  console.log(allTasks)
 
   // — Today metrics (from board tasks) —
   const todayDone = boardTasks.filter(

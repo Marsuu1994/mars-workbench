@@ -1,16 +1,11 @@
 "use client";
 
-// Draggable makes an element draggable within a DragDropContext.
-// Like Droppable, it uses the "render props" pattern:
-// - `provided.innerRef`: attach to the DOM element being dragged
-// - `provided.draggableProps`: spread onto the element (positioning styles)
-// - `provided.dragHandleProps`: spread onto the drag handle (the part you grab)
-//   — here we make the entire card the handle
-// - `snapshot.isDragging`: true while this card is actively being dragged
 import { Draggable } from "@hello-pangea/dnd";
 import { StarIcon } from "@heroicons/react/24/solid";
 import type { TaskItem } from "@/lib/db/tasks";
-import { TaskStatus } from "../utils/enums";
+import { TaskStatus, TaskType } from "../utils/enums";
+import { formatShortDate, normalizeForDate } from "../utils/dateUtils";
+import type { RiskLevel } from "../utils/taskUtils";
 import TaskTypeBadge from "./TaskTypeBadge";
 
 type TaskCardProps = {
@@ -18,24 +13,40 @@ type TaskCardProps = {
   taskType: string;
   /** Position index within the column — required by Draggable */
   index: number;
+  today: Date;
+  riskLevel: RiskLevel;
 };
 
-export default function TaskCard({ task, taskType, index }: TaskCardProps) {
+export default function TaskCard({
+  task,
+  taskType,
+  index,
+  today,
+  riskLevel,
+}: TaskCardProps) {
   const isDone = task.status === TaskStatus.DONE;
 
+  const isRollover =
+    !isDone &&
+    task.type === TaskType.DAILY &&
+    task.forDate !== null &&
+    normalizeForDate(task.forDate) < today;
+
+  const riskBorderClass =
+    riskLevel === "danger"
+      ? "border-l-4 border-l-error"
+      : riskLevel === "warning"
+        ? "border-l-4 border-l-warning"
+        : "border-l-4 border-l-transparent";
+
   return (
-    // `draggableId` must be unique across the entire board.
-    // `index` tells the library the card's position within its Droppable column.
     <Draggable draggableId={task.id} index={index}>
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          // dragHandleProps makes the entire card the grab handle.
-          // You could apply this to a smaller element (e.g. a grip icon)
-          // to restrict where the user can grab.
           {...provided.dragHandleProps}
-          className={`card bg-base-100/70 shadow-sm border border-base-content/10 cursor-grab transition-[box-shadow,border-color,opacity] duration-150 hover:-translate-y-0.5 hover:shadow-md hover:border-base-content/25 ${
+          className={`card bg-base-100/70 shadow-sm border border-base-content/10 cursor-grab transition-[box-shadow,border-color,opacity] duration-150 hover:-translate-y-0.5 hover:shadow-md hover:border-base-content/25 ${riskBorderClass} ${
             isDone ? "opacity-50" : ""
           } ${
             snapshot.isDragging
@@ -60,6 +71,19 @@ export default function TaskCard({ task, taskType, index }: TaskCardProps) {
 
             <div className="flex items-center gap-2 mt-2">
               <TaskTypeBadge type={taskType} />
+
+              {isRollover && (
+                <span className="flex items-center gap-0.5 text-xs text-warning font-medium">
+                  ↩ {formatShortDate(new Date(task.forDate!))}
+                </span>
+              )}
+
+              {riskLevel === "warning" && !isDone && (
+                <span className="badge badge-warning badge-sm">⚠ at risk</span>
+              )}
+              {riskLevel === "danger" && !isDone && (
+                <span className="badge badge-error badge-sm">‼ urgent</span>
+              )}
 
               <span className="flex gap-0.5 text-xs ml-auto">
                 <StarIcon className="size-4 text-warning" />

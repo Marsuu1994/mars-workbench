@@ -4,10 +4,14 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 
 ## Current State
 
-Backend complete (schema, DAL, services, server actions, board sync). Full board UI with drag-and-drop — `/kanban` displays a three-column kanban board (Todo, In Progress, Done) with task cards that can be dragged between columns. Moves use optimistic UI with server-side persistence and automatic rollback on failure. Task cards show title, description, unified type badge (`TaskTypeBadge`), and points. Cards have hover lift+shadow effects. Layout is responsive full-height with independently scrollable columns. Board header shows "Kanban Planner" title with a week date-range badge and Edit Plan button linking to the edit plan page. Plan form pages show a "Planning Mode" header with a back chevron (←) that navigates directly back to the board. Progress dashboard sits between the header and board columns showing: Today progress ring (SVG circle with percentage), three stat metrics (Today Points, Week Points, Daily Avg), and a Week Progress Bar with gradient fill. Week Points uses Option C projected calculation (past daily instances + future daily projection from current templates + all weekly instances). All metrics are computed server-side from a single DB query. End-of-period sync automatically detects when a new week starts, expires all undone tasks, and transitions the plan to `PENDING_UPDATE`. Create plan flow at `/kanban/plans/new` preselects templates from the previous plan (carrying over type and frequency configuration); on submission the old plan is archived to `COMPLETED`. Edit plan flow at `/kanban/plans/[id]` shares a unified `PlanForm` component and layout with create. Task `type` and `frequency` are now configured per-plan on `PlanTemplate` (not globally on `TaskTemplate`), allowing the same template to be DAILY one week and WEEKLY the next. When a template is selected in the plan form, it expands inline showing DAILY/WEEKLY pill buttons and a frequency input. Template rows list flat (no Daily/Weekly group headers). `Task` carries its own `type` field stamped at generation time so no join through the template is needed at query time. `AD_HOC` task type added to the enum (V2 roadmap). When editing a plan, clicking "Update Plan" shows a "Review Plan Changes" modal with three sections — Added (green), Removed (red), Modified (amber) — and a single "Confirm & Regenerate" button; done and expired tasks are never affected. Create/edit task template modal (sub-components under `template-modal/`) now only collects title, description, and points — type selector, frequency, and preview section removed. Skeleton loading states for board page and plan form pages via Next.js `loading.tsx` convention. Architecture follows a strict 3-layer pattern: actions (thin Zod validate → service → revalidate), services (business logic), DAL (Prisma queries). UI components interact only via server actions — no direct service or DAL calls from page components. All multi-step DB mutation flows (create plan, update plan, daily sync, end-of-period sync) are wrapped in `prisma.$transaction()` for ACID atomicity; DAL write functions accept an optional `tx?` parameter. Design mockups are split by flow under `design/mockup/` with a shared `styles.css`.
+Backend complete (schema, DAL, services, server actions, board sync). Full board UI with drag-and-drop — `/kanban` displays a three-column kanban board (Todo, In Progress, Done) with task cards that can be dragged between columns. Moves use optimistic UI with server-side persistence and automatic rollback on failure. Task cards show title, description, unified type badge (`TaskTypeBadge`), and points. Cards have hover lift+shadow effects. Layout is responsive full-height with independently scrollable columns. Board header shows "Kanban Planner" title with a week date-range badge and Edit Plan button linking to the edit plan page. Plan form pages show a "Planning Mode" header with a back chevron (←) that navigates directly back to the board. Progress dashboard sits between the header and board columns showing: Today progress ring (SVG circle with percentage), three stat metrics (Today Points, Week Points, Daily Avg), and a Week Progress Bar with gradient fill. Week Points uses Option C projected calculation (past daily instances + future daily projection from current templates + all weekly instances). All metrics are computed server-side from a single DB query. End-of-period sync automatically detects when a new week starts, expires all undone tasks, and transitions the plan to `PENDING_UPDATE`. Create plan flow at `/kanban/plans/new` preselects templates from the previous plan (carrying over type and frequency configuration); on submission the old plan is archived to `COMPLETED`. Edit plan flow at `/kanban/plans/[id]` shares a unified `PlanForm` component and layout with create. Task `type` and `frequency` are now configured per-plan on `PlanTemplate` (not globally on `TaskTemplate`), allowing the same template to be DAILY one week and WEEKLY the next. When a template is selected in the plan form, it expands inline showing DAILY/WEEKLY pill buttons and a frequency input. Template rows list flat (no Daily/Weekly group headers). `Task` carries its own `type` field stamped at generation time so no join through the template is needed at query time. `AD_HOC` task type added to the enum (V2 roadmap). When editing a plan, clicking "Update Plan" shows a "Review Plan Changes" modal with three sections — Added (green), Removed (red), Modified (amber) — and a single "Confirm & Regenerate" button; done and expired tasks are never affected. Create/edit task template modal (sub-components under `template-modal/`) now only collects title, description, and points — type selector, frequency, and preview section removed. Skeleton loading states for board page and plan form pages via Next.js `loading.tsx` convention. Architecture follows a strict 3-layer pattern: actions (thin Zod validate → service → revalidate), services (business logic), DAL (Prisma queries). UI components interact only via server actions — no direct service or DAL calls from page components. All multi-step DB mutation flows (create plan, update plan, daily sync, end-of-period sync) are wrapped in `prisma.$transaction()` for ACID atomicity; DAL write functions accept an optional `tx?` parameter. Design mockups are split by flow under `design/mockup/` with a shared `styles.css`. Daily tasks that were unfinished yesterday roll over to the board for one extra day with a `↩ Mon, Feb 23` date badge; tasks older than yesterday are expired. Task cards display color-coded risk badges (⚠ at risk / ‼ urgent) based on type, time of day, days elapsed, and weekly completion progress.
 
 ## Backlog
 ### High Priority
+- [ ] Fix ux issues in plan form
+  - after unselect and select an preselected item, the previous UI state from server is lost, we want to keep it
+  - The daily/weekly pill button on each template item should look similar to the task card type with a border
+- [ ] Align the remove instance modal to same look and feel as the generated mockup, also renaming it
 - [ ] Add Ad-hoc task flow
 
 ### MVP V2
@@ -19,8 +23,6 @@ Backend complete (schema, DAL, services, server actions, board sync). Full board
 - [ ] Add subtitle field to task template to support different titles
 - [ ] Create common landing page for Mars workbench to navigate between features
 - [ ] Task overlap visualization (stacked cards)
-- [ ] Rollover badge for daily tasks
-- [ ] Risk indicators (red/yellow) for at-risk tasks
 - [ ] Phone notifications for unfinished tasks
 - [ ] LLM-generated motivational messages
 - [ ] End-of-period summary before new plan
@@ -30,6 +32,13 @@ Backend complete (schema, DAL, services, server actions, board sync). Full board
 - [ ] Refactor to use constant for all UI static text fields
 
 ## Update Log
+
+### 2026-02-24
+- Fixed timezone bug: Prisma `DATE` values (UTC midnight) were displaying one day behind in negative-offset timezones (e.g. PST/UTC-8); added `normalizeForDate` utility to convert to local calendar date before comparisons
+- Fixed false rollover detection: today's daily tasks were incorrectly flagged as rollovers in PST because UTC midnight < local midnight
+- Fixed done tasks showing the rollover `↩` badge; done tasks now never display any rollover or risk indicator
+- Updated `formatShortDate` to use `timeZone: "UTC"` so the date label on rollover badges always shows the correct calendar date
+- Updated `baseline.md`: moved daily task rollover and risk level visualization from Planned V2 to Implemented
 
 ### 2026-02-23
 - Moved `type` and `frequency` from `TaskTemplate` (global, immutable) to `PlanTemplate` (per-plan, reconfigurable each week) — the same blueprint can now be DAILY one week and WEEKLY the next
@@ -107,6 +116,9 @@ Backend complete (schema, DAL, services, server actions, board sync). Full board
 - UI mockups created (board, empty state, create plan, create/edit template)
 
 ## Done
+- [x] Change in daily task expire logic, now expire forDate + 2, so daily task can be finished in two days
+- [x] Risk indicators (red/yellow) for at-risk tasks
+- [x] Rollover badge for daily tasks
 - [x] Review design for new schema updates, generate necessary mockups
 - [x] Schema migration: move type/frequency from TaskTemplate to PlanTemplate, add Task.type, make templateId nullable, add AD_HOC to enum
 - [x] Implement updated plan form (inline type pills + frequency per template), "Review Plan Changes" modal, simplified template modal

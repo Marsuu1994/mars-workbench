@@ -91,76 +91,113 @@
     <div class="board">
       <!-- Todo -->
       <div class="column col-todo">
-        <div class="column-header"><span>Todo</span><span class="column-count">5</span></div>
+        <div class="column-header"><span>Todo</span><span class="column-count">6</span></div>
         <div class="column-body">
+
+          <!-- Fresh daily — normal (no risk indicator) -->
           <div class="task-card">
             <div class="task-title">Solve 3 LeetCode problems</div>
             <div class="task-desc">Focus on dynamic programming</div>
             <div class="task-meta">
               <span class="task-badge badge-daily">Daily</span>
-              <span style="font-size:11px;color:#6b7280">1 of 1</span>
               <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>10 pts</span>
             </div>
           </div>
-          <div class="task-card">
+
+          <!-- Fresh daily — warning (after 20:00) -->
+          <div class="task-card risk-warning">
             <div class="task-title">Read 30 pages</div>
             <div class="task-desc">System Design Interview book</div>
             <div class="task-meta">
               <span class="task-badge badge-daily">Daily</span>
-              <span style="font-size:11px;color:#6b7280">1 of 1</span>
+              <span class="risk-badge warning">⚠ at risk</span>
               <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>5 pts</span>
             </div>
           </div>
-          <div class="task-card">
+
+          <!-- Rollover daily — warning (before 15:00) -->
+          <div class="task-card risk-warning">
             <div class="task-title">Practice mock interview</div>
             <div class="task-meta">
               <span class="task-badge badge-daily">Daily</span>
-              <span style="font-size:11px;color:#6b7280">1 of 1</span>
+              <span class="rollover-tag">↩ Mon, Feb 23</span>
+              <span class="risk-badge warning">⚠ at risk</span>
               <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>8 pts</span>
             </div>
           </div>
-          <div class="task-card">
+
+          <!-- Rollover daily — danger (after 15:00) -->
+          <div class="task-card risk-danger">
+            <div class="task-title">Write journal entry</div>
+            <div class="task-meta">
+              <span class="task-badge badge-daily">Daily</span>
+              <span class="rollover-tag">↩ Mon, Feb 23</span>
+              <span class="risk-badge danger">‼ urgent</span>
+              <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>3 pts</span>
+            </div>
+          </div>
+
+          <!-- Weekly — warning (Day 3, deadline tightening) -->
+          <div class="task-card risk-warning">
             <div class="task-title">Go to gym – Leg day</div>
             <div class="task-desc">30 min workout</div>
             <div class="task-meta">
               <span class="task-badge badge-weekly">Weekly</span>
-              <span style="font-size:11px;color:#6b7280">2 of 3</span>
+              <span class="risk-badge warning">⚠ at risk</span>
               <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>6 pts</span>
             </div>
           </div>
-          <div class="task-card">
+
+          <!-- Weekly — danger (Day 5+, nearly missed) -->
+          <div class="task-card risk-danger">
             <div class="task-title">Write blog post</div>
             <div class="task-desc">Technical blog about React patterns</div>
             <div class="task-meta">
               <span class="task-badge badge-weekly">Weekly</span>
-              <span style="font-size:11px;color:#6b7280">1 of 1</span>
+              <span class="risk-badge danger">‼ urgent</span>
               <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>12 pts</span>
             </div>
           </div>
+
         </div>
       </div>
 
       <!-- Doing -->
       <div class="column col-doing">
-        <div class="column-header"><span>In Progress</span><span class="column-count">2</span></div>
+        <div class="column-header"><span>In Progress</span><span class="column-count">3</span></div>
         <div class="column-body">
-          <div class="task-card" style="border-color:#fbbf2440">
+
+          <!-- Fresh daily in progress — normal -->
+          <div class="task-card">
             <div class="task-title">Morning jog 5km</div>
             <div class="task-meta">
               <span class="task-badge badge-daily">Daily</span>
-              <span style="font-size:11px;color:#6b7280">1 of 1</span>
               <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>4 pts</span>
             </div>
           </div>
-          <div class="task-card" style="border-color:#fbbf2440">
+
+          <!-- Rollover daily in progress — always warning -->
+          <div class="task-card risk-warning">
+            <div class="task-title">Meditate 10 min</div>
+            <div class="task-meta">
+              <span class="task-badge badge-daily">Daily</span>
+              <span class="rollover-tag">↩ Mon, Feb 23</span>
+              <span class="risk-badge warning">⚠ at risk</span>
+              <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>3 pts</span>
+            </div>
+          </div>
+
+          <!-- Weekly in progress — warning -->
+          <div class="task-card risk-warning">
             <div class="task-title">Go to gym – Upper body</div>
             <div class="task-desc">30 min workout</div>
             <div class="task-meta">
               <span class="task-badge badge-weekly">Weekly</span>
-              <span style="font-size:11px;color:#6b7280">3 of 3</span>
+              <span class="risk-badge warning">⚠ at risk</span>
               <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>6 pts</span>
             </div>
           </div>
+
         </div>
       </div>
 
@@ -168,31 +205,33 @@
       <div class="column col-done">
         <div class="column-header"><span>Done</span><span class="column-count">3</span></div>
         <div class="column-body">
-          <div class="task-card done-card" style="border-color:#6ee7b730">
+
+          <!-- Done — no risk indicator regardless of type -->
+          <div class="task-card done-card">
             <div class="task-title">Solve 3 LeetCode problems</div>
             <div class="task-meta">
               <span class="task-badge badge-daily">Daily</span>
-              <span style="font-size:11px;color:#6b7280">Yesterday</span>
               <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>10 pts</span>
             </div>
           </div>
-          <div class="task-card done-card" style="border-color:#6ee7b730">
+
+          <div class="task-card done-card">
             <div class="task-title">Morning jog 5km</div>
             <div class="task-meta">
               <span class="task-badge badge-daily">Daily</span>
-              <span style="font-size:11px;color:#6b7280">Yesterday</span>
               <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>4 pts</span>
             </div>
           </div>
-          <div class="task-card done-card" style="border-color:#6ee7b730">
+
+          <div class="task-card done-card">
             <div class="task-title">Go to gym – Push day</div>
             <div class="task-desc">30 min workout</div>
             <div class="task-meta">
               <span class="task-badge badge-weekly">Weekly</span>
-              <span style="font-size:11px;color:#6b7280">1 of 3</span>
               <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>6 pts</span>
             </div>
           </div>
+
         </div>
       </div>
     </div>

@@ -1,17 +1,16 @@
 "use client";
 
-// Droppable marks a region as a valid drop target for draggable items.
-// It uses the "render props" pattern: you pass a function as its child,
-// and that function receives `provided` (refs and props to attach to the DOM)
-// and `snapshot` (current drag state, e.g. is something hovering over this?).
 import { Droppable } from "@hello-pangea/dnd";
 import type { TaskItem } from "@/lib/db/tasks";
 import { TaskStatus } from "../utils/enums";
+import type { RiskLevel } from "../utils/taskUtils";
 import TaskCard from "./TaskCard";
 
 type BoardColumnProps = {
   status: string;
   tasks: TaskItem[];
+  today: Date;
+  riskMap: Map<string, RiskLevel>;
 };
 
 const COLUMN_CONFIG: Record<string, { label: string; accent: string }> = {
@@ -20,7 +19,12 @@ const COLUMN_CONFIG: Record<string, { label: string; accent: string }> = {
   [TaskStatus.DONE]: { label: "Done", accent: "border-l-success" },
 };
 
-export default function BoardColumn({ status, tasks }: BoardColumnProps) {
+export default function BoardColumn({
+  status,
+  tasks,
+  today,
+  riskMap,
+}: BoardColumnProps) {
   const config = COLUMN_CONFIG[status] ?? { label: status, accent: "" };
 
   return (
@@ -32,18 +36,6 @@ export default function BoardColumn({ status, tasks }: BoardColumnProps) {
         <span className="badge badge-ghost badge-sm">{tasks.length}</span>
       </div>
 
-      {/*
-        Droppable requires a unique `droppableId` — we use the column's status
-        string (e.g. "TODO") so that `onDragEnd` can read `destination.droppableId`
-        to know which column the card was dropped into.
-
-        The render-props function receives:
-        - `provided.innerRef`: must be attached to the scrollable container element
-        - `provided.droppableProps`: spread onto the same element (data attributes)
-        - `provided.placeholder`: invisible spacer that reserves room for the
-          dragged item — must be the last child inside the droppable container
-        - `snapshot.isDraggingOver`: true when a card is hovering over this column
-      */}
       <Droppable droppableId={status}>
         {(provided, snapshot) => (
           <div
@@ -59,9 +51,10 @@ export default function BoardColumn({ status, tasks }: BoardColumnProps) {
                 task={task}
                 taskType={task.type}
                 index={index}
+                today={today}
+                riskLevel={riskMap.get(task.id) ?? "normal"}
               />
             ))}
-            {/* Placeholder keeps the column height stable while dragging */}
             {provided.placeholder}
           </div>
         )}

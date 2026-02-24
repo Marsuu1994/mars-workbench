@@ -125,18 +125,19 @@ export async function updateTaskStatus(
 
 /**
  * Expire stale daily tasks: set status to EXPIRED for tasks
- * whose forDate is before today and are not DONE
+ * whose forDate is before the cutoff date and are not DONE.
+ * Caller passes yesterday to implement the 1-day rollover buffer.
  */
 export async function expireStaleDailyTasks(
   planId: string,
-  today: Date,
+  cutoffDate: Date,
   tx?: Prisma.TransactionClient
 ): Promise<{ count: number }> {
   const db = tx ?? prisma;
   return db.task.updateMany({
     where: {
       planId,
-      forDate: { lt: today },
+      forDate: { lt: cutoffDate },
       status: { not: "DONE" },
     },
     data: { status: "EXPIRED" },

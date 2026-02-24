@@ -18,12 +18,16 @@
 
 **Steps:**
 1. Set `lastSyncDate = today` first to prevent concurrent re-runs.
-2. Expire all daily tasks where `forDate` is earlier than today and status is not DONE.
+2. Expire all daily tasks where `forDate` is **strictly before yesterday** (i.e., `forDate < today - 1 day`) and status is not DONE.
 3. Generate new daily task instances for today.
 
 **Rules:**
 - Idempotent — safe to re-run multiple times.
 - Plan creation and template updates also set `lastSyncDate` to avoid redundant sync on next page load.
+- **1-day rollover buffer:** tasks from yesterday are NOT expired on today's sync — they carry over and remain on the board for one extra day. They expire on the following day's sync.
+- A task is considered **rolled over** when `task.type === DAILY && task.forDate < today`. This is computed in-memory; no schema change required.
+- Rolled-over tasks are sorted after today's fresh daily tasks (but before weekly tasks) within each column.
+- Rolled-over tasks display a distinct visual treatment on the task card to signal they are from a previous day (see `mockup-board.html`).
 
 ---
 
@@ -132,3 +136,43 @@
 ### Ad-hoc task flow
 
 TBD
+
+---
+
+### Task Risky Level Visual Effect Flow
+
+**Trigger:** Computed client-side on every board render, based on `forDate`, task status, and current time to calculate the risky level (warning, dangerous).
+
+**Steps:**
+
+1. Fetch all tasks for the active plan.
+
+2. Derive risky level based on below formula all tasks and return as part of `BoardData`.
+
+   **Daily Task — `forDate = today`**
+
+   - TODO, time < 20:00 → Normal
+   - TODO, time >= 20:00 → Warning
+   - DOING, time < 20:00 → Normal
+   - DOING, time >= 20:00 → Warning
+
+   **Daily Task — `forDate < today` (rollover)**
+
+   - TODO, time < 15:00 → Warning
+   - TODO, time >= 15:00 → Danger
+   - DOING, any time → Warning
+
+   **Weekly Task**
+
+   - TODO, `daysElapsed >= 3` or `remainingDays < remainingTasks × 2` → Warning
+   - TODO, `daysElapsed >= 5` or `remainingDays <= remainingTasks × 1` → Danger
+   - DOING, `daysElapsed >= 5` or `remainingDays <= remainingTasks × 1` → Warning
+   - DOING → never Danger
+
+**Rules:**
+
+* `remainingTasks = frequency - doneCount - doingCount` (completed + in-progress instances this week for the same template)
+* `remainingDays = 7 - daysElapsed` (days remaining until end of week)
+* Danger takes priority over Warning when multiple conditions are met
+* Risk level only escalates, never regresses (rollover tasks maintain at minimum Warning)
+* DONE, EXPIRED tasks never trigger any risk indicator
