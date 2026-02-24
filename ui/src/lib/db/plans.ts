@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { Prisma, PlanStatus } from "@/generated/prisma/client";
+import { Prisma, PlanStatus, TaskType } from "@/generated/prisma/client";
 
 export type PlanItem = {
   id: string;
@@ -17,13 +17,13 @@ export type PlanWithTemplates = PlanItem & {
   planTemplates: {
     id: string;
     templateId: string;
+    type: TaskType;
+    frequency: number;
     template: {
       id: string;
       title: string;
       description: string;
       points: number;
-      type: string;
-      frequency: number;
       isArchived: boolean;
     };
   }[];
@@ -73,14 +73,14 @@ export async function getPlanWithTemplates(planId: string): Promise<PlanWithTemp
         select: {
           id: true,
           templateId: true,
+          type: true,
+          frequency: true,
           template: {
             select: {
               id: true,
               title: true,
               description: true,
               points: true,
-              type: true,
-              frequency: true,
               isArchived: true,
             },
           },

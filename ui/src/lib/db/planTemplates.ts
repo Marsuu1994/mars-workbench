@@ -1,10 +1,12 @@
 import prisma from "@/lib/prisma";
-import { Prisma } from "@/generated/prisma/client";
+import { Prisma, TaskType } from "@/generated/prisma/client";
 
 export type PlanTemplateItem = {
   id: string;
   planId: string;
   templateId: string;
+  type: TaskType;
+  frequency: number;
   createdAt: Date;
 };
 
@@ -12,6 +14,8 @@ const planTemplateSelect = {
   id: true,
   planId: true,
   templateId: true,
+  type: true,
+  frequency: true,
   createdAt: true,
 } as const;
 
@@ -26,30 +30,38 @@ export async function getPlanTemplatesByPlanId(planId: string): Promise<PlanTemp
 }
 
 /**
- * Link a template to a plan
- */
-export async function createPlanTemplate(
-  planId: string,
-  templateId: string
-): Promise<PlanTemplateItem> {
-  return prisma.planTemplate.create({
-    data: { planId, templateId },
-    select: planTemplateSelect,
-  });
-}
-
-/**
- * Bulk link multiple templates to a plan
+ * Bulk link multiple templates to a plan with their per-plan type and frequency
  */
 export async function createManyPlanTemplates(
   planId: string,
-  templateIds: string[],
+  templates: { templateId: string; type: TaskType; frequency: number }[],
   tx?: Prisma.TransactionClient
 ): Promise<{ count: number }> {
   const db = tx ?? prisma;
   return db.planTemplate.createMany({
-    data: templateIds.map((templateId) => ({ planId, templateId })),
+    data: templates.map(({ templateId, type, frequency }) => ({
+      planId,
+      templateId,
+      type,
+      frequency,
+    })),
     skipDuplicates: true,
+  });
+}
+
+/**
+ * Update the type and frequency of an existing plan-template link
+ */
+export async function updatePlanTemplate(
+  id: string,
+  data: { type: TaskType; frequency: number },
+  tx?: Prisma.TransactionClient
+): Promise<PlanTemplateItem> {
+  const db = tx ?? prisma;
+  return db.planTemplate.update({
+    where: { id },
+    data,
+    select: planTemplateSelect,
   });
 }
 

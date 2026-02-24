@@ -32,7 +32,7 @@
 **Trigger:** If current ISO week key differs from `plan.periodKey`
 
 **Steps:**
-1. Expire all remaining non-DONE tasks (daily and weekly).
+1. Expire all remaining non-DONE tasks instances except Ad-hoc tasks.
 2. Set plan status: `ACTIVE` → `PENDING_UPDATE`.
 3. Return null → board renders "Create Plan" prompt.
 
@@ -43,14 +43,15 @@
 **Trigger:** User clicks "Create Plan" on empty board → navigates to `/kanban/plans/new`
 
 **Steps:**
-1. Page preloads templates from the `PENDING_UPDATE` plan if one exists (returning user).
+1. Page preloads PlanTemplates (with type and frequency config) from the `PENDING_UPDATE` plan if one exists (returning user), so user can reuse last week's configuration.
 2. User adds, removes, or edits templates. First-time users create templates from scratch.
-3. User submits.
-4. Create plan and link selected templates.
-5. Generate task instances: weekly tasks immediately, daily tasks for today only.
-6. Set `lastSyncDate = today`.
-7. Archive any existing `PENDING_UPDATE` plan → `COMPLETED`.
-8. Revalidate `/kanban` to render board.
+3. For each selected template, user configures type and frequency. Points come from TaskTemplate directly and are not configurable per-plan.
+4. User submits.
+5. Create plan and link selected templates.
+6. Generate task instances: weekly tasks immediately, daily tasks for today only.
+7. Set `lastSyncDate = today`.
+8. Archive any existing `PENDING_UPDATE` plan → `COMPLETED`.
+9. Revalidate `/kanban` to render board.
 
 ---
 
@@ -59,19 +60,20 @@
 **Trigger:** User clicks "Edit Plan" on board header → navigates to `/kanban/plans/[id]`
 
 **Steps:**
-1. User edits template selection (add / remove / modify).
-2. On submit, show confirmation modal if any templates were removed.
-3. User chooses **Remove from board** or **Keep on board**.
+1. User edits template selection and/or type and frequency for a choosen template .
+2. On submit, show confirmation modal summarizing the changes(added, removed, modified)
+3. User click confirm and regenerate button.
 4. Apply template changes and regenerate tasks accordingly.
 5. Revalidate `/kanban` to render updated board.
 
 **Rules:**
-- **Remove from board** — delete matching task instances where status is TODO or DOING only.
-- **Keep on board** — no instance deletion; removed templates simply stop generating future tasks.
-- EXPIRED tasks are never touched by either choice (past history).
-- DONE tasks are always preserved regardless of choice (completed effort is never erased).
-- New daily templates: generate instances for today only (daily sync handles future days).
-- New weekly templates: generate all instances immediately.
+
+- DONE and EXPIRED tasks are never touched regardless of change type.
+- Changes are applied per-template, unaffected templates are fully preserved.
+- Task regeneration logic
+  - Added templates: generate new instances (weekly immediately, daily for today only).
+  - Removed templates: delete TODO and DOING instances for that template.
+  - Modified templates (type or frequency changed): delete TODO and DOING instances   for that template and regenerate based on new config.
 
 ---
 
@@ -94,6 +96,7 @@
 **Trigger:** Computed server-side on every board page load, derived from a single DB query — no additional queries needed
 
 **Steps:**
+
 1. Fetch all tasks for the active plan.
 2. Derive all metrics in-memory and return as part of `BoardData`.
 
@@ -123,3 +126,9 @@
 - Past effort is preserved regardless of template edits.
 - Future projection always reflects the current plan's template snapshot.
 - Today is counted in the future projection only — never double-counted.
+
+---
+
+### Ad-hoc task flow
+
+TBD

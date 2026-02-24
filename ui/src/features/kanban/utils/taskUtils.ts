@@ -5,13 +5,10 @@ import { TaskStatus, TaskType as TaskTypeEnum } from "./enums";
  * Sort tasks: daily tasks first, then weekly, then by createdAt ascending,
  * with id as a deterministic tiebreaker for same-timestamp records.
  */
-export function sortTasks(
-  tasks: TaskItem[],
-  templateTypeMap: Record<string, string>
-): TaskItem[] {
+export function sortTasks(tasks: TaskItem[]): TaskItem[] {
   return [...tasks].sort((a, b) => {
-    const aIsDaily = templateTypeMap[a.templateId] === TaskTypeEnum.DAILY;
-    const bIsDaily = templateTypeMap[b.templateId] === TaskTypeEnum.DAILY;
+    const aIsDaily = a.type === TaskTypeEnum.DAILY;
+    const bIsDaily = b.type === TaskTypeEnum.DAILY;
 
     if (aIsDaily && !bIsDaily) return -1;
     if (!aIsDaily && bIsDaily) return 1;
@@ -30,8 +27,7 @@ type BoardStatus = typeof TaskStatus.TODO | typeof TaskStatus.DOING | typeof Tas
  * Used by KanbanBoard for both initial render and optimistic state updates.
  */
 export function groupAndSortTasks(
-  tasks: TaskItem[],
-  templateTypeMap: Record<string, string>
+  tasks: TaskItem[]
 ): Record<BoardStatus, TaskItem[]> {
   const grouped: Record<BoardStatus, TaskItem[]> = {
     [TaskStatus.TODO]: [],
@@ -47,8 +43,8 @@ export function groupAndSortTasks(
   }
 
   return {
-    [TaskStatus.TODO]: sortTasks(grouped[TaskStatus.TODO], templateTypeMap),
-    [TaskStatus.DOING]: sortTasks(grouped[TaskStatus.DOING], templateTypeMap),
-    [TaskStatus.DONE]: sortTasks(grouped[TaskStatus.DONE], templateTypeMap),
+    [TaskStatus.TODO]: sortTasks(grouped[TaskStatus.TODO]),
+    [TaskStatus.DOING]: sortTasks(grouped[TaskStatus.DOING]),
+    [TaskStatus.DONE]: sortTasks(grouped[TaskStatus.DONE]),
   } as Record<BoardStatus, TaskItem[]>;
 }

@@ -7,6 +7,7 @@
 export const TaskType = {
   DAILY: "DAILY",
   WEEKLY: "WEEKLY",
+  AD_HOC: "AD_HOC",
 } as const;
 export type TaskType = (typeof TaskType)[keyof typeof TaskType];
 

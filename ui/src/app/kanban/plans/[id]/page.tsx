@@ -19,14 +19,18 @@ export default async function EditPlanPage({
     notFound();
   }
 
-  const initialSelectedIds = plan.planTemplates.map((pt) => pt.templateId);
+  const initialPlanTemplates = plan.planTemplates.map((pt) => ({
+    templateId: pt.templateId,
+    type: pt.type,
+    frequency: pt.frequency,
+  }));
 
   return (
     <PlanForm
       templates={templates}
       mode="edit"
       planId={id}
-      initialSelectedIds={initialSelectedIds}
+      initialPlanTemplates={initialPlanTemplates}
       initialDescription={plan.description ?? ""}
     />
   );

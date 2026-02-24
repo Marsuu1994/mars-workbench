@@ -11,15 +11,11 @@ import { groupAndSortTasks } from "../utils/taskUtils";
 import { updateTaskStatusAction } from "../actions/taskActions";
 import BoardColumn from "./BoardColumn";
 
-type KanbanBoardProps = {
+interface KanbanBoardProps {
   tasks: TaskItem[];
-  templateTypeMap: Record<string, string>;
-};
+}
 
-export default function KanbanBoard({
-  tasks,
-  templateTypeMap,
-}: KanbanBoardProps) {
+export default function KanbanBoard({ tasks }: KanbanBoardProps) {
   // --- Optimistic state ---
   // We keep a local copy of tasks so we can instantly move a card to its new
   // column (optimistic update) without waiting for the server round-trip.
@@ -33,7 +29,7 @@ export default function KanbanBoard({
   }, [tasks]);
 
   // Group tasks by status and sort within each group.
-  const columns = groupAndSortTasks(localTasks, templateTypeMap);
+  const columns = groupAndSortTasks(localTasks);
 
   /**
    * Called when a drag operation ends (user drops the card).
@@ -85,21 +81,9 @@ export default function KanbanBoard({
     // components must be descendants of this context provider.
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="flex gap-4 overflow-x-auto pb-4 h-full">
-        <BoardColumn
-          status={TaskStatus.TODO}
-          tasks={columns[TaskStatus.TODO]}
-          templateTypeMap={templateTypeMap}
-        />
-        <BoardColumn
-          status={TaskStatus.DOING}
-          tasks={columns[TaskStatus.DOING]}
-          templateTypeMap={templateTypeMap}
-        />
-        <BoardColumn
-          status={TaskStatus.DONE}
-          tasks={columns[TaskStatus.DONE]}
-          templateTypeMap={templateTypeMap}
-        />
+        <BoardColumn status={TaskStatus.TODO} tasks={columns[TaskStatus.TODO]} />
+        <BoardColumn status={TaskStatus.DOING} tasks={columns[TaskStatus.DOING]} />
+        <BoardColumn status={TaskStatus.DONE} tasks={columns[TaskStatus.DONE]} />
       </div>
     </DragDropContext>
   );

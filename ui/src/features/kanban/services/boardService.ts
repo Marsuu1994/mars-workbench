@@ -42,16 +42,16 @@ export async function runDailySync(planId: string, today: Date): Promise<void> {
   const dailyTaskData: Parameters<typeof createManyTasks>[0] = [];
 
   for (const pt of planWithTemplates.planTemplates) {
-    const template = pt.template;
-    if (template.type !== TaskType.DAILY) continue;
+    if (pt.type !== TaskType.DAILY) continue;
 
-    for (let i = 0; i < template.frequency; i++) {
+    for (let i = 0; i < pt.frequency; i++) {
       dailyTaskData.push({
         planId,
-        templateId: template.id,
-        title: template.title,
-        description: template.description,
-        points: template.points,
+        templateId: pt.template.id,
+        type: TaskType.DAILY,
+        title: pt.template.title,
+        description: pt.template.description,
+        points: pt.template.points,
         status: TaskStatus.TODO,
         forDate: today,
         instanceIndex: i,
@@ -135,18 +135,18 @@ export async function fetchBoard(): Promise<BoardData | null> {
   const remainingDays = Math.max(1, Math.floor(remainingMs / 86400000) + 1);
 
   const currentDailyTemplates = planWithTemplates.planTemplates.filter(
-    (pt) => pt.template.type === TaskType.DAILY
+    (pt) => pt.type === TaskType.DAILY
   );
   const dailyFuturePoints =
     currentDailyTemplates.reduce(
-      (s, pt) => s + pt.template.points * pt.template.frequency,
+      (s, pt) => s + pt.template.points * pt.frequency,
       0
     ) * remainingDays;
   const dailyFutureCount =
-    currentDailyTemplates.reduce((s, pt) => s + pt.template.frequency, 0) *
+    currentDailyTemplates.reduce((s, pt) => s + pt.frequency, 0) *
     remainingDays;
 
-  const weeklyTasks = allTasks.filter((t) => t.periodKey !== null);
+  const weeklyTasks = allTasks.filter((t) => t.type === TaskType.WEEKLY);
   const weeklyPoints = weeklyTasks.reduce((s, t) => s + t.points, 0);
   const weeklyCount = weeklyTasks.length;
 

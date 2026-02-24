@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { createPlanSchema, updatePlanSchema } from "../schemas";
 import { createPlan, updatePlan } from "../services/planService";
-import { countTasksByTemplateIds } from "@/lib/db/tasks";
 
 export async function createPlanAction(input: unknown) {
   const parsed = createPlanSchema.safeParse(input);
@@ -26,9 +25,3 @@ export async function updatePlanAction(planId: string, input: unknown) {
   return { data: { success: true } };
 }
 
-export async function countRemovedTasksAction(
-  planId: string,
-  removedTemplateIds: string[]
-) {
-  return countTasksByTemplateIds(planId, removedTemplateIds);
-}

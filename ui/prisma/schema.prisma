@@ -55,6 +55,7 @@ enum PlanStatus {
 enum TaskType {
   DAILY
   WEEKLY
+  AD_HOC
 }
 
 enum TaskStatus {
@@ -88,8 +89,6 @@ model TaskTemplate {
   title       String
   description String
   points      Int
-  type        TaskType
-  frequency   Int
   isArchived  Boolean  @default(false) @map("is_archived")
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
@@ -105,6 +104,8 @@ model PlanTemplate {
   id         String   @id @default(uuid()) @db.Uuid
   planId     String   @map("plan_id") @db.Uuid
   templateId String   @map("template_id") @db.Uuid
+  type       TaskType
+  frequency  Int
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   plan     Plan         @relation(fields: [planId], references: [id], onDelete: Cascade)
@@ -118,7 +119,8 @@ model PlanTemplate {
 model Task {
   id            String      @id @default(uuid()) @db.Uuid
   planId        String      @map("plan_id") @db.Uuid
-  templateId    String      @map("template_id") @db.Uuid
+  templateId    String?     @map("template_id") @db.Uuid
+  type          TaskType
   title         String
   description   String?
   points        Int
@@ -130,8 +132,8 @@ model Task {
   updatedAt     DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
   doneAt        DateTime?   @map("done_at") @db.Timestamptz
 
-  plan     Plan         @relation(fields: [planId], references: [id], onDelete: Cascade)
-  template TaskTemplate @relation(fields: [templateId], references: [id])
+  plan     Plan          @relation(fields: [planId], references: [id], onDelete: Cascade)
+  template TaskTemplate? @relation(fields: [templateId], references: [id])
 
   @@unique([planId, templateId, forDate, instanceIndex], name: "uq_task_daily")
   @@unique([planId, templateId, periodKey, instanceIndex], name: "uq_task_weekly")

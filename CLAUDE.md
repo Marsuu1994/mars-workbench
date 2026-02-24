@@ -97,12 +97,11 @@ design/mockup/
 
 Each file should be self-contained (link to `./styles.css`) and represent only the screens relevant to that flow.
 
-### Adding a New Element to Existing UI
+### Modify Existing UI mockup
 
 1. Generate a **temporary HTML mockup** showing a side-by-side Before / After to illustrate the change
 2. Present for user review and approval before touching any code
 3. After approval:
-   - Implement the change in code
    - Update the relevant `mockup/mockup-[flow].html` to reflect the new UI state
    - Delete the temporary mockup file
 

@@ -1,5 +1,4 @@
 import prisma from "@/lib/prisma";
-import { TaskType } from "@/generated/prisma/client";
 
 export type TaskTemplateItem = {
   id: string;
@@ -7,8 +6,6 @@ export type TaskTemplateItem = {
   title: string;
   description: string;
   points: number;
-  type: TaskType;
-  frequency: number;
   isArchived: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -20,8 +17,6 @@ const taskTemplateSelect = {
   title: true,
   description: true,
   points: true,
-  type: true,
-  frequency: true,
   isArchived: true,
   createdAt: true,
   updatedAt: true,
@@ -55,8 +50,6 @@ export async function createTaskTemplate(data: {
   title: string;
   description: string;
   points: number;
-  type: TaskType;
-  frequency: number;
 }): Promise<TaskTemplateItem> {
   return prisma.taskTemplate.create({
     data,
@@ -73,7 +66,6 @@ export async function updateTaskTemplate(
     title?: string;
     description?: string;
     points?: number;
-    frequency?: number;
   }
 ): Promise<TaskTemplateItem> {
   return prisma.taskTemplate.update({

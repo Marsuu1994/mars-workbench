@@ -9,18 +9,19 @@ export default async function NewPlanPage() {
     getPlanByStatus(PlanStatus.PENDING_UPDATE),
   ]);
 
-  let initialSelectedIds: string[] = [];
-  if (pendingPlan) {
-    const withTemplates = await getPlanWithTemplates(pendingPlan.id);
-    initialSelectedIds =
-      withTemplates?.planTemplates.map((pt) => pt.templateId) ?? [];
-  }
+  const initialPlanTemplates = pendingPlan
+    ? (await getPlanWithTemplates(pendingPlan.id))?.planTemplates.map((pt) => ({
+        templateId: pt.templateId,
+        type: pt.type,
+        frequency: pt.frequency,
+      })) ?? []
+    : [];
 
   return (
     <PlanForm
       templates={templates}
       mode="create"
-      initialSelectedIds={initialSelectedIds}
+      initialPlanTemplates={initialPlanTemplates}
     />
   );
 }

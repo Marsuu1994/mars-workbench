@@ -11,13 +11,6 @@ export default async function KanbanPage() {
     return <EmptyBoard />;
   }
 
-  const templateTypeMap: Record<string, string> = {};
-  for (const task of board.tasks) {
-    if (!templateTypeMap[task.templateId]) {
-      templateTypeMap[task.templateId] = task.forDate !== null ? "DAILY" : "WEEKLY";
-    }
-  }
-
   return (
     <div className="flex flex-col h-screen">
       <BoardHeader periodKey={board.plan.periodKey} planId={board.plan.id} />
@@ -33,7 +26,7 @@ export default async function KanbanPage() {
         daysElapsed={board.daysElapsed}
       />
       <div className="flex-1 min-h-0 p-4">
-        <KanbanBoard tasks={board.tasks} templateTypeMap={templateTypeMap} />
+        <KanbanBoard tasks={board.tasks} />
       </div>
     </div>
   );

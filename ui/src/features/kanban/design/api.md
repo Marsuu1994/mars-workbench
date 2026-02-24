@@ -46,18 +46,20 @@ todayDonePoints  = boardTasks.filter(t => t.status == DONE && sameDay(t.doneAt, 
 todayTotalPoints = boardTasks.sum(points)
 
 // Week Projected (past daily instances + future daily projection + weekly instances)
-dailyPastTasks    = allTasks.filter(t => t.template.type == DAILY && t.forDate < today)
+// Note: t.type is read directly from Task (not via template join) — Task stores type at generation time
+dailyPastTasks    = allTasks.filter(t => t.type == DAILY && t.forDate < today)
 dailyPastPoints   = dailyPastTasks.sum(points)
 dailyPastCount    = dailyPastTasks.length
 
 weekEnd           = getSundayFromPeriodKey(plan.periodKey)
 remainingDays     = daysBetween(today, weekEnd) + 1   // today through Sunday inclusive
 
-currentDailyTemplates = plan.planTemplates.filter(pt => pt.template.type == DAILY)
-dailyFuturePoints = currentDailyTemplates.sum(t => t.points * t.frequency) * remainingDays
-dailyFutureCount  = currentDailyTemplates.sum(t => t.frequency) * remainingDays
+// pt.type is on PlanTemplate (not pt.template.type) — type lives at the plan-template level
+currentDailyTemplates = plan.planTemplates.filter(pt => pt.type == DAILY)
+dailyFuturePoints = currentDailyTemplates.sum(pt => pt.template.points * pt.frequency) * remainingDays
+dailyFutureCount  = currentDailyTemplates.sum(pt => pt.frequency) * remainingDays
 
-weeklyTasks       = allTasks.filter(t => t.template.type == WEEKLY)
+weeklyTasks       = allTasks.filter(t => t.type == WEEKLY)
 weeklyPoints      = weeklyTasks.sum(points)
 weeklyCount       = weeklyTasks.length
 
@@ -86,19 +88,20 @@ All actions follow the pattern: **validate with Zod → call service → `revali
 Input {
   periodType:   PeriodType     // "WEEKLY"
   description?: string
-  templateIds:  string[]       // min 1
+  templates:    { templateId: string; type: TaskType; frequency: number }[]   // min 1
 }
 
 Steps:
 1. Validate input with Zod
 2. Assert no existing ACTIVE plan for user
 3. Create Plan record
-4. Create PlanTemplate links for each templateId
-5. Generate weekly task instances immediately (all at once)
-6. Generate daily task instances for today only
-7. Set lastSyncDate = today
-8. Archive existing PENDING_UPDATE plan → COMPLETED
-9. revalidatePath('/kanban')
+4. Create PlanTemplate links with type and frequency for each entry
+5. Generate task instances (stamping Task.type from PlanTemplate.type):
+   - Weekly templates: generate all instances immediately
+   - Daily templates: generate instances for today only
+6. Set lastSyncDate = today
+7. Archive existing PENDING_UPDATE plan → COMPLETED
+8. revalidatePath('/kanban')
 ```
 
 ---
@@ -107,20 +110,32 @@ Steps:
 
 ```
 Input {
-  description?:  string
-  templateIds?:  string[]
+  description?: string
+  templates?:   { templateId: string; type: TaskType; frequency: number }[]
 }
 
 Steps:
 1. Validate input with Zod
-2. If templateIds provided:
-   a. Diff against current PlanTemplate links → find added / removed template sets
-   b. For removed templates: delete Task instances where templateId in removed set AND status IN (TODO, DOING)
-   c. Delete removed PlanTemplate links
-   d. Create new PlanTemplate links for added templates
-   e. For added daily templates: generate instances for today only
-   f. For added weekly templates: generate all instances immediately
-   g. Set lastSyncDate = today
+2. If templates provided:
+   a. Diff against current PlanTemplate records:
+      - added:    templateId in new set but not in current
+      - removed:  templateId in current set but not in new
+      - modified: templateId in both, but type or frequency changed
+   b. For removed templates:
+      - Delete Task instances where templateId IN removed set AND status IN (TODO, DOING)
+      - Delete PlanTemplate records
+   c. For modified templates:
+      - Delete Task instances where templateId IN modified set AND status IN (TODO, DOING)
+      - Update PlanTemplate record (new type and frequency)
+      - Regenerate instances using new config:
+        * Modified daily templates: generate for today only
+        * Modified weekly templates: generate all instances immediately
+   d. For added templates:
+      - Create new PlanTemplate links with type and frequency
+      - Generate instances:
+        * Added daily templates: generate for today only
+        * Added weekly templates: generate all instances immediately
+   e. Set lastSyncDate = today
 3. If description provided: update Plan.description
 4. revalidatePath('/kanban')
 ```
@@ -131,12 +146,11 @@ Steps:
 
 ```
 Input {
-  title:       string
-  description: string
-  points:      number    // positive integer
-  type:        TaskType  // DAILY | WEEKLY
-  frequency:   number    // positive integer
+  title:        string
+  description?: string
+  points:       number    // positive integer
 }
+// type and frequency removed — these are configured per-plan in PlanTemplate
 
 Steps:
 1. Validate input with Zod
@@ -152,8 +166,8 @@ Input {
   title?:       string
   description?: string
   points?:      number
-  frequency?:   number
 }
+// type and frequency removed — not stored on TaskTemplate
 
 Steps:
 1. Validate input with Zod (at least one field required)
@@ -195,18 +209,20 @@ planQueries.ts
 
 planTemplateQueries.ts
   getPlanTemplates(planId)
-  createPlanTemplates(planId, templateIds[])
+  createPlanTemplates(planId, templates: { templateId, type, frequency }[])   // type+freq per entry
+  updatePlanTemplate(id, data: { type, frequency })                           // for modified entries
   deletePlanTemplates(planId, templateIds[])
 
 taskTemplateQueries.ts
   getTaskTemplatesByUser(userId)
-  createTaskTemplate(data)
-  updateTaskTemplate(id, data)
+  createTaskTemplate(data)    // data: { title, description?, points } — no type or frequency
+  updateTaskTemplate(id, data) // data: { title?, description?, points? }
 
 taskQueries.ts
-  getTasksByPlanId(planId)             // returns ALL statuses for computation
+  getTasksByPlanId(planId)                                          // returns ALL statuses; Task.type included
   createTask(data)
-  createTasks(data[])                  // batch
+  createTasks(data[])                                               // batch
   updateTaskStatus(taskId, status, doneAt?)
-  expireTasks(taskIds[])               // batch status → EXPIRED
+  deleteTasksByPlanAndTemplate(planId, templateId, statuses[])      // replaces expireTasks for edit plan flow
+  expireTasks(taskIds[])                                            // batch status → EXPIRED; excludes AD_HOC type
 ```

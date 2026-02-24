@@ -1,10 +1,11 @@
 import prisma from "@/lib/prisma";
-import { Prisma, TaskStatus } from "@/generated/prisma/client";
+import { Prisma, TaskStatus, TaskType } from "@/generated/prisma/client";
 
 export type TaskItem = {
   id: string;
   planId: string;
-  templateId: string;
+  templateId: string | null;
+  type: TaskType;
   title: string;
   description: string | null;
   points: number;
@@ -21,6 +22,7 @@ const taskSelect = {
   id: true,
   planId: true,
   templateId: true,
+  type: true,
   title: true,
   description: true,
   points: true,
@@ -63,7 +65,8 @@ export async function getTasksByPlanIdAndStatus(
  */
 export async function createTask(data: {
   planId: string;
-  templateId: string;
+  templateId?: string;
+  type: TaskType;
   title: string;
   description?: string;
   points: number;
@@ -84,7 +87,8 @@ export async function createTask(data: {
 export async function createManyTasks(
   data: {
     planId: string;
-    templateId: string;
+    templateId?: string;
+    type: TaskType;
     title: string;
     description?: string;
     points: number;
@@ -140,7 +144,7 @@ export async function expireStaleDailyTasks(
 }
 
 /**
- * Expire all non-done tasks for a plan (end-of-period cleanup)
+ * Expire all non-done, non-ad-hoc tasks for a plan (end-of-period cleanup)
  */
 export async function expireAllNonDoneTasks(
   planId: string,
@@ -151,6 +155,7 @@ export async function expireAllNonDoneTasks(
     where: {
       planId,
       status: { not: "DONE" },
+      type: { not: TaskType.AD_HOC },
     },
     data: { status: "EXPIRED" },
   });
@@ -200,7 +205,7 @@ export async function deleteIncompleteTasksByTemplateIds(
 }
 
 /**
- * Count incomplete (removable) and completed (kept) tasks for specific templates
+ * Count incomplete (removable) tasks for specific templates
  */
 export async function countTasksByTemplateIds(
   planId: string,

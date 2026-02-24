@@ -3,17 +3,22 @@ import { PeriodType, TaskType, TaskStatus } from "@/generated/prisma/client";
 
 // ── Plan Schemas ───────────────────────────────────────────────────────
 
+const planTemplateInputSchema = z.object({
+  templateId: z.string().uuid(),
+  type: z.nativeEnum(TaskType),
+  frequency: z.number().int().positive("Frequency must be a positive integer"),
+});
+
 export const createPlanSchema = z.object({
   periodType: z.literal(PeriodType.WEEKLY),
   description: z.string().optional(),
-  templateIds: z.array(z.string().uuid()).min(1, "Select at least one template"),
+  templates: z.array(planTemplateInputSchema).min(1, "Select at least one template"),
 });
 export type CreatePlanInput = z.infer<typeof createPlanSchema>;
 
 export const updatePlanSchema = z.object({
   description: z.string().optional(),
-  templateIds: z.array(z.string().uuid()).optional(),
-  removeInstances: z.boolean().optional(),
+  templates: z.array(planTemplateInputSchema).optional(),
 });
 export type UpdatePlanInput = z.infer<typeof updatePlanSchema>;
 
@@ -23,8 +28,6 @@ export const createTemplateSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
   points: z.number().int().positive("Points must be a positive integer"),
-  type: z.nativeEnum(TaskType),
-  frequency: z.number().int().positive("Frequency must be a positive integer"),
 });
 export type CreateTemplateInput = z.infer<typeof createTemplateSchema>;
 
@@ -33,7 +36,6 @@ export const updateTemplateSchema = z
     title: z.string().min(1).optional(),
     description: z.string().min(1).optional(),
     points: z.number().int().positive().optional(),
-    frequency: z.number().int().positive().optional(),
   })
   .refine((data) => Object.values(data).some((v) => v !== undefined), {
     message: "At least one field must be provided",

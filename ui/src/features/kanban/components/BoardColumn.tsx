@@ -12,7 +12,6 @@ import TaskCard from "./TaskCard";
 type BoardColumnProps = {
   status: string;
   tasks: TaskItem[];
-  templateTypeMap: Record<string, string>;
 };
 
 const COLUMN_CONFIG: Record<string, { label: string; accent: string }> = {
@@ -21,11 +20,7 @@ const COLUMN_CONFIG: Record<string, { label: string; accent: string }> = {
   [TaskStatus.DONE]: { label: "Done", accent: "border-l-success" },
 };
 
-export default function BoardColumn({
-  status,
-  tasks,
-  templateTypeMap,
-}: BoardColumnProps) {
+export default function BoardColumn({ status, tasks }: BoardColumnProps) {
   const config = COLUMN_CONFIG[status] ?? { label: status, accent: "" };
 
   return (
@@ -62,7 +57,7 @@ export default function BoardColumn({
               <TaskCard
                 key={task.id}
                 task={task}
-                taskType={templateTypeMap[task.templateId] ?? "WEEKLY"}
+                taskType={task.type}
                 index={index}
               />
             ))}
