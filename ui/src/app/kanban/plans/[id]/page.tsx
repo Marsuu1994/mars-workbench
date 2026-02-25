@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getPlanWithTemplates } from "@/lib/db/plans";
 import { getTaskTemplates } from "@/lib/db/taskTemplates";
+import { getNonDoneAdhocTasks } from "@/lib/db/tasks";
 import PlanForm from "@/features/kanban/components/PlanForm";
 
 export default async function EditPlanPage({
@@ -10,9 +11,10 @@ export default async function EditPlanPage({
 }) {
   const { id } = await params;
 
-  const [plan, templates] = await Promise.all([
+  const [plan, templates, adhocTasks] = await Promise.all([
     getPlanWithTemplates(id),
     getTaskTemplates(),
+    getNonDoneAdhocTasks(),
   ]);
 
   if (!plan) {
@@ -25,6 +27,10 @@ export default async function EditPlanPage({
     frequency: pt.frequency,
   }));
 
+  const initialAdhocTaskIds = adhocTasks
+    .filter((t) => t.planId === id)
+    .map((t) => t.id);
+
   return (
     <PlanForm
       templates={templates}
@@ -32,6 +38,8 @@ export default async function EditPlanPage({
       planId={id}
       initialPlanTemplates={initialPlanTemplates}
       initialDescription={plan.description ?? ""}
+      adhocTasks={adhocTasks}
+      initialAdhocTaskIds={initialAdhocTaskIds}
     />
   );
 }

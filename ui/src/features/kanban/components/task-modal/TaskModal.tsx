@@ -21,6 +21,7 @@ interface TaskModalProps {
   onSaved: () => void;
   mode?: ModalMode;
   template?: TaskTemplateItem | null;
+  initialStatus?: string;
 }
 
 export default function TaskModal({
@@ -29,6 +30,7 @@ export default function TaskModal({
   onSaved,
   mode: modeProp,
   template,
+  initialStatus,
 }: TaskModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const mode: ModalMode = modeProp ?? (template ? "edit" : "create");
@@ -80,7 +82,7 @@ export default function TaskModal({
         });
         break;
       case "adhoc":
-        result = await createAdhocTaskAction({ title, description, points });
+        result = await createAdhocTaskAction({ title, description, points, status: initialStatus });
         break;
     }
 

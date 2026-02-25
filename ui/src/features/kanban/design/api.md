@@ -217,6 +217,7 @@ Input {
   title:        string
   description?: string
   points:       number    // positive integer, default 1
+  status?:      TaskStatus // TODO (default) or DOING — matches source column
 }
 
 Steps:
@@ -226,7 +227,7 @@ Steps:
    - planId = activePlan.id
    - templateId = null
    - type = AD_HOC
-   - status = TODO
+   - status = input.status ?? TODO
    - forDate = null, periodKey = null
    - instanceIndex = 1
 4. revalidatePath('/kanban')

@@ -31,7 +31,7 @@ export async function createAdhocTaskAction(input: unknown) {
     title: parsed.data.title,
     description: parsed.data.description,
     points: parsed.data.points,
-    status: TaskStatus.TODO,
+    status: parsed.data.status ?? TaskStatus.TODO,
     instanceIndex: 1,
   });
 

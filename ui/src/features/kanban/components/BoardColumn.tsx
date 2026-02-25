@@ -12,7 +12,7 @@ interface BoardColumnProps {
   tasks: TaskItem[];
   today: Date;
   riskMap: Map<string, RiskLevel>;
-  onAddAdhocTask?: () => void;
+  onAddAdhocTask?: (status: string) => void;
 }
 
 const COLUMN_CONFIG: Record<string, { label: string; accent: string }> = {
@@ -61,7 +61,7 @@ export default function BoardColumn({
             {provided.placeholder}
             {onAddAdhocTask && status !== TaskStatus.DONE && (
               <button
-                onClick={onAddAdhocTask}
+                onClick={() => onAddAdhocTask(status)}
                 className="flex items-center justify-center gap-1.5 w-full p-3 rounded-lg border-2 border-dashed border-base-content/20 bg-transparent text-base-content/40 text-sm font-medium cursor-pointer transition-colors hover:border-info hover:text-info"
               >
                 <PlusIcon className="size-4" />

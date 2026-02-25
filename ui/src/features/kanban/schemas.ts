@@ -68,5 +68,6 @@ export const createAdhocTaskSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   points: z.number().int().positive("Points must be a positive integer"),
+  status: z.enum([TaskStatus.TODO, TaskStatus.DOING]).optional(),
 });
 export type CreateAdhocTaskInput = z.infer<typeof createAdhocTaskSchema>;

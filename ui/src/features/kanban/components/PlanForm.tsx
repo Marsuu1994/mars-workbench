@@ -4,7 +4,8 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CheckIcon } from "@heroicons/react/24/outline";
-import { TaskType, PeriodType } from "@/features/kanban/utils/enums";
+import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
+import { TaskType, TaskStatus, PeriodType } from "@/features/kanban/utils/enums";
 import type { TaskTemplateItem } from "@/lib/db/taskTemplates";
 import {
   createPlanAction,
@@ -26,12 +27,22 @@ interface InitialPlanTemplate {
   frequency: number;
 }
 
+export interface AdhocTaskItem {
+  id: string;
+  planId: string | null;
+  title: string;
+  points: number;
+  status: string;
+}
+
 interface PlanFormProps {
   templates: TaskTemplateItem[];
   mode: "create" | "edit";
   planId?: string;
   initialPlanTemplates?: InitialPlanTemplate[];
   initialDescription?: string;
+  adhocTasks?: AdhocTaskItem[];
+  initialAdhocTaskIds?: string[];
 }
 
 export default function PlanForm({
@@ -40,6 +51,8 @@ export default function PlanForm({
   planId,
   initialPlanTemplates = [],
   initialDescription = "",
+  adhocTasks = [],
+  initialAdhocTaskIds = [],
 }: PlanFormProps) {
   const router = useRouter();
 
@@ -63,6 +76,9 @@ export default function PlanForm({
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [incompleteCounts, setIncompleteCounts] = useState<Record<string, number>>(
     {}
+  );
+  const [selectedAdhocIds, setSelectedAdhocIds] = useState<Set<string>>(
+    new Set(initialAdhocTaskIds)
   );
 
   // Cache configs when templates are unchecked so re-checking restores them
@@ -93,6 +109,15 @@ export default function PlanForm({
     setSelectedTemplates((prev) => {
       const next = new Map(prev);
       next.set(id, config);
+      return next;
+    });
+  }
+
+  function toggleAdhocTask(id: string) {
+    setSelectedAdhocIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   }
@@ -142,7 +167,16 @@ export default function PlanForm({
         };
       });
 
-    return { added, removed, modified };
+    // Ad-hoc diff
+    const initialAdhocSet = new Set(initialAdhocTaskIds);
+    const addedAdhoc = adhocTasks.filter(
+      (t) => selectedAdhocIds.has(t.id) && !initialAdhocSet.has(t.id)
+    );
+    const removedAdhoc = adhocTasks.filter(
+      (t) => !selectedAdhocIds.has(t.id) && initialAdhocSet.has(t.id)
+    );
+
+    return { added, removed, modified, addedAdhoc, removedAdhoc };
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -150,9 +184,10 @@ export default function PlanForm({
     setError(null);
 
     if (mode === "edit") {
-      const { added, removed, modified } = computeDiff();
+      const { added, removed, modified, addedAdhoc, removedAdhoc } = computeDiff();
       const hasChanges =
-        added.length > 0 || removed.length > 0 || modified.length > 0;
+        added.length > 0 || removed.length > 0 || modified.length > 0 ||
+        addedAdhoc.length > 0 || removedAdhoc.length > 0;
       if (hasChanges) {
         // Fetch incomplete task counts for removed + modified templates
         const affectedIds = [
@@ -198,12 +233,14 @@ export default function PlanForm({
           periodType: PeriodType.WEEKLY,
           description: description.trim() || undefined,
           templates: templatesPayload,
+          adhocTaskIds: Array.from(selectedAdhocIds),
         });
         break;
       case "edit":
         result = await updatePlanAction(planId!, {
           description: description.trim() || undefined,
           templates: templatesPayload,
+          adhocTaskIds: Array.from(selectedAdhocIds),
         });
         break;
     }
@@ -223,7 +260,9 @@ export default function PlanForm({
     router.push("/kanban");
   }
 
-  const diff = mode === "edit" ? computeDiff() : { added: [], removed: [], modified: [] };
+  const diff = mode === "edit"
+    ? computeDiff()
+    : { added: [], removed: [], modified: [], addedAdhoc: [], removedAdhoc: [] };
 
   return (
     <>
@@ -295,6 +334,74 @@ export default function PlanForm({
           )}
         </div>
 
+        {/* Ad-hoc Tasks */}
+        {adhocTasks.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-medium text-base-content/60">
+                Ad-hoc Tasks
+              </span>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-warning/15 text-warning">
+                {adhocTasks.length} task{adhocTasks.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              {adhocTasks.map((task) => {
+                const isSelected = selectedAdhocIds.has(task.id);
+                return (
+                  <div
+                    key={task.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => toggleAdhocTask(task.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        toggleAdhocTask(task.id);
+                      }
+                    }}
+                    className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
+                      isSelected
+                        ? "border-info/50 bg-info/5"
+                        : "border-base-content/10 bg-base-200"
+                    }`}
+                  >
+                    {/* Checkbox */}
+                    <div
+                      className={`flex size-[18px] shrink-0 items-center justify-center rounded border-2 transition-colors ${
+                        isSelected
+                          ? "border-info bg-info"
+                          : "border-base-content/30 bg-transparent"
+                      }`}
+                    >
+                      {isSelected && (
+                        <CheckIcon className="size-3 stroke-[3] text-info-content" />
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-sm">{task.title}</span>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <StarIconSolid className="size-3 text-warning" />
+                          <span className="text-xs text-base-content/60">{task.points}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Status badge */}
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-base-300 text-base-content/50 uppercase tracking-wider shrink-0">
+                      {task.status === TaskStatus.DOING ? "Doing" : "Todo"}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Error */}
         {error && <div className="alert alert-error text-sm">{error}</div>}
 
@@ -302,7 +409,12 @@ export default function PlanForm({
         <div className="flex items-center justify-between border-t border-base-content/10 pt-5">
           <div className="text-sm text-base-content/50">
             {selectedTemplates.size} template
-            {selectedTemplates.size !== 1 ? "s" : ""} selected
+            {selectedTemplates.size !== 1 ? "s" : ""}
+            {adhocTasks.length > 0 && (
+              <>, {selectedAdhocIds.size} ad-hoc task
+              {selectedAdhocIds.size !== 1 ? "s" : ""}</>
+            )}
+            {" "}selected
           </div>
           <div className="flex gap-2">
             <Link href="/kanban" className="btn btn-ghost">
@@ -311,7 +423,10 @@ export default function PlanForm({
             <button
               type="submit"
               className="btn btn-primary"
-              disabled={selectedTemplates.size === 0 || isSubmitting}
+              disabled={
+                (selectedTemplates.size === 0 && selectedAdhocIds.size === 0) ||
+                isSubmitting
+              }
             >
               {isSubmitting ? (
                 <span className="loading loading-spinner loading-sm" />
@@ -337,6 +452,8 @@ export default function PlanForm({
         added={diff.added}
         removed={diff.removed}
         modified={diff.modified}
+        addedAdhoc={diff.addedAdhoc}
+        removedAdhoc={diff.removedAdhoc}
         incompleteCounts={incompleteCounts}
         isSubmitting={isSubmitting}
       />

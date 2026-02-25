@@ -149,9 +149,9 @@
 
 **Steps:**
 
-1. User fill in title, description, points and click add to board button.
-2. Generate the Ad-hoc task and link it to the current plan.
-3. UI states updates on success server actions.
+1. User fills in title, description, points and clicks "Add to board".
+2. Generate the Ad-hoc task with status matching the source column (Todo → TODO, In Progress → DOING) and link it to the current plan.
+3. UI state updates on success.
 
 ---
 

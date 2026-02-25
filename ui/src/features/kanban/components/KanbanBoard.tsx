@@ -28,6 +28,7 @@ export default function KanbanBoard({
 }: KanbanBoardProps) {
   const [localTasks, setLocalTasks] = useState<TaskItem[]>(tasks);
   const [isAdhocModalOpen, setIsAdhocModalOpen] = useState(false);
+  const [adhocInitialStatus, setAdhocInitialStatus] = useState<string>(TaskStatus.TODO);
 
   useEffect(() => {
     setLocalTasks(tasks);
@@ -88,7 +89,10 @@ export default function KanbanBoard({
     });
   }
 
-  const openAdhocModal = () => setIsAdhocModalOpen(true);
+  const openAdhocModal = (status: string) => {
+    setAdhocInitialStatus(status);
+    setIsAdhocModalOpen(true);
+  };
   const closeAdhocModal = () => setIsAdhocModalOpen(false);
 
   return (
@@ -120,6 +124,7 @@ export default function KanbanBoard({
         onClose={closeAdhocModal}
         onSaved={closeAdhocModal}
         mode="adhoc"
+        initialStatus={adhocInitialStatus}
       />
     </DragDropContext>
   );
