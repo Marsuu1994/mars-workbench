@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kanban — Priority Matrix</title>
+<link rel="stylesheet" href="./styles.css" />
+<style>
+/* ── Matrix Layout ── */
+.matrix-wrapper {
+  flex: 1; display: flex; padding: 20px 24px 16px 24px; gap: 0;
+  min-height: 0; overflow: hidden;
+}
+.matrix-area {
+  flex: 1; display: flex; flex-direction: column; min-height: 0;
+}
+
+/* ── Axis Labels ── */
+.y-axis-label {
+  writing-mode: vertical-lr; transform: rotate(180deg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 500; color: #888888; letter-spacing: 0.03em;
+  padding: 0 10px 0 0; user-select: none; width: 32px; flex-shrink: 0;
+}
+.x-axis-label {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 500; color: #888888; letter-spacing: 0.03em;
+  padding: 8px 0 0 0; user-select: none; height: 28px; flex-shrink: 0;
+}
+.axis-arrow { font-size: 13px; }
+
+/* ── Matrix Grid ── */
+.matrix-grid {
+  flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+  border: 1px solid #dedede; border-radius: 12px; overflow: hidden; min-height: 0;
+}
+
+/* ── Quadrants ── */
+.quadrant {
+  display: flex; flex-direction: column; overflow: hidden;
+  border-right: 1px solid #dedede; border-bottom: 1px solid #dedede;
+}
+.quadrant:nth-child(2) { border-right: none; }
+.quadrant:nth-child(3) { border-bottom: none; }
+.quadrant:nth-child(4) { border-right: none; border-bottom: none; }
+
+.quadrant.q-do-first  { background: rgba(233, 63, 51, 0.03); }
+.quadrant.q-schedule  { background: rgba(69, 174, 238, 0.03); }
+.quadrant.q-delegate  { background: rgba(238, 129, 52, 0.03); }
+.quadrant.q-eliminate  { background: rgba(136, 136, 136, 0.03); }
+
+/* ── Quadrant Header ── */
+.quadrant-header {
+  padding: 12px 14px; display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.quadrant-header-left {
+  display: flex; align-items: center; gap: 8px;
+}
+.quadrant-name {
+  font-size: 13px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.quadrant-count {
+  font-size: 11px; font-weight: 500; padding: 2px 7px;
+  border-radius: 999px; background: #dedede; color: #999999;
+}
+.quadrant-subtitle {
+  font-size: 11px; color: #999999; font-style: italic;
+}
+
+.q-do-first .quadrant-header { border-bottom: 2px solid rgba(233, 63, 51, 0.25); }
+.q-schedule .quadrant-header { border-bottom: 2px solid rgba(69, 174, 238, 0.25); }
+.q-delegate .quadrant-header { border-bottom: 2px solid rgba(238, 129, 52, 0.25); }
+.q-eliminate .quadrant-header { border-bottom: 2px solid rgba(136, 136, 136, 0.2); }
+
+.q-do-first .quadrant-name { color: #e93f33; }
+.q-schedule .quadrant-name { color: #45aeee; }
+.q-delegate .quadrant-name { color: #ee8134; }
+.q-eliminate .quadrant-name { color: #888888; }
+
+/* ── Quadrant Body ── */
+.quadrant-body {
+  flex: 1; padding: 10px; display: flex; flex-direction: column;
+  gap: 8px; overflow-y: auto;
+}
+
+/* ── Matrix Task Card ── */
+.matrix-card {
+  background: #ffffff; border: 1px solid #dedede; border-radius: 10px;
+  padding: 10px 12px; cursor: grab; display: flex; align-items: flex-start; gap: 10px;
+  transition: border-color 0.15s, box-shadow 0.15s; position: relative;
+}
+.matrix-card:hover {
+  border-color: #bbbbbb;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.drag-handle {
+  display: flex; flex-direction: column; gap: 2px; padding: 4px 0;
+  flex-shrink: 0; opacity: 0.3; transition: opacity 0.15s;
+}
+.matrix-card:hover .drag-handle { opacity: 0.7; }
+.drag-dot-row { display: flex; gap: 2px; }
+.drag-dot {
+  width: 3px; height: 3px; border-radius: 999px; background: #888888;
+}
+
+.matrix-card-content { flex: 1; min-width: 0; }
+.matrix-card-title { font-size: 13px; font-weight: 500; color: #161616; margin-bottom: 4px; }
+.matrix-card-desc { font-size: 11px; color: #888888; margin-bottom: 8px; line-height: 1.4; }
+.matrix-card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+/* ── Board Action Button (visible on hover) ── */
+.board-action {
+  position: absolute; top: 8px; right: 8px;
+  display: flex; align-items: center; gap: 3px;
+  font-size: 10px; font-weight: 600; color: #45aeee;
+  background: rgba(69, 174, 238, 0.08); border: 1px solid rgba(69, 174, 238, 0.2);
+  padding: 3px 8px; border-radius: 6px; cursor: pointer;
+  opacity: 0; transition: opacity 0.15s;
+  text-transform: uppercase; letter-spacing: 0.03em;
+}
+.board-action svg { width: 10px; height: 10px; }
+.matrix-card:hover .board-action { opacity: 1; }
+.board-action:hover { background: rgba(69, 174, 238, 0.15); }
+
+/* ── Matrix Add Task Button ── */
+.matrix-add-btn {
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  width: 100%; padding: 8px; border-radius: 8px;
+  border: 1.5px dashed #dedede; background: transparent;
+  color: #999999; font-size: 12px; font-weight: 500; cursor: pointer;
+  transition: border-color 0.15s, color 0.15s; flex-shrink: 0;
+}
+.matrix-add-btn:hover { border-color: #45aeee; color: #45aeee; }
+.matrix-add-btn svg { width: 13px; height: 13px; }
+
+/* ── Summary Bar ── */
+.matrix-summary {
+  padding: 10px 24px; border-top: 1px solid #dedede; background: #fafafa;
+  display: flex; align-items: center; gap: 20px; flex-shrink: 0;
+}
+.summary-stat {
+  display: flex; align-items: center; gap: 6px; font-size: 12px; color: #888888;
+}
+.summary-dot {
+  width: 8px; height: 8px; border-radius: 999px;
+}
+.summary-dot.red { background: #e93f33; }
+.summary-dot.blue { background: #45aeee; }
+.summary-dot.amber { background: #ee8134; }
+.summary-dot.gray { background: #bbbbbb; }
+.summary-count { font-weight: 600; color: #161616; }
+.summary-divider { width: 1px; height: 16px; background: #dedede; }
+.summary-total { font-size: 12px; color: #888888; margin-left: auto; }
+.summary-total strong { color: #161616; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/></svg>
+      <span style="font-weight:600;color:#161616">Mars Workbench</span>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Features</div>
+      <div class="sidebar-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        AI Chat
+      </div>
+      <div class="sidebar-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Kanban Planner
+      </div>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="sidebar-item" style="color:#888888">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        Settings
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="header">
+      <div class="header-left">
+        <span class="header-title"><span>Kanban</span> Planner</span>
+        <span class="header-badge">Week 09 &middot; Feb 24 – Mar 1</span>
+      </div>
+      <div class="header-right">
+        <div class="view-tabs">
+          <button class="view-tab">Board</button>
+          <button class="view-tab active">Matrix</button>
+          <button class="view-tab">Templates</button>
+        </div>
+        <button class="btn btn-ghost" style="padding:8px 14px;font-size:13px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Edit Plan
+        </button>
+      </div>
+    </div>
+
+    <div class="matrix-wrapper">
+      <!-- Y-axis label -->
+      <div class="y-axis-label">
+        <span class="axis-arrow">&#9650;</span>&ensp;Important&ensp;&ensp;&mdash;&mdash;&mdash;&ensp;&ensp;Less Important&ensp;<span class="axis-arrow">&#9660;</span>
+      </div>
+
+      <div class="matrix-area">
+        <!-- Matrix Grid -->
+        <div class="matrix-grid">
+
+          <!-- Q1: Do First (Urgent + Important) — top-left -->
+          <div class="quadrant q-do-first">
+            <div class="quadrant-header">
+              <div class="quadrant-header-left">
+                <span class="quadrant-name">Do First</span>
+                <span class="quadrant-count">3</span>
+              </div>
+              <span class="quadrant-subtitle">Urgent &amp; Important</span>
+            </div>
+            <div class="quadrant-body">
+
+              <div class="matrix-card">
+                <div class="drag-handle">
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                </div>
+                <div class="matrix-card-content">
+                  <div class="matrix-card-title">File tax return</div>
+                  <div class="matrix-card-desc">Deadline March 15 — gather W-2s and 1099s</div>
+                  <div class="matrix-card-meta">
+                    <span class="task-badge badge-adhoc">Ad-hoc</span>
+                    <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>5 pts</span>
+                  </div>
+                </div>
+                <div class="board-action">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14m-6-6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  Board
+                </div>
+              </div>
+
+              <div class="matrix-card">
+                <div class="drag-handle">
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                </div>
+                <div class="matrix-card-content">
+                  <div class="matrix-card-title">See cardiology specialist</div>
+                  <div class="matrix-card-desc">Referral expires next week</div>
+                  <div class="matrix-card-meta">
+                    <span class="task-badge badge-adhoc">Ad-hoc</span>
+                    <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>3 pts</span>
+                  </div>
+                </div>
+                <div class="board-action">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14m-6-6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  Board
+                </div>
+              </div>
+
+              <div class="matrix-card">
+                <div class="drag-handle">
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                </div>
+                <div class="matrix-card-content">
+                  <div class="matrix-card-title">Fix leaking faucet</div>
+                  <div class="matrix-card-meta">
+                    <span class="task-badge badge-adhoc">Ad-hoc</span>
+                    <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>2 pts</span>
+                  </div>
+                </div>
+                <div class="board-action">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14m-6-6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  Board
+                </div>
+              </div>
+
+              <button class="matrix-add-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+                Add task
+              </button>
+            </div>
+          </div>
+
+          <!-- Q2: Schedule (Not Urgent + Important) — top-right -->
+          <div class="quadrant q-schedule">
+            <div class="quadrant-header">
+              <div class="quadrant-header-left">
+                <span class="quadrant-name">Schedule</span>
+                <span class="quadrant-count">3</span>
+              </div>
+              <span class="quadrant-subtitle">Important, Not Urgent</span>
+            </div>
+            <div class="quadrant-body">
+
+              <div class="matrix-card">
+                <div class="drag-handle">
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                </div>
+                <div class="matrix-card-content">
+                  <div class="matrix-card-title">Research health insurance plans</div>
+                  <div class="matrix-card-desc">Compare PPO vs HMO options for next enrollment</div>
+                  <div class="matrix-card-meta">
+                    <span class="task-badge badge-adhoc">Ad-hoc</span>
+                    <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>5 pts</span>
+                  </div>
+                </div>
+                <div class="board-action">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14m-6-6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  Board
+                </div>
+              </div>
+
+              <div class="matrix-card">
+                <div class="drag-handle">
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                </div>
+                <div class="matrix-card-content">
+                  <div class="matrix-card-title">Plan summer vacation</div>
+                  <div class="matrix-card-desc">Research flights and hotels for July trip</div>
+                  <div class="matrix-card-meta">
+                    <span class="task-badge badge-adhoc">Ad-hoc</span>
+                    <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>3 pts</span>
+                  </div>
+                </div>
+                <div class="board-action">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14m-6-6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  Board
+                </div>
+              </div>
+
+              <div class="matrix-card">
+                <div class="drag-handle">
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                </div>
+                <div class="matrix-card-content">
+                  <div class="matrix-card-title">Update resume</div>
+                  <div class="matrix-card-desc">Add recent project experience and skills</div>
+                  <div class="matrix-card-meta">
+                    <span class="task-badge badge-adhoc">Ad-hoc</span>
+                    <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>4 pts</span>
+                  </div>
+                </div>
+                <div class="board-action">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14m-6-6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  Board
+                </div>
+              </div>
+
+              <button class="matrix-add-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+                Add task
+              </button>
+            </div>
+          </div>
+
+          <!-- Q3: Delegate (Urgent + Not Important) — bottom-left -->
+          <div class="quadrant q-delegate">
+            <div class="quadrant-header">
+              <div class="quadrant-header-left">
+                <span class="quadrant-name">Delegate</span>
+                <span class="quadrant-count">2</span>
+              </div>
+              <span class="quadrant-subtitle">Urgent, Not Important</span>
+            </div>
+            <div class="quadrant-body">
+
+              <div class="matrix-card">
+                <div class="drag-handle">
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                </div>
+                <div class="matrix-card-content">
+                  <div class="matrix-card-title">Schedule car oil change</div>
+                  <div class="matrix-card-desc">Overdue by 500 miles</div>
+                  <div class="matrix-card-meta">
+                    <span class="task-badge badge-adhoc">Ad-hoc</span>
+                    <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>2 pts</span>
+                  </div>
+                </div>
+                <div class="board-action">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14m-6-6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  Board
+                </div>
+              </div>
+
+              <div class="matrix-card">
+                <div class="drag-handle">
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                </div>
+                <div class="matrix-card-content">
+                  <div class="matrix-card-title">Return Amazon package</div>
+                  <div class="matrix-card-desc">Return window closes Friday</div>
+                  <div class="matrix-card-meta">
+                    <span class="task-badge badge-adhoc">Ad-hoc</span>
+                    <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>1 pt</span>
+                  </div>
+                </div>
+                <div class="board-action">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14m-6-6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  Board
+                </div>
+              </div>
+
+              <button class="matrix-add-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+                Add task
+              </button>
+            </div>
+          </div>
+
+          <!-- Q4: Eliminate (Not Urgent + Not Important) — bottom-right -->
+          <div class="quadrant q-eliminate">
+            <div class="quadrant-header">
+              <div class="quadrant-header-left">
+                <span class="quadrant-name">Eliminate</span>
+                <span class="quadrant-count">2</span>
+              </div>
+              <span class="quadrant-subtitle">Not Urgent, Not Important</span>
+            </div>
+            <div class="quadrant-body">
+
+              <div class="matrix-card">
+                <div class="drag-handle">
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                </div>
+                <div class="matrix-card-content">
+                  <div class="matrix-card-title">Organize old photos</div>
+                  <div class="matrix-card-desc">Sort and back up phone photos from 2024</div>
+                  <div class="matrix-card-meta">
+                    <span class="task-badge badge-adhoc">Ad-hoc</span>
+                    <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>1 pt</span>
+                  </div>
+                </div>
+                <div class="board-action">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14m-6-6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  Board
+                </div>
+              </div>
+
+              <div class="matrix-card">
+                <div class="drag-handle">
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                  <div class="drag-dot-row"><div class="drag-dot"></div><div class="drag-dot"></div></div>
+                </div>
+                <div class="matrix-card-content">
+                  <div class="matrix-card-title">Clean out garage</div>
+                  <div class="matrix-card-meta">
+                    <span class="task-badge badge-adhoc">Ad-hoc</span>
+                    <span class="task-points"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>2 pts</span>
+                  </div>
+                </div>
+                <div class="board-action">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14m-6-6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  Board
+                </div>
+              </div>
+
+              <button class="matrix-add-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+                Add task
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- X-axis label -->
+        <div class="x-axis-label">
+          <span class="axis-arrow">&#9664;</span>&ensp;Urgent&ensp;&ensp;&mdash;&mdash;&mdash;&ensp;&ensp;Less Urgent&ensp;<span class="axis-arrow">&#9654;</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Bar -->
+    <div class="matrix-summary">
+      <div class="summary-stat">
+        <div class="summary-dot red"></div>
+        <span>Do First</span>
+        <span class="summary-count">3</span>
+      </div>
+      <div class="summary-stat">
+        <div class="summary-dot blue"></div>
+        <span>Schedule</span>
+        <span class="summary-count">3</span>
+      </div>
+      <div class="summary-stat">
+        <div class="summary-dot amber"></div>
+        <span>Delegate</span>
+        <span class="summary-count">2</span>
+      </div>
+      <div class="summary-stat">
+        <div class="summary-dot gray"></div>
+        <span>Eliminate</span>
+        <span class="summary-count">2</span>
+      </div>
+      <div class="summary-divider"></div>
+      <div class="summary-total"><strong>10</strong> tasks &middot; <strong>28</strong> total points</div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>
