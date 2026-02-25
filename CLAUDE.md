@@ -80,13 +80,11 @@ Read the relevant feature's design docs **only when the task involves logic, dat
 
 ### Adding a New Flow
 
-Follow these steps in order. Do not proceed to the next step without explicit user approval.
+Use the `/new-flow` skill (e.g., `/new-flow kanban daily-sync`). See `.claude/skills/new-flow/SKILL.md`.
 
-1. **Draft** — User writes draft flow (Trigger / Steps / Rules)
-2. **Review flow** — Review the draft, suggest edits for clarity and completeness, present updated flow for approval
-3. **Mockup** *(if UI is involved)* — Create an HTML mockup and present for approval before writing any logic
-4. **Plan + Actions** — Write the implementation plan and fill in `actions.md` with pseudocode and DAL contracts, present for approval
-5. **Implement** — Implement based on approved actions
+### Adding a New Feature
+
+Use the `/new-feature` skill (e.g., `/new-feature auth`). See `.claude/skills/new-feature/SKILL.md`.
 
 ## UI Workflow
 
@@ -114,24 +112,7 @@ Each file should be self-contained (link to `./styles.css`) and represent only t
 
 ### Design Exploration (Future Work)
 
-Use this workflow when the user identifies a UX pain point or wants to explore a redesign that won't be implemented immediately. Use the `/frontend-design` skill to generate high-quality mockups.
-
-1. **Identify pain point** — User describes the problem (e.g., "this page is too crowded", "this flow is confusing")
-2. **Read context** — Read the existing mockup and relevant design docs to understand the current state
-3. **Generate mockup** — Use `/frontend-design` to create a temporary Before / After HTML mockup. Iterate with user feedback until approved
-4. **Archive to future-work** — Move the approved mockup to `features/[feature]/design/mockup/future-work/` as `mockup-[name]-v2.html`. If the redesign introduces new entity fields or UI patterns that affect other flows, generate updated mockups for those flows too (e.g., a new `category` field on templates requires updating the task modal mockup as well)
-5. **Update design doc** — Add a one-line entry under `Planned: Future` in the feature's `baseline.md` describing the work and pointing to the mockups
-6. **Clean up** — Delete any temporary mockup files
-
-```
-design/mockup/
-├── styles.css
-├── mockup-board.html
-├── mockup-plan-form.html
-└── future-work/                   # approved redesigns not yet implemented
-    ├── mockup-plan-form-v2.html
-    └── mockup-task-modal-v2.html
-```
+Use the `/design-explore` skill (e.g., `/design-explore kanban board`). See `.claude/skills/design-explore/SKILL.md`.
 
 ### Implementing UI Components
 

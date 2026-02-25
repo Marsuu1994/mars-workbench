@@ -18,7 +18,9 @@ Backend complete (schema, DAL, services, server actions, board sync). Full board
 - [ ] Design better way to handle task templates
 - [ ] Add subtitle field to task template to support different titles
 - [ ] Create common landing page for Mars workbench to navigate between features
-- [ ] Backlog drawer for staging template-generated task instances (mockup approved)
+- [ ] Backlog drawer renamed to "Queued" for staging template-generated task instances (mockup approved)
+- [ ] Priorities page — Eisenhower priority matrix for personal one-off tasks (mockup approved)
+- [ ] Template categories — grouping templates by category in plan form (mockup approved)
 - [ ] Phone notifications for unfinished tasks
 - [ ] LLM-generated motivational messages
 - [ ] End-of-period summary before new plan
@@ -27,8 +29,17 @@ Backend complete (schema, DAL, services, server actions, board sync). Full board
 - [ ] Design way to manage UI effect when there are too many task templates
 - [ ] Refactor to use constant for all UI static text fields
 - [ ] Design weekend/vacation flow
+- [ ] Support Ad-hoc task deletion and auto clear logic
 
 ## Update Log
+
+### 2026-02-25
+- Designed Eisenhower priority matrix ("Priorities" page) for personal one-off tasks — full-page 2x2 matrix (Do First / Schedule / Squeeze In / Maybe Later) with Board/Priorities tab switcher; tasks can be sent to the board via "Track this week"; renames "Ad-hoc" badge to "Todo", backlog drawer to "Queued"
+- Archived approved mockup to `design/mockup/future-work/mockup-priorities-v2.html`
+- Updated `baseline.md` Planned: Future with priorities page and template categories entries
+- Fixed backlog drawer v2 mockup CSS link (`./styles.css` → `../styles.css`)
+- Updated `/design-explore` skill with explicit STOP gates for user approval between steps
+- Replaced inline CLAUDE.md workflow docs (new-flow, new-feature, design-explore) with skill references
 
 ### 2026-02-24
 - Designed full ad-hoc task flow: updated `baseline.md`, `flows.md`, `api.md` with ad-hoc creation, plan linking/unlinking, and projected points

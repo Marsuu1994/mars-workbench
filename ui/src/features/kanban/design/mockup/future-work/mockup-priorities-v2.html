@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kanban — Priority Matrix Todos (Before / After)</title>
+<link rel="stylesheet" href="./styles.css" />
+<style>
+  /* ── Screen switching ── */
+  .screen { display: none; height: 100vh; }
+  .screen.active { display: block; }
+  .screen > .main { height: 100vh; }
+
+  /* ── Star icon ── */
+  .star-svg { width: 12px; height: 12px; }
+
+  /* ── Badge variant: "Todo" replaces "Ad-hoc" ── */
+  .badge-todo { background: rgba(69,174,238,0.1); color: #45aeee; }
+
+  /* ════════════════════════════════════════════
+     Matrix Full-Page Styles
+     ════════════════════════════════════════════ */
+
+  /* ── Matrix container (replaces .board) ── */
+  .matrix-page {
+    flex: 1; display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  /* ── Hint bar below header ── */
+  .matrix-hint-bar {
+    padding: 8px 24px; font-size: 12px; color: #999999;
+    border-bottom: 1px solid #eeeeee; background: #fafafa;
+    display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+  }
+  .matrix-hint-bar svg { width: 14px; height: 14px; flex-shrink: 0; color: #45aeee; }
+
+  /* ── Axis + grid wrapper ── */
+  .matrix-layout {
+    flex: 1; display: flex; overflow: hidden; min-height: 0;
+  }
+
+  /* ── Y axis ── */
+  .axis-y {
+    width: 28px; flex-shrink: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: space-around; padding: 20px 0;
+    background: #fafafa;
+  }
+  .axis-y-label {
+    writing-mode: vertical-rl; text-orientation: mixed;
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; color: #bbbbbb; transform: rotate(180deg);
+  }
+
+  /* ── X axis ── */
+  .axis-x {
+    height: 26px; flex-shrink: 0; display: flex; align-items: center;
+    justify-content: space-around; background: #fafafa;
+    border-top: 1px solid #eeeeee; margin-left: 28px;
+  }
+  .axis-x-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; color: #bbbbbb; flex: 1; text-align: center;
+  }
+
+  /* ── 2x2 Grid ── */
+  .matrix-grid {
+    flex: 1; display: grid; grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr; overflow: hidden;
+  }
+
+  /* ── Quadrant ── */
+  .quadrant {
+    display: flex; flex-direction: column; overflow: hidden;
+    border: 0.5px solid #eeeeee;
+  }
+  .quadrant-header {
+    padding: 14px 20px 8px 20px; flex-shrink: 0;
+    display: flex; align-items: center; gap: 8px;
+    border-top: 3px solid transparent;
+  }
+  .quadrant-icon { font-size: 10px; flex-shrink: 0; }
+  .quadrant-label {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.04em; color: #161616;
+  }
+  .quadrant-sublabel {
+    font-size: 11px; color: #999999; font-weight: 400;
+  }
+  .quadrant-count {
+    font-size: 11px; font-weight: 600; color: #999999;
+    margin-left: auto;
+  }
+  .quadrant-body {
+    flex: 1; padding: 6px 16px 16px 16px; display: flex; flex-direction: column;
+    gap: 6px; overflow-y: auto;
+  }
+
+  /* Quadrant accents */
+  .q-do-first .quadrant-header { border-top-color: #e93f33; }
+  .q-do-first { background: rgba(233,63,51,0.015); }
+  .q-schedule .quadrant-header { border-top-color: #45aeee; }
+  .q-schedule { background: rgba(69,174,238,0.015); }
+  .q-squeeze .quadrant-header { border-top-color: #ee8134; }
+  .q-squeeze { background: rgba(238,129,52,0.015); }
+  .q-later .quadrant-header { border-top-color: #bbbbbb; }
+  .q-later { background: rgba(0,0,0,0.008); }
+
+  /* ── Matrix card ── */
+  .mx-card {
+    background: #ffffff; border: 1px solid #dedede; border-radius: 8px;
+    padding: 10px 12px; cursor: grab; display: flex; align-items: center;
+    gap: 8px; transition: border-color 0.15s, box-shadow 0.15s;
+    position: relative;
+  }
+  .mx-card:hover { border-color: #bbbbbb; }
+  .mx-card-title {
+    font-size: 13px; font-weight: 500; color: #161616;
+    flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .mx-card-pts {
+    font-size: 11px; font-weight: 700; color: #ee8134;
+    display: flex; align-items: center; gap: 2px; flex-shrink: 0;
+  }
+  .mx-card-pts svg { width: 11px; height: 11px; }
+  .mx-card-send {
+    width: 22px; height: 22px; border-radius: 5px; border: none;
+    background: transparent; cursor: pointer; display: none;
+    align-items: center; justify-content: center; color: #bbbbbb;
+    flex-shrink: 0; padding: 0;
+  }
+  .mx-card:hover .mx-card-send { display: flex; }
+  .mx-card-send:hover { background: rgba(69,174,238,0.1); color: #45aeee; }
+  .mx-card-send svg { width: 14px; height: 14px; }
+  .mx-card-drag {
+    width: 14px; height: 14px; color: #dddddd; flex-shrink: 0;
+  }
+  .mx-card:hover .mx-card-drag { color: #bbbbbb; }
+
+  /* Card on-board state */
+  .mx-card.on-board { opacity: 0.55; }
+  .mx-card.on-board .mx-card-title { color: #888888; }
+  .on-board-tag {
+    font-size: 9px; font-weight: 600; color: #45aeee;
+    background: rgba(69,174,238,0.1); padding: 2px 6px; border-radius: 4px;
+    flex-shrink: 0; white-space: nowrap;
+  }
+
+  /* Card active/selected state (send screen) */
+  .mx-card.active-send {
+    border-color: #45aeee; box-shadow: 0 0 0 2px rgba(69,174,238,0.2);
+  }
+
+  /* ── Send action popover ── */
+  .send-popover {
+    position: absolute; top: 100%; right: 0;
+    margin-top: 6px; background: #ffffff; border: 1px solid #dedede;
+    border-radius: 10px; padding: 10px 12px; z-index: 50;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    display: flex; flex-direction: column; gap: 6px;
+    min-width: 180px;
+  }
+  .send-popover::before {
+    content: ''; position: absolute; top: -6px; right: 20px;
+    width: 10px; height: 10px; background: #ffffff; border-left: 1px solid #dedede;
+    border-top: 1px solid #dedede; rotate: 45deg;
+  }
+  .send-popover-title {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.05em; color: #999999; margin-bottom: 2px;
+  }
+  .send-popover-btn {
+    display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+    border-radius: 6px; border: 1px solid #dedede; background: #ffffff;
+    cursor: pointer; font-size: 12px; font-weight: 500; color: #161616;
+    transition: all 0.15s;
+  }
+  .send-popover-btn:hover { border-color: #45aeee; background: rgba(69,174,238,0.04); }
+  .send-popover-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .send-popover-btn .col-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+
+  /* ── Quadrant add button ── */
+  .mx-add-btn {
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+    width: 100%; padding: 8px; border-radius: 8px;
+    border: 1.5px dashed #dedede; background: transparent;
+    color: #bbbbbb; font-size: 12px; font-weight: 500; cursor: pointer;
+    transition: border-color 0.15s, color 0.15s; margin-top: auto;
+  }
+  .mx-add-btn:hover { border-color: #45aeee; color: #45aeee; }
+  .mx-add-btn svg { width: 13px; height: 13px; }
+
+  /* ── Page title bar (Priorities page) ── */
+  .page-title-bar {
+    padding: 16px 24px 12px 24px; border-bottom: 1px solid #eeeeee;
+    background: #ffffff; flex-shrink: 0;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .page-title-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(130,50,144,0.08); flex-shrink: 0;
+  }
+  .page-title-icon svg { width: 18px; height: 18px; color: #823290; }
+  .page-title-text { display: flex; flex-direction: column; gap: 1px; }
+  .page-title-name { font-size: 16px; font-weight: 700; color: #161616; }
+  .page-title-desc { font-size: 12px; color: #999999; }
+  .page-title-count {
+    margin-left: auto; font-size: 12px; font-weight: 600; color: #888888;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .page-title-count-num {
+    font-size: 13px; font-weight: 700; color: #161616;
+  }
+
+  /* ════════════════════════════════════════════
+     Backlog Drawer Strip (from v2 concept)
+     ════════════════════════════════════════════ */
+  .backlog-strip {
+    width: 44px; flex-shrink: 0; background: #f5f5f5;
+    border-right: 1px solid #dedede; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 12px;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .backlog-strip:hover { background: #eaeaea; }
+  .backlog-strip-label {
+    writing-mode: vertical-rl; text-orientation: mixed;
+    font-size: 13px; font-weight: 600; color: #888888; letter-spacing: 0.03em;
+    transform: rotate(180deg);
+  }
+  .backlog-strip-count {
+    font-size: 11px; font-weight: 700; background: #45aeee; color: #fff;
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .backlog-strip-arrow { width: 16px; height: 16px; color: #bbbbbb; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════
+     SCREEN 1 — Before: Current Board
+     ════════════════════════════════════════════════════════════════ -->
+<div class="screen active" id="screen-before">
+  <div class="main">
+    <div class="header">
+      <div class="header-left">
+        <span class="header-title"><span>Kanban</span> Planner</span>
+        <span class="header-badge">Week 09 &middot; Feb 24 – Mar 1</span>
+      </div>
+      <div class="header-right">
+        <div class="view-tabs">
+          <button class="view-tab active">Board</button>
+          <button class="view-tab">Templates</button>
+        </div>
+        <button class="btn btn-ghost" style="padding:8px 14px;font-size:13px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Edit Plan
+        </button>
+      </div>
+    </div>
+
+    <div class="progress-dashboard">
+      <div class="ring-group">
+        <div class="progress-ring">
+          <svg viewBox="0 0 52 52" width="48" height="48">
+            <circle class="ring-track" cx="26" cy="26" r="22"/>
+            <circle class="ring-fill" cx="26" cy="26" r="22" stroke-dasharray="138.23" stroke-dashoffset="96.76"/>
+          </svg>
+          <div class="ring-center">30%</div>
+        </div>
+        <div class="ring-label">
+          <span class="ring-label-title">Today</span>
+          <span class="ring-label-sub">1 of 4 tasks</span>
+        </div>
+      </div>
+      <div class="dash-divider"></div>
+      <div class="stat-item">
+        <div class="stat-value green">3 / 18</div>
+        <div class="stat-label">Today Points</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value blue">18 / 86</div>
+        <div class="stat-label">Week Points</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value amber">5.2</div>
+        <div class="stat-label">Daily Avg</div>
+      </div>
+      <div class="dash-divider"></div>
+      <div class="week-bar-group">
+        <div class="week-bar-header">
+          <span class="week-bar-title">Week Progress</span>
+          <span class="week-bar-pct">21%</span>
+        </div>
+        <div class="week-bar-track"><div class="week-bar-fill" style="width:21%"></div></div>
+        <span class="week-bar-sub">1 of 4 tasks done</span>
+      </div>
+    </div>
+
+    <!-- Board with ad-hoc tasks mixed in -->
+    <div class="board">
+      <div class="column col-todo">
+        <div class="column-header"><span>Todo</span><span class="column-count">4</span></div>
+        <div class="column-body">
+          <div class="task-card">
+            <div class="task-title">Go to gym &ndash; Leg day</div>
+            <div class="task-desc">30 min workout</div>
+            <div class="task-meta">
+              <span class="task-badge badge-weekly">Weekly</span>
+              <span class="task-points"><svg class="star-svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>6 pts</span>
+            </div>
+          </div>
+          <div class="task-card">
+            <div class="task-title">File tax report</div>
+            <div class="task-meta">
+              <span class="task-badge badge-adhoc">Ad-hoc</span>
+              <span class="task-points"><svg class="star-svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>5 pts</span>
+            </div>
+          </div>
+          <div class="task-card">
+            <div class="task-title">Find gym coach</div>
+            <div class="task-meta">
+              <span class="task-badge badge-adhoc">Ad-hoc</span>
+              <span class="task-points"><svg class="star-svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>3 pts</span>
+            </div>
+          </div>
+          <div class="task-card">
+            <div class="task-title">Shop birthday gift</div>
+            <div class="task-meta">
+              <span class="task-badge badge-adhoc">Ad-hoc</span>
+              <span class="task-points"><svg class="star-svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>3 pts</span>
+            </div>
+          </div>
+          <button class="add-task-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+            Add ad-hoc task
+          </button>
+        </div>
+      </div>
+
+      <div class="column col-doing">
+        <div class="column-header"><span>In Progress</span><span class="column-count">2</span></div>
+        <div class="column-body">
+          <div class="task-card">
+            <div class="task-title">Morning jog 5km</div>
+            <div class="task-meta">
+              <span class="task-badge badge-daily">Daily</span>
+              <span class="task-points"><svg class="star-svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>4 pts</span>
+            </div>
+          </div>
+          <div class="task-card">
+            <div class="task-title">Renew passport</div>
+            <div class="task-meta">
+              <span class="task-badge badge-adhoc">Ad-hoc</span>
+              <span class="task-points"><svg class="star-svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>2 pts</span>
+            </div>
+          </div>
+          <button class="add-task-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+            Add ad-hoc task
+          </button>
+        </div>
+      </div>
+
+      <div class="column col-done">
+        <div class="column-header"><span>Done</span><span class="column-count">1</span></div>
+        <div class="column-body">
+          <div class="task-card done-card">
+            <div class="task-title">Buy birthday gift</div>
+            <div class="task-meta">
+              <span class="task-badge badge-adhoc">Ad-hoc</span>
+              <span class="task-points"><svg class="star-svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>3 pts</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     SCREEN 2 — After: Board Tab
+     ════════════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-board">
+  <div class="main">
+    <div class="header">
+      <div class="header-left">
+        <span class="header-title"><span>Kanban</span> Planner</span>
+        <span class="header-badge">Week 09 &middot; Feb 24 – Mar 1</span>
+      </div>
+      <div class="header-right">
+        <div class="view-tabs">
+          <button class="view-tab active">Board</button>
+          <button class="view-tab" onclick="showScreen('screen-matrix')">Priorities</button>
+        </div>
+        <button class="btn btn-ghost" style="padding:8px 14px;font-size:13px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Edit Plan
+        </button>
+      </div>
+    </div>
+
+    <div class="progress-dashboard">
+      <div class="ring-group">
+        <div class="progress-ring">
+          <svg viewBox="0 0 52 52" width="48" height="48">
+            <circle class="ring-track" cx="26" cy="26" r="22"/>
+            <circle class="ring-fill" cx="26" cy="26" r="22" stroke-dasharray="138.23" stroke-dashoffset="96.76"/>
+          </svg>
+          <div class="ring-center">30%</div>
+        </div>
+        <div class="ring-label">
+          <span class="ring-label-title">Today</span>
+          <span class="ring-label-sub">1 of 4 tasks</span>
+        </div>
+      </div>
+      <div class="dash-divider"></div>
+      <div class="stat-item">
+        <div class="stat-value green">3 / 18</div>
+        <div class="stat-label">Today Points</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value blue">18 / 86</div>
+        <div class="stat-label">Week Points</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value amber">5.2</div>
+        <div class="stat-label">Daily Avg</div>
+      </div>
+      <div class="dash-divider"></div>
+      <div class="week-bar-group">
+        <div class="week-bar-header">
+          <span class="week-bar-title">Week Progress</span>
+          <span class="week-bar-pct">21%</span>
+        </div>
+        <div class="week-bar-track"><div class="week-bar-fill" style="width:21%"></div></div>
+        <span class="week-bar-sub">1 of 4 tasks done</span>
+      </div>
+    </div>
+
+    <div style="flex:1;display:flex;min-height:0">
+      <!-- Collapsed backlog strip -->
+      <div class="backlog-strip">
+        <svg class="backlog-strip-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="backlog-strip-count">5</span>
+        <span class="backlog-strip-label">Queued</span>
+      </div>
+
+      <!-- Board — todo tasks on board use "Todo" badge -->
+      <div class="board">
+        <div class="column col-todo">
+          <div class="column-header"><span>Todo</span><span class="column-count">3</span></div>
+          <div class="column-body">
+            <div class="task-card">
+              <div class="task-title">Go to gym &ndash; Leg day</div>
+              <div class="task-desc">30 min workout</div>
+              <div class="task-meta">
+                <span class="task-badge badge-weekly">Weekly</span>
+                <span class="task-points"><svg class="star-svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>6 pts</span>
+              </div>
+            </div>
+            <div class="task-card">
+              <div class="task-title">File tax report</div>
+              <div class="task-meta">
+                <span class="task-badge badge-todo">Todo</span>
+                <span class="task-points"><svg class="star-svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>5 pts</span>
+              </div>
+            </div>
+            <div class="task-card">
+              <div class="task-title">Shop birthday gift</div>
+              <div class="task-meta">
+                <span class="task-badge badge-todo">Todo</span>
+                <span class="task-points"><svg class="star-svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>3 pts</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="column col-doing">
+          <div class="column-header"><span>In Progress</span><span class="column-count">2</span></div>
+          <div class="column-body">
+            <div class="task-card">
+              <div class="task-title">Morning jog 5km</div>
+              <div class="task-meta">
+                <span class="task-badge badge-daily">Daily</span>
+                <span class="task-points"><svg class="star-svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>4 pts</span>
+              </div>
+            </div>
+            <div class="task-card">
+              <div class="task-title">Renew passport</div>
+              <div class="task-meta">
+                <span class="task-badge badge-todo">Todo</span>
+                <span class="task-points"><svg class="star-svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>2 pts</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="column col-done">
+          <div class="column-header"><span>Done</span><span class="column-count">1</span></div>
+          <div class="column-body">
+            <div class="task-card done-card">
+              <div class="task-title">Buy birthday gift</div>
+              <div class="task-meta">
+                <span class="task-badge badge-todo">Todo</span>
+                <span class="task-points"><svg class="star-svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>3 pts</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     SCREEN 3 — After: Todos Tab (Full-Page Matrix)
+     ════════════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-matrix">
+  <div class="main">
+    <div class="header">
+      <div class="header-left">
+        <span class="header-title"><span>Kanban</span> Planner</span>
+        <span class="header-badge">Week 09 &middot; Feb 24 – Mar 1</span>
+      </div>
+      <div class="header-right">
+        <div class="view-tabs">
+          <button class="view-tab" onclick="showScreen('screen-board')">Board</button>
+          <button class="view-tab active">Priorities</button>
+        </div>
+        <button class="btn btn-ghost" style="padding:8px 14px;font-size:13px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Edit Plan
+        </button>
+      </div>
+    </div>
+
+    <div class="matrix-page">
+      <!-- Page identity -->
+      <div class="page-title-bar">
+        <div class="page-title-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="page-title-text">
+          <span class="page-title-name">My Priorities</span>
+          <span class="page-title-desc">One-off things you want to do &mdash; not tied to your weekly plan</span>
+        </div>
+        <div class="page-title-count">
+          <span class="page-title-count-num">8</span> total &middot;
+          <span class="page-title-count-num">3</span> tracking this week
+        </div>
+      </div>
+
+      <div class="matrix-hint-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 7h12M8 12h12M8 17h12M4 7h.01M4 12h.01M4 17h.01" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Drag between quadrants to reprioritize &middot; click <strong style="color:#45aeee">&rarr;</strong> to track this week
+      </div>
+
+      <div class="matrix-layout">
+        <!-- Y axis -->
+        <div class="axis-y">
+          <span class="axis-y-label">Important</span>
+          <span class="axis-y-label">Not Important</span>
+        </div>
+
+        <!-- 2x2 Grid -->
+        <div class="matrix-grid">
+          <!-- Q1: Do First (Urgent + Important) -->
+          <div class="quadrant q-do-first">
+            <div class="quadrant-header">
+              <span class="quadrant-icon" style="color:#e93f33">&#9679;</span>
+              <span class="quadrant-label">Do First</span>
+              <span class="quadrant-sublabel">&mdash; Urgent &amp; Important</span>
+              <span class="quadrant-count">2</span>
+            </div>
+            <div class="quadrant-body">
+              <div class="mx-card on-board">
+                <span class="mx-card-title">Shop birthday gift</span>
+                <span class="on-board-tag">This Week</span>
+                <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+              </div>
+              <div class="mx-card">
+                <span class="mx-card-title">Call dentist</span>
+                <span class="mx-card-pts"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>2</span>
+                <button class="mx-card-send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+              </div>
+              <button class="mx-add-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+                Add
+              </button>
+            </div>
+          </div>
+
+          <!-- Q2: Schedule (Important + Not Urgent) -->
+          <div class="quadrant q-schedule">
+            <div class="quadrant-header">
+              <span class="quadrant-icon" style="color:#45aeee">&#9679;</span>
+              <span class="quadrant-label">Schedule</span>
+              <span class="quadrant-sublabel">&mdash; Important</span>
+              <span class="quadrant-count">3</span>
+            </div>
+            <div class="quadrant-body">
+              <div class="mx-card on-board">
+                <span class="mx-card-title">File tax report</span>
+                <span class="on-board-tag">This Week</span>
+                <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+              </div>
+              <div class="mx-card">
+                <span class="mx-card-title">Find gym coach</span>
+                <span class="mx-card-pts"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>3</span>
+                <button class="mx-card-send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+              </div>
+              <div class="mx-card">
+                <span class="mx-card-title">Learn Python basics</span>
+                <span class="mx-card-pts"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>5</span>
+                <button class="mx-card-send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+              </div>
+              <button class="mx-add-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+                Add
+              </button>
+            </div>
+          </div>
+
+          <!-- Q3: Squeeze In (Urgent + Not Important) -->
+          <div class="quadrant q-squeeze">
+            <div class="quadrant-header">
+              <span class="quadrant-icon" style="color:#ee8134">&#9679;</span>
+              <span class="quadrant-label">Squeeze In</span>
+              <span class="quadrant-sublabel">&mdash; Urgent</span>
+              <span class="quadrant-count">1</span>
+            </div>
+            <div class="quadrant-body">
+              <div class="mx-card">
+                <span class="mx-card-title">Reply to landlord</span>
+                <span class="mx-card-pts"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>1</span>
+                <button class="mx-card-send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+              </div>
+              <button class="mx-add-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+                Add
+              </button>
+            </div>
+          </div>
+
+          <!-- Q4: Maybe Later (Not Urgent + Not Important) -->
+          <div class="quadrant q-later">
+            <div class="quadrant-header">
+              <span class="quadrant-icon" style="color:#bbbbbb">&#9679;</span>
+              <span class="quadrant-label">Maybe Later</span>
+              <span class="quadrant-count">2</span>
+            </div>
+            <div class="quadrant-body">
+              <div class="mx-card">
+                <span class="mx-card-title">Explore new recipe</span>
+                <span class="mx-card-pts"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>2</span>
+                <button class="mx-card-send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+              </div>
+              <div class="mx-card">
+                <span class="mx-card-title">Try pottery class</span>
+                <span class="mx-card-pts"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>2</span>
+                <button class="mx-card-send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+              </div>
+              <button class="mx-add-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- X axis -->
+      <div class="axis-x">
+        <span class="axis-x-label">Urgent</span>
+        <span class="axis-x-label">Not Urgent</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     SCREEN 4 — After: Send to Board Interaction
+     ════════════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-send">
+  <div class="main">
+    <div class="header">
+      <div class="header-left">
+        <span class="header-title"><span>Kanban</span> Planner</span>
+        <span class="header-badge">Week 09 &middot; Feb 24 – Mar 1</span>
+      </div>
+      <div class="header-right">
+        <div class="view-tabs">
+          <button class="view-tab">Board</button>
+          <button class="view-tab active">Todos</button>
+        </div>
+        <button class="btn btn-ghost" style="padding:8px 14px;font-size:13px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Edit Plan
+        </button>
+      </div>
+    </div>
+
+    <div class="matrix-page">
+      <!-- Page identity -->
+      <div class="page-title-bar">
+        <div class="page-title-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="page-title-text">
+          <span class="page-title-name">My Priorities</span>
+          <span class="page-title-desc">One-off things you want to do &mdash; not tied to your weekly plan</span>
+        </div>
+        <div class="page-title-count">
+          <span class="page-title-count-num">8</span> total &middot;
+          <span class="page-title-count-num">3</span> tracking this week
+        </div>
+      </div>
+
+      <div class="matrix-hint-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 7h12M8 12h12M8 17h12M4 7h.01M4 12h.01M4 17h.01" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Drag between quadrants to reprioritize &middot; click <strong style="color:#45aeee">&rarr;</strong> to track this week
+      </div>
+
+      <div class="matrix-layout">
+        <div class="axis-y">
+          <span class="axis-y-label">Important</span>
+          <span class="axis-y-label">Not Important</span>
+        </div>
+
+        <div class="matrix-grid">
+          <!-- Q1: Do First — with active send on "Call dentist" -->
+          <div class="quadrant q-do-first">
+            <div class="quadrant-header">
+              <span class="quadrant-icon" style="color:#e93f33">&#9679;</span>
+              <span class="quadrant-label">Do First</span>
+              <span class="quadrant-sublabel">&mdash; Urgent &amp; Important</span>
+              <span class="quadrant-count">2</span>
+            </div>
+            <div class="quadrant-body">
+              <div class="mx-card on-board">
+                <span class="mx-card-title">Shop birthday gift</span>
+                <span class="on-board-tag">This Week</span>
+                <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+              </div>
+              <!-- Active card with send popover -->
+              <div class="mx-card active-send" style="z-index:60">
+                <span class="mx-card-title">Call dentist</span>
+                <span class="mx-card-pts"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>2</span>
+                <button class="mx-card-send" style="display:flex;background:rgba(69,174,238,0.1);color:#45aeee"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+                <!-- Popover -->
+                <div class="send-popover">
+                  <div class="send-popover-title">Track this week</div>
+                  <button class="send-popover-btn">
+                    <span class="col-dot" style="background:#45aeee"></span>
+                    <span>Todo</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:auto;color:#bbbbbb"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                  <button class="send-popover-btn">
+                    <span class="col-dot" style="background:#ee8134"></span>
+                    <span>In Progress</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:auto;color:#bbbbbb"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                </div>
+              </div>
+              <button class="mx-add-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+                Add
+              </button>
+            </div>
+          </div>
+
+          <!-- Q2: Schedule -->
+          <div class="quadrant q-schedule">
+            <div class="quadrant-header">
+              <span class="quadrant-icon" style="color:#45aeee">&#9679;</span>
+              <span class="quadrant-label">Schedule</span>
+              <span class="quadrant-sublabel">&mdash; Important</span>
+              <span class="quadrant-count">3</span>
+            </div>
+            <div class="quadrant-body">
+              <div class="mx-card on-board">
+                <span class="mx-card-title">File tax report</span>
+                <span class="on-board-tag">This Week</span>
+                <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+              </div>
+              <div class="mx-card">
+                <span class="mx-card-title">Find gym coach</span>
+                <span class="mx-card-pts"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>3</span>
+                <button class="mx-card-send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+              </div>
+              <div class="mx-card">
+                <span class="mx-card-title">Learn Python basics</span>
+                <span class="mx-card-pts"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>5</span>
+                <button class="mx-card-send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+              </div>
+              <button class="mx-add-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+                Add
+              </button>
+            </div>
+          </div>
+
+          <!-- Q3: Squeeze In -->
+          <div class="quadrant q-squeeze">
+            <div class="quadrant-header">
+              <span class="quadrant-icon" style="color:#ee8134">&#9679;</span>
+              <span class="quadrant-label">Squeeze In</span>
+              <span class="quadrant-sublabel">&mdash; Urgent</span>
+              <span class="quadrant-count">1</span>
+            </div>
+            <div class="quadrant-body">
+              <div class="mx-card">
+                <span class="mx-card-title">Reply to landlord</span>
+                <span class="mx-card-pts"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>1</span>
+                <button class="mx-card-send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+              </div>
+              <button class="mx-add-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+                Add
+              </button>
+            </div>
+          </div>
+
+          <!-- Q4: Maybe Later -->
+          <div class="quadrant q-later">
+            <div class="quadrant-header">
+              <span class="quadrant-icon" style="color:#bbbbbb">&#9679;</span>
+              <span class="quadrant-label">Maybe Later</span>
+              <span class="quadrant-count">2</span>
+            </div>
+            <div class="quadrant-body">
+              <div class="mx-card">
+                <span class="mx-card-title">Explore new recipe</span>
+                <span class="mx-card-pts"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>2</span>
+                <button class="mx-card-send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+              </div>
+              <div class="mx-card">
+                <span class="mx-card-title">Try pottery class</span>
+                <span class="mx-card-pts"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>2</span>
+                <button class="mx-card-send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+              </div>
+              <button class="mx-add-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="axis-x">
+        <span class="axis-x-label">Urgent</span>
+        <span class="axis-x-label">Not Urgent</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Screen nav ── -->
+<nav class="screen-nav">
+  <button class="screen-btn active" id="nav-before" onclick="showScreen('screen-before')">Before</button>
+  <button class="screen-btn" id="nav-board" onclick="showScreen('screen-board')">After &mdash; Board</button>
+  <button class="screen-btn" id="nav-matrix" onclick="showScreen('screen-matrix')">After &mdash; Priorities</button>
+  <button class="screen-btn" id="nav-send" onclick="showScreen('screen-send')">After &mdash; Track</button>
+</nav>
+
+<script>
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.screen-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-' + id.replace('screen-', '')).classList.add('active');
+}
+</script>
+
+</body>
+</html>

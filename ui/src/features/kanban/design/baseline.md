@@ -33,7 +33,7 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 - End-of-period summary before starting a new plan
 - Weekly task rollover across periods
 - Biweekly and custom period types
-- Priority matrix for managing and promoting ad-hoc tasks onto the board
+- Priorities page — Full-page Eisenhower priority matrix (Board/Priorities tab switcher) for organizing personal one-off tasks by urgency/importance. Tasks can be promoted to the board via "Track this week". Renames "Ad-hoc" to "Todo" badge, backlog drawer renamed to "Queued" — see `mockup/future-work/mockup-priorities-v2.html`
 - Template categories — Add optional `category` field to TaskTemplate for grouping templates in the plan form. Collapsible groups + search for scalability. Mockups in `design/mockup/future-work/`.
 
 ## Entities
