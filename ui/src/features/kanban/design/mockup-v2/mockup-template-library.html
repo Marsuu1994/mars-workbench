@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanban v2 — Template Library</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="scan-line">
+
+  <nav class="screen-nav">
+    <a href="#library-grid">Library Grid View</a>
+    <a href="#library-filtered">Filtered by Category</a>
+  </nav>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN 1 — TEMPLATE LIBRARY GRID VIEW
+       ═══════════════════════════════════════════════════════ -->
+  <section class="screen-section" id="library-grid">
+    <div class="screen-label">Screen 1 / Templates — Library Grid View (dedicated page tab)</div>
+
+    <div class="app-shell" style="min-height: 780px;">
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="logo-icon">M</div>
+          <div class="logo-text">MARS</div>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="#">Chat</a>
+          <a href="#" class="active">Kanban</a>
+        </nav>
+      </aside>
+
+      <div class="main">
+        <header class="header">
+          <div class="header-left">
+            <div class="header-title">
+              <h1>Mission Control</h1>
+              <span class="period-badge">WK 09 &middot; Feb 24 – Mar 02</span>
+            </div>
+            <nav class="tab-nav">
+              <button>Board</button>
+              <button>Priorities</button>
+              <button class="active">Templates</button>
+            </nav>
+          </div>
+          <div class="header-right">
+            <button class="btn btn-ai btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 014 4v1a3 3 0 013 3v1a2 2 0 012 2v3a8 8 0 01-16 0v-3a2 2 0 012-2v-1a3 3 0 013-3V6a4 4 0 014-4z"/></svg>
+              AI Generate
+            </button>
+            <button class="btn btn-primary btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              New Template
+            </button>
+          </div>
+        </header>
+
+        <div style="padding: var(--sp-xl);">
+          <!-- Library Header -->
+          <div class="library-header">
+            <div style="display: flex; align-items: center; gap: var(--sp-md);">
+              <h3>Template Library</h3>
+              <span style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim);">12 templates &middot; 4 categories</span>
+            </div>
+            <div style="display: flex; gap: var(--sp-sm);">
+              <!-- Category filter pills -->
+              <div class="pill-group">
+                <button class="pill active">All</button>
+                <button class="pill">Fitness</button>
+                <button class="pill">Interview</button>
+                <button class="pill">Personal</button>
+                <button class="pill">Reading</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Search -->
+          <div class="search-bar" style="max-width: 400px; margin-bottom: var(--sp-xl);">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" placeholder="Search templates...">
+          </div>
+
+          <!-- Grid -->
+          <div class="library-grid">
+            <!-- Card 1 -->
+            <div class="library-card animate-fade-in animate-fade-in-1">
+              <div class="lc-header">
+                <span class="lc-title">Solve 3 LeetCode problems</span>
+                <span class="lc-points"><span class="star">&#9733;</span> 3</span>
+              </div>
+              <div class="lc-desc">Focus on dynamic programming mediums, 25 min per problem max.</div>
+              <div class="lc-footer">
+                <span class="lc-category">Interview Prep</span>
+                <span class="lc-usage">Used in 8 plans</span>
+              </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="library-card animate-fade-in animate-fade-in-2">
+              <div class="lc-header">
+                <span class="lc-title">Workout — Push / Pull / Legs</span>
+                <span class="lc-points"><span class="star">&#9733;</span> 2</span>
+              </div>
+              <div class="lc-desc">Rotating gym routine with progressive overload tracking.</div>
+              <div class="lc-footer">
+                <span class="lc-category">Fitness</span>
+                <span class="lc-usage">Used in 6 plans</span>
+              </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="library-card animate-fade-in animate-fade-in-3">
+              <div class="lc-header">
+                <span class="lc-title">Read 30 pages</span>
+                <span class="lc-points"><span class="star">&#9733;</span> 2</span>
+              </div>
+              <div class="lc-desc">Consistent daily reading builds deep technical knowledge.</div>
+              <div class="lc-footer">
+                <span class="lc-category">Reading</span>
+                <span class="lc-usage">Used in 10 plans</span>
+              </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="library-card animate-fade-in animate-fade-in-4">
+              <div class="lc-header">
+                <span class="lc-title">Complete system design chapter</span>
+                <span class="lc-points"><span class="star">&#9733;</span> 5</span>
+              </div>
+              <div class="lc-desc">Work through DDIA or System Design Interview book with notes.</div>
+              <div class="lc-footer">
+                <span class="lc-category">Interview Prep</span>
+                <span class="lc-usage">Used in 5 plans</span>
+              </div>
+            </div>
+
+            <!-- Card 5 -->
+            <div class="library-card animate-fade-in animate-fade-in-5">
+              <div class="lc-header">
+                <span class="lc-title">Mock interview practice</span>
+                <span class="lc-points"><span class="star">&#9733;</span> 5</span>
+              </div>
+              <div class="lc-desc">Practice STAR format behavioral questions and system design whiteboarding.</div>
+              <div class="lc-footer">
+                <span class="lc-category">Interview Prep</span>
+                <span class="lc-usage">Used in 4 plans</span>
+              </div>
+            </div>
+
+            <!-- Card 6 -->
+            <div class="library-card animate-fade-in animate-fade-in-6">
+              <div class="lc-header">
+                <span class="lc-title">Morning meditation 10 min</span>
+                <span class="lc-points"><span class="star">&#9733;</span> 1</span>
+              </div>
+              <div class="lc-desc">Mindfulness practice to start the day with clarity.</div>
+              <div class="lc-footer">
+                <span class="lc-category">Personal Dev</span>
+                <span class="lc-usage">Used in 9 plans</span>
+              </div>
+            </div>
+
+            <!-- Card 7 -->
+            <div class="library-card">
+              <div class="lc-header">
+                <span class="lc-title">Morning stretching routine</span>
+                <span class="lc-points"><span class="star">&#9733;</span> 1</span>
+              </div>
+              <div class="lc-desc">15-minute mobility routine for injury prevention.</div>
+              <div class="lc-footer">
+                <span class="lc-category">Fitness</span>
+                <span class="lc-usage">Used in 3 plans</span>
+              </div>
+            </div>
+
+            <!-- Card 8 -->
+            <div class="library-card">
+              <div class="lc-header">
+                <span class="lc-title">Journal entry</span>
+                <span class="lc-points"><span class="star">&#9733;</span> 1</span>
+              </div>
+              <div class="lc-desc">Daily reflection on wins, learnings, and tomorrow's priorities.</div>
+              <div class="lc-footer">
+                <span class="lc-category">Personal Dev</span>
+                <span class="lc-usage">Used in 7 plans</span>
+              </div>
+            </div>
+
+            <!-- Card 9 -->
+            <div class="library-card">
+              <div class="lc-header">
+                <span class="lc-title">Review Anki flashcards</span>
+                <span class="lc-points"><span class="star">&#9733;</span> 1</span>
+              </div>
+              <div class="lc-desc">German vocabulary and algorithm pattern recognition decks.</div>
+              <div class="lc-footer">
+                <span class="lc-category">Personal Dev</span>
+                <span class="lc-usage">Used in 5 plans</span>
+              </div>
+            </div>
+
+            <!-- Card 10 - AI Generated indicator -->
+            <div class="library-card" style="border-color: rgba(180, 77, 255, 0.15);">
+              <div class="lc-header">
+                <div style="display: flex; align-items: center; gap: var(--sp-xs);">
+                  <span class="lc-title">Write blog post draft</span>
+                  <span class="badge badge-ai" style="font-size: 0.5rem;">AI</span>
+                </div>
+                <span class="lc-points"><span class="star">&#9733;</span> 5</span>
+              </div>
+              <div class="lc-desc">Draft one technical blog post per week on distributed systems topics.</div>
+              <div class="lc-footer">
+                <span class="lc-category">Personal Dev</span>
+                <span class="lc-usage">Used in 2 plans</span>
+              </div>
+            </div>
+
+            <!-- Card 11 -->
+            <div class="library-card">
+              <div class="lc-header">
+                <span class="lc-title">Practice typing 15 min</span>
+                <span class="lc-points"><span class="star">&#9733;</span> 1</span>
+              </div>
+              <div class="lc-desc">Improve WPM using monkeytype or keybr.</div>
+              <div class="lc-footer">
+                <span class="lc-category">Personal Dev</span>
+                <span class="lc-usage">Used in 4 plans</span>
+              </div>
+            </div>
+
+            <!-- Card 12 -->
+            <div class="library-card">
+              <div class="lc-header">
+                <span class="lc-title">Record YouTube video</span>
+                <span class="lc-points"><span class="star">&#9733;</span> 8</span>
+              </div>
+              <div class="lc-desc">Script, record, and edit one technical tutorial video.</div>
+              <div class="lc-footer">
+                <span class="lc-category">Personal Dev</span>
+                <span class="lc-usage">Used in 3 plans</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN 2 — FILTERED BY CATEGORY
+       ═══════════════════════════════════════════════════════ -->
+  <section class="screen-section" id="library-filtered">
+    <div class="screen-label">Screen 2 / Templates — Filtered by "Interview Prep"</div>
+
+    <div style="max-width: 900px; padding: var(--sp-xl);">
+      <div class="library-header" style="margin-bottom: var(--sp-lg);">
+        <div style="display: flex; align-items: center; gap: var(--sp-md);">
+          <h3>Template Library</h3>
+          <span style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim);">3 templates in Interview Prep</span>
+        </div>
+      </div>
+
+      <div class="pill-group" style="margin-bottom: var(--sp-xl);">
+        <button class="pill">All</button>
+        <button class="pill">Fitness</button>
+        <button class="pill active">Interview</button>
+        <button class="pill">Personal</button>
+        <button class="pill">Reading</button>
+      </div>
+
+      <div class="library-grid">
+        <div class="library-card animate-fade-in animate-fade-in-1">
+          <div class="lc-header">
+            <span class="lc-title">Solve 3 LeetCode problems</span>
+            <span class="lc-points"><span class="star">&#9733;</span> 3</span>
+          </div>
+          <div class="lc-desc">Focus on dynamic programming mediums, 25 min per problem max.</div>
+          <div class="lc-footer">
+            <span class="lc-category">Interview Prep</span>
+            <span class="lc-usage">Used in 8 plans</span>
+          </div>
+        </div>
+
+        <div class="library-card animate-fade-in animate-fade-in-2">
+          <div class="lc-header">
+            <span class="lc-title">Complete system design chapter</span>
+            <span class="lc-points"><span class="star">&#9733;</span> 5</span>
+          </div>
+          <div class="lc-desc">Work through DDIA or System Design Interview book with notes.</div>
+          <div class="lc-footer">
+            <span class="lc-category">Interview Prep</span>
+            <span class="lc-usage">Used in 5 plans</span>
+          </div>
+        </div>
+
+        <div class="library-card animate-fade-in animate-fade-in-3">
+          <div class="lc-header">
+            <span class="lc-title">Mock interview practice</span>
+            <span class="lc-points"><span class="star">&#9733;</span> 5</span>
+          </div>
+          <div class="lc-desc">Practice STAR format behavioral questions and system design whiteboarding.</div>
+          <div class="lc-footer">
+            <span class="lc-category">Interview Prep</span>
+            <span class="lc-usage">Used in 4 plans</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>

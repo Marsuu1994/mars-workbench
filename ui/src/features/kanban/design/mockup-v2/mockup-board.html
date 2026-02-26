@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanban v2 — Board</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="scan-line">
+
+  <!-- ═══════ SCREEN NAV ═══════ -->
+  <nav class="screen-nav">
+    <a href="#board-full">Board (full)</a>
+    <a href="#board-backlog">Board + Backlog</a>
+    <a href="#board-vacation">Board (vacation active)</a>
+  </nav>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN 1 — FULL BOARD
+       ═══════════════════════════════════════════════════════ -->
+  <section class="screen-section" id="board-full">
+    <div class="screen-label">Screen 1 / Board — Full State</div>
+
+    <div class="app-shell" style="height: 800px;">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="logo-icon">M</div>
+          <div class="logo-text">MARS</div>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="#">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            Chat
+          </a>
+          <a href="#" class="active">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            Kanban
+          </a>
+        </nav>
+      </aside>
+
+      <!-- Main -->
+      <div class="main">
+        <!-- Header -->
+        <header class="header">
+          <div class="header-left">
+            <div class="header-title">
+              <h1>Mission Control</h1>
+              <span class="period-badge">WK 09 &middot; Feb 24 – Mar 02</span>
+            </div>
+            <nav class="tab-nav">
+              <button class="active">Board</button>
+              <button>Priorities</button>
+              <button>Templates</button>
+            </nav>
+          </div>
+          <div class="header-right">
+            <button class="btn btn-ai btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 014 4v1a3 3 0 013 3v1a2 2 0 012 2v3a8 8 0 01-16 0v-3a2 2 0 012-2v-1a3 3 0 013-3V6a4 4 0 014-4z"/></svg>
+              AI Generate
+            </button>
+            <button class="btn btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Edit Plan
+            </button>
+            <button class="btn btn-secondary btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+              Take a Break
+            </button>
+          </div>
+        </header>
+
+        <!-- Progress HUD -->
+        <div class="hud">
+          <!-- Today Ring -->
+          <div class="hud-ring">
+            <div class="hud-ring-visual">
+              <svg viewBox="0 0 52 52">
+                <circle class="ring-bg" cx="26" cy="26" r="22"/>
+                <!-- 30% = circumference(2*pi*22 ≈ 138.2) * 0.7 offset -->
+                <circle class="ring-fill" cx="26" cy="26" r="22"
+                  stroke-dasharray="138.2"
+                  stroke-dashoffset="96.7"/>
+              </svg>
+              <div class="ring-label">30%</div>
+            </div>
+            <div class="hud-ring-text">
+              <div class="hud-value">4 / 13</div>
+              <div class="hud-label">Today Tasks</div>
+            </div>
+          </div>
+
+          <!-- Stat blocks -->
+          <div class="hud-stats">
+            <div class="hud-stat">
+              <div class="stat-value">6 <span class="star">&#9733;</span></div>
+              <div class="stat-label">Today Pts</div>
+              <div class="stat-sub">of 13 total</div>
+            </div>
+            <div class="hud-stat">
+              <div class="stat-value">58 <span class="star">&#9733;</span></div>
+              <div class="stat-label">Week Pts</div>
+              <div class="stat-sub">of 166 projected</div>
+            </div>
+            <div class="hud-stat">
+              <div class="stat-value">8.3</div>
+              <div class="stat-label">Daily Avg</div>
+              <div class="stat-sub">pts/day</div>
+            </div>
+          </div>
+
+          <!-- Week progress bar -->
+          <div class="hud-week-bar">
+            <div class="week-bar-labels">
+              <span class="label">Week Progress</span>
+              <span class="mono" style="font-size: 0.7rem; color: var(--primary);">19%</span>
+            </div>
+            <div class="week-bar-track">
+              <div class="week-bar-fill" style="width: 19%;"></div>
+            </div>
+            <div class="week-bar-labels">
+              <span class="label" style="color: var(--text-dim);">10 done</span>
+              <span class="label" style="color: var(--text-dim);">46 total</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Board -->
+        <div class="board-container">
+          <!-- Backlog Drawer (collapsed) -->
+          <div class="backlog-drawer">
+            <button class="backlog-toggle">
+              <span class="backlog-count">5</span>
+              <span class="toggle-label">Queued</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.5;"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+
+          <div class="board">
+            <!-- ── TODO Column ── -->
+            <div class="column">
+              <div class="column-header">
+                <div class="column-header-left">
+                  <div class="col-indicator todo"></div>
+                  <span class="col-name" style="color: var(--col-todo);">Todo</span>
+                </div>
+                <span class="col-count">8</span>
+              </div>
+              <div class="column-body">
+                <!-- Fresh daily — normal -->
+                <div class="task-card animate-fade-in animate-fade-in-1">
+                  <div class="card-top">
+                    <span class="card-title">Solve 3 LeetCode problems</span>
+                  </div>
+                  <div class="card-desc">Focus on dynamic programming mediums</div>
+                  <div class="card-footer">
+                    <div class="card-badges">
+                      <span class="badge badge-daily">Daily</span>
+                    </div>
+                    <span class="card-points"><span class="star">&#9733;</span> 3</span>
+                  </div>
+                </div>
+
+                <!-- Fresh daily — warning (after 20:00) -->
+                <div class="task-card risk-warning animate-fade-in animate-fade-in-2">
+                  <div class="card-top">
+                    <span class="card-title">Read 30 pages</span>
+                  </div>
+                  <div class="card-footer">
+                    <div class="card-badges">
+                      <span class="badge badge-daily">Daily</span>
+                      <span class="badge badge-risk-warning">&#9888; at risk</span>
+                    </div>
+                    <span class="card-points"><span class="star">&#9733;</span> 2</span>
+                  </div>
+                </div>
+
+                <!-- Rollover daily — warning -->
+                <div class="task-card risk-warning animate-fade-in animate-fade-in-3">
+                  <div class="card-top">
+                    <span class="card-title">Practice typing 15 min</span>
+                  </div>
+                  <div class="card-footer">
+                    <div class="card-badges">
+                      <span class="badge badge-daily">Daily</span>
+                      <span class="rollover-tag">&#8617; Mon, Feb 24</span>
+                      <span class="badge badge-risk-warning">&#9888; at risk</span>
+                    </div>
+                    <span class="card-points"><span class="star">&#9733;</span> 1</span>
+                  </div>
+                </div>
+
+                <!-- Rollover daily — danger -->
+                <div class="task-card risk-danger animate-fade-in animate-fade-in-4">
+                  <div class="card-top">
+                    <span class="card-title">Review Anki flashcards</span>
+                  </div>
+                  <div class="card-desc">German vocabulary deck</div>
+                  <div class="card-footer">
+                    <div class="card-badges">
+                      <span class="badge badge-daily">Daily</span>
+                      <span class="rollover-tag">&#8617; Mon, Feb 24</span>
+                      <span class="badge badge-risk-danger">&#8252; urgent</span>
+                    </div>
+                    <span class="card-points"><span class="star">&#9733;</span> 1</span>
+                  </div>
+                </div>
+
+                <!-- Weekly — normal -->
+                <div class="task-card animate-fade-in animate-fade-in-5">
+                  <div class="card-top">
+                    <span class="card-title">Write blog post draft</span>
+                  </div>
+                  <div class="card-desc">Topic: distributed systems patterns</div>
+                  <div class="card-footer">
+                    <div class="card-badges">
+                      <span class="badge badge-weekly">Weekly</span>
+                    </div>
+                    <span class="card-points"><span class="star">&#9733;</span> 5</span>
+                  </div>
+                </div>
+
+                <!-- Weekly — warning (day 3+) -->
+                <div class="task-card risk-warning animate-fade-in animate-fade-in-6">
+                  <div class="card-top">
+                    <span class="card-title">Record 1 YouTube video</span>
+                  </div>
+                  <div class="card-footer">
+                    <div class="card-badges">
+                      <span class="badge badge-weekly">Weekly</span>
+                      <span class="badge badge-risk-warning">&#9888; at risk</span>
+                    </div>
+                    <span class="card-points"><span class="star">&#9733;</span> 8</span>
+                  </div>
+                </div>
+
+                <!-- Ad-hoc — warning (5+ days) -->
+                <div class="task-card risk-warning">
+                  <div class="card-top">
+                    <span class="card-title">Fix auth middleware bug</span>
+                  </div>
+                  <div class="card-desc">JWT token refresh loop in production</div>
+                  <div class="card-footer">
+                    <div class="card-badges">
+                      <span class="badge badge-adhoc">Ad-hoc</span>
+                      <span class="badge badge-risk-warning">&#9888; at risk</span>
+                    </div>
+                    <span class="card-points"><span class="star">&#9733;</span> 3</span>
+                  </div>
+                </div>
+
+                <!-- Ad-hoc — danger (8+ days) -->
+                <div class="task-card risk-danger">
+                  <div class="card-top">
+                    <span class="card-title">Update portfolio site</span>
+                  </div>
+                  <div class="card-footer">
+                    <div class="card-badges">
+                      <span class="badge badge-adhoc">Ad-hoc</span>
+                      <span class="badge badge-risk-danger">&#8252; urgent</span>
+                    </div>
+                    <span class="card-points"><span class="star">&#9733;</span> 2</span>
+                  </div>
+                </div>
+
+                <button class="add-task-btn">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Add ad-hoc task
+                </button>
+              </div>
+            </div>
+
+            <!-- ── IN PROGRESS Column ── -->
+            <div class="column">
+              <div class="column-header">
+                <div class="column-header-left">
+                  <div class="col-indicator doing"></div>
+                  <span class="col-name" style="color: var(--col-doing);">In Progress</span>
+                </div>
+                <span class="col-count">4</span>
+              </div>
+              <div class="column-body">
+                <div class="task-card animate-fade-in animate-fade-in-1">
+                  <div class="card-top">
+                    <span class="card-title">Workout — Push day</span>
+                  </div>
+                  <div class="card-desc">Bench press, OHP, tricep work</div>
+                  <div class="card-footer">
+                    <div class="card-badges">
+                      <span class="badge badge-daily">Daily</span>
+                    </div>
+                    <span class="card-points"><span class="star">&#9733;</span> 2</span>
+                  </div>
+                </div>
+
+                <div class="task-card animate-fade-in animate-fade-in-2">
+                  <div class="card-top">
+                    <span class="card-title">Complete system design chapter</span>
+                  </div>
+                  <div class="card-desc">Chapter 8: Rate limiting & throttling</div>
+                  <div class="card-footer">
+                    <div class="card-badges">
+                      <span class="badge badge-weekly">Weekly</span>
+                    </div>
+                    <span class="card-points"><span class="star">&#9733;</span> 5</span>
+                  </div>
+                </div>
+
+                <!-- Weekly — danger (day 5+) -->
+                <div class="task-card risk-danger animate-fade-in animate-fade-in-3">
+                  <div class="card-top">
+                    <span class="card-title">Submit PR for kanban feature</span>
+                  </div>
+                  <div class="card-footer">
+                    <div class="card-badges">
+                      <span class="badge badge-weekly">Weekly</span>
+                      <span class="badge badge-risk-danger">&#8252; urgent</span>
+                    </div>
+                    <span class="card-points"><span class="star">&#9733;</span> 8</span>
+                  </div>
+                </div>
+
+                <div class="task-card animate-fade-in animate-fade-in-4">
+                  <div class="card-top">
+                    <span class="card-title">Research CI/CD tools</span>
+                  </div>
+                  <div class="card-footer">
+                    <div class="card-badges">
+                      <span class="badge badge-adhoc">Ad-hoc</span>
+                    </div>
+                    <span class="card-points"><span class="star">&#9733;</span> 2</span>
+                  </div>
+                </div>
+
+                <button class="add-task-btn">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Add ad-hoc task
+                </button>
+              </div>
+            </div>
+
+            <!-- ── DONE Column ── -->
+            <div class="column">
+              <div class="column-header">
+                <div class="column-header-left">
+                  <div class="col-indicator done"></div>
+                  <span class="col-name" style="color: var(--col-done);">Done</span>
+                </div>
+                <span class="col-count">4</span>
+              </div>
+              <div class="column-body">
+                <div class="task-card animate-fade-in animate-fade-in-1" style="opacity: 0.7;">
+                  <div class="card-top">
+                    <span class="card-title" style="text-decoration: line-through; color: var(--text-secondary);">Morning meditation 10 min</span>
+                  </div>
+                  <div class="card-footer">
+                    <div class="card-badges">
+                      <span class="badge badge-daily">Daily</span>
+                    </div>
+                    <span class="card-points"><span class="star">&#9733;</span> 1</span>
+                  </div>
+                </div>
+
+                <div class="task-card animate-fade-in animate-fade-in-2" style="opacity: 0.7;">
+                  <div class="card-top">
+                    <span class="card-title" style="text-decoration: line-through; color: var(--text-secondary);">Journal entry</span>
+                  </div>
+                  <div class="card-footer">
+                    <div class="card-badges">
+                      <span class="badge badge-daily">Daily</span>
+                    </div>
+                    <span class="card-points"><span class="star">&#9733;</span> 1</span>
+                  </div>
+                </div>
+
+                <div class="task-card animate-fade-in animate-fade-in-3" style="opacity: 0.7;">
+                  <div class="card-top">
+                    <span class="card-title" style="text-decoration: line-through; color: var(--text-secondary);">Review open PRs</span>
+                  </div>
+                  <div class="card-footer">
+                    <div class="card-badges">
+                      <span class="badge badge-weekly">Weekly</span>
+                    </div>
+                    <span class="card-points"><span class="star">&#9733;</span> 3</span>
+                  </div>
+                </div>
+
+                <div class="task-card animate-fade-in animate-fade-in-4" style="opacity: 0.7;">
+                  <div class="card-top">
+                    <span class="card-title" style="text-decoration: line-through; color: var(--text-secondary);">Set up Prometheus metrics</span>
+                  </div>
+                  <div class="card-footer">
+                    <div class="card-badges">
+                      <span class="badge badge-adhoc">Ad-hoc</span>
+                    </div>
+                    <span class="card-points"><span class="star">&#9733;</span> 3</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN 2 — BOARD + BACKLOG DRAWER EXPANDED
+       ═══════════════════════════════════════════════════════ -->
+  <section class="screen-section" id="board-backlog">
+    <div class="screen-label">Screen 2 / Board — Backlog Drawer Expanded</div>
+
+    <div class="app-shell" style="height: 680px;">
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="logo-icon">M</div>
+          <div class="logo-text">MARS</div>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="#">Chat</a>
+          <a href="#" class="active">Kanban</a>
+        </nav>
+      </aside>
+
+      <div class="main">
+        <header class="header">
+          <div class="header-left">
+            <div class="header-title">
+              <h1>Mission Control</h1>
+              <span class="period-badge">WK 09 &middot; Feb 24 – Mar 02</span>
+            </div>
+          </div>
+          <div class="header-right">
+            <button class="btn btn-sm">Edit Plan</button>
+          </div>
+        </header>
+
+        <!-- Compact HUD for this view -->
+        <div class="hud">
+          <div class="hud-ring">
+            <div class="hud-ring-visual">
+              <svg viewBox="0 0 52 52">
+                <circle class="ring-bg" cx="26" cy="26" r="22"/>
+                <circle class="ring-fill" cx="26" cy="26" r="22"
+                  stroke-dasharray="138.2" stroke-dashoffset="96.7"/>
+              </svg>
+              <div class="ring-label">30%</div>
+            </div>
+            <div class="hud-ring-text">
+              <div class="hud-value">4 / 13</div>
+              <div class="hud-label">Today</div>
+            </div>
+          </div>
+          <div class="hud-stats">
+            <div class="hud-stat">
+              <div class="stat-value">58 <span class="star">&#9733;</span></div>
+              <div class="stat-label">Week Pts</div>
+            </div>
+          </div>
+          <div class="hud-week-bar">
+            <div class="week-bar-labels">
+              <span class="label">Week</span>
+              <span class="mono" style="font-size: 0.7rem; color: var(--primary);">19%</span>
+            </div>
+            <div class="week-bar-track">
+              <div class="week-bar-fill" style="width: 19%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="board-container">
+          <!-- Backlog Drawer (expanded) -->
+          <div class="backlog-drawer expanded">
+            <button class="backlog-toggle" style="flex-direction: row; justify-content: space-between; padding: var(--sp-md) var(--sp-md);">
+              <div style="display: flex; align-items: center; gap: var(--sp-sm);">
+                <span class="toggle-label" style="writing-mode: horizontal-tb;">Queued</span>
+                <span class="backlog-count">5</span>
+              </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+
+            <div style="padding: 0 var(--sp-sm); margin-bottom: var(--sp-sm);">
+              <div class="info-banner" style="margin-bottom: 0; padding: var(--sp-sm);">
+                <p style="font-size: 0.68rem;">Drag tasks to Todo to start working on them</p>
+              </div>
+            </div>
+
+            <div class="backlog-list">
+              <div class="backlog-group-label">Solve LeetCode (3 instances)</div>
+
+              <div class="backlog-card">
+                <div class="card-title">Solve 3 LeetCode problems</div>
+                <div class="card-meta">
+                  <span class="badge badge-daily" style="font-size: 0.55rem;">Daily</span>
+                  <span class="badge badge-instance" style="font-size: 0.55rem;">#1</span>
+                  <span class="card-points" style="margin-left: auto;"><span class="star" style="font-size: 0.55rem;">&#9733;</span> <span style="font-size: 0.65rem;">3</span></span>
+                </div>
+              </div>
+
+              <div class="backlog-card">
+                <div class="card-title">Solve 3 LeetCode problems</div>
+                <div class="card-meta">
+                  <span class="badge badge-daily" style="font-size: 0.55rem;">Daily</span>
+                  <span class="badge badge-instance" style="font-size: 0.55rem;">#2</span>
+                  <span class="card-points" style="margin-left: auto;"><span class="star" style="font-size: 0.55rem;">&#9733;</span> <span style="font-size: 0.65rem;">3</span></span>
+                </div>
+              </div>
+
+              <div class="backlog-card">
+                <div class="card-title">Solve 3 LeetCode problems</div>
+                <div class="card-meta">
+                  <span class="badge badge-daily" style="font-size: 0.55rem;">Daily</span>
+                  <span class="badge badge-instance" style="font-size: 0.55rem;">#3</span>
+                  <span class="card-points" style="margin-left: auto;"><span class="star" style="font-size: 0.55rem;">&#9733;</span> <span style="font-size: 0.65rem;">3</span></span>
+                </div>
+              </div>
+
+              <div class="backlog-group-label">Read 30 pages (2 instances)</div>
+
+              <div class="backlog-card">
+                <div class="card-title">Read 30 pages</div>
+                <div class="card-meta">
+                  <span class="badge badge-daily" style="font-size: 0.55rem;">Daily</span>
+                  <span class="badge badge-instance" style="font-size: 0.55rem;">#1</span>
+                  <span class="card-points" style="margin-left: auto;"><span class="star" style="font-size: 0.55rem;">&#9733;</span> <span style="font-size: 0.65rem;">2</span></span>
+                </div>
+              </div>
+
+              <div class="backlog-card">
+                <div class="card-title">Read 30 pages</div>
+                <div class="card-meta">
+                  <span class="badge badge-daily" style="font-size: 0.55rem;">Daily</span>
+                  <span class="badge badge-instance" style="font-size: 0.55rem;">#2</span>
+                  <span class="card-points" style="margin-left: auto;"><span class="star" style="font-size: 0.55rem;">&#9733;</span> <span style="font-size: 0.65rem;">2</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Board (narrower due to drawer) -->
+          <div class="board" style="padding-left: var(--sp-md);">
+            <div class="column">
+              <div class="column-header">
+                <div class="column-header-left">
+                  <div class="col-indicator todo"></div>
+                  <span class="col-name" style="color: var(--col-todo);">Todo</span>
+                </div>
+                <span class="col-count">3</span>
+              </div>
+              <div class="column-body">
+                <!-- Drop zone hint -->
+                <div style="padding: var(--sp-lg); border: 2px dashed rgba(0, 229, 255, 0.2); border-radius: var(--r-md); text-align: center; color: var(--text-dim); font-size: 0.72rem; font-family: var(--font-mono); background: rgba(0, 229, 255, 0.03);">
+                  Drop here to queue
+                </div>
+
+                <div class="task-card">
+                  <div class="card-top"><span class="card-title">Write blog post draft</span></div>
+                  <div class="card-footer">
+                    <div class="card-badges"><span class="badge badge-weekly">Weekly</span></div>
+                    <span class="card-points"><span class="star">&#9733;</span> 5</span>
+                  </div>
+                </div>
+
+                <div class="task-card risk-warning">
+                  <div class="card-top"><span class="card-title">Record YouTube video</span></div>
+                  <div class="card-footer">
+                    <div class="card-badges">
+                      <span class="badge badge-weekly">Weekly</span>
+                      <span class="badge badge-risk-warning">&#9888; at risk</span>
+                    </div>
+                    <span class="card-points"><span class="star">&#9733;</span> 8</span>
+                  </div>
+                </div>
+
+                <div class="task-card">
+                  <div class="card-top"><span class="card-title">Fix auth middleware bug</span></div>
+                  <div class="card-footer">
+                    <div class="card-badges"><span class="badge badge-adhoc">Ad-hoc</span></div>
+                    <span class="card-points"><span class="star">&#9733;</span> 3</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="column">
+              <div class="column-header">
+                <div class="column-header-left">
+                  <div class="col-indicator doing"></div>
+                  <span class="col-name" style="color: var(--col-doing);">In Progress</span>
+                </div>
+                <span class="col-count">2</span>
+              </div>
+              <div class="column-body">
+                <div class="task-card">
+                  <div class="card-top"><span class="card-title">Workout — Push day</span></div>
+                  <div class="card-footer">
+                    <div class="card-badges"><span class="badge badge-daily">Daily</span></div>
+                    <span class="card-points"><span class="star">&#9733;</span> 2</span>
+                  </div>
+                </div>
+                <div class="task-card risk-danger">
+                  <div class="card-top"><span class="card-title">Submit kanban PR</span></div>
+                  <div class="card-footer">
+                    <div class="card-badges">
+                      <span class="badge badge-weekly">Weekly</span>
+                      <span class="badge badge-risk-danger">&#8252; urgent</span>
+                    </div>
+                    <span class="card-points"><span class="star">&#9733;</span> 8</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="column">
+              <div class="column-header">
+                <div class="column-header-left">
+                  <div class="col-indicator done"></div>
+                  <span class="col-name" style="color: var(--col-done);">Done</span>
+                </div>
+                <span class="col-count">4</span>
+              </div>
+              <div class="column-body">
+                <div class="task-card" style="opacity: 0.7;">
+                  <div class="card-top"><span class="card-title" style="text-decoration: line-through; color: var(--text-secondary);">Morning meditation</span></div>
+                  <div class="card-footer">
+                    <div class="card-badges"><span class="badge badge-daily">Daily</span></div>
+                    <span class="card-points"><span class="star">&#9733;</span> 1</span>
+                  </div>
+                </div>
+                <div class="task-card" style="opacity: 0.7;">
+                  <div class="card-top"><span class="card-title" style="text-decoration: line-through; color: var(--text-secondary);">Journal entry</span></div>
+                  <div class="card-footer">
+                    <div class="card-badges"><span class="badge badge-daily">Daily</span></div>
+                    <span class="card-points"><span class="star">&#9733;</span> 1</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN 3 — BOARD WITH VACATION ACTIVE
+       ═══════════════════════════════════════════════════════ -->
+  <section class="screen-section" id="board-vacation">
+    <div class="screen-label">Screen 3 / Board — Vacation Mode Active (header indicator)</div>
+
+    <div class="app-shell" style="height: 120px;">
+      <aside class="sidebar" style="padding: var(--sp-md) 0;">
+        <div class="sidebar-logo">
+          <div class="logo-icon">M</div>
+          <div class="logo-text">MARS</div>
+        </div>
+      </aside>
+
+      <div class="main">
+        <header class="header">
+          <div class="header-left">
+            <div class="header-title">
+              <h1>Mission Control</h1>
+              <span class="period-badge">WK 09 &middot; Feb 24 – Mar 02</span>
+            </div>
+            <!-- Vacation indicator in header -->
+            <div class="vacation-indicator">
+              <span class="pulse-dot"></span>
+              BREAK MODE &middot; 3 days left
+            </div>
+          </div>
+          <div class="header-right">
+            <button class="btn btn-secondary btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Resume Operations
+            </button>
+          </div>
+        </header>
+      </div>
+    </div>
+
+    <p style="padding: var(--sp-md) var(--sp-xl); color: var(--text-dim); font-size: 0.75rem;">
+      <em>When vacation is active: the header shows a pulsing "BREAK MODE" indicator with remaining days. The "Take a Break" button is replaced with "Resume Operations". Daily task generation is paused — only weekly and ad-hoc tasks remain visible on the board. The HUD shows a dimmed state.</em>
+    </p>
+  </section>
+
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanban v2 — Vacation / Break Mode</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="scan-line">
+
+  <nav class="screen-nav">
+    <a href="#activate-modal">Activate Break Modal</a>
+    <a href="#break-active">Break Active State</a>
+    <a href="#resume-confirm">Resume Confirmation</a>
+  </nav>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN 1 — ACTIVATE BREAK MODAL
+       ═══════════════════════════════════════════════════════ -->
+  <section class="screen-section" id="activate-modal">
+    <div class="screen-label">Screen 1 / Vacation — Activate Break Modal</div>
+
+    <div class="overlay" style="position: relative; min-height: 560px;">
+      <div class="modal animate-fade-in" style="width: 500px;">
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: var(--sp-sm);">
+            <div style="width: 24px; height: 24px; background: var(--secondary-bg); border: 1px solid rgba(180, 77, 255, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;">
+              &#9788;
+            </div>
+            <h2>Take a Break</h2>
+          </div>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="vacation-form">
+            <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.55;">
+              Pause daily task generation and take some time to recharge.
+              Weekly and ad-hoc tasks will remain visible but no new daily tasks will be created during the break.
+            </p>
+
+            <div>
+              <label class="form-label">Break Duration</label>
+              <div class="vacation-presets">
+                <div class="vacation-preset">
+                  <div class="preset-days">1</div>
+                  <div class="preset-label">Day</div>
+                </div>
+                <div class="vacation-preset selected">
+                  <div class="preset-days">3</div>
+                  <div class="preset-label">Days</div>
+                </div>
+                <div class="vacation-preset">
+                  <div class="preset-days">7</div>
+                  <div class="preset-label">Days</div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label class="form-label">Or set custom duration</label>
+              <div style="display: flex; align-items: center; gap: var(--sp-sm);">
+                <input class="form-input" type="number" min="1" max="30" placeholder="Days" style="width: 100px;">
+                <span style="font-size: 0.78rem; color: var(--text-dim);">days (max 30)</span>
+              </div>
+            </div>
+
+            <div class="info-banner warning">
+              <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <div>
+                <p style="margin-bottom: var(--sp-xs);"><strong>What happens during a break:</strong></p>
+                <ul style="font-size: 0.75rem; color: var(--text-secondary); padding-left: var(--sp-lg); line-height: 1.65;">
+                  <li>Daily task generation is paused</li>
+                  <li>Existing daily tasks in Todo/Doing will expire normally</li>
+                  <li>Weekly and ad-hoc tasks remain untouched</li>
+                  <li>Progress metrics pause — break days don't count against streaks</li>
+                  <li>You can resume early at any time</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div></div>
+          <div class="modal-footer-right">
+            <button class="btn">Cancel</button>
+            <button class="btn btn-secondary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="9"/><line x1="14" y1="15" x2="14" y2="9"/></svg>
+              Start 3-Day Break
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN 2 — BREAK ACTIVE STATE (replaces board)
+       ═══════════════════════════════════════════════════════ -->
+  <section class="screen-section" id="break-active">
+    <div class="screen-label">Screen 2 / Vacation — Break Active (replaces board content)</div>
+
+    <div class="app-shell" style="height: 680px;">
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="logo-icon">M</div>
+          <div class="logo-text">MARS</div>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="#">Chat</a>
+          <a href="#" class="active">Kanban</a>
+        </nav>
+      </aside>
+
+      <div class="main">
+        <header class="header">
+          <div class="header-left">
+            <div class="header-title">
+              <h1>Mission Control</h1>
+              <span class="period-badge">WK 09 &middot; Feb 24 – Mar 02</span>
+            </div>
+            <div class="vacation-indicator">
+              <span class="pulse-dot"></span>
+              BREAK MODE &middot; 3 days left
+            </div>
+          </div>
+          <div class="header-right">
+            <button class="btn btn-secondary btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Resume Operations
+            </button>
+          </div>
+        </header>
+
+        <!-- Break Active Content -->
+        <div class="vacation-overlay">
+          <div class="vacation-card animate-fade-in">
+            <div class="vacation-card" style="border: none; padding: 0; background: transparent;">
+              <div class="vacation-icon">&#9788;</div>
+              <h2>System Standby</h2>
+              <div class="vacation-subtitle">Daily tasks paused — recharging in progress</div>
+
+              <div class="vacation-status">
+                <span class="status-dot"></span>
+                <span class="status-text">Break ends</span>
+                <span class="status-remaining">Feb 27, 2026</span>
+              </div>
+
+              <!-- Remaining tasks summary -->
+              <div style="text-align: left; margin-bottom: var(--sp-2xl);">
+                <div class="label" style="margin-bottom: var(--sp-sm); text-align: center;">Active tasks during break</div>
+                <div style="display: flex; gap: var(--sp-md); justify-content: center;">
+                  <div style="text-align: center; padding: var(--sp-md) var(--sp-lg); background: var(--surface-raised); border: 1px solid var(--border); border-radius: var(--r-md);">
+                    <div style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; color: var(--weekly);">3</div>
+                    <div style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em;">Weekly</div>
+                  </div>
+                  <div style="text-align: center; padding: var(--sp-md) var(--sp-lg); background: var(--surface-raised); border: 1px solid var(--border); border-radius: var(--r-md);">
+                    <div style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; color: var(--adhoc);">4</div>
+                    <div style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em;">Ad-hoc</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: var(--sp-sm); justify-content: center;">
+                <button class="btn btn-sm">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                  View Board
+                </button>
+                <button class="btn btn-secondary">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  Resume Early
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN 3 — RESUME CONFIRMATION
+       ═══════════════════════════════════════════════════════ -->
+  <section class="screen-section" id="resume-confirm">
+    <div class="screen-label">Screen 3 / Vacation — Resume Confirmation Modal</div>
+
+    <div class="overlay" style="position: relative; min-height: 340px;">
+      <div class="modal animate-fade-in" style="width: 460px;">
+        <div class="modal-header">
+          <h2>Resume Operations?</h2>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.55; margin-bottom: var(--sp-lg);">
+            You have <strong style="color: var(--secondary);">2 days</strong> remaining on your break. Resuming will:
+          </p>
+          <ul style="font-size: 0.82rem; color: var(--text-secondary); padding-left: var(--sp-xl); line-height: 1.8;">
+            <li>Restart daily task generation immediately</li>
+            <li>Generate today's daily tasks</li>
+            <li>Resume progress tracking and streak counting</li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button class="btn">Stay on Break</button>
+          <div class="modal-footer-right">
+            <button class="btn btn-success">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Resume Operations
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>

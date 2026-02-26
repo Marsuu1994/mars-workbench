@@ -5,7 +5,7 @@ A Next.js application with multiple features: AI Chat and Kanban Period Planner.
 ## Tech Stack
 
 - **Framework**: Next.js 16 (App Router)
-- **UI**: React 19, Tailwind CSS 4, daisyUI 5 (Forest theme)
+- **UI**: React 19, Tailwind CSS 4, daisyUI 5 (custom mars-dark/mars-light themes)
 - **State**: Zustand
 - **Database**: PostgreSQL + Prisma ORM
 - **Icons**: Heroicons
@@ -51,7 +51,8 @@ ui/
 │   │       ├── utils/             # dateUtils, taskUtils, enums
 │   │       ├── schemas.ts         # Zod validation schemas
 │   │       └── design/            # Design docs (baseline.md, flows.md, api.md)
-│   │           └── mockup/        # Per-flow HTML mockups + shared styles.css
+│   │           ├── mockup/        # Per-flow HTML mockups + shared styles.css
+│   │           └── mockup-v2/     # v2 redesign mockups (dark/light themes)
 │   └── components/
 │       └── common/
 │           └── Header.tsx         # Shared header component

@@ -4,34 +4,34 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 
 ## Current State
 
-Backend complete (schema, DAL, services, server actions, board sync). Full board UI with drag-and-drop — `/kanban` displays a three-column kanban board (Todo, In Progress, Done) with task cards that can be dragged between columns. Moves use optimistic UI with server-side persistence and automatic rollback on failure. Task cards show title, description, unified type badge (`TaskTypeBadge` — supports DAILY, WEEKLY, and AD_HOC), and points. Cards have hover lift+shadow effects. Layout is responsive full-height with independently scrollable columns. Board header shows "Kanban Planner" title with a week date-range badge and Edit Plan button linking to the edit plan page. Plan form pages show a "Planning Mode" header with a back chevron (←) that navigates directly back to the board. Progress dashboard sits between the header and board columns showing: Today progress ring (SVG circle with percentage), three stat metrics (Today Points, Week Points, Daily Avg), and a Week Progress Bar with gradient fill. Week Points uses Option C projected calculation (past daily instances + future daily projection from current templates + all weekly instances + ad-hoc tasks). All metrics are computed server-side from a single DB query. End-of-period sync automatically detects when a new week starts, expires all undone tasks (excluding ad-hoc), and transitions the plan to `PENDING_UPDATE`. Create plan flow at `/kanban/plans/new` preselects templates from the previous plan (carrying over type and frequency configuration) and non-DONE ad-hoc tasks from the previous plan; unselected ad-hoc tasks are unlinked (planId → null). On submission the old plan is archived to `COMPLETED`. Edit plan flow at `/kanban/plans/[id]` shares a unified `PlanForm` component and layout with create; ad-hoc tasks can be selected/deselected to include/exclude from the current plan. Task `type` and `frequency` are now configured per-plan on `PlanTemplate` (not globally on `TaskTemplate`), allowing the same template to be DAILY one week and WEEKLY the next. When a template is selected in the plan form, it expands inline showing DAILY/WEEKLY pill buttons (matching `TaskTypeBadge` styling with a border) and a frequency input; a full-width divider separates the template title row from the config area. Unchecking and re-checking a template preserves the last-configured (or server-loaded) type/frequency rather than resetting to defaults. Template rows list flat (no Daily/Weekly group headers). `Task` carries its own `type` field stamped at generation time so no join through the template is needed at query time. `AD_HOC` task type fully implemented end-to-end — `planId` is nullable on `Task` (ad-hoc tasks can exist without a plan), `createAdhocTaskAction` creates tasks linked to the active plan with initial status matching the source column (Todo → TODO, In Progress → DOING), `createPlan`/`updatePlan` services handle ad-hoc task linking/unlinking via `adhocTaskIds`, ad-hoc tasks are included in week projected points, and risk levels are computed based on days since creation (warning at 5+, danger at 8+ for TODO; warning at 8+ for DOING). Board columns (Todo, In Progress) show an "Add ad-hoc task" dashed button at the bottom; clicking it opens a unified `TaskModal` (formerly TemplateModal) in "adhoc" mode with a lightning bolt info banner, title/description/points fields, and an "Add to Board" submit button. The `TaskModal` supports three modes: "create" (new template), "edit" (existing template), and "adhoc" (ad-hoc task creation). Plan form ad-hoc integration: both create and edit plan pages fetch non-done ad-hoc tasks and display them in `PlanForm` with checkboxes for selection/deselection; `ReviewChangesModal` shows added/removed ad-hoc tasks in dedicated sections with lightning bolt icons. When editing a plan, clicking "Update Plan" shows a "Review Plan Changes" modal (`ReviewChangesModal`) with template sections — Added (green), Removed (red), Modified (amber) — each showing template name, points, type/frequency details, and per-template impact text with real incomplete task counts from the DB; plus ad-hoc task sections for added/removed ad-hoc tasks; a single "Confirm & Regenerate" button; done and expired tasks are never affected. Skeleton loading states for board page and plan form pages via Next.js `loading.tsx` convention. Architecture follows a strict 3-layer pattern: actions (thin Zod validate → service → revalidate), services (business logic), DAL (Prisma queries). UI components interact only via server actions — no direct service or DAL calls from page components. All multi-step DB mutation flows (create plan, update plan, daily sync, end-of-period sync) are wrapped in `prisma.$transaction()` for ACID atomicity; DAL write functions accept an optional `tx?` parameter. Design mockups are split by flow under `design/mockup/` with a shared `styles.css`. Daily tasks that were unfinished yesterday roll over to the board for one extra day with a `↩ Mon, Feb 23` date badge; tasks older than yesterday are expired. Task cards display color-coded risk badges (⚠ at risk / ‼ urgent) based on type, time of day, days elapsed, and weekly completion progress.
+Backend complete (schema, DAL, services, server actions, board sync). Full board UI with drag-and-drop — `/kanban` displays a three-column kanban board (Todo, In Progress, Done) with task cards that can be dragged between columns. Moves use optimistic UI with server-side persistence and automatic rollback on failure. Task cards show title, description, unified type badge (`TaskTypeBadge` — supports DAILY, WEEKLY, and AD_HOC), and points with color-coded risk badges (⚠ at risk / ‼ urgent). Progress dashboard shows Today ring, stat metrics, and Week Progress Bar. End-of-period sync auto-expires undone tasks and transitions plans. Create/edit plan flows share a unified `PlanForm` with inline type/frequency config per template. AD_HOC tasks fully implemented end-to-end with plan linking. `ReviewChangesModal` shows added/removed/modified template diffs. Architecture follows strict 3-layer pattern with `prisma.$transaction()` for all multi-step mutations.
+
+**v2 UI Redesign**: Complete mockup-v2 design system under `design/mockup-v2/` with 11 flow mockups and shared `styles.css` — "Techno Mission Control" aesthetic featuring cyan primary, violet secondary, amber warning palette. Covers all existing flows (board with collapsed/expanded backlog drawer, empty state, plan form with category groups, task modal, review changes, Eisenhower priority matrix) plus new flows (AI generate task via chat, end-of-period mission debrief summary, vacation/break mode, dedicated template library page). Light and dark theme variants with side-by-side comparison mockup. Custom daisyUI themes (`mars-dark`, `mars-light`) defined in `globals.css` via `@plugin "daisyui/theme"` and applied app-wide (`mars-dark` as default).
 
 ## Backlog
 ### High Priority
 - [ ] Design evidence submit feature when user move task to done
 
-### MVP V2
-- [ ] Design the AI generated task instance flow
-
 ### Future
 - [ ] Support same group ordering for drag and drop within same column
-- [ ] Design better way to handle task templates
 - [ ] Add subtitle field to task template to support different titles
 - [ ] Create common landing page for Mars workbench to navigate between features
-- [ ] Backlog drawer renamed to "Queued" for staging template-generated task instances (mockup approved)
-- [ ] Priorities page — Eisenhower priority matrix for personal one-off tasks (mockup approved)
-- [ ] Template categories — grouping templates by category in plan form (mockup approved)
 - [ ] Phone notifications for unfinished tasks
 - [ ] LLM-generated motivational messages
-- [ ] End-of-period summary before new plan
 - [ ] Weekly task rollover across periods
 - [ ] Biweekly and custom period types
-- [ ] Design way to manage UI effect when there are too many task templates
 - [ ] Refactor to use constant for all UI static text fields
-- [ ] Design weekend/vacation flow
 - [ ] Support Ad-hoc task deletion and auto clear logic
+- [ ] Implement light/dark theme toggle UI
 
 ## Update Log
+
+### 2026-02-26
+- Complete v2 UI redesign: created `mockup-v2/` with 11 mockup files and a shared design system CSS — "Techno Mission Control" aesthetic with cyan/violet neon palette, dark+light theme support
+- New flows designed: AI generate task (chat-based), end-of-period summary (mission debrief), vacation/break mode (activate, standby, resume), dedicated template library page
+- Redesigned all existing flows: board (with collapsed/expanded backlog drawer), empty state, plan form, task modal, review changes, Eisenhower priority matrix
+- Created side-by-side light vs dark theme comparison mockup with interactive toggle
+- Added custom daisyUI themes (`mars-dark`, `mars-light`) to `globals.css` using `@plugin "daisyui/theme"` syntax; applied `mars-dark` as default app theme
 
 ### 2026-02-25
 - Designed Eisenhower priority matrix ("Priorities" page) for personal one-off tasks — full-page 2x2 matrix (Do First / Schedule / Squeeze In / Maybe Later) with Board/Priorities tab switcher; tasks can be sent to the board via "Track this week"; renames "Ad-hoc" badge to "Todo", backlog drawer to "Queued"
@@ -182,3 +182,12 @@ Backend complete (schema, DAL, services, server actions, board sync). Full board
 - [x] Kanban page Server Component with board data fetching
 - [x] Refactor board sync: separate `runDailySync()` from `fetchBoard()`, add `lastSyncDate` to skip redundant syncs
 - [x] Drag and drop task cards between columns with optimistic UI
+- [x] v2 UI redesign: full mockup-v2 design system with 11 flows, light/dark themes, "Techno Mission Control" aesthetic
+- [x] AI generate task flow design (chat-based template generation)
+- [x] End-of-period summary flow design (mission debrief with stats and insights)
+- [x] Vacation/break mode flow design (activate, standby, resume)
+- [x] Dedicated template library page design
+- [x] Eisenhower priority matrix redesigned in v2 style
+- [x] Backlog drawer (collapsed + expanded) in v2 board design
+- [x] Template categories in v2 plan form design
+- [x] Custom daisyUI themes (mars-dark, mars-light) applied to app

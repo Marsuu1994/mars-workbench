@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanban v2 — Task Modal</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="scan-line">
+
+  <nav class="screen-nav">
+    <a href="#new-template">New Template</a>
+    <a href="#edit-template">Edit Template</a>
+    <a href="#category-dropdown">Category Dropdown</a>
+    <a href="#adhoc-task">Add Ad-hoc Task</a>
+  </nav>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN 1 — NEW TEMPLATE
+       ═══════════════════════════════════════════════════════ -->
+  <section class="screen-section" id="new-template">
+    <div class="screen-label">Screen 1 / Task Modal — New Template</div>
+
+    <div class="overlay" style="position: relative; min-height: 480px;">
+      <div class="modal animate-fade-in">
+        <div class="modal-header">
+          <h2>New Template</h2>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Title</label>
+            <input class="form-input" type="text" placeholder="e.g. Solve 3 LeetCode problems">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Description <span style="color: var(--text-dim); text-transform: none; letter-spacing: 0; font-weight: 400;">(optional)</span></label>
+            <textarea class="form-textarea" placeholder="Add details, notes, or instructions..." rows="3"></textarea>
+            <div class="form-hint">Tip: Be specific to help AI suggest better tasks later.</div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Category <span style="color: var(--text-dim); text-transform: none; letter-spacing: 0; font-weight: 400;">(optional)</span></label>
+              <input class="form-input" type="text" placeholder="Select or create...">
+            </div>
+            <div class="form-group" style="flex: 0 0 120px;">
+              <label class="form-label">Points</label>
+              <div style="position: relative;">
+                <input class="form-input" type="number" value="3" min="1" style="padding-right: 28px;">
+                <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--warning); font-size: 0.8rem;">&#9733;</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div></div>
+          <div class="modal-footer-right">
+            <button class="btn">Cancel</button>
+            <button class="btn btn-primary">Create Template</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN 2 — EDIT TEMPLATE
+       ═══════════════════════════════════════════════════════ -->
+  <section class="screen-section" id="edit-template">
+    <div class="screen-label">Screen 2 / Task Modal — Edit Template</div>
+
+    <div class="overlay" style="position: relative; min-height: 480px;">
+      <div class="modal animate-fade-in">
+        <div class="modal-header">
+          <h2>Edit Template</h2>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Title</label>
+            <input class="form-input" type="text" value="Solve 3 LeetCode problems">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-textarea" rows="3">Focus on dynamic programming mediums, 25 min each</textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              <input class="form-input" type="text" value="Interview Prep">
+            </div>
+            <div class="form-group" style="flex: 0 0 120px;">
+              <label class="form-label">Points</label>
+              <div style="position: relative;">
+                <input class="form-input" type="number" value="3" min="1" style="padding-right: 28px;">
+                <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--warning); font-size: 0.8rem;">&#9733;</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-danger btn-sm">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+            Delete
+          </button>
+          <div class="modal-footer-right">
+            <button class="btn">Cancel</button>
+            <button class="btn btn-primary">Save Changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN 3 — CATEGORY DROPDOWN (open state)
+       ═══════════════════════════════════════════════════════ -->
+  <section class="screen-section" id="category-dropdown">
+    <div class="screen-label">Screen 3 / Task Modal — Category Dropdown Open</div>
+
+    <div style="max-width: 400px; padding: var(--sp-xl);">
+      <div class="form-group" style="position: relative;">
+        <label class="form-label">Category</label>
+        <input class="form-input" type="text" value="" placeholder="Search or create..." style="border-color: var(--primary-dim); box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.08);">
+
+        <!-- Dropdown -->
+        <div style="
+          position: absolute;
+          top: calc(100% + 4px);
+          left: 0;
+          right: 0;
+          background: var(--surface-raised);
+          border: 1px solid var(--border);
+          border-radius: var(--r-md);
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+          z-index: 100;
+          overflow: hidden;
+        ">
+          <!-- Category options -->
+          <div style="padding: var(--sp-xs);">
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--sp-sm) var(--sp-md); border-radius: var(--r-sm); cursor: pointer; transition: background 0.1s;" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background='transparent'">
+              <span style="font-size: 0.82rem;">Fitness</span>
+              <span style="font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-dim);">3 templates</span>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--sp-sm) var(--sp-md); border-radius: var(--r-sm); background: var(--primary-bg); border: 1px solid rgba(0, 229, 255, 0.1);">
+              <span style="font-size: 0.82rem; color: var(--primary);">Interview Prep</span>
+              <span style="color: var(--primary); font-size: 0.75rem;">&#10003;</span>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--sp-sm) var(--sp-md); border-radius: var(--r-sm); cursor: pointer; transition: background 0.1s;" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background='transparent'">
+              <span style="font-size: 0.82rem;">Personal Development</span>
+              <span style="font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-dim);">4 templates</span>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--sp-sm) var(--sp-md); border-radius: var(--r-sm); cursor: pointer; transition: background 0.1s;" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background='transparent'">
+              <span style="font-size: 0.82rem;">Reading</span>
+              <span style="font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-dim);">2 templates</span>
+            </div>
+          </div>
+          <!-- Create new -->
+          <div style="border-top: 1px solid var(--border); padding: var(--sp-xs);">
+            <div style="display: flex; align-items: center; gap: var(--sp-sm); padding: var(--sp-sm) var(--sp-md); border-radius: var(--r-sm); cursor: pointer; color: var(--primary); font-size: 0.82rem;" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background='transparent'">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Create new category...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN 4 — ADD AD-HOC TASK
+       ═══════════════════════════════════════════════════════ -->
+  <section class="screen-section" id="adhoc-task">
+    <div class="screen-label">Screen 4 / Task Modal — Add Ad-hoc Task</div>
+
+    <div class="overlay" style="position: relative; min-height: 480px;">
+      <div class="modal animate-fade-in">
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: var(--sp-sm);">
+            <h2>Add Ad-hoc Task</h2>
+            <span class="badge badge-adhoc">Ad-hoc</span>
+          </div>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="info-banner">
+            <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <p>Ad-hoc tasks are one-off items — they don't repeat and never expire. They carry across plans until completed.</p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Title</label>
+            <input class="form-input" type="text" placeholder="e.g. Fix auth middleware bug">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Description <span style="color: var(--text-dim); text-transform: none; letter-spacing: 0; font-weight: 400;">(optional)</span></label>
+            <textarea class="form-textarea" placeholder="What needs to be done?" rows="3"></textarea>
+          </div>
+
+          <div class="form-group" style="max-width: 120px;">
+            <label class="form-label">Points</label>
+            <div style="position: relative;">
+              <input class="form-input" type="number" value="2" min="1" style="padding-right: 28px;">
+              <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--warning); font-size: 0.8rem;">&#9733;</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div></div>
+          <div class="modal-footer-right">
+            <button class="btn">Cancel</button>
+            <button class="btn btn-primary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add to Board
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>

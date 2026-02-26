@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanban v2 — Priority Matrix</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="scan-line">
+
+  <nav class="screen-nav">
+    <a href="#matrix-view">Eisenhower Matrix</a>
+  </nav>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN 1 — EISENHOWER PRIORITY MATRIX
+       ═══════════════════════════════════════════════════════ -->
+  <section class="screen-section" id="matrix-view">
+    <div class="screen-label">Screen 1 / Priorities — Eisenhower Matrix</div>
+
+    <div class="app-shell" style="height: 780px;">
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="logo-icon">M</div>
+          <div class="logo-text">MARS</div>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="#">Chat</a>
+          <a href="#" class="active">Kanban</a>
+        </nav>
+      </aside>
+
+      <div class="main">
+        <header class="header">
+          <div class="header-left">
+            <div class="header-title">
+              <h1>Mission Control</h1>
+              <span class="period-badge">WK 09 &middot; Feb 24 – Mar 02</span>
+            </div>
+            <nav class="tab-nav">
+              <button>Board</button>
+              <button class="active">Priorities</button>
+              <button>Templates</button>
+            </nav>
+          </div>
+          <div class="header-right">
+            <button class="btn btn-sm">Edit Plan</button>
+          </div>
+        </header>
+
+        <!-- Axis Labels (top) -->
+        <div style="display: flex; padding: var(--sp-md) var(--sp-xl) 0; justify-content: center;">
+          <div style="display: flex; align-items: center; gap: var(--sp-sm);">
+            <span class="label" style="color: var(--text-dim);">&#8593; Urgent</span>
+          </div>
+        </div>
+
+        <div class="matrix-container">
+          <div class="matrix-grid">
+            <!-- Q1: Do First (Urgent + Important) -->
+            <div class="matrix-quadrant quad-do-first">
+              <div class="quad-header">
+                <div>
+                  <div class="quad-title">Do First</div>
+                  <div class="quad-subtitle">Urgent + Important</div>
+                </div>
+                <span class="col-count" style="border-color: rgba(255, 23, 68, 0.2); color: var(--danger);">3</span>
+              </div>
+
+              <div class="task-card risk-danger" style="padding: var(--sp-sm) var(--sp-md);">
+                <div class="card-top">
+                  <span class="card-title" style="font-size: 0.78rem;">Submit kanban PR</span>
+                </div>
+                <div class="card-footer">
+                  <div class="card-badges">
+                    <span class="badge badge-weekly">Weekly</span>
+                    <span class="badge badge-risk-danger">&#8252; urgent</span>
+                  </div>
+                  <span class="card-points"><span class="star">&#9733;</span> 8</span>
+                </div>
+              </div>
+
+              <div class="task-card risk-danger" style="padding: var(--sp-sm) var(--sp-md);">
+                <div class="card-top">
+                  <span class="card-title" style="font-size: 0.78rem;">Review Anki flashcards</span>
+                </div>
+                <div class="card-footer">
+                  <div class="card-badges">
+                    <span class="badge badge-daily">Daily</span>
+                    <span class="rollover-tag">&#8617; Mon</span>
+                  </div>
+                  <span class="card-points"><span class="star">&#9733;</span> 1</span>
+                </div>
+              </div>
+
+              <div class="task-card risk-warning" style="padding: var(--sp-sm) var(--sp-md);">
+                <div class="card-top">
+                  <span class="card-title" style="font-size: 0.78rem;">Fix auth middleware bug</span>
+                </div>
+                <div class="card-footer">
+                  <div class="card-badges">
+                    <span class="badge badge-adhoc">Ad-hoc</span>
+                    <span class="badge badge-risk-warning">&#9888; at risk</span>
+                  </div>
+                  <span class="card-points"><span class="star">&#9733;</span> 3</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Q2: Schedule (Not Urgent + Important) -->
+            <div class="matrix-quadrant quad-schedule">
+              <div class="quad-header">
+                <div>
+                  <div class="quad-title">Schedule</div>
+                  <div class="quad-subtitle">Important, Not Urgent</div>
+                </div>
+                <span class="col-count" style="border-color: rgba(0, 229, 255, 0.2); color: var(--primary);">4</span>
+              </div>
+
+              <div class="task-card" style="padding: var(--sp-sm) var(--sp-md);">
+                <div class="card-top">
+                  <span class="card-title" style="font-size: 0.78rem;">Solve 3 LeetCode problems</span>
+                </div>
+                <div class="card-footer">
+                  <div class="card-badges"><span class="badge badge-daily">Daily</span></div>
+                  <span class="card-points"><span class="star">&#9733;</span> 3</span>
+                </div>
+              </div>
+
+              <div class="task-card" style="padding: var(--sp-sm) var(--sp-md);">
+                <div class="card-top">
+                  <span class="card-title" style="font-size: 0.78rem;">Write blog post draft</span>
+                </div>
+                <div class="card-footer">
+                  <div class="card-badges"><span class="badge badge-weekly">Weekly</span></div>
+                  <span class="card-points"><span class="star">&#9733;</span> 5</span>
+                </div>
+              </div>
+
+              <div class="task-card" style="padding: var(--sp-sm) var(--sp-md);">
+                <div class="card-top">
+                  <span class="card-title" style="font-size: 0.78rem;">Complete system design chapter</span>
+                </div>
+                <div class="card-footer">
+                  <div class="card-badges"><span class="badge badge-weekly">Weekly</span></div>
+                  <span class="card-points"><span class="star">&#9733;</span> 5</span>
+                </div>
+              </div>
+
+              <div class="task-card" style="padding: var(--sp-sm) var(--sp-md);">
+                <div class="card-top">
+                  <span class="card-title" style="font-size: 0.78rem;">Workout — Push day</span>
+                </div>
+                <div class="card-footer">
+                  <div class="card-badges"><span class="badge badge-daily">Daily</span></div>
+                  <span class="card-points"><span class="star">&#9733;</span> 2</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Q3: Delegate (Urgent + Not Important) -->
+            <div class="matrix-quadrant quad-delegate">
+              <div class="quad-header">
+                <div>
+                  <div class="quad-title">Delegate</div>
+                  <div class="quad-subtitle">Urgent, Not Important</div>
+                </div>
+                <span class="col-count" style="border-color: rgba(255, 179, 0, 0.2); color: var(--warning);">2</span>
+              </div>
+
+              <div class="task-card risk-warning" style="padding: var(--sp-sm) var(--sp-md);">
+                <div class="card-top">
+                  <span class="card-title" style="font-size: 0.78rem;">Read 30 pages</span>
+                </div>
+                <div class="card-footer">
+                  <div class="card-badges">
+                    <span class="badge badge-daily">Daily</span>
+                    <span class="badge badge-risk-warning">&#9888; at risk</span>
+                  </div>
+                  <span class="card-points"><span class="star">&#9733;</span> 2</span>
+                </div>
+              </div>
+
+              <div class="task-card risk-warning" style="padding: var(--sp-sm) var(--sp-md);">
+                <div class="card-top">
+                  <span class="card-title" style="font-size: 0.78rem;">Record YouTube video</span>
+                </div>
+                <div class="card-footer">
+                  <div class="card-badges">
+                    <span class="badge badge-weekly">Weekly</span>
+                    <span class="badge badge-risk-warning">&#9888; at risk</span>
+                  </div>
+                  <span class="card-points"><span class="star">&#9733;</span> 8</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Q4: Eliminate (Not Urgent + Not Important) -->
+            <div class="matrix-quadrant quad-eliminate">
+              <div class="quad-header">
+                <div>
+                  <div class="quad-title">Eliminate</div>
+                  <div class="quad-subtitle">Neither Urgent Nor Important</div>
+                </div>
+                <span class="col-count">1</span>
+              </div>
+
+              <div class="task-card" style="padding: var(--sp-sm) var(--sp-md); opacity: 0.6;">
+                <div class="card-top">
+                  <span class="card-title" style="font-size: 0.78rem;">Update portfolio site</span>
+                </div>
+                <div class="card-footer">
+                  <div class="card-badges"><span class="badge badge-adhoc">Ad-hoc</span></div>
+                  <span class="card-points"><span class="star">&#9733;</span> 2</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Axis Labels -->
+          <div class="matrix-axis-labels" style="margin-top: var(--sp-sm);">
+            <span class="axis-label">&#8592; Not Important</span>
+            <span class="axis-label" style="color: var(--text-dim);">&#8595; Not Urgent</span>
+            <span class="axis-label">Important &#8594;</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p style="padding: var(--sp-md) var(--sp-xl); color: var(--text-dim); font-size: 0.75rem;">
+      <em>Tasks are auto-assigned to quadrants based on risk level (urgency) and points (importance). Users can drag tasks between quadrants to override. The matrix provides an alternative view to the board columns — both views share the same underlying task data.</em>
+    </p>
+  </section>
+
+</body>
+</html>

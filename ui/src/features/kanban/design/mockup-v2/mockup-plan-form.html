@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanban v2 — Plan Form</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="scan-line">
+
+  <nav class="screen-nav">
+    <a href="#create-mode">Create Mode</a>
+    <a href="#edit-mode">Edit Mode</a>
+    <a href="#search-active">Search Active</a>
+  </nav>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN 1 — CREATE MODE (with categories, tabs)
+       ═══════════════════════════════════════════════════════ -->
+  <section class="screen-section" id="create-mode">
+    <div class="screen-label">Screen 1 / Plan Form — Create Mode</div>
+
+    <div class="app-shell" style="min-height: 900px;">
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="logo-icon">M</div>
+          <div class="logo-text">MARS</div>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="#">Chat</a>
+          <a href="#" class="active">Kanban</a>
+        </nav>
+      </aside>
+
+      <div class="main">
+        <div class="page-container">
+          <!-- Page Header -->
+          <div class="page-header">
+            <button class="back-btn">&larr;</button>
+            <div>
+              <h2>Launch New Mission</h2>
+              <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 2px;">Configure your weekly plan, select templates, and choose ad-hoc tasks.</p>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="form-group">
+            <label class="form-label">Mission Brief</label>
+            <input class="form-input" type="text" placeholder="Optional description for this week's focus...">
+            <div class="form-hint">What's the theme or priority for this week?</div>
+          </div>
+
+          <!-- Tab Bar: Templates / Ad-hoc -->
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-lg);">
+            <nav class="tab-nav">
+              <button class="active">Templates</button>
+              <button>Ad-hoc Tasks</button>
+            </nav>
+            <div style="display: flex; gap: var(--sp-sm);">
+              <button class="btn btn-ai btn-sm">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 014 4v1a3 3 0 013 3v1a2 2 0 012 2v3a8 8 0 01-16 0v-3a2 2 0 012-2v-1a3 3 0 013-3V6a4 4 0 014-4z"/></svg>
+                AI Suggest
+              </button>
+              <button class="btn btn-sm">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                New Template
+              </button>
+            </div>
+          </div>
+
+          <!-- Search -->
+          <div class="search-bar">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" placeholder="Search templates...">
+          </div>
+
+          <!-- Category: Fitness -->
+          <div class="category-group">
+            <div class="category-header">
+              <div class="cat-name">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                Fitness
+              </div>
+              <div class="cat-meta">2 of 3 selected</div>
+            </div>
+            <div class="category-items">
+              <!-- Selected + expanded -->
+              <div class="template-item selected">
+                <div class="template-checkbox checked">&#10003;</div>
+                <div class="template-content">
+                  <div class="template-name">Workout — Push / Pull / Legs</div>
+                  <div class="template-desc">Rotating gym routine with progressive overload</div>
+                  <div class="template-config">
+                    <div class="pill-group">
+                      <button class="pill active">Daily</button>
+                      <button class="pill">Weekly</button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: var(--sp-xs); margin-left: var(--sp-sm);">
+                      <span class="label" style="font-size: 0.6rem;">Freq</span>
+                      <input class="form-input inline-number" type="number" value="1" min="1" max="7" style="width: 52px; padding: 3px 6px; font-size: 0.75rem;">
+                      <span style="font-size: 0.65rem; color: var(--text-dim);">/day</span>
+                    </div>
+                    <div class="template-points">
+                      <span class="star">&#9733;</span> 2
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Selected -->
+              <div class="template-item selected">
+                <div class="template-checkbox checked">&#10003;</div>
+                <div class="template-content">
+                  <div class="template-name">Morning stretching routine</div>
+                  <div class="template-config">
+                    <div class="pill-group">
+                      <button class="pill active">Daily</button>
+                      <button class="pill">Weekly</button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: var(--sp-xs); margin-left: var(--sp-sm);">
+                      <span class="label" style="font-size: 0.6rem;">Freq</span>
+                      <input class="form-input inline-number" type="number" value="1" min="1" max="7" style="width: 52px; padding: 3px 6px; font-size: 0.75rem;">
+                      <span style="font-size: 0.65rem; color: var(--text-dim);">/day</span>
+                    </div>
+                    <div class="template-points">
+                      <span class="star">&#9733;</span> 1
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Unselected -->
+              <div class="template-item" style="opacity: 0.6;">
+                <div class="template-checkbox"></div>
+                <div class="template-content">
+                  <div class="template-name">Track macros & calories</div>
+                  <div class="template-points" style="margin-top: 0;">
+                    <span class="star">&#9733;</span> 1
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Category: Interview Prep -->
+          <div class="category-group">
+            <div class="category-header">
+              <div class="cat-name">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                Interview Prep
+              </div>
+              <div class="cat-meta">3 of 3 selected</div>
+            </div>
+            <div class="category-items">
+              <div class="template-item selected">
+                <div class="template-checkbox checked">&#10003;</div>
+                <div class="template-content">
+                  <div class="template-name">Solve 3 LeetCode problems</div>
+                  <div class="template-desc">Focus on DP mediums, 25 min each</div>
+                  <div class="template-config">
+                    <div class="pill-group">
+                      <button class="pill active">Daily</button>
+                      <button class="pill">Weekly</button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: var(--sp-xs); margin-left: var(--sp-sm);">
+                      <span class="label" style="font-size: 0.6rem;">Freq</span>
+                      <input class="form-input inline-number" type="number" value="3" min="1" max="7" style="width: 52px; padding: 3px 6px; font-size: 0.75rem;">
+                      <span style="font-size: 0.65rem; color: var(--text-dim);">/day</span>
+                    </div>
+                    <div class="template-points">
+                      <span class="star">&#9733;</span> 3
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="template-item selected">
+                <div class="template-checkbox checked">&#10003;</div>
+                <div class="template-content">
+                  <div class="template-name">Complete system design chapter</div>
+                  <div class="template-config">
+                    <div class="pill-group">
+                      <button class="pill">Daily</button>
+                      <button class="pill active">Weekly</button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: var(--sp-xs); margin-left: var(--sp-sm);">
+                      <span class="label" style="font-size: 0.6rem;">Freq</span>
+                      <input class="form-input inline-number" type="number" value="1" min="1" max="7" style="width: 52px; padding: 3px 6px; font-size: 0.75rem;">
+                      <span style="font-size: 0.65rem; color: var(--text-dim);">/week</span>
+                    </div>
+                    <div class="template-points">
+                      <span class="star">&#9733;</span> 5
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="template-item selected">
+                <div class="template-checkbox checked">&#10003;</div>
+                <div class="template-content">
+                  <div class="template-name">Mock interview practice</div>
+                  <div class="template-config">
+                    <div class="pill-group">
+                      <button class="pill">Daily</button>
+                      <button class="pill active">Weekly</button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: var(--sp-xs); margin-left: var(--sp-sm);">
+                      <span class="label" style="font-size: 0.6rem;">Freq</span>
+                      <input class="form-input inline-number" type="number" value="2" min="1" max="7" style="width: 52px; padding: 3px 6px; font-size: 0.75rem;">
+                      <span style="font-size: 0.65rem; color: var(--text-dim);">/week</span>
+                    </div>
+                    <div class="template-points">
+                      <span class="star">&#9733;</span> 5
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Category: Personal Dev -->
+          <div class="category-group">
+            <div class="category-header">
+              <div class="cat-name">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+                Personal Development
+              </div>
+              <div class="cat-meta">1 of 4 selected</div>
+            </div>
+            <div class="category-items" style="display: none;">
+              <!-- collapsed — chevron points right/up -->
+            </div>
+          </div>
+
+          <!-- Category: Uncategorized -->
+          <div class="category-group">
+            <div class="category-header">
+              <div class="cat-name">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+                Uncategorized
+              </div>
+              <div class="cat-meta">0 of 2 selected</div>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="page-footer">
+            <div class="footer-info">
+              <span style="color: var(--primary);">6 templates</span> &middot;
+              <span style="color: var(--warning);">0 ad-hoc tasks</span> selected &middot;
+              ~<span style="color: var(--text-secondary);">166</span> projected points
+            </div>
+            <div style="display: flex; gap: var(--sp-sm);">
+              <button class="btn">Cancel</button>
+              <button class="btn btn-primary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Launch Mission
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN 2 — EDIT MODE
+       ═══════════════════════════════════════════════════════ -->
+  <section class="screen-section" id="edit-mode">
+    <div class="screen-label">Screen 2 / Plan Form — Edit Mode</div>
+
+    <div class="app-shell" style="min-height: 500px;">
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <div class="logo-icon">M</div>
+          <div class="logo-text">MARS</div>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="#">Chat</a>
+          <a href="#" class="active">Kanban</a>
+        </nav>
+      </aside>
+
+      <div class="main">
+        <div class="page-container">
+          <div class="page-header">
+            <button class="back-btn">&larr;</button>
+            <div>
+              <h2>Update Mission</h2>
+              <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 2px;">Modify templates, change configurations, or add/remove ad-hoc tasks.</p>
+            </div>
+            <span class="period-badge" style="margin-left: auto;">WK 09 &middot; Feb 24 – Mar 02</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Mission Brief</label>
+            <input class="form-input" type="text" value="Heavy interview prep week + finish kanban feature">
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-lg);">
+            <nav class="tab-nav">
+              <button class="active">Templates</button>
+              <button>Ad-hoc Tasks</button>
+            </nav>
+            <button class="btn btn-sm">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              New Template
+            </button>
+          </div>
+
+          <!-- Showing one category as example in edit mode -->
+          <div class="category-group">
+            <div class="category-header">
+              <div class="cat-name">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                Interview Prep
+              </div>
+              <div class="cat-meta">3 of 3 selected</div>
+            </div>
+            <div class="category-items">
+              <div class="template-item selected">
+                <div class="template-checkbox checked">&#10003;</div>
+                <div class="template-content">
+                  <div class="template-name">Solve 3 LeetCode problems</div>
+                  <div class="template-config">
+                    <div class="pill-group">
+                      <button class="pill active">Daily</button>
+                      <button class="pill">Weekly</button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: var(--sp-xs); margin-left: var(--sp-sm);">
+                      <span class="label" style="font-size: 0.6rem;">Freq</span>
+                      <input class="form-input inline-number" type="number" value="3" style="width: 52px; padding: 3px 6px; font-size: 0.75rem;">
+                      <span style="font-size: 0.65rem; color: var(--text-dim);">/day</span>
+                    </div>
+                    <div class="template-points"><span class="star">&#9733;</span> 3</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="page-footer">
+            <div class="footer-info">
+              <span style="color: var(--primary);">6 templates</span> &middot;
+              <span style="color: var(--warning);">2 ad-hoc tasks</span> selected
+            </div>
+            <div style="display: flex; gap: var(--sp-sm);">
+              <button class="btn">Cancel</button>
+              <button class="btn btn-primary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Review Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN 3 — SEARCH ACTIVE (flat filtered list)
+       ═══════════════════════════════════════════════════════ -->
+  <section class="screen-section" id="search-active">
+    <div class="screen-label">Screen 3 / Plan Form — Search Active (flat results with category tags)</div>
+
+    <div style="max-width: 700px; padding: var(--sp-xl);">
+      <!-- Search bar with active query -->
+      <div class="search-bar" style="margin-bottom: var(--sp-md);">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" value="work" style="border-color: var(--primary-dim);">
+      </div>
+
+      <div style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-dim); margin-bottom: var(--sp-lg); letter-spacing: 0.04em;">
+        2 results across all categories
+      </div>
+
+      <!-- Flat search results — category shown as tag -->
+      <div style="display: flex; flex-direction: column; gap: var(--sp-sm);">
+        <div class="template-item selected">
+          <div class="template-checkbox checked">&#10003;</div>
+          <div class="template-content">
+            <div style="display: flex; align-items: center; gap: var(--sp-sm); margin-bottom: 2px;">
+              <div class="template-name"><span style="background: var(--warning-bg); color: var(--warning); padding: 0 3px; border-radius: 2px;">Work</span>out — Push / Pull / Legs</div>
+              <span class="badge" style="background: var(--surface-active); color: var(--text-dim); border: 1px solid var(--border); font-size: 0.55rem;">Fitness</span>
+            </div>
+            <div class="template-desc">Rotating gym routine with progressive overload</div>
+            <div class="template-config">
+              <div class="pill-group">
+                <button class="pill active">Daily</button>
+                <button class="pill">Weekly</button>
+              </div>
+              <div class="template-points"><span class="star">&#9733;</span> 2</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="template-item" style="opacity: 0.6;">
+          <div class="template-checkbox"></div>
+          <div class="template-content">
+            <div style="display: flex; align-items: center; gap: var(--sp-sm); margin-bottom: 2px;">
+              <div class="template-name">Track <span style="background: var(--warning-bg); color: var(--warning); padding: 0 3px; border-radius: 2px;">work</span> hours</div>
+              <span class="badge" style="background: var(--surface-active); color: var(--text-dim); border: 1px solid var(--border); font-size: 0.55rem;">Personal Dev</span>
+            </div>
+            <div class="template-desc">Log daily work hours for productivity analysis</div>
+            <div class="template-points" style="margin-top: var(--sp-sm);"><span class="star">&#9733;</span> 1</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>

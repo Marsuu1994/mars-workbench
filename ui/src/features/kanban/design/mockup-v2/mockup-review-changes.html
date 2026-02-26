@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanban v2 — Review Changes</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="scan-line">
+
+  <nav class="screen-nav">
+    <a href="#review-full">Full Review</a>
+  </nav>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN 1 — REVIEW CHANGES MODAL
+       ═══════════════════════════════════════════════════════ -->
+  <section class="screen-section" id="review-full">
+    <div class="screen-label">Screen 1 / Review Changes — Full Diff View</div>
+
+    <div class="overlay" style="position: relative; min-height: 720px;">
+      <div class="modal modal-lg animate-fade-in">
+        <div class="modal-header">
+          <div>
+            <h2>Review Mission Changes</h2>
+            <p style="font-size: 0.72rem; color: var(--text-dim); margin-top: 2px;">Review all modifications before applying to your active plan.</p>
+          </div>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+
+          <!-- ── Added Templates ── -->
+          <div class="changes-section">
+            <div class="changes-section-header">
+              <div class="changes-dot added"></div>
+              <h3 style="color: var(--success);">Added</h3>
+              <span class="label" style="margin-left: auto;">2 templates</span>
+            </div>
+
+            <div class="changes-item" style="border-left: 3px solid var(--success);">
+              <div class="item-name" style="color: var(--success);">Morning stretching routine</div>
+              <div style="display: flex; gap: var(--sp-sm); margin-bottom: var(--sp-xs);">
+                <span class="badge badge-daily">Daily</span>
+                <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-dim);">1x/day</span>
+                <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--warning);">&#9733; 1</span>
+              </div>
+              <div class="item-impact">New daily tasks will be generated for the remaining period.</div>
+            </div>
+
+            <div class="changes-item" style="border-left: 3px solid var(--success);">
+              <div class="item-name" style="color: var(--success);">Mock interview practice</div>
+              <div style="display: flex; gap: var(--sp-sm); margin-bottom: var(--sp-xs);">
+                <span class="badge badge-weekly">Weekly</span>
+                <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-dim);">2x/week</span>
+                <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--warning);">&#9733; 5</span>
+              </div>
+              <div class="item-impact">2 new weekly task instances will be created.</div>
+            </div>
+          </div>
+
+          <!-- ── Removed Templates ── -->
+          <div class="changes-section">
+            <div class="changes-section-header">
+              <div class="changes-dot removed"></div>
+              <h3 style="color: var(--danger);">Removed</h3>
+              <span class="label" style="margin-left: auto;">1 template</span>
+            </div>
+
+            <div class="changes-item" style="border-left: 3px solid var(--danger);">
+              <div class="item-name" style="color: var(--danger); text-decoration: line-through;">Track macros & calories</div>
+              <div style="display: flex; gap: var(--sp-sm); margin-bottom: var(--sp-xs);">
+                <span class="badge badge-daily" style="opacity: 0.5;">Daily</span>
+                <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-dim);">1x/day</span>
+              </div>
+              <div class="item-impact" style="color: var(--danger-dim);">
+                <strong>2 Todo</strong> and <strong>1 In Progress</strong> tasks will be deleted.
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Modified Templates ── -->
+          <div class="changes-section">
+            <div class="changes-section-header">
+              <div class="changes-dot modified"></div>
+              <h3 style="color: var(--warning);">Modified</h3>
+              <span class="label" style="margin-left: auto;">1 template</span>
+            </div>
+
+            <div class="changes-item" style="border-left: 3px solid var(--warning);">
+              <div class="item-name" style="color: var(--warning);">Solve 3 LeetCode problems</div>
+              <div style="display: flex; align-items: center; gap: var(--sp-sm); margin-bottom: var(--sp-xs); flex-wrap: wrap;">
+                <!-- Old config -->
+                <div style="display: flex; align-items: center; gap: var(--sp-xs); padding: var(--sp-xs) var(--sp-sm); background: var(--danger-bg); border-radius: var(--r-sm); text-decoration: line-through; opacity: 0.6;">
+                  <span class="badge badge-daily" style="font-size: 0.55rem;">Daily</span>
+                  <span style="font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-dim);">1x/day</span>
+                </div>
+                <span class="changes-arrow">&rarr;</span>
+                <!-- New config -->
+                <div style="display: flex; align-items: center; gap: var(--sp-xs); padding: var(--sp-xs) var(--sp-sm); background: var(--success-bg); border-radius: var(--r-sm);">
+                  <span class="badge badge-daily" style="font-size: 0.55rem;">Daily</span>
+                  <span style="font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-secondary);">3x/day</span>
+                </div>
+              </div>
+              <div class="item-impact">Remaining daily tasks will be regenerated with new frequency.</div>
+            </div>
+          </div>
+
+          <!-- ── Ad-hoc Changes ── -->
+          <div class="changes-section">
+            <div class="changes-section-header">
+              <div class="changes-dot" style="background: var(--adhoc); box-shadow: 0 0 6px rgba(255, 179, 0, 0.4);"></div>
+              <h3 style="color: var(--adhoc);">Ad-hoc Tasks</h3>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-md);">
+              <!-- Added ad-hocs -->
+              <div>
+                <div class="label" style="color: var(--success); margin-bottom: var(--sp-sm);">+ Added</div>
+                <div class="changes-item" style="border-left: 3px solid var(--success);">
+                  <div class="item-name" style="font-size: 0.78rem;">Research CI/CD tools</div>
+                  <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--warning);">&#9733; 2</span>
+                </div>
+              </div>
+              <!-- Removed ad-hocs -->
+              <div>
+                <div class="label" style="color: var(--danger); margin-bottom: var(--sp-sm);">- Removed</div>
+                <div class="changes-item" style="border-left: 3px solid var(--danger);">
+                  <div class="item-name" style="font-size: 0.78rem; text-decoration: line-through; color: var(--text-dim);">Update portfolio site</div>
+                  <div class="item-impact">Will be unlinked from this plan (not deleted).</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Global note -->
+          <div class="info-banner" style="margin-top: var(--sp-lg);">
+            <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <p><strong>Done</strong> and <strong>Expired</strong> tasks are never affected by plan changes. Only Todo and In Progress tasks from removed or modified templates will be regenerated.</p>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn">Back to Edit</button>
+          <div class="modal-footer-right">
+            <button class="btn btn-primary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Confirm &amp; Regenerate
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>

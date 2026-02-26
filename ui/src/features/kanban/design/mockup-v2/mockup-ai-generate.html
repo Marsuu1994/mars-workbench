@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanban v2 — AI Generate Tasks</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="scan-line">
+
+  <nav class="screen-nav">
+    <a href="#ai-initial">Initial State</a>
+    <a href="#ai-conversation">Conversation + Results</a>
+    <a href="#ai-review">Review & Add</a>
+  </nav>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN 1 — AI GENERATE INITIAL STATE (modal opens)
+       ═══════════════════════════════════════════════════════ -->
+  <section class="screen-section" id="ai-initial">
+    <div class="screen-label">Screen 1 / AI Generate — Initial State</div>
+
+    <div class="overlay" style="position: relative; min-height: 580px;">
+      <div class="modal modal-lg animate-fade-in" style="height: 520px; display: flex; flex-direction: column;">
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: var(--sp-sm);">
+            <div style="width: 24px; height: 24px; background: linear-gradient(135deg, var(--secondary-bg), var(--primary-bg)); border: 1px solid rgba(180, 77, 255, 0.2); border-radius: var(--r-md); display: flex; align-items: center; justify-content: center;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2"><path d="M12 2a4 4 0 014 4v1a3 3 0 013 3v1a2 2 0 012 2v3a8 8 0 01-16 0v-3a2 2 0 012-2v-1a3 3 0 013-3V6a4 4 0 014-4z"/></svg>
+            </div>
+            <h2>AI Task Generator</h2>
+            <span class="badge badge-ai">Beta</span>
+          </div>
+          <button class="modal-close">&times;</button>
+        </div>
+
+        <!-- Chat area -->
+        <div class="ai-panel" style="flex: 1; overflow: hidden;">
+          <div class="ai-chat-area" style="flex: 1;">
+            <!-- AI Welcome Message -->
+            <div class="ai-message from-ai">
+              <div class="ai-avatar bot">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 014 4v1a3 3 0 013 3v1a2 2 0 012 2v3a8 8 0 01-16 0v-3a2 2 0 012-2v-1a3 3 0 013-3V6a4 4 0 014-4z"/></svg>
+              </div>
+              <div class="ai-bubble">
+                <div style="margin-bottom: var(--sp-sm);">Tell me about your goals and I'll suggest task templates to help you build a productive routine.</div>
+                <div style="font-size: 0.75rem; color: var(--text-dim);">Try things like:</div>
+                <div style="display: flex; flex-wrap: wrap; gap: var(--sp-xs); margin-top: var(--sp-xs);">
+                  <button class="btn btn-sm btn-ghost" style="font-size: 0.7rem; padding: 3px 8px; border-color: var(--border);">"I'm preparing for tech interviews"</button>
+                  <button class="btn btn-sm btn-ghost" style="font-size: 0.7rem; padding: 3px 8px; border-color: var(--border);">"Help me build a fitness habit"</button>
+                  <button class="btn btn-sm btn-ghost" style="font-size: 0.7rem; padding: 3px 8px; border-color: var(--border);">"I want to learn Japanese"</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Input area -->
+          <div class="ai-input-area">
+            <div class="ai-input-wrapper">
+              <textarea placeholder="Describe your goals or what you want to work on..." rows="1"></textarea>
+              <button class="ai-send-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: var(--sp-xs);">
+              <span style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-dim);">AI suggestions can be edited before adding to your plan</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN 2 — CONVERSATION WITH GENERATED RESULTS
+       ═══════════════════════════════════════════════════════ -->
+  <section class="screen-section" id="ai-conversation">
+    <div class="screen-label">Screen 2 / AI Generate — Conversation + Results</div>
+
+    <div class="overlay" style="position: relative; min-height: 760px;">
+      <div class="modal modal-lg animate-fade-in" style="height: 700px; display: flex; flex-direction: column;">
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: var(--sp-sm);">
+            <div style="width: 24px; height: 24px; background: linear-gradient(135deg, var(--secondary-bg), var(--primary-bg)); border: 1px solid rgba(180, 77, 255, 0.2); border-radius: var(--r-md); display: flex; align-items: center; justify-content: center;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2"><path d="M12 2a4 4 0 014 4v1a3 3 0 013 3v1a2 2 0 012 2v3a8 8 0 01-16 0v-3a2 2 0 012-2v-1a3 3 0 013-3V6a4 4 0 014-4z"/></svg>
+            </div>
+            <h2>AI Task Generator</h2>
+          </div>
+          <button class="modal-close">&times;</button>
+        </div>
+
+        <div class="ai-panel" style="flex: 1; overflow: hidden;">
+          <div class="ai-chat-area" style="flex: 1;">
+            <!-- AI Welcome (condensed) -->
+            <div class="ai-message from-ai">
+              <div class="ai-avatar bot">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 014 4v1a3 3 0 013 3v1a2 2 0 012 2v3a8 8 0 01-16 0v-3a2 2 0 012-2v-1a3 3 0 013-3V6a4 4 0 014-4z"/></svg>
+              </div>
+              <div class="ai-bubble">Tell me about your goals and I'll suggest task templates.</div>
+            </div>
+
+            <!-- User message -->
+            <div class="ai-message from-user">
+              <div class="ai-avatar user">U</div>
+              <div class="ai-bubble">I'm preparing for FAANG interviews. I need to grind LeetCode, study system design, and practice behavioral questions. I also want to stay fit and keep reading technical books.</div>
+            </div>
+
+            <!-- AI response with generated templates -->
+            <div class="ai-message from-ai">
+              <div class="ai-avatar bot">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 014 4v1a3 3 0 013 3v1a2 2 0 012 2v3a8 8 0 01-16 0v-3a2 2 0 012-2v-1a3 3 0 013-3V6a4 4 0 014-4z"/></svg>
+              </div>
+              <div class="ai-bubble">
+                <div style="margin-bottom: var(--sp-md);">Here's a structured plan for your FAANG prep. I've organized it into daily habits and weekly goals:</div>
+
+                <!-- Category: Interview Prep -->
+                <div style="margin-bottom: var(--sp-md);">
+                  <div style="font-family: var(--font-mono); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--primary); margin-bottom: var(--sp-sm);">Interview Prep</div>
+
+                  <div class="ai-template-card">
+                    <div class="at-header">
+                      <span class="at-title">Solve 3 LeetCode problems</span>
+                      <div class="at-meta">
+                        <span class="badge badge-daily">Daily</span>
+                        <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--warning);">&#9733; 3</span>
+                      </div>
+                    </div>
+                    <div class="at-desc">Focus on medium-level DP, graph, and sliding window problems. 25 min per problem max.</div>
+                    <div class="at-actions">
+                      <button class="btn btn-sm btn-primary" style="font-size: 0.68rem; padding: 2px 8px;">Add</button>
+                      <button class="btn btn-sm btn-ghost" style="font-size: 0.68rem; padding: 2px 8px;">Edit</button>
+                    </div>
+                  </div>
+
+                  <div class="ai-template-card">
+                    <div class="at-header">
+                      <span class="at-title">Study system design chapter</span>
+                      <div class="at-meta">
+                        <span class="badge badge-weekly">Weekly</span>
+                        <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--warning);">&#9733; 5</span>
+                      </div>
+                    </div>
+                    <div class="at-desc">Work through DDIA or System Design Interview book. One chapter per week with notes.</div>
+                    <div class="at-actions">
+                      <button class="btn btn-sm btn-primary" style="font-size: 0.68rem; padding: 2px 8px;">Add</button>
+                      <button class="btn btn-sm btn-ghost" style="font-size: 0.68rem; padding: 2px 8px;">Edit</button>
+                    </div>
+                  </div>
+
+                  <div class="ai-template-card">
+                    <div class="at-header">
+                      <span class="at-title">Mock behavioral interview</span>
+                      <div class="at-meta">
+                        <span class="badge badge-weekly">Weekly</span>
+                        <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--warning);">&#9733; 4</span>
+                      </div>
+                    </div>
+                    <div class="at-desc">Practice STAR format answers. Record yourself and review for filler words and clarity.</div>
+                    <div class="at-actions">
+                      <button class="btn btn-sm btn-primary" style="font-size: 0.68rem; padding: 2px 8px;">Add</button>
+                      <button class="btn btn-sm btn-ghost" style="font-size: 0.68rem; padding: 2px 8px;">Edit</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Category: Health & Fitness -->
+                <div style="margin-bottom: var(--sp-md);">
+                  <div style="font-family: var(--font-mono); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--primary); margin-bottom: var(--sp-sm);">Health &amp; Fitness</div>
+
+                  <div class="ai-template-card">
+                    <div class="at-header">
+                      <span class="at-title">Gym workout (PPL rotation)</span>
+                      <div class="at-meta">
+                        <span class="badge badge-daily">Daily</span>
+                        <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--warning);">&#9733; 2</span>
+                      </div>
+                    </div>
+                    <div class="at-desc">Push/Pull/Legs split. Track progressive overload on compound movements.</div>
+                    <div class="at-actions">
+                      <button class="btn btn-sm btn-primary" style="font-size: 0.68rem; padding: 2px 8px;">Add</button>
+                      <button class="btn btn-sm btn-ghost" style="font-size: 0.68rem; padding: 2px 8px;">Edit</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Category: Reading -->
+                <div>
+                  <div style="font-family: var(--font-mono); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--primary); margin-bottom: var(--sp-sm);">Reading</div>
+
+                  <div class="ai-template-card">
+                    <div class="at-header">
+                      <span class="at-title">Read 30 pages of tech book</span>
+                      <div class="at-meta">
+                        <span class="badge badge-daily">Daily</span>
+                        <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--warning);">&#9733; 2</span>
+                      </div>
+                    </div>
+                    <div class="at-desc">Consistent daily reading builds deep knowledge over time.</div>
+                    <div class="at-actions">
+                      <button class="btn btn-sm btn-primary" style="font-size: 0.68rem; padding: 2px 8px;">Add</button>
+                      <button class="btn btn-sm btn-ghost" style="font-size: 0.68rem; padding: 2px 8px;">Edit</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="margin-top: var(--sp-md); font-size: 0.78rem; color: var(--text-secondary);">
+                  That's 5 templates totaling ~16 points/day. Want me to adjust difficulty, add more categories, or tweak any of these?
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ai-input-area">
+            <div class="ai-input-wrapper">
+              <textarea placeholder="Ask for adjustments, more suggestions, or different categories..." rows="1"></textarea>
+              <button class="ai-send-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCREEN 3 — REVIEW SELECTED TEMPLATES BEFORE ADDING
+       ═══════════════════════════════════════════════════════ -->
+  <section class="screen-section" id="ai-review">
+    <div class="screen-label">Screen 3 / AI Generate — Review &amp; Add Selected Templates</div>
+
+    <div class="overlay" style="position: relative; min-height: 580px;">
+      <div class="modal modal-lg animate-fade-in" style="display: flex; flex-direction: column;">
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: var(--sp-sm);">
+            <h2>Review AI Suggestions</h2>
+            <span style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim);">3 of 5 selected</span>
+          </div>
+          <button class="modal-close">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="info-banner ai-banner" style="margin-bottom: var(--sp-xl);">
+            <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2"><path d="M12 2a4 4 0 014 4v1a3 3 0 013 3v1a2 2 0 012 2v3a8 8 0 01-16 0v-3a2 2 0 012-2v-1a3 3 0 013-3V6a4 4 0 014-4z"/></svg>
+            <p>These templates will be added to your library. You can then select them when creating or editing a plan.</p>
+          </div>
+
+          <!-- Selected templates in editable list -->
+          <div style="display: flex; flex-direction: column; gap: var(--sp-sm);">
+            <div class="template-item selected">
+              <div class="template-checkbox checked">&#10003;</div>
+              <div class="template-content">
+                <div style="display: flex; align-items: center; gap: var(--sp-sm);">
+                  <div class="template-name">Solve 3 LeetCode problems</div>
+                  <span class="badge badge-ai" style="font-size: 0.5rem;">AI</span>
+                </div>
+                <div class="template-desc">Focus on medium-level DP, graph, and sliding window problems.</div>
+                <div style="display: flex; align-items: center; gap: var(--sp-md); margin-top: var(--sp-sm);">
+                  <span style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-dim);">Category: <span style="color: var(--text-secondary);">Interview Prep</span></span>
+                  <span class="template-points"><span class="star">&#9733;</span> 3</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="template-item selected">
+              <div class="template-checkbox checked">&#10003;</div>
+              <div class="template-content">
+                <div style="display: flex; align-items: center; gap: var(--sp-sm);">
+                  <div class="template-name">Study system design chapter</div>
+                  <span class="badge badge-ai" style="font-size: 0.5rem;">AI</span>
+                </div>
+                <div class="template-desc">Work through DDIA or System Design Interview book.</div>
+                <div style="display: flex; align-items: center; gap: var(--sp-md); margin-top: var(--sp-sm);">
+                  <span style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-dim);">Category: <span style="color: var(--text-secondary);">Interview Prep</span></span>
+                  <span class="template-points"><span class="star">&#9733;</span> 5</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="template-item selected">
+              <div class="template-checkbox checked">&#10003;</div>
+              <div class="template-content">
+                <div style="display: flex; align-items: center; gap: var(--sp-sm);">
+                  <div class="template-name">Read 30 pages of tech book</div>
+                  <span class="badge badge-ai" style="font-size: 0.5rem;">AI</span>
+                </div>
+                <div class="template-desc">Consistent daily reading builds deep knowledge over time.</div>
+                <div style="display: flex; align-items: center; gap: var(--sp-md); margin-top: var(--sp-sm);">
+                  <span style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-dim);">Category: <span style="color: var(--text-secondary);">Reading</span></span>
+                  <span class="template-points"><span class="star">&#9733;</span> 2</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Unselected -->
+            <div class="template-item" style="opacity: 0.5;">
+              <div class="template-checkbox"></div>
+              <div class="template-content">
+                <div class="template-name">Mock behavioral interview</div>
+                <div class="template-desc">Practice STAR format answers.</div>
+              </div>
+            </div>
+
+            <div class="template-item" style="opacity: 0.5;">
+              <div class="template-checkbox"></div>
+              <div class="template-content">
+                <div class="template-name">Gym workout (PPL rotation)</div>
+                <div class="template-desc">Push/Pull/Legs split.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            Back to Chat
+          </button>
+          <div class="modal-footer-right">
+            <button class="btn btn-primary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add 3 Templates to Library
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>
