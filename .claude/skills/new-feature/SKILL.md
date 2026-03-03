@@ -23,10 +23,10 @@ Ask the user to describe:
 
 ## Step 2 — Scaffold Folder Structure
 
-Create the feature directory at `ui/src/features/$0/` with this structure:
+Create the feature directory at `src/features/$0/` with this structure:
 
 ```
-ui/src/features/$0/
+src/features/$0/
 ├── actions/           # Server actions
 ├── services/          # Business logic
 ├── components/        # UI components
@@ -124,7 +124,7 @@ Update `CLAUDE.md`:
 
 ## Step 5 — Create App Route
 
-Create the Next.js page at `ui/src/app/$0/page.tsx` with a minimal placeholder:
+Create the Next.js page at `src/app/$0/page.tsx` with a minimal placeholder:
 
 ```tsx
 export default function [FeatureName]Page() {

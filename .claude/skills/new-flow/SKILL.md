@@ -16,9 +16,9 @@ Follow these steps **in order**. Do not proceed to the next step without explici
 
 Read the feature's existing design docs to understand current state:
 
-- `ui/src/features/$0/design/baseline.md` — entities and schema
-- `ui/src/features/$0/design/flows.md` — existing flows
-- `ui/src/features/$0/design/api.md` — actions and DAL contracts
+- `src/features/$0/design/baseline.md` — entities and schema
+- `src/features/$0/design/flows.md` — existing flows
+- `src/features/$0/design/api.md` — actions and DAL contracts
 
 ## Step 2 — Draft Flow
 
@@ -39,13 +39,13 @@ Review the draft for clarity and completeness:
 - Does it conflict with or duplicate existing flows?
 - Are entity/schema changes needed?
 
-Present the updated flow for approval. Once approved, append it to `ui/src/features/$0/design/flows.md`.
+Present the updated flow for approval. Once approved, append it to `src/features/$0/design/flows.md`.
 
 ## Step 4 — Mockup (if UI is involved)
 
 Skip this step if the flow is purely backend (no new UI).
 
-1. Use the `/frontend-design` skill to create an HTML mockup at `ui/src/features/$0/design/mockup/mockup-$1.html`
+1. Use the `/frontend-design` skill to create an HTML mockup at `src/features/$0/design/mockup/mockup-$1.html`
 2. Link to the shared `./styles.css` in the mockup directory
 3. Show only the screens relevant to this flow
 4. Present for user review and iterate until approved
@@ -58,7 +58,7 @@ Write the implementation plan:
 2. For each new or modified **server action**: write pseudocode and its DAL contract
 3. For each new **DAL function**: specify the query shape (params, select fields, return type)
 4. For each new **component**: note props interface and key behaviors
-5. Append the action/DAL contracts to `ui/src/features/$0/design/api.md`
+5. Append the action/DAL contracts to `src/features/$0/design/api.md`
 
 Follow the project's layer conventions:
 - **Actions** — `'use server'`, thin: validate with Zod → call service → `revalidatePath`

@@ -23,33 +23,32 @@ A Next.js application with multiple features: AI Chat and Kanban Period Planner.
 ## Project Structure
 
 ```text
-ui/
-├── prisma/
-│   ├── schema.prisma              # Database schema
-│   └── migrations/                # Database migrations
-├── src/
-│   ├── app/
-│   │   ├── api/
-│   │   │   ├── llm/               # LLM streaming + title summarization
-│   │   │   └── chats/             # Chat CRUD + messages endpoints
-│   │   ├── chat/                  # Chat pages (layout, new, [chatId])
-│   │   ├── kanban/                # Kanban pages
-│   │   │   ├── page.tsx           # Board page
-│   │   │   └── plans/             # Plan create/edit pages ([id], new)
-│   │   ├── layout.tsx             # Root layout
-│   │   └── globals.css            # Global styles
-│   ├── generated/prisma/          # Generated Prisma client (gitignored)
-│   ├── lib/                       # Shared utilities
-│   │   ├── prisma.ts              # Prisma client singleton
-│   │   └── db/                    # Data access layer
-│   ├── features/
-│   │   ├── auth/                  # Auth feature (see features/auth/README.md)
-│   │   ├── chat/                  # AI Chat feature (see features/chat/README.md)
-│   │   └── kanban/                # Kanban Planner feature (see features/kanban/README.md)
-│   └── components/
-│       └── common/
-│           ├── Header.tsx
-│           └── ThemeProvider.tsx
+prisma/
+├── schema.prisma                  # Database schema
+└── migrations/                    # Database migrations
+src/
+├── app/
+│   ├── api/
+│   │   ├── llm/                   # LLM streaming + title summarization
+│   │   └── chats/                 # Chat CRUD + messages endpoints
+│   ├── chat/                      # Chat pages (layout, new, [chatId])
+│   ├── kanban/                    # Kanban pages
+│   │   ├── page.tsx               # Board page
+│   │   └── plans/                 # Plan create/edit pages ([id], new)
+│   ├── layout.tsx                 # Root layout
+│   └── globals.css                # Global styles
+├── generated/prisma/              # Generated Prisma client (gitignored)
+├── lib/                           # Shared utilities
+│   ├── prisma.ts                  # Prisma client singleton
+│   └── db/                        # Data access layer
+├── features/
+│   ├── auth/                      # Auth feature (see features/auth/README.md)
+│   ├── chat/                      # AI Chat feature (see features/chat/README.md)
+│   └── kanban/                    # Kanban Planner feature (see features/kanban/README.md)
+└── components/
+    └── common/
+        ├── Header.tsx
+        └── ThemeProvider.tsx
 ```
 
 ## Workflow
@@ -148,10 +147,10 @@ Implement approved mockups exactly (layout, spacing, text, colors, icons, states
 ## Commands
 
 ```bash
-cd ui && npm run dev      # Start dev server
-cd ui && npm run build    # Production build
-cd ui && npm run lint     # Lint
-cd ui && npx prisma studio
-cd ui && npx prisma migrate dev
-cd ui && npx prisma generate
+npm run dev      # Start dev server
+npm run build    # Production build
+npm run lint     # Lint
+npx prisma studio
+npx prisma migrate dev
+npx prisma generate
 ```

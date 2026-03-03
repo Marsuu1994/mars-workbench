@@ -26,5 +26,5 @@ Use Claude slash-skills where applicable:
 ## Claude-Specific Notes
 
 - Keep skills usage explicit in prompts when a task matches one of the above domains.
-- Keep source-of-truth active mockups in `ui/src/features/[feature]/design/mockup/`.
+- Keep source-of-truth active mockups in `src/features/[feature]/design/mockup/`.
 - Use `mockup-v2/` only for future exploration artifacts.
