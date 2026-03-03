@@ -87,6 +87,29 @@
     font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
     background: rgba(197,184,0,0.15); color: #8a7e00;
   }
+
+  /* AI assistant banner */
+  .ai-banner {
+    display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+    background: #f5f5f5; border: 1px solid #dedede; border-radius: 8px;
+    margin-bottom: 24px;
+  }
+  .ai-banner-icon {
+    width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0;
+    background: rgba(69,174,238,0.08); border: 1px solid rgba(69,174,238,0.2);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ai-banner-icon svg { width: 18px; height: 18px; color: #45aeee; }
+  .ai-banner-text { flex: 1; }
+  .ai-banner-text p { font-size: 13px; color: #888888; line-height: 1.4; }
+  .btn-ai-open {
+    padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    border: 1px solid rgba(69,174,238,0.35); background: rgba(69,174,238,0.06);
+    color: #45aeee; cursor: pointer; display: inline-flex; align-items: center;
+    gap: 5px; flex-shrink: 0; white-space: nowrap;
+  }
+  .btn-ai-open:hover { background: rgba(69,174,238,0.12); border-color: #45aeee; }
+  .btn-ai-open svg { width: 14px; height: 14px; }
 </style>
 </head>
 <body>
@@ -121,7 +144,22 @@
     <div class="form-scroll">
       <div class="form-inner">
         <h2 style="font-size:24px;font-weight:700;color:#161616;margin-bottom:4px">Create Weekly Plan</h2>
-        <p style="color:#888888;margin-bottom:28px">Set up your task templates and start a new week.</p>
+        <p style="color:#888888;margin-bottom:20px">Set up your task templates and start a new week.</p>
+
+        <!-- AI Assistant Banner -->
+        <div class="ai-banner">
+          <div class="ai-banner-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="ai-banner-text">
+            <p>Need help planning? Let AI suggest task templates based on your goals and history.</p>
+          </div>
+          <button class="btn-ai-open">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Open AI Assistant
+          </button>
+        </div>
+
         <div class="form-group">
           <label class="form-label">Description (optional)</label>
           <input class="form-input" placeholder="e.g. Focus on interview prep this week" />

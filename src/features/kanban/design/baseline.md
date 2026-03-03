@@ -20,12 +20,15 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 
 10. **Ad-hoc tasks** — One-off tasks (e.g. file tax report, get sinus CT) not tied to templates. Never expire, exist independently of plans. Can be added to the board from the kanban page or carried over from previous plans.
 
-11. **LLM assisted plan creation** — Utilizing LLM to help generate proper weekly plan by analyzing historical data and prompted user input, 
-
 ### Planned: V2
 
 1. Support evidence flow, when user move a task to completed, submit evidence.
 2. Add AI generated tasks instance flow, LLM should be able to generate tasks based on past works + task template informatiosn to generate task instances, need to record the quality of task it generated.
+3. **LLM assisted plan creation (V1 — static wizard)** — AI generates a draft plan via structured JSON output. User sees read-only template cards and either approves the whole batch or rejects with text feedback for re-generation. No per-card editing. Uses `Chat.metadata` as working clipboard for the latest draft. Server action (no streaming). Post-approval creates new TaskTemplates and calls existing `createPlanAction`.
+4. Per-card select/unselect to keep/remove individual draft templates during AI plan creation.
+5. Inline editing of points, type, frequency on draft template cards.
+6. Ad-hoc task carryover in AI plan creation flow.
+7. LLM-suggested plan mode (NORMAL/EXTREME).
 
 ### Planned: Future
 
@@ -38,6 +41,8 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 - Biweekly and custom period types
 - Priorities page — Full-page Eisenhower priority matrix (Board/Priorities tab switcher) for organizing personal one-off tasks by urgency/importance. Tasks can be promoted to the board via "Track this week". Renames "Ad-hoc" to "Todo" badge, backlog drawer renamed to "Queued" — see `mockup/future-work/mockup-priorities-v2.html`
 - Template categories — Add optional `category` field to TaskTemplate for grouping templates in the plan form. Collapsible groups + search for scalability. Mockups in `design/mockup/future-work/`.
+- AI-assisted plan editing — Use a new Chat linked to the same plan to suggest modifications via LLM. Separate from creation flow.
+- Per-task completion rate stats for richer AI welcome messages.
 
 ## Entities
 
@@ -48,8 +53,8 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
   - Daily task: has `forDate`, generated each day by daily sync
   - Weekly task: has `periodKey`, generated once at plan creation
   - Ad hoc task: can be generated anytime as needed, does not expire with time, does not associate with any task template, optional for associated with a plan
-- **Chat** — A group of messages related to a plan to record converation between user and LLM for AI assisted plan creation and future task instance creation flow.
-- **Message** — A single message represent an input from either the LLM or the User. Message from LLM will contain both plan text for response and structured JSON output for rendering UI wizard.
+- **Chat** — A conversation session between the user and LLM for AI-assisted plan creation (and future edit). Each chat belongs to one plan. A plan can have multiple chats over its lifecycle. `Chat.metadata` stores context (last plan stats at creation) and the latest draft plan (overwritten on each iteration).
+- **Message** — A single message from either the LLM or the user. Each message has a `type` field: `TEXT` for plain text (welcome messages, user input) or `DRAFT_PLAN` for structured draft responses (content is JSON with `{ message, draftTemplates, followUp }`). Latest draft also mirrored in `Chat.metadata.draftTemplates` for LLM context and approval.
 
 ## Schema
 
@@ -59,7 +64,6 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 model Plan {
   id           String         @id @default(uuid())
   userId       String
-  chatId			 String?         
   periodType   PeriodType
   periodKey    String         // ISO week key, e.g. "2026-W06"
   description  String?
@@ -68,8 +72,8 @@ model Plan {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   mode         PlanMode     @default(NORMAL)
-  
-  chat     		 Chat?        @relation(fields: [chatId], references: [id])
+
+  chats        Chat[]
 }
 
 enum PeriodType {
@@ -90,7 +94,7 @@ enum PlanStatus {
 // Constraints:
 // - userId references User (not implemented yet)
 // - At most one ACTIVE or PENDING_UPDATE plan per user
-// One Plan can only associated with one chat
+// One Plan can have multiple chats (creation, future edits)
 ```
 
 ### TaskTemplate
@@ -177,39 +181,84 @@ enum TaskStatus {
 
 ### Chat
 
-Reuse schema from chatbot
+Reuse schema from chatbot, extended with `planId` for kanban integration.
 
 ```
 model Chat {
   id        String    @id @default(uuid()) @db.Uuid
   userId    String?   @map("user_id") @db.Uuid
+  planId    String?   @map("plan_id") @db.Uuid
   title     String?
-  metadata  Json?     // Carry structured JSON data for UI wizard rendering
+  metadata  Json?     // Stores lastPlanStats (at creation) and draftTemplates (latest draft)
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
   messages  Message[]
+  plan      Plan?     @relation(fields: [planId], references: [id])
 
   @@map("chats")
 }
 ```
 
+metadata shape for kanban AI chat:
+```json
+{
+  "lastPlanStats": { "completionRate": 0.85, "totalPoints": 47, ... },
+  "draftTemplates": [
+    {
+      "templateId": "uuid" | null,
+      "title": "string",
+      "description": "string",
+      "type": "DAILY" | "WEEKLY",
+      "frequency": 1,
+      "points": 3
+    }
+  ]
+}
+```
+
 ### Message
 
-Reuse schema from chatbot
+Reuse schema from chatbot, extended with `type` for structured message rendering.
 
 ```
 model Message {
-  id        BigInt      @id @default(autoincrement())
-  chatId    String      @map("chat_id") @db.Uuid
+  id        BigInt        @id @default(autoincrement())
+  chatId    String        @map("chat_id") @db.Uuid
   role      MessageRole
+  type      MessageType   @default(TEXT)
   content   String
-  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz
-  chat      Chat        @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  chat      Chat          @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
   @@index([chatId, createdAt], name: "idx_messages_chat_id_created_at")
   @@map("messages")
 }
+
+enum MessageType {
+  TEXT          // Plain text (welcome messages, user input)
+  DRAFT_PLAN   // Structured draft: content is JSON { message, draftTemplates, followUp }
+}
 ```
+
+When `type = DRAFT_PLAN`, content shape:
+```json
+{
+  "message": "Here's a structured plan...",
+  "draftTemplates": [
+    {
+      "templateId": "uuid" | null,
+      "title": "string",
+      "description": "string",
+      "type": "DAILY" | "WEEKLY",
+      "frequency": 1,
+      "points": 3
+    }
+  ],
+  "followUp": "Want me to adjust?"
+}
+```
+
+UI rendering: the latest `DRAFT_PLAN` message renders expanded with template cards. All prior `DRAFT_PLAN` messages render collapsed with an expand toggle.
 
 ## Architecture Decision
 

@@ -212,49 +212,83 @@
 
 ### AI Assisted Plan Creation Flow
 
-**Trigger:** user click the AI assistant button inside create plan page.
+**Trigger:** User clicks the AI assistant button inside create plan page.
 
 **Steps:**
 
-1. At the beginning, present the user a helpful message and prompted user to input their requirements.
+1. **Open AI panel → create Chat**
+   - Create a new Chat record linked to the target plan (planId on Chat). If no plan exists yet (new user), planId is null until plan creation.
+   - Fetch simple aggregate stats from the `PENDING_UPDATE` plan (if exists): overall completion rate, total points, plan mode.
+   - Fetch all non-archived task templates for the user.
+   - Persist stats snapshot in `Chat.metadata.lastPlanStats`.
 
-   1. Helpful message for new user: show them how to use the kanban planner
-   2. Helpful message for existing user: call `getStatsFromLastPlan`to show user metrics from their `pending_update` plan
+2. **Generate welcome message** (`getWelcomeMessageAction`)
+   - New user (no PENDING_UPDATE plan): LLM generates a brief welcome explaining how the planner works and prompting the user to describe their goals.
+   - Returning user: LLM generates a friendly summary of last week's performance from stats, then asks about goals for the coming week.
+   - Inject stats + existing templates into the system prompt as context (no tool calling).
+   - Persist as the first assistant Message. No streaming — regular request/response.
+   - **Suggestion chips:** Displayed below the welcome message as quick-start prompts. These are **static hardcoded templates**, not LLM-generated, to avoid extra latency and ensure instant rendering.
+     - New user set: `["I'm preparing for tech interviews", "Help me build a fitness routine", "I want to learn a new skill"]`
+     - Returning user set: `["Keep the same plan", "Adjust difficulty", "Try something new"]`
+     - Swap set based on whether a `PENDING_UPDATE` plan exists.
+     - Clicking a chip populates the input field and submits as a user message (step 3).
+     - Future: contextual chips derived from stats (e.g., "Focus on low-completion tasks").
 
-2. User inputs their requirements about the new plan.
+3. **User inputs requirements**
+   - User describes their goals in natural language.
+   - Persist as a user Message.
 
-3. LLM generate draft plan based on metrics from `pending_update` plan and user inputs. LLM should return a structured JSON output like below. So UI can render the draft plan.
+4. **Generate draft plan** (`generateDraftPlanAction`)
+   - Call LLM with structured output (`response_format: json_schema`). System prompt includes: stats from `Chat.metadata.lastPlanStats`, existing task templates, and the last rejected draft from `Chat.metadata.draftTemplates` (if any).
+   - LLM returns structured JSON:
 
-   ```
+   ```json
    {
-   	"message": string // Summary of the draft plan
-   	"draftTemplates": {
-   		templateId: string | null // Link to the existing template
-   		description?: string // Description of the newly created template
-   		title?: string // Title of the newly created template
-   		frequency: number
-   		ponits: number
-   		type: 'DAILY' | 'WEEKLY'
-   	}[]
+     "message": "Here's a structured plan for your FAANG prep...",
+     "draftTemplates": [
+       {
+         "templateId": "uuid-or-null",
+         "title": "Solve 3 LeetCode problems",
+         "description": "Focus on medium-level DP, graph, and sliding window problems.",
+         "type": "DAILY",
+         "frequency": 1,
+         "points": 3
+       }
+     ],
+     "followUp": "That's 5 templates totaling ~16 points/day. Want me to adjust?"
    }
    ```
 
-4. Waiting for user feedback, redo step 3 if user is unsatisified with the draft plan.
+   - Persist full structured JSON as assistant Message content with `type = DRAFT_PLAN`.
+   - Overwrite `Chat.metadata.draftTemplates` with the new draft (working clipboard for LLM context + approval).
+   - No streaming — show loading state, render full response at once.
+   - UI renders the latest `DRAFT_PLAN` message expanded: plain text → read-only template cards → follow-up text. Prior `DRAFT_PLAN` messages render collapsed with expand toggle.
 
-5. User approves the draft plan.
+5. **Iterate or approve**
+   - **Reject:** User provides text feedback → persist as user Message → redo step 4. The LLM sees the last rejected draft from `Chat.metadata` + full message history.
+   - **Approve:** User clicks "Approve" → proceed to step 6.
+   - V1: static wizard only. User cannot select/unselect or edit individual cards.
 
-6. Create necessary task templates from the draft plan.
+6. **Post-approval: create plan**
+   - Read `Chat.metadata.draftTemplates`.
+   - For each entry where `templateId` is null: call `createTaskTemplateAction` to create a new TaskTemplate, get back real templateId.
+   - Map all entries to `{ templateId, type, frequency }[]`.
+   - Call existing `createPlanAction` with the resolved templates array.
+   - Update `Chat.planId` to the newly created plan (if it was null).
 
-7. Create new plan.
+**Error handling:** If the LLM returns an error or unusable output, show an error message in the chat bubble. No retry logic for V1.
 
-### LLM Configs
+#### LLM Configuration
 
-#### Tools
+##### Prompt Strategy
 
-* getStatsFromLastPlan - metrics from `pending_update`plan, like task completion rate. Question: do we actually need LLM to call this function or we can get this data and pass to LLM as part of the prompt?
-* getTaskTemplats - retrive all existing task templates so LLM can decide which to reuse.
+All data is fetched server-side and injected into the LLM system prompt as context. No tool calling.
+
+- **Stats from last plan:** Simple aggregates (completion rate, total points) fetched via DAL, stored in `Chat.metadata.lastPlanStats`.
+- **Existing task templates:** All non-archived templates for the user, so LLM can reuse existing ones (returning `templateId`) or suggest new ones (`templateId: null`).
+- **Last rejected draft:** `Chat.metadata.draftTemplates` included as "your previous proposal" context for revision accuracy.
 
 #### LLM Calls
 
-* getSummaryOrUserInstructions: get summary from last plan or user instructions for how to use the tool for new users. Question: do we actually need LLM or just static function can do that?
-* getDraftPlans: generate draft plan based on user input data, historical data, and existing templates. This will be called multiple times.
+- `getWelcomeMessageAction`: Generates the first assistant message. Input: stats + templates. Output: plain text welcome message.
+- `generateDraftPlanAction`: Generates a draft plan. Input: user message + stats + templates + last draft. Output: structured JSON (`message`, `draftTemplates`, `followUp`). Called multiple times during iteration.

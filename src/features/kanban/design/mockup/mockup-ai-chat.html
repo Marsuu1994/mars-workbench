@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kanban — AI Plan Assistant Chat Modal</title>
+<link rel="stylesheet" href="./styles.css" />
+<style>
+  /* ── Modal overlay & container ── */
+  .modal-bg {
+    position: relative; min-height: 780px;
+    background: #e8e8e8; display: flex; align-items: center; justify-content: center;
+  }
+  .modal-bg::before {
+    content: ''; position: absolute; inset: 0;
+    background: rgba(0,0,0,0.25); backdrop-filter: blur(6px);
+  }
+  .ai-modal {
+    position: relative; z-index: 10;
+    width: 640px; max-height: 80vh; height: 700px;
+    background: #ffffff; border: 1px solid #dedede; border-radius: 16px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.15);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  /* ── Modal header ── */
+  .ai-modal-header {
+    padding: 16px 20px; border-bottom: 1px solid #dedede;
+    display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+  }
+  .ai-modal-header-left { display: flex; align-items: center; gap: 10px; }
+  .ai-modal-header-icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: rgba(69,174,238,0.08); border: 1px solid rgba(69,174,238,0.2);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ai-modal-header-icon svg { width: 14px; height: 14px; color: #45aeee; }
+  .ai-modal-title { font-size: 16px; font-weight: 600; color: #161616; }
+  .ai-beta-badge {
+    font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 999px;
+    background: rgba(69,174,238,0.1); color: #45aeee; text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .ai-modal-close {
+    width: 28px; height: 28px; border-radius: 6px; border: none;
+    background: transparent; color: #888888; font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ai-modal-close:hover { background: #f5f5f5; color: #161616; }
+
+  /* ── Chat area ── */
+  .ai-chat-body { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* ── Messages ── */
+  .msg { display: flex; gap: 10px; align-items: flex-start; }
+  .msg.from-user { flex-direction: row-reverse; }
+  .msg-avatar {
+    width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600;
+  }
+  .msg-avatar.bot { background: rgba(69,174,238,0.1); color: #45aeee; }
+  .msg-avatar.bot svg { width: 14px; height: 14px; }
+  .msg-avatar.user { background: rgba(69,174,238,0.08); color: #45aeee; }
+  .msg-bubble {
+    max-width: 85%; padding: 12px 16px; border-radius: 12px;
+    font-size: 13px; line-height: 1.55; color: #161616;
+  }
+  .msg.from-ai .msg-bubble { background: #f5f5f5; border: 1px solid #dedede; border-top-left-radius: 4px; }
+  .msg.from-user .msg-bubble { background: rgba(69,174,238,0.08); border: 1px solid rgba(69,174,238,0.15); border-top-right-radius: 4px; }
+
+  /* ── Suggestion chips ── */
+  .suggestion-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .suggestion-chip {
+    padding: 6px 12px; font-size: 12px; font-weight: 500;
+    border-radius: 999px; border: 1px solid #dedede; background: #ffffff;
+    color: #888888; cursor: pointer;
+  }
+  .suggestion-chip:hover { border-color: #45aeee; color: #45aeee; background: rgba(69,174,238,0.04); }
+
+  /* ── Input area ── */
+  .ai-input-area { padding: 14px 20px; border-top: 1px solid #dedede; flex-shrink: 0; }
+  .ai-input-row { display: flex; gap: 8px; align-items: flex-end; }
+  .ai-input-row textarea {
+    flex: 1; padding: 10px 14px; border: 1px solid #dedede; border-radius: 10px;
+    background: #f5f5f5; color: #161616; font-size: 13px; font-family: inherit;
+    resize: none; outline: none; line-height: 1.4;
+  }
+  .ai-input-row textarea:focus { border-color: #45aeee; background: #ffffff; }
+  .ai-send-btn {
+    width: 36px; height: 36px; border-radius: 8px; border: none; flex-shrink: 0;
+    background: linear-gradient(135deg, #45aeee, #6bc4f5); color: #ffffff;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .ai-send-btn svg { width: 16px; height: 16px; }
+  .ai-input-note { font-size: 11px; color: #bbbbbb; margin-top: 6px; }
+
+  /* ── Draft template cards (inside bubble) ── */
+  .draft-cards { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .draft-card {
+    background: #ffffff; border: 1px solid #dedede; border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .draft-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .draft-card-title { font-size: 13px; font-weight: 600; color: #161616; }
+  .draft-card-meta { display: flex; align-items: center; gap: 6px; }
+  .draft-card-desc { font-size: 12px; color: #888888; line-height: 1.4; }
+  .draft-card-points {
+    font-size: 11px; font-weight: 700; color: #ee8134;
+    display: flex; align-items: center; gap: 2px;
+  }
+  .draft-card-points svg { width: 11px; height: 11px; }
+  .msg-followup { font-size: 12px; color: #888888; margin-top: 12px; }
+
+  /* ── Draft action buttons (below bubble) ── */
+  .draft-actions {
+    display: flex; gap: 8px; margin-top: 8px; margin-left: 38px;
+  }
+  .draft-actions .btn { padding: 6px 14px; font-size: 12px; }
+  .draft-actions .btn svg { width: 13px; height: 13px; }
+
+  /* ── Collapsed draft row ── */
+  .collapsed-draft {
+    display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+    background: #f5f5f5; border: 1px solid #dedede; border-radius: 8px;
+    opacity: 0.6; cursor: pointer; font-size: 12px; color: #888888;
+  }
+  .collapsed-draft:hover { opacity: 0.8; }
+  .collapsed-draft svg { width: 14px; height: 14px; flex-shrink: 0; color: #bbbbbb; }
+  .collapsed-draft-text { flex: 1; }
+
+  /* ── Approved draft highlight ── */
+  .draft-approved .msg-bubble { border-color: rgba(34,170,102,0.35); background: rgba(34,170,102,0.04); }
+  .approved-label {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 600; color: #22aa66; margin-bottom: 8px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .approved-label svg { width: 12px; height: 12px; }
+
+  /* ── Action bar ── */
+  .ai-action-bar {
+    padding: 14px 20px; border-top: 1px solid #dedede; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    background: #fafafa;
+  }
+  .ai-action-summary { font-size: 13px; color: #888888; }
+  .ai-action-summary span { color: #45aeee; font-weight: 600; }
+  .ai-action-buttons { display: flex; gap: 8px; }
+
+  /* ── Loading state ── */
+  .loading-bubble {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: #888888;
+  }
+  .loading-dots { display: flex; gap: 4px; align-items: center; }
+  .loading-dots span {
+    width: 6px; height: 6px; border-radius: 50%; background: #bbbbbb;
+    animation: dot-pulse 1.4s ease-in-out infinite;
+  }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dot-pulse {
+    0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1); }
+  }
+  .loading-label { font-size: 12px; color: #bbbbbb; }
+  .ai-input-area.disabled { opacity: 0.4; pointer-events: none; }
+
+  /* Compact screen label */
+  .screen-section { padding: 24px; }
+  .screen-section-label {
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+    color: #888888; margin-bottom: 16px; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="screen-nav">
+  <button class="screen-btn active" onclick="show('s1')">Welcome (New)</button>
+  <button class="screen-btn" onclick="show('s2')">Welcome (Returning)</button>
+  <button class="screen-btn" onclick="show('s3')">Generating</button>
+  <button class="screen-btn" onclick="show('s4')">Draft Generated</button>
+  <button class="screen-btn" onclick="show('s5')">Rejected + Revised</button>
+  <button class="screen-btn" onclick="show('s6')">Approved</button>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 1 — Welcome (New User)
+     ═══════════════════════════════════════════════════════ -->
+<div id="screen-s1" class="screen-section">
+  <div class="screen-section-label">Screen 1 / Welcome — New User</div>
+  <div class="modal-bg">
+    <div class="ai-modal" style="height:520px">
+      <div class="ai-modal-header">
+        <div class="ai-modal-header-left">
+          <div class="ai-modal-header-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <span class="ai-modal-title">AI Plan Assistant</span>
+          <span class="ai-beta-badge">Beta</span>
+        </div>
+        <button class="ai-modal-close">&times;</button>
+      </div>
+
+      <div class="ai-chat-body">
+        <div class="msg from-ai">
+          <div class="msg-avatar bot">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="msg-bubble">
+            <div>Tell me about your goals and I'll help you create a weekly plan. I can suggest task templates with the right type, frequency, and points.</div>
+            <div class="suggestion-chips">
+              <button class="suggestion-chip">"I'm preparing for tech interviews"</button>
+              <button class="suggestion-chip">"Help me build a fitness routine"</button>
+              <button class="suggestion-chip">"I want to learn a new skill"</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ai-input-area">
+        <div class="ai-input-row">
+          <textarea placeholder="Describe your goals or what you want to work on..." rows="1"></textarea>
+          <button class="ai-send-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+        <div class="ai-input-note">AI suggestions can be edited before creating your plan</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 2 — Welcome (Returning User)
+     ═══════════════════════════════════════════════════════ -->
+<div id="screen-s2" class="screen-section" style="display:none">
+  <div class="screen-section-label">Screen 2 / Welcome — Returning User</div>
+  <div class="modal-bg">
+    <div class="ai-modal" style="height:520px">
+      <div class="ai-modal-header">
+        <div class="ai-modal-header-left">
+          <div class="ai-modal-header-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <span class="ai-modal-title">AI Plan Assistant</span>
+          <span class="ai-beta-badge">Beta</span>
+        </div>
+        <button class="ai-modal-close">&times;</button>
+      </div>
+
+      <div class="ai-chat-body">
+        <div class="msg from-ai">
+          <div class="msg-avatar bot">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="msg-bubble">
+            <div>Great work last week! You completed 12 of 16 tasks (75%) and earned 47 points. Your daily habits had a 90% completion rate. What would you like to focus on this week?</div>
+            <div class="suggestion-chips">
+              <button class="suggestion-chip">"Keep the same plan"</button>
+              <button class="suggestion-chip">"Adjust difficulty"</button>
+              <button class="suggestion-chip">"Try something new"</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ai-input-area">
+        <div class="ai-input-row">
+          <textarea placeholder="Tell me what you'd like to focus on this week..." rows="1"></textarea>
+          <button class="ai-send-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+        <div class="ai-input-note">AI suggestions can be edited before creating your plan</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 3 — Generating (Loading State)
+     ═══════════════════════════════════════════════════════ -->
+<div id="screen-s3" class="screen-section" style="display:none">
+  <div class="screen-section-label">Screen 3 / Generating — Loading State</div>
+  <div class="modal-bg">
+    <div class="ai-modal" style="height:520px">
+      <div class="ai-modal-header">
+        <div class="ai-modal-header-left">
+          <div class="ai-modal-header-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <span class="ai-modal-title">AI Plan Assistant</span>
+        </div>
+        <button class="ai-modal-close">&times;</button>
+      </div>
+
+      <div class="ai-chat-body">
+        <!-- Condensed welcome -->
+        <div class="msg from-ai">
+          <div class="msg-avatar bot">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="msg-bubble">Tell me about your goals and I'll help you create a weekly plan.</div>
+        </div>
+
+        <!-- User message -->
+        <div class="msg from-user">
+          <div class="msg-avatar user">U</div>
+          <div class="msg-bubble">I'm preparing for FAANG interviews. I need to grind LeetCode, study system design, and practice behavioral questions. I also want to stay fit and keep reading technical books.</div>
+        </div>
+
+        <!-- Loading indicator -->
+        <div class="msg from-ai">
+          <div class="msg-avatar bot">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="msg-bubble">
+            <div class="loading-bubble">
+              <div class="loading-dots">
+                <span></span><span></span><span></span>
+              </div>
+              <span class="loading-label">Generating your plan...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ai-input-area disabled">
+        <div class="ai-input-row">
+          <textarea placeholder="Waiting for AI response..." rows="1" disabled></textarea>
+          <button class="ai-send-btn" disabled style="opacity:0.4;cursor:default">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 4 — Draft Plan Generated
+     ═══════════════════════════════════════════════════════ -->
+<div id="screen-s4" class="screen-section" style="display:none">
+  <div class="screen-section-label">Screen 4 / Draft Plan Generated</div>
+  <div class="modal-bg">
+    <div class="ai-modal">
+      <div class="ai-modal-header">
+        <div class="ai-modal-header-left">
+          <div class="ai-modal-header-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <span class="ai-modal-title">AI Plan Assistant</span>
+        </div>
+        <button class="ai-modal-close">&times;</button>
+      </div>
+
+      <div class="ai-chat-body">
+        <!-- Condensed welcome -->
+        <div class="msg from-ai">
+          <div class="msg-avatar bot">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="msg-bubble">Tell me about your goals and I'll help you create a weekly plan.</div>
+        </div>
+
+        <!-- User message -->
+        <div class="msg from-user">
+          <div class="msg-avatar user">U</div>
+          <div class="msg-bubble">I'm preparing for FAANG interviews. I need to grind LeetCode, study system design, and practice behavioral questions. I also want to stay fit and keep reading technical books.</div>
+        </div>
+
+        <!-- AI draft response -->
+        <div class="msg from-ai">
+          <div class="msg-avatar bot">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="msg-bubble">
+            <div>Here's a structured plan for your FAANG prep:</div>
+
+            <div class="draft-cards">
+              <div class="draft-card">
+                <div class="draft-card-header">
+                  <span class="draft-card-title">Solve 3 LeetCode problems</span>
+                  <div class="draft-card-meta">
+                    <span class="task-badge badge-daily">Daily</span>
+                    <span class="draft-card-points"><svg viewBox="0 0 24 24" fill="#ee8134"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg> 3</span>
+                  </div>
+                </div>
+                <div class="draft-card-desc">Focus on medium-level DP, graph, and sliding window problems. 25 min per problem max.</div>
+              </div>
+
+              <div class="draft-card">
+                <div class="draft-card-header">
+                  <span class="draft-card-title">Study system design chapter</span>
+                  <div class="draft-card-meta">
+                    <span class="task-badge badge-weekly">Weekly</span>
+                    <span class="draft-card-points"><svg viewBox="0 0 24 24" fill="#ee8134"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg> 5</span>
+                  </div>
+                </div>
+                <div class="draft-card-desc">Work through DDIA or System Design Interview book. One chapter per week with notes.</div>
+              </div>
+
+              <div class="draft-card">
+                <div class="draft-card-header">
+                  <span class="draft-card-title">Mock behavioral interview</span>
+                  <div class="draft-card-meta">
+                    <span class="task-badge badge-weekly">Weekly</span>
+                    <span class="draft-card-points"><svg viewBox="0 0 24 24" fill="#ee8134"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg> 4</span>
+                  </div>
+                </div>
+                <div class="draft-card-desc">Practice STAR format answers. Record yourself and review for filler words and clarity.</div>
+              </div>
+
+              <div class="draft-card">
+                <div class="draft-card-header">
+                  <span class="draft-card-title">Gym workout (PPL rotation)</span>
+                  <div class="draft-card-meta">
+                    <span class="task-badge badge-daily">Daily</span>
+                    <span class="draft-card-points"><svg viewBox="0 0 24 24" fill="#ee8134"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg> 2</span>
+                  </div>
+                </div>
+                <div class="draft-card-desc">Push/Pull/Legs split. Track progressive overload on compound movements.</div>
+              </div>
+
+              <div class="draft-card">
+                <div class="draft-card-header">
+                  <span class="draft-card-title">Read 30 pages of tech book</span>
+                  <div class="draft-card-meta">
+                    <span class="task-badge badge-daily">Daily</span>
+                    <span class="draft-card-points"><svg viewBox="0 0 24 24" fill="#ee8134"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg> 2</span>
+                  </div>
+                </div>
+                <div class="draft-card-desc">Consistent daily reading builds deep knowledge over time.</div>
+              </div>
+            </div>
+
+            <div class="msg-followup">That's 5 templates totaling ~25 points/day. Want me to adjust difficulty, add more categories, or tweak any of these?</div>
+          </div>
+        </div>
+
+        <!-- Approve / Reject buttons below the draft -->
+        <div class="draft-actions">
+          <button class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7" stroke-linecap="round"/></svg>
+            Approve Plan
+          </button>
+        </div>
+      </div>
+
+      <div class="ai-input-area">
+        <div class="ai-input-row">
+          <textarea placeholder="Or give specific feedback to refine the plan..." rows="1"></textarea>
+          <button class="ai-send-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 5 — Rejected + Revised Draft
+     ═══════════════════════════════════════════════════════ -->
+<div id="screen-s5" class="screen-section" style="display:none">
+  <div class="screen-section-label">Screen 5 / Rejected + Revised Draft</div>
+  <div class="modal-bg">
+    <div class="ai-modal">
+      <div class="ai-modal-header">
+        <div class="ai-modal-header-left">
+          <div class="ai-modal-header-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <span class="ai-modal-title">AI Plan Assistant</span>
+        </div>
+        <button class="ai-modal-close">&times;</button>
+      </div>
+
+      <div class="ai-chat-body">
+        <!-- Condensed welcome -->
+        <div class="msg from-ai">
+          <div class="msg-avatar bot">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="msg-bubble">Tell me about your goals and I'll help you create a weekly plan.</div>
+        </div>
+
+        <!-- User first message -->
+        <div class="msg from-user">
+          <div class="msg-avatar user">U</div>
+          <div class="msg-bubble">I'm preparing for FAANG interviews. I need to grind LeetCode, study system design, and practice behavioral questions. I also want to stay fit and keep reading technical books.</div>
+        </div>
+
+        <!-- Collapsed previous draft -->
+        <div class="collapsed-draft">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="collapsed-draft-text">Previous draft (5 templates)</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+
+        <!-- User feedback -->
+        <div class="msg from-user">
+          <div class="msg-avatar user">U</div>
+          <div class="msg-bubble">Too many daily tasks. Drop the gym and make system design a weekly deep-dive with 2 sessions instead.</div>
+        </div>
+
+        <!-- Revised AI draft -->
+        <div class="msg from-ai">
+          <div class="msg-avatar bot">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="msg-bubble">
+            <div>Got it! I've removed the gym template and adjusted system design to weekly. Here's the revised plan:</div>
+
+            <div class="draft-cards">
+              <div class="draft-card">
+                <div class="draft-card-header">
+                  <span class="draft-card-title">Solve 3 LeetCode problems</span>
+                  <div class="draft-card-meta">
+                    <span class="task-badge badge-daily">Daily</span>
+                    <span class="draft-card-points"><svg viewBox="0 0 24 24" fill="#ee8134"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg> 3</span>
+                  </div>
+                </div>
+                <div class="draft-card-desc">Focus on medium-level DP, graph, and sliding window problems.</div>
+              </div>
+
+              <div class="draft-card">
+                <div class="draft-card-header">
+                  <span class="draft-card-title">System design deep-dive</span>
+                  <div class="draft-card-meta">
+                    <span class="task-badge badge-weekly">Weekly &times;2</span>
+                    <span class="draft-card-points"><svg viewBox="0 0 24 24" fill="#ee8134"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg> 5</span>
+                  </div>
+                </div>
+                <div class="draft-card-desc">Design a full system end-to-end. Practice whiteboarding and trade-off discussions.</div>
+              </div>
+
+              <div class="draft-card">
+                <div class="draft-card-header">
+                  <span class="draft-card-title">Mock behavioral interview</span>
+                  <div class="draft-card-meta">
+                    <span class="task-badge badge-weekly">Weekly</span>
+                    <span class="draft-card-points"><svg viewBox="0 0 24 24" fill="#ee8134"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg> 4</span>
+                  </div>
+                </div>
+                <div class="draft-card-desc">Practice STAR format answers. Record and review for clarity.</div>
+              </div>
+
+              <div class="draft-card">
+                <div class="draft-card-header">
+                  <span class="draft-card-title">Read 30 pages of tech book</span>
+                  <div class="draft-card-meta">
+                    <span class="task-badge badge-daily">Daily</span>
+                    <span class="draft-card-points"><svg viewBox="0 0 24 24" fill="#ee8134"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg> 2</span>
+                  </div>
+                </div>
+                <div class="draft-card-desc">Consistent daily reading builds deep knowledge over time.</div>
+              </div>
+            </div>
+
+            <div class="msg-followup">Slimmed down to 4 templates. Daily load is now ~5 points. Does this look better, or want me to tweak further?</div>
+          </div>
+        </div>
+
+        <!-- Approve / Reject buttons below the revised draft -->
+        <div class="draft-actions">
+          <button class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7" stroke-linecap="round"/></svg>
+            Approve Plan
+          </button>
+        </div>
+      </div>
+
+      <div class="ai-input-area">
+        <div class="ai-input-row">
+          <textarea placeholder="Or give specific feedback to refine the plan..." rows="1"></textarea>
+          <button class="ai-send-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 6 — Approved (Final Action)
+     ═══════════════════════════════════════════════════════ -->
+<div id="screen-s6" class="screen-section" style="display:none">
+  <div class="screen-section-label">Screen 6 / Approved — Final Action</div>
+  <div class="modal-bg">
+    <div class="ai-modal">
+      <div class="ai-modal-header">
+        <div class="ai-modal-header-left">
+          <div class="ai-modal-header-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <span class="ai-modal-title">AI Plan Assistant</span>
+        </div>
+        <button class="ai-modal-close">&times;</button>
+      </div>
+
+      <div class="ai-chat-body">
+        <!-- Condensed welcome -->
+        <div class="msg from-ai">
+          <div class="msg-avatar bot">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="msg-bubble">Tell me about your goals and I'll help you create a weekly plan.</div>
+        </div>
+
+        <!-- User first message -->
+        <div class="msg from-user">
+          <div class="msg-avatar user">U</div>
+          <div class="msg-bubble">I'm preparing for FAANG interviews. I need to grind LeetCode, study system design, and practice behavioral questions.</div>
+        </div>
+
+        <!-- Collapsed previous draft -->
+        <div class="collapsed-draft">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="collapsed-draft-text">Previous draft (5 templates)</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+
+        <!-- User feedback -->
+        <div class="msg from-user">
+          <div class="msg-avatar user">U</div>
+          <div class="msg-bubble">Too many daily tasks. Drop the gym and make system design a weekly deep-dive with 2 sessions instead.</div>
+        </div>
+
+        <!-- Approved AI draft -->
+        <div class="msg from-ai draft-approved">
+          <div class="msg-avatar bot">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="msg-bubble">
+            <div class="approved-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Approved
+            </div>
+            <div>Here's the revised plan:</div>
+
+            <div class="draft-cards">
+              <div class="draft-card">
+                <div class="draft-card-header">
+                  <span class="draft-card-title">Solve 3 LeetCode problems</span>
+                  <div class="draft-card-meta">
+                    <span class="task-badge badge-daily">Daily</span>
+                    <span class="draft-card-points"><svg viewBox="0 0 24 24" fill="#ee8134"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg> 3</span>
+                  </div>
+                </div>
+                <div class="draft-card-desc">Focus on medium-level DP, graph, and sliding window problems.</div>
+              </div>
+
+              <div class="draft-card">
+                <div class="draft-card-header">
+                  <span class="draft-card-title">System design deep-dive</span>
+                  <div class="draft-card-meta">
+                    <span class="task-badge badge-weekly">Weekly &times;2</span>
+                    <span class="draft-card-points"><svg viewBox="0 0 24 24" fill="#ee8134"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg> 5</span>
+                  </div>
+                </div>
+                <div class="draft-card-desc">Design a full system end-to-end. Practice whiteboarding and trade-off discussions.</div>
+              </div>
+
+              <div class="draft-card">
+                <div class="draft-card-header">
+                  <span class="draft-card-title">Mock behavioral interview</span>
+                  <div class="draft-card-meta">
+                    <span class="task-badge badge-weekly">Weekly</span>
+                    <span class="draft-card-points"><svg viewBox="0 0 24 24" fill="#ee8134"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg> 4</span>
+                  </div>
+                </div>
+                <div class="draft-card-desc">Practice STAR format answers. Record and review for clarity.</div>
+              </div>
+
+              <div class="draft-card">
+                <div class="draft-card-header">
+                  <span class="draft-card-title">Read 30 pages of tech book</span>
+                  <div class="draft-card-meta">
+                    <span class="task-badge badge-daily">Daily</span>
+                    <span class="draft-card-points"><svg viewBox="0 0 24 24" fill="#ee8134"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg> 2</span>
+                  </div>
+                </div>
+                <div class="draft-card-desc">Consistent daily reading builds deep knowledge over time.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action bar -->
+      <div class="ai-action-bar">
+        <div class="ai-action-summary"><span>4</span> templates ready (<span>2</span> new, <span>2</span> existing)</div>
+        <div class="ai-action-buttons">
+          <button class="btn btn-primary" style="padding:8px 16px;font-size:13px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M5 13l4 4L19 7" stroke-linecap="round"/></svg>
+            Approve &amp; Create Plan
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+function show(name) {
+  document.querySelectorAll('.screen-section').forEach(el => el.style.display = 'none');
+  document.getElementById('screen-' + name).style.display = 'block';
+  document.querySelectorAll('.screen-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('onclick').includes("'" + name + "'"));
+  });
+}
+</script>
+</body>
+</html>

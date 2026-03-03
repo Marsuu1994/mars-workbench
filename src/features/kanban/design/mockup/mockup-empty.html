@@ -5,13 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Kanban — Empty State</title>
 <link rel="stylesheet" href="./styles.css" />
+<style>
+  .stats-row {
+    display: flex; gap: 24px; justify-content: center; margin-bottom: 8px;
+  }
+  .stat-chip {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  .stat-chip-value { font-size: 22px; font-weight: 700; color: #45aeee; }
+  .stat-chip-label { font-size: 12px; color: #888888; }
+</style>
 </head>
 <body>
-<div class="app">
+
+<div class="screen-nav">
+  <button class="screen-btn active" onclick="show('new')">New User</button>
+  <button class="screen-btn" onclick="show('returning')">Returning User</button>
+</div>
+
+<!-- ══ NEW USER ══ -->
+<div id="screen-new" class="app">
   <aside class="sidebar">
     <div class="sidebar-header">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/></svg>
-      <span style="font-weight:600;color:#e2e5ed">Mars Workbench</span>
+      <span style="font-weight:600;color:#161616">Mars Workbench</span>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-title">Features</div>
@@ -48,5 +65,73 @@
     </div>
   </div>
 </div>
+
+<!-- ══ RETURNING USER ══ -->
+<div id="screen-returning" class="app" style="display:none">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/></svg>
+      <span style="font-weight:600;color:#161616">Mars Workbench</span>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Features</div>
+      <div class="sidebar-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        AI Chat
+      </div>
+      <div class="sidebar-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Kanban Planner
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="header">
+      <div class="header-left">
+        <span class="header-title"><span>Kanban</span> Planner</span>
+      </div>
+    </div>
+    <div class="empty-state">
+      <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M12 8v4l3 3" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="12" cy="12" r="9"/>
+      </svg>
+      <div class="empty-title">Plan period ended</div>
+      <div class="empty-desc">Your weekly plan has wrapped up. Here's how you did:</div>
+
+      <div class="stats-row">
+        <div class="stat-chip">
+          <div class="stat-chip-value">75%</div>
+          <div class="stat-chip-label">Completed</div>
+        </div>
+        <div class="stat-chip">
+          <div class="stat-chip-value">12/16</div>
+          <div class="stat-chip-label">Tasks done</div>
+        </div>
+        <div class="stat-chip">
+          <div class="stat-chip-value" style="color:#ee8134">47</div>
+          <div class="stat-chip-label">Points earned</div>
+        </div>
+      </div>
+
+      <div class="empty-desc" style="margin-top:4px">Ready to start a new week?</div>
+      <button class="btn btn-primary" style="margin-top:8px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+        Create New Plan
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(name) {
+  document.querySelectorAll('.app').forEach(el => el.style.display = 'none');
+  document.getElementById('screen-' + name).style.display = 'flex';
+  document.querySelectorAll('.screen-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.toLowerCase().includes(name));
+  });
+}
+</script>
 </body>
 </html>

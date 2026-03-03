@@ -4,7 +4,9 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 
 ## Current State
 
-Backend complete (schema, DAL, services, server actions, board sync). Full board UI with drag-and-drop — `/kanban` displays a three-column kanban board (Todo, In Progress, Done) with task cards that can be dragged between columns. Moves use optimistic UI with server-side persistence and automatic rollback on failure. Task cards show title, description, unified type badge (`TaskTypeBadge` — supports DAILY, WEEKLY, and AD_HOC), and points with color-coded risk badges (⚠ at risk / ‼ urgent). Progress dashboard shows Today ring, stat metrics, and Week Progress Bar. End-of-period sync auto-expires undone tasks and transitions plans. Create/edit plan flows share a unified `PlanForm` with inline type/frequency config per template and a Plan Mode toggle (NORMAL = weekdays only, EXTREME = every day). AD_HOC tasks fully implemented end-to-end with plan linking. `ReviewChangesModal` shows added/removed/modified template diffs and mode changes. Architecture follows strict 3-layer pattern with `prisma.$transaction()` for all multi-step mutations.
+Backend complete (schema, DAL, services, server actions, board sync). Full board UI with drag-and-drop — `/kanban` displays a three-column kanban board (Todo, In Progress, Done) with task cards that can be dragged between columns. Moves use optimistic UI with server-side persistence and automatic rollback on failure. Task cards show title, description, unified type badge (`TaskTypeBadge` — supports DAILY, WEEKLY, and AD_HOC), and points with color-coded risk badges (⚠ at risk / ‼ urgent). Progress dashboard shows Today ring, stat metrics, and Week Progress Bar. Board metrics use a two-query strategy: `getBoardTasksByPlanId` for UI tasks + `getBoardMetricsByPlanId` (raw SQL aggregate with `FILTER` clauses) for pre-computed stats, fetched in parallel. End-of-period sync auto-expires undone tasks and transitions plans. Create/edit plan flows share a unified `PlanForm` with inline type/frequency config per template and a Plan Mode toggle (NORMAL = weekdays only, EXTREME = every day). AD_HOC tasks fully implemented end-to-end with plan linking. `ReviewChangesModal` shows added/removed/modified template diffs and mode changes. Architecture follows strict 3-layer pattern with `prisma.$transaction()` for all multi-step mutations.
+
+**AI Assisted Plan Creation**: Full design complete — flows, API actions, mockups. Chat-based wizard where AI generates draft task templates via structured JSON output (`response_format: json_schema`). Two server actions: `getWelcomeMessageAction` (plain text LLM welcome) and `generateDraftPlanAction` (structured draft with template cards). `Chat.metadata` serves as working clipboard for latest draft and stats snapshot. `MessageType` enum (`TEXT`, `DRAFT_PLAN`) distinguishes plain messages from structured drafts. Static suggestion chips for welcome screen. Post-approval reuses existing `createPlanAction`. Mockups: `mockup-empty.html` (new/returning user), `mockup-plan-form.html` (AI entry point), `mockup-ai-chat.html` (6-screen flow: welcome, generating, draft, revision, approval).
 
 **v2 UI Redesign**: Complete mockup-v2 design system under `design/mockup-v2/` with 11 flow mockups and shared `styles.css` — "Techno Mission Control" aesthetic featuring cyan primary, violet secondary, amber warning palette. Covers all existing flows (board with collapsed/expanded backlog drawer, empty state, plan form with category groups, task modal, review changes, Eisenhower priority matrix) plus new flows (AI generate task via chat, end-of-period mission debrief summary, vacation/break mode, dedicated template library page). Light and dark theme variants with side-by-side comparison mockup. Custom daisyUI themes (`mars-dark`, `mars-light`) defined in `globals.css` via `@plugin "daisyui/theme"` and applied app-wide (`mars-dark` as default).
 
@@ -26,6 +28,13 @@ Backend complete (schema, DAL, services, server actions, board sync). Full board
 - [ ] Implement light/dark theme toggle UI
 
 ## Update Log
+
+### 2026-03-03
+- Designed AI assisted plan creation flow end-to-end: updated `baseline.md` (Chat-Plan relationship, MessageType enum, Chat.metadata shape), `flows.md` (6-step AI wizard flow, LLM config, static suggestion chips), and `api.md` (getWelcomeMessageAction, generateDraftPlanAction, new DAL modules)
+- Created mockups: `mockup-empty.html` (new/returning user screens), `mockup-plan-form.html` (AI assistant entry point in create mode), `mockup-ai-chat.html` (6-screen AI chat modal — welcome, generating, draft, revision, approval)
+- Reorganized `api.md` by logical domain (Board, Plan Management, Task Templates, Tasks, AI Chat) and added `countIncompleteByTemplateAction`
+- Updated `fetchBoard` pseudocode to reflect Codex optimization: two parallel queries (`getBoardTasksByPlanId` + `getBoardMetricsByPlanId` raw SQL aggregate) replacing old single-query + in-memory filtering
+- Updated DAL function signatures in `api.md` to match actual implementation (naming, params, new helpers)
 
 ### 2026-02-28
 - Implemented Plan Mode (NORMAL / EXTREME): `PlanMode` enum added to Prisma schema with migration, `mode` field on Plan model defaults to NORMAL
@@ -152,6 +161,8 @@ Backend complete (schema, DAL, services, server actions, board sync). Full board
 - UI mockups created (board, empty state, create plan, create/edit template)
 
 ## Done
+- [x] AI assisted plan creation flow design — flows, API actions (getWelcomeMessageAction, generateDraftPlanAction), Chat/Message schema extensions, 3 mockup files (empty, plan form, AI chat modal)
+- [x] Reorganize api.md by logical domain and update fetchBoard pseudocode to match Codex DB-aggregate optimization
 - [x] Plan Mode toggle (NORMAL / EXTREME) — schema, services, board sync, plan form UI, review modal, mockups
 - [x] Ad-hoc task flow: plan form integration — ad-hoc task selection in create/edit plan, ReviewChangesModal ad-hoc sections
 - [x] Ad-hoc task initial status matches source column (Todo → TODO, In Progress → DOING)
