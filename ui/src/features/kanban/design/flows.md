@@ -207,3 +207,54 @@
 * DONE, EXPIRED tasks never trigger any risk indicator
 * Ad-hoc task risk is based on days since creation(`daysElapsedSinceCreation`), not plan period. 
 * Thresholds will be revisited once auto-clear logic is implemented (see Planned: Future).
+
+---
+
+### AI Assisted Plan Creation Flow
+
+**Trigger:** user click the AI assistant button inside create plan page.
+
+**Steps:**
+
+1. At the beginning, present the user a helpful message and prompted user to input their requirements.
+
+   1. Helpful message for new user: show them how to use the kanban planner
+   2. Helpful message for existing user: call `getStatsFromLastPlan`to show user metrics from their `pending_update` plan
+
+2. User inputs their requirements about the new plan.
+
+3. LLM generate draft plan based on metrics from `pending_update` plan and user inputs. LLM should return a structured JSON output like below. So UI can render the draft plan.
+
+   ```
+   {
+   	"message": string // Summary of the draft plan
+   	"draftTemplates": {
+   		templateId: string | null // Link to the existing template
+   		description?: string // Description of the newly created template
+   		title?: string // Title of the newly created template
+   		frequency: number
+   		ponits: number
+   		type: 'DAILY' | 'WEEKLY'
+   	}[]
+   }
+   ```
+
+4. Waiting for user feedback, redo step 3 if user is unsatisified with the draft plan.
+
+5. User approves the draft plan.
+
+6. Create necessary task templates from the draft plan.
+
+7. Create new plan.
+
+### LLM Configs
+
+#### Tools
+
+* getStatsFromLastPlan - metrics from `pending_update`plan, like task completion rate. Question: do we actually need LLM to call this function or we can get this data and pass to LLM as part of the prompt?
+* getTaskTemplats - retrive all existing task templates so LLM can decide which to reuse.
+
+#### LLM Calls
+
+* getSummaryOrUserInstructions: get summary from last plan or user instructions for how to use the tool for new users. Question: do we actually need LLM or just static function can do that?
+* getDraftPlans: generate draft plan based on user input data, historical data, and existing templates. This will be called multiple times.

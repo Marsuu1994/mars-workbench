@@ -20,6 +20,8 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 
 10. **Ad-hoc tasks** — One-off tasks (e.g. file tax report, get sinus CT) not tied to templates. Never expire, exist independently of plans. Can be added to the board from the kanban page or carried over from previous plans.
 
+11. **LLM assisted plan creation** — Utilizing LLM to help generate proper weekly plan by analyzing historical data and prompted user input, 
+
 ### Planned: V2
 
 1. Support evidence flow, when user move a task to completed, submit evidence.
@@ -46,6 +48,8 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
   - Daily task: has `forDate`, generated each day by daily sync
   - Weekly task: has `periodKey`, generated once at plan creation
   - Ad hoc task: can be generated anytime as needed, does not expire with time, does not associate with any task template, optional for associated with a plan
+- **Chat** — A group of messages related to a plan to record converation between user and LLM for AI assisted plan creation and future task instance creation flow.
+- **Message** — A single message represent an input from either the LLM or the User. Message from LLM will contain both plan text for response and structured JSON output for rendering UI wizard.
 
 ## Schema
 
@@ -55,6 +59,7 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 model Plan {
   id           String         @id @default(uuid())
   userId       String
+  chatId			 String?         
   periodType   PeriodType
   periodKey    String         // ISO week key, e.g. "2026-W06"
   description  String?
@@ -63,6 +68,8 @@ model Plan {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   mode         PlanMode     @default(NORMAL)
+  
+  chat     		 Chat?        @relation(fields: [chatId], references: [id])
 }
 
 enum PeriodType {
@@ -83,6 +90,7 @@ enum PlanStatus {
 // Constraints:
 // - userId references User (not implemented yet)
 // - At most one ACTIVE or PENDING_UPDATE plan per user
+// One Plan can only associated with one chat
 ```
 
 ### TaskTemplate
@@ -165,6 +173,42 @@ enum TaskStatus {
 // - AD_HOC tasks: templateId is null, planId is optional(NULL = unassigned, not on the board), forDate and periodKey are both null, instanceIndex = 1
 // - AD_HOC tasks do not expire
 // - Exactly one of forDate or periodKey must be set for DAILY and WEEKLY tasks
+```
+
+### Chat
+
+Reuse schema from chatbot
+
+```
+model Chat {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String?   @map("user_id") @db.Uuid
+  title     String?
+  metadata  Json?     // Carry structured JSON data for UI wizard rendering
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  messages  Message[]
+
+  @@map("chats")
+}
+```
+
+### Message
+
+Reuse schema from chatbot
+
+```
+model Message {
+  id        BigInt      @id @default(autoincrement())
+  chatId    String      @map("chat_id") @db.Uuid
+  role      MessageRole
+  content   String
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  chat      Chat        @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([chatId, createdAt], name: "idx_messages_chat_id_created_at")
+  @@map("messages")
+}
 ```
 
 ## Architecture Decision
