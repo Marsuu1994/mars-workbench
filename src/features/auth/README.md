@@ -4,14 +4,13 @@ Authentication layer for Mars Workbench. See [baseline.md](./design/baseline.md)
 
 ## Current State
 
-Auth infrastructure and login page implemented. Supabase Auth connected with Google OAuth flow — Supabase client utilities (browser, server, middleware), OAuth callback route handler (`/auth/callback`), and route protection proxy (`proxy.ts`) redirect unauthenticated users to the login page. Login page (`/auth/login`) renders a branded sign-in screen with Google OAuth button, theme-aware decorations for both dark and light modes, and fade-in animations.
+Auth infrastructure, login page, and app sidebar implemented. Supabase Auth connected with Google OAuth flow — Supabase client utilities (browser, server, middleware), OAuth callback route handler (`/auth/callback`), and route protection proxy (`proxy.ts`) redirect unauthenticated users to the login page. Login page (`/auth/login`) renders a branded sign-in screen with Google OAuth button, theme-aware decorations for both dark and light modes, and fade-in animations. Authenticated users visiting `/auth/login` are redirected to homepage. Collapsible app sidebar (`AppSidebar`) in the root layout provides navigation between features (Chat, Kanban) and sign-out. App deployed on Vercel.
 
 ## Backlog
 
 ### High Priority
-- [ ] If user is authenticated and visited /auth/login, they should be redirected to homepage
-- [ ] Sign-out button in app header
 - [ ] Add userId to existing features (kanban, chat)
+- [ ] Persist sidebar collapse state across page refreshes (localStorage with SSR hydration)
 
 ### Future
 - [ ] User profile/settings page
@@ -20,9 +19,14 @@ Auth infrastructure and login page implemented. Supabase Auth connected with Goo
 ## Update Log
 
 ### 2026-03-08
+- Implemented collapsible app sidebar with navigation (Chat, Kanban) and sign-out flow (mockup: `mockup/mockup-sidebar.html`)
+- Root layout fetches user via Supabase server client and renders sidebar + main content in flex layout
+- Sidebar features: collapse/expand with smooth transitions, logo hover interaction, opacity-based text fading, tooltips, cursor feedback
+- Redirect authenticated users away from `/auth/login` to homepage
+- Adjusted chat and kanban layouts for nesting (`h-screen` → `h-full`)
 - Implemented login page (`/auth/login`) with Google OAuth sign-in button
 - Added theme-aware decorative elements (grid, atmospheric gradients, button hover shadow) for dark/light modes
-- Login page layout with fade-in animations and branded design (gradient icon, "Mars" gradient text, tagline)
+- App deployed on Vercel
 
 ### 2026-03-06
 - Connected to Supabase database and migrated all data from local PostgreSQL
@@ -44,3 +48,6 @@ Auth infrastructure and login page implemented. Supabase Auth connected with Goo
 - [x] Connect to Supabase database and migrate data
 - [x] Add auth infrastructure (Supabase clients, callback route, route protection proxy)
 - [x] Implement login/signup pages
+- [x] Redirect authenticated users away from `/auth/login` to homepage
+- [x] Collapsible app sidebar with sign-out flow
+- [x] Deploy app on Vercel

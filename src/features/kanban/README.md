@@ -17,6 +17,7 @@ Backend complete (schema, DAL, services, server actions, board sync). Full board
 - [ ] Design evidence submit feature when user move task to done
 
 ### Future
+- [ ] Research timezone handling for traveling users — `getTodayDate()` and `getISOWeekKey()` use local time, so crossing timezones near week boundaries can cause incorrect period detection. Consider anchoring to a user-configured home timezone.
 - [ ] Support same group ordering for drag and drop within same column
 - [ ] Add subtitle field to task template to support different titles
 - [ ] Create common landing page for Mars workbench to navigate between features

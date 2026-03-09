@@ -32,6 +32,7 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 
 ### Planned: Future
 
+- Timezone-aware date handling — Current date utils use local time (`getTodayDate`, `getISOWeekKey`), which breaks for traveling users crossing timezones near week boundaries (e.g., plan created Monday UTC+8, checked Sunday UTC-8 → different week keys). Research anchoring all date calculations to a user-configured home timezone or storing timezone per plan.
 - Backlog drawer — Expandable side panel for staging template-generated task instances before moving them to the board via drag-and-drop. Reduces visual clutter from duplicate cards. Mockup in `design/mockup/future-work/mockup-board-backlog-drawer-v2.html`.
 - Support Ad-hoc task deletion and auto clear logic.
 - Phone notifications for unfinished tasks

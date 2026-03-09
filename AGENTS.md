@@ -9,7 +9,7 @@ This document is the common rulebook for all AI agents working in this repositor
 
 ## Project Overview
 
-A Next.js application with multiple features: AI Chat and Kanban Period Planner.
+A Next.js application with multiple features: AI Chat and Kanban Period Planner. Deployed on Vercel.
 
 ## Tech Stack
 
@@ -56,6 +56,7 @@ src/
 │   └── kanban/                    # Kanban Planner feature (see features/kanban/README.md)
 └── components/
     └── common/
+        ├── AppSidebar.tsx           # Collapsible app sidebar (nav + sign-out)
         ├── Header.tsx
         └── ThemeProvider.tsx
 ```

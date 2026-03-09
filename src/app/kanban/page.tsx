@@ -12,7 +12,7 @@ export default async function KanbanPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-full">
       <BoardHeader periodKey={board.plan.periodKey} planId={board.plan.id} />
       <ProgressDashboard
         todayDoneCount={board.todayDoneCount}

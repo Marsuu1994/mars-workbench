@@ -8,10 +8,11 @@ An authentication layer for Mars Workbench that identifies users and gates acces
 
 ### Implemented
 - Connect to Supabase database (migrated from local PostgreSQL)
-
-### Planned: V1
 - Sign-up / login via Google OAuth
 - Route protection — redirect unauthenticated users to login
+- Collapsible app sidebar with sign-out flow (mockup: `mockup/mockup-sidebar.html`)
+- Redirect authenticated users away from `/auth/login`
+- Deployed on Vercel
 
 ### Planned: Future
 

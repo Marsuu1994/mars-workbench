@@ -10,7 +10,7 @@ export default async function ChatLayout({
   const chats = await getChats();
 
   return (
-    <div className="flex h-screen bg-base-300 text-base-content overflow-hidden">
+    <div className="flex h-full overflow-hidden">
       <Sidebar chats={chats} />
       {/* Main content */}
       <div className="flex flex-1 flex-col bg-gradient-to-b from-neutral to-base-100">
