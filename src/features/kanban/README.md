@@ -36,6 +36,11 @@ Backend complete (schema, DAL, services, server actions, board sync). Full board
 
 ## Update Log
 
+### 2026-03-10
+- Fixed task card risk border: mobile shows top border only (`max-md:`), desktop shows left border only (`md:`) — previously desktop had both
+- Preserved risk border color on hover: risk-indicator border (top on mobile, left on desktop) no longer changes to the generic hover border color
+- Removed unused `Header.tsx` component and updated project structure in `AGENTS.md`
+
 ### 2026-03-09
 - Added PWA manifest (`public/manifest.json`) with standalone display, mars-dark theme colors, and 192/512/maskable icons for mobile installability
 - Added minimal no-op service worker (`public/sw.js`) to satisfy Chrome's PWA install criteria

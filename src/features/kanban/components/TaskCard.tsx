@@ -32,20 +32,20 @@ export default function TaskCard({
     task.forDate !== null &&
     normalizeForDate(task.forDate) < today;
 
-  // Desktop: left border for risk
+  // Desktop: left border for risk (preserve on hover)
   const desktopRiskClass =
     riskLevel === "danger"
-      ? "md:border-l-4 md:border-l-error"
+      ? "md:border-l-4 md:border-l-error md:hover:border-l-error"
       : riskLevel === "warning"
-        ? "md:border-l-4 md:border-l-warning"
-        : "md:border-l-4 md:border-l-transparent";
+        ? "md:border-l-4 md:border-l-warning md:hover:border-l-warning"
+        : "md:border-l-4 md:border-l-transparent md:hover:border-l-transparent";
 
-  // Mobile: top border for risk
+  // Mobile: top border for risk, scoped to < md (preserve on hover)
   const mobileRiskClass =
     riskLevel === "danger"
-      ? "border-t-[3px] border-t-error"
+      ? "max-md:border-t-[3px] max-md:border-t-error max-md:hover:border-t-error"
       : riskLevel === "warning"
-        ? "border-t-[3px] border-t-warning"
+        ? "max-md:border-t-[3px] max-md:border-t-warning max-md:hover:border-t-warning"
         : "";
 
   return (

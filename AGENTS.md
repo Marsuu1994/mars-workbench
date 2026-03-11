@@ -61,7 +61,6 @@ src/
 └── components/
     └── common/
         ├── AppSidebar.tsx           # Collapsible app sidebar (nav + sign-out)
-        ├── Header.tsx
         └── ThemeProvider.tsx
 ```
 
