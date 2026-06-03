@@ -6,9 +6,23 @@
 <title>Kanban — Board View</title>
 <link rel="stylesheet" href="../../../mockup-theme.css" />
 <link rel="stylesheet" href="./styles.css" />
+<style>
+.stats-row { display: flex; gap: 24px; justify-content: center; margin-bottom: 8px; }
+.stat-chip { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.stat-chip-value { font-size: 22px; font-weight: 700; color: var(--m-blue); }
+.stat-chip-label { font-size: 12px; color: var(--m-text-tertiary); }
+</style>
 </head>
 <body>
-<div class="app">
+
+<div class="screen-nav">
+  <button class="screen-btn active" onclick="show('board')">Board</button>
+  <button class="screen-btn" onclick="show('no-plan')">No Plan</button>
+  <button class="screen-btn" onclick="show('returning')">Returning User</button>
+</div>
+
+<!-- ══ BOARD (active plan) ══ -->
+<div id="screen-board" class="app">
   <aside class="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo">
@@ -20,14 +34,14 @@
       </button>
     </div>
     <div class="sidebar-nav">
-      <div class="sidebar-nav-label">Features</div>
-      <a class="sidebar-item" href="#">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Simple Chat Bot
-      </a>
+      <div class="sidebar-nav-label">Workspace</div>
       <a class="sidebar-item active" href="#">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-        Kanban Planner
+        Board
+      </a>
+      <a class="sidebar-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Plan
       </a>
     </div>
     <div class="sidebar-user">
@@ -46,16 +60,6 @@
       <div class="header-left">
         <span class="header-title"><span>Kanban</span> Planner</span>
         <span class="header-badge">Week 08 &middot; Feb 17 – Feb 23</span>
-      </div>
-      <div class="header-right">
-        <div class="view-tabs">
-          <button class="view-tab active">Board</button>
-          <button class="view-tab">Templates</button>
-        </div>
-        <button class="btn btn-ghost" style="padding:8px 14px;font-size:13px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Edit Plan
-        </button>
       </div>
     </div>
 
@@ -146,7 +150,7 @@
             </div>
           </div>
 
-          <!-- Weekly — warning (Day 3, deadline tightening) -->
+          <!-- Weekly — warning -->
           <div class="task-card risk-warning">
             <div class="task-title">Go to gym – Leg day</div>
             <div class="task-desc">30 min workout</div>
@@ -157,7 +161,7 @@
             </div>
           </div>
 
-          <!-- Weekly — danger (Day 5+, nearly missed) -->
+          <!-- Weekly — danger -->
           <div class="task-card risk-danger">
             <div class="task-title">Write blog post</div>
             <div class="task-desc">Technical blog about React patterns</div>
@@ -168,7 +172,7 @@
             </div>
           </div>
 
-          <!-- Ad-hoc — normal (no risk) -->
+          <!-- Ad-hoc — normal -->
           <div class="task-card">
             <div class="task-title">File tax report</div>
             <div class="task-meta">
@@ -177,7 +181,7 @@
             </div>
           </div>
 
-          <!-- Ad-hoc — warning (5+ days since creation) -->
+          <!-- Ad-hoc — warning -->
           <div class="task-card risk-warning">
             <div class="task-title">Get sinus CT scan</div>
             <div class="task-meta">
@@ -201,7 +205,6 @@
         <div class="column-header"><span>In Progress</span><span class="column-count">4</span></div>
         <div class="column-body">
 
-          <!-- Fresh daily in progress — normal -->
           <div class="task-card">
             <div class="task-title">Morning jog 5km</div>
             <div class="task-meta">
@@ -210,7 +213,6 @@
             </div>
           </div>
 
-          <!-- Rollover daily in progress — always warning -->
           <div class="task-card risk-warning">
             <div class="task-title">Meditate 10 min</div>
             <div class="task-meta">
@@ -221,7 +223,6 @@
             </div>
           </div>
 
-          <!-- Weekly in progress — warning -->
           <div class="task-card risk-warning">
             <div class="task-title">Go to gym – Upper body</div>
             <div class="task-desc">30 min workout</div>
@@ -232,7 +233,6 @@
             </div>
           </div>
 
-          <!-- Ad-hoc in progress — warning (8+ days since creation) -->
           <div class="task-card risk-warning">
             <div class="task-title">Renew passport</div>
             <div class="task-meta">
@@ -242,7 +242,6 @@
             </div>
           </div>
 
-          <!-- Add ad-hoc task button -->
           <button class="add-task-btn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
             Add ad-hoc task
@@ -256,7 +255,6 @@
         <div class="column-header"><span>Done</span><span class="column-count">4</span></div>
         <div class="column-body">
 
-          <!-- Done — no risk indicator regardless of type -->
           <div class="task-card done-card">
             <div class="task-title">Solve 3 LeetCode problems</div>
             <div class="task-meta">
@@ -282,7 +280,6 @@
             </div>
           </div>
 
-          <!-- Done ad-hoc -->
           <div class="task-card done-card">
             <div class="task-title">Buy birthday gift</div>
             <div class="task-meta">
@@ -296,6 +293,144 @@
     </div>
   </div>
 </div>
+
+<!-- ══ NO PLAN (new user) ══ -->
+<div id="screen-no-plan" class="app" style="display:none">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <span class="sidebar-brand">Mars Workbench</span>
+      <button class="sidebar-collapse">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-nav-label">Workspace</div>
+      <div class="sidebar-item-wrap is-disabled">
+        <a class="sidebar-item disabled" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Board
+        </a>
+        <div class="sidebar-tooltip">Create a plan first</div>
+      </div>
+      <a class="sidebar-item active" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Plan
+        <span class="sidebar-nudge">New</span>
+      </a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">LC</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">Liang Jun</div>
+        <div class="sidebar-user-email">liang@example.com</div>
+      </div>
+      <button class="sidebar-signout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </aside>
+  <div class="main">
+    <div class="empty-state">
+      <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="3" width="7" height="7" rx="1.5" stroke-dasharray="3 2"/>
+        <rect x="14" y="3" width="7" height="7" rx="1.5" stroke-dasharray="3 2"/>
+        <rect x="3" y="14" width="7" height="7" rx="1.5" stroke-dasharray="3 2"/>
+        <rect x="14" y="14" width="7" height="7" rx="1.5" stroke-dasharray="3 2"/>
+      </svg>
+      <div class="empty-title">No active plan</div>
+      <div class="empty-desc">Create a weekly plan to get started. Select templates, configure your schedule, and track your progress.</div>
+      <button class="btn btn-primary" style="margin-top:8px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+        Create Your First Plan
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ RETURNING USER (period ended) ══ -->
+<div id="screen-returning" class="app" style="display:none">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <span class="sidebar-brand">Mars Workbench</span>
+      <button class="sidebar-collapse">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-nav-label">Workspace</div>
+      <div class="sidebar-item-wrap is-disabled">
+        <a class="sidebar-item disabled" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Board
+        </a>
+        <div class="sidebar-tooltip">Create a plan first</div>
+      </div>
+      <a class="sidebar-item active" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Plan
+        <span class="sidebar-nudge">New</span>
+      </a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">LC</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">Liang Jun</div>
+        <div class="sidebar-user-email">liang@example.com</div>
+      </div>
+      <button class="sidebar-signout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </aside>
+  <div class="main">
+    <div class="empty-state">
+      <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M12 8v4l3 3" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="12" cy="12" r="9"/>
+      </svg>
+      <div class="empty-title">Plan period ended</div>
+      <div class="empty-desc">Your weekly plan has wrapped up. Here's how you did:</div>
+
+      <div class="stats-row">
+        <div class="stat-chip">
+          <div class="stat-chip-value">75%</div>
+          <div class="stat-chip-label">Completed</div>
+        </div>
+        <div class="stat-chip">
+          <div class="stat-chip-value">12/16</div>
+          <div class="stat-chip-label">Tasks done</div>
+        </div>
+        <div class="stat-chip">
+          <div class="stat-chip-value" style="color:var(--m-orange)">47</div>
+          <div class="stat-chip-label">Points earned</div>
+        </div>
+      </div>
+
+      <div class="empty-desc" style="margin-top:4px">Ready to start a new week?</div>
+      <button class="btn btn-primary" style="margin-top:8px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+        Create New Plan
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(name) {
+  document.querySelectorAll('.app').forEach(el => el.style.display = 'none');
+  document.getElementById('screen-' + name).style.display = 'flex';
+  var btns = document.querySelectorAll('.screen-btn');
+  var names = ['board','no-plan','returning'];
+  var idx = names.indexOf(name);
+  btns.forEach(function(b, i) { b.classList.toggle('active', i === idx); });
+}
+</script>
 <script>
 (function() {
   var btn = document.createElement('button');

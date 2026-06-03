@@ -1,40 +1,58 @@
 # Kanban Period Planner
 
-A drag-and-drop kanban board for planning and tracking tasks within weekly periods. See [design.md](./design-doc/design.md) for full design doc including schema, API specs, and key flows.
+A drag-and-drop kanban board for planning and tracking tasks within weekly periods. See [baseline.md](./design/baseline.md) for full design doc.
 
 ## Current State
 
-Backend complete (schema, DAL, services, server actions, board sync). Full board UI with drag-and-drop — `/kanban` displays a three-column kanban board (Todo, In Progress, Done) with task cards that can be dragged between columns. Moves use optimistic UI with server-side persistence and automatic rollback on failure. Task cards show title, description (2-line clamp with word break for long URLs), unified type badge (`TaskTypeBadge` — supports DAILY, WEEKLY, and AD_HOC), and a green `SizeChip` component (`M·3`) with color-coded risk badges (⚠ at risk / ‼ urgent). Task sizing uses `TaskSize` enum (EXTRA_SMALL/SMALL/MEDIUM/LARGE/EXTRA_LARGE) mapped to fibonacci points (1/2/3/5/8) via `SIZE_TO_POINTS`; points are denormalized on Task at creation time for efficient DB aggregation (`SUM(points)` in raw SQL). `TaskTemplate` stores only `size` (no `points` column); `Task` stores both `size` and `points`. Template and ad-hoc modals use a full-width pill toggle selector (XS|S|M|L|XL) with effort hint text and L/XL split warning. Client-safe enums live in `utils/enums.ts`; server-side mapping in `utils/sizeUtils.ts`. Progress dashboard shows Today ring, stat metrics, and Week Progress Bar. Board metrics use a two-query strategy: `getBoardTasksByPlanId` for UI tasks + `getBoardMetricsByPlanId` (raw SQL aggregate with `FILTER` clauses) for pre-computed stats, fetched in parallel. End-of-period sync auto-expires undone tasks and transitions plans. Create/edit plan flows share a unified `PlanForm` with inline type/frequency config per template and a Plan Mode toggle (NORMAL = weekdays only, EXTREME = every day). AD_HOC tasks fully implemented end-to-end with plan linking. `ReviewChangesModal` shows added/removed/modified template diffs and mode changes. Architecture follows strict 3-layer pattern with `prisma.$transaction()` for all multi-step mutations. All date calculations anchored to `America/Los_Angeles` timezone via `KANBAN_TZ` constant, ensuring consistent behavior across local dev and Vercel (UTC) deployments. PWA manifest and service worker enable mobile installability ("Add to Home Screen") on both Android and iOS — standalone display with mars-dark theme colors.
+- **Board**: 3-column kanban (Todo / In Progress / Done) with drag-and-drop, optimistic UI, risk badges, rollover indicators
+- **Task sizing**: `TaskSize` enum (XS=1, S=2, M=3, L=5, XL=8) with fibonacci points; `SizeChip` display + pill toggle selector
+- **Progress dashboard**: Today ring, stat metrics (points/counts), Week Progress bar using two-query strategy (UI tasks + raw SQL aggregate)
+- **Plan management**: Create/edit plans with inline type/frequency config, Plan Mode toggle (NORMAL/EXTREME), `ReviewChangesModal` for diffs
+- **Ad-hoc tasks**: One-off tasks with plan linking, column-aware initial status, risk levels based on days since creation
+- **Daily sync**: Auto-expire stale tasks, generate today's dailies, 1-day rollover buffer, idempotent via `lastSyncDate`
+- **End-of-period sync**: Auto-detect new week, expire undone tasks, transition plan to `PENDING_UPDATE`
+- **Workspace sidebar**: Board/Plan nav (Board disabled when no plan, Plan shows "New" badge); Edit Plan button removed from board header
+- **PWA**: Manifest, service worker, mobile installability, safe-area insets
+- **Architecture**: Server Actions + DAL (3-layer), `prisma.$transaction()` for multi-step mutations, timezone anchored to `America/Los_Angeles`
 
-**AI Assisted Plan Creation**: Full design complete — flows, API actions, mockups. Chat-based wizard where AI generates draft task templates via structured JSON output (`response_format: json_schema`). Two server actions: `getWelcomeMessageAction` (plain text LLM welcome) and `generateDraftPlanAction` (structured draft with template cards). `Chat.metadata` serves as working clipboard for latest draft and stats snapshot. `MessageType` enum (`TEXT`, `DRAFT_PLAN`) distinguishes plain messages from structured drafts. Static suggestion chips for welcome screen. Post-approval reuses existing `createPlanAction`. Mockups: `mockup-empty.html` (new/returning user), `mockup-plan-form.html` (AI entry point), `mockup-ai-chat.html` (6-screen flow: welcome, generating, draft, revision, approval).
+**AI Assisted Plan Creation** — Fully designed (flows, API, mockups), not yet implemented. Chat-based wizard with structured JSON output, `Chat.metadata` as working clipboard, `MessageType` enum for plain vs draft messages.
 
-**Mobile Mockups**: `mockup-mobile/mockup-board.html` — 3-frame drag-and-drop flow (normal, long press pickup, drag over target) at 375×812 with linear stats bars, compact task cards (badge/title/footer), risk top strips, and task card widget showcase. `mockup-mobile/mockup-settings.html` — settings page with profile card and sign-out. All mockups use shared `mockup-theme.css` with interactive light/dark toggle.
+**Mobile Mockups** — Board drag-and-drop flow (375x812), settings page, shared `mockup-theme.css` with light/dark toggle.
 
 ## Backlog
+
 ### High Priority
-- [ ] Implement mobile view
 - [ ] Implement the AI assisted plan creation flow
-- [ ] Refactor the codebase, remove chat feature and make kanban as the main entry of the app
-- [ ] Setup story book and optimize workflow for UI mockup
-- [ ] Redesign the navigation after getting rid of chat feature, keep navigation logic same between web and mobile, especially the plan tab
-- [ ] Add dashed border to droppable column indicate item can be placed here.
-- [ ] Consolidate task generation logic for update plan, or consider to remove the edit plan action, user can only set their plan during the beginning
+- [ ] Refactor the codebase, remove chatbot related code
+- [ ] Consolidate task generation logic for update plan
 - [ ] Design evidence submit feature when user move task to done
 
+### Medium Priority
+- [ ] Setup storybook and optimize workflow for UI mockup
+- [ ] Add dashed border to droppable columns
+- [ ] Implement mobile view (responsive board)
+
 ### Future
-- [ ] Research timezone handling for traveling users — date utils are anchored to `America/Los_Angeles` (hardcoded). Consider making this a user-configurable setting stored in the database.
+- [ ] Research timezone handling for traveling users
 - [ ] Support same group ordering for drag and drop within same column
-- [ ] Add subtitle field to task template to support different titles
-- [ ] Create common landing page for Mars workbench to navigate between features
+- [ ] Add subtitle field to task template
 - [ ] Phone notifications for unfinished tasks
-- [ ] LLM-generated motivational messages
 - [ ] Weekly task rollover across periods
 - [ ] Biweekly and custom period types
-- [ ] Refactor to use constant for all UI static text fields
-- [ ] Support Ad-hoc task deletion and auto clear logic
-- [ ] Implement light/dark theme toggle UI
+- [ ] Ad-hoc task deletion and auto-clear logic
+- [ ] Priority matrix page (Eisenhower matrix)
 
 ## Update Log
+
+### 2026-06-03
+- Redesigned sidebar from feature-level nav (Chat/Kanban) to workspace nav (Board/Plan)
+- Board nav disabled with tooltip when no active plan; Plan shows "New" nudge badge
+- Removed Edit Plan button from board header (Plan entry now in sidebar)
+- Merged `mockup-empty.html` into `mockup-board.html` (3 screens: Board, No Plan, Returning User)
+- Updated all mockup sidebars to workspace layout; removed Matrix and Settings nav items
+- Added disabled item, tooltip, nudge badge, coming-soon styles to `styles.css`
+- Deleted `tmp-topbar-redesign.html` temp file
+- Updated `baseline.md`: moved Mobile Kanban + PWA and Workspace Sidebar to Implemented V2
 
 ### 2026-03-17
 - Implemented `TaskSize` enum migration end-to-end: Prisma schema, hand-crafted SQL migration with backfill (11 templates, 99 tasks), baselined migration history against Supabase
@@ -79,199 +97,47 @@ Backend complete (schema, DAL, services, server actions, board sync). Full board
 ### 2026-03-08
 - Fixed timezone bug causing false end-of-period sync: `getISOWeekKey()` used UTC methods while `getTodayDate()` used local time, producing mismatched week keys near week boundaries
 - Anchored all date calculations to `America/Los_Angeles` timezone via `KANBAN_TZ` constant and `Intl.DateTimeFormat`, ensuring consistent "today" on both local dev and Vercel (UTC) deployments
-- Added future backlog item to research user-configurable timezone setting
 
 ### 2026-03-03
-- Designed AI assisted plan creation flow end-to-end: updated `baseline.md` (Chat-Plan relationship, MessageType enum, Chat.metadata shape), `flows.md` (6-step AI wizard flow, LLM config, static suggestion chips), and `api.md` (getWelcomeMessageAction, generateDraftPlanAction, new DAL modules)
-- Created mockups: `mockup-empty.html` (new/returning user screens), `mockup-plan-form.html` (AI assistant entry point in create mode), `mockup-ai-chat.html` (6-screen AI chat modal — welcome, generating, draft, revision, approval)
-- Reorganized `api.md` by logical domain (Board, Plan Management, Task Templates, Tasks, AI Chat) and added `countIncompleteByTemplateAction`
-- Updated `fetchBoard` pseudocode to reflect Codex optimization: two parallel queries (`getBoardTasksByPlanId` + `getBoardMetricsByPlanId` raw SQL aggregate) replacing old single-query + in-memory filtering
-- Updated DAL function signatures in `api.md` to match actual implementation (naming, params, new helpers)
+- Designed AI assisted plan creation flow end-to-end: updated `baseline.md`, `flows.md`, `api.md`
+- Created mockups: `mockup-empty.html`, `mockup-plan-form.html`, `mockup-ai-chat.html`
+- Reorganized `api.md` by logical domain; updated DAL function signatures and `fetchBoard` pseudocode
 
 ### 2026-02-28
-- Implemented Plan Mode (NORMAL / EXTREME): `PlanMode` enum added to Prisma schema with migration, `mode` field on Plan model defaults to NORMAL
-- NORMAL mode skips daily task generation on weekends; EXTREME mode generates daily tasks every day — expiry logic remains mode-independent
-- Plan form UI: segmented toggle (moon icon / bolt icon) between Description and Template picker; mode persists through create and edit flows
-- `ReviewChangesModal` displays mode changes with old → new transition and impact description
-- Week projection adjusted: NORMAL mode counts only weekdays remaining, EXTREME counts all calendar days
-- New plan inherits mode from PENDING_UPDATE plan; mode change is forward-looking (no retroactive task creation/deletion)
-- Added `isWeekend()` and `countWeekdaysInRange()` date utilities; `PlanMode` client-safe enum for use-client components
-- Updated mockups: `mockup-plan-form.html` (mode toggle in create + edit), `mockup-review-changes.html` (mode changed section); deleted temp mockup
+- Plan Mode (NORMAL/EXTREME): schema, services, board sync, plan form UI, review modal, mockups
 
 ### 2026-02-26
-- Complete v2 UI redesign: created `mockup-v2/` with 11 mockup files and a shared design system CSS — "Techno Mission Control" aesthetic with cyan/violet neon palette, dark+light theme support
-- New flows designed: AI generate task (chat-based), end-of-period summary (mission debrief), vacation/break mode (activate, standby, resume), dedicated template library page
-- Redesigned all existing flows: board (with collapsed/expanded backlog drawer), empty state, plan form, task modal, review changes, Eisenhower priority matrix
-- Created side-by-side light vs dark theme comparison mockup with interactive toggle
-- Added custom daisyUI themes (`mars-dark`, `mars-light`) to `globals.css` using `@plugin "daisyui/theme"` syntax; applied `mars-dark` as default app theme
+- Complete v2 UI redesign: `mockup-v2/` with 11 flows and shared design system CSS
+- Custom daisyUI themes (`mars-dark`, `mars-light`) applied to app
 
 ### 2026-02-25
-- Designed Eisenhower priority matrix ("Priorities" page) for personal one-off tasks — full-page 2x2 matrix (Do First / Schedule / Squeeze In / Maybe Later) with Board/Priorities tab switcher; tasks can be sent to the board via "Track this week"; renames "Ad-hoc" badge to "Todo", backlog drawer to "Queued"
-- Archived approved mockup to `design/mockup/future-work/mockup-priorities-v2.html`
-- Updated `baseline.md` Planned: Future with priorities page and template categories entries
-- Fixed backlog drawer v2 mockup CSS link (`./styles.css` → `../styles.css`)
-- Updated `/design-explore` skill with explicit STOP gates for user approval between steps
-- Replaced inline CLAUDE.md workflow docs (new-flow, new-feature, design-explore) with skill references
+- Designed Eisenhower priority matrix; archived to `future-work/mockup-priorities-v2.html`
 
 ### 2026-02-24
-- Designed full ad-hoc task flow: updated `baseline.md`, `flows.md`, `api.md` with ad-hoc creation, plan linking/unlinking, and projected points
-- Merged `mockup-template-modal.html` and `mockup-adhoc-task-modal.html` into unified `mockup-task-modal.html` (3 tabs: New Template, Edit Template, Add Ad-hoc Task); updated all other mockups with ad-hoc elements
-- Implemented ad-hoc task backend (Phase 1): schema migration (`planId` nullable on Task), 3 new DAL functions (`getNonDoneAdhocTasks`, `updateTasksPlanId`, `unlinkAdhocTasksFromPlan`), `createAdhocTaskAction` server action, ad-hoc linking/unlinking in `createPlan`/`updatePlan` services, ad-hoc tasks in week projected points, AD_HOC risk level calculation (warning at 5+ days, danger at 8+)
-- Implemented ad-hoc task board UI (Phase 2): `TaskTypeBadge` now supports AD_HOC ("Ad-hoc" badge with warning color), "Add ad-hoc task" dashed button at bottom of Todo/In Progress columns, `TaskModal` (renamed from TemplateModal) extended with "adhoc" mode including info banner and "Add to Board" submit
-- Renamed `template-modal/` → `task-modal/` (TemplateModal → TaskModal, TemplateModalHeader → TaskModalHeader, TemplateModalFooter → TaskModalFooter); deleted unused `TypeSelector.tsx` and `TaskPreview.tsx`
-- Updated Zod schemas: `createAdhocTaskSchema`, added `adhocTaskIds` to `createPlanSchema`/`updatePlanSchema`, relaxed template minimum to allow plans with only ad-hoc tasks
-- Added CLAUDE.md coding convention: no narrower DAL query variants when broader query + in-memory filter suffices
-- Fixed plan form UX: unchecking and re-checking a template now preserves the server-loaded (or last-edited) type/frequency config via a `useRef` cache, instead of resetting to DAILY/1
-- Aligned `TemplateItem` type pill buttons with `TaskTypeBadge` styling: `rounded-full` with colored border (info for DAILY, secondary for WEEKLY); added "Type" and "Freq" labels; full-width divider now spans the entire card (config section moved to card-level child)
-- Renamed `RemoveInstancesModal.tsx` → `ReviewChangesModal.tsx` and `mockup-remove-instances.html` → `mockup-review-changes.html` to match the exported component name
-- Rebuilt `ReviewChangesModal` to match mockup: section headers with icons + "N templates" badges, row detail with points/type/frequency, per-template impact text with real incomplete task counts from DB, modified rows with strikethrough old → highlighted new, dashed-border global note, ArrowPathIcon on confirm button
-- Added `countIncompleteTasksByTemplateId` DAL function (groupBy) and `countIncompleteByTemplateAction` server action for per-template incomplete task counts
-- Updated CLAUDE.md: added "Implementing UI Components" subsection to UI Workflow, added Bad/Good examples to rename rule, added meta-rule for convention examples
-- Fixed timezone bug: Prisma `DATE` values (UTC midnight) were displaying one day behind in negative-offset timezones (e.g. PST/UTC-8); added `normalizeForDate` utility to convert to local calendar date before comparisons
-- Fixed false rollover detection: today's daily tasks were incorrectly flagged as rollovers in PST because UTC midnight < local midnight
-- Fixed done tasks showing the rollover `↩` badge; done tasks now never display any rollover or risk indicator
-- Updated `formatShortDate` to use `timeZone: "UTC"` so the date label on rollover badges always shows the correct calendar date
-- Updated `baseline.md`: moved daily task rollover and risk level visualization from Planned V2 to Implemented
-- Added plan form ad-hoc integration (Phase 3): create/edit plan pages fetch and display non-done ad-hoc tasks with checkboxes; `ReviewChangesModal` shows added/removed ad-hoc task sections with lightning bolt icons
-- Ad-hoc task initial status now matches source column: clicking "Add ad-hoc task" from In Progress creates with DOING status; added optional `status` field to schema and action
-- Explored board card UX redesign to reduce visual clutter from duplicate template-generated cards; rejected grouped-stack and differentiated-card approaches in favor of a backlog drawer concept
-- Designed backlog drawer mockup: expandable side panel (collapsed strip / open panel) for staging template instances before dragging to Todo; archived to `future-work/mockup-board-backlog-drawer-v2.html`
+- Ad-hoc task flow end-to-end: design docs, schema migration, DAL, services, actions, board UI, plan form integration
+- Unified `mockup-task-modal.html` (3 tabs: New Template, Edit Template, Add Ad-hoc)
+- ReviewChangesModal rebuilt with icons, badges, per-template impact text, ad-hoc sections
 
 ### 2026-02-23
-- Moved `type` and `frequency` from `TaskTemplate` (global, immutable) to `PlanTemplate` (per-plan, reconfigurable each week) — the same blueprint can now be DAILY one week and WEEKLY the next
-- Added `type` field directly on `Task` (stamped at generation time), eliminating the need to join through the template at query time; `templateId` made nullable to support future AD_HOC tasks
-- Added `AD_HOC` value to `TaskType` enum (V2 roadmap, not yet implemented in UI)
-- Hand-crafted SQL migration with data backfill: columns added nullable → backfilled from task_templates → NOT NULL enforced → old columns dropped
-- Plan form redesigned: templates list flat (no Daily/Weekly group headers); selected rows expand inline with DAILY/WEEKLY type pills and a frequency input
-- "Review Plan Changes" modal replaces old binary "Remove from board?" modal — shows Added/Removed/Modified sections with a single "Confirm & Regenerate" action; done and expired tasks are never affected
-- Template modal simplified: removed type selector, frequency field, and live preview — only title, description, and points remain
-- `templateTypeMap` lookup eliminated; task type is now read directly from `task.type`
-- Updated `updatePlan` service with three-way diff (added/removed/modified) and atomic regeneration of affected tasks
+- Moved type/frequency from TaskTemplate to PlanTemplate; added Task.type column
+- Plan form: inline type pills + frequency per template; "Review Plan Changes" modal
 
 ### 2026-02-20
-- Introduced `services/` layer: extracted plan business logic into `planService.ts` and moved board sync into `boardService.ts`
-- Thinned `planActions.ts` to pure validate → service → revalidate; removed inline `generateTasksForPlan` helper
-- Added `boardActions.ts` with `fetchBoardAction()` so the kanban page goes through the action layer instead of calling the service directly
-- Added back chevron (←) to the plan form header for one-click navigation back to the board
-- Split monolithic `mockup.html` into per-flow files under `design/mockup/` with a shared `styles.css`
-- Added "no direct service/DAL calls from UI" and "split mockups by flow" rules to CLAUDE.md
-- Unified modal header styling: full-width underline (via negative-margin bleed) and matching X button (`XMarkIcon` + `btn-square`) across `TemplateModal` and `ReviewChangesModal`
-- Wrapped all multi-step DB mutation flows in `prisma.$transaction()` — create plan, update plan (template rebuild), daily sync, and end-of-period sync are now fully atomic; DAL write functions accept optional `tx?` for composability
-- Added Prisma transaction convention to CLAUDE.md coding conventions
+- Introduced `services/` layer; thinned actions to validate → service → revalidate
+- Wrapped all multi-step mutations in `prisma.$transaction()`
+- Split monolithic mockup into per-flow files under `design/mockup/`
 
 ### 2026-02-19
-- Added skeleton loading states for board page (`/kanban`) and plan form pages (`/kanban/plans/*`) using Next.js `loading.tsx`
-- Fixed stale design doc: removed outdated todayPoints bug note and updated fetchBoard pseudocode to reflect single-query approach
-- Updated design doc with Option C week points calculation, Update Plan Flow section, and delete-instances mockup screen
-- Implemented Option C projected week points: past daily instances + future daily projection from current templates + all weekly instances
-- Renamed `weekTotalPoints`/`weekTotalCount` → `weekProjectedPoints`/`weekProjectedCount` across boardSync, ProgressDashboard, and page
-- Added remove confirmation modal (`ReviewChangesModal`) — when editing a plan and removing templates, a modal shows affected templates and lets user choose to remove incomplete tasks from the board or keep them
-- Added `countRemovedTasksAction` server action and `countTasksByTemplateIds`/`deleteIncompleteTasksByTemplateIds` DAL functions
-- Fixed orphaned task type badge: derive type from task data (`forDate !== null` → Daily) instead of plan templates, so kept tasks show correct badge after template removal
+- Skeleton loading states, projected week points (Option C), remove confirmation modal
 
 ### 2026-02-15
-- Added progress dashboard with Today ring, stat metrics (Today Points, Week Points, Daily Avg), and Week Progress Bar
-- Added end-of-period sync — auto-detects new week, expires undone tasks, moves plan to PENDING_UPDATE
-- Create plan page preselects templates from previous plan; old plan archived to COMPLETED on submission
-- Unified task type badge (`TaskTypeBadge`) shared by TaskCard
-- Added "Planning Mode" header to plan create/edit pages
-- Refactored TaskModal (formerly TemplateModal) into `task-modal/` directory with sub-components (header, footer, IconNumberField)
-- Disabled task modal close on backdrop click
+- Progress dashboard, end-of-period sync, template preselection from previous plan
 
 ### 2026-02-14
-- Added create/edit task template modal with title, description, type selector (Daily/Weekly), points, frequency, and live preview
-- Type is immutable when editing an existing template
-- Edit icon on template rows reveals on hover; "+ New Template" button enabled with border styling
-- Extracted `TaskPreview` component for reuse
-- Unified star/points icon color to `text-warning` across all components
-- Added edit plan flow at `/kanban/plans/[id]` with prefilled description and preselected templates
-- Unified create/edit into shared `PlanForm` component with mode-based header and submit label
-- Extracted shared plans layout (`/kanban/plans/layout.tsx`) for create and edit pages
-- Edit Plan button in board header now links to the current plan's edit page
-- Added board header with "Kanban Planner" title, week date-range badge, and Edit Plan button
+- Create/edit template modal, edit plan flow, board header, shared PlanForm component
 
 ### 2026-02-13
-- Added drag-and-drop between columns using `@hello-pangea/dnd` with optimistic UI and server rollback
-- Dragging cards shows lifted style (shadow, ring, scale); drop targets highlight on hover
-- Fixed post-drop reshuffle animation by scoping CSS transitions to exclude `transform`
-- Added deterministic sort tiebreaker (`id`) to prevent card order jumps after server revalidation
-- Merged `taskSort.ts` and `taskGroup.ts` into `taskUtils.ts`
-- Board UI with glassmorphism columns, task cards showing title, description, type badge, and points
-- Empty state and create plan flow (`EmptyBoard`, `/kanban/plans/new`)
+- Drag-and-drop with optimistic UI, board columns, empty state, create plan flow
 
 ### 2026-02-12
-- Refactored `syncAndFetchBoard()` into `runDailySync()` + `fetchBoard()` — sync logic is now standalone and reusable by future cron job
-- Added `lastSyncDate` column to Plan model — skips redundant daily syncs on repeated page loads
-- Plan creation and template updates now set `lastSyncDate` to prevent unnecessary sync on first load
-- Added Prisma schema (Plan, TaskTemplate, PlanTemplate, Task) and ran migration
-- Implemented data access layer (`lib/db/`) for all kanban entities
-- Installed Zod and created validation schemas for kanban inputs
-- Server Actions: create/update plan, create/update task template, update task status
-- Board sync utility: expire stale tasks, generate daily tasks (idempotent via `skipDuplicates`)
-- Kanban page Server Component with board data fetching
-- Design doc written with schema, API specs, entities, and key flows
-- UI mockups created (board, empty state, create plan, create/edit template)
-
-## Done
-- [x] Standardized task sizing: `TaskSize` enum (XS/S/M/L/XL) with fibonacci points — DB migration, server-side code, SizeChip component, pill toggle selector, effort hints, all design docs and mockups updated
-- [x] Shared mockup theme system (mockup-theme.css) with light/dark toggle across all kanban and auth mockups
-- [x] Mobile kanban board mockup (drag-and-drop flow, stats dashboard, task card widgets)
-- [x] Mobile settings mockup (profile card, sign-out)
-- [x] Remove mockup-v2 directory (consolidated into future-work)
-- [x] Sync AppSidebar component into active kanban mockups (styles + HTML in 5 files)
-- [x] Redesign mockup-v2 flows with active mockup content (AI chat, Eisenhower matrix, plan form groups, task modal categories)
-- [x] Fix future-work mockup-priorities-v2.html stylesheet path
-- [x] AI assisted plan creation flow design — flows, API actions (getWelcomeMessageAction, generateDraftPlanAction), Chat/Message schema extensions, 3 mockup files (empty, plan form, AI chat modal)
-- [x] Reorganize api.md by logical domain and update fetchBoard pseudocode to match Codex DB-aggregate optimization
-- [x] Plan Mode toggle (NORMAL / EXTREME) — schema, services, board sync, plan form UI, review modal, mockups
-- [x] Ad-hoc task flow: plan form integration — ad-hoc task selection in create/edit plan, ReviewChangesModal ad-hoc sections
-- [x] Ad-hoc task initial status matches source column (Todo → TODO, In Progress → DOING)
-- [x] Ad-hoc task flow: board UI — TaskTypeBadge AD_HOC, add-task button in columns, TaskModal adhoc mode
-- [x] Ad-hoc task flow: backend — schema migration, DAL, services, actions, risk levels, projected points
-- [x] Ad-hoc task flow: design docs (baseline, flows, api) and unified task modal mockup
-- [x] Fix plan form UX: preserve template config on re-toggle, align type pills with TaskTypeBadge + full-width divider
-- [x] Align ReviewChangesModal with mockup: renamed files, added icons/badges/points/impact text with real task counts
-- [x] Change in daily task expire logic, now expire forDate + 2, so daily task can be finished in two days
-- [x] Risk indicators (red/yellow) for at-risk tasks
-- [x] Rollover badge for daily tasks
-- [x] Review design for new schema updates, generate necessary mockups
-- [x] Schema migration: move type/frequency from TaskTemplate to PlanTemplate, add Task.type, make templateId nullable, add AD_HOC to enum
-- [x] Implement updated plan form (inline type pills + frequency per template), "Review Plan Changes" modal, simplified template modal
-- [x] Make all DB actions using transactions
-- [x] Adjust look and feel for both modals, the x button should look same, and modal header should have a underline
-- [x] Adjust weekly total point tasks calculation flow (Option C projected calculation)
-- [x] When remove a task template during edit plan, add modal to check if user want to delete existing undone tasks on board
-- [x] Uniform loading states for board and plan pages
-- [x] Unified task type badge, planning mode header, refactored template modal into sub-components, disabled backdrop close
-- [x] End-of-period sync — auto-detect new week, expire undone tasks, transition plan to PENDING_UPDATE
-- [x] Preselect task templates from previous plan when creating a new plan; archive old plan to COMPLETED
-- [x] Score bar — today's points, tasks done count, week progress
-- [x] Create/edit task template modal — title, description, type, points, frequency, live preview
-- [x] Edit plan flow with prefilled description and preselected templates
-- [x] Board header with title, week date-range badge, and Edit Plan button
-- [x] Kanban board page (`/kanban`) — three columns (Todo, In Progress, Done) with glassmorphism styling
-- [x] No-plan empty state with "Create Plan" prompt
-- [x] Create plan flow — period selector, description, template picker
-- [x] Write design doc with schema, API specs, entities, and key flows
-- [x] Create UI mockups (board, empty state, create plan, create/edit template)
-- [x] Add Prisma schema (Plan, TaskTemplate, PlanTemplate, Task) and run migration
-- [x] Implement data access layer (`lib/db/`) for kanban entities
-- [x] Install Zod and create validation schemas for kanban inputs
-- [x] Server Action: create plan + generate initial tasks
-- [x] Server Action: update plan (description, templates)
-- [x] Server Action: create/update task template
-- [x] Server Action: update task status (drag and drop)
-- [x] Board sync utility: expire stale tasks, generate daily tasks (idempotent)
-- [x] Kanban page Server Component with board data fetching
-- [x] Refactor board sync: separate `runDailySync()` from `fetchBoard()`, add `lastSyncDate` to skip redundant syncs
-- [x] Drag and drop task cards between columns with optimistic UI
-- [x] v2 UI redesign: full mockup-v2 design system with 11 flows, light/dark themes, "Techno Mission Control" aesthetic
-- [x] AI generate task flow design (chat-based template generation)
-- [x] End-of-period summary flow design (mission debrief with stats and insights)
-- [x] Vacation/break mode flow design (activate, standby, resume)
-- [x] Dedicated template library page design
-- [x] Eisenhower priority matrix redesigned in v2 style
-- [x] Backlog drawer (collapsed + expanded) in v2 board design
-- [x] Template categories in v2 plan form design
-- [x] Custom daisyUI themes (mars-dark, mars-light) applied to app
-- [x] PWA manifest, service worker, and icons for mobile installability (Add to Home Screen)
+- Initial implementation: Prisma schema, DAL, Zod schemas, server actions, board sync, daily sync

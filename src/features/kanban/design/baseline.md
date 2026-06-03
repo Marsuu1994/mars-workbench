@@ -20,12 +20,16 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 
 10. **Ad-hoc tasks** — One-off tasks (e.g. file tax report, get sinus CT) not tied to templates. Never expire, exist independently of plans. Can be added to the board from the kanban page or carried over from previous plans.
 
+### Implemented: V2
+
+1. **Mobile Kanban + PWA app** — PWA manifest, service worker, mobile board mockups, bottom tab bar dock, safe-area insets for iOS/Android standalone mode.
+2. **Workspace sidebar** — Sidebar redesigned from feature-level nav (Chat/Kanban) to kanban workspace nav (Board/Plan). Board disabled with tooltip when no active plan; Plan shows "New" nudge badge. Edit Plan button removed from board header (Plan entry in sidebar).
+
 ### Planned: V2
 
-1. Mobile Kanban + PWA app
-2. **LLM assisted plan creation (V1 — static wizard)** — AI generates a draft plan via structured JSON output. User sees read-only template cards and either approves the whole batch or rejects with text feedback for re-generation. No per-card editing. Uses `Chat.metadata` as working clipboard for the latest draft. Server action (no streaming). Post-approval creates new TaskTemplates and calls existing `createPlanAction`.
-3. Support evidence flow, when user move a task to completed, submit evidence.
-4. Add AI generated tasks instance flow, LLM should be able to generate tasks based on past works + task template informatiosn to generate task instances, need to record the quality of task it generated.
+1. **LLM assisted plan creation (V1 — static wizard)** — AI generates a draft plan via structured JSON output. User sees read-only template cards and either approves the whole batch or rejects with text feedback for re-generation. No per-card editing. Uses `Chat.metadata` as working clipboard for the latest draft. Server action (no streaming). Post-approval creates new TaskTemplates and calls existing `createPlanAction`.
+2. Support evidence flow, when user move a task to completed, submit evidence.
+3. Add AI generated tasks instance flow, LLM should be able to generate tasks based on past works + task template informatiosn to generate task instances, need to record the quality of task it generated.
 
 ### Planned: Future
 

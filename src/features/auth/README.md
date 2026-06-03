@@ -4,7 +4,7 @@ Authentication layer for Mars Workbench. See [baseline.md](./design/baseline.md)
 
 ## Current State
 
-Supabase Auth with Google OAuth, route protection, themed login page, and collapsible app sidebar with feature navigation and sign-out. All mockups support light/dark theme toggle via shared `mockup-theme.css`. Deployed on Vercel.
+Supabase Auth with Google OAuth, route protection, themed login page, and collapsible app sidebar with workspace navigation (Board/Plan) and sign-out. All mockups support light/dark theme toggle via shared `mockup-theme.css`. Deployed on Vercel.
 
 ## Backlog
 
@@ -18,6 +18,9 @@ Supabase Auth with Google OAuth, route protection, themed login page, and collap
 
 
 ## Update Log
+
+### 2026-06-03
+- Redesigned sidebar from feature-level nav (Chat/Kanban) to workspace nav (Board/Plan) with disabled state and nudge badge
 
 ### 2026-03-09
 - Added light/dark theme toggle to login and sidebar mockups via shared `mockup-theme.css`
@@ -43,6 +46,7 @@ Supabase Auth with Google OAuth, route protection, themed login page, and collap
 - Scaffolded auth feature: folder structure, design doc templates, README
 
 ## Done
+- [x] Workspace sidebar redesign (Board/Plan nav with disabled state and nudge badge)
 - [x] Light/dark theme toggle on login and sidebar mockups
 - [x] Create feature scaffold and design doc templates
 - [x] Design auth approach (provider selection, session strategy, schema)

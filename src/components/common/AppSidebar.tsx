@@ -6,8 +6,8 @@ import Link from "next/link";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  ChatBubbleOvalLeftEllipsisIcon,
   Squares2X2Icon,
+  PencilSquareIcon,
   ArrowRightStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import { useSidebarStore } from "@/features/auth/store/sidebarStore";
@@ -15,18 +15,15 @@ import { createClient } from "@/lib/supabase/client";
 
 interface AppSidebarProps {
   user: { name: string; email: string } | null;
+  activePlanId: string | null;
 }
 
-const navItems = [
-  { label: "Simple Chat Bot", href: "/chat", icon: ChatBubbleOvalLeftEllipsisIcon },
-  { label: "Kanban Planner", href: "/kanban", icon: Squares2X2Icon },
-];
-
-export const AppSidebar = ({ user }: AppSidebarProps) => {
+export const AppSidebar = ({ user, activePlanId }: AppSidebarProps) => {
   const pathname = usePathname();
   const router = useRouter();
   const { isCollapsed, toggleSidebar } = useSidebarStore();
   const [isLogoHovered, setIsLogoHovered] = useState(false);
+  const [isBoardHovered, setIsBoardHovered] = useState(false);
 
   if (!user || pathname.startsWith("/auth")) {
     return null;
@@ -46,9 +43,59 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
     .slice(0, 2);
 
   const collapsed = isCollapsed;
+  const hasPlan = !!activePlanId;
 
   // Shared: text fades so it's invisible before overflow-hidden clips it
   const textOpacity = `transition-opacity duration-200 ${collapsed ? "opacity-0" : "opacity-100"}`;
+
+  const isBoardActive = pathname === "/kanban";
+  const isPlanActive = pathname.startsWith("/kanban/plans");
+  const planHref = activePlanId ? `/kanban/plans/${activePlanId}` : "/kanban/plans/new";
+
+  const navItemBase = "flex items-center gap-2.5 rounded-lg px-3 py-2 whitespace-nowrap transition-colors";
+  const navItemActive = `${navItemBase} bg-primary/10 text-primary font-semibold`;
+  const navItemInactive = `${navItemBase} text-base-content/50 hover:bg-base-200 hover:text-base-content/70`;
+
+  const renderBoardLink = () => {
+    if (hasPlan) {
+      return (
+        <Link href="/kanban" className={isBoardActive ? navItemActive : navItemInactive}>
+          <Squares2X2Icon className="h-[18px] w-[18px] flex-shrink-0" />
+          <span className={`text-[13px] ${textOpacity}`}>Board</span>
+        </Link>
+      );
+    }
+
+    return (
+      <div
+        className="relative"
+        onMouseEnter={() => setIsBoardHovered(true)}
+        onMouseLeave={() => setIsBoardHovered(false)}
+      >
+        <span className={`${navItemBase} text-base-content/25 cursor-not-allowed`}>
+          <Squares2X2Icon className="h-[18px] w-[18px] flex-shrink-0" />
+          <span className={`text-[13px] ${textOpacity}`}>Board</span>
+        </span>
+        {isBoardHovered && (
+          <div className="absolute left-[calc(100%+8px)] top-1/2 -translate-y-1/2 z-100 rounded-md bg-neutral px-2.5 py-1 text-xs font-medium text-neutral-content whitespace-nowrap shadow-lg">
+            Create a plan first
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderPlanLink = () => (
+    <Link href={planHref} className={isPlanActive ? navItemActive : navItemInactive}>
+      <PencilSquareIcon className="h-[18px] w-[18px] flex-shrink-0" />
+      <span className={`text-[13px] ${textOpacity}`}>Plan</span>
+      {!hasPlan && !collapsed && (
+        <span className="ml-auto text-[9px] font-bold uppercase tracking-wide bg-gradient-to-r from-primary to-info text-white px-1.5 py-0.5 rounded-full">
+          New
+        </span>
+      )}
+    </Link>
+  );
 
   return (
     <aside
@@ -109,32 +156,16 @@ export const AppSidebar = ({ user }: AppSidebarProps) => {
         </div>
       </div>
 
-      {/* Nav — consistent padding, labels fade */}
+      {/* Nav — workspace items */}
       <div className="px-3 pt-3 pb-1 overflow-hidden">
         <div className={`overflow-hidden transition-all duration-200 ${collapsed ? "h-0 mb-0" : "h-5 mb-1.5"}`}>
           <span className={`block px-2 text-[10px] font-semibold uppercase tracking-widest text-base-content/40 whitespace-nowrap ${textOpacity}`}>
-            Features
+            Workspace
           </span>
         </div>
         <nav className="flex flex-col gap-0.5">
-          {navItems.map((item) => {
-            const isActive = pathname.startsWith(item.href);
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-2.5 rounded-lg px-3 py-2 whitespace-nowrap transition-colors ${
-                  isActive
-                    ? "bg-primary/10 text-primary font-semibold"
-                    : "text-base-content/50 hover:bg-base-200 hover:text-base-content/70"
-                }`}
-              >
-                <Icon className="h-[18px] w-[18px] flex-shrink-0" />
-                <span className={`text-[13px] ${textOpacity}`}>{item.label}</span>
-              </Link>
-            );
-          })}
+          {renderBoardLink()}
+          {renderPlanLink()}
         </nav>
       </div>
 

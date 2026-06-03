@@ -332,3 +332,32 @@ body {
 }
 .screen-btn:hover { background: var(--m-surface); }
 .screen-btn.active { background: var(--m-blue-a10); color: var(--m-blue); border-color: var(--m-blue); }
+
+/* ── Disabled sidebar item (no-plan state) ── */
+.sidebar-item.disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+.sidebar-item-wrap { position: relative; }
+.sidebar-item-wrap.is-disabled { cursor: not-allowed; }
+.sidebar-item-wrap.is-disabled .sidebar-item { pointer-events: none; }
+.sidebar-item-wrap .sidebar-tooltip {
+  display: none; position: absolute; left: calc(100% + 8px); top: 50%; transform: translateY(-50%);
+  z-index: 100; white-space: nowrap;
+  background: var(--m-surface-raised); border: 1px solid var(--m-border);
+  color: var(--m-text-secondary); font-size: 12px; font-weight: 500;
+  padding: 6px 10px; border-radius: 8px;
+  box-shadow: 0 4px 16px var(--m-shadow);
+}
+.sidebar-item-wrap.is-disabled:hover .sidebar-tooltip { display: block; }
+
+/* ── Nudge badge ("Start" / "New") ── */
+.sidebar-nudge {
+  font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+  background: linear-gradient(135deg, var(--m-blue), var(--m-blue-light));
+  color: #fff; padding: 2px 7px; border-radius: 999px; margin-left: auto;
+}
+
+/* ── Coming soon indicator ── */
+.sidebar-item.coming-soon { opacity: 0.3; cursor: default; }
+.coming-soon-tag {
+  font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--m-text-muted); margin-left: auto;
+}

@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import { getWeekDateRange } from "@/features/kanban/utils/dateUtils";
 
 interface BoardHeaderProps {
@@ -7,11 +5,11 @@ interface BoardHeaderProps {
   planId: string;
 }
 
-export default function BoardHeader({ periodKey, planId }: BoardHeaderProps) {
+export default function BoardHeader({ periodKey }: BoardHeaderProps) {
   const dateRange = getWeekDateRange(periodKey);
 
   return (
-    <div className="flex items-center justify-between px-4 py-2 md:py-3 border-b border-base-content/10">
+    <div className="flex items-center px-4 py-2 md:py-3 border-b border-base-content/10">
       <div className="flex items-center justify-between flex-1 md:flex-initial md:justify-start gap-3">
         <h1 className="text-lg md:text-xl font-bold">
           <span className="text-primary md:text-success">Kanban</span> Planner
@@ -20,11 +18,6 @@ export default function BoardHeader({ periodKey, planId }: BoardHeaderProps) {
           {dateRange}
         </span>
       </div>
-
-      <Link href={`/kanban/plans/${planId}`} className="hidden md:inline-flex btn btn-ghost btn-sm text-sm gap-1 border border-base-content/15">
-        <PencilSquareIcon className="w-4 h-4" />
-        Edit Plan
-      </Link>
     </div>
   );
 }

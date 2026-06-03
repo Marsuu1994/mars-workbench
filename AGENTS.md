@@ -104,6 +104,7 @@ Mockups are the source of truth for UI, but implementation may introduce details
 
 ## Coding Conventions
 
+- New entries must be appended at the end of this section, never inserted in the middle. Include concrete bad/good examples.
 - Extract shared helpers to feature `utils/` folders; do not duplicate logic.
 - Always use enum constants (for example `TaskType.WEEKLY`), not raw strings.
 - Prefer `switch/case/default` for enum branching.
@@ -115,7 +116,7 @@ Mockups are the source of truth for UI, but implementation may introduce details
 - Use targeted DAL queries or DB aggregates for high-cardinality or known hotspots.
 - For ACID-critical multi-step writes, use `prisma.$transaction()` with `tx?: Prisma.TransactionClient` in DAL writes.
 - Keep file names aligned with component names when renaming.
-- New conventions added to this file should include concrete bad/good examples.
+- Extract conditional/complex JSX into named render functions (e.g. `renderBoardLink()`) within the component to keep the return statement scannable. Reserve sub-components for reusable pieces; use render functions for one-off blocks that need access to component scope.
 
 ## Code Style
 
