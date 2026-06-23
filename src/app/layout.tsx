@@ -60,7 +60,7 @@ export default async function RootLayout({
       }
     : null;
 
-  const activePlan = user ? await getActivePlan() : null;
+  const activePlan = user ? await getActivePlan(user.id) : null;
 
   return (
     <html lang="en" data-theme="mars-dark" suppressHydrationWarning>

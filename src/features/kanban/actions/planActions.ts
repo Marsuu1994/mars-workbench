@@ -4,12 +4,14 @@ import { revalidatePath } from "next/cache";
 import { createPlanSchema, updatePlanSchema } from "../schemas";
 import { createPlan, updatePlan } from "../services/planService";
 import { countIncompleteTasksByTemplateId } from "@/lib/db/tasks";
+import { getCurrentUserId } from "@/lib/auth/getCurrentUserId";
 
 export async function createPlanAction(input: unknown) {
   const parsed = createPlanSchema.safeParse(input);
   if (!parsed.success) return { error: parsed.error.flatten() };
 
-  const result = await createPlan(parsed.data);
+  const userId = await getCurrentUserId();
+  const result = await createPlan(userId, parsed.data);
   if ("error" in result) return result;
 
   revalidatePath("/kanban");
@@ -20,7 +22,9 @@ export async function updatePlanAction(planId: string, input: unknown) {
   const parsed = updatePlanSchema.safeParse(input);
   if (!parsed.success) return { error: parsed.error.flatten() };
 
-  await updatePlan(planId, parsed.data);
+  const userId = await getCurrentUserId();
+  const result = await updatePlan(userId, planId, parsed.data);
+  if (result?.error) return result;
 
   revalidatePath("/kanban");
   return { data: { success: true } };
@@ -30,7 +34,8 @@ export async function countIncompleteByTemplateAction(
   planId: string,
   templateIds: string[]
 ): Promise<Record<string, number>> {
-  const map = await countIncompleteTasksByTemplateId(planId, templateIds);
+  const userId = await getCurrentUserId();
+  const map = await countIncompleteTasksByTemplateId(userId, planId, templateIds);
   return Object.fromEntries(map);
 }
 

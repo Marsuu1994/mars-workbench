@@ -3,6 +3,7 @@ import { getPlanWithTemplates } from "@/lib/db/plans";
 import { getTaskTemplates } from "@/lib/db/taskTemplates";
 import { getNonDoneAdhocTasks } from "@/lib/db/tasks";
 import PlanForm from "@/features/kanban/components/PlanForm";
+import { getCurrentUserId } from "@/lib/auth/getCurrentUserId";
 
 export default async function EditPlanPage({
   params,
@@ -10,11 +11,12 @@ export default async function EditPlanPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const userId = await getCurrentUserId();
 
   const [plan, templates, adhocTasks] = await Promise.all([
-    getPlanWithTemplates(id),
-    getTaskTemplates(),
-    getNonDoneAdhocTasks(),
+    getPlanWithTemplates(userId, id),
+    getTaskTemplates(userId),
+    getNonDoneAdhocTasks(userId),
   ]);
 
   if (!plan) {

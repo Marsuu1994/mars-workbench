@@ -36,9 +36,9 @@ export type BoardData = {
  * Run daily sync for a plan: expire stale tasks and generate today's daily tasks.
  * Standalone and reusable (e.g., by a future cron job).
  */
-export async function runDailySync(planId: string, today: Date): Promise<void> {
+export async function runDailySync(userId: string, planId: string, today: Date): Promise<void> {
   // Read before transaction — template data doesn't change during sync
-  const planWithTemplates = await getPlanWithTemplates(planId);
+  const planWithTemplates = await getPlanWithTemplates(userId, planId);
   if (!planWithTemplates) return;
 
   const skipDailyGeneration =
@@ -52,6 +52,7 @@ export async function runDailySync(planId: string, today: Date): Promise<void> {
 
       for (let i = 0; i < pt.frequency; i++) {
         dailyTaskData.push({
+          userId,
           planId,
           templateId: pt.template.id,
           type: TaskType.DAILY,
@@ -72,8 +73,8 @@ export async function runDailySync(planId: string, today: Date): Promise<void> {
   const yesterday = getYesterdayDate();
 
   await prisma.$transaction(async (tx) => {
-    await updateLastSyncDate(planId, today, tx);
-    await expireStaleDailyTasks(planId, yesterday, tx);
+    await updateLastSyncDate(userId, planId, today, tx);
+    await expireStaleDailyTasks(userId, planId, yesterday, tx);
     if (dailyTaskData.length > 0) {
       await createManyTasks(dailyTaskData, tx);
     }
@@ -84,10 +85,10 @@ export async function runDailySync(planId: string, today: Date): Promise<void> {
  * Run end-of-period sync: expire all undone tasks and move plan to PENDING_UPDATE.
  * Standalone and reusable (e.g., by a future cron job).
  */
-export async function runEndOfPeriodSync(planId: string): Promise<void> {
+export async function runEndOfPeriodSync(userId: string, planId: string): Promise<void> {
   await prisma.$transaction(async (tx) => {
-    await expireAllNonDoneTasks(planId, tx);
-    await updatePlanStatus(planId, PlanStatus.PENDING_UPDATE, tx);
+    await expireAllNonDoneTasks(userId, planId, tx);
+    await updatePlanStatus(userId, planId, PlanStatus.PENDING_UPDATE, tx);
   });
 }
 
@@ -95,15 +96,15 @@ export async function runEndOfPeriodSync(planId: string): Promise<void> {
  * Fetch the board for the kanban page.
  * Checks if period has ended or daily sync is needed before running.
  */
-export async function fetchBoard(): Promise<BoardData | null> {
-  const activePlan = await getActivePlan();
+export async function fetchBoard(userId: string): Promise<BoardData | null> {
+  const activePlan = await getActivePlan(userId);
   if (!activePlan) return null;
 
   const today = getTodayDate();
 
   // Check if the plan's period has ended (new week started)
   if (getISOWeekKey(today) !== activePlan.periodKey) {
-    await runEndOfPeriodSync(activePlan.id);
+    await runEndOfPeriodSync(userId, activePlan.id);
     return null;
   }
 
@@ -113,19 +114,19 @@ export async function fetchBoard(): Promise<BoardData | null> {
     activePlan.lastSyncDate.getTime() !== today.getTime();
 
   if (needsSync) {
-    await runDailySync(activePlan.id, today);
+    await runDailySync(userId, activePlan.id, today);
   }
 
   // Fetch plan with templates for board display
-  const planWithTemplates = await getPlanWithTemplates(activePlan.id);
+  const planWithTemplates = await getPlanWithTemplates(userId, activePlan.id);
   if (!planWithTemplates) return null;
 
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
 
   const [boardTasks, boardMetrics] = await Promise.all([
-    getBoardTasksByPlanId(activePlan.id),
-    getBoardMetricsByPlanId(activePlan.id, today, tomorrow),
+    getBoardTasksByPlanId(userId, activePlan.id),
+    getBoardMetricsByPlanId(userId, activePlan.id, today, tomorrow),
   ]);
 
   // — Today metrics —

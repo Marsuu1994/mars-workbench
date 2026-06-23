@@ -80,7 +80,7 @@ enum TaskSize {
 
 model Plan {
   id          String         @id @default(uuid()) @db.Uuid
-  userId      String?        @map("user_id") @db.Uuid
+  userId      String         @map("user_id") @db.Uuid
   periodType  PeriodType     @map("period_type")
   periodKey   String         @map("period_key")
   description String?
@@ -99,7 +99,7 @@ model Plan {
 
 model TaskTemplate {
   id          String   @id @default(uuid()) @db.Uuid
-  userId      String?  @map("user_id") @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
   title       String
   description String
   size        TaskSize
@@ -132,6 +132,7 @@ model PlanTemplate {
 
 model Task {
   id            String      @id @default(uuid()) @db.Uuid
+  userId        String      @map("user_id") @db.Uuid
   planId        String?     @map("plan_id") @db.Uuid
   templateId    String?     @map("template_id") @db.Uuid
   type          TaskType
@@ -152,6 +153,7 @@ model Task {
 
   @@unique([planId, templateId, forDate, instanceIndex], name: "uq_task_daily")
   @@unique([planId, templateId, periodKey, instanceIndex], name: "uq_task_weekly")
+  @@index([userId, status], name: "idx_tasks_user_id_status")
   @@index([planId, status], name: "idx_tasks_plan_id_status")
   @@index([planId, forDate], name: "idx_tasks_plan_id_for_date")
   @@index([planId, createdAt, id], name: "idx_tasks_plan_id_created_at_id")

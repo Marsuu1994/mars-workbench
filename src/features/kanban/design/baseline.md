@@ -106,7 +106,7 @@ enum PlanStatus {
 }
 
 // Constraints:
-// - userId references User (not implemented yet)
+// - userId references auth.users (Supabase Auth)
 // - At most one ACTIVE or PENDING_UPDATE plan per user
 // One Plan can have multiple chats (creation, future edits)
 ```
@@ -138,7 +138,7 @@ enum TaskSize {
 // Points are always derived from size via this mapping at task creation time.
 
 // Constraints:
-// - userId references User (not implemented yet)
+// - userId references auth.users (Supabase Auth)
 ```
 
 ### PlanTemplate (join table)
@@ -171,6 +171,7 @@ enum TaskType {
 ```prisma
 model Task {
   id            String       @id @default(uuid())
+  userId        String       // Owner. Denormalized onto Task so ad-hoc tasks (planId = null) remain user-scoped without a plan to join through.
   planId        String? 		 // Optional for Ad-hoc tasks
   templateId    String? 		 // Optional for Ad-hoc tasks
   title         String
@@ -198,6 +199,8 @@ enum TaskStatus {
 }
 
 // Constraints:
+// - userId references auth.users (Supabase Auth)
+// - INDEX(userId, status) — idx_tasks_user_id_status
 // - Daily tasks: UNIQUE(planId, templateId, forDate, instanceIndex)
 // - Weekly tasks: UNIQUE(planId, templateId, periodKey, instanceIndex)
 // - DAILY and WEEKLY tasks: planId is required (NOT NULL)

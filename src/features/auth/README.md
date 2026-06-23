@@ -10,14 +10,19 @@ Supabase Auth with Google OAuth, route protection, themed login page, and collap
 
 ### High Priority
 - [ ] Add signout prompt modal 
-- [ ] Add userId to existing features (kanban, chat)
 - [ ] Persist sidebar collapse state across page refreshes (localStorage with SSR hydration)
 
 ### Future
 - [ ] User profile/settings page
+- [ ] Postgres Row-Level Security (RLS) policies (`using (user_id = auth.uid())`) as DB-level defense-in-depth beneath the app-layer userId scoping. Needs Prisma↔Supabase JWT plumbing (per-request `SET` of claims, or a JWT-aware connection role).
 
 
 ## Update Log
+
+### 2026-06-22
+- Enabled real per-user data isolation for kanban. Added `getCurrentUserId()` helper (`src/lib/auth/getCurrentUserId.ts`) and threaded `userId` through the kanban DAL/services/actions/pages; reads filter by `userId`, creates stamp it, and id-based writes enforce ownership via `updateMany`/`updateManyAndReturn` on `{ id, userId }`
+- Added `user_id` to `tasks` (migration `20260622060000`), backfilled all existing rows under the single user, cleared the deprecated `chats`/`messages` tables, then enforced `user_id NOT NULL` on `plans`/`task_templates`/`tasks` (migration `20260622070000`)
+- Closed the orphaned ad-hoc task gap: `getNonDoneAdhocTasks` is now user-scoped, so unlinked (`plan_id = null`) tasks stay isolated per user
 
 ### 2026-06-03
 - Redesigned sidebar from feature-level nav (Chat/Kanban) to workspace nav (Board/Plan) with disabled state and nudge badge
@@ -46,6 +51,7 @@ Supabase Auth with Google OAuth, route protection, themed login page, and collap
 - Scaffolded auth feature: folder structure, design doc templates, README
 
 ## Done
+- [x] Add userId to existing features (kanban) — per-user scoping + `user_id NOT NULL` enforcement
 - [x] Workspace sidebar redesign (Board/Plan nav with disabled state and nudge badge)
 - [x] Light/dark theme toggle on login and sidebar mockups
 - [x] Create feature scaffold and design doc templates

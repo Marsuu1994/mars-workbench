@@ -56,3 +56,6 @@ Thumbs.db
 
 # Prisma generated client
 src/generated/prisma
+
+# One-time DB scripts (may contain PII / destructive ops — never commit)
+/scripts/one-time/

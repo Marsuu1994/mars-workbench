@@ -326,21 +326,40 @@ Steps:
 
 All Prisma queries live in `src/lib/db/`. Never import Prisma directly in actions or components.
 
+### User scoping
+
+Every owned read/write takes `userId` as its first argument and ANDs it into the
+`where` (reads/ownership) or `data` (creates). `userId` is resolved only at the
+entry boundary — actions and Server Component pages call
+`getCurrentUserId()` (`src/lib/auth/getCurrentUserId.ts`, redirects to
+`/auth/login` when unauthenticated) and pass it down; services and the DAL stay
+auth-agnostic.
+
+- **ID-based mutations** can't put a non-unique `userId` into a `update`/`findUnique`
+  `where`, so they use `updateMany`/`updateManyAndReturn` filtered by `{ id, userId }`.
+  A `count === 0` (or empty return) means not-found-or-not-owned → surfaced as an error.
+  `updateTaskStatus` uses `updateManyAndReturn` (`UPDATE … WHERE … RETURNING`) to enforce
+  ownership and return the row in one round trip.
+- **`plan_templates`** has no `user_id`; it is scoped transitively — the service verifies
+  parent-plan ownership (`getPlanWithTemplates(userId, planId)`) before mutating its links.
+- The `tasks` raw-SQL metrics query also filters `user_id` as defense-in-depth.
+
 ### plans.ts
 
 ```
-getActivePlan()                                            // active plan for current user
-getPlanByStatus(status)                                    // find plan by status
-getPlanWithTemplates(planId)                                // plan + planTemplates with nested template data
-createPlan(data, tx?)                                      // create with ACTIVE status
-updatePlan(planId, data: { description?, mode? }, tx?)      // update plan fields
-updatePlanStatus(planId, status, tx?)                       // transition plan status
-updateLastSyncDate(planId, date, tx?)                       // set lastSyncDate
+getActivePlan(userId)                                              // active plan for the user
+getPlanByStatus(userId, status)                                    // find user's plan by status
+getPlanWithTemplates(userId, planId)                               // owned plan + planTemplates; null = not found/owned (ownership gate)
+createPlan(userId, data, tx?)                                      // create with ACTIVE status
+updatePlan(userId, planId, data: { description?, mode? }, tx?)      // → { count }; owner-scoped via updateMany
+updatePlanStatus(userId, planId, status, tx?)                       // → { count }; transition plan status
+updateLastSyncDate(userId, planId, date, tx?)                       // set lastSyncDate (owner-scoped)
 ```
 
 ### planTemplates.ts
 
 ```
+// No user_id column — callers must verify parent-plan ownership first.
 getPlanTemplatesByPlanId(planId)                            // all plan-template links for a plan
 createManyPlanTemplates(planId, templates[], tx?)           // bulk link templates with type + frequency
 updatePlanTemplate(id, data: { type, frequency }, tx?)      // update a single link
@@ -350,43 +369,43 @@ deletePlanTemplatesByPlanId(planId, tx?)                    // bulk delete all l
 ### taskTemplates.ts
 
 ```
-getTaskTemplates()                                         // all non-archived templates
-getTaskTemplateById(id)                                    // single template by ID
-createTaskTemplate(data: { title, description, size })      // create new template
-updateTaskTemplate(id, data: { title?, description?, size? })    // update template fields
+getTaskTemplates(userId)                                          // user's non-archived templates
+getTaskTemplateById(userId, id)                                   // single owned template by ID
+createTaskTemplate(userId, data: { title, description, size })     // create new template
+updateTaskTemplate(userId, id, data: { title?, description?, size? })  // → { count }; owner-scoped via updateMany
 ```
 
 ### tasks.ts
 
 ```
 // Board queries
-getBoardTasksByPlanId(planId)                               // non-EXPIRED tasks for UI rendering
-getBoardMetricsByPlanId(planId, todayStart, tomorrowStart)  // single raw SQL aggregate for all board metrics
+getBoardTasksByPlanId(userId, planId)                               // non-EXPIRED tasks for UI rendering
+getBoardMetricsByPlanId(userId, planId, todayStart, tomorrowStart)  // single raw SQL aggregate; filters user_id + plan_id
 
 // General queries
-getTasksByPlanId(planId)                                    // ALL statuses; Task.type included
-getTasksByPlanIdAndStatus(planId, statuses[])               // filtered by status list
-getDailyTasksForDate(planId, templateId, forDate)           // idempotency check for daily sync
-taskExists(taskId)                                          // existence check
-getNonDoneAdhocTasks()                                      // all non-DONE AD_HOC tasks (any planId)
+getTasksByPlanId(userId, planId)                                    // ALL statuses; Task.type included
+getTasksByPlanIdAndStatus(userId, planId, statuses[])               // filtered by status list
+getDailyTasksForDate(userId, planId, templateId, forDate)           // idempotency check for daily sync
+taskExists(userId, taskId)                                          // owned existence check
+getNonDoneAdhocTasks(userId)                                        // user's non-DONE AD_HOC tasks (incl. planId = null)
 
 // Mutations
-createTask(data: { ..., size, points })                    // single task instance; points derived from size via SIZE_TO_POINTS
-createManyTasks(data: { ..., size, points }[], tx?)        // batch create with skipDuplicates; points derived from size
-updateTaskStatus(taskId, status)                            // auto-sets/clears doneAt
+createTask(userId, data: { ..., size, points })                    // single task instance; points derived from size via SIZE_TO_POINTS
+createManyTasks(data: { userId, ..., size, points }[], tx?)        // batch create with skipDuplicates; each element carries userId
+updateTaskStatus(userId, taskId, status)                            // → TaskItem | null; updateManyAndReturn, auto-sets/clears doneAt
 
 // Expiry
-expireStaleDailyTasks(planId, cutoffDate, tx?)              // DAILY tasks where forDate < cutoffDate → EXPIRED
-expireAllNonDoneTasks(planId, tx?)                          // all non-DONE, non-AD_HOC → EXPIRED (end of period)
+expireStaleDailyTasks(userId, planId, cutoffDate, tx?)             // DAILY tasks where forDate < cutoffDate → EXPIRED
+expireAllNonDoneTasks(userId, planId, tx?)                         // all non-DONE, non-AD_HOC → EXPIRED (end of period)
 
 // Plan editing
-deleteIncompleteTasksByTemplateIds(planId, templateIds[], tx?)  // delete TODO/DOING tasks for templates
-countIncompleteTasksByTemplateId(planId, templateIds[])         // per-template TODO/DOING count (grouped)
-countTasksByTemplateIds(planId, templateIds[])                  // total removable count
+deleteIncompleteTasksByTemplateIds(userId, planId, templateIds[], tx?)  // delete TODO/DOING tasks for templates
+countIncompleteTasksByTemplateId(userId, planId, templateIds[])         // per-template TODO/DOING count (grouped)
+countTasksByTemplateIds(userId, planId, templateIds[])                  // total removable count
 
 // Ad-hoc task linking
-updateTasksPlanId(taskIds[], planId, tx?)                   // batch link to plan
-unlinkAdhocTasksFromPlan(planId, keepIds[], tx?)            // unlink AD_HOC tasks not in keepIds
+updateTasksPlanId(userId, taskIds[], planId, tx?)                  // batch link to plan (owner-scoped)
+unlinkAdhocTasksFromPlan(userId, planId, keepIds[], tx?)           // unlink AD_HOC tasks not in keepIds
 ```
 
 ### chatQueries.ts (Planned)

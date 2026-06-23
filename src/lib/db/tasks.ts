@@ -51,22 +51,23 @@ const taskSelect = {
 } as const;
 
 /**
- * Get all tasks for a plan ordered by creation time
+ * Get all of a user's tasks for a plan ordered by creation time
  */
-export async function getTasksByPlanId(planId: string): Promise<TaskItem[]> {
+export async function getTasksByPlanId(userId: string, planId: string): Promise<TaskItem[]> {
   return prisma.task.findMany({
-    where: { planId },
+    where: { userId, planId },
     orderBy: [{ createdAt: "asc" }, { id: "asc" }],
     select: taskSelect,
   });
 }
 
 /**
- * Get all board-visible tasks for a plan (excludes EXPIRED)
+ * Get all board-visible tasks for a user's plan (excludes EXPIRED)
  */
-export async function getBoardTasksByPlanId(planId: string): Promise<TaskItem[]> {
+export async function getBoardTasksByPlanId(userId: string, planId: string): Promise<TaskItem[]> {
   return prisma.task.findMany({
     where: {
+      userId,
       planId,
       status: { not: TaskStatus.EXPIRED },
     },
@@ -119,6 +120,7 @@ function toLocalDateKey(date: Date): string {
  * Fetch all board-level metrics in one aggregate query for a plan.
  */
 export async function getBoardMetricsByPlanId(
+  userId: string,
   planId: string,
   todayStart: Date,
   tomorrowStart: Date
@@ -147,6 +149,7 @@ export async function getBoardMetricsByPlanId(
       COALESCE(SUM(points) FILTER (WHERE type = 'AD_HOC'), 0) AS "adhocPoints"
     FROM tasks
     WHERE plan_id = ${planId}::uuid
+      AND user_id = ${userId}::uuid
   `;
 
   const row = rows[0];
@@ -170,11 +173,12 @@ export async function getBoardMetricsByPlanId(
  * Get tasks for a plan filtered by statuses
  */
 export async function getTasksByPlanIdAndStatus(
+  userId: string,
   planId: string,
   statuses: TaskStatus[]
 ): Promise<TaskItem[]> {
   return prisma.task.findMany({
-    where: { planId, status: { in: statuses } },
+    where: { userId, planId, status: { in: statuses } },
     orderBy: [{ createdAt: "asc" }, { id: "asc" }],
     select: taskSelect,
   });
@@ -183,21 +187,24 @@ export async function getTasksByPlanIdAndStatus(
 /**
  * Create a single task instance
  */
-export async function createTask(data: {
-  planId: string;
-  templateId?: string;
-  type: TaskType;
-  title: string;
-  description?: string;
-  size: TaskSize;
-  points: number;
-  status: TaskStatus;
-  forDate?: Date;
-  periodKey?: string;
-  instanceIndex: number;
-}): Promise<TaskItem> {
+export async function createTask(
+  userId: string,
+  data: {
+    planId: string;
+    templateId?: string;
+    type: TaskType;
+    title: string;
+    description?: string;
+    size: TaskSize;
+    points: number;
+    status: TaskStatus;
+    forDate?: Date;
+    periodKey?: string;
+    instanceIndex: number;
+  }
+): Promise<TaskItem> {
   return prisma.task.create({
-    data,
+    data: { ...data, userId },
     select: taskSelect,
   });
 }
@@ -207,6 +214,7 @@ export async function createTask(data: {
  */
 export async function createManyTasks(
   data: {
+    userId: string;
     planId: string;
     templateId?: string;
     type: TaskType;
@@ -229,20 +237,25 @@ export async function createManyTasks(
 }
 
 /**
- * Update a task's status; automatically sets doneAt when moving to DONE
+ * Update a task's status, scoped to the owner; automatically sets doneAt when
+ * moving to DONE. Uses updateManyAndReturn (UPDATE ... WHERE ... RETURNING) so
+ * ownership is enforced and the updated row is returned in a single round trip.
+ * Returns null when the task does not exist or is not owned by the user.
  */
 export async function updateTaskStatus(
+  userId: string,
   taskId: string,
   status: TaskStatus
-): Promise<TaskItem> {
-  return prisma.task.update({
-    where: { id: taskId },
+): Promise<TaskItem | null> {
+  const [task] = await prisma.task.updateManyAndReturn({
+    where: { id: taskId, userId },
     data: {
       status,
       doneAt: status === "DONE" ? new Date() : null,
     },
     select: taskSelect,
   });
+  return task ?? null;
 }
 
 /**
@@ -251,6 +264,7 @@ export async function updateTaskStatus(
  * Caller passes yesterday to implement the 1-day rollover buffer.
  */
 export async function expireStaleDailyTasks(
+  userId: string,
   planId: string,
   cutoffDate: Date,
   tx?: Prisma.TransactionClient
@@ -258,6 +272,7 @@ export async function expireStaleDailyTasks(
   const db = tx ?? prisma;
   return db.task.updateMany({
     where: {
+      userId,
       planId,
       forDate: { lt: cutoffDate },
       status: { not: "DONE" },
@@ -270,12 +285,14 @@ export async function expireStaleDailyTasks(
  * Expire all non-done, non-ad-hoc tasks for a plan (end-of-period cleanup)
  */
 export async function expireAllNonDoneTasks(
+  userId: string,
   planId: string,
   tx?: Prisma.TransactionClient
 ): Promise<{ count: number }> {
   const db = tx ?? prisma;
   return db.task.updateMany({
     where: {
+      userId,
       planId,
       status: { not: "DONE" },
       type: { not: TaskType.AD_HOC },
@@ -288,22 +305,23 @@ export async function expireAllNonDoneTasks(
  * Get daily tasks for a specific date (idempotency check)
  */
 export async function getDailyTasksForDate(
+  userId: string,
   planId: string,
   templateId: string,
   forDate: Date
 ): Promise<TaskItem[]> {
   return prisma.task.findMany({
-    where: { planId, templateId, forDate },
+    where: { userId, planId, templateId, forDate },
     select: taskSelect,
   });
 }
 
 /**
- * Check if a task exists
+ * Check if a task exists and is owned by the user
  */
-export async function taskExists(taskId: string): Promise<boolean> {
-  const task = await prisma.task.findUnique({
-    where: { id: taskId },
+export async function taskExists(userId: string, taskId: string): Promise<boolean> {
+  const task = await prisma.task.findFirst({
+    where: { id: taskId, userId },
     select: { id: true },
   });
   return task !== null;
@@ -313,6 +331,7 @@ export async function taskExists(taskId: string): Promise<boolean> {
  * Delete incomplete tasks (TODO, DOING) for specific templates in a plan
  */
 export async function deleteIncompleteTasksByTemplateIds(
+  userId: string,
   planId: string,
   templateIds: string[],
   tx?: Prisma.TransactionClient
@@ -320,6 +339,7 @@ export async function deleteIncompleteTasksByTemplateIds(
   const db = tx ?? prisma;
   return db.task.deleteMany({
     where: {
+      userId,
       planId,
       templateId: { in: templateIds },
       status: { in: ["TODO", "DOING"] },
@@ -331,11 +351,13 @@ export async function deleteIncompleteTasksByTemplateIds(
  * Count incomplete (removable) tasks for specific templates (total)
  */
 export async function countTasksByTemplateIds(
+  userId: string,
   planId: string,
   templateIds: string[]
 ): Promise<{ removeCount: number }> {
   const removeCount = await prisma.task.count({
     where: {
+      userId,
       planId,
       templateId: { in: templateIds },
       status: { in: ["TODO", "DOING"] },
@@ -349,6 +371,7 @@ export async function countTasksByTemplateIds(
  * Returns a Map from templateId → count of TODO/DOING tasks.
  */
 export async function countIncompleteTasksByTemplateId(
+  userId: string,
   planId: string,
   templateIds: string[]
 ): Promise<Map<string, number>> {
@@ -356,6 +379,7 @@ export async function countIncompleteTasksByTemplateId(
   const counts = await prisma.task.groupBy({
     by: ["templateId"],
     where: {
+      userId,
       planId,
       templateId: { in: templateIds },
       status: { in: ["TODO", "DOING"] },
@@ -368,21 +392,23 @@ export async function countIncompleteTasksByTemplateId(
 }
 
 /**
- * Get all non-DONE AD_HOC tasks (any planId).
- * Filter in-memory for plan-specific needs.
+ * Get all of a user's non-DONE AD_HOC tasks (any planId, including unlinked
+ * ones with planId = null). Filter in-memory for plan-specific needs.
  */
-export async function getNonDoneAdhocTasks(): Promise<TaskItem[]> {
+export async function getNonDoneAdhocTasks(userId: string): Promise<TaskItem[]> {
   return prisma.task.findMany({
-    where: { type: TaskType.AD_HOC, status: { not: TaskStatus.DONE } },
+    where: { userId, type: TaskType.AD_HOC, status: { not: TaskStatus.DONE } },
     orderBy: [{ createdAt: "asc" }, { id: "asc" }],
     select: taskSelect,
   });
 }
 
 /**
- * Batch update planId for specified tasks (link ad-hoc tasks to a plan)
+ * Batch update planId for specified tasks (link ad-hoc tasks to a plan).
+ * Scoped to the owner so foreign task ids are silently ignored.
  */
 export async function updateTasksPlanId(
+  userId: string,
   taskIds: string[],
   planId: string,
   tx?: Prisma.TransactionClient
@@ -390,7 +416,7 @@ export async function updateTasksPlanId(
   if (taskIds.length === 0) return { count: 0 };
   const db = tx ?? prisma;
   return db.task.updateMany({
-    where: { id: { in: taskIds } },
+    where: { userId, id: { in: taskIds } },
     data: { planId },
   });
 }
@@ -400,6 +426,7 @@ export async function updateTasksPlanId(
  * on the given plan whose id is NOT in keepIds.
  */
 export async function unlinkAdhocTasksFromPlan(
+  userId: string,
   planId: string,
   keepIds: string[],
   tx?: Prisma.TransactionClient
@@ -407,6 +434,7 @@ export async function unlinkAdhocTasksFromPlan(
   const db = tx ?? prisma;
   return db.task.updateMany({
     where: {
+      userId,
       planId,
       type: TaskType.AD_HOC,
       id: { notIn: keepIds },
