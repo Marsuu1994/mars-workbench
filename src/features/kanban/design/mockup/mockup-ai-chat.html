@@ -114,12 +114,25 @@
   }
   .msg-followup { font-size: 12px; color: var(--m-text-secondary); margin-top: 12px; }
 
-  /* ── Draft action buttons (below bubble) ── */
-  .draft-actions {
-    display: flex; gap: 8px; margin-top: 8px; margin-left: 38px;
+  /* ── Combined refine input + create bar share one bottom block ── */
+  .ai-input-area.combined { border-bottom: none; padding-bottom: 10px; }
+  .ai-action-bar.create-bar { border-top: 1px dashed var(--m-border); }
+
+  /* ── Plan created success banner ── */
+  .created-banner {
+    padding: 16px 20px; border-top: 1px solid var(--m-border); flex-shrink: 0;
+    background: var(--m-green-accent-bg);
+    display: flex; align-items: center; justify-content: space-between;
   }
-  .draft-actions .btn { padding: 6px 14px; font-size: 12px; }
-  .draft-actions .btn svg { width: 13px; height: 13px; }
+  .created-banner-left { display: flex; align-items: center; gap: 10px; }
+  .created-banner-icon {
+    width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+    background: var(--m-green-accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .created-banner-icon svg { width: 16px; height: 16px; }
+  .created-banner-title { font-size: 13px; font-weight: 600; color: var(--m-text); }
+  .created-banner-sub { font-size: 12px; color: var(--m-text-secondary); }
 
   /* ── Collapsed draft row ── */
   .collapsed-draft {
@@ -185,7 +198,7 @@
   <button class="screen-btn" onclick="show('s3')">Generating</button>
   <button class="screen-btn" onclick="show('s4')">Draft Generated</button>
   <button class="screen-btn" onclick="show('s5')">Rejected + Revised</button>
-  <button class="screen-btn" onclick="show('s6')">Approved</button>
+  <button class="screen-btn" onclick="show('s6')">Plan Created</button>
 </div>
 
 
@@ -446,21 +459,23 @@
             <div class="msg-followup">That's 5 templates totaling ~25 points/day. Want me to adjust difficulty, add more categories, or tweak any of these?</div>
           </div>
         </div>
+      </div>
 
-        <!-- Approve / Reject buttons below the draft -->
-        <div class="draft-actions">
-          <button class="btn btn-primary">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7" stroke-linecap="round"/></svg>
-            Approve Plan
+      <!-- Combined bottom: refine input + persistent create bar -->
+      <div class="ai-input-area combined">
+        <div class="ai-input-row">
+          <textarea placeholder="Refine the plan — or create it below..." rows="1"></textarea>
+          <button class="ai-send-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
         </div>
       </div>
-
-      <div class="ai-input-area">
-        <div class="ai-input-row">
-          <textarea placeholder="Or give specific feedback to refine the plan..." rows="1"></textarea>
-          <button class="ai-send-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      <div class="ai-action-bar create-bar">
+        <div class="ai-action-summary"><span>5</span> templates · <span>4</span> new, <span>1</span> existing</div>
+        <div class="ai-action-buttons">
+          <button class="btn btn-primary" style="padding:8px 16px;font-size:13px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M5 13l4 4L19 7" stroke-linecap="round"/></svg>
+            Approve &amp; Create Plan
           </button>
         </div>
       </div>
@@ -571,21 +586,23 @@
             <div class="msg-followup">Slimmed down to 4 templates. Daily load is now ~5 points. Does this look better, or want me to tweak further?</div>
           </div>
         </div>
+      </div>
 
-        <!-- Approve / Reject buttons below the revised draft -->
-        <div class="draft-actions">
-          <button class="btn btn-primary">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7" stroke-linecap="round"/></svg>
-            Approve Plan
+      <!-- Combined bottom: refine input + persistent create bar -->
+      <div class="ai-input-area combined">
+        <div class="ai-input-row">
+          <textarea placeholder="Refine the plan — or create it below..." rows="1"></textarea>
+          <button class="ai-send-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
         </div>
       </div>
-
-      <div class="ai-input-area">
-        <div class="ai-input-row">
-          <textarea placeholder="Or give specific feedback to refine the plan..." rows="1"></textarea>
-          <button class="ai-send-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      <div class="ai-action-bar create-bar">
+        <div class="ai-action-summary"><span>4</span> templates · <span>2</span> new, <span>2</span> existing</div>
+        <div class="ai-action-buttons">
+          <button class="btn btn-primary" style="padding:8px 16px;font-size:13px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M5 13l4 4L19 7" stroke-linecap="round"/></svg>
+            Approve &amp; Create Plan
           </button>
         </div>
       </div>
@@ -598,7 +615,7 @@
      SCREEN 6 — Approved (Final Action)
      ═══════════════════════════════════════════════════════ -->
 <div id="screen-s6" class="screen-section" style="display:none">
-  <div class="screen-section-label">Screen 6 / Approved — Final Action</div>
+  <div class="screen-section-label">Screen 6 / Plan Created — Success</div>
   <div class="modal-bg">
     <div class="ai-modal">
       <div class="ai-modal-header">
@@ -647,9 +664,9 @@
           <div class="msg-bubble">
             <div class="approved-label">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Approved
+              Created
             </div>
-            <div>Here's the revised plan:</div>
+            <div>Here's the plan I created for you:</div>
 
             <div class="draft-cards">
               <div class="draft-card">
@@ -700,13 +717,21 @@
         </div>
       </div>
 
-      <!-- Action bar -->
-      <div class="ai-action-bar">
-        <div class="ai-action-summary"><span>4</span> templates ready (<span>2</span> new, <span>2</span> existing)</div>
+      <!-- Success banner -->
+      <div class="created-banner">
+        <div class="created-banner-left">
+          <div class="created-banner-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <div class="created-banner-title">Plan created</div>
+            <div class="created-banner-sub">4 templates added &middot; 2 new, 2 existing</div>
+          </div>
+        </div>
         <div class="ai-action-buttons">
           <button class="btn btn-primary" style="padding:8px 16px;font-size:13px">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M5 13l4 4L19 7" stroke-linecap="round"/></svg>
-            Approve &amp; Create Plan
+            View on Board
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </div>
       </div>

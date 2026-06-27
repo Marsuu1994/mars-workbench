@@ -50,7 +50,6 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 - Biweekly and custom period types
 - Priorities page — Full-page Eisenhower priority matrix (Board/Priorities tab switcher) for organizing personal one-off tasks by urgency/importance. Tasks can be promoted to the board via "Track this week". Renames "Ad-hoc" to "Todo" badge, backlog drawer renamed to "Queued" — see `mockup/future-work/mockup-priorities-v2.html`
 - AI-assisted plan editing — Use a new Chat linked to the same plan to suggest modifications via LLM. Separate from creation flow.
-- Per-task completion rate stats for richer AI welcome messages.
 
 ## Entities
 
@@ -232,7 +231,27 @@ model Chat {
 metadata shape for kanban AI chat:
 ```json
 {
-  "lastPlanStats": { "completionRate": 0.85, "totalPoints": 47, ... },
+  "lastPlanStats": {
+    "overall": {
+      "completionRate": 0.75,
+      "completedCount": 12,
+      "totalCount": 16,
+      "totalPoints": 47,
+      "dailyCompletionRate": 0.90
+    },
+    "perTemplate": [
+      {
+        "templateId": "uuid",
+        "title": "Solve 3 LeetCode problems",
+        "type": "DAILY",
+        "completed": 18,
+        "expired": 2,
+        "total": 20,
+        "completionRate": 0.90,
+        "pointsEarned": 54
+      }
+    ]
+  },
   "draftTemplates": [
     {
       "templateId": "uuid" | null,

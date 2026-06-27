@@ -169,7 +169,7 @@ Future projections are then derived in-memory from the plan's current templates.
   - `weeklyPoints` (DB): `SUM(points)` where `type = WEEKLY`.
   - `adhocPoints` (DB): `SUM(points)` where `type = AD_HOC`.
 
-**Daily Avg** — rolling average of points earned per elapsed day.
+  **Daily Avg** — rolling average of points earned per elapsed day.
 - `weekDonePoints / daysElapsed`, where `daysElapsed` = days since the period's Monday (clamped 1–7).
 
 **Week Progress Bar** — percentage of projected task count completed this period.
@@ -253,15 +253,18 @@ Future projections are then derived in-memory from the plan's current templates.
 
 1. **Open AI panel → create Chat**
    - Create a new Chat record linked to the target plan (planId on Chat). If no plan exists yet (new user), planId is null until plan creation.
-   - Fetch simple aggregate stats from the `PENDING_UPDATE` plan (if exists): overall completion rate, total points, plan mode.
-   - Fetch all non-archived task templates for the user.
-   - Persist stats snapshot in `Chat.metadata.lastPlanStats`.
+   - Fetch **per-template performance stats** from the `PENDING_UPDATE` plan (if exists) via `getTemplateStatsAction` (backed by the `getPlanTemplateStats(planId)` DAL query — a single `GROUP BY templateId, status` over `Task`): per template `completed` / `expired` / `total` instances, `completionRate`, `pointsEarned`, and `type`. Roll these up into `overall` aggregates (overall + daily-only completion rate, total points) for the welcome message — overall completion alone is weak signal, so the per-template breakdown is what the LLM uses to decide which templates to keep, ease, or drop.
+   - Fetch all non-archived task templates for the user (reuse list for `templateId` matching — kept **separate** from `perTemplate`, since it includes templates never used in a plan).
+   - Persist the stats snapshot in `Chat.metadata.lastPlanStats` (`{ overall, perTemplate }`). **Decision: yes, persist as a snapshot** — computed once at chat creation and reused by both the static welcome (`overall`) and every `generateDraftPlanAction` prompt (`perTemplate`), avoiding re-aggregation on each iteration. The `PENDING_UPDATE` plan is not mutated during the chat, so the snapshot stays consistent for the whole session.
 
-2. **Generate welcome message** (`getWelcomeMessageAction`)
-   - New user (no PENDING_UPDATE plan): LLM generates a brief welcome explaining how the planner works and prompting the user to describe their goals.
-   - Returning user: LLM generates a friendly summary of last week's performance from stats, then asks about goals for the coming week.
-   - Inject stats + existing templates into the system prompt as context (no tool calling).
-   - Persist as the first assistant Message. No streaming — regular request/response.
+2. **Generate welcome message** (handled by `createAiChatAction` from step 1 — chat creation + static welcome are one action)
+
+   **Update: No LLM for the first message to avoid latency**
+
+   - New user (no PENDING_UPDATE plan): Brief welcome explaining how the planner works and prompting the user to describe their goals.
+   - Returning user: A friendly summary of last week's performance, built by interpolating `lastPlanStats.overall` into a static template (e.g. "You completed 12 of 16 tasks (75%) and earned 47 points. Your daily habits hit 90%."), then asks about goals for the coming week. No LLM.
+   - ~~Inject stats + existing templates into the system prompt as context (no tool calling).~~ 
+   - ~~Persist as the first assistant Message. No streaming — regular request/response.~~
    - **Suggestion chips:** Displayed below the welcome message as quick-start prompts. These are **static hardcoded templates**, not LLM-generated, to avoid extra latency and ensure instant rendering.
      - New user set: `["I'm preparing for tech interviews", "Help me build a fitness routine", "I want to learn a new skill"]`
      - Returning user set: `["Keep the same plan", "Adjust difficulty", "Try something new"]`
@@ -269,12 +272,13 @@ Future projections are then derived in-memory from the plan's current templates.
      - Clicking a chip populates the input field and submits as a user message (step 3).
      - Future: contextual chips derived from stats (e.g., "Focus on low-completion tasks").
 
-3. **User inputs requirements**
+3. **User inputs requirements/from suggestions chip**
+
    - User describes their goals in natural language.
    - Persist as a user Message.
 
 4. **Generate draft plan** (`generateDraftPlanAction`)
-   - Call LLM with structured output (`response_format: json_schema`). System prompt includes: stats from `Chat.metadata.lastPlanStats`, existing task templates, and the last rejected draft from `Chat.metadata.draftTemplates` (if any).
+   - Call LLM with structured output (`response_format: json_schema`). System prompt includes: per-template performance (`lastPlanStats.perTemplate`) so the model keeps high-completion templates and eases/drops abandoned (high `expired`) ones, existing task templates (reuse list), and the last rejected draft from `Chat.metadata.draftTemplates` (if any).
    - LLM returns structured JSON:
 
    ```json
@@ -295,13 +299,13 @@ Future projections are then derived in-memory from the plan's current templates.
    ```
 
    - Persist full structured JSON as assistant Message content with `type = DRAFT_PLAN`.
-   - Overwrite `Chat.metadata.draftTemplates` with the new draft (working clipboard for LLM context + approval).
+   - Overwrite `Chat.metadata.draftTemplates` with the new draft (single-slot working clipboard for LLM revision context + the approval target). **Decision: overwrite, not append** — denied/previous drafts are already persisted as `DRAFT_PLAN` Messages, which is what the UI renders collapsed (see next bullet); metadata holds only the latest draft. Appending would duplicate the Messages data and bloat metadata unboundedly.
    - No streaming — show loading state, render full response at once.
    - UI renders the latest `DRAFT_PLAN` message expanded: plain text → read-only template cards → follow-up text. Prior `DRAFT_PLAN` messages render collapsed with expand toggle.
 
 5. **Iterate or approve**
    - **Reject:** User provides text feedback → persist as user Message → redo step 4. The LLM sees the last rejected draft from `Chat.metadata` + full message history.
-   - **Approve:** User clicks "Approve" → proceed to step 6.
+   - **Approve:** User clicks "Approve & Create Plan" → proceed to step 6.
    - V1: static wizard only. User cannot select/unselect or edit individual cards.
 
 6. **Post-approval: create plan**
@@ -311,7 +315,7 @@ Future projections are then derived in-memory from the plan's current templates.
    - Call existing `createPlanAction` with the resolved templates array.
    - Update `Chat.planId` to the newly created plan (if it was null).
 
-**Error handling:** If the LLM returns an error or unusable output, show an error message in the chat bubble. No retry logic for V1.
+   **Error handling:** If the LLM returns an error or unusable output, show an error message in the chat bubble. No retry logic for V1.
 
 #### LLM Configuration
 
@@ -319,11 +323,10 @@ Future projections are then derived in-memory from the plan's current templates.
 
 All data is fetched server-side and injected into the LLM system prompt as context. No tool calling.
 
-- **Stats from last plan:** Simple aggregates (completion rate, total points) fetched via DAL, stored in `Chat.metadata.lastPlanStats`.
+- **Stats from last plan:** Per-template performance (completed / expired / total, completion rate, points earned, type) fetched via `getTemplateStatsAction` (backed by the `getPlanTemplateStats` DAL query), rolled up to `overall` aggregates. Stored as a snapshot in `Chat.metadata.lastPlanStats` (`{ overall, perTemplate }`). `overall` drives the static welcome; `perTemplate` is the LLM's signal for which templates to keep, ease, or drop.
 - **Existing task templates:** All non-archived templates for the user, so LLM can reuse existing ones (returning `templateId`) or suggest new ones (`templateId: null`).
 - **Last rejected draft:** `Chat.metadata.draftTemplates` included as "your previous proposal" context for revision accuracy.
 
 #### LLM Calls
 
-- `getWelcomeMessageAction`: Generates the first assistant message. Input: stats + templates. Output: plain text welcome message.
 - `generateDraftPlanAction`: Generates a draft plan. Input: user message + stats + templates + last draft. Output: structured JSON (`message`, `draftTemplates`, `followUp`). Called multiple times during iteration.

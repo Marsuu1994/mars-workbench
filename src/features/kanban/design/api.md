@@ -272,24 +272,45 @@ Used by the edit plan UI to preview how many tasks will be removed per template 
 
 ## AI Chat (Planned)
 
-### `getWelcomeMessageAction(input)`
+### `getTemplateStatsAction(input)`
+
+```
+Input {
+  planId:  string    // PENDING_UPDATE plan ID
+}
+
+Standalone action wrapping the getPlanTemplateStats DAL query. Also reused by the
+chat-creation flow below. Exposed as an action so the UI can consume per-template
+stats directly (e.g. future "Focus on low-completion tasks" contextual chips).
+
+Steps:
+1. Validate input with Zod
+2. Call getPlanTemplateStats(planId) DAL query
+3. Roll up perTemplate rows into overall aggregates (overall + daily-only completion
+   rate, total points, completed/total counts)
+4. Return { overall, perTemplate }
+```
+
+---
+
+### `createAiChatAction(input)` — welcome (no LLM)
 
 ```
 Input {
   planId?:  string    // PENDING_UPDATE plan ID (null for new users)
 }
 
+The first message is STATIC (no LLM) to avoid initial loading latency.
+
 Steps:
-1. Fetch simple aggregate stats from PENDING_UPDATE plan via getSimplePlanStats (if planId provided)
-2. Fetch all non-archived task templates for user via getTaskTemplates
-3. Create Chat record linked to planId (or planId = null for new users)
-4. Persist stats in Chat.metadata.lastPlanStats
-5. Build system prompt with stats + templates context
-6. Call LLM (plain text output, no structured format):
-   - New user: generate welcome message explaining the planner
-   - Returning user: generate friendly summary of last week's performance
-7. Persist LLM response as first assistant Message
-8. Return { chatId, message }
+1. If planId provided: fetch stats via getTemplateStatsAction → { overall, perTemplate }
+2. Create Chat record linked to planId (or planId = null for new users)
+3. Persist snapshot in Chat.metadata.lastPlanStats = { overall, perTemplate }
+4. Build the first assistant message from a STATIC template (no LLM):
+   - New user: fixed welcome explaining the planner
+   - Returning user: interpolate lastPlanStats.overall into a static summary template
+5. Persist the static message as the first assistant Message (type = TEXT)
+6. Return { chatId, message, suggestionChips }   // chips are static, chosen by new vs returning
 ```
 
 ---
@@ -309,14 +330,16 @@ Steps:
 4. Fetch message history for the chat
 5. Fetch all non-archived task templates for user
 6. Build system prompt:
-   - Include lastPlanStats from Chat.metadata
+   - Include lastPlanStats.perTemplate from Chat.metadata (per-template completion /
+     expired signal → keep, ease, or drop)
    - Include existing task templates (so LLM can reuse via templateId)
    - Include last rejected draftTemplates from Chat.metadata (if any)
 7. Call LLM with structured output (response_format: json_schema):
    - Schema: { message: string, draftTemplates: DraftTemplate[], followUp: string }
    - DraftTemplate: { templateId: string|null, title, description, type, frequency, size: TaskSize }
 8. Persist full structured JSON as assistant Message content with type = DRAFT_PLAN
-9. Overwrite Chat.metadata.draftTemplates with response.draftTemplates (working clipboard)
+9. Overwrite (not append) Chat.metadata.draftTemplates with response.draftTemplates —
+   single-slot working clipboard; prior drafts live as DRAFT_PLAN Messages
 10. Return the full structured response
 ```
 
@@ -427,5 +450,9 @@ createMessage(data: { chatId, role, content, type? })      // persist a single m
 ### planStatsQueries.ts (Planned)
 
 ```
-getSimplePlanStats(planId)                                 // aggregate stats: completion rate, total points, plan mode
+getPlanTemplateStats(planId)   // per-template aggregates via GROUP BY templateId, status over Task
+                               //   (planId-scoped, templateId NOT NULL → excludes ad-hoc):
+                               //   { templateId, type, completed, expired, total, completionRate, pointsEarned }[]
+                               // overall aggregates (overall + daily-only completion rate, total points)
+                               // are derived in-memory from these rows by getTemplateStatsAction.
 ```
