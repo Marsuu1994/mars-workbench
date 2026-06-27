@@ -27,7 +27,7 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 
 ### Planned: V2
 
-1. **LLM assisted plan creation (V1 — static wizard)** — AI generates a draft plan via structured JSON output. User sees read-only template cards and either approves the whole batch or rejects with text feedback for re-generation. No per-card editing. Uses `Chat.metadata` as working clipboard for the latest draft. Server action (no streaming). Post-approval creates new TaskTemplates and calls existing `createPlanAction`.
+1. **LLM assisted plan creation (V1 — static wizard)** — AI generates a draft plan via structured JSON output. User sees read-only template cards and either approves the whole batch or rejects with text feedback for re-generation. No per-card editing — the latest `DRAFT_PLAN` message is the approval source of truth (commit-as-is). Server action (no streaming). Post-approval creates new TaskTemplates and calls existing `createPlanAction`.
 2. Support evidence flow, when user move a task to completed, submit evidence.
 3. Add AI generated tasks instance flow, LLM should be able to generate tasks based on past works + task template informatiosn to generate task instances, need to record the quality of task it generated.
 
@@ -67,7 +67,7 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
   - Weekly task: has `periodKey`, generated once at plan creation
   - Ad hoc task: can be generated anytime as needed, does not expire with time, does not associate with any task template, optional for associated with a plan
 - **Chat** — A conversation session between the user and LLM for AI-assisted plan creation (and future edit). Each chat belongs to one plan. A plan can have multiple chats over its lifecycle. `Chat.metadata` stores context (last plan stats at creation) and the latest draft plan (overwritten on each iteration).
-- **Message** — A single message from either the LLM or the user. Each message has a `type` field: `TEXT` for plain text (welcome messages, user input) or `DRAFT_PLAN` for structured draft responses (content is JSON with `{ message, draftTemplates, followUp }`). Latest draft also mirrored in `Chat.metadata.draftTemplates` for LLM context and approval.
+- **Message** — A single message from either the LLM or the user. Each message has a `type` field: `TEXT` for plain text (welcome messages, user input) or `DRAFT_PLAN` for structured draft responses (content is JSON with `{ message, draftTemplates, followUp }`). The latest `DRAFT_PLAN` message is the pending-approval draft; prior drafts are replayed to the LLM as conversation history.
 
 ## Schema
 
@@ -218,7 +218,7 @@ model Chat {
   userId    String?   @map("user_id") @db.Uuid
   planId    String?   @map("plan_id") @db.Uuid
   title     String?
-  metadata  Json?     // Stores lastPlanStats (at creation) and draftTemplates (latest draft)
+  metadata  Json?     // Stores lastPlanStats snapshot (at creation)
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
   messages  Message[]
@@ -244,6 +244,7 @@ metadata shape for kanban AI chat:
         "templateId": "uuid",
         "title": "Solve 3 LeetCode problems",
         "type": "DAILY",
+        "frequency": 1,
         "completed": 18,
         "expired": 2,
         "total": 20,
@@ -251,19 +252,12 @@ metadata shape for kanban AI chat:
         "pointsEarned": 54
       }
     ]
-  },
-  "draftTemplates": [
-    {
-      "templateId": "uuid" | null,
-      "title": "string",
-      "description": "string",
-      "type": "DAILY" | "WEEKLY",
-      "frequency": 1,
-      "size": "MEDIUM"
-    }
-  ]
+  }
 }
 ```
+
+The pending-approval draft is **not** stored in metadata — it lives as the latest
+`DRAFT_PLAN` message (commit-as-is; the approval action reads that message).
 
 ### Message
 

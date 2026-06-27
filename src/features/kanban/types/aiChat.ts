@@ -21,6 +21,7 @@ export type PerTemplateStat = {
   templateId: string;
   title: string;
   type: TaskType;
+  frequency: number; // last plan's per-week config for this template
   completed: number;
   expired: number;
   total: number;
@@ -40,6 +41,8 @@ export type LastPlanStats = {
 /**
  * A proposed template in an AI draft plan. `templateId` is null for brand-new
  * templates (created on approval) or a real id when reusing an existing one.
+ * This is the persisted shape inside a DRAFT_PLAN message's content (the
+ * approval source of truth); the LLM output schema lives in `schemas.ts`.
  */
 export type DraftTemplate = {
   templateId: string | null;
@@ -51,9 +54,9 @@ export type DraftTemplate = {
 };
 
 /**
- * Shape of Chat.metadata for AI plan-creation chats.
+ * Shape of Chat.metadata for AI plan-creation chats. The pending-approval draft
+ * is NOT stored here — it lives as the latest DRAFT_PLAN message (commit-as-is).
  */
 export type ChatMetadata = {
   lastPlanStats?: LastPlanStats;
-  draftTemplates?: DraftTemplate[];
 };

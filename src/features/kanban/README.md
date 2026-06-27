@@ -40,6 +40,7 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 - [ ] Biweekly and custom period types
 - [ ] Ad-hoc task deletion and auto-clear logic
 - [ ] Priority matrix page (Eisenhower matrix)
+- [ ] Inline editing of AI draft plan cards before approval (tweak frequency/size/selection without re-prompting)
 
 ## Done
 
@@ -51,8 +52,9 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 - Removed the unreachable standalone AI chat demo (pages, `/api/chats` + `/api/llm` routes, `features/chat/`, old `chats.ts`/`messages.ts` DAL); kept the shared `Chat`/`Message` tables for reuse
 - Built the AI plan-creation backend foundation (no UI yet): migration adds a `MessageType` enum, links chats to plans, and snapshots last-period stats into `Chat.metadata`
 - Added per-template performance stats and the two chat-bootstrap server actions — `getTemplateStatsAction` and `createAiChatAction` (instant static welcome + suggestion chips, no LLM latency); verified end-to-end against the live DB
+- Added `generateDraftPlanAction` — the LLM draft-plan generator (OpenAI structured output, `gpt-5-nano`): reuses existing templates, calibrates from last week's per-template stats, and persists each draft as a `DRAFT_PLAN` message that doubles as the approval target. Decided drafts live in chat history (not `Chat.metadata`); the static system prompt stays stable across turns
 - Fixed a `set-state-in-effect` lint error in `TaskModal` (form reset moved to a render-phase state adjustment); `npm run lint` is now clean
-- Synced design docs (`api.md`, `baseline.md`) and `AGENTS.md` to the post-cleanup structure
+- Synced design docs (`api.md`, `baseline.md`, `flows.md`) and `AGENTS.md` to the post-cleanup structure
 
 ### 2026-06-03
 - Redesigned sidebar from feature-level nav (Chat/Kanban) to workspace nav (Board/Plan)

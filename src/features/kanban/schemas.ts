@@ -85,3 +85,36 @@ export const createAiChatSchema = z.object({
   planId: z.string().uuid().optional(),
 });
 export type CreateAiChatInput = z.infer<typeof createAiChatSchema>;
+
+// ── AI Draft Plan (LLM structured output) ──────────────────────────────
+
+// Shape the LLM must return. Passed to zodResponseFormat for strict json_schema
+// output, so every field is required and templateId is nullable (not optional).
+// type is constrained to DAILY | WEEKLY — AD_HOC is never a plan-line.
+export const draftTemplateOutputSchema = z.object({
+  templateId: z.string().nullable(),
+  title: z.string(),
+  description: z.string(),
+  type: z.enum([TaskType.DAILY, TaskType.WEEKLY]),
+  frequency: z.number().int().min(1),
+  size: z.enum([
+    TaskSize.EXTRA_SMALL,
+    TaskSize.SMALL,
+    TaskSize.MEDIUM,
+    TaskSize.LARGE,
+    TaskSize.EXTRA_LARGE,
+  ]),
+});
+
+export const draftPlanResponseSchema = z.object({
+  message: z.string(),
+  draftTemplates: z.array(draftTemplateOutputSchema),
+  followUp: z.string(),
+});
+export type DraftPlanResponse = z.infer<typeof draftPlanResponseSchema>;
+
+export const generateDraftPlanSchema = z.object({
+  chatId: z.string().uuid(),
+  message: z.string().min(1),
+});
+export type GenerateDraftPlanInput = z.infer<typeof generateDraftPlanSchema>;

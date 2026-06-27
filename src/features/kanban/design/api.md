@@ -325,24 +325,27 @@ Input {
   message:  string    // User's text input
 }
 
-Steps:
-1. Validate input with Zod
-2. Persist user message as Message record
-3. Fetch Chat with metadata (lastPlanStats, previous draftTemplates)
-4. Fetch message history for the chat
-5. Fetch all non-archived task templates for user
-6. Build system prompt:
-   - Include lastPlanStats.perTemplate from Chat.metadata (per-template completion /
-     expired signal → keep, ease, or drop)
-   - Include existing task templates (so LLM can reuse via templateId)
-   - Include last rejected draftTemplates from Chat.metadata (if any)
-7. Call LLM with structured output (response_format: json_schema):
+Steps (service: aiChatService.generateDraftPlan):
+1. Validate input with Zod (generateDraftPlanSchema)
+2. getChatById(userId, chatId) — owner-scoped; throw if not found
+3. Persist user message as Message record (before the LLM call, so it survives a
+   failure and is part of the replayed history)
+4. Build STATIC system prompt (buildDraftPlanSystemPrompt, utils/draftPlanPrompt):
+   - lastPlanStats.perTemplate from Chat.metadata (per-template completion / expired
+     + frequency → keep, ease, or drop). No per-turn DB join (frequency is snapshotted).
+   - existing non-archived task templates (so LLM can reuse via templateId)
+   - NO last-draft injection — prior drafts reach the model through history (step 5)
+5. Replay message history: DRAFT_PLAN turns are passed verbatim (their content is the
+   full JSON), so the model sees prior drafts; the next user turn is the rejection
+6. Call LLM (openai.chat.completions.parse, model = DRAFT_PLAN_MODEL constant,
+   response_format = zodResponseFormat(draftPlanResponseSchema)):
    - Schema: { message: string, draftTemplates: DraftTemplate[], followUp: string }
-   - DraftTemplate: { templateId: string|null, title, description, type, frequency, size: TaskSize }
-8. Persist full structured JSON as assistant Message content with type = DRAFT_PLAN
-9. Overwrite (not append) Chat.metadata.draftTemplates with response.draftTemplates —
-   single-slot working clipboard; prior drafts live as DRAFT_PLAN Messages
-10. Return the full structured response
+   - DraftTemplate: { templateId: string|null, title, description, type: DAILY|WEEKLY,
+     frequency, size: TaskSize }
+7. Defensive id check: coerce any templateId not owned by the user to null
+8. Persist full structured JSON as assistant Message content with type = DRAFT_PLAN —
+   this message IS the pending-approval draft (commit-as-is). No metadata write.
+9. Return the full structured response (action wraps in try/catch → { error } on failure)
 ```
 
 ---

@@ -278,7 +278,7 @@ Future projections are then derived in-memory from the plan's current templates.
    - Persist as a user Message.
 
 4. **Generate draft plan** (`generateDraftPlanAction`)
-   - Call LLM with structured output (`response_format: json_schema`). System prompt includes: per-template performance (`lastPlanStats.perTemplate`) so the model keeps high-completion templates and eases/drops abandoned (high `expired`) ones, existing task templates (reuse list), and the last rejected draft from `Chat.metadata.draftTemplates` (if any).
+   - Call LLM with structured output (`response_format: json_schema`). The **static** system prompt includes: per-template performance (`lastPlanStats.perTemplate`, with `frequency` snapshotted) so the model keeps high-completion templates and eases/drops abandoned (high `expired`) ones, plus existing task templates (reuse list). Prior drafts are **not** injected into the prompt — they reach the model through the replayed message history (each `DRAFT_PLAN` turn's full JSON content), with the user's rejection as the following turn.
    - LLM returns structured JSON:
 
    ```json
@@ -298,18 +298,17 @@ Future projections are then derived in-memory from the plan's current templates.
    }
    ```
 
-   - Persist full structured JSON as assistant Message content with `type = DRAFT_PLAN`.
-   - Overwrite `Chat.metadata.draftTemplates` with the new draft (single-slot working clipboard for LLM revision context + the approval target). **Decision: overwrite, not append** — denied/previous drafts are already persisted as `DRAFT_PLAN` Messages, which is what the UI renders collapsed (see next bullet); metadata holds only the latest draft. Appending would duplicate the Messages data and bloat metadata unboundedly.
+   - Persist full structured JSON as assistant Message content with `type = DRAFT_PLAN`. **This message is the pending-approval draft** (commit-as-is) — the approval action reads the latest `DRAFT_PLAN` message. **Decision: the draft is not mirrored into `Chat.metadata`** — the Messages already hold every draft (the latest is the approval target, priors are LLM history), so a metadata copy would just duplicate that. `Chat.metadata` holds only the `lastPlanStats` snapshot.
    - No streaming — show loading state, render full response at once.
    - UI renders the latest `DRAFT_PLAN` message expanded: plain text → read-only template cards → follow-up text. Prior `DRAFT_PLAN` messages render collapsed with expand toggle.
 
 5. **Iterate or approve**
-   - **Reject:** User provides text feedback → persist as user Message → redo step 4. The LLM sees the last rejected draft from `Chat.metadata` + full message history.
+   - **Reject:** User provides text feedback → persist as user Message → redo step 4. The LLM sees prior drafts and the rejection through the full message history (no separate metadata read).
    - **Approve:** User clicks "Approve & Create Plan" → proceed to step 6.
    - V1: static wizard only. User cannot select/unselect or edit individual cards.
 
 6. **Post-approval: create plan**
-   - Read `Chat.metadata.draftTemplates`.
+   - Read the draft from the latest `DRAFT_PLAN` message (the approval source of truth).
    - For each entry where `templateId` is null: call `createTaskTemplateAction` to create a new TaskTemplate, get back real templateId.
    - Map all entries to `{ templateId, type, frequency }[]`.
    - Call existing `createPlanAction` with the resolved templates array.
@@ -325,7 +324,7 @@ All data is fetched server-side and injected into the LLM system prompt as conte
 
 - **Stats from last plan:** Per-template performance (completed / expired / total, completion rate, points earned, type) fetched via `getTemplateStatsAction` (backed by the `getPlanTemplateStats` DAL query), rolled up to `overall` aggregates. Stored as a snapshot in `Chat.metadata.lastPlanStats` (`{ overall, perTemplate }`). `overall` drives the static welcome; `perTemplate` is the LLM's signal for which templates to keep, ease, or drop.
 - **Existing task templates:** All non-archived templates for the user, so LLM can reuse existing ones (returning `templateId`) or suggest new ones (`templateId: null`).
-- **Last rejected draft:** `Chat.metadata.draftTemplates` included as "your previous proposal" context for revision accuracy.
+- **Prior drafts:** Replayed as conversation history (each `DRAFT_PLAN` message's full JSON content), so the model sees its previous proposals and the user's rejection feedback in order — no separate "last draft" injection into the system prompt.
 
 #### LLM Calls
 
