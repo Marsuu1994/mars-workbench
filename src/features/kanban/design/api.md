@@ -330,7 +330,8 @@ Steps (service: aiChatService.generateDraftPlan):
 2. getChatById(userId, chatId) — owner-scoped; throw if not found
 3. Persist user message as Message record (before the LLM call, so it survives a
    failure and is part of the replayed history)
-4. Build STATIC system prompt (buildDraftPlanSystemPrompt, utils/draftPlanPrompt):
+4. Build STATIC system prompt (buildDraftPlanSystemPrompt, prompt/draftPlanPrompt;
+   the large instruction body lives in prompt/draftPlanPromptBody):
    - lastPlanStats.perTemplate from Chat.metadata (per-template completion / expired
      + frequency → keep, ease, or drop). No per-turn DB join (frequency is snapshotted).
    - existing non-archived task templates (so LLM can reuse via templateId)

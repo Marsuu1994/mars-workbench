@@ -1,40 +1,7 @@
-import type { TaskSize } from "@/generated/prisma/client";
-import type { PerTemplateStat } from "../types/aiChat";
-
-export type PromptExistingTemplate = {
-  templateId: string;
-  title: string;
-  description: string;
-  size: TaskSize;
-};
-
-// Projection of the snapshot fed to the model (drops pointsEarned; keeps the
-// keep/ease/drop signals).
-type PromptLastWeekStat = {
-  templateId: string;
-  title: string;
-  type: string;
-  frequency: number;
-  completed: number;
-  expired: number;
-  total: number;
-  completionRate: number;
-};
-
-function toLastWeekStat(s: PerTemplateStat): PromptLastWeekStat {
-  return {
-    templateId: s.templateId,
-    title: s.title,
-    type: s.type,
-    frequency: s.frequency,
-    completed: s.completed,
-    expired: s.expired,
-    total: s.total,
-    completionRate: Math.round(s.completionRate * 100) / 100,
-  };
-}
-
-const SYSTEM_PROMPT_BODY = `# Role
+// Static instruction body for draft-plan generation. Kept in its own file so the
+// builder logic in draftPlanPrompt.ts stays readable. The per-session inputs
+// (existing templates, last-week stats) are appended by buildDraftPlanSystemPrompt.
+export const DRAFT_PLAN_SYSTEM_PROMPT_BODY = `# Role
 
 You are a weekly planning assistant for a personal kanban app. Given the
 user's goals for the coming week and (if available) their stats from last
@@ -129,9 +96,9 @@ You return a structured object with this shape:
   "followUp": "one line inviting adjustments"
 }
 
-Write \`message\` and \`followUp\` in the same language the user is using. Keep
-template titles/descriptions consistent in language/style with the existing
-templates.
+Write \`message\` and \`followUp\` in the same language as the user's latest
+message; when the language is ambiguous, default to English. Keep template
+titles/descriptions consistent in language/style with the existing templates.
 
 # Example
 
@@ -152,11 +119,11 @@ Last week:
     "completed": 3, "expired": 7, "total": 10, "completionRate": 0.3 }
 ]
 
-User: "继续推 eval feature,运动这次想坚持下来,别给自己定太满。再加每周写一篇技术博客。"
+User: "Keep pushing the eval feature. I want to actually stick with working out this time — don't overload me. And add writing one tech blog post a week."
 
 Output:
 {
-  "message": "基于上周的情况帮你排了这周:eval 保持,运动降到每周 3 次更realistic,新加了每周一篇博客。",
+  "message": "Based on last week, here's this week: eval stays daily; workouts down to 3×/week so it's more realistic to stick with; and a new weekly blog post.",
   "draftTemplates": [
     {
       "templateId": "t_eval",
@@ -177,31 +144,5 @@ Output:
       "type": "WEEKLY", "frequency": 1, "size": "MEDIUM"
     }
   ],
-  "followUp": "要调整频率或者加减任务吗?"
+  "followUp": "Want to tweak the frequency or add/remove anything?"
 }`;
-
-/**
- * Build the static system prompt for draft-plan generation. The two interpolated
- * sections (existing templates, last-week stats) are snapshotted at chat creation
- * and stable for the whole session, so this prompt is constant across turns.
- * Prior drafts are NOT injected here — they reach the model through history.
- */
-export function buildDraftPlanSystemPrompt(input: {
-  existingTemplates: PromptExistingTemplate[];
-  lastWeekStats: PerTemplateStat[] | null;
-}): string {
-  const existing = JSON.stringify(input.existingTemplates, null, 2);
-  const lastWeek = input.lastWeekStats
-    ? JSON.stringify(input.lastWeekStats.map(toLastWeekStat), null, 2)
-    : '"no history — first plan"';
-
-  return `${SYSTEM_PROMPT_BODY}
-
-# Your inputs
-
-Existing templates:
-${existing}
-
-Last week:
-${lastWeek}`;
-}

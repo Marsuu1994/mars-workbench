@@ -8,7 +8,7 @@ import { createMessage, getMessagesByChatId } from "@/lib/db/messages";
 import { MessageType, TaskType } from "@/generated/prisma/client";
 import { openai, DRAFT_PLAN_MODEL } from "@/lib/llm/openai";
 import { draftPlanResponseSchema, type DraftPlanResponse } from "../schemas";
-import { buildDraftPlanSystemPrompt } from "../utils/draftPlanPrompt";
+import { buildDraftPlanSystemPrompt } from "../prompt/draftPlanPrompt";
 import type { ChatMetadata, LastPlanStats, OverallStats, PerTemplateStat } from "../types/aiChat";
 import {
   NEW_USER_CHIPS,
