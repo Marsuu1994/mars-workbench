@@ -44,6 +44,14 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 
 ## Update Log
 
+### 2026-06-27
+- Removed the unreachable standalone AI chat demo (pages, `/api/chats` + `/api/llm` routes, `features/chat/`, old `chats.ts`/`messages.ts` DAL); kept the shared `Chat`/`Message` tables for reuse
+- AI plan-creation backend foundation (no UI yet): migration `ai_chat_plan_link_and_message_type` adds `MessageType` enum, `Message.type` (default `TEXT`), `Chat.planId` (FK → plan) + nullable `Chat.title`
+- DAL: recreated `lib/db/chats.ts` (owner-scoped) and `lib/db/messages.ts` (type-aware); added `getPlanTemplateStats(userId, planId)` to `lib/db/tasks.ts` and `getTaskTemplateTitlesByIds` to `lib/db/taskTemplates.ts`
+- Service `services/aiChatService.ts`: `getTemplateStats` (per-template aggregate + title join + overall rollup) and `createAiChat` (snapshot stats into `Chat.metadata`, write static no-LLM welcome + suggestion chips)
+- Actions `actions/aiChatActions.ts`: `getTemplateStatsAction`, `createAiChatAction`; static content in `utils/aiChatContent.ts`; JSON-shaped types in `types/aiChat.ts`
+- Synced `api.md` DAL section to actual filenames/signatures
+
 ### 2026-06-03
 - Redesigned sidebar from feature-level nav (Chat/Kanban) to workspace nav (Board/Plan)
 - Board nav disabled with tooltip when no active plan; Plan shows "New" nudge badge

@@ -16,14 +16,21 @@ enum MessageRole {
   system
 }
 
+enum MessageType {
+  TEXT
+  DRAFT_PLAN
+}
+
 model Chat {
   id        String    @id @default(uuid()) @db.Uuid
   userId    String?   @map("user_id") @db.Uuid
-  title     String
+  planId    String?   @map("plan_id") @db.Uuid
+  title     String?
   metadata  Json?
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
   messages  Message[]
+  plan      Plan?     @relation(fields: [planId], references: [id])
 
   @@map("chats")
 }
@@ -32,6 +39,7 @@ model Message {
   id        BigInt      @id @default(autoincrement())
   chatId    String      @map("chat_id") @db.Uuid
   role      MessageRole
+  type      MessageType @default(TEXT) @map("type")
   content   String
   createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz
   chat      Chat        @relation(fields: [chatId], references: [id], onDelete: Cascade)
@@ -92,6 +100,7 @@ model Plan {
 
   planTemplates PlanTemplate[]
   tasks         Task[]
+  chats         Chat[]
 
   @@index([userId, status], name: "idx_plans_user_id_status")
   @@map("plans")

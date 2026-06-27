@@ -444,6 +444,70 @@ export async function unlinkAdhocTasksFromPlan(
 }
 
 /**
+ * Per-template performance aggregates for a plan, used as LLM signal in the
+ * AI plan-creation flow. Scoped to the owner + plan, templateId NOT NULL
+ * (ad-hoc tasks excluded). Template titles are joined separately in the service.
+ */
+export type PlanTemplateStatRow = {
+  templateId: string;
+  type: TaskType;
+  completed: number; // DONE count
+  expired: number; // EXPIRED count
+  total: number; // all statuses
+  completionRate: number; // completed / total (0 when total is 0)
+  pointsEarned: number; // SUM(points) where DONE
+};
+
+export async function getPlanTemplateStats(
+  userId: string,
+  planId: string
+): Promise<PlanTemplateStatRow[]> {
+  const grouped = await prisma.task.groupBy({
+    by: ["templateId", "type", "status"],
+    where: { userId, planId, templateId: { not: null } },
+    _count: true,
+    _sum: { points: true },
+  });
+
+  const byTemplate = new Map<
+    string,
+    { type: TaskType; completed: number; expired: number; total: number; pointsEarned: number }
+  >();
+
+  for (const row of grouped) {
+    const templateId = row.templateId!;
+    const entry =
+      byTemplate.get(templateId) ??
+      { type: row.type, completed: 0, expired: 0, total: 0, pointsEarned: 0 };
+
+    entry.total += row._count;
+    switch (row.status) {
+      case TaskStatus.DONE:
+        entry.completed += row._count;
+        entry.pointsEarned += row._sum.points ?? 0;
+        break;
+      case TaskStatus.EXPIRED:
+        entry.expired += row._count;
+        break;
+      default:
+        break;
+    }
+
+    byTemplate.set(templateId, entry);
+  }
+
+  return Array.from(byTemplate, ([templateId, e]) => ({
+    templateId,
+    type: e.type,
+    completed: e.completed,
+    expired: e.expired,
+    total: e.total,
+    completionRate: e.total > 0 ? e.completed / e.total : 0,
+    pointsEarned: e.pointsEarned,
+  }));
+}
+
+/**
  * Valid task statuses for validation
  */
 export const VALID_TASK_STATUSES: TaskStatus[] = ["TODO", "DOING", "DONE", "EXPIRED"];

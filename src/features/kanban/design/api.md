@@ -279,16 +279,18 @@ Input {
   planId:  string    // PENDING_UPDATE plan ID
 }
 
-Standalone action wrapping the getPlanTemplateStats DAL query. Also reused by the
-chat-creation flow below. Exposed as an action so the UI can consume per-template
-stats directly (e.g. future "Focus on low-completion tasks" contextual chips).
+Thin wrapper over aiChatService.getTemplateStats (which calls the getPlanTemplateStats
+DAL query in tasks.ts). Also reused by the chat-creation flow below. Exposed as an
+action so the UI can consume per-template stats directly (e.g. future "Focus on
+low-completion tasks" contextual chips).
 
 Steps:
 1. Validate input with Zod
-2. Call getPlanTemplateStats(planId) DAL query
-3. Roll up perTemplate rows into overall aggregates (overall + daily-only completion
-   rate, total points, completed/total counts)
-4. Return { overall, perTemplate }
+2. Resolve userId, call aiChatService.getTemplateStats(userId, planId):
+   - getPlanTemplateStats(userId, planId) DAL aggregate (tasks.ts)
+   - join template titles, roll perTemplate up into overall aggregates (overall +
+     daily-only completion rate, total points, completed/total counts)
+3. Return { overall, perTemplate }
 ```
 
 ---
@@ -431,28 +433,28 @@ updateTasksPlanId(userId, taskIds[], planId, tx?)                  // batch link
 unlinkAdhocTasksFromPlan(userId, planId, keepIds[], tx?)           // unlink AD_HOC tasks not in keepIds
 ```
 
-### chatQueries.ts (Planned)
+### chats.ts
 
 ```
-createChat(data: { userId, planId?, metadata? })           // create Chat record, planId optional for new users
-getChatById(chatId)                                        // includes metadata
+createChat(data: { userId, planId?, title?, metadata? })   // create Chat record, planId optional for new users
+getChatById(userId, chatId)                                // owner-scoped; includes planId, metadata
 updateChatMetadata(chatId, metadata)                       // overwrite metadata (draftTemplates, lastPlanStats)
-updateChatPlanId(chatId, planId)                            // link chat to plan after plan creation
+updateChatPlanId(chatId, planId)                           // link chat to plan after plan creation
 ```
 
-### messageQueries.ts (Planned)
+### messages.ts
 
 ```
-getMessagesByChatId(chatId)                                // ordered by createdAt, for LLM conversation history
+getMessagesByChatId(chatId)                                // ordered by createdAt, includes type, for LLM history
 createMessage(data: { chatId, role, content, type? })      // persist a single message, type defaults to TEXT
 ```
 
-### planStatsQueries.ts (Planned)
+### tasks.ts (stats aggregation lives with the other task aggregations)
 
 ```
-getPlanTemplateStats(planId)   // per-template aggregates via GROUP BY templateId, status over Task
-                               //   (planId-scoped, templateId NOT NULL → excludes ad-hoc):
-                               //   { templateId, type, completed, expired, total, completionRate, pointsEarned }[]
-                               // overall aggregates (overall + daily-only completion rate, total points)
-                               // are derived in-memory from these rows by getTemplateStatsAction.
+getPlanTemplateStats(userId, planId)   // per-template aggregates via GROUP BY templateId, type, status over Task
+                                       //   (owner + plan scoped, templateId NOT NULL → excludes ad-hoc):
+                                       //   { templateId, type, completed, expired, total, completionRate, pointsEarned }[]
+                                       // Template titles are joined and the overall rollup (overall + daily-only
+                                       // completion rate, total points) is derived by aiChatService.getTemplateStats.
 ```

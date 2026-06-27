@@ -73,3 +73,15 @@ export const createAdhocTaskSchema = z.object({
   status: z.enum([TaskStatus.TODO, TaskStatus.DOING]).optional(),
 });
 export type CreateAdhocTaskInput = z.infer<typeof createAdhocTaskSchema>;
+
+// ── AI Chat Schemas ────────────────────────────────────────────────────
+
+export const getTemplateStatsSchema = z.object({
+  planId: z.string().uuid(),
+});
+export type GetTemplateStatsInput = z.infer<typeof getTemplateStatsSchema>;
+
+export const createAiChatSchema = z.object({
+  planId: z.string().uuid().optional(),
+});
+export type CreateAiChatInput = z.infer<typeof createAiChatSchema>;
