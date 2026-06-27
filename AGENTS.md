@@ -9,7 +9,7 @@ This document is the common rulebook for all AI agents working in this repositor
 
 ## Project Overview
 
-A Next.js application with multiple features: AI Chat and Kanban Period Planner. Deployed on Vercel.
+A Next.js application centered on a Kanban Period Planner, with AI-assisted plan creation. Deployed on Vercel.
 
 ## Tech Stack
 
@@ -34,13 +34,9 @@ prisma/
 src/
 ├── proxy.ts                       # Route protection (Supabase session check)
 ├── app/
-│   ├── api/
-│   │   ├── llm/                   # LLM streaming + title summarization
-│   │   └── chats/                 # Chat CRUD + messages endpoints
 │   ├── auth/
 │   │   ├── callback/route.ts      # OAuth callback (code → session exchange)
 │   │   └── login/page.tsx         # Login page (Google OAuth sign-in)
-│   ├── chat/                      # Chat pages (layout, new, [chatId])
 │   ├── kanban/                    # Kanban pages
 │   │   ├── page.tsx               # Board page
 │   │   └── plans/                 # Plan create/edit pages ([id], new)
@@ -56,7 +52,6 @@ src/
 │   └── db/                        # Data access layer
 ├── features/
 │   ├── auth/                      # Auth feature (see features/auth/README.md)
-│   ├── chat/                      # AI Chat feature (see features/chat/README.md)
 │   └── kanban/                    # Kanban Planner feature (see features/kanban/README.md)
 └── components/
     └── common/
