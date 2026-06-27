@@ -34,22 +34,35 @@ export default function TaskModal({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const mode: ModalMode = modeProp ?? (template ? "edit" : "create");
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [size, setSize] = useState<TaskSize>(TaskSize.MEDIUM);
+  const initialTitle = mode === "adhoc" ? "" : (template?.title ?? "");
+  const initialDescription = mode === "adhoc" ? "" : (template?.description ?? "");
+  const initialSize =
+    mode === "adhoc" ? TaskSize.EXTRA_SMALL : ((template?.size as TaskSize) ?? TaskSize.MEDIUM);
+
+  const [title, setTitle] = useState(initialTitle);
+  const [description, setDescription] = useState(initialDescription);
+  const [size, setSize] = useState<TaskSize>(initialSize);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Reset form when modal opens or template changes
-  useEffect(() => {
+  // Reset form when the modal opens or the target template/mode changes.
+  // Done during render (not in an effect) to avoid cascading re-renders.
+  // Mirrors the previous effect's [isOpen, template, mode] dependencies.
+  const [formSource, setFormSource] = useState({ isOpen, template, mode });
+  if (
+    formSource.isOpen !== isOpen ||
+    formSource.template !== template ||
+    formSource.mode !== mode
+  ) {
+    setFormSource({ isOpen, template, mode });
     if (isOpen) {
-      setTitle(mode === "adhoc" ? "" : (template?.title ?? ""));
-      setDescription(mode === "adhoc" ? "" : (template?.description ?? ""));
-      setSize(mode === "adhoc" ? TaskSize.EXTRA_SMALL : ((template?.size as TaskSize) ?? TaskSize.MEDIUM));
+      setTitle(initialTitle);
+      setDescription(initialDescription);
+      setSize(initialSize);
       setError(null);
       setIsSubmitting(false);
     }
-  }, [isOpen, template, mode]);
+  }
 
   // Dialog open/close control
   useEffect(() => {
