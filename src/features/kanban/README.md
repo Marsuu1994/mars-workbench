@@ -15,15 +15,14 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 - **PWA**: Manifest, service worker, mobile installability, safe-area insets
 - **Architecture**: Server Actions + DAL (3-layer), `prisma.$transaction()` for multi-step mutations, timezone anchored to `America/Los_Angeles`
 
-**AI Assisted Plan Creation** — Fully designed (flows, API, mockups), not yet implemented. Chat-based wizard with structured JSON output, `Chat.metadata` as working clipboard, `MessageType` enum for plain vs draft messages.
+**AI Assisted Plan Creation** — Fully designed (flows, API, mockups); backend foundation implemented (no UI yet). The standalone chat demo was removed and the shared `Chat`/`Message` tables now back this flow: `MessageType` enum (plain vs draft), `Chat.planId` link + `Chat.metadata` working clipboard, per-template stats aggregation, and the chat-bootstrap actions (`getTemplateStatsAction`, `createAiChatAction` with a static no-LLM welcome). Remaining: the LLM draft-generation action and the chat UI.
 
 **Mobile Mockups** — Board drag-and-drop flow (375x812), settings page, shared `mockup-theme.css` with light/dark toggle.
 
 ## Backlog
 
 ### High Priority
-- [ ] Implement the AI assisted plan creation flow
-- [ ] Refactor the codebase, remove chatbot related code
+- [ ] Implement the AI assisted plan creation flow (backend foundation done; LLM draft action + UI remaining)
 - [ ] Consolidate task generation logic for update plan
 - [ ] Design evidence submit feature when user move task to done
 
@@ -42,15 +41,18 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 - [ ] Ad-hoc task deletion and auto-clear logic
 - [ ] Priority matrix page (Eisenhower matrix)
 
+## Done
+
+- [x] Refactor the codebase, remove chatbot related code
+
 ## Update Log
 
 ### 2026-06-27
 - Removed the unreachable standalone AI chat demo (pages, `/api/chats` + `/api/llm` routes, `features/chat/`, old `chats.ts`/`messages.ts` DAL); kept the shared `Chat`/`Message` tables for reuse
-- AI plan-creation backend foundation (no UI yet): migration `ai_chat_plan_link_and_message_type` adds `MessageType` enum, `Message.type` (default `TEXT`), `Chat.planId` (FK → plan) + nullable `Chat.title`
-- DAL: recreated `lib/db/chats.ts` (owner-scoped) and `lib/db/messages.ts` (type-aware); added `getPlanTemplateStats(userId, planId)` to `lib/db/tasks.ts` and `getTaskTemplateTitlesByIds` to `lib/db/taskTemplates.ts`
-- Service `services/aiChatService.ts`: `getTemplateStats` (per-template aggregate + title join + overall rollup) and `createAiChat` (snapshot stats into `Chat.metadata`, write static no-LLM welcome + suggestion chips)
-- Actions `actions/aiChatActions.ts`: `getTemplateStatsAction`, `createAiChatAction`; static content in `utils/aiChatContent.ts`; JSON-shaped types in `types/aiChat.ts`
-- Synced `api.md` DAL section to actual filenames/signatures
+- Built the AI plan-creation backend foundation (no UI yet): migration adds a `MessageType` enum, links chats to plans, and snapshots last-period stats into `Chat.metadata`
+- Added per-template performance stats and the two chat-bootstrap server actions — `getTemplateStatsAction` and `createAiChatAction` (instant static welcome + suggestion chips, no LLM latency); verified end-to-end against the live DB
+- Fixed a `set-state-in-effect` lint error in `TaskModal` (form reset moved to a render-phase state adjustment); `npm run lint` is now clean
+- Synced design docs (`api.md`, `baseline.md`) and `AGENTS.md` to the post-cleanup structure
 
 ### 2026-06-03
 - Redesigned sidebar from feature-level nav (Chat/Kanban) to workspace nav (Board/Plan)
