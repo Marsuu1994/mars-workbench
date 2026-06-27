@@ -154,6 +154,11 @@ Mockups are the source of truth for UI, but implementation may introduce details
 - No direct service/DAL calls from UI components.
 - Never modify past Update Log entries in README files. Update logs are append-only history.
 
+## Version Control
+
+- **Do NOT create a commit without explicit permission from the user.** The user reviews work before it is committed. Make and stage changes, summarize what changed, and wait for the user to approve before running `git commit`.
+- The same applies to `git push` and any other outward-facing or hard-to-reverse VCS action — ask first.
+
 ## Commands
 
 ```bash
