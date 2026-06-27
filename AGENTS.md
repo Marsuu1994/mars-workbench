@@ -18,6 +18,7 @@ A Next.js application centered on a Kanban Period Planner, with AI-assisted plan
 - State: Zustand
 - Database: PostgreSQL (Supabase) + Prisma ORM
 - Auth: Supabase Auth (Google OAuth)
+- LLM: OpenAI (`gpt-5-nano`) for AI-assisted plan creation — non-streaming structured output (`zodResponseFormat`)
 - Icons: Heroicons
 - Language: TypeScript
 
@@ -45,6 +46,7 @@ src/
 ├── generated/prisma/              # Generated Prisma client (gitignored)
 ├── lib/                           # Shared utilities
 │   ├── prisma.ts                  # Prisma client singleton (pooled connection)
+│   ├── llm/                       # OpenAI client singleton + model constant
 │   ├── supabase/                  # Supabase client utilities
 │   │   ├── client.ts              # Browser client ('use client' components)
 │   │   ├── server.ts              # Server client (Server Components, Actions)

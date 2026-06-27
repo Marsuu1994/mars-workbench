@@ -298,7 +298,7 @@ Future projections are then derived in-memory from the plan's current templates.
    }
    ```
 
-   - Persist full structured JSON as assistant Message content with `type = DRAFT_PLAN`. **This message is the pending-approval draft** (commit-as-is) — the approval action reads the latest `DRAFT_PLAN` message. **Decision: the draft is not mirrored into `Chat.metadata`** — the Messages already hold every draft (the latest is the approval target, priors are LLM history), so a metadata copy would just duplicate that. `Chat.metadata` holds only the `lastPlanStats` snapshot.
+   - Persist full structured JSON as assistant Message content with `type = DRAFT_PLAN` (rendered in the chat + replayed to the LLM as history). Also overwrite `Chat.metadata.latestDraft` with `{ description, draftTemplates }` — the single-slot approval clipboard (commit-as-is), read directly off the already-loaded chat at approval time.
    - No streaming — show loading state, render full response at once.
    - UI renders the latest `DRAFT_PLAN` message expanded: plain text → read-only template cards → follow-up text. Prior `DRAFT_PLAN` messages render collapsed with expand toggle.
 
@@ -307,12 +307,11 @@ Future projections are then derived in-memory from the plan's current templates.
    - **Approve:** User clicks "Approve & Create Plan" → proceed to step 6.
    - V1: static wizard only. User cannot select/unselect or edit individual cards.
 
-6. **Post-approval: create plan**
-   - Read the draft from the latest `DRAFT_PLAN` message (the approval source of truth).
-   - For each entry where `templateId` is null: call `createTaskTemplateAction` to create a new TaskTemplate, get back real templateId.
-   - Map all entries to `{ templateId, type, frequency }[]`.
-   - Call existing `createPlanAction` with the resolved templates array.
-   - Update `Chat.planId` to the newly created plan (if it was null).
+6. **Post-approval: create plan** (`approveDraftPlanAction({ chatId })` → `approveDraftPlan` service)
+   - Read the draft from `Chat.metadata.latestDraft` (already loaded with the chat).
+   - In **one transaction** (atomic), via `planService.createPlanFromDraft(tx, ...)`: batch-create the new templates (entries where `templateId` is null) with `createManyTaskTemplates`, resolve all entries to `{ templateId, type, frequency }[]`, then run the shared `createPlanInTx` core with the draft's `description` as `Plan.description` and `mode = NORMAL`. The core also completes the prior `PENDING_UPDATE` plan and links/moves ad-hoc tasks.
+   - **Ad-hoc carry-over (V1):** the pending plan's non-done `AD_HOC` tasks are passed as `adhocTaskIds`, so they move to the new plan.
+   - `updateChatPlanId(chatId, newPlan.id, tx)` to link the chat.
 
    **Error handling:** If the LLM returns an error or unusable output, show an error message in the chat bubble. No retry logic for V1.
 

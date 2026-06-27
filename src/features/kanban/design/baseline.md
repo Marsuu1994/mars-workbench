@@ -66,8 +66,8 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
   - Daily task: has `forDate`, generated each day by daily sync
   - Weekly task: has `periodKey`, generated once at plan creation
   - Ad hoc task: can be generated anytime as needed, does not expire with time, does not associate with any task template, optional for associated with a plan
-- **Chat** — A conversation session between the user and LLM for AI-assisted plan creation (and future edit). Each chat belongs to one plan. A plan can have multiple chats over its lifecycle. `Chat.metadata` stores context (last plan stats at creation) and the latest draft plan (overwritten on each iteration).
-- **Message** — A single message from either the LLM or the user. Each message has a `type` field: `TEXT` for plain text (welcome messages, user input) or `DRAFT_PLAN` for structured draft responses (content is JSON with `{ message, draftTemplates, followUp }`). The latest `DRAFT_PLAN` message is the pending-approval draft; prior drafts are replayed to the LLM as conversation history.
+- **Chat** — A conversation session between the user and LLM for AI-assisted plan creation (and future edit). Each chat belongs to one plan. A plan can have multiple chats over its lifecycle. `Chat.metadata` stores the last plan stats snapshot (captured at creation) and `latestDraft` — the single-slot approval clipboard, overwritten on each generation. Every draft is also persisted as a `DRAFT_PLAN` message for history/rendering.
+- **Message** — A single message from either the LLM or the user. Each message has a `type` field: `TEXT` for plain text (welcome messages, user input) or `DRAFT_PLAN` for structured draft responses (content is JSON with `{ message, description, draftTemplates, followUp }`). `DRAFT_PLAN` messages are rendered in the chat and replayed to the LLM as conversation history; the latest draft is also mirrored to `Chat.metadata.latestDraft` for approval.
 
 ## Schema
 
@@ -252,12 +252,27 @@ metadata shape for kanban AI chat:
         "pointsEarned": 54
       }
     ]
+  },
+  "latestDraft": {
+    "description": "short summary of the week's focus",
+    "draftTemplates": [
+      {
+        "templateId": "uuid" | null,
+        "title": "string",
+        "description": "string",
+        "type": "DAILY" | "WEEKLY",
+        "frequency": 1,
+        "size": "MEDIUM"
+      }
+    ]
   }
 }
 ```
 
-The pending-approval draft is **not** stored in metadata — it lives as the latest
-`DRAFT_PLAN` message (commit-as-is; the approval action reads that message).
+`latestDraft` is the single-slot approval clipboard, overwritten on each draft
+generation (commit-as-is). The full draft is also persisted as a `DRAFT_PLAN`
+message for chat history/rendering; `metadata.latestDraft` is what the approval
+action reads (it's already loaded with the chat, so no extra message query).
 
 ### Message
 
@@ -279,7 +294,7 @@ model Message {
 
 enum MessageType {
   TEXT          // Plain text (welcome messages, user input)
-  DRAFT_PLAN   // Structured draft: content is JSON { message, draftTemplates, followUp }
+  DRAFT_PLAN   // Structured draft: content is JSON { message, description, draftTemplates, followUp }
 }
 ```
 
@@ -287,6 +302,7 @@ When `type = DRAFT_PLAN`, content shape:
 ```json
 {
   "message": "Here's a structured plan...",
+  "description": "short summary of the week's focus (used as Plan.description on approval)",
   "draftTemplates": [
     {
       "templateId": "uuid" | null,

@@ -108,6 +108,7 @@ export const draftTemplateOutputSchema = z.object({
 
 export const draftPlanResponseSchema = z.object({
   message: z.string(),
+  description: z.string(), // short summary of the week's focus, used as Plan.description
   draftTemplates: z.array(draftTemplateOutputSchema),
   followUp: z.string(),
 });
@@ -118,3 +119,8 @@ export const generateDraftPlanSchema = z.object({
   message: z.string().min(1),
 });
 export type GenerateDraftPlanInput = z.infer<typeof generateDraftPlanSchema>;
+
+export const approveDraftPlanSchema = z.object({
+  chatId: z.string().uuid(),
+});
+export type ApproveDraftPlanInput = z.infer<typeof approveDraftPlanSchema>;

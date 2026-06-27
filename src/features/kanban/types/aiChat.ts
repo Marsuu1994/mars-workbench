@@ -54,9 +54,14 @@ export type DraftTemplate = {
 };
 
 /**
- * Shape of Chat.metadata for AI plan-creation chats. The pending-approval draft
- * is NOT stored here — it lives as the latest DRAFT_PLAN message (commit-as-is).
+ * Shape of Chat.metadata for AI plan-creation chats.
+ * - `lastPlanStats`: snapshot captured at chat creation.
+ * - `latestDraft`: the most recent draft, overwritten each generation — the
+ *   single-slot approval clipboard (read directly off the already-loaded chat,
+ *   so approval needs no extra message query). The full draft is also persisted
+ *   as a DRAFT_PLAN message for chat history/rendering.
  */
 export type ChatMetadata = {
   lastPlanStats?: LastPlanStats;
+  latestDraft?: { description: string; draftTemplates: DraftTemplate[] };
 };

@@ -340,13 +340,41 @@ Steps (service: aiChatService.generateDraftPlan):
    full JSON), so the model sees prior drafts; the next user turn is the rejection
 6. Call LLM (openai.chat.completions.parse, model = DRAFT_PLAN_MODEL constant,
    response_format = zodResponseFormat(draftPlanResponseSchema)):
-   - Schema: { message: string, draftTemplates: DraftTemplate[], followUp: string }
+   - Schema: { message: string, description: string, draftTemplates: DraftTemplate[], followUp: string }
+     (description = short plan summary, used as Plan.description on approval)
    - DraftTemplate: { templateId: string|null, title, description, type: DAILY|WEEKLY,
      frequency, size: TaskSize }
 7. Defensive id check: coerce any templateId not owned by the user to null
-8. Persist full structured JSON as assistant Message content with type = DRAFT_PLAN —
-   this message IS the pending-approval draft (commit-as-is). No metadata write.
+8. Persist full structured JSON as assistant Message content with type = DRAFT_PLAN
+   (chat history + LLM replay), AND overwrite Chat.metadata.latestDraft with
+   { description, draftTemplates } — the single-slot approval clipboard
 9. Return the full structured response (action wraps in try/catch → { error } on failure)
+```
+
+---
+
+### `approveDraftPlanAction(input)`
+
+```
+Input {
+  chatId:  string    // Existing chat ID
+}
+
+Steps (service: aiChatService.approveDraftPlan):
+1. Validate input with Zod (approveDraftPlanSchema)
+2. getChatById(userId, chatId) — owner-scoped; read Chat.metadata.latestDraft
+   (the approval clipboard; throw if not found / no draft)
+3. Guards (mirror createPlan): getActivePlan → error if one exists;
+   pendingPlan = getPlanByStatus(PENDING_UPDATE)
+4. Carry-over: collect the pending plan's non-done AD_HOC task ids (adhocTaskIds)
+5. ONE transaction → planService.createPlanFromDraft(tx, ...):
+   - createManyTaskTemplates(tx) — batch-insert the draft's new (templateId === null)
+     templates, zip ids back by input order
+   - createPlanInTx(tx, ...) with resolved templates, description (from draft),
+     mode = NORMAL, adhocTaskIds, pendingPlan — creates Plan + PlanTemplates + tasks,
+     moves carried-over ad-hoc tasks, completes the pending plan
+   - updateChatPlanId(chatId, newPlan.id, tx)
+6. revalidatePath("/kanban"); return { planId } (try/catch → { error } on failure)
 ```
 
 ---
@@ -400,7 +428,9 @@ deletePlanTemplatesByPlanId(planId, tx?)                    // bulk delete all l
 ```
 getTaskTemplates(userId)                                          // user's non-archived templates
 getTaskTemplateById(userId, id)                                   // single owned template by ID
+getTaskTemplateTitlesByIds(userId, ids[])                         // → Map<id, title>; for joining titles onto stats (incl. archived)
 createTaskTemplate(userId, data: { title, description, size })     // create new template
+createManyTaskTemplates(data: { userId, title, description, size }[], tx?)  // → { id }[]; batch insert (createManyAndReturn, input order preserved on PG)
 updateTaskTemplate(userId, id, data: { title?, description?, size? })  // → { count }; owner-scoped via updateMany
 ```
 
@@ -442,8 +472,8 @@ unlinkAdhocTasksFromPlan(userId, planId, keepIds[], tx?)           // unlink AD_
 ```
 createChat(data: { userId, planId?, title?, metadata? })   // create Chat record, planId optional for new users
 getChatById(userId, chatId)                                // owner-scoped; includes planId, metadata
-updateChatMetadata(chatId, metadata)                       // overwrite metadata (draftTemplates, lastPlanStats)
-updateChatPlanId(chatId, planId)                           // link chat to plan after plan creation
+updateChatMetadata(chatId, metadata)                       // overwrite metadata (lastPlanStats snapshot + latestDraft clipboard)
+updateChatPlanId(chatId, planId, tx?)                      // link chat to plan after plan creation
 ```
 
 ### messages.ts
@@ -459,6 +489,22 @@ createMessage(data: { chatId, role, content, type? })      // persist a single m
 getPlanTemplateStats(userId, planId)   // per-template aggregates via GROUP BY templateId, type, status over Task
                                        //   (owner + plan scoped, templateId NOT NULL → excludes ad-hoc):
                                        //   { templateId, type, completed, expired, total, completionRate, pointsEarned }[]
-                                       // Template titles are joined and the overall rollup (overall + daily-only
-                                       // completion rate, total points) is derived by aiChatService.getTemplateStats.
+                                       // aiChatService.getTemplateStats then joins template titles + frequency
+                                       // (from getPlanTemplatesByPlanId) and derives the overall rollup
+                                       // (overall + daily-only completion rate, total points).
+```
+
+### Service transaction helpers (planService)
+
+Plan creation is composed so the AI approval flow can run "create new templates +
+create plan" atomically. These are service functions (own/accept a transaction),
+not DAL:
+
+```
+createPlanInTx(tx, userId, { periodType, periodKey, description?, mode, templates, adhocTaskIds?, pendingPlan }, today)
+                                       // shared plan-creation core (plan + plan_templates + tasks + ad-hoc +
+                                       // completes pending plan). Reused by createPlan (which opens the tx + guards).
+createPlanFromDraft(tx, userId, { draftTemplates, description?, mode, adhocTaskIds?, pendingPlan }, periodKey, today)
+                                       // batch-creates the draft's new (templateId === null) templates via
+                                       // createManyTaskTemplates, resolves ids, then calls createPlanInTx. Used by approve.
 ```

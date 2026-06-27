@@ -65,8 +65,13 @@ export async function updateChatMetadata(
 /**
  * Link a chat to a plan after the plan is created.
  */
-export async function updateChatPlanId(chatId: string, planId: string): Promise<void> {
-  await prisma.chat.update({
+export async function updateChatPlanId(
+  chatId: string,
+  planId: string,
+  tx?: Prisma.TransactionClient
+): Promise<void> {
+  const db = tx ?? prisma;
+  await db.chat.update({
     where: { id: chatId },
     data: { planId },
   });

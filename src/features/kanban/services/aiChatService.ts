@@ -1,14 +1,18 @@
 import { zodResponseFormat } from "openai/helpers/zod";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
-import { getPlanTemplateStats, type PlanTemplateStatRow } from "@/lib/db/tasks";
+import prisma from "@/lib/prisma";
+import { getPlanTemplateStats, getNonDoneAdhocTasks, type PlanTemplateStatRow } from "@/lib/db/tasks";
 import { getTaskTemplateTitlesByIds, getTaskTemplates } from "@/lib/db/taskTemplates";
 import { getPlanTemplatesByPlanId } from "@/lib/db/planTemplates";
-import { createChat, getChatById } from "@/lib/db/chats";
+import { getActivePlan, getPlanByStatus, type PlanItem } from "@/lib/db/plans";
+import { createChat, getChatById, updateChatPlanId, updateChatMetadata } from "@/lib/db/chats";
 import { createMessage, getMessagesByChatId } from "@/lib/db/messages";
-import { MessageType, TaskType } from "@/generated/prisma/client";
+import { MessageType, PlanMode, PlanStatus, TaskType } from "@/generated/prisma/client";
 import { openai, DRAFT_PLAN_MODEL } from "@/lib/llm/openai";
+import { createPlanFromDraft } from "./planService";
 import { draftPlanResponseSchema, type DraftPlanResponse } from "../schemas";
 import { buildDraftPlanSystemPrompt } from "../prompt/draftPlanPrompt";
+import { getTodayDate, getISOWeekKey } from "../utils/dateUtils";
 import type { ChatMetadata, LastPlanStats, OverallStats, PerTemplateStat } from "../types/aiChat";
 import {
   NEW_USER_CHIPS,
@@ -171,5 +175,63 @@ export async function generateDraftPlan(
     type: MessageType.DRAFT_PLAN,
   });
 
+  // Overwrite the single-slot approval clipboard (kept on the chat so approval
+  // reads it off the already-loaded chat — no extra message query).
+  await updateChatMetadata(chatId, {
+    ...metadata,
+    latestDraft: { description: response.description, draftTemplates: response.draftTemplates },
+  });
+
   return response;
+}
+
+/**
+ * Approve the latest draft: create the plan (commit-as-is). Reads the latest
+ * DRAFT_PLAN message as the source of truth, then in ONE transaction creates a
+ * TaskTemplate for each new (templateId === null) draft entry and the plan
+ * itself (which also completes the prior PENDING_UPDATE plan). The pending
+ * plan's non-done ad-hoc tasks are carried over to the new plan. Finally links
+ * the chat to the new plan.
+ */
+export async function approveDraftPlan(userId: string, chatId: string): Promise<PlanItem> {
+  const chat = await getChatById(userId, chatId);
+  if (!chat) throw new Error("Chat not found");
+
+  // Approval clipboard — read straight off the already-loaded chat.
+  const metadata = (chat.metadata ?? {}) as unknown as ChatMetadata;
+  const draft = metadata.latestDraft;
+  if (!draft) throw new Error("No draft plan to approve");
+
+  // Guards mirror createPlan: no active plan may exist; complete the pending one.
+  const activePlan = await getActivePlan(userId);
+  if (activePlan) throw new Error("An active plan already exists");
+  const pendingPlan = await getPlanByStatus(userId, PlanStatus.PENDING_UPDATE);
+
+  // Carry the pending plan's non-done ad-hoc tasks over to the new plan.
+  let adhocTaskIds: string[] = [];
+  if (pendingPlan) {
+    const adhoc = await getNonDoneAdhocTasks(userId);
+    adhocTaskIds = adhoc.filter((t) => t.planId === pendingPlan.id).map((t) => t.id);
+  }
+
+  const today = getTodayDate();
+  const periodKey = getISOWeekKey(today);
+
+  return prisma.$transaction(async (tx) => {
+    const newPlan = await createPlanFromDraft(
+      tx,
+      userId,
+      {
+        draftTemplates: draft.draftTemplates,
+        description: draft.description,
+        mode: PlanMode.NORMAL,
+        adhocTaskIds,
+        pendingPlan,
+      },
+      periodKey,
+      today
+    );
+    await updateChatPlanId(chatId, newPlan.id, tx);
+    return newPlan;
+  });
 }

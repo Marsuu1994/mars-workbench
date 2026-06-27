@@ -15,14 +15,14 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 - **PWA**: Manifest, service worker, mobile installability, safe-area insets
 - **Architecture**: Server Actions + DAL (3-layer), `prisma.$transaction()` for multi-step mutations, timezone anchored to `America/Los_Angeles`
 
-**AI Assisted Plan Creation** — Fully designed (flows, API, mockups); backend foundation implemented (no UI yet). The standalone chat demo was removed and the shared `Chat`/`Message` tables now back this flow: `MessageType` enum (plain vs draft), `Chat.planId` link + `Chat.metadata` working clipboard, per-template stats aggregation, and the chat-bootstrap actions (`getTemplateStatsAction`, `createAiChatAction` with a static no-LLM welcome). Remaining: the LLM draft-generation action and the chat UI.
+**AI Assisted Plan Creation** — Fully designed (flows, API, mockups); **backend complete, UI remaining**. The standalone chat demo was removed and the shared `Chat`/`Message` tables now back this flow. All three server actions are done and verified end-to-end: `getTemplateStatsAction` (per-template stats), `createAiChatAction` (static no-LLM welcome + chips, snapshots last-period stats into `Chat.metadata`), `generateDraftPlanAction` (OpenAI `gpt-5-nano` structured draft — reuses templates, calibrates from stats, replays prior drafts as history), and `approveDraftPlanAction` (atomically creates the plan, completes the prior `PENDING_UPDATE` plan, carries over ad-hoc tasks). `Chat.metadata` holds the stats snapshot + a `latestDraft` approval clipboard. Remaining: the chat UI (modal, draft cards, store, action wiring).
 
 **Mobile Mockups** — Board drag-and-drop flow (375x812), settings page, shared `mockup-theme.css` with light/dark toggle.
 
 ## Backlog
 
 ### High Priority
-- [ ] Implement the AI assisted plan creation flow (backend foundation done; LLM draft action + UI remaining)
+- [ ] Implement the AI assisted plan creation flow — UI (backend complete: all server actions done & verified)
 - [ ] Consolidate task generation logic for update plan
 - [ ] Design evidence submit feature when user move task to done
 
@@ -50,11 +50,13 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 
 ### 2026-06-27
 - Removed the unreachable standalone AI chat demo (pages, `/api/chats` + `/api/llm` routes, `features/chat/`, old `chats.ts`/`messages.ts` DAL); kept the shared `Chat`/`Message` tables for reuse
-- Built the AI plan-creation backend foundation (no UI yet): migration adds a `MessageType` enum, links chats to plans, and snapshots last-period stats into `Chat.metadata`
-- Added per-template performance stats and the two chat-bootstrap server actions — `getTemplateStatsAction` and `createAiChatAction` (instant static welcome + suggestion chips, no LLM latency); verified end-to-end against the live DB
-- Added `generateDraftPlanAction` — the LLM draft-plan generator (OpenAI structured output, `gpt-5-nano`): reuses existing templates, calibrates from last week's per-template stats, and persists each draft as a `DRAFT_PLAN` message that doubles as the approval target. Decided drafts live in chat history (not `Chat.metadata`); the static system prompt stays stable across turns
-- Fixed a `set-state-in-effect` lint error in `TaskModal` (form reset moved to a render-phase state adjustment); `npm run lint` is now clean
-- Synced design docs (`api.md`, `baseline.md`, `flows.md`) and `AGENTS.md` to the post-cleanup structure
+- Completed the **entire backend** for AI Assisted Plan Creation (UI still to come): migration adds a `MessageType` enum + links chats to plans, plus per-template stats aggregation snapshotted into `Chat.metadata`
+- `createAiChatAction` — bootstraps the chat with an instant static welcome + suggestion chips (no LLM latency)
+- `generateDraftPlanAction` — OpenAI `gpt-5-nano` structured-output draft generator: reuses existing templates, calibrates from last period's per-template stats, replays prior drafts as conversation history, and stores each draft as a `DRAFT_PLAN` message + a single-slot `Chat.metadata.latestDraft` approval clipboard
+- `approveDraftPlanAction` — commits the approved draft to a real plan in one atomic transaction: batch-creates the draft's new templates, builds the plan (reusing the create-plan core, extracted as `createPlanInTx`), completes the prior `PENDING_UPDATE` plan, carries over its non-done ad-hoc tasks, and uses the LLM's summary as `Plan.description`
+- Each step verified end-to-end against live OpenAI + DB
+- Fixed a `set-state-in-effect` lint error in `TaskModal` (form reset → render-phase state adjustment)
+- Synced design docs (`api.md`, `baseline.md`, `flows.md`) and `AGENTS.md`
 
 ### 2026-06-03
 - Redesigned sidebar from feature-level nav (Chat/Kanban) to workspace nav (Board/Plan)

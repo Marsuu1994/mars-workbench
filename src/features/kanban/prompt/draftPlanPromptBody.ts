@@ -83,6 +83,7 @@ You return a structured object with this shape:
 
 {
   "message": "short conversational lead-in to the draft",
+  "description": "≤8-word summary of this week's focus",
   "draftTemplates": [
     {
       "templateId": "<existing-id> | null",
@@ -96,9 +97,12 @@ You return a structured object with this shape:
   "followUp": "one line inviting adjustments"
 }
 
-Write \`message\` and \`followUp\` in the same language as the user's latest
-message; when the language is ambiguous, default to English. Keep template
-titles/descriptions consistent in language/style with the existing templates.
+The top-level \`description\` is a short label for the whole plan (≤8 words, e.g.
+"Interview prep + fitness restart") — distinct from each template's own
+\`description\`. Write \`message\` and \`followUp\` in the same language as the
+user's latest message; when the language is ambiguous, default to English. Keep
+template titles/descriptions consistent in language/style with the existing
+templates.
 
 # Example
 
@@ -124,6 +128,7 @@ User: "Keep pushing the eval feature. I want to actually stick with working out 
 Output:
 {
   "message": "Based on last week, here's this week: eval stays daily; workouts down to 3×/week so it's more realistic to stick with; and a new weekly blog post.",
+  "description": "Eval push, sustainable workouts, weekly blog",
   "draftTemplates": [
     {
       "templateId": "t_eval",

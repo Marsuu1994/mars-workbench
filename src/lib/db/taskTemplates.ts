@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import type { TaskSize } from "@/generated/prisma/client";
+import type { Prisma, TaskSize } from "@/generated/prisma/client";
 
 export type TaskTemplateItem = {
   id: string;
@@ -78,6 +78,22 @@ export async function createTaskTemplate(
   return prisma.taskTemplate.create({
     data: { ...data, userId },
     select: taskTemplateSelect,
+  });
+}
+
+/**
+ * Batch-create task templates and return their ids. On PostgreSQL the returned
+ * rows preserve input order (single INSERT … RETURNING), so callers can zip ids
+ * back to the input array by index.
+ */
+export async function createManyTaskTemplates(
+  data: { userId: string; title: string; description: string; size: TaskSize }[],
+  tx?: Prisma.TransactionClient
+): Promise<{ id: string }[]> {
+  const db = tx ?? prisma;
+  return db.taskTemplate.createManyAndReturn({
+    data,
+    select: { id: true },
   });
 }
 

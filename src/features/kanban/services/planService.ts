@@ -11,17 +11,19 @@ import {
   createManyPlanTemplates,
   updatePlanTemplate,
 } from "@/lib/db/planTemplates";
+import { createManyTaskTemplates } from "@/lib/db/taskTemplates";
 import {
   createManyTasks,
   deleteIncompleteTasksByTemplateIds,
   updateTasksPlanId,
   unlinkAdhocTasksFromPlan,
 } from "@/lib/db/tasks";
-import { Prisma, PlanMode, TaskType, TaskStatus, PlanStatus } from "@/generated/prisma/client";
+import { Prisma, PeriodType, PlanMode, TaskType, TaskStatus, PlanStatus } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { getTodayDate, getISOWeekKey, isWeekend } from "../utils/dateUtils";
 import { sizeToPoints } from "../utils/sizeUtils";
 import type { PlanItem } from "@/lib/db/plans";
+import type { DraftTemplate } from "../types/aiChat";
 import type { z } from "zod";
 import type { createPlanSchema, updatePlanSchema } from "../schemas";
 
@@ -104,6 +106,96 @@ async function generateTasksForTemplates(
   }
 }
 
+/**
+ * Core plan-creation steps, running inside a caller-provided transaction. Lets
+ * other flows (e.g. AI draft approval, which first creates new TaskTemplates)
+ * compose plan creation into one atomic transaction. Guard reads (active plan,
+ * pending plan) are the caller's responsibility.
+ */
+export async function createPlanInTx(
+  tx: Prisma.TransactionClient,
+  userId: string,
+  params: {
+    periodType: PeriodType;
+    periodKey: string;
+    description?: string;
+    mode: PlanMode;
+    templates: PlanTemplateInput[];
+    adhocTaskIds?: string[];
+    pendingPlan: PlanItem | null;
+  },
+  today: Date
+): Promise<PlanItem> {
+  const { periodType, periodKey, description, mode, templates, adhocTaskIds, pendingPlan } = params;
+
+  const newPlan = await dalCreatePlan(userId, { periodType, periodKey, description, mode }, tx);
+  if (templates.length > 0) {
+    await createManyPlanTemplates(newPlan.id, templates, tx);
+    await generateTasksForTemplates(userId, newPlan.id, newPlan.periodKey, templates, today, mode, tx);
+  }
+  // Link selected ad-hoc tasks to new plan
+  if (adhocTaskIds && adhocTaskIds.length > 0) {
+    await updateTasksPlanId(userId, adhocTaskIds, newPlan.id, tx);
+  }
+  // Unlink deselected ad-hoc tasks from pending plan, then complete it
+  if (pendingPlan) {
+    await unlinkAdhocTasksFromPlan(userId, pendingPlan.id, adhocTaskIds ?? [], tx);
+    await updatePlanStatus(userId, pendingPlan.id, PlanStatus.COMPLETED, tx);
+  }
+  await updateLastSyncDate(userId, newPlan.id, today, tx);
+  return newPlan;
+}
+
+/**
+ * Create a plan from an approved AI draft, inside a caller-provided transaction.
+ * Batch-creates the draft's new templates (`templateId === null`), resolves every
+ * entry to a real templateId, then runs the shared plan-creation core. Keeps the
+ * whole approval (new templates + plan) atomic.
+ */
+export async function createPlanFromDraft(
+  tx: Prisma.TransactionClient,
+  userId: string,
+  params: {
+    draftTemplates: DraftTemplate[];
+    description?: string;
+    mode: PlanMode;
+    adhocTaskIds?: string[];
+    pendingPlan: PlanItem | null;
+  },
+  periodKey: string,
+  today: Date
+): Promise<PlanItem> {
+  const { draftTemplates, description, mode, adhocTaskIds, pendingPlan } = params;
+
+  const newEntries = draftTemplates.filter((d) => d.templateId === null);
+  const createdIds = newEntries.length
+    ? await createManyTaskTemplates(
+        newEntries.map((d) => ({
+          userId,
+          title: d.title,
+          description: d.description,
+          size: d.size,
+        })),
+        tx
+      )
+    : [];
+
+  // Zip freshly-created ids back to the null entries (input order preserved).
+  let nextNew = 0;
+  const templates: PlanTemplateInput[] = draftTemplates.map((d) => ({
+    templateId: d.templateId ?? createdIds[nextNew++].id,
+    type: d.type,
+    frequency: d.frequency,
+  }));
+
+  return createPlanInTx(
+    tx,
+    userId,
+    { periodType: PeriodType.WEEKLY, periodKey, description, mode, templates, adhocTaskIds, pendingPlan },
+    today
+  );
+}
+
 export async function createPlan(
   userId: string,
   data: CreatePlanData
@@ -120,26 +212,14 @@ export async function createPlan(
   const today = getTodayDate();
   const periodKey = getISOWeekKey(today);
 
-  const plan = await prisma.$transaction(async (tx) => {
-    const newPlan = await dalCreatePlan(userId, { periodType, periodKey, description, mode }, tx);
-    if (templates.length > 0) {
-      await createManyPlanTemplates(newPlan.id, templates, tx);
-      await generateTasksForTemplates(userId, newPlan.id, newPlan.periodKey, templates, today, mode, tx);
-    }
-    // Link selected ad-hoc tasks to new plan
-    if (adhocTaskIds && adhocTaskIds.length > 0) {
-      await updateTasksPlanId(userId, adhocTaskIds, newPlan.id, tx);
-    }
-    // Unlink deselected ad-hoc tasks from pending plan
-    if (pendingPlan) {
-      await unlinkAdhocTasksFromPlan(userId, pendingPlan.id, adhocTaskIds ?? [], tx);
-      await updatePlanStatus(userId, pendingPlan.id, PlanStatus.COMPLETED, tx);
-    }
-    await updateLastSyncDate(userId, newPlan.id, today, tx);
-    return newPlan;
-  });
-
-  return plan;
+  return prisma.$transaction((tx) =>
+    createPlanInTx(
+      tx,
+      userId,
+      { periodType, periodKey, description, mode, templates, adhocTaskIds, pendingPlan },
+      today
+    )
+  );
 }
 
 export async function updatePlan(

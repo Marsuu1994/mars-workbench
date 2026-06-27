@@ -1,11 +1,14 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import {
+  approveDraftPlanSchema,
   createAiChatSchema,
   generateDraftPlanSchema,
   getTemplateStatsSchema,
 } from "../schemas";
 import {
+  approveDraftPlan,
   createAiChat,
   generateDraftPlan,
   getTemplateStats,
@@ -42,6 +45,25 @@ export async function generateDraftPlanAction(input: unknown) {
     return {
       error: {
         formErrors: ["Couldn't generate a plan, please try again."],
+        fieldErrors: {},
+      },
+    };
+  }
+}
+
+export async function approveDraftPlanAction(input: unknown) {
+  const parsed = approveDraftPlanSchema.safeParse(input);
+  if (!parsed.success) return { error: parsed.error.flatten() };
+
+  const userId = await getCurrentUserId();
+  try {
+    const plan = await approveDraftPlan(userId, parsed.data.chatId);
+    revalidatePath("/kanban");
+    return { data: { planId: plan.id } };
+  } catch {
+    return {
+      error: {
+        formErrors: ["Couldn't create the plan, please try again."],
         fieldErrors: {},
       },
     };
