@@ -65,3 +65,16 @@ export const SIZE_EFFORT: Record<TaskSize, string> = {
 
 export const sizeToPoints = (size: TaskSize): number => SIZE_TO_POINTS[size];
 export const sizeToLabel = (size: TaskSize): string => SIZE_LABELS[size];
+
+export const MessageRole = {
+  USER: "user",
+  ASSISTANT: "assistant",
+  SYSTEM: "system",
+} as const;
+export type MessageRole = (typeof MessageRole)[keyof typeof MessageRole];
+
+export const MessageType = {
+  TEXT: "TEXT",
+  DRAFT_PLAN: "DRAFT_PLAN",
+} as const;
+export type MessageType = (typeof MessageType)[keyof typeof MessageType];

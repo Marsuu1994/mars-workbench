@@ -1,5 +1,8 @@
 import { z } from "zod";
-import { PeriodType, PlanMode, TaskSize, TaskType, TaskStatus } from "@/generated/prisma/client";
+// Client-safe enum mirrors (same string values as the Prisma enums) so this
+// module can be imported from "use client" code without pulling in the
+// Node-only generated Prisma client.
+import { PeriodType, PlanMode, TaskSize, TaskType, TaskStatus } from "./utils/enums";
 
 // ── Plan Schemas ───────────────────────────────────────────────────────
 
@@ -124,3 +127,8 @@ export const approveDraftPlanSchema = z.object({
   chatId: z.string().uuid(),
 });
 export type ApproveDraftPlanInput = z.infer<typeof approveDraftPlanSchema>;
+
+export const resumeDraftPlanSchema = z.object({
+  chatId: z.string().uuid(),
+});
+export type ResumeDraftPlanInput = z.infer<typeof resumeDraftPlanSchema>;

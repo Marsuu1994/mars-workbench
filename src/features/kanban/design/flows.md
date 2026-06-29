@@ -251,7 +251,8 @@ Future projections are then derived in-memory from the plan's current templates.
 
 **Steps:**
 
-1. **Open AI panel → create Chat**
+1. **Open AI panel → resume or create Chat**
+   - **Resume-or-create (persistence):** the chat is durable — the DB chat row is the source of truth. On open, if the in-memory store already holds a `chatId` (same session), just reveal the modal. Otherwise (fresh load / restart) call `getActiveAiChatAction`, which returns the user's most recent **unapproved** chat (`planId IS NULL`) via `getLatestInProgressChat`; rehydrate its messages + draft from the DB. Only when none exists do we create a new Chat. Approval sets `planId`, so the next fresh open starts a brand-new chat.
    - Create a new Chat record linked to the target plan (planId on Chat). If no plan exists yet (new user), planId is null until plan creation.
    - Fetch **per-template performance stats** from the `PENDING_UPDATE` plan (if exists) via `getTemplateStatsAction` (backed by the `getPlanTemplateStats(planId)` DAL query — a single `GROUP BY templateId, status` over `Task`): per template `completed` / `expired` / `total` instances, `completionRate`, `pointsEarned`, and `type`. Roll these up into `overall` aggregates (overall + daily-only completion rate, total points) for the welcome message — overall completion alone is weak signal, so the per-template breakdown is what the LLM uses to decide which templates to keep, ease, or drop.
    - Fetch all non-archived task templates for the user (reuse list for `templateId` matching — kept **separate** from `perTemplate`, since it includes templates never used in a plan).
@@ -314,6 +315,14 @@ Future projections are then derived in-memory from the plan's current templates.
    - `updateChatPlanId(chatId, newPlan.id, tx)` to link the chat.
 
    **Error handling:** If the LLM returns an error or unusable output, show an error message in the chat bubble. No retry logic for V1.
+
+#### Chat Persistence & Resume
+
+The conversation survives modal close/reopen, page reloads, and app restarts — until a plan is approved (which sets `Chat.planId`, ending the in-progress chat).
+
+- **Source of truth = DB.** No client storage. On a fresh open the client calls `getActiveAiChatAction` and rebuilds `UiMessage[]` from the persisted rows (`reconstructMessages`): first assistant TEXT → welcome (chips recomputed from `lastPlanStats` presence), later TEXT → clarifying replies, `DRAFT_PLAN` → parsed draft cards. The approvable `latestDraft` is derived from the most recent `DRAFT_PLAN` message.
+- **Same-session reopen** keeps the in-memory chat (no reload), so an in-flight generation finishes into the store and dismissing the modal mid-generation loses nothing.
+- **Interrupted generation (app closed mid-run).** Each `generateDraftPlan` persists the user turn before calling the LLM. On rehydrate, if the last stored turn is an unanswered user message (`pendingGeneration`), the client auto-calls `resumeDraftPlanAction` → `resumeDraftPlan`, which regenerates from existing history **without** appending a new user turn (no duplicate). If the generation had actually completed server-side, the `DRAFT_PLAN` is already persisted and is shown instead.
 
 #### LLM Configuration
 

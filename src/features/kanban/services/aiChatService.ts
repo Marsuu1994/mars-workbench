@@ -5,7 +5,13 @@ import { getPlanTemplateStats, getNonDoneAdhocTasks, type PlanTemplateStatRow } 
 import { getTaskTemplateTitlesByIds, getTaskTemplates } from "@/lib/db/taskTemplates";
 import { getPlanTemplatesByPlanId } from "@/lib/db/planTemplates";
 import { getActivePlan, getPlanByStatus, type PlanItem } from "@/lib/db/plans";
-import { createChat, getChatById, updateChatPlanId, updateChatMetadata } from "@/lib/db/chats";
+import {
+  createChat,
+  getChatById,
+  getLatestInProgressChat,
+  updateChatPlanId,
+  updateChatMetadata,
+} from "@/lib/db/chats";
 import { createMessage, getMessagesByChatId } from "@/lib/db/messages";
 import { MessageType, PlanMode, PlanStatus, TaskType } from "@/generated/prisma/client";
 import { openai, DRAFT_PLAN_MODEL } from "@/lib/llm/openai";
@@ -13,7 +19,13 @@ import { createPlanFromDraft } from "./planService";
 import { draftPlanResponseSchema, type DraftPlanResponse } from "../schemas";
 import { buildDraftPlanSystemPrompt } from "../prompt/draftPlanPrompt";
 import { getTodayDate, getISOWeekKey } from "../utils/dateUtils";
-import type { ChatMetadata, LastPlanStats, OverallStats, PerTemplateStat } from "../types/aiChat";
+import type {
+  ActiveChatPayload,
+  ChatMetadata,
+  LastPlanStats,
+  OverallStats,
+  PerTemplateStat,
+} from "../types/aiChat";
 import {
   NEW_USER_CHIPS,
   RETURNING_USER_CHIPS,
@@ -109,22 +121,18 @@ export async function createAiChat(
 }
 
 /**
- * Generate (or revise) a draft plan via the LLM. Persists the user's message,
- * replays the full conversation (prior DRAFT_PLAN turns included verbatim) into
- * a static system prompt, calls the model for structured output, and stores the
- * result as a DRAFT_PLAN message — which is itself the pending-approval draft.
+ * Shared core: replay the chat's full stored history through the LLM, persist
+ * the resulting DRAFT_PLAN message + overwrite the `latestDraft` clipboard, and
+ * return the draft. The caller is responsible for having already appended the
+ * triggering user message (if any) — `generateDraftPlan` does, `resumeDraftPlan`
+ * relies on the interrupted user turn already being in history.
  */
-export async function generateDraftPlan(
+async function generateFromHistory(
   userId: string,
-  chatId: string,
-  userMessage: string
+  chatId: string
 ): Promise<DraftPlanResponse> {
   const chat = await getChatById(userId, chatId);
   if (!chat) throw new Error("Chat not found");
-
-  // Persist the user turn first so it survives an LLM failure and is part of the
-  // history we replay below.
-  await createMessage({ chatId, role: "user", content: userMessage });
 
   const metadata = (chat.metadata ?? {}) as unknown as ChatMetadata;
   const lastWeekStats = metadata.lastPlanStats?.perTemplate ?? null;
@@ -183,6 +191,58 @@ export async function generateDraftPlan(
   });
 
   return response;
+}
+
+/**
+ * Generate (or revise) a draft plan from a new user message: persist the user
+ * turn first (so it survives an LLM failure and joins the replayed history),
+ * then run the shared generation core.
+ */
+export async function generateDraftPlan(
+  userId: string,
+  chatId: string,
+  userMessage: string
+): Promise<DraftPlanResponse> {
+  const chat = await getChatById(userId, chatId);
+  if (!chat) throw new Error("Chat not found");
+
+  await createMessage({ chatId, role: "user", content: userMessage });
+
+  return generateFromHistory(userId, chatId);
+}
+
+/**
+ * Resume an interrupted generation: the unanswered user turn is already the last
+ * message in history, so we regenerate from history WITHOUT appending a new user
+ * message (no duplicate turn).
+ */
+export async function resumeDraftPlan(
+  userId: string,
+  chatId: string
+): Promise<DraftPlanResponse> {
+  return generateFromHistory(userId, chatId);
+}
+
+/**
+ * Load the user's resumable (unapproved) chat for client rehydration: the raw
+ * message turns + whether stats exist (welcome-chip variant) + whether the last
+ * turn is an unanswered user message (interrupted generation → auto-resume).
+ * Returns null when there is no in-progress chat (e.g. right after an approval).
+ */
+export async function getActiveAiChat(userId: string): Promise<ActiveChatPayload | null> {
+  const chat = await getLatestInProgressChat(userId);
+  if (!chat) return null;
+
+  const messages = await getMessagesByChatId(chat.id);
+  const metadata = (chat.metadata ?? {}) as unknown as ChatMetadata;
+  const lastMessage = messages[messages.length - 1];
+
+  return {
+    chatId: chat.id,
+    messages: messages.map((m) => ({ role: m.role, type: m.type, content: m.content })),
+    hasStats: !!metadata.lastPlanStats,
+    pendingGeneration: lastMessage?.role === "user",
+  };
 }
 
 /**

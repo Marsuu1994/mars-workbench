@@ -1,4 +1,4 @@
-import type { TaskSize, TaskType } from "@/generated/prisma/client";
+import type { MessageRole, MessageType, TaskSize, TaskType } from "@/generated/prisma/client";
 import type { DraftPlanResponse } from "../schemas";
 
 /**
@@ -87,3 +87,25 @@ export type UiMessage =
       draft: DraftPlanResponse;
       approved?: boolean;
     };
+
+/** A persisted message row, trimmed to what the client needs to rehydrate. */
+export type ActiveChatMessage = {
+  role: MessageRole;
+  type: MessageType;
+  content: string;
+};
+
+/**
+ * Snapshot of the user's resumable (unapproved) chat, returned by
+ * `getActiveAiChatAction` so the client can rebuild the conversation. Null when
+ * there is no in-progress chat. The approvable `latestDraft` is derived
+ * client-side from the last DRAFT_PLAN message, so it is not sent separately.
+ * `pendingGeneration` is true when the last turn is an unanswered user message
+ * (a generation that was interrupted).
+ */
+export type ActiveChatPayload = {
+  chatId: string;
+  messages: ActiveChatMessage[];
+  hasStats: boolean;
+  pendingGeneration: boolean;
+};

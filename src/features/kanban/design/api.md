@@ -270,7 +270,7 @@ Used by the edit plan UI to preview how many tasks will be removed per template 
 
 ---
 
-## AI Chat (Planned)
+## AI Chat
 
 ### `getTemplateStatsAction(input)`
 
@@ -317,6 +317,27 @@ Steps:
 
 ---
 
+### `getActiveAiChatAction()` — resume (no LLM)
+
+```
+Input: none (owner-scoped via getCurrentUserId)
+
+Loads the user's resumable chat so the client can rehydrate after a reload/restart.
+
+Steps (service: aiChatService.getActiveAiChat):
+1. getLatestInProgressChat(userId) — most recent Chat with planId IS NULL; null if none
+2. getMessagesByChatId(chat.id); read Chat.metadata
+3. Return { data } where data is null OR {
+     chatId,
+     messages:          { role, type, content }[]   // trimmed rows; client rebuilds UiMessage[]
+     hasStats:          boolean                       // metadata.lastPlanStats present → chip variant
+     pendingGeneration: boolean                       // last turn is an unanswered user message
+   }
+// latestDraft is NOT returned — the client derives it from the last DRAFT_PLAN message
+```
+
+---
+
 ### `generateDraftPlanAction(input)`
 
 ```
@@ -349,6 +370,27 @@ Steps (service: aiChatService.generateDraftPlan):
    (chat history + LLM replay), AND overwrite Chat.metadata.latestDraft with
    { description, draftTemplates } — the single-slot approval clipboard
 9. Return the full structured response (action wraps in try/catch → { error } on failure)
+```
+
+---
+
+### `resumeDraftPlanAction(input)`
+
+```
+Input {
+  chatId:  string    // Existing chat ID
+}
+
+Resumes a generation interrupted by an app/tab close. Same as generateDraftPlanAction
+EXCEPT it does NOT persist a new user message — the unanswered user turn is already the
+last message in history.
+
+Steps (service: aiChatService.resumeDraftPlan):
+1. Validate input with Zod (resumeDraftPlanSchema)
+2. Call the shared generateFromHistory core (same as generateDraftPlan after its user-
+   message persist): build static prompt → replay history → LLM → coerce ids → persist
+   DRAFT_PLAN message + overwrite Chat.metadata.latestDraft
+3. Return the full structured response (try/catch → { error } on failure)
 ```
 
 ---
@@ -472,6 +514,7 @@ unlinkAdhocTasksFromPlan(userId, planId, keepIds[], tx?)           // unlink AD_
 ```
 createChat(data: { userId, planId?, title?, metadata? })   // create Chat record, planId optional for new users
 getChatById(userId, chatId)                                // owner-scoped; includes planId, metadata
+getLatestInProgressChat(userId)                            // most recent unapproved chat (planId IS NULL) to resume
 updateChatMetadata(chatId, metadata)                       // overwrite metadata (lastPlanStats snapshot + latestDraft clipboard)
 updateChatPlanId(chatId, planId, tx?)                      // link chat to plan after plan creation
 ```

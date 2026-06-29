@@ -6,12 +6,15 @@ import {
   createAiChatSchema,
   generateDraftPlanSchema,
   getTemplateStatsSchema,
+  resumeDraftPlanSchema,
 } from "../schemas";
 import {
   approveDraftPlan,
   createAiChat,
   generateDraftPlan,
+  getActiveAiChat,
   getTemplateStats,
+  resumeDraftPlan,
 } from "../services/aiChatService";
 import { getCurrentUserId } from "@/lib/auth/getCurrentUserId";
 
@@ -33,6 +36,12 @@ export async function createAiChatAction(input: unknown) {
   return { data };
 }
 
+export async function getActiveAiChatAction() {
+  const userId = await getCurrentUserId();
+  const data = await getActiveAiChat(userId);
+  return { data };
+}
+
 export async function generateDraftPlanAction(input: unknown) {
   const parsed = generateDraftPlanSchema.safeParse(input);
   if (!parsed.success) return { error: parsed.error.flatten() };
@@ -40,6 +49,24 @@ export async function generateDraftPlanAction(input: unknown) {
   const userId = await getCurrentUserId();
   try {
     const data = await generateDraftPlan(userId, parsed.data.chatId, parsed.data.message);
+    return { data };
+  } catch {
+    return {
+      error: {
+        formErrors: ["Couldn't generate a plan, please try again."],
+        fieldErrors: {},
+      },
+    };
+  }
+}
+
+export async function resumeDraftPlanAction(input: unknown) {
+  const parsed = resumeDraftPlanSchema.safeParse(input);
+  if (!parsed.success) return { error: parsed.error.flatten() };
+
+  const userId = await getCurrentUserId();
+  try {
+    const data = await resumeDraftPlan(userId, parsed.data.chatId);
     return { data };
   } catch {
     return {

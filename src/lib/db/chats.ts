@@ -49,6 +49,21 @@ export async function getChatById(
 }
 
 /**
+ * Find the user's most recent in-progress AI chat — one not yet linked to a
+ * plan (`planId` null). Approval sets `planId`, so this returns the active
+ * draft conversation to resume, or null if there is none.
+ */
+export async function getLatestInProgressChat(
+  userId: string
+): Promise<ChatRecord | null> {
+  return prisma.chat.findFirst({
+    where: { userId, planId: null },
+    orderBy: { createdAt: "desc" },
+    select: chatSelect,
+  });
+}
+
+/**
  * Overwrite a chat's metadata (single-slot clipboard for draftTemplates /
  * lastPlanStats).
  */
