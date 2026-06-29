@@ -1,4 +1,5 @@
 import type { TaskSize, TaskType } from "@/generated/prisma/client";
+import type { DraftPlanResponse } from "../schemas";
 
 /**
  * Rolled-up stats across all templates of a finished plan. Consumed by the
@@ -65,3 +66,24 @@ export type ChatMetadata = {
   lastPlanStats?: LastPlanStats;
   latestDraft?: { description: string; draftTemplates: DraftTemplate[] };
 };
+
+/**
+ * Client-side message model for the AI chat modal — purely a rendering concern
+ * (the LLM history is rebuilt server-side from DB rows, independent of this).
+ * Four `type`s:
+ * - `user`        — the user's typed turn
+ * - `welcome`     — static first greeting, no LLM; carries quick-start `chips`
+ * - `text`        — an LLM text reply (e.g. a clarifying question, no draft)
+ * - `draft`       — an LLM draft plan; flagged `approved` once committed
+ */
+export type UiMessage =
+  | { id: string; role: "user"; type: "user"; text: string }
+  | { id: string; role: "assistant"; type: "welcome"; text: string; chips?: string[] }
+  | { id: string; role: "assistant"; type: "text"; text: string }
+  | {
+      id: string;
+      role: "assistant";
+      type: "draft";
+      draft: DraftPlanResponse;
+      approved?: boolean;
+    };

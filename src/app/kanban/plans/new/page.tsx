@@ -35,6 +35,7 @@ export default async function NewPlanPage() {
       initialPlanMode={pendingPlan?.mode}
       adhocTasks={adhocTasks}
       initialAdhocTaskIds={initialAdhocTaskIds}
+      aiContextPlanId={pendingPlan?.id}
     />
   );
 }

@@ -182,6 +182,13 @@
   .loading-label { font-size: 12px; color: var(--m-text-muted); }
   .ai-input-area.disabled { opacity: 0.4; pointer-events: none; }
 
+  /* ── Error alert (generation/approval failure) ── */
+  .ai-error {
+    margin: 0 20px 4px; padding: 8px 12px; border-radius: 8px; flex-shrink: 0;
+    background: rgba(233, 63, 51, 0.1); color: var(--m-red);
+    border: 1px solid rgba(233, 63, 51, 0.3); font-size: 12px;
+  }
+
   /* Compact screen label */
   .screen-section { padding: 24px; }
   .screen-section-label {
@@ -199,6 +206,8 @@
   <button class="screen-btn" onclick="show('s4')">Draft Generated</button>
   <button class="screen-btn" onclick="show('s5')">Rejected + Revised</button>
   <button class="screen-btn" onclick="show('s6')">Plan Created</button>
+  <button class="screen-btn" onclick="show('s7')">Initializing</button>
+  <button class="screen-btn" onclick="show('s8')">Generation Error</button>
 </div>
 
 
@@ -734,6 +743,101 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 7 — Initializing (modal just opened, before welcome)
+     ═══════════════════════════════════════════════════════ -->
+<div id="screen-s7" class="screen-section" style="display:none">
+  <div class="screen-section-label">Screen 7 / Initializing — Bootstrapping the chat</div>
+  <div class="modal-bg">
+    <div class="ai-modal" style="height:520px">
+      <div class="ai-modal-header">
+        <div class="ai-modal-header-left">
+          <div class="ai-modal-header-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <span class="ai-modal-title">AI Plan Assistant</span>
+          <span class="ai-beta-badge">Beta</span>
+        </div>
+        <button class="ai-modal-close">&times;</button>
+      </div>
+
+      <div class="ai-chat-body">
+        <!-- No welcome yet — the create-chat server action is in flight -->
+        <div class="msg from-ai">
+          <div class="msg-avatar bot">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="msg-bubble">
+            <div class="loading-bubble">
+              <div class="loading-dots">
+                <span></span><span></span><span></span>
+              </div>
+              <span class="loading-label">Initializing AI assistant...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ai-input-area disabled">
+        <div class="ai-input-row">
+          <textarea placeholder="Describe your goals or what you want to work on..." rows="1" disabled></textarea>
+          <button class="ai-send-btn" disabled style="opacity:0.4;cursor:default">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 8 — Generation Error (action failed, retry enabled)
+     ═══════════════════════════════════════════════════════ -->
+<div id="screen-s8" class="screen-section" style="display:none">
+  <div class="screen-section-label">Screen 8 / Generation Error — Recoverable failure</div>
+  <div class="modal-bg">
+    <div class="ai-modal" style="height:520px">
+      <div class="ai-modal-header">
+        <div class="ai-modal-header-left">
+          <div class="ai-modal-header-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <span class="ai-modal-title">AI Plan Assistant</span>
+        </div>
+        <button class="ai-modal-close">&times;</button>
+      </div>
+
+      <div class="ai-chat-body">
+        <div class="msg from-ai">
+          <div class="msg-avatar bot">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="msg-bubble">Tell me about your goals and I'll help you create a weekly plan.</div>
+        </div>
+
+        <div class="msg from-user">
+          <div class="msg-avatar user">U</div>
+          <div class="msg-bubble">I'm preparing for FAANG interviews. Help me build a weekly plan.</div>
+        </div>
+      </div>
+
+      <!-- Inline error above the input; input stays enabled so the user can retry -->
+      <div class="ai-error">Couldn't generate a plan, please try again.</div>
+      <div class="ai-input-area">
+        <div class="ai-input-row">
+          <textarea placeholder="Describe your goals or what you want to work on..." rows="1"></textarea>
+          <button class="ai-send-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+        <div class="ai-input-note">AI suggestions can be edited before creating your plan</div>
       </div>
     </div>
   </div>

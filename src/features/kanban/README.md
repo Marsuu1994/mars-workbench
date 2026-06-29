@@ -15,14 +15,13 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 - **PWA**: Manifest, service worker, mobile installability, safe-area insets
 - **Architecture**: Server Actions + DAL (3-layer), `prisma.$transaction()` for multi-step mutations, timezone anchored to `America/Los_Angeles`
 
-**AI Assisted Plan Creation** — Fully designed (flows, API, mockups); **backend complete, UI remaining**. The standalone chat demo was removed and the shared `Chat`/`Message` tables now back this flow. All three server actions are done and verified end-to-end: `getTemplateStatsAction` (per-template stats), `createAiChatAction` (static no-LLM welcome + chips, snapshots last-period stats into `Chat.metadata`), `generateDraftPlanAction` (OpenAI `gpt-5-nano` structured draft — reuses templates, calibrates from stats, replays prior drafts as history), and `approveDraftPlanAction` (atomically creates the plan, completes the prior `PENDING_UPDATE` plan, carries over ad-hoc tasks). `Chat.metadata` holds the stats snapshot + a `latestDraft` approval clipboard. Remaining: the chat UI (modal, draft cards, store, action wiring).
+**AI Assisted Plan Creation** — Fully designed and **complete (backend + UI)**. The standalone chat demo was removed and the shared `Chat`/`Message` tables now back this flow. All three server actions are done and verified end-to-end: `getTemplateStatsAction` (per-template stats), `createAiChatAction` (static no-LLM welcome + chips, snapshots last-period stats into `Chat.metadata`), `generateDraftPlanAction` (OpenAI `gpt-5-nano` structured draft — reuses templates, calibrates from stats, replays prior drafts as history), and `approveDraftPlanAction` (atomically creates the plan, completes the prior `PENDING_UPDATE` plan, carries over ad-hoc tasks). `Chat.metadata` holds the stats snapshot + a `latestDraft` approval clipboard. The chat UI is a Zustand-backed modal (`store/aiPlanChatStore` state + `hooks/useAiPlanChat` action bridge) opened from the plan form's AI assistant banner (create mode only), with suggestion chips, draft-plan cards, a refine→approve flow, and a success banner (`components/ai-chat/`).
 
 **Mobile Mockups** — Board drag-and-drop flow (375x812), settings page, shared `mockup-theme.css` with light/dark toggle.
 
 ## Backlog
 
 ### High Priority
-- [ ] Implement the AI assisted plan creation flow — UI (backend complete: all server actions done & verified)
 - [ ] Consolidate task generation logic for update plan
 - [ ] Design evidence submit feature when user move task to done
 
@@ -44,9 +43,16 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 
 ## Done
 
+- [x] Implement the AI assisted plan creation flow — UI (Zustand store + bridge hook + chat modal, wired to the plan form)
 - [x] Refactor the codebase, remove chatbot related code
 
 ## Update Log
+
+### 2026-06-29
+- Built the **AI Assisted Plan Creation UI** (backend was already done): a Zustand chat store (`store/aiPlanChatStore`, pure state) + a `hooks/useAiPlanChat` bridge that calls the existing server actions (keeps fetch out of the store), and the `components/ai-chat/` modal — `AiPlanChatModal` (header/body/footer render-function split), `ChatMessage`, `DraftPlanCards` (reuses `SizeChip` + `TaskTypeBadge`), `SuggestionChips`, `ChatInputBar`, `CreateActionBar`, `CreatedBanner`, `LoadingBubble` (shown for both `initializing` and `generating`), shared `Avatars`, and a `constants.ts` for all UI copy
+- Entry point: `AiAssistantBanner` rendered in `PlanForm` after the description (create mode only); `new/page.tsx` passes the pending plan id as `aiContextPlanId` to seed the returning-user welcome
+- Added two `AGENTS.md` conventions: split modal header/body/footer into render functions, and extract user-facing literals into a colocated `constants.ts`
+- Fix: regenerated the stale Prisma client (`npx prisma generate`) so `Chat.planId` is recognized at runtime
 
 ### 2026-06-27
 - Removed the unreachable standalone AI chat demo (pages, `/api/chats` + `/api/llm` routes, `features/chat/`, old `chats.ts`/`messages.ts` DAL); kept the shared `Chat`/`Message` tables for reuse

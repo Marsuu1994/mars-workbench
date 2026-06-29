@@ -16,6 +16,8 @@ import {
 import TemplateItem from "./TemplateItem";
 import TaskModal from "./task-modal/TaskModal";
 import { ReviewChangesModal } from "./ReviewChangesModal";
+import { AiAssistantBanner } from "./ai-chat/AiAssistantBanner";
+import { AiPlanChatModal } from "./ai-chat/AiPlanChatModal";
 
 interface PlanTemplateConfig {
   type: TaskType;
@@ -46,6 +48,8 @@ interface PlanFormProps {
   initialPlanMode?: PlanMode;
   adhocTasks?: AdhocTaskItem[];
   initialAdhocTaskIds?: string[];
+  /** Plan whose stats seed the AI assistant's returning-user welcome. */
+  aiContextPlanId?: string;
 }
 
 export default function PlanForm({
@@ -57,6 +61,7 @@ export default function PlanForm({
   initialPlanMode = PlanMode.NORMAL,
   adhocTasks = [],
   initialAdhocTaskIds = [],
+  aiContextPlanId,
 }: PlanFormProps) {
   const router = useRouter();
 
@@ -304,6 +309,9 @@ export default function PlanForm({
           />
         </div>
 
+        {/* AI Assistant entry (create mode only) */}
+        {mode === "create" && <AiAssistantBanner contextPlanId={aiContextPlanId} />}
+
         {/* Plan Mode */}
         <div className="rounded-lg border border-base-content/10 bg-base-200 p-3.5">
           <span className="text-[11px] font-semibold uppercase tracking-wider text-base-content/50 block mb-2">
@@ -512,6 +520,7 @@ export default function PlanForm({
         fromMode={diff.fromMode}
         toMode={diff.toMode}
       />
+      {mode === "create" && <AiPlanChatModal />}
     </>
   );
 }

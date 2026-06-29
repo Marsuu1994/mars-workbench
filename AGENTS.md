@@ -114,6 +114,36 @@ Mockups are the source of truth for UI, but implementation may introduce details
 - For ACID-critical multi-step writes, use `prisma.$transaction()` with `tx?: Prisma.TransactionClient` in DAL writes.
 - Keep file names aligned with component names when renaming.
 - Extract conditional/complex JSX into named render functions (e.g. `renderBoardLink()`) within the component to keep the return statement scannable. Reserve sub-components for reusable pieces; use render functions for one-off blocks that need access to component scope.
+- For modal/dialog-like components, split the structural regions (header, body, footer) into named render functions (or sub-components if reusable) so the top-level return reads as an outline. Bad: a single 120-line `return (<dialog>…</dialog>)` mixing header markup, a message loop, error markup, and footer branching. Good:
+
+  ```tsx
+  const renderHeader = () => ( /* … */ );
+  const renderBody = () => ( /* … */ );
+  const renderFooter = () => ( /* … */ );
+
+  return (
+    <dialog ref={dialogRef} className="modal">
+      <div className="modal-box …">
+        {renderHeader()}
+        {renderBody()}
+        {renderFooter()}
+      </div>
+    </dialog>
+  );
+  ```
+
+- Extract user-facing literals (copy strings, and meaningful numbers/colors) into a dedicated `constants.ts` colocated with the component (or a feature `constants/` folder), `export` them, and import where used — no inline magic literals. Bad: `placeholder="Refine the plan — or create it below..."` and `maxLength={280}` inline in JSX. Good:
+
+  ```ts
+  // ai-chat/constants.ts
+  export const PLACEHOLDER_REFINE = "Refine the plan — or create it below...";
+  export const MESSAGE_MAX_LENGTH = 280;
+  ```
+
+  ```tsx
+  import { PLACEHOLDER_REFINE, MESSAGE_MAX_LENGTH } from "./constants";
+  <textarea placeholder={PLACEHOLDER_REFINE} maxLength={MESSAGE_MAX_LENGTH} />
+  ```
 
 ## Code Style
 
