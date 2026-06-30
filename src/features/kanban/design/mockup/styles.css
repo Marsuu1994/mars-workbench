@@ -212,6 +212,9 @@ body {
 /* ── Rollover tag ── */
 .rollover-tag { font-size: 11px; color: var(--m-orange); font-weight: 500; display: flex; align-items: center; gap: 2px; }
 
+/* ── Instance index badge (shown when template frequency > 1; board + backlog) ── */
+.task-instance { font-size: 10px; font-weight: 700; background: var(--m-blue-a12); color: var(--m-blue); padding: 2px 6px; border-radius: 4px; }
+
 /* ── Risk badges ── */
 .risk-badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 999px; }
 .risk-badge.warning { background: var(--m-orange-bg); color: var(--m-orange); }

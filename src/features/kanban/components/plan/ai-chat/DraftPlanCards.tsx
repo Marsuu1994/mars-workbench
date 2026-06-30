@@ -1,7 +1,7 @@
 import { sizeToPoints } from "@/features/kanban/utils/enums";
 import type { DraftTemplate } from "@/features/kanban/types/aiChat";
-import { SizeChip } from "../SizeChip";
-import TaskTypeBadge from "../TaskTypeBadge";
+import { SizeChip } from "../../shared/SizeChip";
+import TaskTypeBadge from "../../shared/TaskTypeBadge";
 
 interface DraftPlanCardsProps {
   templates: DraftTemplate[];

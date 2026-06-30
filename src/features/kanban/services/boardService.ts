@@ -60,7 +60,7 @@ export async function runDailySync(userId: string, planId: string, today: Date):
           description: pt.template.description,
           size: pt.template.size,
           points: sizeToPoints(pt.template.size),
-          status: TaskStatus.TODO,
+          status: TaskStatus.BACKLOG,
           forDate: today,
           instanceIndex: i,
         });
@@ -130,10 +130,15 @@ export async function fetchBoard(userId: string): Promise<BoardData | null> {
   ]);
 
   // — Today metrics —
+  // Backlog tasks are staged off-board (drawer), so they are excluded from the
+  // Today ring/points. Week projection (from the DB aggregate) still counts them.
+  const onBoardTasks = boardTasks.filter(
+    (t) => t.status !== TaskStatus.BACKLOG
+  );
   const todayDoneCount = boardMetrics.todayDoneCount;
-  const todayTotalCount = boardTasks.length;
+  const todayTotalCount = onBoardTasks.length;
   const todayDonePoints = boardMetrics.todayDonePoints;
-  const todayTotalPoints = boardTasks.reduce((sum, t) => sum + t.points, 0);
+  const todayTotalPoints = onBoardTasks.reduce((sum, t) => sum + t.points, 0);
 
   // — Week Projected (Option C: past instances + future projection + weekly instances) —
   const dailyPastPoints = boardMetrics.dailyPastPoints;

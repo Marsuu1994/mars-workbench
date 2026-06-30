@@ -342,7 +342,7 @@ export async function deleteIncompleteTasksByTemplateIds(
       userId,
       planId,
       templateId: { in: templateIds },
-      status: { in: ["TODO", "DOING"] },
+      status: { in: ["BACKLOG", "TODO", "DOING"] },
     },
   });
 }
@@ -360,7 +360,7 @@ export async function countTasksByTemplateIds(
       userId,
       planId,
       templateId: { in: templateIds },
-      status: { in: ["TODO", "DOING"] },
+      status: { in: ["BACKLOG", "TODO", "DOING"] },
     },
   });
   return { removeCount };
@@ -382,7 +382,7 @@ export async function countIncompleteTasksByTemplateId(
       userId,
       planId,
       templateId: { in: templateIds },
-      status: { in: ["TODO", "DOING"] },
+      status: { in: ["BACKLOG", "TODO", "DOING"] },
     },
     _count: true,
   });

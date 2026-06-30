@@ -46,15 +46,20 @@ export function computeRiskLevel(
     return "normal";
   }
 
+  // Backlog tasks are staged but not yet started — treat them as TODO for risk,
+  // so risk + rollover visuals match the board once pulled in.
+  const status =
+    task.status === TaskStatus.BACKLOG ? TaskStatus.TODO : task.status;
+
   switch (task.type) {
     case TaskTypeEnum.AD_HOC: {
       const msElapsed = today.getTime() - new Date(task.createdAt).getTime();
       const daysSinceCreation = Math.floor(msElapsed / 86400000);
 
-      if (task.status === TaskStatus.TODO) {
+      if (status === TaskStatus.TODO) {
         if (daysSinceCreation >= 8) return "danger";
         if (daysSinceCreation >= 5) return "warning";
-      } else if (task.status === TaskStatus.DOING) {
+      } else if (status === TaskStatus.DOING) {
         if (daysSinceCreation >= 8) return "warning";
       }
       return "normal";
@@ -65,7 +70,7 @@ export function computeRiskLevel(
         task.forDate !== null && normalizeForDate(task.forDate) < today;
 
       if (isRollover) {
-        if (task.status === TaskStatus.TODO) {
+        if (status === TaskStatus.TODO) {
           return currentHour < 15 ? "warning" : "danger";
         }
         // DOING rollover → warning regardless of time; never danger
@@ -86,7 +91,7 @@ export function computeRiskLevel(
       const remainingTasks = frequency - progress.done - progress.doing;
       const remainingDays = 7 - daysElapsed;
 
-      if (task.status === TaskStatus.TODO) {
+      if (status === TaskStatus.TODO) {
         if (daysElapsed >= 5 || remainingDays < remainingTasks * 1) return "danger";
         if (daysElapsed >= 3 || remainingDays < remainingTasks * 2) return "warning";
         return "normal";
@@ -100,6 +105,18 @@ export function computeRiskLevel(
     default:
       return "normal";
   }
+}
+
+/**
+ * Resolve a task's template generation frequency. Ad-hoc tasks (no templateId)
+ * and unknown templates default to 1. Used to decide whether the instance-index
+ * badge is meaningful (frequency > 1).
+ */
+export function getTaskFrequency(
+  task: TaskItem,
+  templateFreqMap: Map<string, number>
+): number {
+  return task.templateId ? (templateFreqMap.get(task.templateId) ?? 1) : 1;
 }
 
 // ─── Sorting ───────────────────────────────────────────────────────────────
@@ -130,8 +147,12 @@ export function sortTasks(tasks: TaskItem[], today: Date): TaskItem[] {
   });
 }
 
-/** The three statuses shown as board columns (excludes EXPIRED). */
+/**
+ * Statuses rendered in the UI (excludes EXPIRED). BACKLOG is shown in the
+ * backlog drawer; TODO/DOING/DONE are the board columns.
+ */
 type BoardStatus =
+  | typeof TaskStatus.BACKLOG
   | typeof TaskStatus.TODO
   | typeof TaskStatus.DOING
   | typeof TaskStatus.DONE;
@@ -145,6 +166,7 @@ export function groupAndSortTasks(
   today: Date
 ): Record<BoardStatus, TaskItem[]> {
   const grouped: Record<BoardStatus, TaskItem[]> = {
+    [TaskStatus.BACKLOG]: [],
     [TaskStatus.TODO]: [],
     [TaskStatus.DOING]: [],
     [TaskStatus.DONE]: [],
@@ -158,6 +180,7 @@ export function groupAndSortTasks(
   }
 
   return {
+    [TaskStatus.BACKLOG]: sortTasks(grouped[TaskStatus.BACKLOG], today),
     [TaskStatus.TODO]: sortTasks(grouped[TaskStatus.TODO], today),
     [TaskStatus.DOING]: sortTasks(grouped[TaskStatus.DOING], today),
     [TaskStatus.DONE]: sortTasks(grouped[TaskStatus.DONE], today),

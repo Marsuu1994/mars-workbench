@@ -3,17 +3,18 @@
 import { useState, useEffect, useMemo } from "react";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
 import type { TaskItem } from "@/lib/db/tasks";
-import { TaskStatus } from "../utils/enums";
+import { TaskStatus } from "../../utils/enums";
 import {
   groupAndSortTasks,
   computeTemplateProgress,
   computeRiskLevel,
   type RiskLevel,
-} from "../utils/taskUtils";
-import { getTodayDate } from "../utils/dateUtils";
-import { updateTaskStatusAction } from "../actions/taskActions";
+} from "../../utils/taskUtils";
+import { getTodayDate } from "../../utils/dateUtils";
+import { updateTaskStatusAction } from "../../actions/taskActions";
 import BoardColumn from "./BoardColumn";
-import TaskModal from "./task-modal/TaskModal";
+import BacklogDrawer from "./BacklogDrawer";
+import TaskModal from "../shared/task-modal/TaskModal";
 
 interface KanbanBoardProps {
   tasks: TaskItem[];
@@ -72,6 +73,9 @@ export default function KanbanBoard({
     if (!destination) return;
     if (destination.droppableId === source.droppableId) return;
 
+    // Backlog is a drag source only — no un-pull back into the drawer.
+    if (destination.droppableId === TaskStatus.BACKLOG) return;
+
     const newStatus = destination.droppableId as TaskStatus;
     const snapshot = localTasks;
 
@@ -97,26 +101,37 @@ export default function KanbanBoard({
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex flex-col gap-3.5 md:flex-row md:gap-4 overflow-y-auto md:overflow-x-auto md:overflow-y-visible pb-4 h-full">
-        <BoardColumn
-          status={TaskStatus.TODO}
-          tasks={columns[TaskStatus.TODO]}
+      <div className="flex h-full">
+        <div className="flex-1 min-w-0 flex flex-col gap-3.5 md:flex-row md:gap-4 overflow-y-auto md:overflow-x-auto md:overflow-y-visible p-4">
+          <BoardColumn
+            status={TaskStatus.TODO}
+            tasks={columns[TaskStatus.TODO]}
+            today={today}
+            riskMap={riskMap}
+            templateFreqMap={templateFreqMap}
+            onAddAdhocTask={openAdhocModal}
+          />
+          <BoardColumn
+            status={TaskStatus.DOING}
+            tasks={columns[TaskStatus.DOING]}
+            today={today}
+            riskMap={riskMap}
+            templateFreqMap={templateFreqMap}
+            onAddAdhocTask={openAdhocModal}
+          />
+          <BoardColumn
+            status={TaskStatus.DONE}
+            tasks={columns[TaskStatus.DONE]}
+            today={today}
+            riskMap={riskMap}
+            templateFreqMap={templateFreqMap}
+          />
+        </div>
+        <BacklogDrawer
+          tasks={columns[TaskStatus.BACKLOG]}
           today={today}
           riskMap={riskMap}
-          onAddAdhocTask={openAdhocModal}
-        />
-        <BoardColumn
-          status={TaskStatus.DOING}
-          tasks={columns[TaskStatus.DOING]}
-          today={today}
-          riskMap={riskMap}
-          onAddAdhocTask={openAdhocModal}
-        />
-        <BoardColumn
-          status={TaskStatus.DONE}
-          tasks={columns[TaskStatus.DONE]}
-          today={today}
-          riskMap={riskMap}
+          templateFreqMap={templateFreqMap}
         />
       </div>
       <TaskModal

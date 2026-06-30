@@ -24,12 +24,13 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 
 1. **Mobile Kanban + PWA app** — PWA manifest, service worker, mobile board mockups, bottom tab bar dock, safe-area insets for iOS/Android standalone mode.
 2. **Workspace sidebar** — Sidebar redesigned from feature-level nav (Chat/Kanban) to kanban workspace nav (Board/Plan). Board disabled with tooltip when no active plan; Plan shows "New" nudge badge. Edit Plan button removed from board header (Plan entry in sidebar).
+3. **LLM-assisted plan creation** — AI drafts a plan via non-streaming structured JSON output. User approves the batch (commit-as-is, the latest `DRAFT_PLAN` message is the approval source of truth) or rejects with text feedback to re-generate; no per-card editing. Static no-LLM welcome + suggestion chips. The chat is durable (DB-backed): it resumes the most recent unapproved chat across modal close / reload / restart and auto-resumes a generation interrupted mid-run. Approval atomically creates new TaskTemplates + the plan, completes the prior `PENDING_UPDATE` plan, and carries over ad-hoc tasks. See **AI Assisted Plan Creation Flow** in `flows.md`.
+4. **Backlog drawer** — Collapsible right-edge panel (desktop) for staging template-generated task instances (`status = BACKLOG`) before pulling them onto the board via drag-and-drop (`BACKLOG → TODO`). Reduces visual clutter from duplicate (`frequency > 1`) cards. Reuses the board `TaskCard` (risk + rollover + `#n` instance badge stay in sync). Today ring/points count board tasks only; Week projection includes backlog. Mobile drawer is a follow-up. See the **Backlog Drawer Flow** in `flows.md` and the mockup at `design/mockup/mockup-board-backlog-drawer.html`.
 
 ### Planned: V2
 
-1. **LLM assisted plan creation (V1 — static wizard)** — AI generates a draft plan via structured JSON output. User sees read-only template cards and either approves the whole batch or rejects with text feedback for re-generation. No per-card editing — the latest `DRAFT_PLAN` message is the approval source of truth (commit-as-is). Server action (no streaming). Post-approval creates new TaskTemplates and calls existing `createPlanAction`.
-2. Support evidence flow, when user move a task to completed, submit evidence.
-3. Add AI generated tasks instance flow, LLM should be able to generate tasks based on past works + task template informatiosn to generate task instances, need to record the quality of task it generated.
+1. Support evidence flow, when user move a task to completed, submit evidence.
+2. Add AI generated tasks instance flow, LLM should be able to generate tasks based on past works + task template informatiosn to generate task instances, need to record the quality of task it generated.
 
 ### Planned: Future
 
@@ -39,9 +40,7 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
   - Inline editing of size, type, frequency on draft template cards.
   - Ad-hoc task carryover in AI plan creation flow.
   - LLM-suggested plan mode (NORMAL/EXTREME).
-
 - User-configurable timezone — Date utils are currently anchored to `America/Los_Angeles` via `KANBAN_TZ` constant. Consider making this a user setting stored in the database for multi-user support or if the user relocates.
-- Backlog drawer — Expandable side panel for staging template-generated task instances before moving them to the board via drag-and-drop. Reduces visual clutter from duplicate cards. Mockup in `design/mockup/future-work/mockup-board-backlog-drawer-v2.html`.
 - Support Ad-hoc task deletion and auto clear logic.
 - Phone notifications for unfinished tasks
 - LLM-generated motivational messages
@@ -191,6 +190,7 @@ model Task {
 }
 
 enum TaskStatus {
+  BACKLOG   // Generated from a template, staged in the backlog drawer; not yet pulled onto the board
   TODO
   DOING
   DONE
@@ -206,6 +206,9 @@ enum TaskStatus {
 // - AD_HOC tasks: templateId is null, planId is optional(NULL = unassigned, not on the board), forDate and periodKey are both null, instanceIndex = 1
 // - AD_HOC tasks do not expire
 // - Exactly one of forDate or periodKey must be set for DAILY and WEEKLY tasks
+// - Template-generated instances (DAILY, WEEKLY) are created with status = BACKLOG (staged in the
+//   backlog drawer). They move to TODO only when the user drags them onto the board. AD_HOC tasks are
+//   never BACKLOG — they are created directly as TODO/DOING on the board.
 ```
 
 ### Chat

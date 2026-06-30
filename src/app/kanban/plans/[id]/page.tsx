@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getPlanWithTemplates } from "@/lib/db/plans";
 import { getTaskTemplates } from "@/lib/db/taskTemplates";
 import { getNonDoneAdhocTasks } from "@/lib/db/tasks";
-import PlanForm from "@/features/kanban/components/PlanForm";
+import PlanForm from "@/features/kanban/components/plan/PlanForm";
 import { getCurrentUserId } from "@/lib/auth/getCurrentUserId";
 
 export default async function EditPlanPage({

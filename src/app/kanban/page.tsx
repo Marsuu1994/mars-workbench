@@ -1,8 +1,8 @@
 import { fetchBoardAction } from "@/features/kanban/actions/boardActions";
-import EmptyBoard from "@/features/kanban/components/EmptyBoard";
-import KanbanBoard from "@/features/kanban/components/KanbanBoard";
-import BoardHeader from "@/features/kanban/components/BoardHeader";
-import ProgressDashboard from "@/features/kanban/components/ProgressDashboard";
+import EmptyBoard from "@/features/kanban/components/kanban/EmptyBoard";
+import KanbanBoard from "@/features/kanban/components/kanban/KanbanBoard";
+import BoardHeader from "@/features/kanban/components/kanban/BoardHeader";
+import ProgressDashboard from "@/features/kanban/components/kanban/ProgressDashboard";
 
 export default async function KanbanPage() {
   const board = await fetchBoardAction();
@@ -25,7 +25,7 @@ export default async function KanbanPage() {
         weekProjectedPoints={board.weekProjectedPoints}
         daysElapsed={board.daysElapsed}
       />
-      <div className="flex-1 min-h-0 p-4">
+      <div className="flex-1 min-h-0">
         <KanbanBoard
           tasks={board.tasks}
           daysElapsed={board.daysElapsed}

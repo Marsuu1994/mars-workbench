@@ -4,8 +4,8 @@ import { Droppable } from "@hello-pangea/dnd";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { useBreakpoint } from "@/components/common/BreakpointProvider";
 import type { TaskItem } from "@/lib/db/tasks";
-import { TaskStatus } from "../utils/enums";
-import type { RiskLevel } from "../utils/taskUtils";
+import { TaskStatus } from "../../utils/enums";
+import { getTaskFrequency, type RiskLevel } from "../../utils/taskUtils";
 import TaskCard from "./TaskCard";
 
 interface BoardColumnProps {
@@ -13,6 +13,7 @@ interface BoardColumnProps {
   tasks: TaskItem[];
   today: Date;
   riskMap: Map<string, RiskLevel>;
+  templateFreqMap: Map<string, number>;
   onAddAdhocTask?: (status: string) => void;
 }
 
@@ -27,6 +28,7 @@ export default function BoardColumn({
   tasks,
   today,
   riskMap,
+  templateFreqMap,
   onAddAdhocTask,
 }: BoardColumnProps) {
   const { isMobile } = useBreakpoint();
@@ -61,6 +63,7 @@ export default function BoardColumn({
                 index={index}
                 today={today}
                 riskLevel={riskMap.get(task.id) ?? "normal"}
+                frequency={getTaskFrequency(task, templateFreqMap)}
               />
             ))}
             {provided.placeholder}

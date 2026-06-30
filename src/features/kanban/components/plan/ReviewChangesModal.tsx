@@ -12,7 +12,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { TaskType, PlanMode } from "@/features/kanban/utils/enums";
 import type { TaskSize } from "@/features/kanban/utils/enums";
-import { SizeChip } from "./SizeChip";
+import { SizeChip } from "../shared/SizeChip";
 
 interface AddedTemplate {
   templateId: string;

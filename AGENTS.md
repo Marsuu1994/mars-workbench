@@ -175,6 +175,12 @@ Mockups are the source of truth for UI, but implementation may introduce details
 - Use focused `select` fields unless full model is required.
 - Prefer measured indexing based on query plans (`EXPLAIN ANALYZE`), not speculative index growth.
 
+## One-Time Scripts
+
+- Put one-time / ad-hoc scripts (testing resets, data backfills, manual fixes) in `scripts/one-time/`.
+- These are not part of the app build or migrations; they are run manually against the DB/env as needed.
+- Make them safe to review: parameterize identifiers (e.g. email) at the top, wrap DB writes in a transaction, and include a sanity-check `SELECT` plus a `ROLLBACK` dry-run option before `COMMIT`.
+
 ## Anti-Patterns to Avoid
 
 - No inline styles; use Tailwind utility classes.

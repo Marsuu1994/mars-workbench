@@ -71,7 +71,7 @@ async function generateTasksForTemplates(
             description: template.description ?? undefined,
             size: template.size,
             points: sizeToPoints(template.size),
-            status: TaskStatus.TODO,
+            status: TaskStatus.BACKLOG,
             periodKey,
             instanceIndex: i,
           });
@@ -89,7 +89,7 @@ async function generateTasksForTemplates(
             description: template.description ?? undefined,
             size: template.size,
             points: sizeToPoints(template.size),
-            status: TaskStatus.TODO,
+            status: TaskStatus.BACKLOG,
             forDate: today,
             instanceIndex: i,
           });

@@ -2,11 +2,11 @@
 
 import { Draggable } from "@hello-pangea/dnd";
 import type { TaskItem } from "@/lib/db/tasks";
-import { TaskStatus, TaskType } from "../utils/enums";
-import { SizeChip } from "./SizeChip";
-import { formatShortDate, normalizeForDate } from "../utils/dateUtils";
-import type { RiskLevel } from "../utils/taskUtils";
-import TaskTypeBadge from "./TaskTypeBadge";
+import { TaskStatus, TaskType } from "../../utils/enums";
+import { SizeChip } from "../shared/SizeChip";
+import { formatShortDate, normalizeForDate } from "../../utils/dateUtils";
+import type { RiskLevel } from "../../utils/taskUtils";
+import TaskTypeBadge from "../shared/TaskTypeBadge";
 
 type TaskCardProps = {
   task: TaskItem;
@@ -15,6 +15,8 @@ type TaskCardProps = {
   index: number;
   today: Date;
   riskLevel: RiskLevel;
+  /** Template generation frequency; the instance badge only shows when > 1 */
+  frequency: number;
 };
 
 export default function TaskCard({
@@ -23,8 +25,12 @@ export default function TaskCard({
   index,
   today,
   riskLevel,
+  frequency,
 }: TaskCardProps) {
   const isDone = task.status === TaskStatus.DONE;
+
+  // instanceIndex is 0-based; only meaningful when the template has siblings
+  const showInstance = frequency > 1;
 
   const isRollover =
     !isDone &&
@@ -65,8 +71,13 @@ export default function TaskCard({
         >
           <div className="card-body p-2.5 md:p-3 gap-1.5 md:gap-1">
             {/* Mobile: badge first, then title, then footer */}
-            <div className="md:hidden">
+            <div className="md:hidden flex items-center gap-1.5">
               <TaskTypeBadge type={taskType} />
+              {showInstance && (
+                <span className="text-[8px] font-bold px-1 py-0.5 rounded bg-primary/10 text-primary">
+                  #{task.instanceIndex + 1}
+                </span>
+              )}
             </div>
 
             <h3
@@ -86,6 +97,12 @@ export default function TaskCard({
             {/* Desktop footer */}
             <div className="hidden md:flex items-center gap-2 mt-2">
               <TaskTypeBadge type={taskType} />
+
+              {showInstance && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                  #{task.instanceIndex + 1}
+                </span>
+              )}
 
               {isRollover && (
                 <span className="flex items-center gap-0.5 text-xs text-warning font-medium">

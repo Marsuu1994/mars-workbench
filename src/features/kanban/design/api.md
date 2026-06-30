@@ -19,7 +19,10 @@ Called directly from the `/kanban` Server Component. Orchestrates sync checks an
 ```
 BoardData {
   plan:               PlanWithTemplates
-  tasks:              TaskItem[]          // Non-expired tasks only (TODO, DOING, DONE)
+  tasks:              TaskItem[]          // Non-expired tasks (BACKLOG, TODO, DOING, DONE). The
+                                          // client renders BACKLOG in the backlog drawer and
+                                          // TODO/DOING/DONE in the columns (split by status, no
+                                          // separate field). Today totals below exclude BACKLOG.
   todayDoneCount:     number
   todayTotalCount:    number
   todayDonePoints:    number
@@ -57,13 +60,17 @@ tomorrowStart = today + 1 day
   getBoardMetricsByPlanId(planId, today, tomorrowStart),  // single SQL aggregate with FILTER clauses
 ])
 
+// Backlog tasks are staged off-board — excluded from Today totals (still counted
+// in the Week projection via the DB aggregate's type/forDate buckets).
+onBoardTasks = boardTasks.filter(t => t.status != BACKLOG)
+
 // Today Ring — from DB aggregate
 todayDoneCount  = boardMetrics.todayDoneCount
-todayTotalCount = boardTasks.length
+todayTotalCount = onBoardTasks.length
 
 // Today Points — done from DB, total from board tasks
 todayDonePoints  = boardMetrics.todayDonePoints
-todayTotalPoints = boardTasks.sum(points)
+todayTotalPoints = onBoardTasks.sum(points)
 
 // Week Projected (past daily instances + future daily projection + weekly + ad-hoc)
 dailyPastPoints = boardMetrics.dailyPastPoints            // from DB
@@ -213,6 +220,10 @@ Steps:
 Input {
   status: TaskStatus    // TODO | DOING | DONE
 }
+
+Also serves the backlog drawer pull: dragging a BACKLOG card onto Todo calls this
+with status = TODO (the target is an already-allowed value; BACKLOG is only a drag
+source, never an input/target). No schema change needed.
 
 Steps:
 1. Validate input with Zod
@@ -480,7 +491,7 @@ updateTaskTemplate(userId, id, data: { title?, description?, size? })  // → { 
 
 ```
 // Board queries
-getBoardTasksByPlanId(userId, planId)                               // non-EXPIRED tasks for UI rendering
+getBoardTasksByPlanId(userId, planId)                               // non-EXPIRED tasks for UI rendering (incl. BACKLOG)
 getBoardMetricsByPlanId(userId, planId, todayStart, tomorrowStart)  // single raw SQL aggregate; filters user_id + plan_id
 
 // General queries
@@ -499,10 +510,10 @@ updateTaskStatus(userId, taskId, status)                            // → TaskI
 expireStaleDailyTasks(userId, planId, cutoffDate, tx?)             // DAILY tasks where forDate < cutoffDate → EXPIRED
 expireAllNonDoneTasks(userId, planId, tx?)                         // all non-DONE, non-AD_HOC → EXPIRED (end of period)
 
-// Plan editing
-deleteIncompleteTasksByTemplateIds(userId, planId, templateIds[], tx?)  // delete TODO/DOING tasks for templates
-countIncompleteTasksByTemplateId(userId, planId, templateIds[])         // per-template TODO/DOING count (grouped)
-countTasksByTemplateIds(userId, planId, templateIds[])                  // total removable count
+// Plan editing (removable = not-yet-completed instances, incl. staged BACKLOG)
+deleteIncompleteTasksByTemplateIds(userId, planId, templateIds[], tx?)  // delete BACKLOG/TODO/DOING tasks for templates
+countIncompleteTasksByTemplateId(userId, planId, templateIds[])         // per-template BACKLOG/TODO/DOING count (grouped)
+countTasksByTemplateIds(userId, planId, templateIds[])                  // total removable count (BACKLOG/TODO/DOING)
 
 // Ad-hoc task linking
 updateTasksPlanId(userId, taskIds[], planId, tx?)                  // batch link to plan (owner-scoped)

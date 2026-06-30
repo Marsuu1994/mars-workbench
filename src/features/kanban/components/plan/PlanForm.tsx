@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CheckIcon, MoonIcon, BoltIcon } from "@heroicons/react/24/outline";
 import { TaskType, TaskStatus, PeriodType, PlanMode, TaskSize } from "@/features/kanban/utils/enums";
-import { SizeChip } from "./SizeChip";
+import { SizeChip } from "../shared/SizeChip";
 import type { TaskTemplateItem } from "@/lib/db/taskTemplates";
 import { sizeToPoints } from "@/features/kanban/utils/enums";
 import {
@@ -14,7 +14,7 @@ import {
   countIncompleteByTemplateAction,
 } from "@/features/kanban/actions/planActions";
 import TemplateItem from "./TemplateItem";
-import TaskModal from "./task-modal/TaskModal";
+import TaskModal from "../shared/task-modal/TaskModal";
 import { ReviewChangesModal } from "./ReviewChangesModal";
 import { AiAssistantBanner } from "./ai-chat/AiAssistantBanner";
 import { AiPlanChatModal } from "./ai-chat/AiPlanChatModal";

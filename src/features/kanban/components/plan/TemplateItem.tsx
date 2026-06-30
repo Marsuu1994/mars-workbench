@@ -4,7 +4,7 @@ import { CheckIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
 import { TaskType } from "@/features/kanban/utils/enums";
 import type { TaskTemplateItem } from "@/lib/db/taskTemplates";
 import { sizeToPoints } from "@/features/kanban/utils/enums";
-import { SizeChip } from "./SizeChip";
+import { SizeChip } from "../shared/SizeChip";
 
 interface TemplateItemConfig {
   type: TaskType;

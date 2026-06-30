@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en" data-mockup-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kanban — Backlog Drawer</title>
+<link rel="stylesheet" href="../../../mockup-theme.css" />
+<link rel="stylesheet" href="./styles.css" />
+<style>
+  /* ── Screen switching ── */
+  .screen { display: none; }
+  .screen.active { display: flex; }
+
+  /* The board area shrinks to make room for the drawer */
+  .board-region { flex: 1; display: flex; min-height: 0; }
+
+  /* Drawer reuses the board .task-card (risk + rollover + instance badge stay in sync) */
+
+  /* shared bits */
+  .backlog-count-pill {
+    font-size: 11px; font-weight: 700; background: var(--m-blue); color: #fff;
+    min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .backlog-title-row { font-size: 14px; font-weight: 700; color: var(--m-text); display: flex; align-items: center; gap: 8px; }
+  .backlog-close-btn {
+    width: 28px; height: 28px; border-radius: 6px; border: none;
+    background: transparent; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; color: var(--m-text-secondary);
+  }
+  .backlog-close-btn:hover { background: var(--m-hover-bg); color: var(--m-text); }
+  .backlog-close-btn svg { width: 16px; height: 16px; }
+  .backlog-hint { font-size: 12px; color: var(--m-text-tertiary); display: flex; align-items: center; gap: 6px; }
+  .backlog-hint svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--m-blue); }
+
+  /* ── Collapsed strip (right edge) ── */
+  .backlog-rstrip {
+    width: 46px; flex-shrink: 0; background: var(--m-surface);
+    border-left: 1px solid var(--m-border);
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    padding-top: 16px; cursor: pointer; transition: background 0.15s;
+  }
+  .backlog-rstrip:hover { background: var(--m-hover-bg); }
+  .backlog-rstrip-chevron { width: 16px; height: 16px; color: var(--m-text-muted); }
+  .backlog-rstrip-label {
+    writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg);
+    font-size: 13px; font-weight: 600; color: var(--m-text-secondary); letter-spacing: 0.03em;
+  }
+
+  /* ── Expanded panel (right edge) ── */
+  .backlog-right {
+    width: 300px; flex-shrink: 0; background: var(--m-surface-inset);
+    border-left: 1px solid var(--m-border);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .backlog-right-header {
+    padding: 14px 16px; border-bottom: 1px solid var(--m-border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--m-surface); flex-shrink: 0;
+  }
+  .backlog-right-hint {
+    padding: 10px 16px; border-bottom: 1px solid var(--m-border); flex-shrink: 0;
+  }
+  .backlog-right-body {
+    flex: 1; display: flex; flex-direction: column; gap: 8px;
+    padding: 12px; overflow-y: auto;
+  }
+
+  /* ── Drop zone highlight on Todo column ── */
+  .column.drop-target { border: 2px dashed var(--m-blue); background: var(--m-blue-a04); }
+  .column.drop-target .column-header { border-bottom-color: var(--m-blue-a35); }
+  .drop-zone-hint {
+    border: 2px dashed var(--m-blue-a35); border-radius: 10px;
+    padding: 20px; text-align: center; color: var(--m-blue); font-size: 13px;
+    font-weight: 500; background: var(--m-blue-a04);
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .drop-zone-hint svg { width: 16px; height: 16px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ Reusable fragments ═══════════════════ -->
+
+<template id="tpl-sidebar">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <span class="sidebar-brand">Mars Workbench</span>
+      <button class="sidebar-collapse">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-nav-label">Workspace</div>
+      <a class="sidebar-item active" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Board
+      </a>
+      <a class="sidebar-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Plan
+      </a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">LC</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">Liang Jun</div>
+        <div class="sidebar-user-email">liang@example.com</div>
+      </div>
+      <button class="sidebar-signout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </aside>
+</template>
+
+<template id="tpl-top">
+  <div class="header">
+    <div class="header-left">
+      <span class="header-title"><span>Kanban</span> Planner</span>
+      <span class="header-badge">Week 08 &middot; Feb 17 – Feb 23</span>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-ghost" style="padding:8px 14px;font-size:13px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Edit Plan
+      </button>
+    </div>
+  </div>
+
+  <div class="progress-dashboard">
+    <div class="ring-group">
+      <div class="progress-ring">
+        <svg viewBox="0 0 52 52" width="48" height="48">
+          <circle class="ring-track" cx="26" cy="26" r="22"/>
+          <circle class="ring-fill" cx="26" cy="26" r="22" stroke-dasharray="138.23" stroke-dashoffset="96.76"/>
+        </svg>
+        <div class="ring-center">30%</div>
+      </div>
+      <div class="ring-label">
+        <span class="ring-label-title">Today</span>
+        <span class="ring-label-sub">1 of 4 tasks</span>
+      </div>
+    </div>
+    <div class="dash-divider"></div>
+    <div class="stat-item">
+      <div class="stat-value green">3 / 18</div>
+      <div class="stat-label">Today Points</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value blue">18 / 86</div>
+      <div class="stat-label">Week Points</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value amber">5.2</div>
+      <div class="stat-label">Daily Avg</div>
+    </div>
+    <div class="dash-divider"></div>
+    <div class="week-bar-group">
+      <div class="week-bar-header">
+        <span class="week-bar-title">Week Progress</span>
+        <span class="week-bar-pct">21%</span>
+      </div>
+      <div class="week-bar-track"><div class="week-bar-fill" style="width:21%"></div></div>
+      <span class="week-bar-sub">1 of 4 tasks done</span>
+    </div>
+  </div>
+</template>
+
+<!-- Board, plain Todo -->
+<template id="tpl-board">
+  <div class="board">
+    <div class="column col-todo">
+      <div class="column-header"><span>Todo</span><span class="column-count">2</span></div>
+      <div class="column-body">
+        <div class="task-card">
+          <div class="task-title">Go to gym – Leg day</div>
+          <div class="task-desc">30 min workout</div>
+          <div class="task-meta">
+            <span class="task-badge badge-weekly">Weekly</span>
+            <span class="size-chip"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span>
+          </div>
+        </div>
+        <div class="task-card">
+          <div class="task-title">File tax report</div>
+          <div class="task-meta">
+            <span class="task-badge badge-adhoc">Ad-hoc</span>
+            <span class="size-chip"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span>
+          </div>
+        </div>
+        <button class="add-task-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+          Add ad-hoc task
+        </button>
+      </div>
+    </div>
+    <div class="column col-doing">
+      <div class="column-header"><span>In Progress</span><span class="column-count">1</span></div>
+      <div class="column-body">
+        <div class="task-card">
+          <div class="task-title">Morning jog 5km</div>
+          <div class="task-meta">
+            <span class="task-badge badge-daily">Daily</span>
+            <span class="size-chip"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span>
+          </div>
+        </div>
+        <button class="add-task-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+          Add ad-hoc task
+        </button>
+      </div>
+    </div>
+    <div class="column col-done">
+      <div class="column-header"><span>Done</span><span class="column-count">1</span></div>
+      <div class="column-body">
+        <div class="task-card done-card">
+          <div class="task-title">Buy birthday gift</div>
+          <div class="task-meta">
+            <span class="task-badge badge-adhoc">Ad-hoc</span>
+            <span class="size-chip"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- Board, Todo as drop target (drawer open) -->
+<template id="tpl-board-drop">
+  <div class="board">
+    <div class="column col-todo drop-target">
+      <div class="column-header"><span>Todo</span><span class="column-count">2</span></div>
+      <div class="column-body">
+        <div class="drop-zone-hint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+          Drop here to add to Todo
+        </div>
+        <div class="task-card">
+          <div class="task-title">Go to gym – Leg day</div>
+          <div class="task-desc">30 min workout</div>
+          <div class="task-meta">
+            <span class="task-badge badge-weekly">Weekly</span>
+            <span class="size-chip"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span>
+          </div>
+        </div>
+        <div class="task-card">
+          <div class="task-title">File tax report</div>
+          <div class="task-meta">
+            <span class="task-badge badge-adhoc">Ad-hoc</span>
+            <span class="size-chip"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span>
+          </div>
+        </div>
+        <button class="add-task-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+          Add ad-hoc task
+        </button>
+      </div>
+    </div>
+    <div class="column col-doing">
+      <div class="column-header"><span>In Progress</span><span class="column-count">1</span></div>
+      <div class="column-body">
+        <div class="task-card">
+          <div class="task-title">Morning jog 5km</div>
+          <div class="task-meta">
+            <span class="task-badge badge-daily">Daily</span>
+            <span class="size-chip"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span>
+          </div>
+        </div>
+        <button class="add-task-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+          Add ad-hoc task
+        </button>
+      </div>
+    </div>
+    <div class="column col-done">
+      <div class="column-header"><span>Done</span><span class="column-count">1</span></div>
+      <div class="column-body">
+        <div class="task-card done-card">
+          <div class="task-title">Buy birthday gift</div>
+          <div class="task-meta">
+            <span class="task-badge badge-adhoc">Ad-hoc</span>
+            <span class="size-chip"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- Flat backlog cards — reuse the board .task-card; instance badge shown because
+     these templates have frequency > 1. Risk + rollover render identically to the board. -->
+<template id="tpl-cards">
+  <!-- Fresh daily — normal -->
+  <div class="task-card">
+    <div class="task-title">Solve 3 LeetCode problems</div>
+    <div class="task-desc">Focus on dynamic programming</div>
+    <div class="task-meta">
+      <span class="task-badge badge-daily">Daily</span>
+      <span class="task-instance">#1</span>
+      <span class="size-chip"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span>
+    </div>
+  </div>
+  <!-- Fresh daily — warning (after 20:00) -->
+  <div class="task-card risk-warning">
+    <div class="task-title">Solve 3 LeetCode problems</div>
+    <div class="task-desc">Focus on dynamic programming</div>
+    <div class="task-meta">
+      <span class="task-badge badge-daily">Daily</span>
+      <span class="task-instance">#2</span>
+      <span class="risk-badge warning">⚠ at risk</span>
+      <span class="size-chip"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span>
+    </div>
+  </div>
+  <!-- Rollover daily — danger (unpulled from yesterday, after 15:00) -->
+  <div class="task-card risk-danger">
+    <div class="task-title">Solve 3 LeetCode problems</div>
+    <div class="task-desc">Focus on dynamic programming</div>
+    <div class="task-meta">
+      <span class="task-badge badge-daily">Daily</span>
+      <span class="task-instance">#3</span>
+      <span class="rollover-tag">↩ Mon, Feb 23</span>
+      <span class="risk-badge danger">‼ urgent</span>
+      <span class="size-chip"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span>
+    </div>
+  </div>
+  <!-- Fresh daily — normal -->
+  <div class="task-card">
+    <div class="task-title">Read 30 pages</div>
+    <div class="task-desc">System Design Interview book</div>
+    <div class="task-meta">
+      <span class="task-badge badge-daily">Daily</span>
+      <span class="task-instance">#1</span>
+      <span class="size-chip"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span>
+    </div>
+  </div>
+  <!-- Fresh daily — warning -->
+  <div class="task-card risk-warning">
+    <div class="task-title">Read 30 pages</div>
+    <div class="task-desc">System Design Interview book</div>
+    <div class="task-meta">
+      <span class="task-badge badge-daily">Daily</span>
+      <span class="task-instance">#2</span>
+      <span class="risk-badge warning">⚠ at risk</span>
+      <span class="size-chip"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span>
+    </div>
+  </div>
+</template>
+
+<!-- ════════════════════════════════════════════════════════════════
+     Drawer Closed — collapsed strip on the right edge
+     ════════════════════════════════════════════════════════════════ -->
+<div class="screen app active" id="screen-closed">
+  <div data-sidebar></div>
+  <div class="main">
+    <div data-top></div>
+    <div class="board-region">
+      <div data-board="plain"></div>
+      <div class="backlog-rstrip" onclick="showScreen('screen-open')">
+        <svg class="backlog-rstrip-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="backlog-count-pill">5</span>
+        <span class="backlog-rstrip-label">Backlog</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     Drawer Open — expanded panel on the right edge
+     ════════════════════════════════════════════════════════════════ -->
+<div class="screen app" id="screen-open">
+  <div data-sidebar></div>
+  <div class="main">
+    <div data-top></div>
+    <div class="board-region">
+      <div data-board="drop"></div>
+      <div class="backlog-right">
+        <div class="backlog-right-header">
+          <div class="backlog-title-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--m-blue)"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Backlog
+            <span class="backlog-count-pill">5</span>
+          </div>
+          <button class="backlog-close-btn" onclick="showScreen('screen-closed')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div class="backlog-right-hint">
+          <span class="backlog-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 19l-7-7m0 0l7-7m-7 7h18" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Drag tasks left to Todo to start working
+          </span>
+        </div>
+        <div class="backlog-right-body" data-cards></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Screen nav ── -->
+<nav class="screen-nav">
+  <button class="screen-btn active" data-target="screen-closed" onclick="showScreen('screen-closed')">Drawer Closed</button>
+  <button class="screen-btn" data-target="screen-open" onclick="showScreen('screen-open')">Drawer Open</button>
+</nav>
+
+<script>
+// Inject shared fragments into every screen
+(function () {
+  var frag = function (id) { return document.getElementById(id).content; };
+  document.querySelectorAll('[data-sidebar]').forEach(function (slot) { slot.replaceWith(frag('tpl-sidebar').cloneNode(true)); });
+  document.querySelectorAll('[data-top]').forEach(function (slot) { slot.replaceWith(frag('tpl-top').cloneNode(true)); });
+  document.querySelectorAll('[data-board]').forEach(function (slot) {
+    var tpl = slot.getAttribute('data-board') === 'drop' ? 'tpl-board-drop' : 'tpl-board';
+    slot.replaceWith(frag(tpl).cloneNode(true));
+  });
+  document.querySelectorAll('[data-cards]').forEach(function (slot) { slot.appendChild(frag('tpl-cards').cloneNode(true)); });
+})();
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.screen-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-target') === id));
+}
+</script>
+
+<script>
+(function() {
+  var btn = document.createElement('button');
+  btn.className = 'mockup-theme-toggle';
+  btn.title = 'Toggle theme';
+  var sun = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
+  var moon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>';
+  function update() {
+    var t = document.documentElement.getAttribute('data-mockup-theme');
+    btn.innerHTML = t === 'dark' ? sun : moon;
+  }
+  btn.addEventListener('click', function() {
+    var t = document.documentElement.getAttribute('data-mockup-theme');
+    document.documentElement.setAttribute('data-mockup-theme', t === 'dark' ? 'light' : 'dark');
+    update();
+  });
+  document.body.appendChild(btn);
+  update();
+})();
+</script>
+
+</body>
+</html>

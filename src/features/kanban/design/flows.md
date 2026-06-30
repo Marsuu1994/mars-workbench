@@ -20,7 +20,7 @@
 1. Set `lastSyncDate = today` first to prevent concurrent re-runs.
 2. Expire all daily tasks where `forDate` is **strictly before yesterday** (i.e., `forDate < today - 1 day`) and status is not DONE.
 3. If today is a weekend day and plan mode is NORMAL, skip daily task generation.
-4. Otherwise, generate new daily task instances for today.
+4. Otherwise, generate new daily task instances for today **with `status = BACKLOG`** (staged in the backlog drawer; the user pulls them onto the board — see "Backlog Drawer Flow").
 
 **Rules:**
 - Idempotent — safe to re-run multiple times.
@@ -93,7 +93,7 @@
 6. User submits.
 7. Create plan and link selected templates and Ad-hoc tasks.
 8. For Ad-hoc tasks from PENDING_UPDATE plan that were not selected: set planId = null (return to unassigned pool).
-9. Generate task instances: weekly tasks immediately, daily tasks for today only (respecting plan mode for weekend skipping).
+9. Generate task instances **with `status = BACKLOG`** (staged in the backlog drawer): weekly tasks immediately, daily tasks for today only (respecting plan mode for weekend skipping).
 10. Set `lastSyncDate = today`.
 11. Archive any existing `PENDING_UPDATE` plan → `COMPLETED`.
 12. Revalidate `/kanban` to render board.
@@ -119,9 +119,9 @@
 - DONE and EXPIRED tasks are never touched regardless of change type.
 - Changes are applied per-template, unaffected templates are fully preserved.
 - Task regeneration logic
-  - Added templates: generate new instances (weekly immediately, daily for today only).
-  - Removed templates: delete TODO and DOING instances for that template.
-  - Modified templates (type or frequency changed): delete TODO and DOING instances   for that template and regenerate based on new config.
+  - Added templates: generate new instances **as `BACKLOG`** (weekly immediately, daily for today only).
+  - Removed templates: delete BACKLOG, TODO and DOING instances for that template.
+  - Modified templates (type or frequency changed): delete BACKLOG, TODO and DOING instances for that template and regenerate (as `BACKLOG`) based on new config.
 
 ---
 
@@ -135,7 +135,7 @@
 3. On failure, UI rolls back to previous state.
 
 **Rules:**
-- Allowed transitions: TODO → DOING → DONE only (no backwards movement).
+- Allowed transitions: BACKLOG → TODO → DOING → DONE only (no backwards movement). `BACKLOG → TODO` is the backlog drawer pull (drop onto the Todo column); see "Backlog Drawer Flow".
 
 ---
 
@@ -144,8 +144,9 @@
 **Trigger:** Computed server-side on every board page load as part of `fetchBoard()`.
 
 **Data fetching:** Two parallel queries run after sync:
-1. `getBoardTasksByPlanId` — all non-expired tasks for the plan (used for board rendering and today's total count/points).
-2. `getBoardMetricsByPlanId` — a single raw SQL aggregate query that computes all historical counts and point sums using `FILTER` clauses. No in-memory aggregation for past data.
+
+1. `getBoardTasksByPlanId` — all non-expired tasks for the plan (`BACKLOG/TODO/DOING/DONE`). Today's total count/points exclude `BACKLOG` (filtered in-memory, not a separate query/field).
+2. `getBoardMetricsByPlanId` — a single raw SQL aggregate query that computes all historical counts and point sums using `FILTER` clauses. No in-memory aggregation for past data. Projection buckets (weekly-by-type, daily-past-by-`forDate`) count `BACKLOG` identically to `TODO`, so the Week projection includes backlog tasks unchanged.
 
 Future projections are then derived in-memory from the plan's current templates.
 
@@ -155,11 +156,11 @@ Future projections are then derived in-memory from the plan's current templates.
 
 **Today Ring** — circular progress ring showing task completion for the current day.
 - Done count: `COUNT(*)` where `status = DONE` and `doneAt` is within today (from DB aggregate).
-- Total count: length of board tasks array (all non-expired tasks).
+- Total count: number of non-`BACKLOG` tasks (in-memory).
 
 **Today Points** — points earned today vs total points available on the board.
 - Done points: `SUM(points)` where `status = DONE` and `doneAt` is within today (from DB aggregate).
-- Total points: `SUM(task.points)` across all board tasks (in-memory reduction).
+- Total points: `SUM(task.points)` across non-`BACKLOG` tasks (in-memory reduction).
 
 **Week Points** — cumulative points earned this period vs projected period total.
 - Done points: `SUM(points)` where `status = DONE` across the entire plan (from DB aggregate).
@@ -337,3 +338,25 @@ All data is fetched server-side and injected into the LLM system prompt as conte
 #### LLM Calls
 
 - `generateDraftPlanAction`: Generates a draft plan. Input: user message + stats + templates + last draft. Output: structured JSON (`message`, `draftTemplates`, `followUp`). Called multiple times during iteration.
+
+---
+
+### Backlog Drawer Flow
+
+**Trigger:** A collapsed backlog strip sits on the right edge of the board. The user clicks it to expand the drawer.
+
+The drawer holds task instances with `status === BACKLOG` — the staging area template instances land in before reaching the board. Ad-hoc tasks are created on the board directly and never enter the backlog.
+
+**Steps:**
+
+1. The collapsed strip shows the backlog count.
+2. On expand, render the backlog tasks (`status === BACKLOG`) as a flat list, ordered like a column (daily then weekly, by `instanceIndex`/`createdAt`).
+3. Drag a card onto the Todo column to move it to the board: optimistic update, then `updateTaskStatusAction(taskId, { status: TODO })`, rollback on failure. Todo is the only drop target; no un-pull (forward-only, per "Drag and Drop Flow").
+
+**Rules:**
+
+- The drawer reuses the board `TaskCard`; risk computation treats `BACKLOG` as `TODO` so risk and rollover visuals match the board (see "Task Risky Level Visual Effect Flow").
+- The `#{instanceIndex}` badge renders on `TaskCard` only when the template's `frequency > 1` (frequency-1 and ad-hoc tasks, always `instanceIndex = 1`, show none). The card reads `frequency` from `plan.planTemplates`.
+- The drawer's open/closed state is local UI state, default closed.
+- Empty backlog: the strip still shows (count `0`); the expanded body shows an empty state.
+- V1 is desktop-only (`md+`); a mobile backlog surface is a follow-up.

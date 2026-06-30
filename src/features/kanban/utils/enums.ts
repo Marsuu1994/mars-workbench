@@ -12,6 +12,7 @@ export const TaskType = {
 export type TaskType = (typeof TaskType)[keyof typeof TaskType];
 
 export const TaskStatus = {
+  BACKLOG: "BACKLOG",
   TODO: "TODO",
   DOING: "DOING",
   DONE: "DONE",

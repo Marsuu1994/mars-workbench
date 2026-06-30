@@ -2,7 +2,7 @@ import { getTaskTemplates } from "@/lib/db/taskTemplates";
 import { getPlanByStatus, getPlanWithTemplates } from "@/lib/db/plans";
 import { getNonDoneAdhocTasks } from "@/lib/db/tasks";
 import { PlanStatus } from "@/generated/prisma/client";
-import PlanForm from "@/features/kanban/components/PlanForm";
+import PlanForm from "@/features/kanban/components/plan/PlanForm";
 import { getCurrentUserId } from "@/lib/auth/getCurrentUserId";
 
 export default async function NewPlanPage() {
