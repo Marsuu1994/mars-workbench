@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { useTranslations } from "next-intl";
 import {
   InboxStackIcon,
   ChevronUpIcon,
@@ -10,13 +11,6 @@ import {
 import type { TaskItem } from "@/lib/db/tasks";
 import { getTaskFrequency, type RiskLevel } from "../../utils/taskUtils";
 import BacklogSheetCard from "./BacklogSheetCard";
-import {
-  BACKLOG_TITLE,
-  EMPTY_STATE,
-  HINT_TAP_TO_TODO,
-  OPEN_LABEL,
-  CLOSE_LABEL,
-} from "./constants";
 
 interface MobileBacklogSheetProps {
   tasks: TaskItem[];
@@ -39,6 +33,7 @@ export default function MobileBacklogSheet({
   templateFreqMap,
   onPull,
 }: MobileBacklogSheetProps) {
+  const t = useTranslations("Board.Backlog");
   const dialogRef = useRef<HTMLDialogElement>(null);
   const open = () => dialogRef.current?.showModal();
   const close = () => dialogRef.current?.close();
@@ -50,11 +45,11 @@ export default function MobileBacklogSheet({
   const renderPill = () => (
     <button
       onClick={open}
-      title={OPEN_LABEL}
+      title={t("openLabel")}
       className="md:hidden fixed left-3 right-3 bottom-[calc(env(safe-area-inset-bottom)+4.25rem)] z-30 flex items-center gap-2.5 h-11 px-3.5 rounded-2xl bg-base-100 border border-base-content/10 shadow-lg cursor-pointer"
     >
       <InboxStackIcon className="size-[18px] text-primary" />
-      <span className="text-sm font-semibold">{BACKLOG_TITLE}</span>
+      <span className="text-sm font-semibold">{t("title")}</span>
       {countBadge}
       <ChevronUpIcon className="size-4 text-base-content/40 ml-auto" />
     </button>
@@ -64,12 +59,12 @@ export default function MobileBacklogSheet({
     <div className="flex items-center justify-between px-4 pt-2 pb-3 border-b border-base-content/10 flex-shrink-0">
       <div className="flex items-center gap-2 text-base font-bold">
         <InboxStackIcon className="size-5 text-primary" />
-        {BACKLOG_TITLE}
+        {t("title")}
         {countBadge}
       </div>
       <button
         onClick={close}
-        title={CLOSE_LABEL}
+        title={t("closeLabel")}
         className="size-8 rounded-lg flex items-center justify-center text-base-content/60 hover:bg-base-300 hover:text-base-content cursor-pointer"
       >
         <ChevronDownIcon className="size-5" />
@@ -80,7 +75,7 @@ export default function MobileBacklogSheet({
   const renderHint = () => (
     <div className="flex items-center gap-1.5 px-4 py-2.5 text-xs text-base-content/50 border-b border-base-content/10 flex-shrink-0">
       <ArrowUpIcon className="size-3.5 text-primary flex-shrink-0" />
-      {HINT_TAP_TO_TODO}
+      {t("hintTapToTodo")}
     </div>
   );
 
@@ -88,7 +83,7 @@ export default function MobileBacklogSheet({
     <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2.5">
       {tasks.length === 0 ? (
         <p className="text-center text-sm text-base-content/40 mt-10 px-6">
-          {EMPTY_STATE}
+          {t("emptyState")}
         </p>
       ) : (
         tasks.map((task) => (
@@ -117,7 +112,7 @@ export default function MobileBacklogSheet({
           {renderBody()}
         </div>
         <form method="dialog" className="modal-backdrop">
-          <button>{CLOSE_LABEL}</button>
+          <button>{t("closeLabel")}</button>
         </form>
       </dialog>
     </>

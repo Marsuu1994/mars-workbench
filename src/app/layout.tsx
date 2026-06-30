@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
 import { ThemeProvider } from "@/components/common/ThemeProvider";
 import { BreakpointProvider } from "@/components/common/BreakpointProvider";
 import { AppShell } from "@/components/common/AppShell";
@@ -66,13 +67,15 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-base-300 text-base-content antialiased`}
       >
-        <ThemeProvider>
-          <BreakpointProvider>
-            <AppShell user={userInfo} activePlanId={activePlan?.id ?? null}>
-              {children}
-            </AppShell>
-          </BreakpointProvider>
-        </ThemeProvider>
+        <NextIntlClientProvider>
+          <ThemeProvider>
+            <BreakpointProvider>
+              <AppShell user={userInfo} activePlanId={activePlan?.id ?? null}>
+                {children}
+              </AppShell>
+            </BreakpointProvider>
+          </ThemeProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

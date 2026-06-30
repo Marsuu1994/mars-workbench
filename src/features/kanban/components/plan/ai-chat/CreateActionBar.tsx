@@ -1,9 +1,9 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { CheckIcon } from "@heroicons/react/24/outline";
 import { useAiPlanChatStore } from "@/features/kanban/store/aiPlanChatStore";
 import { summarizeDraftTemplates } from "@/features/kanban/utils/draftSummary";
-import { APPROVE_BUTTON_LABEL } from "./constants";
 
 interface CreateActionBarProps {
   onApprove: () => void;
@@ -11,6 +11,7 @@ interface CreateActionBarProps {
 
 /** Persistent bar under the input once a draft exists: summary + approve. */
 export const CreateActionBar = ({ onApprove }: CreateActionBarProps) => {
+  const t = useTranslations("AiChat");
   const latestDraft = useAiPlanChatStore((state) => state.latestDraft);
   const status = useAiPlanChatStore((state) => state.status);
 
@@ -38,7 +39,7 @@ export const CreateActionBar = ({ onApprove }: CreateActionBarProps) => {
         ) : (
           <CheckIcon className="size-4" />
         )}
-        {APPROVE_BUTTON_LABEL}
+        {t("approveButton")}
       </button>
     </div>
   );

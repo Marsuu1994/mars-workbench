@@ -1,9 +1,9 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import { useAiPlanChatStore } from "@/features/kanban/store/aiPlanChatStore";
 import { useAiPlanChat } from "@/features/kanban/hooks/useAiPlanChat";
-import { INPUT_NOTE, PLACEHOLDER_DEFAULT, PLACEHOLDER_REFINE } from "./constants";
 
 interface ChatInputBarProps {
   /** When a draft exists, the input sits above the create bar (no bottom border). */
@@ -11,6 +11,7 @@ interface ChatInputBarProps {
 }
 
 export const ChatInputBar = ({ combined }: ChatInputBarProps) => {
+  const t = useTranslations("AiChat");
   const input = useAiPlanChatStore((state) => state.input);
   const status = useAiPlanChatStore((state) => state.status);
   const setInput = useAiPlanChatStore((state) => state.setInput);
@@ -44,7 +45,7 @@ export const ChatInputBar = ({ combined }: ChatInputBarProps) => {
           onKeyDown={handleKeyDown}
           rows={1}
           disabled={isBusy}
-          placeholder={combined ? PLACEHOLDER_REFINE : PLACEHOLDER_DEFAULT}
+          placeholder={combined ? t("placeholderRefine") : t("placeholderDefault")}
           className="textarea textarea-bordered min-h-10 flex-1 resize-none py-2.5 text-[13px] leading-snug"
         />
         <button
@@ -58,7 +59,7 @@ export const ChatInputBar = ({ combined }: ChatInputBarProps) => {
         </button>
       </div>
       {!combined && (
-        <p className="mt-1.5 text-[11px] text-base-content/40">{INPUT_NOTE}</p>
+        <p className="mt-1.5 text-[11px] text-base-content/40">{t("inputNote")}</p>
       )}
     </div>
   );

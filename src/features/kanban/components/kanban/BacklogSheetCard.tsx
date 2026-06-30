@@ -1,12 +1,12 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { ArrowUpIcon } from "@heroicons/react/24/outline";
 import type { TaskItem } from "@/lib/db/tasks";
 import { SizeChip } from "../shared/SizeChip";
 import TaskTypeBadge from "../shared/TaskTypeBadge";
 import { formatShortDate } from "../../utils/dateUtils";
 import { isRolloverTask, type RiskLevel } from "../../utils/taskUtils";
-import { PULL_TO_TODO_LABEL } from "./constants";
 
 interface BacklogSheetCardProps {
   task: TaskItem;
@@ -29,6 +29,7 @@ export default function BacklogSheetCard({
   frequency,
   onPull,
 }: BacklogSheetCardProps) {
+  const t = useTranslations("Board.Backlog");
   const showInstance = frequency > 1;
   const isRollover = isRolloverTask(task, today);
 
@@ -79,7 +80,7 @@ export default function BacklogSheetCard({
             className="btn btn-primary btn-sm gap-1"
           >
             <ArrowUpIcon className="size-3.5" />
-            {PULL_TO_TODO_LABEL}
+            {t("pullToTodoLabel")}
           </button>
         </div>
       </div>

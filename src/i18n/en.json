@@ -1,0 +1,27 @@
+{
+  "Board": {
+    "Backlog": {
+      "title": "Backlog",
+      "hintDragToTodo": "Drag tasks left to Todo to start working",
+      "emptyState": "You're all caught up — no staged tasks.",
+      "openLabel": "Open backlog",
+      "closeLabel": "Close backlog",
+      "hintTapToTodo": "Tap to pull a task onto the board",
+      "pullToTodoLabel": "Todo"
+    }
+  },
+  "AiChat": {
+    "modalTitle": "AI Plan Assistant",
+    "betaLabel": "Beta",
+    "loadingInitializing": "Initializing AI assistant...",
+    "loadingGenerating": "Generating your plan...",
+    "placeholderDefault": "Describe your goals or what you want to work on...",
+    "placeholderRefine": "Refine the plan — or create it below...",
+    "inputNote": "AI suggestions can be edited before creating your plan",
+    "approveButton": "Approve & Create Plan",
+    "createdTitle": "Plan created",
+    "viewBoardLabel": "View on Board",
+    "bannerPrompt": "Need help planning? Let AI suggest task templates based on your goals and history.",
+    "bannerButton": "Open AI Assistant"
+  }
+}
