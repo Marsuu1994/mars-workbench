@@ -120,7 +120,7 @@
     "viewBoardLabel": "View on Board",
     "bannerPrompt": "Need help planning? Let AI suggest task templates based on your goals and history.",
     "bannerButton": "Open AI Assistant",
-    "templateSummary": "<b>{total}</b> {total, plural, one {template} other {templates}} · <b>{newCount}</b> new, <b>{existing}</b> existing",
+    "templateSummary": "{total, plural, one {# template} other {# templates}} · {newCount} new, {existing} existing",
     "createdSummary": "{total, plural, one {# template} other {# templates}} added · {newCount} new, {existing} existing",
     "previousDraftSummary": "Previous draft ({count, plural, one {# template} other {# templates}})",
     "createdBadge": "Created",
