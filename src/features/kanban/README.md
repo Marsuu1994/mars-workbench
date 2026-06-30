@@ -4,8 +4,8 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 
 ## Current State
 
-- **Board**: 3-column kanban (Todo / In Progress / Done) with drag-and-drop, optimistic UI, risk badges, rollover indicators
-- **Backlog drawer**: desktop right-edge panel staging template-generated instances (`status = BACKLOG`); drag `BACKLOG → TODO` to pull onto the board. Reuses `TaskCard` with a `#n` instance badge (when template `frequency > 1`); excluded from Today totals, included in Week projection. Mobile drawer deferred.
+- **Board**: 3-column kanban (Todo / In Progress / Done) with drag-and-drop, optimistic UI, risk badges, rollover indicators. Done cards are drop targets but cannot be dragged out; during a drag all droppable columns get a faint dashed outline and the hovered one a solid dashed highlight. Per-column accent colors (Todo=info, In Progress=warning, Done=success) and per-card left borders render correctly (risk cards override the left edge with their color).
+- **Backlog drawer**: desktop right-edge panel staging template-generated instances (`status = BACKLOG`); drag `BACKLOG → TODO` to pull onto the board. Reuses `TaskCard` with a `#n` instance badge (when template `frequency > 1`); excluded from Today totals, included in Week projection. Cards group by template and order by instance index (e.g. leetcode #1, #2, workout #1, #2). Open/collapse cross-fades smoothly while the width animates. Mobile drawer deferred.
 - **Task sizing**: `TaskSize` enum (XS=1, S=2, M=3, L=5, XL=8) with fibonacci points; `SizeChip` display + pill toggle selector
 - **Progress dashboard**: Today ring, stat metrics (points/counts), Week Progress bar using two-query strategy (UI tasks + raw SQL aggregate)
 - **Plan management**: Create/edit plans with inline type/frequency config, Plan Mode toggle (NORMAL/EXTREME), `ReviewChangesModal` for diffs
@@ -27,7 +27,6 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 ### High Priority
 - [ ] End-of-period summary before starting a new plan
 - [ ] Move all constants for kanban feature
-- [ ] Add dashed border to droppable columns
 
 ### Medium Priority
 - [ ] Design evidence submit feature when user move task to done
@@ -48,6 +47,7 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 
 ## Done
 
+- [x] Add dashed border to droppable columns (drag-target highlight)
 - [x] Returning-user empty board ("Plan period ended" recap with last-period stats)
 - [x] Implement the AI assisted plan creation flow — UI (Zustand store + bridge hook + chat modal, wired to the plan form)
 - [x] Refactor the codebase, remove chatbot related code
@@ -68,6 +68,7 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 - Synced design docs: `baseline.md` (added `BACKLOG`; moved Backlog drawer + LLM-assisted plan creation to **Implemented V2**), `flows.md` (new **Backlog Drawer Flow** + edits to Daily Sync / Create & Update Plan / Drag-and-Drop / Progress Tracking), `api.md` (Today totals exclude backlog, `(BACKLOG, TODO, DOING)` status sets, `updateTaskStatusAction` serves the pull)
 - Added a **component gallery** at `/design` (`src/app/design/`): renders the presentational primitives with sample fixtures and a light/dark toggle (scoped via `data-theme` on a wrapper, so it doesn't fight the time-based `ThemeProvider`); `TaskCard` shown across default / at-risk / urgent / rollover / multi-instance / done states inside a minimal drag context
 - Made the app shell conditional: extracted the sidebar/bottom-tab wrapper from the root layout into a client `AppShell` (`components/common/AppShell.tsx`) that hides the chrome on `CHROMELESS_PREFIXES` (`/design`), so the gallery renders standalone; root layout still fetches the user once and passes it through
+- Board UI polish pass (six fixes): Done cards are no longer draggable out of the column (still a valid drop target); during a drag every droppable column shows a faint dashed outline and the hovered one a solid dashed highlight (matches the drop-target mockup); fixed the column header accent colors (Todo/In Progress/Done left borders were being overridden to grey by a responsive base-color class — now left = accent, bottom = base via separate longhand classes); fixed task-card left borders (normal cards were given a transparent 4px left edge, hiding the border — now they keep the base 1px edge and risk cards override with their color); backlog cards now group by template and sort by instance index (leetcode #1, #2, workout #1, #2) instead of interleaving by createdAt; the backlog drawer open/collapse now cross-fades both states while the width animates (same technique as the app sidebar) instead of swapping content instantly
 
 ### 2026-06-27
 - Removed the unreachable standalone AI chat demo (pages, `/api/chats` + `/api/llm` routes, `features/chat/`, old `chats.ts`/`messages.ts` DAL); kept the shared `Chat`/`Message` tables for reuse

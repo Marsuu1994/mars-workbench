@@ -202,7 +202,8 @@ body {
 .size-hint { font-size: 11px; margin-top: 6px; }
 .size-hint-info { color: var(--m-purple); }
 .size-hint-warn { color: var(--m-orange); }
-.task-card.done-card { opacity: 0.7; }
+/* Done cards can be a drop target but are not draggable out of the column. */
+.task-card.done-card { opacity: 0.7; cursor: default; }
 .task-card.done-card .task-title { text-decoration: line-through; color: var(--m-text-secondary); }
 
 /* ── Risk Level Borders ── */
