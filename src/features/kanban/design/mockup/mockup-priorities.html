@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en" data-mockup-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kanban — Priorities (Priority Matrix)</title>
+<link rel="stylesheet" href="../../../mockup-theme.css" />
+<link rel="stylesheet" href="./styles.css" />
+<style>
+  /* ── Screen switching ── */
+  .screen { display: none; }
+  .screen.active { display: flex; }
+
+  /* ════════════════════════════════════════════
+     Board screen — region holds board + right drawer
+     ════════════════════════════════════════════ */
+  .board-region { flex: 1; display: flex; min-height: 0; }
+
+  /* "Todo" badge — replaces "Ad-hoc" on board cards */
+  .badge-todo { background: var(--m-blue-a10); color: var(--m-blue); }
+
+  /* ── Queued (backlog) collapsed strip — right edge ── */
+  .backlog-rstrip {
+    width: 46px; flex-shrink: 0; background: var(--m-surface);
+    border-left: 1px solid var(--m-border);
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    padding-top: 16px; cursor: pointer; transition: background 0.15s;
+  }
+  .backlog-rstrip:hover { background: var(--m-hover-bg); }
+  .backlog-rstrip-chevron { width: 16px; height: 16px; color: var(--m-text-muted); }
+  .backlog-rstrip-label {
+    writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg);
+    font-size: 13px; font-weight: 600; color: var(--m-text-secondary); letter-spacing: 0.03em;
+  }
+  .backlog-count-pill {
+    font-size: 11px; font-weight: 700; background: var(--m-blue); color: #fff;
+    min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ════════════════════════════════════════════
+     Priorities screen — full-page Eisenhower matrix
+     ════════════════════════════════════════════ */
+  .matrix-page { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* ── Page identity bar ── */
+  .page-title-bar {
+    padding: 16px 24px 12px 24px; border-bottom: 1px solid var(--m-border);
+    background: var(--m-surface-raised); flex-shrink: 0;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .page-title-icon {
+    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--m-purple-bg);
+  }
+  .page-title-icon svg { width: 18px; height: 18px; color: var(--m-purple); }
+  .page-title-text { display: flex; flex-direction: column; gap: 1px; }
+  .page-title-name { font-size: 16px; font-weight: 700; color: var(--m-text); }
+  .page-title-desc { font-size: 12px; color: var(--m-text-tertiary); }
+  .page-title-count { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--m-text-secondary); }
+  .page-title-count-num { font-size: 13px; font-weight: 700; color: var(--m-text); }
+
+  /* ── Hint bar ── */
+  .matrix-hint-bar {
+    padding: 8px 24px; font-size: 12px; color: var(--m-text-tertiary);
+    border-bottom: 1px solid var(--m-border); background: var(--m-surface-inset);
+    display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+  }
+  .matrix-hint-bar svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--m-blue); }
+  .matrix-hint-bar strong { color: var(--m-blue); }
+
+  /* ── Axis + grid wrapper ── */
+  .matrix-layout { flex: 1; display: flex; overflow: hidden; min-height: 0; }
+  .axis-y {
+    width: 28px; flex-shrink: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: space-around; padding: 20px 0;
+    background: var(--m-surface-inset);
+  }
+  .axis-y-label {
+    writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg);
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--m-text-muted);
+  }
+  .axis-x {
+    height: 26px; flex-shrink: 0; display: flex; align-items: center;
+    justify-content: space-around; background: var(--m-surface-inset);
+    border-top: 1px solid var(--m-border); margin-left: 28px;
+  }
+  .axis-x-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--m-text-muted); flex: 1; text-align: center;
+  }
+
+  /* ── 2x2 grid ── */
+  .matrix-grid {
+    flex: 1; display: grid; grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr; overflow: hidden;
+  }
+  .quadrant { display: flex; flex-direction: column; overflow: hidden; border: 0.5px solid var(--m-border); transition: opacity 0.15s, background 0.15s; }
+  .quadrant-header {
+    padding: 14px 20px 8px 20px; flex-shrink: 0;
+    display: flex; align-items: center; gap: 8px; border-top: 3px solid transparent;
+  }
+  .quadrant-icon { font-size: 10px; flex-shrink: 0; }
+  .quadrant-label {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.04em; color: var(--m-text);
+  }
+  .quadrant-sublabel { font-size: 11px; color: var(--m-text-tertiary); font-weight: 400; }
+  .quadrant-count { font-size: 11px; font-weight: 600; color: var(--m-text-tertiary); margin-left: auto; }
+  .quadrant-body {
+    flex: 1; padding: 6px 16px 16px 16px; display: flex; flex-direction: column;
+    gap: 6px; overflow-y: auto;
+  }
+
+  /* Quadrant top-border accents */
+  .q-do-first .quadrant-header { border-top-color: var(--m-red); }
+  .q-schedule .quadrant-header { border-top-color: var(--m-blue); }
+  .q-squeeze  .quadrant-header { border-top-color: var(--m-orange); }
+  .q-later    .quadrant-header { border-top-color: var(--m-text-muted); }
+
+  /* ── Matrix card ── */
+  .mx-card {
+    background: var(--m-surface-raised); border: 1px solid var(--m-border); border-radius: 10px;
+    padding: 10px 12px; cursor: grab; display: flex; align-items: center; gap: 8px;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s; position: relative;
+  }
+  .mx-card:hover { border-color: var(--m-border-hover); }
+  .mx-card-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .mx-card-title {
+    font-size: 13px; font-weight: 500; color: var(--m-text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .mx-card-desc {
+    font-size: 12px; color: var(--m-text-secondary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .mx-card-send {
+    width: 22px; height: 22px; border-radius: 5px; border: none; background: transparent;
+    cursor: pointer; display: none; align-items: center; justify-content: center;
+    color: var(--m-text-muted); flex-shrink: 0; padding: 0;
+  }
+  .mx-card:hover .mx-card-send { display: flex; }
+  .mx-card-send:hover { background: var(--m-blue-a10); color: var(--m-blue); }
+  .mx-card-send svg { width: 14px; height: 14px; }
+  .mx-card-drag { width: 14px; height: 14px; color: var(--m-border); flex-shrink: 0; align-self: center; }
+  .mx-card:hover .mx-card-drag { color: var(--m-text-muted); }
+
+  /* Card already tracked on the board */
+  .mx-card.on-board { opacity: 0.55; }
+  .mx-card.on-board .mx-card-title { color: var(--m-text-secondary); }
+  .on-board-tag {
+    font-size: 9px; font-weight: 600; color: var(--m-blue); background: var(--m-blue-a10);
+    padding: 2px 6px; border-radius: 4px; flex-shrink: 0; white-space: nowrap; align-self: center;
+  }
+
+  /* Active card (Track popover open) */
+  .mx-card.active-send { border-color: var(--m-blue); box-shadow: 0 0 0 2px var(--m-blue-a20); }
+
+  /* ════════════════════════════════════════════
+     Drag & drop — highlight the droppable quadrant
+     ════════════════════════════════════════════ */
+  /* While dragging, dim every quadrant except the one being hovered */
+  .matrix-grid.is-dragging .quadrant:not(.drop-target) { opacity: 0.4; }
+  /* The hovered (droppable) quadrant lights up */
+  .quadrant.drop-target { background: var(--m-blue-a06); }
+  .quadrant.drop-target .quadrant-body { outline: 2px dashed var(--m-blue); outline-offset: -8px; border-radius: 12px; }
+  .quadrant.drop-target .quadrant-label { color: var(--m-blue); }
+  /* Banner shown at the top of the droppable quadrant */
+  .mx-drop-hint {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    font-size: 11px; font-weight: 600; color: var(--m-blue);
+    padding: 8px; border-radius: 8px; background: var(--m-blue-a06);
+    border: 1.5px dashed var(--m-blue-a35); margin-bottom: 2px;
+  }
+  .mx-drop-hint svg { width: 13px; height: 13px; }
+  /* The lifted card under the cursor */
+  .mx-card.dragging {
+    cursor: grabbing; border-color: var(--m-blue);
+    box-shadow: 0 14px 30px var(--m-shadow-heavy); transform: rotate(-2deg);
+  }
+  /* The empty slot the card left behind in its source quadrant */
+  .mx-card.ghost {
+    background: transparent; border: 1.5px dashed var(--m-border);
+    box-shadow: none; cursor: default; opacity: 0.7;
+  }
+  .mx-card.ghost .mx-card-title, .mx-card.ghost .mx-card-desc { color: var(--m-text-muted); }
+
+  /* ── Track-this-week popover ── */
+  .send-popover {
+    position: absolute; top: 100%; right: 0; margin-top: 6px;
+    background: var(--m-surface-raised); border: 1px solid var(--m-border);
+    border-radius: 10px; padding: 10px 12px; z-index: 50;
+    box-shadow: 0 8px 24px var(--m-shadow-heavy);
+    display: flex; flex-direction: column; gap: 6px; min-width: 180px;
+  }
+  .send-popover::before {
+    content: ''; position: absolute; top: -6px; right: 20px; width: 10px; height: 10px;
+    background: var(--m-surface-raised); border-left: 1px solid var(--m-border);
+    border-top: 1px solid var(--m-border); rotate: 45deg;
+  }
+  .send-popover-title {
+    font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--m-text-tertiary); margin-bottom: 2px;
+  }
+  .send-popover-btn {
+    display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 6px;
+    border: 1px solid var(--m-border); background: var(--m-surface-raised);
+    cursor: pointer; font-size: 12px; font-weight: 500; color: var(--m-text); transition: all 0.15s;
+  }
+  .send-popover-btn:hover { border-color: var(--m-blue); background: var(--m-blue-a06); }
+  .send-popover-btn svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--m-text-muted); }
+  .send-popover-btn .col-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── Quadrant add button ── */
+  .mx-add-btn {
+    display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%;
+    padding: 8px; border-radius: 8px; border: 1.5px dashed var(--m-border);
+    background: transparent; color: var(--m-text-muted); font-size: 12px; font-weight: 500;
+    cursor: pointer; transition: border-color 0.15s, color 0.15s; margin-top: auto;
+  }
+  .mx-add-btn:hover { border-color: var(--m-blue); color: var(--m-blue); }
+  .mx-add-btn svg { width: 13px; height: 13px; }
+
+  /* ════════════════════════════════════════════
+     Mobile design — phone frames
+     ════════════════════════════════════════════ */
+  .phone-stage {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 40px;
+    flex-wrap: wrap; padding: 32px; background: var(--m-surface-inset); overflow: auto;
+  }
+  .phone-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .phone-caption { font-size: 12px; font-weight: 600; color: var(--m-text-secondary); }
+  .phone {
+    width: 380px; height: 760px; background: var(--m-page-bg);
+    border: 10px solid #1b1b1f; border-radius: 42px; overflow: hidden;
+    display: flex; flex-direction: column; position: relative;
+    box-shadow: 0 24px 60px var(--m-shadow-heavy);
+  }
+  .m-app { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+  /* Mobile top bar */
+  .m-topbar {
+    padding: 16px 16px 10px; border-bottom: 1px solid var(--m-border);
+    flex-shrink: 0; display: flex; align-items: flex-end; gap: 8px;
+  }
+  .m-topbar-text { display: flex; flex-direction: column; gap: 1px; }
+  .m-topbar-title { font-size: 17px; font-weight: 700; color: var(--m-text); }
+  .m-topbar-sub { font-size: 11px; color: var(--m-text-tertiary); }
+  .m-topbar-count { margin-left: auto; font-size: 11px; font-weight: 600; color: var(--m-text-secondary); }
+
+  /* Mobile matrix */
+  .m-matrix { flex: 1; display: flex; min-height: 0; }
+  .m-axis-y {
+    width: 16px; flex-shrink: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: space-around; background: var(--m-surface-inset);
+  }
+  .m-axis-y span {
+    writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg);
+    font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--m-text-muted);
+  }
+  .m-grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+  .m-quadrant {
+    border: 0.5px solid var(--m-border); border-top: 2px solid transparent;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .m-quadrant.q-do-first { border-top-color: var(--m-red); }
+  .m-quadrant.q-schedule { border-top-color: var(--m-blue); }
+  .m-quadrant.q-squeeze  { border-top-color: var(--m-orange); }
+  .m-quadrant.q-later    { border-top-color: var(--m-text-muted); }
+  .m-quadrant.drop-target { background: var(--m-blue-a06); }
+  .m-quadrant.drop-target .m-quadrant-body { outline: 2px dashed var(--m-blue); outline-offset: -5px; border-radius: 8px; }
+  .m-quadrant-header { padding: 7px 9px 4px; display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+  .m-quadrant-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--m-text); }
+  .m-quadrant-count { margin-left: auto; font-size: 9px; font-weight: 600; color: var(--m-text-tertiary); }
+  .m-quadrant-body { flex: 1; padding: 2px 7px 8px; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; }
+  .m-card {
+    background: var(--m-surface-raised); border: 1px solid var(--m-border); border-radius: 7px;
+    padding: 7px 8px; display: flex; align-items: center; gap: 5px;
+  }
+  .m-card-title { font-size: 11px; font-weight: 500; color: var(--m-text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .m-card .size-chip { margin-left: 0; height: 15px; font-size: 9px; padding: 0 5px; }
+  .m-card.on-board { opacity: 0.5; }
+  .m-card.dragging { border-color: var(--m-blue); box-shadow: 0 8px 18px var(--m-shadow-heavy); transform: rotate(-2deg); }
+  .m-card.ghost { background: transparent; border: 1.5px dashed var(--m-border); opacity: 0.7; }
+  .m-axis-x { height: 14px; display: flex; margin-left: 16px; background: var(--m-surface-inset); }
+  .m-axis-x span { flex: 1; text-align: center; font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--m-text-muted); line-height: 14px; }
+
+  /* Mobile bottom dock */
+  .m-dock {
+    height: 58px; flex-shrink: 0; border-top: 1px solid var(--m-border);
+    background: var(--m-surface-raised); display: flex; padding-bottom: 4px;
+  }
+  .m-dock-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; color: var(--m-text-muted); font-size: 10px; font-weight: 500; cursor: pointer;
+  }
+  .m-dock-item.active { color: var(--m-blue); }
+  .m-dock-item svg { width: 21px; height: 21px; }
+
+  /* Mobile track bottom sheet */
+  .m-sheet-overlay { position: absolute; inset: 0; background: var(--m-overlay); display: flex; align-items: flex-end; z-index: 80; }
+  .m-sheet { width: 100%; background: var(--m-surface-raised); border-radius: 20px 20px 0 0; padding: 6px 16px 22px; }
+  .m-sheet-grip { width: 38px; height: 4px; border-radius: 2px; background: var(--m-border); margin: 6px auto 14px; }
+  .m-sheet-card-title { font-size: 15px; font-weight: 700; color: var(--m-text); }
+  .m-sheet-card-desc { font-size: 12px; color: var(--m-text-secondary); margin-top: 2px; margin-bottom: 16px; }
+  .m-sheet-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--m-text-tertiary); margin-bottom: 8px; }
+  .m-sheet-btn {
+    display: flex; align-items: center; gap: 10px; width: 100%; padding: 13px 14px;
+    border-radius: 10px; border: 1px solid var(--m-border); background: var(--m-surface-raised);
+    cursor: pointer; font-size: 14px; font-weight: 500; color: var(--m-text); margin-bottom: 8px;
+  }
+  .m-sheet-btn .col-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .m-sheet-btn svg { width: 16px; height: 16px; margin-left: auto; color: var(--m-text-muted); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ Reusable fragments ═══════════════════ -->
+
+<template id="tpl-sidebar">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <span class="sidebar-brand">Mars Workbench</span>
+      <button class="sidebar-collapse">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-nav-label">Workspace</div>
+      <a class="sidebar-item" data-nav-id="board" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Board
+      </a>
+      <a class="sidebar-item" data-nav-id="priorities" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18M12 3v18" stroke-linecap="round"/></svg>
+        Priorities
+      </a>
+      <a class="sidebar-item" data-nav-id="plan" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Plan
+      </a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">LC</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">Liang Jun</div>
+        <div class="sidebar-user-email">liang@example.com</div>
+      </div>
+      <button class="sidebar-signout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </aside>
+</template>
+
+<!-- Shared header (title + week badge only; no view-tabs / Edit Plan) -->
+<template id="tpl-header">
+  <div class="header">
+    <div class="header-left">
+      <span class="header-title"><span>Kanban</span> Planner</span>
+      <span class="header-badge">Week 09 &middot; Feb 24 – Mar 1</span>
+    </div>
+  </div>
+</template>
+
+<!-- Matrix body (shared between Priorities / Track / Drag screens) -->
+<template id="tpl-matrix-body">
+  <div class="matrix-page">
+    <div class="page-title-bar">
+      <div class="page-title-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="page-title-text">
+        <span class="page-title-name">My Priorities</span>
+        <span class="page-title-desc">One-off things you want to do &mdash; not tied to your weekly plan</span>
+      </div>
+      <div class="page-title-count">
+        <span class="page-title-count-num">8</span> total &middot;
+        <span class="page-title-count-num">3</span> tracking this week
+      </div>
+    </div>
+
+    <div class="matrix-hint-bar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 7h12M8 12h12M8 17h12M4 7h.01M4 12h.01M4 17h.01" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Drag between quadrants to reprioritize &middot; click <strong>&rarr;</strong> to track this week
+    </div>
+
+    <div class="matrix-layout">
+      <div class="axis-y">
+        <span class="axis-y-label">Important</span>
+        <span class="axis-y-label">Not Important</span>
+      </div>
+
+      <div class="matrix-grid">
+        <!-- Q1: Do First (Urgent + Important) -->
+        <div class="quadrant q-do-first">
+          <div class="quadrant-header">
+            <span class="quadrant-icon" style="color:var(--m-red)">&#9679;</span>
+            <span class="quadrant-label">Do First</span>
+            <span class="quadrant-sublabel">&mdash; Urgent &amp; Important</span>
+            <span class="quadrant-count">2</span>
+          </div>
+          <div class="quadrant-body">
+            <div class="mx-card on-board">
+              <div class="mx-card-main">
+                <span class="mx-card-title">Shop birthday gift</span>
+                <span class="mx-card-desc">For mom &mdash; this Saturday</span>
+              </div>
+              <span class="on-board-tag">This Week</span>
+              <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+            </div>
+            <div class="mx-card" data-card="call-dentist">
+              <div class="mx-card-main">
+                <span class="mx-card-title">Call dentist</span>
+                <span class="mx-card-desc">Annual checkup is overdue</span>
+              </div>
+              <span class="size-chip"><span class="sz-label">S</span><span class="sz-dot">&middot;</span><span class="sz-pts">2</span></span>
+              <button class="mx-card-send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+            </div>
+            <button class="mx-add-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+              Add
+            </button>
+          </div>
+        </div>
+
+        <!-- Q2: Schedule (Important + Not Urgent) -->
+        <div class="quadrant q-schedule">
+          <div class="quadrant-header">
+            <span class="quadrant-icon" style="color:var(--m-blue)">&#9679;</span>
+            <span class="quadrant-label">Schedule</span>
+            <span class="quadrant-sublabel">&mdash; Important</span>
+            <span class="quadrant-count">3</span>
+          </div>
+          <div class="quadrant-body">
+            <div class="mx-card on-board">
+              <div class="mx-card-main">
+                <span class="mx-card-title">File tax report</span>
+                <span class="mx-card-desc">Before the Apr 15 deadline</span>
+              </div>
+              <span class="on-board-tag">This Week</span>
+              <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+            </div>
+            <div class="mx-card">
+              <div class="mx-card-main">
+                <span class="mx-card-title">Find gym coach</span>
+                <span class="mx-card-desc">For the new strength program</span>
+              </div>
+              <span class="size-chip"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span>
+              <button class="mx-card-send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+            </div>
+            <div class="mx-card">
+              <div class="mx-card-main">
+                <span class="mx-card-title">Learn Python basics</span>
+                <span class="mx-card-desc">Finish the online course</span>
+              </div>
+              <span class="size-chip"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span>
+              <button class="mx-card-send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+            </div>
+            <button class="mx-add-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+              Add
+            </button>
+          </div>
+        </div>
+
+        <!-- Q3: Squeeze In (Urgent + Not Important) -->
+        <div class="quadrant q-squeeze">
+          <div class="quadrant-header">
+            <span class="quadrant-icon" style="color:var(--m-orange)">&#9679;</span>
+            <span class="quadrant-label">Squeeze In</span>
+            <span class="quadrant-sublabel">&mdash; Urgent</span>
+            <span class="quadrant-count">1</span>
+          </div>
+          <div class="quadrant-body">
+            <div class="mx-card" data-card="reply-landlord">
+              <div class="mx-card-main">
+                <span class="mx-card-title">Reply to landlord</span>
+                <span class="mx-card-desc">Lease renewal question</span>
+              </div>
+              <span class="size-chip"><span class="sz-label">XS</span><span class="sz-dot">&middot;</span><span class="sz-pts">1</span></span>
+              <button class="mx-card-send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+            </div>
+            <button class="mx-add-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+              Add
+            </button>
+          </div>
+        </div>
+
+        <!-- Q4: Maybe Later (Not Urgent + Not Important) -->
+        <div class="quadrant q-later">
+          <div class="quadrant-header">
+            <span class="quadrant-icon" style="color:var(--m-text-muted)">&#9679;</span>
+            <span class="quadrant-label">Maybe Later</span>
+            <span class="quadrant-count">2</span>
+          </div>
+          <div class="quadrant-body">
+            <div class="mx-card">
+              <div class="mx-card-main">
+                <span class="mx-card-title">Explore new recipe</span>
+                <span class="mx-card-desc">Thai green curry</span>
+              </div>
+              <span class="size-chip"><span class="sz-label">S</span><span class="sz-dot">&middot;</span><span class="sz-pts">2</span></span>
+              <button class="mx-card-send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+            </div>
+            <div class="mx-card">
+              <div class="mx-card-main">
+                <span class="mx-card-title">Try pottery class</span>
+                <span class="mx-card-desc">Studio downtown, weekends</span>
+              </div>
+              <span class="size-chip"><span class="sz-label">S</span><span class="sz-dot">&middot;</span><span class="sz-pts">2</span></span>
+              <button class="mx-card-send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+            </div>
+            <button class="mx-add-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+              Add
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="axis-x">
+      <span class="axis-x-label">Urgent</span>
+      <span class="axis-x-label">Not Urgent</span>
+    </div>
+  </div>
+</template>
+
+<!-- ════════════════════════════════════════════════════════════════
+     Priorities — Full-Page Eisenhower Matrix (default view)
+     ════════════════════════════════════════════════════════════════ -->
+<div class="screen app active" id="screen-matrix" data-nav="priorities">
+  <div data-sidebar></div>
+  <div class="main">
+    <div data-header></div>
+    <div data-matrix></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     Track this week — "Send to Board" popover interaction
+     ════════════════════════════════════════════════════════════════ -->
+<div class="screen app" id="screen-send" data-nav="priorities">
+  <div data-sidebar></div>
+  <div class="main">
+    <div data-header></div>
+    <div data-matrix data-active-send></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     Reprioritize — drag a card; droppable quadrant highlights
+     ════════════════════════════════════════════════════════════════ -->
+<div class="screen app" id="screen-drag" data-nav="priorities">
+  <div data-sidebar></div>
+  <div class="main">
+    <div data-header></div>
+    <div data-matrix data-drag></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     Board — board with right-edge "Queued" strip + Todo badges
+     ════════════════════════════════════════════════════════════════ -->
+<div class="screen app" id="screen-board" data-nav="board">
+  <div data-sidebar></div>
+  <div class="main">
+    <div data-header></div>
+
+    <div class="progress-dashboard">
+      <div class="ring-group">
+        <div class="progress-ring">
+          <svg viewBox="0 0 52 52" width="48" height="48">
+            <circle class="ring-track" cx="26" cy="26" r="22"/>
+            <circle class="ring-fill" cx="26" cy="26" r="22" stroke-dasharray="138.23" stroke-dashoffset="96.76"/>
+          </svg>
+          <div class="ring-center">30%</div>
+        </div>
+        <div class="ring-label">
+          <span class="ring-label-title">Today</span>
+          <span class="ring-label-sub">1 of 4 tasks</span>
+        </div>
+      </div>
+      <div class="dash-divider"></div>
+      <div class="stat-item">
+        <div class="stat-value green">3 / 18</div>
+        <div class="stat-label">Today Points</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value blue">18 / 86</div>
+        <div class="stat-label">Week Points</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value amber">5.2</div>
+        <div class="stat-label">Daily Avg</div>
+      </div>
+      <div class="dash-divider"></div>
+      <div class="week-bar-group">
+        <div class="week-bar-header">
+          <span class="week-bar-title">Week Progress</span>
+          <span class="week-bar-pct">21%</span>
+        </div>
+        <div class="week-bar-track"><div class="week-bar-fill" style="width:21%"></div></div>
+        <span class="week-bar-sub">1 of 4 tasks done</span>
+      </div>
+    </div>
+
+    <div class="board-region">
+      <div class="board">
+        <div class="column col-todo">
+          <div class="column-header"><span>Todo</span><span class="column-count">3</span></div>
+          <div class="column-body">
+            <div class="task-card">
+              <div class="task-title">Go to gym – Leg day</div>
+              <div class="task-desc">30 min workout</div>
+              <div class="task-meta">
+                <span class="task-badge badge-weekly">Weekly</span>
+                <span class="size-chip"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span>
+              </div>
+            </div>
+            <div class="task-card">
+              <div class="task-title">File tax report</div>
+              <div class="task-meta">
+                <span class="task-badge badge-todo">Todo</span>
+                <span class="size-chip"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span>
+              </div>
+            </div>
+            <div class="task-card">
+              <div class="task-title">Shop birthday gift</div>
+              <div class="task-meta">
+                <span class="task-badge badge-todo">Todo</span>
+                <span class="size-chip"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span>
+              </div>
+            </div>
+            <button class="add-task-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+              Add ad-hoc task
+            </button>
+          </div>
+        </div>
+
+        <div class="column col-doing">
+          <div class="column-header"><span>In Progress</span><span class="column-count">2</span></div>
+          <div class="column-body">
+            <div class="task-card">
+              <div class="task-title">Morning jog 5km</div>
+              <div class="task-meta">
+                <span class="task-badge badge-daily">Daily</span>
+                <span class="size-chip"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span>
+              </div>
+            </div>
+            <div class="task-card">
+              <div class="task-title">Renew passport</div>
+              <div class="task-meta">
+                <span class="task-badge badge-todo">Todo</span>
+                <span class="size-chip"><span class="sz-label">S</span><span class="sz-dot">&middot;</span><span class="sz-pts">2</span></span>
+              </div>
+            </div>
+            <button class="add-task-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+              Add ad-hoc task
+            </button>
+          </div>
+        </div>
+
+        <div class="column col-done">
+          <div class="column-header"><span>Done</span><span class="column-count">1</span></div>
+          <div class="column-body">
+            <div class="task-card done-card">
+              <div class="task-title">Buy birthday gift</div>
+              <div class="task-meta">
+                <span class="task-badge badge-todo">Todo</span>
+                <span class="size-chip"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Queued (backlog) collapsed strip on the right edge -->
+      <div class="backlog-rstrip">
+        <svg class="backlog-rstrip-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="backlog-count-pill">5</span>
+        <span class="backlog-rstrip-label">Queued</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     Mobile — phone frames (matrix + dock, and track bottom sheet)
+     ════════════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-mobile">
+  <div class="phone-stage">
+
+    <!-- Phone A — Mobile Priorities matrix -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="m-app">
+          <div class="m-topbar">
+            <div class="m-topbar-text">
+              <span class="m-topbar-title">My Priorities</span>
+              <span class="m-topbar-sub">8 total &middot; 3 this week</span>
+            </div>
+            <span class="m-topbar-count">Week 09</span>
+          </div>
+
+          <div class="m-matrix">
+            <div class="m-axis-y"><span>Important</span><span>Not Imp.</span></div>
+            <div class="m-grid">
+              <div class="m-quadrant q-do-first">
+                <div class="m-quadrant-header">
+                  <span class="quadrant-icon" style="color:var(--m-red)">&#9679;</span>
+                  <span class="m-quadrant-label">Do First</span>
+                  <span class="m-quadrant-count">2</span>
+                </div>
+                <div class="m-quadrant-body">
+                  <div class="m-card on-board"><span class="m-card-title">Shop birthday gift</span><span class="on-board-tag">★</span></div>
+                  <div class="m-card"><span class="m-card-title">Call dentist</span><span class="size-chip"><span class="sz-label">S</span></span></div>
+                </div>
+              </div>
+              <div class="m-quadrant q-schedule">
+                <div class="m-quadrant-header">
+                  <span class="quadrant-icon" style="color:var(--m-blue)">&#9679;</span>
+                  <span class="m-quadrant-label">Schedule</span>
+                  <span class="m-quadrant-count">3</span>
+                </div>
+                <div class="m-quadrant-body">
+                  <div class="m-card on-board"><span class="m-card-title">File tax report</span><span class="on-board-tag">★</span></div>
+                  <div class="m-card"><span class="m-card-title">Find gym coach</span><span class="size-chip"><span class="sz-label">M</span></span></div>
+                  <div class="m-card"><span class="m-card-title">Learn Python</span><span class="size-chip"><span class="sz-label">L</span></span></div>
+                </div>
+              </div>
+              <div class="m-quadrant q-squeeze">
+                <div class="m-quadrant-header">
+                  <span class="quadrant-icon" style="color:var(--m-orange)">&#9679;</span>
+                  <span class="m-quadrant-label">Squeeze</span>
+                  <span class="m-quadrant-count">1</span>
+                </div>
+                <div class="m-quadrant-body">
+                  <div class="m-card"><span class="m-card-title">Reply to landlord</span><span class="size-chip"><span class="sz-label">XS</span></span></div>
+                </div>
+              </div>
+              <div class="m-quadrant q-later">
+                <div class="m-quadrant-header">
+                  <span class="quadrant-icon" style="color:var(--m-text-muted)">&#9679;</span>
+                  <span class="m-quadrant-label">Later</span>
+                  <span class="m-quadrant-count">2</span>
+                </div>
+                <div class="m-quadrant-body">
+                  <div class="m-card"><span class="m-card-title">Explore recipe</span><span class="size-chip"><span class="sz-label">S</span></span></div>
+                  <div class="m-card"><span class="m-card-title">Pottery class</span><span class="size-chip"><span class="sz-label">S</span></span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="m-axis-x"><span>Urgent</span><span>Not Urgent</span></div>
+
+          <div class="m-dock">
+            <div class="m-dock-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+              Board
+            </div>
+            <div class="m-dock-item active">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18M12 3v18" stroke-linecap="round"/></svg>
+              Priorities
+            </div>
+            <div class="m-dock-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Plan
+            </div>
+          </div>
+        </div>
+      </div>
+      <span class="phone-caption">Mobile &mdash; matrix + bottom dock (title-only cards)</span>
+    </div>
+
+    <!-- Phone B — Mobile "Track this week" bottom sheet -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="m-app">
+          <div class="m-topbar">
+            <div class="m-topbar-text">
+              <span class="m-topbar-title">My Priorities</span>
+              <span class="m-topbar-sub">8 total &middot; 3 this week</span>
+            </div>
+            <span class="m-topbar-count">Week 09</span>
+          </div>
+          <div class="m-matrix" style="opacity:0.4">
+            <div class="m-axis-y"><span>Important</span><span>Not Imp.</span></div>
+            <div class="m-grid">
+              <div class="m-quadrant q-do-first">
+                <div class="m-quadrant-header"><span class="quadrant-icon" style="color:var(--m-red)">&#9679;</span><span class="m-quadrant-label">Do First</span><span class="m-quadrant-count">2</span></div>
+                <div class="m-quadrant-body"><div class="m-card on-board"><span class="m-card-title">Shop birthday gift</span><span class="on-board-tag">★</span></div><div class="m-card"><span class="m-card-title">Call dentist</span><span class="size-chip"><span class="sz-label">S</span></span></div></div>
+              </div>
+              <div class="m-quadrant q-schedule">
+                <div class="m-quadrant-header"><span class="quadrant-icon" style="color:var(--m-blue)">&#9679;</span><span class="m-quadrant-label">Schedule</span><span class="m-quadrant-count">3</span></div>
+                <div class="m-quadrant-body"><div class="m-card on-board"><span class="m-card-title">File tax report</span><span class="on-board-tag">★</span></div></div>
+              </div>
+              <div class="m-quadrant q-squeeze">
+                <div class="m-quadrant-header"><span class="quadrant-icon" style="color:var(--m-orange)">&#9679;</span><span class="m-quadrant-label">Squeeze</span><span class="m-quadrant-count">1</span></div>
+                <div class="m-quadrant-body"><div class="m-card"><span class="m-card-title">Reply to landlord</span><span class="size-chip"><span class="sz-label">XS</span></span></div></div>
+              </div>
+              <div class="m-quadrant q-later">
+                <div class="m-quadrant-header"><span class="quadrant-icon" style="color:var(--m-text-muted)">&#9679;</span><span class="m-quadrant-label">Later</span><span class="m-quadrant-count">2</span></div>
+                <div class="m-quadrant-body"><div class="m-card"><span class="m-card-title">Explore recipe</span><span class="size-chip"><span class="sz-label">S</span></span></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="m-axis-x" style="opacity:0.4"><span>Urgent</span><span>Not Urgent</span></div>
+
+          <!-- Bottom sheet (tap a card to track it this week) -->
+          <div class="m-sheet-overlay">
+            <div class="m-sheet">
+              <div class="m-sheet-grip"></div>
+              <div class="m-sheet-card-title">Call dentist</div>
+              <div class="m-sheet-card-desc">Annual checkup is overdue &middot; S &middot; 2 pts</div>
+              <div class="m-sheet-label">Track this week</div>
+              <button class="m-sheet-btn"><span class="col-dot" style="background:var(--m-blue)"></span>Todo<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <button class="m-sheet-btn"><span class="col-dot" style="background:var(--m-orange)"></span>In Progress<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <span class="phone-caption">Mobile &mdash; tap a card &rarr; Track-this-week sheet</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Screen nav ── -->
+<nav class="screen-nav">
+  <button class="screen-btn active" data-target="screen-matrix" onclick="showScreen('screen-matrix')">Priorities</button>
+  <button class="screen-btn" data-target="screen-send" onclick="showScreen('screen-send')">Track</button>
+  <button class="screen-btn" data-target="screen-drag" onclick="showScreen('screen-drag')">Drag &amp; Drop</button>
+  <button class="screen-btn" data-target="screen-board" onclick="showScreen('screen-board')">Board</button>
+  <button class="screen-btn" data-target="screen-mobile" onclick="showScreen('screen-mobile')">Mobile</button>
+</nav>
+
+<script>
+// Inject shared fragments + per-screen variants
+(function () {
+  var frag = function (id) { return document.getElementById(id).content; };
+
+  document.querySelectorAll('.screen').forEach(function (screen) {
+    // Sidebar (with the correct nav item marked active)
+    var sbSlot = screen.querySelector('[data-sidebar]');
+    if (sbSlot) {
+      var sb = frag('tpl-sidebar').cloneNode(true);
+      var navId = screen.getAttribute('data-nav');
+      if (navId) {
+        var item = sb.querySelector('[data-nav-id="' + navId + '"]');
+        if (item) item.classList.add('active');
+      }
+      sbSlot.replaceWith(sb);
+    }
+    // Header
+    var hSlot = screen.querySelector('[data-header]');
+    if (hSlot) hSlot.replaceWith(frag('tpl-header').cloneNode(true));
+    // Matrix body (+ optional interaction variant)
+    var mSlot = screen.querySelector('[data-matrix]');
+    if (mSlot) {
+      var node = frag('tpl-matrix-body').cloneNode(true);
+
+      if (mSlot.hasAttribute('data-active-send')) {
+        var card = node.querySelector('[data-card="call-dentist"]');
+        card.classList.add('active-send');
+        card.style.zIndex = '60';
+        card.querySelector('.mx-card-send').style.cssText =
+          'display:flex;background:var(--m-blue-a10);color:var(--m-blue)';
+        var pop = document.createElement('div');
+        pop.className = 'send-popover';
+        pop.innerHTML =
+          '<div class="send-popover-title">Track this week</div>' +
+          '<button class="send-popover-btn"><span class="col-dot" style="background:var(--m-blue)"></span><span>Todo</span>' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:auto"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
+          '<button class="send-popover-btn"><span class="col-dot" style="background:var(--m-orange)"></span><span>In Progress</span>' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:auto"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';
+        card.appendChild(pop);
+      }
+
+      if (mSlot.hasAttribute('data-drag')) {
+        node.querySelector('.matrix-grid').classList.add('is-dragging');
+        // Source card → leaves a dashed ghost behind in Squeeze In
+        node.querySelector('[data-card="reply-landlord"]').classList.add('ghost');
+        // Target quadrant (Do First) lights up + drop banner + the lifted card
+        var target = node.querySelector('.q-do-first');
+        target.classList.add('drop-target');
+        var body = target.querySelector('.quadrant-body');
+        var hint = document.createElement('div');
+        hint.className = 'mx-drop-hint';
+        hint.innerHTML =
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>' +
+          'Drop here &mdash; mark Urgent &amp; Important';
+        body.insertBefore(hint, body.firstChild);
+        var lifted = document.createElement('div');
+        lifted.className = 'mx-card dragging';
+        lifted.innerHTML =
+          '<div class="mx-card-main"><span class="mx-card-title">Reply to landlord</span>' +
+          '<span class="mx-card-desc">Lease renewal question</span></div>' +
+          '<span class="size-chip"><span class="sz-label">XS</span><span class="sz-dot">&middot;</span><span class="sz-pts">1</span></span>' +
+          '<svg class="mx-card-drag" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>';
+        body.insertBefore(lifted, hint.nextSibling);
+      }
+
+      mSlot.replaceWith(node);
+    }
+  });
+})();
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.screen-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-target') === id));
+}
+</script>
+
+<script>
+(function() {
+  var btn = document.createElement('button');
+  btn.className = 'mockup-theme-toggle';
+  btn.title = 'Toggle theme';
+  var sun = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
+  var moon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>';
+  function update() {
+    var t = document.documentElement.getAttribute('data-mockup-theme');
+    btn.innerHTML = t === 'dark' ? sun : moon;
+  }
+  btn.addEventListener('click', function() {
+    var t = document.documentElement.getAttribute('data-mockup-theme');
+    document.documentElement.setAttribute('data-mockup-theme', t === 'dark' ? 'light' : 'dark');
+    update();
+  });
+  document.body.appendChild(btn);
+  update();
+})();
+</script>
+
+</body>
+</html>
