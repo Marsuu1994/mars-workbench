@@ -1,4 +1,4 @@
-import messages from "../messages/en.json";
+import messages from "./i18n/en.json";
 
 /**
  * Augments next-intl with our message catalog so translation keys are
