@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { PlusIcon, CheckIcon } from "@heroicons/react/24/outline";
 
 interface TaskModalFooterProps {
@@ -9,11 +12,11 @@ interface TaskModalFooterProps {
 
 const BUTTON_CONFIG: Record<
   TaskModalFooterProps["mode"],
-  { icon: typeof PlusIcon; label: string }
+  { icon: typeof PlusIcon; labelKey: "submit.create" | "submit.edit" | "submit.adhoc" }
 > = {
-  create: { icon: PlusIcon, label: "Create Template" },
-  edit: { icon: CheckIcon, label: "Save Changes" },
-  adhoc: { icon: PlusIcon, label: "Add to Board" },
+  create: { icon: PlusIcon, labelKey: "submit.create" },
+  edit: { icon: CheckIcon, labelKey: "submit.edit" },
+  adhoc: { icon: PlusIcon, labelKey: "submit.adhoc" },
 };
 
 export default function TaskModalFooter({
@@ -22,6 +25,7 @@ export default function TaskModalFooter({
   error,
   onClose,
 }: TaskModalFooterProps) {
+  const t = useTranslations("TaskModal");
   const config = BUTTON_CONFIG[mode];
   const Icon = config.icon;
 
@@ -35,7 +39,7 @@ export default function TaskModalFooter({
           onClick={onClose}
           disabled={isSubmitting}
         >
-          Cancel
+          {t("cancel")}
         </button>
         <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
           {isSubmitting ? (
@@ -43,7 +47,7 @@ export default function TaskModalFooter({
           ) : (
             <Icon className="size-4" />
           )}
-          {config.label}
+          {t(config.labelKey)}
         </button>
       </div>
     </>

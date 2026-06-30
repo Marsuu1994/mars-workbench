@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { updateTaskStatusSchema, createAdhocTaskSchema } from "../schemas";
 import { updateTaskStatus, createTask } from "@/lib/db/tasks";
 import { getActivePlan } from "@/lib/db/plans";
@@ -15,7 +16,8 @@ export async function updateTaskStatusAction(taskId: string, input: unknown) {
   const userId = await getCurrentUserId();
   const task = await updateTaskStatus(userId, taskId, parsed.data.status);
   if (!task) {
-    return { error: { formErrors: ["Task not found"], fieldErrors: {} } };
+    const t = await getTranslations("Errors");
+    return { error: { formErrors: [t("taskNotFound")], fieldErrors: {} } };
   }
 
   revalidatePath("/kanban");
@@ -29,7 +31,8 @@ export async function createAdhocTaskAction(input: unknown) {
   const userId = await getCurrentUserId();
   const activePlan = await getActivePlan(userId);
   if (!activePlan) {
-    return { error: { formErrors: ["No active plan found"], fieldErrors: {} } };
+    const t = await getTranslations("Errors");
+    return { error: { formErrors: [t("noActivePlan")], fieldErrors: {} } };
   }
 
   const task = await createTask(userId, {

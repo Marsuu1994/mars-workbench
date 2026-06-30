@@ -31,8 +31,7 @@ export const CreatedBanner = () => {
         <div>
           <div className="text-[13px] font-semibold">{t("createdTitle")}</div>
           <div className="text-xs text-base-content/60">
-            {total} template{total !== 1 ? "s" : ""} added &middot; {newCount} new,{" "}
-            {existing} existing
+            {t("createdSummary", { total, newCount, existing })}
           </div>
         </div>
       </div>

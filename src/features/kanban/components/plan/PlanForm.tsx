@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { CheckIcon, MoonIcon, BoltIcon } from "@heroicons/react/24/outline";
 import { TaskType, TaskStatus, PeriodType, PlanMode, TaskSize } from "@/features/kanban/utils/enums";
 import { SizeChip } from "../shared/SizeChip";
@@ -64,6 +65,9 @@ export default function PlanForm({
   aiContextPlanId,
 }: PlanFormProps) {
   const router = useRouter();
+  const t = useTranslations("Plan");
+  const tMode = useTranslations("Enums.PlanMode");
+  const tStatus = useTranslations("Enums.TaskStatus");
 
   // Map from templateId → {type, frequency} for selected templates
   const [selectedTemplates, setSelectedTemplates] = useState<
@@ -284,11 +288,11 @@ export default function PlanForm({
   return (
     <>
       <h2 className="text-2xl font-bold mb-1">
-        {mode === "create" ? "Create Weekly Plan" : "Update Weekly Plan"}
+        {mode === "create" ? t("createTitle") : t("updateTitle")}
       </h2>
       {mode === "create" && (
         <p className="text-base-content/50 mb-7">
-          Set up your task templates and start a new week.
+          {t("createSubtitle")}
         </p>
       )}
       {mode === "edit" && <div className="mb-6" />}
@@ -297,13 +301,13 @@ export default function PlanForm({
         <div className="form-control">
           <label className="label">
             <span className="label-text text-base-content/60 text-xs font-medium">
-              Description (optional)
+              {t("descriptionLabel")}
             </span>
           </label>
           <input
             type="text"
             className="input input-bordered w-full"
-            placeholder="e.g. Focus on interview prep this week"
+            placeholder={t("descriptionPlaceholder")}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
@@ -315,7 +319,7 @@ export default function PlanForm({
         {/* Plan Mode */}
         <div className="rounded-lg border border-base-content/10 bg-base-200 p-3.5">
           <span className="text-[11px] font-semibold uppercase tracking-wider text-base-content/50 block mb-2">
-            Plan Mode
+            {t("planModeLabel")}
           </span>
           <div className="flex gap-0 rounded-lg border border-base-content/10 bg-base-100 p-[3px]">
             <button
@@ -329,10 +333,10 @@ export default function PlanForm({
             >
               <MoonIcon className={`size-4 ${planMode === PlanMode.NORMAL ? "text-info" : "text-base-content/30"}`} />
               <span className={`text-[13px] font-semibold tracking-wide ${planMode === PlanMode.NORMAL ? "text-info" : "text-base-content/30"}`}>
-                Normal
+                {tMode("NORMAL")}
               </span>
               <span className={`text-[11px] ${planMode === PlanMode.NORMAL ? "text-base-content/60" : "text-base-content/30"}`}>
-                Weekdays only
+                {t("normalModeShortDesc")}
               </span>
             </button>
             <button
@@ -346,10 +350,10 @@ export default function PlanForm({
             >
               <BoltIcon className={`size-4 ${planMode === PlanMode.EXTREME ? "text-error" : "text-base-content/30"}`} />
               <span className={`text-[13px] font-semibold tracking-wide ${planMode === PlanMode.EXTREME ? "text-error" : "text-base-content/30"}`}>
-                Extreme
+                {tMode("EXTREME")}
               </span>
               <span className={`text-[11px] ${planMode === PlanMode.EXTREME ? "text-base-content/60" : "text-base-content/30"}`}>
-                Every day incl. weekends
+                {t("extremeModeShortDesc")}
               </span>
             </button>
           </div>
@@ -359,7 +363,7 @@ export default function PlanForm({
         <div>
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-medium text-base-content/60">
-              Task Templates
+              {t("taskTemplatesLabel")}
             </span>
             <button
               type="button"
@@ -369,7 +373,7 @@ export default function PlanForm({
                 setIsModalOpen(true);
               }}
             >
-              + New Template
+              {t("newTemplateButton")}
             </button>
           </div>
 
@@ -392,7 +396,7 @@ export default function PlanForm({
 
           {templates.length === 0 && (
             <p className="text-sm text-base-content/50 text-center py-8">
-              No templates yet. Create a template to get started.
+              {t("noTemplates")}
             </p>
           )}
         </div>
@@ -402,10 +406,10 @@ export default function PlanForm({
           <div>
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-medium text-base-content/60">
-                Ad-hoc Tasks
+                {t("adhocTasksLabel")}
               </span>
               <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-warning/15 text-warning">
-                {adhocTasks.length} task{adhocTasks.length !== 1 ? "s" : ""}
+                {t("taskCount", { count: adhocTasks.length })}
               </span>
             </div>
 
@@ -453,7 +457,9 @@ export default function PlanForm({
 
                     {/* Status badge */}
                     <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-base-300 text-base-content/50 uppercase tracking-wider shrink-0">
-                      {task.status === TaskStatus.DOING ? "Doing" : "Todo"}
+                      {task.status === TaskStatus.DOING
+                        ? tStatus("DOING")
+                        : tStatus("TODO")}
                     </span>
                   </div>
                 );
@@ -468,17 +474,16 @@ export default function PlanForm({
         {/* Summary + Actions */}
         <div className="flex items-center justify-between border-t border-base-content/10 pt-5">
           <div className="text-sm text-base-content/50">
-            {selectedTemplates.size} template
-            {selectedTemplates.size !== 1 ? "s" : ""}
-            {adhocTasks.length > 0 && (
-              <>, {selectedAdhocIds.size} ad-hoc task
-              {selectedAdhocIds.size !== 1 ? "s" : ""}</>
-            )}
-            {" "}selected
+            {adhocTasks.length > 0
+              ? t("summaryWithAdhoc", {
+                  templateCount: selectedTemplates.size,
+                  adhocCount: selectedAdhocIds.size,
+                })
+              : t("summary", { templateCount: selectedTemplates.size })}
           </div>
           <div className="flex gap-2">
             <Link href="/kanban" className="btn btn-ghost">
-              Cancel
+              {t("cancel")}
             </Link>
             <button
               type="submit"
@@ -493,7 +498,7 @@ export default function PlanForm({
               ) : (
                 <CheckIcon className="size-4" />
               )}
-              {mode === "create" ? "Start Week" : "Update Plan"}
+              {mode === "create" ? t("startWeek") : t("updatePlan")}
             </button>
           </div>
         </div>

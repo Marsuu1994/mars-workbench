@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { zodResponseFormat } from "openai/helpers/zod";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import prisma from "@/lib/prisma";
@@ -26,9 +27,8 @@ import type {
   PerTemplateStat,
 } from "../types/aiChat";
 import {
-  NEW_USER_CHIPS,
-  RETURNING_USER_CHIPS,
-  buildWelcomeMessage,
+  NEW_USER_CHIP_KEYS,
+  RETURNING_USER_CHIP_KEYS,
 } from "../utils/aiChatContent";
 import { rollUpOverall } from "../utils/statsUtils";
 
@@ -80,13 +80,24 @@ export async function createAiChat(
     metadata: stats ? { lastPlanStats: stats } : {},
   });
 
-  const message = buildWelcomeMessage(stats);
+  const t = await getTranslations("AiChat");
+  const message = stats
+    ? t("welcomeReturning", {
+        completed: stats.overall.completedCount,
+        total: stats.overall.totalCount,
+        completionPct: Math.round(stats.overall.completionRate * 100),
+        points: stats.overall.totalPoints,
+        dailyPct: Math.round(stats.overall.dailyCompletionRate * 100),
+      })
+    : t("welcomeNew");
   await createMessage({ chatId: chat.id, role: "assistant", content: message });
 
   return {
     chatId: chat.id,
     message,
-    suggestionChips: stats ? RETURNING_USER_CHIPS : NEW_USER_CHIPS,
+    suggestionChips: (stats ? RETURNING_USER_CHIP_KEYS : NEW_USER_CHIP_KEYS).map((k) =>
+      t(k)
+    ),
   };
 }
 

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import {
   approveDraftPlanSchema,
   createAiChatSchema,
@@ -51,9 +52,10 @@ export async function generateDraftPlanAction(input: unknown) {
     const data = await generateDraftPlan(userId, parsed.data.chatId, parsed.data.message);
     return { data };
   } catch {
+    const t = await getTranslations("Errors");
     return {
       error: {
-        formErrors: ["Couldn't generate a plan, please try again."],
+        formErrors: [t("generateFailed")],
         fieldErrors: {},
       },
     };
@@ -69,9 +71,10 @@ export async function resumeDraftPlanAction(input: unknown) {
     const data = await resumeDraftPlan(userId, parsed.data.chatId);
     return { data };
   } catch {
+    const t = await getTranslations("Errors");
     return {
       error: {
-        formErrors: ["Couldn't generate a plan, please try again."],
+        formErrors: [t("generateFailed")],
         fieldErrors: {},
       },
     };
@@ -88,9 +91,10 @@ export async function approveDraftPlanAction(input: unknown) {
     revalidatePath("/kanban");
     return { data: { planId: plan.id } };
   } catch {
+    const t = await getTranslations("Errors");
     return {
       error: {
-        formErrors: ["Couldn't create the plan, please try again."],
+        formErrors: [t("createFailed")],
         fieldErrors: {},
       },
     };

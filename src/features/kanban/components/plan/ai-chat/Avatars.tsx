@@ -7,7 +7,7 @@ export const BotAvatar = () => (
   </span>
 );
 
-/** User avatar. */
+/** User avatar — a fixed monogram, not user-facing copy. */
 export const UserAvatar = () => (
   <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-info/10 text-[11px] font-semibold text-info">
     U

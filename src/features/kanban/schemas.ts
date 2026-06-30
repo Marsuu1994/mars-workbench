@@ -3,13 +3,20 @@ import { z } from "zod";
 // module can be imported from "use client" code without pulling in the
 // Node-only generated Prisma client.
 import { PeriodType, PlanMode, TaskSize, TaskType, TaskStatus } from "./utils/enums";
+// Validation copy is centralized in the i18n catalog. zod messages are set at
+// module load (no React context), so we read the English strings directly from
+// en.json here rather than via useTranslations/getTranslations. Single-locale
+// today; per-locale validation messages would translate at the form boundary.
+import messages from "@/i18n/en.json";
+
+const V = messages.Validation;
 
 // ── Plan Schemas ───────────────────────────────────────────────────────
 
 const planTemplateInputSchema = z.object({
   templateId: z.string().uuid(),
   type: z.nativeEnum(TaskType),
-  frequency: z.number().int().positive("Frequency must be a positive integer"),
+  frequency: z.number().int().positive(V.frequencyPositive),
 });
 
 export const createPlanSchema = z
@@ -24,7 +31,7 @@ export const createPlanSchema = z
     (data) =>
       data.templates.length > 0 ||
       (data.adhocTaskIds !== undefined && data.adhocTaskIds.length > 0),
-    { message: "Select at least one template or ad-hoc task" }
+    { message: V.selectAtLeastOne }
   );
 export type CreatePlanInput = z.infer<typeof createPlanSchema>;
 
@@ -39,8 +46,8 @@ export type UpdatePlanInput = z.infer<typeof updatePlanSchema>;
 // ── Template Schemas ───────────────────────────────────────────────────
 
 export const createTemplateSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().min(1, "Description is required"),
+  title: z.string().min(1, V.titleRequired),
+  description: z.string().min(1, V.descriptionRequired),
   size: z.nativeEnum(TaskSize),
 });
 export type CreateTemplateInput = z.infer<typeof createTemplateSchema>;
@@ -52,7 +59,7 @@ export const updateTemplateSchema = z
     size: z.nativeEnum(TaskSize).optional(),
   })
   .refine((data) => Object.values(data).some((v) => v !== undefined), {
-    message: "At least one field must be provided",
+    message: V.atLeastOneField,
   });
 export type UpdateTemplateInput = z.infer<typeof updateTemplateSchema>;
 
@@ -70,7 +77,7 @@ export const updateTaskStatusSchema = z.object({
 export type UpdateTaskStatusInput = z.infer<typeof updateTaskStatusSchema>;
 
 export const createAdhocTaskSchema = z.object({
-  title: z.string().min(1, "Title is required"),
+  title: z.string().min(1, V.titleRequired),
   description: z.string().optional(),
   size: z.nativeEnum(TaskSize),
   status: z.enum([TaskStatus.TODO, TaskStatus.DOING]).optional(),

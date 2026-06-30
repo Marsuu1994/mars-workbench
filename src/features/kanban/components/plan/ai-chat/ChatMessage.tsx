@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { CheckIcon, ChevronRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 import type { UiMessage } from "@/features/kanban/types/aiChat";
 import { BotAvatar, UserAvatar } from "./Avatars";
@@ -15,6 +16,7 @@ interface ChatMessageProps {
 }
 
 export const ChatMessage = ({ message, isLatestDraft, onChipSelect }: ChatMessageProps) => {
+  const t = useTranslations("AiChat");
   const [expanded, setExpanded] = useState(false);
 
   // User turn
@@ -58,8 +60,7 @@ export const ChatMessage = ({ message, isLatestDraft, onChipSelect }: ChatMessag
       >
         <ChevronRightIcon className="size-3.5 shrink-0" />
         <span className="flex-1 text-left">
-          Previous draft ({draft.draftTemplates.length} template
-          {draft.draftTemplates.length !== 1 ? "s" : ""})
+          {t("previousDraftSummary", { count: draft.draftTemplates.length })}
         </span>
         <ChevronDownIcon className="size-3 shrink-0" />
       </button>
@@ -79,7 +80,7 @@ export const ChatMessage = ({ message, isLatestDraft, onChipSelect }: ChatMessag
         {approved && (
           <div className="mb-2 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-success">
             <CheckIcon className="size-3 stroke-2" />
-            Created
+            {t("createdBadge")}
           </div>
         )}
         <div>{draft.message}</div>

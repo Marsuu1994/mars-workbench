@@ -48,24 +48,11 @@ export const SIZE_TO_POINTS: Record<TaskSize, number> = {
   EXTRA_LARGE: 8,
 };
 
-export const SIZE_LABELS: Record<TaskSize, string> = {
-  EXTRA_SMALL: "XS",
-  SMALL: "S",
-  MEDIUM: "M",
-  LARGE: "L",
-  EXTRA_LARGE: "XL",
-};
-
-export const SIZE_EFFORT: Record<TaskSize, string> = {
-  EXTRA_SMALL: "~1 hour of effort",
-  SMALL: "~2 hours of effort",
-  MEDIUM: "~3 hours of effort",
-  LARGE: "~5 hours of effort",
-  EXTRA_LARGE: "~8 hours of effort",
-};
-
 export const sizeToPoints = (size: TaskSize): number => SIZE_TO_POINTS[size];
-export const sizeToLabel = (size: TaskSize): string => SIZE_LABELS[size];
+
+// Size display labels (XS/S/M/L/XL) and effort copy now live in i18n
+// (`Enums.TaskSize`, and `Enums.sizeEffort` with the points value passed as
+// `hours`) — render them via useTranslations.
 
 export const MessageRole = {
   USER: "user",
