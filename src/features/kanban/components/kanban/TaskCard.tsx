@@ -2,10 +2,10 @@
 
 import { Draggable } from "@hello-pangea/dnd";
 import type { TaskItem } from "@/lib/db/tasks";
-import { TaskStatus, TaskType } from "../../utils/enums";
+import { TaskStatus } from "../../utils/enums";
 import { SizeChip } from "../shared/SizeChip";
-import { formatShortDate, normalizeForDate } from "../../utils/dateUtils";
-import type { RiskLevel } from "../../utils/taskUtils";
+import { formatShortDate } from "../../utils/dateUtils";
+import { isRolloverTask, type RiskLevel } from "../../utils/taskUtils";
 import TaskTypeBadge from "../shared/TaskTypeBadge";
 
 type TaskCardProps = {
@@ -32,11 +32,7 @@ export default function TaskCard({
   // instanceIndex is 0-based; only meaningful when the template has siblings
   const showInstance = frequency > 1;
 
-  const isRollover =
-    !isDone &&
-    task.type === TaskType.DAILY &&
-    task.forDate !== null &&
-    normalizeForDate(task.forDate) < today;
+  const isRollover = isRolloverTask(task, today);
 
   // Desktop: left border for risk (preserve on hover). Normal cards keep the
   // base 1px border on all sides — no override, so the left edge stays visible.
