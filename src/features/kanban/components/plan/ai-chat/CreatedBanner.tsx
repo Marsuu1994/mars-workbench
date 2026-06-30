@@ -1,13 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { CheckIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 import { useAiPlanChatStore } from "@/features/kanban/store/aiPlanChatStore";
 import { summarizeDraftTemplates } from "@/features/kanban/utils/draftSummary";
-import { CREATED_TITLE, VIEW_BOARD_LABEL } from "./constants";
 
 /** Success banner shown after the plan is created. */
 export const CreatedBanner = () => {
+  const t = useTranslations("AiChat");
   const router = useRouter();
   const latestDraft = useAiPlanChatStore((state) => state.latestDraft);
   const close = useAiPlanChatStore((state) => state.close);
@@ -28,7 +29,7 @@ export const CreatedBanner = () => {
           <CheckIcon className="size-4 stroke-2" />
         </span>
         <div>
-          <div className="text-[13px] font-semibold">{CREATED_TITLE}</div>
+          <div className="text-[13px] font-semibold">{t("createdTitle")}</div>
           <div className="text-xs text-base-content/60">
             {total} template{total !== 1 ? "s" : ""} added &middot; {newCount} new,{" "}
             {existing} existing
@@ -36,7 +37,7 @@ export const CreatedBanner = () => {
         </div>
       </div>
       <button type="button" onClick={handleViewBoard} className="btn btn-primary btn-sm">
-        {VIEW_BOARD_LABEL}
+        {t("viewBoardLabel")}
         <ArrowRightIcon className="size-4" />
       </button>
     </div>

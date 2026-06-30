@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { SparklesIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useAiPlanChatStore } from "@/features/kanban/store/aiPlanChatStore";
 import { useAiPlanChat } from "@/features/kanban/hooks/useAiPlanChat";
@@ -9,14 +10,9 @@ import { ChatInputBar } from "./ChatInputBar";
 import { CreateActionBar } from "./CreateActionBar";
 import { CreatedBanner } from "./CreatedBanner";
 import { LoadingBubble } from "./LoadingBubble";
-import {
-  LOADING_LABEL_GENERATING,
-  LOADING_LABEL_INITIALIZING,
-  MODAL_BETA_LABEL,
-  MODAL_TITLE,
-} from "./constants";
 
 export const AiPlanChatModal = () => {
+  const t = useTranslations("AiChat");
   const dialogRef = useRef<HTMLDialogElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
 
@@ -61,9 +57,9 @@ export const AiPlanChatModal = () => {
         <span className="flex size-7 items-center justify-center rounded-lg border border-info/20 bg-info/10 text-info">
           <SparklesIcon className="size-3.5" />
         </span>
-        <span className="text-base font-semibold">{MODAL_TITLE}</span>
+        <span className="text-base font-semibold">{t("modalTitle")}</span>
         <span className="rounded-full bg-info/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-info">
-          {MODAL_BETA_LABEL}
+          {t("betaLabel")}
         </span>
       </div>
       <button
@@ -87,8 +83,8 @@ export const AiPlanChatModal = () => {
           onChipSelect={send}
         />
       ))}
-      {status === "initializing" && <LoadingBubble label={LOADING_LABEL_INITIALIZING} />}
-      {status === "generating" && <LoadingBubble label={LOADING_LABEL_GENERATING} />}
+      {status === "initializing" && <LoadingBubble label={t("loadingInitializing")} />}
+      {status === "generating" && <LoadingBubble label={t("loadingGenerating")} />}
     </div>
   );
 

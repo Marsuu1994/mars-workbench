@@ -52,6 +52,11 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 
 ## Update Log
 
+### 2026-06-30
+- Started **i18n standardization** for the kanban feature with `next-intl` in single-locale "App Router without i18n routing" mode — no `[locale]` URL segment and no middleware, so the Supabase auth `src/proxy.ts` is untouched. Wired the `createNextIntlPlugin()` wrapper (`next.config.ts`), per-request config (`src/i18n/request.ts`, locale fixed to `en`), `<NextIntlClientProvider>` in the root layout, and compile-time type-safe keys via `src/global.d.ts` augmenting `messages/en.json`
+- Migrated the already-centralized copy into `messages/en.json` namespaces (`Board.Backlog`, `AiChat`): `BacklogDrawer` and the ai-chat consumers (`AiAssistantBanner`, `ChatInputBar`, `CreateActionBar`, `CreatedBanner`, `AiPlanChatModal`) now read copy via `useTranslations`; deleted both `constants.ts` copy files
+- Scope is P0+P1 of a phased migration; still inline (later phases): remaining JSX literals, enum→label maps (`SIZE_LABELS`/`SIZE_EFFORT`/`TaskTypeBadge`/`COLUMN_CONFIG`/status·mode labels), server-side strings (action/service errors, zod messages, AI welcome/chips), and route metadata. LLM prompt files (`prompt/*.ts`) are intentionally never translated
+
 ### 2026-06-29
 - Built the **AI Assisted Plan Creation UI** (backend was already done): a Zustand chat store (`store/aiPlanChatStore`, pure state) + a `hooks/useAiPlanChat` bridge that calls the existing server actions (keeps fetch out of the store), and the `components/ai-chat/` modal — `AiPlanChatModal` (header/body/footer render-function split), `ChatMessage`, `DraftPlanCards` (reuses `SizeChip` + `TaskTypeBadge`), `SuggestionChips`, `ChatInputBar`, `CreateActionBar`, `CreatedBanner`, `LoadingBubble` (shown for both `initializing` and `generating`), shared `Avatars`, and a `constants.ts` for all UI copy
 - Entry point: `AiAssistantBanner` rendered in `PlanForm` after the description (create mode only); `new/page.tsx` passes the pending plan id as `aiContextPlanId` to seed the returning-user welcome
