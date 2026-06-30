@@ -42,7 +42,9 @@ export default function BacklogDrawer({
   const renderCollapsed = () => (
     <button
       onClick={() => setIsOpen(true)}
-      className="w-12 h-full bg-base-200 border-l border-base-content/10 flex flex-col items-center gap-3.5 pt-4 cursor-pointer transition-colors hover:bg-base-300"
+      className={`absolute inset-y-0 left-0 w-12 bg-base-200 flex flex-col items-center gap-3.5 pt-4 cursor-pointer transition-opacity duration-200 hover:bg-base-300 ${
+        isOpen ? "opacity-0 pointer-events-none" : "opacity-100"
+      }`}
       title={t("openLabel")}
     >
       <ChevronLeftIcon className="size-4 text-base-content/40" />
@@ -111,21 +113,22 @@ export default function BacklogDrawer({
 
   return (
     <div
-      className={`hidden md:flex flex-col h-full flex-shrink-0 transition-[width] duration-200 ${
-        isOpen
-          ? "w-[300px] bg-base-100 border-l border-base-content/10"
-          : "w-12"
+      className={`hidden md:block relative h-full flex-shrink-0 overflow-hidden bg-base-100 border-l border-base-content/10 transition-[width] duration-200 ${
+        isOpen ? "w-[300px]" : "w-12"
       }`}
     >
-      {isOpen ? (
-        <>
-          {renderHeader()}
-          {renderHint()}
-          {renderBody()}
-        </>
-      ) : (
-        renderCollapsed()
-      )}
+      {/* Both states stay mounted and cross-fade so width + content animate
+          together — instant content swaps would otherwise read as a jump. */}
+      {renderCollapsed()}
+      <div
+        className={`absolute inset-y-0 right-0 w-[300px] flex flex-col bg-base-100 transition-opacity duration-200 ${
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+      >
+        {renderHeader()}
+        {renderHint()}
+        {renderBody()}
+      </div>
     </div>
   );
 }

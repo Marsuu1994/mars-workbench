@@ -38,13 +38,14 @@ export default function TaskCard({
     task.forDate !== null &&
     normalizeForDate(task.forDate) < today;
 
-  // Desktop: left border for risk (preserve on hover)
+  // Desktop: left border for risk (preserve on hover). Normal cards keep the
+  // base 1px border on all sides — no override, so the left edge stays visible.
   const desktopRiskClass =
     riskLevel === "danger"
       ? "md:border-l-4 md:border-l-error md:hover:border-l-error"
       : riskLevel === "warning"
         ? "md:border-l-4 md:border-l-warning md:hover:border-l-warning"
-        : "md:border-l-4 md:border-l-transparent md:hover:border-l-transparent";
+        : "";
 
   // Mobile: top border for risk, scoped to < md (preserve on hover)
   const mobileRiskClass =
@@ -55,14 +56,14 @@ export default function TaskCard({
         : "";
 
   return (
-    <Draggable draggableId={task.id} index={index}>
+    <Draggable draggableId={task.id} index={index} isDragDisabled={isDone}>
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`card bg-base-100/70 shadow-sm border border-base-content/10 cursor-grab transition-[box-shadow,border-color,opacity] duration-150 hover:-translate-y-0.5 hover:shadow-md hover:border-base-content/25 flex-shrink-0 w-[136px] md:w-auto ${mobileRiskClass} ${desktopRiskClass} ${
-            isDone ? "opacity-50" : ""
+          className={`card bg-base-100/70 shadow-sm border border-base-content/10 transition-[box-shadow,border-color,opacity] duration-150 hover:-translate-y-0.5 hover:shadow-md hover:border-base-content/25 flex-shrink-0 w-[136px] md:w-auto ${mobileRiskClass} ${desktopRiskClass} ${
+            isDone ? "opacity-50 cursor-default" : "cursor-grab"
           } ${
             snapshot.isDragging
               ? "shadow-lg ring-2 ring-primary/30 scale-[1.02] z-50"

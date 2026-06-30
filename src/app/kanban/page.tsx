@@ -1,4 +1,4 @@
-import { fetchBoardAction } from "@/features/kanban/actions/boardActions";
+import { fetchBoardAction, getEmptyBoardStateAction } from "@/features/kanban/actions/boardActions";
 import EmptyBoard from "@/features/kanban/components/kanban/EmptyBoard";
 import KanbanBoard from "@/features/kanban/components/kanban/KanbanBoard";
 import BoardHeader from "@/features/kanban/components/kanban/BoardHeader";
@@ -8,7 +8,12 @@ export default async function KanbanPage() {
   const board = await fetchBoardAction();
 
   if (!board) {
-    return <EmptyBoard />;
+    const emptyState = await getEmptyBoardStateAction();
+    return (
+      <EmptyBoard
+        stats={emptyState.kind === "returning" ? emptyState.stats : undefined}
+      />
+    );
   }
 
   return (
