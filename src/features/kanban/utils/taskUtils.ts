@@ -108,6 +108,20 @@ export function computeRiskLevel(
 }
 
 /**
+ * A daily task is "rollover" when it was scheduled for a past day and is not yet
+ * done. Shared by the board card and the mobile backlog sheet card so the ↩ tag
+ * renders identically in both.
+ */
+export function isRolloverTask(task: TaskItem, today: Date): boolean {
+  return (
+    task.status !== TaskStatus.DONE &&
+    task.type === TaskTypeEnum.DAILY &&
+    task.forDate !== null &&
+    normalizeForDate(task.forDate) < today
+  );
+}
+
+/**
  * Resolve a task's template generation frequency. Ad-hoc tasks (no templateId)
  * and unknown templates default to 1. Used to decide whether the instance-index
  * badge is meaningful (frequency > 1).

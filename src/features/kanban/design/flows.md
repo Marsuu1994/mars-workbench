@@ -343,20 +343,26 @@ All data is fetched server-side and injected into the LLM system prompt as conte
 
 ### Backlog Drawer Flow
 
-**Trigger:** A collapsed backlog strip sits on the right edge of the board. The user clicks it to expand the drawer.
+**Trigger (desktop, `md+`):** A collapsed backlog strip sits on the right edge of the board. The user clicks it to expand the drawer.
+**Trigger (mobile, `< md`):** A peeking "Backlog" pill sits above the bottom tab bar. The user taps it to open a bottom sheet.
 
-The drawer holds task instances with `status === BACKLOG` — the staging area template instances land in before reaching the board. Ad-hoc tasks are created on the board directly and never enter the backlog.
+The drawer/sheet holds task instances with `status === BACKLOG` — the staging area template instances land in before reaching the board. Ad-hoc tasks are created on the board directly and never enter the backlog.
 
-**Steps:**
+**Steps (desktop):**
 
 1. The collapsed strip shows the backlog count.
 2. On expand, render the backlog tasks (`status === BACKLOG`) as a flat list, ordered like a column (daily then weekly, by `instanceIndex`/`createdAt`).
 3. Drag a card onto the Todo column to move it to the board: optimistic update, then `updateTaskStatusAction(taskId, { status: TODO })`, rollback on failure. Todo is the only drop target; no un-pull (forward-only, per "Drag and Drop Flow").
 
+**Steps (mobile):**
+
+1. The pill shows the backlog count; it is hidden entirely when the backlog is empty.
+2. On tap, open a `modal-bottom` sheet (covers the tab bar as a standard modal; the board peeks behind the scrim). Render the same backlog list as full-width rows.
+3. Tap a card's `↑ Todo` button to pull it: same optimistic `updateTaskStatusAction(taskId, { status: TODO })` + rollback. The sheet stays open for consecutive pulls; tap-to-pull replaces drag (a sheet over the board makes drag-out unreliable; backlog is forward-only anyway).
+
 **Rules:**
 
-- The drawer reuses the board `TaskCard`; risk computation treats `BACKLOG` as `TODO` so risk and rollover visuals match the board (see "Task Risky Level Visual Effect Flow").
-- The `#{instanceIndex}` badge renders on `TaskCard` only when the template's `frequency > 1` (frequency-1 and ad-hoc tasks, always `instanceIndex = 1`, show none). The card reads `frequency` from `plan.planTemplates`.
-- The drawer's open/closed state is local UI state, default closed.
-- Empty backlog: the strip still shows (count `0`); the expanded body shows an empty state.
-- V1 is desktop-only (`md+`); a mobile backlog surface is a follow-up.
+- Desktop reuses the board `TaskCard`; mobile uses `BacklogSheetCard` (full-width, non-draggable) with the same badge/instance/rollover/risk language. Risk computation treats `BACKLOG` as `TODO` so visuals match the board (see "Task Risky Level Visual Effect Flow").
+- The `#{instanceIndex}` badge renders only when the template's `frequency > 1` (frequency-1 and ad-hoc tasks, always `instanceIndex = 1`, show none). The card reads `frequency` from `plan.planTemplates`.
+- The drawer/sheet open state is local UI state, default closed.
+- Empty backlog: desktop strip still shows (count `0`) with an empty-state body; the mobile pill is hidden (the sheet's empty state only appears if the last task is pulled while it is open).

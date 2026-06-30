@@ -14,6 +14,7 @@ import { getTodayDate } from "../../utils/dateUtils";
 import { updateTaskStatusAction } from "../../actions/taskActions";
 import BoardColumn from "./BoardColumn";
 import BacklogDrawer from "./BacklogDrawer";
+import MobileBacklogSheet from "./MobileBacklogSheet";
 import TaskModal from "../shared/task-modal/TaskModal";
 
 interface KanbanBoardProps {
@@ -95,6 +96,24 @@ export default function KanbanBoard({
     });
   }
 
+  // Mobile tap-to-pull: BACKLOG → TODO. Same optimistic pattern as handleDragEnd.
+  function handlePullToTodo(taskId: string) {
+    const snapshot = localTasks;
+
+    setLocalTasks((prev) =>
+      prev.map((task) =>
+        task.id === taskId ? { ...task, status: TaskStatus.TODO } : task
+      )
+    );
+
+    updateTaskStatusAction(taskId, { status: TaskStatus.TODO }).then((result) => {
+      if (result.error) {
+        console.error("Failed to pull task to Todo:", result.error);
+        setLocalTasks(snapshot);
+      }
+    });
+  }
+
   const openAdhocModal = (status: string) => {
     setAdhocInitialStatus(status);
     setIsAdhocModalOpen(true);
@@ -104,7 +123,7 @@ export default function KanbanBoard({
   return (
     <DragDropContext onDragStart={() => setIsDragging(true)} onDragEnd={handleDragEnd}>
       <div className="flex h-full">
-        <div className="flex-1 min-w-0 flex flex-col gap-3.5 md:flex-row md:gap-4 overflow-y-auto md:overflow-x-auto md:overflow-y-visible p-4">
+        <div className="flex-1 min-w-0 flex flex-col gap-3.5 md:flex-row md:gap-4 overflow-y-auto md:overflow-x-auto md:overflow-y-visible p-4 max-md:pb-32">
           <BoardColumn
             status={TaskStatus.TODO}
             tasks={columns[TaskStatus.TODO]}
@@ -139,6 +158,13 @@ export default function KanbanBoard({
           templateFreqMap={templateFreqMap}
         />
       </div>
+      <MobileBacklogSheet
+        tasks={columns[TaskStatus.BACKLOG]}
+        today={today}
+        riskMap={riskMap}
+        templateFreqMap={templateFreqMap}
+        onPull={handlePullToTodo}
+      />
       <TaskModal
         isOpen={isAdhocModalOpen}
         onClose={closeAdhocModal}

@@ -5,7 +5,9 @@
       "hintDragToTodo": "Drag tasks left to Todo to start working",
       "emptyState": "You're all caught up — no staged tasks.",
       "openLabel": "Open backlog",
-      "closeLabel": "Close backlog"
+      "closeLabel": "Close backlog",
+      "hintTapToTodo": "Tap to pull a task onto the board",
+      "pullToTodoLabel": "Todo"
     }
   },
   "AiChat": {
