@@ -5,7 +5,7 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 ## Current State
 
 - **Board**: 3-column kanban (Todo / In Progress / Done) with drag-and-drop, optimistic UI, risk badges, rollover indicators
-- **Backlog drawer**: desktop right-edge panel staging template-generated instances (`status = BACKLOG`); drag `BACKLOG → TODO` to pull onto the board. Reuses `TaskCard` with a `#n` instance badge (when template `frequency > 1`); excluded from Today totals, included in Week projection. Mobile drawer deferred.
+- **Backlog drawer**: stages template-generated instances (`status = BACKLOG`) and pulls them onto the board (`BACKLOG → TODO`). Desktop is a right-edge panel (drag to pull); mobile is a bottom sheet (`modal-bottom`) opened from a peeking "Backlog" pill above the tab bar (tap `↑ Todo` to pull). Reuses the board's badge/instance/rollover/risk language with a `#n` instance badge (when template `frequency > 1`); excluded from Today totals, included in Week projection.
 - **Task sizing**: `TaskSize` enum (XS=1, S=2, M=3, L=5, XL=8) with fibonacci points; `SizeChip` display + pill toggle selector
 - **Progress dashboard**: Today ring, stat metrics (points/counts), Week Progress bar using two-query strategy (UI tasks + raw SQL aggregate)
 - **Plan management**: Create/edit plans with inline type/frequency config, Plan Mode toggle (NORMAL/EXTREME), `ReviewChangesModal` for diffs
@@ -18,7 +18,7 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 
 **AI Assisted Plan Creation** — Fully designed and **complete (backend + UI)**. The standalone chat demo was removed and the shared `Chat`/`Message` tables now back this flow. All three server actions are done and verified end-to-end: `getTemplateStatsAction` (per-template stats), `createAiChatAction` (static no-LLM welcome + chips, snapshots last-period stats into `Chat.metadata`), `generateDraftPlanAction` (OpenAI `gpt-5-nano` structured draft — reuses templates, calibrates from stats, replays prior drafts as history), and `approveDraftPlanAction` (atomically creates the plan, completes the prior `PENDING_UPDATE` plan, carries over ad-hoc tasks). `Chat.metadata` holds the stats snapshot + a `latestDraft` approval clipboard. The chat UI is a Zustand-backed modal (`store/aiPlanChatStore` state + `hooks/useAiPlanChat` action bridge) opened from the plan form's AI assistant banner (create mode only), with suggestion chips, draft-plan cards, a refine→approve flow, and a success banner (`components/plan/ai-chat/`). The chat is **durable** — the DB chat row is the source of truth: on open it resumes the user's most recent unapproved chat (`getActiveAiChatAction` → rehydrate) across modal close, reload, and restart, and auto-resumes a generation interrupted mid-run (`resumeDraftPlanAction`). Approval sets `Chat.planId`, so the next open starts fresh.
 
-**Mobile Mockups** — Board drag-and-drop flow (375x812), settings page, shared `mockup-theme.css` with light/dark toggle.
+**Mobile Mockups** — Board drag-and-drop flow (375x812), settings page, backlog bottom-sheet drawer (`mockup-board-backlog-drawer.html`) + placement-options comparison, shared `mockup-theme.css` with light/dark toggle.
 
 ## Backlog
 
@@ -49,6 +49,12 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 - [x] Refactor the codebase, remove chatbot related code
 
 ## Update Log
+
+### 2026-06-30
+- Implemented the **mobile Backlog drawer** as a bottom sheet (closing the "mobile drawer deferred" gap): a peeking "Backlog" pill (`fixed` above the tab bar, hidden when the backlog is empty) opens a daisyUI `modal-bottom` sheet listing staged tasks; tapping a card's `↑ Todo` button pulls it (`BACKLOG → TODO`) via the existing `updateTaskStatusAction` with an optimistic update (`KanbanBoard.handlePullToTodo`). Tap-to-pull is a deliberate per-platform difference from desktop's drag (a sheet covering the board makes drag-out fiddly; backlog is a one-way source anyway)
+- New components `MobileBacklogSheet` (pill + modal, header/hint/body render-function split) and `BacklogSheetCard` (full-width presentational row, non-draggable); desktop `BacklogDrawer` unchanged. Both entries stay mutually exclusive via `md:` visibility
+- Extracted `isRolloverTask(task, today)` into `utils/taskUtils.ts`, shared by `TaskCard` and `BacklogSheetCard`; added mobile copy to `kanban/constants.ts`; board scroll area gets `max-md:pb-32` so content clears the fixed pill
+- Design: explored three placements (bottom sheet / 4th board row / FAB + full-screen) in `mockup-board-backlog-drawer-options.html`; chose the bottom sheet (covers the dock as a standard modal) and finalized `mockup-board-backlog-drawer.html`
 
 ### 2026-06-29
 - Built the **AI Assisted Plan Creation UI** (backend was already done): a Zustand chat store (`store/aiPlanChatStore`, pure state) + a `hooks/useAiPlanChat` bridge that calls the existing server actions (keeps fetch out of the store), and the `components/ai-chat/` modal — `AiPlanChatModal` (header/body/footer render-function split), `ChatMessage`, `DraftPlanCards` (reuses `SizeChip` + `TaskTypeBadge`), `SuggestionChips`, `ChatInputBar`, `CreateActionBar`, `CreatedBanner`, `LoadingBubble` (shown for both `initializing` and `generating`), shared `Avatars`, and a `constants.ts` for all UI copy
