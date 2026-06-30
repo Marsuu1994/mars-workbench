@@ -2,8 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/common/ThemeProvider";
 import { BreakpointProvider } from "@/components/common/BreakpointProvider";
-import { AppSidebar } from "@/components/common/AppSidebar";
-import { BottomTabBar } from "@/components/common/BottomTabBar";
+import { AppShell } from "@/components/common/AppShell";
 import { createClient } from "@/lib/supabase/server";
 import { getActivePlan } from "@/lib/db/plans";
 import "./globals.css";
@@ -69,11 +68,9 @@ export default async function RootLayout({
       >
         <ThemeProvider>
           <BreakpointProvider>
-            <div className="flex h-screen pt-[env(safe-area-inset-top)]">
-              <AppSidebar user={userInfo} activePlanId={activePlan?.id ?? null} />
-              <main className="flex-1 min-w-0 overflow-auto pb-20 md:pb-0">{children}</main>
-              <BottomTabBar user={userInfo} activePlanId={activePlan?.id ?? null} />
-            </div>
+            <AppShell user={userInfo} activePlanId={activePlan?.id ?? null}>
+              {children}
+            </AppShell>
           </BreakpointProvider>
         </ThemeProvider>
       </body>

@@ -31,6 +31,7 @@ export default function KanbanBoard({
   const [localTasks, setLocalTasks] = useState<TaskItem[]>(tasks);
   const [isAdhocModalOpen, setIsAdhocModalOpen] = useState(false);
   const [adhocInitialStatus, setAdhocInitialStatus] = useState<string>(TaskStatus.TODO);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     setLocalTasks(tasks);
@@ -69,6 +70,7 @@ export default function KanbanBoard({
   const columns = groupAndSortTasks(localTasks, today);
 
   function handleDragEnd(result: DropResult) {
+    setIsDragging(false);
     const { destination, source, draggableId } = result;
 
     if (!destination) return;
@@ -119,7 +121,7 @@ export default function KanbanBoard({
   const closeAdhocModal = () => setIsAdhocModalOpen(false);
 
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
+    <DragDropContext onDragStart={() => setIsDragging(true)} onDragEnd={handleDragEnd}>
       <div className="flex h-full">
         <div className="flex-1 min-w-0 flex flex-col gap-3.5 md:flex-row md:gap-4 overflow-y-auto md:overflow-x-auto md:overflow-y-visible p-4 max-md:pb-32">
           <BoardColumn
@@ -128,6 +130,7 @@ export default function KanbanBoard({
             today={today}
             riskMap={riskMap}
             templateFreqMap={templateFreqMap}
+            isDragActive={isDragging}
             onAddAdhocTask={openAdhocModal}
           />
           <BoardColumn
@@ -136,6 +139,7 @@ export default function KanbanBoard({
             today={today}
             riskMap={riskMap}
             templateFreqMap={templateFreqMap}
+            isDragActive={isDragging}
             onAddAdhocTask={openAdhocModal}
           />
           <BoardColumn
@@ -144,6 +148,7 @@ export default function KanbanBoard({
             today={today}
             riskMap={riskMap}
             templateFreqMap={templateFreqMap}
+            isDragActive={isDragging}
           />
         </div>
         <BacklogDrawer

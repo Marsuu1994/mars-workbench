@@ -4,15 +4,17 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 
 ## Current State
 
-- **Board**: 3-column kanban (Todo / In Progress / Done) with drag-and-drop, optimistic UI, risk badges, rollover indicators
-- **Backlog drawer**: stages template-generated instances (`status = BACKLOG`) and pulls them onto the board (`BACKLOG → TODO`). Desktop is a right-edge panel (drag to pull); mobile is a bottom sheet (`modal-bottom`) opened from a peeking "Backlog" pill above the tab bar (tap `↑ Todo` to pull). Reuses the board's badge/instance/rollover/risk language with a `#n` instance badge (when template `frequency > 1`); excluded from Today totals, included in Week projection.
+- **Board**: 3-column kanban (Todo / In Progress / Done) with drag-and-drop, optimistic UI, risk badges, rollover indicators. Done cards are drop targets but cannot be dragged out; during a drag all droppable columns get a faint dashed outline and the hovered one a solid dashed highlight. Per-column accent colors (Todo=info, In Progress=warning, Done=success) and per-card left borders render correctly (risk cards override the left edge with their color).
+- **Backlog drawer**: stages template-generated instances (`status = BACKLOG`) and pulls them onto the board (`BACKLOG → TODO`). Desktop is a right-edge panel (drag to pull); mobile is a bottom sheet (`modal-bottom`) opened from a peeking "Backlog" pill above the tab bar (tap `↑ Todo` to pull). Reuses the board's badge/instance/rollover/risk language with a `#n` instance badge (when template `frequency > 1`); cards group by template and order by instance index (e.g. leetcode #1, #2, workout #1, #2). Desktop open/collapse cross-fades smoothly while the width animates. Excluded from Today totals, included in Week projection.
 - **Task sizing**: `TaskSize` enum (XS=1, S=2, M=3, L=5, XL=8) with fibonacci points; `SizeChip` display + pill toggle selector
 - **Progress dashboard**: Today ring, stat metrics (points/counts), Week Progress bar using two-query strategy (UI tasks + raw SQL aggregate)
 - **Plan management**: Create/edit plans with inline type/frequency config, Plan Mode toggle (NORMAL/EXTREME), `ReviewChangesModal` for diffs
 - **Ad-hoc tasks**: One-off tasks with plan linking, column-aware initial status, risk levels based on days since creation
 - **Daily sync**: Auto-expire stale tasks, generate today's dailies, 1-day rollover buffer, idempotent via `lastSyncDate`
 - **End-of-period sync**: Auto-detect new week, expire undone tasks, transition plan to `PENDING_UPDATE`
+- **Empty board states**: new-user ("No active plan") vs returning-user ("Plan period ended") recap showing last period's completion %, tasks done, and points earned; both link to plan creation
 - **Workspace sidebar**: Board/Plan nav (Board disabled when no plan, Plan shows "New" badge); Edit Plan button removed from board header
+- **Component gallery**: standalone `/design` dev page rendering the presentational primitives (`SizeChip`, `TaskTypeBadge`, `TaskCard` states, `ProgressDashboard`, AI-chat parts, `EmptyBoard`) with sample data and a scoped light/dark toggle; renders chromeless (no app sidebar)
 - **PWA**: Manifest, service worker, mobile installability, safe-area insets
 - **Architecture**: Server Actions + DAL (3-layer), `prisma.$transaction()` for multi-step mutations, timezone anchored to `America/Los_Angeles`
 
@@ -25,11 +27,11 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 ### High Priority
 - [ ] End-of-period summary before starting a new plan
 - [ ] Move all constants for kanban feature
-- [ ] Add dashed border to droppable columns
 
 ### Medium Priority
 - [ ] Design evidence submit feature when user move task to done
 - [ ] Ad-hoc task deletion and auto-clear logic
+- [ ] Refine the component gallery page (`/design`) — add remaining primitives (BoardColumn, TemplateItem, task-modal pieces), polish grouping/layout, and consider per-variant controls
 
 ### Future
 - [ ] Set up i18n framework and move all user facing literals to using i18n
@@ -45,6 +47,8 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 
 ## Done
 
+- [x] Add dashed border to droppable columns (drag-target highlight)
+- [x] Returning-user empty board ("Plan period ended" recap with last-period stats)
 - [x] Implement the AI assisted plan creation flow — UI (Zustand store + bridge hook + chat modal, wired to the plan form)
 - [x] Refactor the codebase, remove chatbot related code
 
@@ -57,6 +61,7 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 - Design: explored three placements (bottom sheet / 4th board row / FAB + full-screen) in `mockup-board-backlog-drawer-options.html`; chose the bottom sheet (covers the dock as a standard modal) and finalized `mockup-board-backlog-drawer.html`
 
 ### 2026-06-29
+- Added the **returning-user empty board**: when a plan's period has ended (`PENDING_UPDATE`), the board now shows a "Plan period ended" recap with last period's completion %, tasks done, and points earned — distinct from the new-user "No active plan" screen. New `boardService.getEmptyBoardState` + `getEmptyBoardStateAction` resolve new-vs-returning from the pending plan; the stats reuse the existing per-template aggregate via a shared `utils/statsUtils.rollUpOverall` (extracted from `aiChatService` so the board doesn't pull in the LLM module). `EmptyBoard` now takes optional `stats` and renders both variants (copy in a colocated `emptyBoardConstants.ts`); the `/design` gallery shows both
 - Built the **AI Assisted Plan Creation UI** (backend was already done): a Zustand chat store (`store/aiPlanChatStore`, pure state) + a `hooks/useAiPlanChat` bridge that calls the existing server actions (keeps fetch out of the store), and the `components/ai-chat/` modal — `AiPlanChatModal` (header/body/footer render-function split), `ChatMessage`, `DraftPlanCards` (reuses `SizeChip` + `TaskTypeBadge`), `SuggestionChips`, `ChatInputBar`, `CreateActionBar`, `CreatedBanner`, `LoadingBubble` (shown for both `initializing` and `generating`), shared `Avatars`, and a `constants.ts` for all UI copy
 - Entry point: `AiAssistantBanner` rendered in `PlanForm` after the description (create mode only); `new/page.tsx` passes the pending plan id as `aiContextPlanId` to seed the returning-user welcome
 - Added two `AGENTS.md` conventions: split modal header/body/footer into render functions, and extract user-facing literals into a colocated `constants.ts`
@@ -67,6 +72,9 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 - Made the drawer a flush full-height right sidebar — moved the board padding off the page wrapper onto the columns area only
 - Reorganized `components/` into `kanban/` (board), `plan/` (plan page + `ai-chat/`), and `shared/` (`SizeChip`, `TaskTypeBadge`, `task-modal/`); `SettingsContent` stays at root. Backlog-drawer copy now lives in `kanban/constants.ts`
 - Synced design docs: `baseline.md` (added `BACKLOG`; moved Backlog drawer + LLM-assisted plan creation to **Implemented V2**), `flows.md` (new **Backlog Drawer Flow** + edits to Daily Sync / Create & Update Plan / Drag-and-Drop / Progress Tracking), `api.md` (Today totals exclude backlog, `(BACKLOG, TODO, DOING)` status sets, `updateTaskStatusAction` serves the pull)
+- Added a **component gallery** at `/design` (`src/app/design/`): renders the presentational primitives with sample fixtures and a light/dark toggle (scoped via `data-theme` on a wrapper, so it doesn't fight the time-based `ThemeProvider`); `TaskCard` shown across default / at-risk / urgent / rollover / multi-instance / done states inside a minimal drag context
+- Made the app shell conditional: extracted the sidebar/bottom-tab wrapper from the root layout into a client `AppShell` (`components/common/AppShell.tsx`) that hides the chrome on `CHROMELESS_PREFIXES` (`/design`), so the gallery renders standalone; root layout still fetches the user once and passes it through
+- Board UI polish pass (six fixes): Done cards are no longer draggable out of the column (still a valid drop target); during a drag every droppable column shows a faint dashed outline and the hovered one a solid dashed highlight (matches the drop-target mockup); fixed the column header accent colors (Todo/In Progress/Done left borders were being overridden to grey by a responsive base-color class — now left = accent, bottom = base via separate longhand classes); fixed task-card left borders (normal cards were given a transparent 4px left edge, hiding the border — now they keep the base 1px edge and risk cards override with their color); backlog cards now group by template and sort by instance index (leetcode #1, #2, workout #1, #2) instead of interleaving by createdAt; the backlog drawer open/collapse now cross-fades both states while the width animates (same technique as the app sidebar) instead of swapping content instantly
 
 ### 2026-06-27
 - Removed the unreachable standalone AI chat demo (pages, `/api/chats` + `/api/llm` routes, `features/chat/`, old `chats.ts`/`messages.ts` DAL); kept the shared `Chat`/`Message` tables for reuse
