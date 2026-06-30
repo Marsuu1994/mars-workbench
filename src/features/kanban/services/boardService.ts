@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import {
   getActivePlan,
+  getPlanByStatus,
   getPlanWithTemplates,
   updateLastSyncDate,
   updatePlanStatus,
@@ -11,9 +12,12 @@ import {
   createManyTasks,
   getBoardMetricsByPlanId,
   getBoardTasksByPlanId,
+  getPlanTemplateStats,
 } from "@/lib/db/tasks";
 import type { PlanWithTemplates } from "@/lib/db/plans";
 import type { TaskItem } from "@/lib/db/tasks";
+import type { OverallStats } from "../types/aiChat";
+import { rollUpOverall } from "../utils/statsUtils";
 import { PlanMode, TaskType, TaskStatus, PlanStatus } from "@/generated/prisma/client";
 import { getTodayDate, getYesterdayDate, getISOWeekKey, getMondayFromPeriodKey, getSundayFromPeriodKey, isWeekend, countWeekdaysInRange } from "../utils/dateUtils";
 import { sizeToPoints } from "../utils/sizeUtils";
@@ -31,6 +35,27 @@ export type BoardData = {
   weekProjectedPoints: number;
   daysElapsed: number;
 };
+
+/**
+ * The empty-board state when there is no ACTIVE plan: a brand-new user vs. a
+ * returning user whose previous plan's period has ended (PENDING_UPDATE),
+ * whose finished-plan stats drive the celebratory recap.
+ */
+export type EmptyBoardState =
+  | { kind: "new" }
+  | { kind: "returning"; stats: OverallStats };
+
+/**
+ * Resolve the empty-board state for a user with no ACTIVE plan. Must be called
+ * after `fetchBoard` so any end-of-period sync (ACTIVE → PENDING_UPDATE) has run.
+ */
+export async function getEmptyBoardState(userId: string): Promise<EmptyBoardState> {
+  const pendingPlan = await getPlanByStatus(userId, PlanStatus.PENDING_UPDATE);
+  if (!pendingPlan) return { kind: "new" };
+
+  const rows = await getPlanTemplateStats(userId, pendingPlan.id);
+  return { kind: "returning", stats: rollUpOverall(rows) };
+}
 
 /**
  * Run daily sync for a plan: expire stale tasks and generate today's daily tasks.

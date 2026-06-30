@@ -147,9 +147,29 @@ export const DesignGallery = () => {
   );
 
   const renderEmptyState = () => (
-    <Section title="EmptyBoard" description="Full-page empty state shown when no plan is active.">
-      <div className="overflow-hidden rounded-lg border border-base-content/10 [&>div]:!min-h-[420px]">
-        <EmptyBoard />
+    <Section
+      title="EmptyBoard"
+      description="Full-page empty state shown when no plan is active — new user vs. returning user (last period's recap)."
+    >
+      <div className="flex flex-col gap-6">
+        <Variant label="New user">
+          <div className="w-full overflow-hidden rounded-lg border border-base-content/10 [&>div]:!min-h-[420px]">
+            <EmptyBoard />
+          </div>
+        </Variant>
+        <Variant label="Returning user">
+          <div className="w-full overflow-hidden rounded-lg border border-base-content/10 [&>div]:!min-h-[420px]">
+            <EmptyBoard
+              stats={{
+                completionRate: 0.75,
+                completedCount: 12,
+                totalCount: 16,
+                totalPoints: 47,
+                dailyCompletionRate: 0.8,
+              }}
+            />
+          </div>
+        </Variant>
       </div>
     </Section>
   );

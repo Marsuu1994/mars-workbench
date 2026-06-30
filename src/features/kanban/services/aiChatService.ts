@@ -13,7 +13,7 @@ import {
   updateChatMetadata,
 } from "@/lib/db/chats";
 import { createMessage, getMessagesByChatId } from "@/lib/db/messages";
-import { MessageType, PlanMode, PlanStatus, TaskType } from "@/generated/prisma/client";
+import { MessageType, PlanMode, PlanStatus } from "@/generated/prisma/client";
 import { openai, DRAFT_PLAN_MODEL } from "@/lib/llm/openai";
 import { createPlanFromDraft } from "./planService";
 import { draftPlanResponseSchema, type DraftPlanResponse } from "../schemas";
@@ -23,7 +23,6 @@ import type {
   ActiveChatPayload,
   ChatMetadata,
   LastPlanStats,
-  OverallStats,
   PerTemplateStat,
 } from "../types/aiChat";
 import {
@@ -31,38 +30,9 @@ import {
   RETURNING_USER_CHIPS,
   buildWelcomeMessage,
 } from "../utils/aiChatContent";
+import { rollUpOverall } from "../utils/statsUtils";
 
 const AI_CHAT_TITLE = "Plan Assistant";
-
-/**
- * Roll per-template rows up into overall aggregates. Daily completion rate is
- * computed over DAILY templates only (habit signal).
- */
-function rollUpOverall(perTemplate: PerTemplateStat[]): OverallStats {
-  let completedCount = 0;
-  let totalCount = 0;
-  let totalPoints = 0;
-  let dailyCompleted = 0;
-  let dailyTotal = 0;
-
-  for (const t of perTemplate) {
-    completedCount += t.completed;
-    totalCount += t.total;
-    totalPoints += t.pointsEarned;
-    if (t.type === TaskType.DAILY) {
-      dailyCompleted += t.completed;
-      dailyTotal += t.total;
-    }
-  }
-
-  return {
-    completedCount,
-    totalCount,
-    totalPoints,
-    completionRate: totalCount > 0 ? completedCount / totalCount : 0,
-    dailyCompletionRate: dailyTotal > 0 ? dailyCompleted / dailyTotal : 0,
-  };
-}
 
 /**
  * Per-template performance + rolled-up overall for a finished plan. Joins

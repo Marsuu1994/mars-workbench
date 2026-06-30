@@ -12,6 +12,7 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 - **Ad-hoc tasks**: One-off tasks with plan linking, column-aware initial status, risk levels based on days since creation
 - **Daily sync**: Auto-expire stale tasks, generate today's dailies, 1-day rollover buffer, idempotent via `lastSyncDate`
 - **End-of-period sync**: Auto-detect new week, expire undone tasks, transition plan to `PENDING_UPDATE`
+- **Empty board states**: new-user ("No active plan") vs returning-user ("Plan period ended") recap showing last period's completion %, tasks done, and points earned; both link to plan creation
 - **Workspace sidebar**: Board/Plan nav (Board disabled when no plan, Plan shows "New" badge); Edit Plan button removed from board header
 - **Component gallery**: standalone `/design` dev page rendering the presentational primitives (`SizeChip`, `TaskTypeBadge`, `TaskCard` states, `ProgressDashboard`, AI-chat parts, `EmptyBoard`) with sample data and a scoped light/dark toggle; renders chromeless (no app sidebar)
 - **PWA**: Manifest, service worker, mobile installability, safe-area insets
@@ -47,12 +48,14 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 
 ## Done
 
+- [x] Returning-user empty board ("Plan period ended" recap with last-period stats)
 - [x] Implement the AI assisted plan creation flow — UI (Zustand store + bridge hook + chat modal, wired to the plan form)
 - [x] Refactor the codebase, remove chatbot related code
 
 ## Update Log
 
 ### 2026-06-29
+- Added the **returning-user empty board**: when a plan's period has ended (`PENDING_UPDATE`), the board now shows a "Plan period ended" recap with last period's completion %, tasks done, and points earned — distinct from the new-user "No active plan" screen. New `boardService.getEmptyBoardState` + `getEmptyBoardStateAction` resolve new-vs-returning from the pending plan; the stats reuse the existing per-template aggregate via a shared `utils/statsUtils.rollUpOverall` (extracted from `aiChatService` so the board doesn't pull in the LLM module). `EmptyBoard` now takes optional `stats` and renders both variants (copy in a colocated `emptyBoardConstants.ts`); the `/design` gallery shows both
 - Built the **AI Assisted Plan Creation UI** (backend was already done): a Zustand chat store (`store/aiPlanChatStore`, pure state) + a `hooks/useAiPlanChat` bridge that calls the existing server actions (keeps fetch out of the store), and the `components/ai-chat/` modal — `AiPlanChatModal` (header/body/footer render-function split), `ChatMessage`, `DraftPlanCards` (reuses `SizeChip` + `TaskTypeBadge`), `SuggestionChips`, `ChatInputBar`, `CreateActionBar`, `CreatedBanner`, `LoadingBubble` (shown for both `initializing` and `generating`), shared `Avatars`, and a `constants.ts` for all UI copy
 - Entry point: `AiAssistantBanner` rendered in `PlanForm` after the description (create mode only); `new/page.tsx` passes the pending plan id as `aiContextPlanId` to seed the returning-user welcome
 - Added two `AGENTS.md` conventions: split modal header/body/footer into render functions, and extract user-facing literals into a colocated `constants.ts`
