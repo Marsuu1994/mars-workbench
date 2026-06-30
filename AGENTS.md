@@ -147,6 +147,19 @@ Mockups are the source of truth for UI, but implementation may introduce details
   <textarea placeholder={PLACEHOLDER_REFINE} maxLength={MESSAGE_MAX_LENGTH} />
   ```
 
+- User-facing copy in the `kanban` feature is internationalized with `next-intl` — it lives in `src/i18n/en.json`, not a `constants.ts`. Add the string under a namespace and read it via `useTranslations` (Client Components) or `getTranslations` (Server Components / Server Actions / `generateMetadata`). Use ICU for plurals/interpolation, `Enums.*` keys for enum→label display, and `t.rich` when part of a string needs inline markup. The `constants.ts` rule above still applies to non-copy literals (routes, numeric/style constants) and to features not yet migrated; LLM prompt files (`prompt/*.ts`) and internal `throw new Error(...)` messages are never translated. Bad: `export const TITLE = "Create Weekly Plan";` in a `constants.ts`. Good:
+
+  ```json
+  // src/i18n/en.json
+  { "Plan": { "createTitle": "Create Weekly Plan", "taskCount": "{count, plural, one {# task} other {# tasks}}" } }
+  ```
+
+  ```tsx
+  const t = useTranslations("Plan");
+  <h1>{t("createTitle")}</h1>
+  <span>{t("taskCount", { count })}</span>
+  ```
+
 ## Code Style
 
 - Named exports only (except Next.js `page.tsx` and `layout.tsx` defaults).

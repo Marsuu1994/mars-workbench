@@ -52,7 +52,7 @@ export const ChatInputBar = ({ combined }: ChatInputBarProps) => {
           type="button"
           onClick={handleSend}
           disabled={!canSend}
-          aria-label="Send message"
+          aria-label={t("sendMessageAria")}
           className="btn btn-primary btn-square shrink-0"
         >
           <PaperAirplaneIcon className="size-4" />

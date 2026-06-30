@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import {
   ArrowPathIcon,
   BoltIcon,
@@ -64,24 +65,6 @@ interface ReviewChangesModalProps {
   toMode?: PlanMode;
 }
 
-function typeLabel(type: TaskType) {
-  return type === TaskType.DAILY ? "Daily" : "Weekly";
-}
-
-function freqLabel(type: TaskType, frequency: number) {
-  return `${frequency}\u00d7 per ${type === TaskType.DAILY ? "day" : "week"}`;
-}
-
-function modeLabel(m: PlanMode) {
-  return m === PlanMode.NORMAL ? "Normal" : "Extreme";
-}
-
-function modeDescription(m: PlanMode) {
-  return m === PlanMode.NORMAL
-    ? "Daily tasks on weekdays only"
-    : "Daily tasks every day including weekends";
-}
-
 export function ReviewChangesModal({
   isOpen,
   onClose,
@@ -98,6 +81,24 @@ export function ReviewChangesModal({
   toMode,
 }: ReviewChangesModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const tr = useTranslations("Review");
+  const tMode = useTranslations("Enums.PlanMode");
+
+  const typeLabel = (type: TaskType) =>
+    type === TaskType.DAILY ? tr("dailyLabel") : tr("weeklyLabel");
+
+  const freqLabel = (type: TaskType, frequency: number) =>
+    type === TaskType.DAILY
+      ? tr("freqPerDay", { count: frequency })
+      : tr("freqPerWeek", { count: frequency });
+
+  const modeLabel = (m: PlanMode) =>
+    m === PlanMode.NORMAL ? tMode("NORMAL") : tMode("EXTREME");
+
+  const modeDescription = (m: PlanMode) =>
+    m === PlanMode.NORMAL
+      ? tr("normalModeDescription")
+      : tr("extremeModeDescription");
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -116,7 +117,7 @@ export function ReviewChangesModal({
       <div className="modal-box max-w-lg">
         {/* Header */}
         <div className="flex items-center justify-between -mx-6 px-6 pb-4 mb-4 border-b border-base-content/10">
-          <h3 className="text-lg font-semibold">Review Plan Changes</h3>
+          <h3 className="text-lg font-semibold">{tr("title")}</h3>
           <button
             type="button"
             className="btn btn-ghost btn-sm btn-square"
@@ -134,10 +135,10 @@ export function ReviewChangesModal({
               <div className="flex items-center gap-2 mb-2">
                 <PlusIcon className="size-3.5 text-success" />
                 <span className="text-[11px] font-bold uppercase tracking-widest text-success">
-                  Added
+                  {tr("addedHeading")}
                 </span>
                 <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-success/15 text-success">
-                  {added.length} template{added.length !== 1 ? "s" : ""}
+                  {tr("templateCount", { count: added.length })}
                 </span>
               </div>
               <div className="flex flex-col gap-1.5">
@@ -159,7 +160,9 @@ export function ReviewChangesModal({
                         <span>{freqLabel(t.type, t.frequency)}</span>
                       </div>
                       <div className="text-[11px] italic text-success mt-1">
-                        New {typeLabel(t.type).toLowerCase()} tasks will be generated starting today
+                        {tr("addedNote", {
+                          type: typeLabel(t.type).toLowerCase(),
+                        })}
                       </div>
                     </div>
                   </div>
@@ -174,10 +177,10 @@ export function ReviewChangesModal({
               <div className="flex items-center gap-2 mb-2">
                 <MinusIcon className="size-3.5 text-error" />
                 <span className="text-[11px] font-bold uppercase tracking-widest text-error">
-                  Removed
+                  {tr("removedHeading")}
                 </span>
                 <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-error/15 text-error">
-                  {removed.length} template{removed.length !== 1 ? "s" : ""}
+                  {tr("templateCount", { count: removed.length })}
                 </span>
               </div>
               <div className="flex flex-col gap-1.5">
@@ -202,8 +205,8 @@ export function ReviewChangesModal({
                         {(() => {
                           const count = incompleteCounts[t.templateId] ?? 0;
                           return count > 0
-                            ? `${count} Todo / In Progress task${count !== 1 ? "s" : ""} will be deleted from the board`
-                            : "No active tasks on the board";
+                            ? tr("removedNoteWithTasks", { count })
+                            : tr("removedNoteNoTasks");
                         })()}
                       </div>
                     </div>
@@ -219,10 +222,10 @@ export function ReviewChangesModal({
               <div className="flex items-center gap-2 mb-2">
                 <PencilSquareIcon className="size-3.5 text-warning" />
                 <span className="text-[11px] font-bold uppercase tracking-widest text-warning">
-                  Modified
+                  {tr("modifiedHeading")}
                 </span>
                 <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-warning/15 text-warning">
-                  {modified.length} template{modified.length !== 1 ? "s" : ""}
+                  {tr("templateCount", { count: modified.length })}
                 </span>
               </div>
               <div className="flex flex-col gap-1.5">
@@ -248,10 +251,11 @@ export function ReviewChangesModal({
                       <div className="text-[11px] italic text-warning mt-1">
                         {(() => {
                           const count = incompleteCounts[t.templateId] ?? 0;
-                          const prefix = count > 0
-                            ? `Existing Todo / In Progress tasks deleted`
-                            : `No active tasks to remove`;
-                          return `${prefix} \u2014 ${t.toFrequency} new ${typeLabel(t.toType).toLowerCase()} instance${t.toFrequency !== 1 ? "s" : ""} will be generated`;
+                          return tr("modifiedNote", {
+                            hasTasks: count > 0 ? "yes" : "no",
+                            count: t.toFrequency,
+                            type: typeLabel(t.toType).toLowerCase(),
+                          });
                         })()}
                       </div>
                     </div>
@@ -267,10 +271,10 @@ export function ReviewChangesModal({
               <div className="flex items-center gap-2 mb-2">
                 <BoltIcon className="size-3.5 text-warning" />
                 <span className="text-[11px] font-bold uppercase tracking-widest text-warning">
-                  Ad-hoc Tasks
+                  {tr("adhocHeading")}
                 </span>
                 <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-warning/15 text-warning">
-                  {totalAdhocChanges} task{totalAdhocChanges !== 1 ? "s" : ""}
+                  {tr("taskCount", { count: totalAdhocChanges })}
                 </span>
               </div>
 
@@ -278,7 +282,7 @@ export function ReviewChangesModal({
               {addedAdhoc.length > 0 && (
                 <>
                   <div className="text-[11px] font-semibold text-info mb-1 pl-0.5">
-                    Added to board
+                    {tr("addedToBoard")}
                   </div>
                   <div className="flex flex-col gap-1.5 mb-2">
                     {addedAdhoc.map((t) => (
@@ -295,7 +299,7 @@ export function ReviewChangesModal({
                             <SizeChip size={t.size} points={t.points} />
                           </div>
                           <div className="text-[11px] italic text-info mt-1">
-                            Will appear on the board
+                            {tr("adhocAddedNote")}
                           </div>
                         </div>
                       </div>
@@ -308,7 +312,7 @@ export function ReviewChangesModal({
               {removedAdhoc.length > 0 && (
                 <>
                   <div className="text-[11px] font-semibold text-error mb-1 pl-0.5">
-                    Removed from board
+                    {tr("removedFromBoard")}
                   </div>
                   <div className="flex flex-col gap-1.5">
                     {removedAdhoc.map((t) => (
@@ -325,7 +329,7 @@ export function ReviewChangesModal({
                             <SizeChip size={t.size} points={t.points} />
                           </div>
                           <div className="text-[11px] italic text-error mt-1">
-                            Will be moved to unassigned pool
+                            {tr("adhocRemovedNote")}
                           </div>
                         </div>
                       </div>
@@ -341,7 +345,7 @@ export function ReviewChangesModal({
               <div className="flex items-center gap-2 mb-2">
                 <ArrowPathIcon className="size-3.5 text-info" />
                 <span className="text-[11px] font-bold uppercase tracking-widest text-info">
-                  Mode Changed
+                  {tr("modeChangedHeading")}
                 </span>
               </div>
               <div className="flex items-start gap-2.5 px-3 py-2.5 bg-base-300 border border-info/30 rounded-lg">
@@ -357,7 +361,9 @@ export function ReviewChangesModal({
                     </span>
                   </div>
                   <div className="text-[11px] italic text-info mt-1">
-                    {modeDescription(toMode)} — change applies to future daily tasks only
+                    {tr("modeChangedNote", {
+                      description: modeDescription(toMode),
+                    })}
                   </div>
                 </div>
               </div>
@@ -369,8 +375,7 @@ export function ReviewChangesModal({
         <div className="flex gap-2 items-start px-3.5 py-3 rounded-lg bg-base-300 border border-dashed border-base-content/20 mt-4">
           <InformationCircleIcon className="size-3.5 text-base-content/40 shrink-0 mt-0.5" />
           <span className="text-xs text-base-content/50 leading-relaxed">
-            Done and Expired tasks are never affected by any change — your
-            completed work is always preserved.
+            {tr("globalNote")}
           </span>
         </div>
 
@@ -382,7 +387,7 @@ export function ReviewChangesModal({
             onClick={onClose}
             disabled={isSubmitting}
           >
-            Cancel
+            {tr("cancel")}
           </button>
           <button
             type="button"
@@ -395,7 +400,7 @@ export function ReviewChangesModal({
             ) : (
               <ArrowPathIcon className="size-4" />
             )}
-            Confirm &amp; Regenerate
+            {tr("confirmButton")}
           </button>
         </div>
       </div>

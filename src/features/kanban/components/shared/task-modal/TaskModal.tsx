@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { BoltIcon } from "@heroicons/react/24/outline";
 import type { TaskTemplateItem } from "@/lib/db/taskTemplates";
-import { TaskSize, SIZE_LABELS, SIZE_EFFORT, sizeToPoints } from "@/features/kanban/utils/enums";
+import { TaskSize, sizeToPoints } from "@/features/kanban/utils/enums";
 import {
   createTaskTemplateAction,
   updateTaskTemplateAction,
@@ -31,6 +32,9 @@ export default function TaskModal({
   template,
   initialStatus,
 }: TaskModalProps) {
+  const t = useTranslations("TaskModal");
+  const tSize = useTranslations("Enums.TaskSize");
+  const tEffort = useTranslations("Enums.SizeEffort");
   const dialogRef = useRef<HTMLDialogElement>(null);
   const mode: ModalMode = modeProp ?? (template ? "edit" : "create");
 
@@ -123,7 +127,7 @@ export default function TaskModal({
           {isAdhoc && (
             <div className="flex items-center gap-2 bg-warning/10 text-warning text-sm px-3.5 py-2.5 rounded-lg">
               <BoltIcon className="size-4.5 shrink-0" />
-              Ad-hoc tasks are one-off items — they don&apos;t repeat and never expire.
+              {t("adhocBanner")}
             </div>
           )}
 
@@ -131,13 +135,13 @@ export default function TaskModal({
           <div className="form-control">
             <label className="label">
               <span className="label-text text-xs font-medium">
-                Title <span className="text-error">*</span>
+                {t("titleLabel")} <span className="text-error">*</span>
               </span>
             </label>
             <input
               type="text"
               className="input input-bordered w-full"
-              placeholder={isAdhoc ? "e.g. File tax report" : "e.g. Solve 3 LeetCode problems"}
+              placeholder={isAdhoc ? t("titlePlaceholderAdhoc") : t("titlePlaceholderTemplate")}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
@@ -148,9 +152,9 @@ export default function TaskModal({
           <div className="form-control">
             <label className="label">
               <span className="label-text text-xs font-medium">
-                Description{" "}
+                {t("descriptionLabel")}{" "}
                 {!isAdhoc && (
-                  <span className="text-base-content/40">(used by AI for task generation)</span>
+                  <span className="text-base-content/40">{t("descriptionAiHint")}</span>
                 )}
               </span>
             </label>
@@ -159,8 +163,8 @@ export default function TaskModal({
               rows={3}
               placeholder={
                 isAdhoc
-                  ? "Optional details about this task"
-                  : "e.g. Focus on dynamic programming and graph problems"
+                  ? t("descriptionPlaceholderAdhoc")
+                  : t("descriptionPlaceholderTemplate")
               }
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -171,7 +175,7 @@ export default function TaskModal({
           <div className="form-control">
             <label className="label">
               <span className="label-text text-xs font-medium">
-                Size <span className="text-error">*</span>
+                {t("sizeLabel")} <span className="text-error">*</span>
               </span>
             </label>
             <div className="flex gap-1.5 w-full">
@@ -186,16 +190,16 @@ export default function TaskModal({
                       : "bg-base-200 border-base-300 text-base-content/50 hover:border-base-content/30"
                   }`}
                 >
-                  <span>{SIZE_LABELS[s]}</span>
+                  <span>{tSize(s)}</span>
                   <span className={`text-[10px] font-semibold ${size === s ? "opacity-70" : "opacity-50"}`}>
                     {sizeToPoints(s)}
                   </span>
                 </button>
               ))}
             </div>
-            <p className="text-xs text-secondary mt-1.5">{SIZE_EFFORT[size]}</p>
+            <p className="text-xs text-secondary mt-1.5">{tEffort(size)}</p>
             {(size === TaskSize.LARGE || size === TaskSize.EXTRA_LARGE) && (
-              <p className="text-xs text-warning mt-0.5">Consider splitting into smaller tasks</p>
+              <p className="text-xs text-warning mt-0.5">{t("sizeWarning")}</p>
             )}
           </div>
 

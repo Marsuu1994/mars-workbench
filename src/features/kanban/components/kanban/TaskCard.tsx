@@ -1,6 +1,7 @@
 "use client";
 
 import { Draggable } from "@hello-pangea/dnd";
+import { useTranslations } from "next-intl";
 import type { TaskItem } from "@/lib/db/tasks";
 import { TaskStatus } from "../../utils/enums";
 import { SizeChip } from "../shared/SizeChip";
@@ -27,6 +28,7 @@ export default function TaskCard({
   riskLevel,
   frequency,
 }: TaskCardProps) {
+  const t = useTranslations("Board.Card");
   const isDone = task.status === TaskStatus.DONE;
 
   // instanceIndex is 0-based; only meaningful when the template has siblings
@@ -108,10 +110,10 @@ export default function TaskCard({
               )}
 
               {riskLevel === "warning" && !isDone && (
-                <span className="badge badge-warning badge-sm">⚠ at risk</span>
+                <span className="badge badge-warning badge-sm">{t("atRisk")}</span>
               )}
               {riskLevel === "danger" && !isDone && (
-                <span className="badge badge-error badge-sm">‼ urgent</span>
+                <span className="badge badge-error badge-sm">{t("urgent")}</span>
               )}
 
               <SizeChip size={task.size} points={task.points} className="ml-auto" />

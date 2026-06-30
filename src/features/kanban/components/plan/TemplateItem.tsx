@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { CheckIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
 import { TaskType } from "@/features/kanban/utils/enums";
 import type { TaskTemplateItem } from "@/lib/db/taskTemplates";
@@ -28,6 +29,8 @@ export default function TemplateItem({
   onConfigChange,
   onEdit,
 }: TemplateItemProps) {
+  const t = useTranslations("Plan");
+  const tType = useTranslations("Enums.TaskType");
   return (
     <div
       role="button"
@@ -71,7 +74,7 @@ export default function TemplateItem({
         {/* Edit icon */}
         <button
           type="button"
-          title="Edit template (title, description, points)"
+          title={t("editTemplateTitle")}
           className="btn btn-ghost btn-xs btn-square shrink-0 opacity-0 group-hover:opacity-100 transition-opacity mt-0.5"
           onClick={(e) => {
             e.stopPropagation();
@@ -90,7 +93,9 @@ export default function TemplateItem({
           onKeyDown={(e) => e.stopPropagation()}
         >
           {/* Type label */}
-          <span className="text-[11px] text-base-content/50 shrink-0">Type</span>
+          <span className="text-[11px] text-base-content/50 shrink-0">
+            {t("typeLabel")}
+          </span>
 
           {/* Type pills */}
           <div className="flex gap-1">
@@ -103,7 +108,7 @@ export default function TemplateItem({
               }`}
               onClick={() => onConfigChange({ ...config, type: TaskType.DAILY })}
             >
-              DAILY
+              {tType("DAILY")}
             </button>
             <button
               type="button"
@@ -114,7 +119,7 @@ export default function TemplateItem({
               }`}
               onClick={() => onConfigChange({ ...config, type: TaskType.WEEKLY })}
             >
-              WEEKLY
+              {tType("WEEKLY")}
             </button>
           </div>
 
@@ -122,7 +127,9 @@ export default function TemplateItem({
           <div className="w-px h-4 bg-base-content/15 mx-0.5" />
 
           {/* Freq label */}
-          <span className="text-[11px] text-base-content/50 shrink-0">Freq</span>
+          <span className="text-[11px] text-base-content/50 shrink-0">
+            {t("freqLabel")}
+          </span>
 
           {/* Frequency */}
           <div className="flex items-center gap-1.5">
@@ -140,7 +147,9 @@ export default function TemplateItem({
               className="input input-xs w-12 text-center"
             />
             <span className="text-xs text-base-content/50">
-              / {config.type === TaskType.DAILY ? "day" : "week"}
+              {config.type === TaskType.DAILY
+                ? t("perDayUnit")
+                : t("perWeekUnit")}
             </span>
           </div>
         </div>

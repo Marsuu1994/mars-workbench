@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { createTemplateSchema, updateTemplateSchema } from "../schemas";
 import {
   createTaskTemplate,
@@ -26,7 +27,8 @@ export async function updateTaskTemplateAction(id: string, input: unknown) {
   const userId = await getCurrentUserId();
   const result = await updateTaskTemplate(userId, id, parsed.data);
   if (result.count === 0) {
-    return { error: { formErrors: ["Template not found"], fieldErrors: {} } };
+    const t = await getTranslations("Errors");
+    return { error: { formErrors: [t("templateNotFound")], fieldErrors: {} } };
   }
 
   revalidatePath("/kanban");

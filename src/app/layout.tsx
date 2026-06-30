@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { ThemeProvider } from "@/components/common/ThemeProvider";
 import { BreakpointProvider } from "@/components/common/BreakpointProvider";
 import { AppShell } from "@/components/common/AppShell";
@@ -25,23 +26,27 @@ export const viewport: Viewport = {
   themeColor: "#141428",
 };
 
-export const metadata: Metadata = {
-  title: "Mars Workbench",
-  description: "Agile-like personal kanban planner",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "Mars Workbench",
-  },
-  icons: {
-    icon: [
-      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
-    ],
-    apple: "/icons/apple-touch-icon.png",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("Metadata");
+
+  return {
+    title: t("title"),
+    description: t("description"),
+    manifest: "/manifest.json",
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "black-translucent",
+      title: t("title"),
+    },
+    icons: {
+      icon: [
+        { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+        { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+      ],
+      apple: "/icons/apple-touch-icon.png",
+    },
+  };
+}
 
 export default async function RootLayout({
   children,

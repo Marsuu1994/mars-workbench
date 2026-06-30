@@ -1,4 +1,38 @@
 {
+  "Enums": {
+    "TaskType": {
+      "DAILY": "DAILY",
+      "WEEKLY": "WEEKLY",
+      "AD_HOC": "Ad-hoc"
+    },
+    "TaskTypeShort": {
+      "DAILY": "DAILY",
+      "WEEKLY": "WEEKLY"
+    },
+    "TaskStatus": {
+      "TODO": "Todo",
+      "DOING": "In Progress",
+      "DONE": "Done"
+    },
+    "TaskSize": {
+      "EXTRA_SMALL": "XS",
+      "SMALL": "S",
+      "MEDIUM": "M",
+      "LARGE": "L",
+      "EXTRA_LARGE": "XL"
+    },
+    "SizeEffort": {
+      "EXTRA_SMALL": "~1 hour of effort",
+      "SMALL": "~2 hours of effort",
+      "MEDIUM": "~3 hours of effort",
+      "LARGE": "~5 hours of effort",
+      "EXTRA_LARGE": "~8 hours of effort"
+    },
+    "PlanMode": {
+      "NORMAL": "Normal",
+      "EXTREME": "Extreme"
+    }
+  },
   "Board": {
     "Backlog": {
       "title": "Backlog",
@@ -8,7 +42,70 @@
       "closeLabel": "Close backlog",
       "hintTapToTodo": "Tap to pull a task onto the board",
       "pullToTodoLabel": "Todo"
+    },
+    "Header": {
+      "titlePrefix": "Kanban",
+      "titleSuffix": " Planner",
+      "planningMode": "Planning Mode"
+    },
+    "Column": {
+      "addAdhocTask": "Add ad-hoc task"
+    },
+    "Card": {
+      "atRisk": "⚠ at risk",
+      "urgent": "‼ urgent"
+    },
+    "Dashboard": {
+      "today": "Today",
+      "week": "Week",
+      "pts": "pts",
+      "avg": "avg",
+      "todayPoints": "Today Points",
+      "weekPoints": "Week Points",
+      "dailyAvg": "Daily Avg",
+      "weekProgress": "Week Progress",
+      "tasksOfTotal": "{done} of {total} tasks"
+    },
+    "Empty": {
+      "newTitle": "No active plan",
+      "newDesc": "Create a weekly plan to get started. Select templates, configure your schedule, and track your progress.",
+      "newCta": "Create Your First Plan",
+      "returningTitle": "Plan period ended",
+      "returningDesc": "Your weekly plan has wrapped up. Here's how you did:",
+      "returningPrompt": "Ready to start a new week?",
+      "returningCta": "Create New Plan",
+      "statCompleted": "Completed",
+      "statTasksDone": "Tasks done",
+      "statPointsEarned": "Points earned"
     }
+  },
+  "TaskModal": {
+    "header": {
+      "create": "Create Task Template",
+      "edit": "Edit Task Template",
+      "adhoc": "Add Ad-hoc Task"
+    },
+    "submit": {
+      "create": "Create Template",
+      "edit": "Save Changes",
+      "adhoc": "Add to Board"
+    },
+    "cancel": "Cancel",
+    "adhocBanner": "Ad-hoc tasks are one-off items — they don't repeat and never expire.",
+    "titleLabel": "Title",
+    "titlePlaceholderAdhoc": "e.g. File tax report",
+    "titlePlaceholderTemplate": "e.g. Solve 3 LeetCode problems",
+    "descriptionLabel": "Description",
+    "descriptionAiHint": "(used by AI for task generation)",
+    "descriptionPlaceholderAdhoc": "Optional details about this task",
+    "descriptionPlaceholderTemplate": "e.g. Focus on dynamic programming and graph problems",
+    "sizeLabel": "Size",
+    "sizeWarning": "Consider splitting into smaller tasks"
+  },
+  "Settings": {
+    "title": "Settings",
+    "signOut": "Sign Out",
+    "version": "Mars Workbench v0.1.0"
   },
   "AiChat": {
     "modalTitle": "AI Plan Assistant",
@@ -22,6 +119,94 @@
     "createdTitle": "Plan created",
     "viewBoardLabel": "View on Board",
     "bannerPrompt": "Need help planning? Let AI suggest task templates based on your goals and history.",
-    "bannerButton": "Open AI Assistant"
+    "bannerButton": "Open AI Assistant",
+    "templateSummary": "<b>{total}</b> {total, plural, one {template} other {templates}} · <b>{newCount}</b> new, <b>{existing}</b> existing",
+    "createdSummary": "{total, plural, one {# template} other {# templates}} added · {newCount} new, {existing} existing",
+    "previousDraftSummary": "Previous draft ({count, plural, one {# template} other {# templates}})",
+    "createdBadge": "Created",
+    "closeAria": "Close",
+    "closeBackdrop": "close",
+    "sendMessageAria": "Send message",
+    "userAvatarInitial": "U",
+    "welcomeNew": "Hi! I'm your planning assistant. Tell me what you'd like to focus on this period and I'll draft a plan of daily and weekly tasks for you. You can refine it together before adding anything to your board.",
+    "welcomeReturning": "Welcome back! Last period you completed {completed} of {total} tasks ({completionPct}%) and earned {points} points. Your daily habits hit {dailyPct}%. Want to keep this plan, adjust the difficulty, or try something new?",
+    "chipNewInterviews": "I'm preparing for tech interviews",
+    "chipNewFitness": "Help me build a fitness routine",
+    "chipNewSkill": "I want to learn a new skill",
+    "chipReturningKeep": "Keep the same plan",
+    "chipReturningAdjust": "Adjust difficulty",
+    "chipReturningTry": "Try something new"
+  },
+  "Errors": {
+    "taskNotFound": "Task not found",
+    "noActivePlan": "No active plan found",
+    "templateNotFound": "Template not found",
+    "generateFailed": "Couldn't generate a plan, please try again.",
+    "createFailed": "Couldn't create the plan, please try again.",
+    "generic": "Something went wrong, please try again."
+  },
+  "Validation": {
+    "frequencyPositive": "Frequency must be a positive integer",
+    "selectAtLeastOne": "Select at least one template or ad-hoc task",
+    "titleRequired": "Title is required",
+    "descriptionRequired": "Description is required",
+    "atLeastOneField": "At least one field must be provided"
+  },
+  "Metadata": {
+    "title": "Mars Workbench",
+    "description": "Agile-like personal kanban planner"
+  },
+  "Plan": {
+    "createTitle": "Create Weekly Plan",
+    "updateTitle": "Update Weekly Plan",
+    "createSubtitle": "Set up your task templates and start a new week.",
+    "descriptionLabel": "Description (optional)",
+    "descriptionPlaceholder": "e.g. Focus on interview prep this week",
+    "planModeLabel": "Plan Mode",
+    "normalModeShortDesc": "Weekdays only",
+    "extremeModeShortDesc": "Every day incl. weekends",
+    "taskTemplatesLabel": "Task Templates",
+    "newTemplateButton": "+ New Template",
+    "noTemplates": "No templates yet. Create a template to get started.",
+    "adhocTasksLabel": "Ad-hoc Tasks",
+    "taskCount": "{count, plural, one {# task} other {# tasks}}",
+    "summary": "{templateCount, plural, one {# template} other {# templates}} selected",
+    "summaryWithAdhoc": "{templateCount, plural, one {# template} other {# templates}}, {adhocCount, plural, one {# ad-hoc task} other {# ad-hoc tasks}} selected",
+    "cancel": "Cancel",
+    "startWeek": "Start Week",
+    "updatePlan": "Update Plan",
+    "editTemplateTitle": "Edit template (title, description, points)",
+    "typeLabel": "Type",
+    "freqLabel": "Freq",
+    "perDayUnit": "/ day",
+    "perWeekUnit": "/ week"
+  },
+  "Review": {
+    "title": "Review Plan Changes",
+    "dailyLabel": "Daily",
+    "weeklyLabel": "Weekly",
+    "freqPerDay": "{count}× per day",
+    "freqPerWeek": "{count}× per week",
+    "normalModeDescription": "Daily tasks on weekdays only",
+    "extremeModeDescription": "Daily tasks every day including weekends",
+    "addedHeading": "Added",
+    "removedHeading": "Removed",
+    "modifiedHeading": "Modified",
+    "templateCount": "{count, plural, one {# template} other {# templates}}",
+    "taskCount": "{count, plural, one {# task} other {# tasks}}",
+    "addedNote": "New {type} tasks will be generated starting today",
+    "removedNoteWithTasks": "{count, plural, one {# Todo / In Progress task} other {# Todo / In Progress tasks}} will be deleted from the board",
+    "removedNoteNoTasks": "No active tasks on the board",
+    "modifiedNote": "{hasTasks, select, yes {Existing Todo / In Progress tasks deleted} other {No active tasks to remove}} — {count, plural, one {# new {type} instance} other {# new {type} instances}} will be generated",
+    "adhocHeading": "Ad-hoc Tasks",
+    "addedToBoard": "Added to board",
+    "adhocAddedNote": "Will appear on the board",
+    "removedFromBoard": "Removed from board",
+    "adhocRemovedNote": "Will be moved to unassigned pool",
+    "modeChangedHeading": "Mode Changed",
+    "modeChangedNote": "{description} — change applies to future daily tasks only",
+    "globalNote": "Done and Expired tasks are never affected by any change — your completed work is always preserved.",
+    "cancel": "Cancel",
+    "confirmButton": "Confirm & Regenerate"
   }
 }

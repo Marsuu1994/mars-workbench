@@ -1,3 +1,7 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+
 interface ProgressDashboardProps {
   todayDoneCount: number;
   todayTotalCount: number;
@@ -24,6 +28,7 @@ export default function ProgressDashboard({
   weekProjectedPoints,
   daysElapsed,
 }: ProgressDashboardProps) {
+  const t = useTranslations("Board.Dashboard");
   const todayPct = todayTotalCount > 0 ? Math.round((todayDoneCount / todayTotalCount) * 100) : 0;
   const todayOffset = CIRCUMFERENCE * (1 - todayPct / 100);
 
@@ -37,7 +42,7 @@ export default function ProgressDashboard({
       <div className="flex md:hidden flex-col gap-1.5 px-4 py-2 border-b border-base-content/10 bg-base-200/50">
         {/* Today row */}
         <div className="flex items-center gap-2 h-5">
-          <span className="text-[11px] text-base-content/50 font-medium w-9 shrink-0">Today</span>
+          <span className="text-[11px] text-base-content/50 font-medium w-9 shrink-0">{t("today")}</span>
           <span className="text-[11px] font-bold text-base-content/70 w-9 shrink-0">
             {todayDoneCount}/{todayTotalCount}
           </span>
@@ -48,12 +53,12 @@ export default function ProgressDashboard({
             />
           </div>
           <span className="text-[11px] text-base-content/50 shrink-0">
-            <strong className="text-base-content/70 font-bold">{todayDonePoints}</strong> pts
+            <strong className="text-base-content/70 font-bold">{todayDonePoints}</strong> {t("pts")}
           </span>
         </div>
         {/* Week row */}
         <div className="flex items-center gap-2 h-5">
-          <span className="text-[11px] text-base-content/50 font-medium w-9 shrink-0">Week</span>
+          <span className="text-[11px] text-base-content/50 font-medium w-9 shrink-0">{t("week")}</span>
           <span className="text-[11px] font-bold text-base-content/70 w-9 shrink-0">
             {weekDoneCount}/{weekProjectedCount}
           </span>
@@ -64,10 +69,10 @@ export default function ProgressDashboard({
             />
           </div>
           <span className="text-[11px] text-base-content/50 shrink-0">
-            <strong className="text-base-content/70 font-bold">{weekDonePoints}</strong> pts
+            <strong className="text-base-content/70 font-bold">{weekDonePoints}</strong> {t("pts")}
           </span>
           <span className="text-[11px] text-base-content/50 shrink-0">
-            <strong className="text-warning font-bold">{dailyAvg}</strong> avg
+            <strong className="text-warning font-bold">{dailyAvg}</strong> {t("avg")}
           </span>
         </div>
       </div>
@@ -103,9 +108,9 @@ export default function ProgressDashboard({
             </div>
           </div>
           <div className="flex flex-col gap-px">
-            <span className="text-sm font-semibold">Today</span>
+            <span className="text-sm font-semibold">{t("today")}</span>
             <span className="text-xs text-base-content/50">
-              {todayDoneCount} of {todayTotalCount} tasks
+              {t("tasksOfTotal", { done: todayDoneCount, total: todayTotalCount })}
             </span>
           </div>
         </div>
@@ -118,7 +123,7 @@ export default function ProgressDashboard({
           <div className="text-lg font-bold text-success">
             {todayDonePoints} / {todayTotalPoints}
           </div>
-          <div className="text-xs text-base-content/50">Today Points</div>
+          <div className="text-xs text-base-content/50">{t("todayPoints")}</div>
         </div>
 
         {/* Week Points */}
@@ -126,13 +131,13 @@ export default function ProgressDashboard({
           <div className="text-lg font-bold text-info">
             {weekDonePoints} / {weekProjectedPoints}
           </div>
-          <div className="text-xs text-base-content/50">Week Points</div>
+          <div className="text-xs text-base-content/50">{t("weekPoints")}</div>
         </div>
 
         {/* Daily Avg */}
         <div className="flex flex-col gap-px">
           <div className="text-lg font-bold text-warning">{dailyAvg}</div>
-          <div className="text-xs text-base-content/50">Daily Avg</div>
+          <div className="text-xs text-base-content/50">{t("dailyAvg")}</div>
         </div>
 
         {/* Divider */}
@@ -141,7 +146,7 @@ export default function ProgressDashboard({
         {/* Week Progress Bar */}
         <div className="flex-1 flex flex-col gap-1 min-w-0">
           <div className="flex justify-between items-center">
-            <span className="text-sm font-semibold">Week Progress</span>
+            <span className="text-sm font-semibold">{t("weekProgress")}</span>
             <span className="text-xs font-semibold text-info">{weekPct}%</span>
           </div>
           <div className="h-1.5 bg-base-300 rounded-full overflow-hidden">
@@ -151,7 +156,7 @@ export default function ProgressDashboard({
             />
           </div>
           <span className="text-xs text-base-content/50">
-            {weekDoneCount} of {weekProjectedCount} tasks
+            {t("tasksOfTotal", { done: weekDoneCount, total: weekProjectedCount })}
           </span>
         </div>
       </div>

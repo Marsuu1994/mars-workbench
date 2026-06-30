@@ -2,6 +2,7 @@
 
 import { Droppable } from "@hello-pangea/dnd";
 import { PlusIcon } from "@heroicons/react/24/outline";
+import { useTranslations } from "next-intl";
 import { useBreakpoint } from "@/components/common/BreakpointProvider";
 import type { TaskItem } from "@/lib/db/tasks";
 import { TaskStatus } from "../../utils/enums";
@@ -19,10 +20,10 @@ interface BoardColumnProps {
   onAddAdhocTask?: (status: string) => void;
 }
 
-const COLUMN_CONFIG: Record<string, { label: string; accent: string; dotColor: string }> = {
-  [TaskStatus.TODO]: { label: "Todo", accent: "md:border-l-info", dotColor: "bg-info" },
-  [TaskStatus.DOING]: { label: "In Progress", accent: "md:border-l-warning", dotColor: "bg-warning" },
-  [TaskStatus.DONE]: { label: "Done", accent: "md:border-l-success", dotColor: "bg-success" },
+const STATUS_STYLE: Record<string, { accent: string; dotColor: string }> = {
+  [TaskStatus.TODO]: { accent: "md:border-l-info", dotColor: "bg-info" },
+  [TaskStatus.DOING]: { accent: "md:border-l-warning", dotColor: "bg-warning" },
+  [TaskStatus.DONE]: { accent: "md:border-l-success", dotColor: "bg-success" },
 };
 
 export default function BoardColumn({
@@ -35,7 +36,13 @@ export default function BoardColumn({
   onAddAdhocTask,
 }: BoardColumnProps) {
   const { isMobile } = useBreakpoint();
-  const config = COLUMN_CONFIG[status] ?? { label: status, accent: "", dotColor: "bg-base-content" };
+  const tStatus = useTranslations("Enums.TaskStatus");
+  const tColumn = useTranslations("Board.Column");
+  const style = STATUS_STYLE[status] ?? { accent: "", dotColor: "bg-base-content" };
+  const label =
+    status === TaskStatus.TODO || status === TaskStatus.DOING || status === TaskStatus.DONE
+      ? tStatus(status)
+      : status;
 
   // Only one border-color utility is active at a time, so highlights override
   // the base color cleanly (no Tailwind class-ordering ambiguity).
@@ -54,11 +61,11 @@ export default function BoardColumn({
           )}`}
         >
           <div
-            className={`flex items-center justify-between md:justify-start gap-2 px-4 py-1.5 md:py-3 md:border-l-4 md:border-b md:border-b-base-content/10 ${config.accent} md:rounded-tl-xl`}
+            className={`flex items-center justify-between md:justify-start gap-2 px-4 py-1.5 md:py-3 md:border-l-4 md:border-b md:border-b-base-content/10 ${style.accent} md:rounded-tl-xl`}
           >
             <div className="flex items-center gap-2">
-              <span className={`block md:hidden w-1.5 h-1.5 rounded-full ${config.dotColor}`} />
-              <h2 className="font-semibold text-sm">{config.label}</h2>
+              <span className={`block md:hidden w-1.5 h-1.5 rounded-full ${style.dotColor}`} />
+              <h2 className="font-semibold text-sm">{label}</h2>
             </div>
             <span className="badge badge-ghost badge-sm">{tasks.length}</span>
           </div>
@@ -88,7 +95,7 @@ export default function BoardColumn({
                 className="hidden md:flex items-center justify-center gap-1.5 w-full p-3 rounded-lg border-2 border-dashed border-base-content/20 bg-transparent text-base-content/40 text-sm font-medium cursor-pointer transition-colors hover:border-info hover:text-info"
               >
                 <PlusIcon className="size-4" />
-                Add ad-hoc task
+                {tColumn("addAdhocTask")}
               </button>
             )}
           </div>

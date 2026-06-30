@@ -65,7 +65,7 @@ export const AiPlanChatModal = () => {
       <button
         type="button"
         onClick={close}
-        aria-label="Close"
+        aria-label={t("closeAria")}
         className="btn btn-ghost btn-sm btn-square"
       >
         <XMarkIcon className="size-5" />
@@ -112,8 +112,8 @@ export const AiPlanChatModal = () => {
       </div>
 
       <form method="dialog" className="modal-backdrop">
-        <button type="submit" aria-label="Close">
-          close
+        <button type="submit" aria-label={t("closeAria")}>
+          {t("closeBackdrop")}
         </button>
       </form>
     </dialog>
