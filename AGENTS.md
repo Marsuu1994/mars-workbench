@@ -41,7 +41,8 @@ src/
 │   ├── kanban/                    # Kanban pages
 │   │   ├── page.tsx               # Board page
 │   │   └── plans/                 # Plan create/edit pages ([id], new)
-│   ├── layout.tsx                 # Root layout
+│   ├── design/                    # Component gallery (dev) — chromeless /design route
+│   ├── layout.tsx                 # Root layout (providers + AppShell wrapper)
 │   └── globals.css                # Global styles
 ├── generated/prisma/              # Generated Prisma client (gitignored)
 ├── lib/                           # Shared utilities
@@ -57,6 +58,7 @@ src/
 │   └── kanban/                    # Kanban Planner feature (see features/kanban/README.md)
 └── components/
     └── common/
+        ├── AppShell.tsx             # Client shell wrapper; hides chrome on chromeless routes (/design)
         ├── AppSidebar.tsx           # Collapsible app sidebar (nav + sign-out)
         └── ThemeProvider.tsx
 ```

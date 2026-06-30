@@ -13,6 +13,7 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 - **Daily sync**: Auto-expire stale tasks, generate today's dailies, 1-day rollover buffer, idempotent via `lastSyncDate`
 - **End-of-period sync**: Auto-detect new week, expire undone tasks, transition plan to `PENDING_UPDATE`
 - **Workspace sidebar**: Board/Plan nav (Board disabled when no plan, Plan shows "New" badge); Edit Plan button removed from board header
+- **Component gallery**: standalone `/design` dev page rendering the presentational primitives (`SizeChip`, `TaskTypeBadge`, `TaskCard` states, `ProgressDashboard`, AI-chat parts, `EmptyBoard`) with sample data and a scoped light/dark toggle; renders chromeless (no app sidebar)
 - **PWA**: Manifest, service worker, mobile installability, safe-area insets
 - **Architecture**: Server Actions + DAL (3-layer), `prisma.$transaction()` for multi-step mutations, timezone anchored to `America/Los_Angeles`
 
@@ -30,6 +31,7 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 ### Medium Priority
 - [ ] Design evidence submit feature when user move task to done
 - [ ] Ad-hoc task deletion and auto-clear logic
+- [ ] Refine the component gallery page (`/design`) — add remaining primitives (BoardColumn, TemplateItem, task-modal pieces), polish grouping/layout, and consider per-variant controls
 
 ### Future
 - [ ] Set up i18n framework and move all user facing literals to using i18n
@@ -61,6 +63,8 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 - Made the drawer a flush full-height right sidebar — moved the board padding off the page wrapper onto the columns area only
 - Reorganized `components/` into `kanban/` (board), `plan/` (plan page + `ai-chat/`), and `shared/` (`SizeChip`, `TaskTypeBadge`, `task-modal/`); `SettingsContent` stays at root. Backlog-drawer copy now lives in `kanban/constants.ts`
 - Synced design docs: `baseline.md` (added `BACKLOG`; moved Backlog drawer + LLM-assisted plan creation to **Implemented V2**), `flows.md` (new **Backlog Drawer Flow** + edits to Daily Sync / Create & Update Plan / Drag-and-Drop / Progress Tracking), `api.md` (Today totals exclude backlog, `(BACKLOG, TODO, DOING)` status sets, `updateTaskStatusAction` serves the pull)
+- Added a **component gallery** at `/design` (`src/app/design/`): renders the presentational primitives with sample fixtures and a light/dark toggle (scoped via `data-theme` on a wrapper, so it doesn't fight the time-based `ThemeProvider`); `TaskCard` shown across default / at-risk / urgent / rollover / multi-instance / done states inside a minimal drag context
+- Made the app shell conditional: extracted the sidebar/bottom-tab wrapper from the root layout into a client `AppShell` (`components/common/AppShell.tsx`) that hides the chrome on `CHROMELESS_PREFIXES` (`/design`), so the gallery renders standalone; root layout still fetches the user once and passes it through
 
 ### 2026-06-27
 - Removed the unreachable standalone AI chat demo (pages, `/api/chats` + `/api/llm` routes, `features/chat/`, old `chats.ts`/`messages.ts` DAL); kept the shared `Chat`/`Message` tables for reuse
