@@ -134,20 +134,21 @@ Mockups are the source of truth for UI, but implementation may introduce details
   );
   ```
 
-- Extract user-facing literals (copy strings, and meaningful numbers/colors) into a dedicated `constants.ts` colocated with the component (or a feature `constants/` folder), `export` them, and import where used — no inline magic literals. Bad: `placeholder="Refine the plan — or create it below..."` and `maxLength={280}` inline in JSX. Good:
+- Extract fixed, **non-user-facing** literals — routes/hrefs, magic numbers, thresholds, durations, style tokens, config values — into a dedicated `constants.ts` colocated with the component (or a feature `constants/` folder), `export` them, and import where used — no inline magic literals. (User-facing *copy* never lives here — see the i18n rule below.) Bad: `maxLength={280}` and `href="/kanban/plans/new"` inline in JSX. Good:
 
   ```ts
   // ai-chat/constants.ts
-  export const PLACEHOLDER_REFINE = "Refine the plan — or create it below...";
   export const MESSAGE_MAX_LENGTH = 280;
+  export const CREATE_PLAN_HREF = "/kanban/plans/new";
   ```
 
   ```tsx
-  import { PLACEHOLDER_REFINE, MESSAGE_MAX_LENGTH } from "./constants";
-  <textarea placeholder={PLACEHOLDER_REFINE} maxLength={MESSAGE_MAX_LENGTH} />
+  import { MESSAGE_MAX_LENGTH, CREATE_PLAN_HREF } from "./constants";
+  <textarea maxLength={MESSAGE_MAX_LENGTH} />
+  <Link href={CREATE_PLAN_HREF} />
   ```
 
-- User-facing copy in the `kanban` feature is internationalized with `next-intl` — it lives in `src/i18n/en.json`, not a `constants.ts`. Add the string under a namespace and read it via `useTranslations` (Client Components) or `getTranslations` (Server Components / Server Actions / `generateMetadata`). Use ICU for plurals/interpolation, `Enums.*` keys for enum→label display, and `t.rich` when part of a string needs inline markup. The `constants.ts` rule above still applies to non-copy literals (routes, numeric/style constants) and to features not yet migrated; LLM prompt files (`prompt/*.ts`) and internal `throw new Error(...)` messages are never translated. Bad: `export const TITLE = "Create Weekly Plan";` in a `constants.ts`. Good:
+- All **user-facing copy** in the `kanban` feature is internationalized with `next-intl` — it lives in `src/i18n/en.json` and is read via `useTranslations` (Client Components) or `getTranslations` (Server Components / Server Actions / `generateMetadata`). Add each string under a namespace; use ICU for plurals/interpolation, `Enums.*` keys for enum→label display, and `t.rich` when part of a string needs inline markup. Keep decorative glyphs/emoji and presentational symbols in the JSX, not in the message. Never translated: `prompt/*.ts` LLM instructions and internal `throw new Error(...)` messages. Bad: `export const TITLE = "Create Weekly Plan";` (copy in a `constants.ts`). Good:
 
   ```json
   // src/i18n/en.json
