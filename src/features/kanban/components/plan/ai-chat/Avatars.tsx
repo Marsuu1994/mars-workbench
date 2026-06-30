@@ -1,4 +1,3 @@
-import { useTranslations } from "next-intl";
 import { SparklesIcon } from "@heroicons/react/24/outline";
 
 /** Assistant (bot) avatar. */
@@ -8,12 +7,9 @@ export const BotAvatar = () => (
   </span>
 );
 
-/** User avatar. */
-export const UserAvatar = () => {
-  const t = useTranslations("AiChat");
-  return (
-    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-info/10 text-[11px] font-semibold text-info">
-      {t("userAvatarInitial")}
-    </span>
-  );
-};
+/** User avatar — a fixed monogram, not user-facing copy. */
+export const UserAvatar = () => (
+  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-info/10 text-[11px] font-semibold text-info">
+    U
+  </span>
+);

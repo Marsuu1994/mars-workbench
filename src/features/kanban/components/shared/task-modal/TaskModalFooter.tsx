@@ -12,11 +12,11 @@ interface TaskModalFooterProps {
 
 const BUTTON_CONFIG: Record<
   TaskModalFooterProps["mode"],
-  { icon: typeof PlusIcon }
+  { icon: typeof PlusIcon; labelKey: "submit.create" | "submit.edit" | "submit.adhoc" }
 > = {
-  create: { icon: PlusIcon },
-  edit: { icon: CheckIcon },
-  adhoc: { icon: PlusIcon },
+  create: { icon: PlusIcon, labelKey: "submit.create" },
+  edit: { icon: CheckIcon, labelKey: "submit.edit" },
+  adhoc: { icon: PlusIcon, labelKey: "submit.adhoc" },
 };
 
 export default function TaskModalFooter({
@@ -47,7 +47,7 @@ export default function TaskModalFooter({
           ) : (
             <Icon className="size-4" />
           )}
-          {t(`submit.${mode}`)}
+          {t(config.labelKey)}
         </button>
       </div>
     </>

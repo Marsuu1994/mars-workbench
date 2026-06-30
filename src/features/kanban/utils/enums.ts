@@ -51,7 +51,8 @@ export const SIZE_TO_POINTS: Record<TaskSize, number> = {
 export const sizeToPoints = (size: TaskSize): number => SIZE_TO_POINTS[size];
 
 // Size display labels (XS/S/M/L/XL) and effort copy now live in i18n
-// (`Enums.TaskSize`, `Enums.SizeEffort`) — render them via useTranslations.
+// (`Enums.TaskSize`, and `Enums.sizeEffort` with the points value passed as
+// `hours`) — render them via useTranslations.
 
 export const MessageRole = {
   USER: "user",

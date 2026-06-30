@@ -30,6 +30,7 @@ export default function BacklogSheetCard({
   onPull,
 }: BacklogSheetCardProps) {
   const t = useTranslations("Board.Backlog");
+  const tCard = useTranslations("Board.Card");
   const showInstance = frequency > 1;
   const isRollover = isRolloverTask(task, today);
 
@@ -57,10 +58,10 @@ export default function BacklogSheetCard({
               </span>
             )}
             {riskLevel === "warning" && (
-              <span className="badge badge-warning badge-sm">⚠ at risk</span>
+              <span className="badge badge-warning badge-sm">⚠ {tCard("atRisk")}</span>
             )}
             {riskLevel === "danger" && (
-              <span className="badge badge-error badge-sm">‼ urgent</span>
+              <span className="badge badge-error badge-sm">‼ {tCard("urgent")}</span>
             )}
           </div>
 

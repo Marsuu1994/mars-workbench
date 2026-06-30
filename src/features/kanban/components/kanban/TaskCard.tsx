@@ -110,10 +110,10 @@ export default function TaskCard({
               )}
 
               {riskLevel === "warning" && !isDone && (
-                <span className="badge badge-warning badge-sm">{t("atRisk")}</span>
+                <span className="badge badge-warning badge-sm">⚠ {t("atRisk")}</span>
               )}
               {riskLevel === "danger" && !isDone && (
-                <span className="badge badge-error badge-sm">{t("urgent")}</span>
+                <span className="badge badge-error badge-sm">‼ {t("urgent")}</span>
               )}
 
               <SizeChip size={task.size} points={task.points} className="ml-auto" />

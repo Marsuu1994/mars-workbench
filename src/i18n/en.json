@@ -21,13 +21,7 @@
       "LARGE": "L",
       "EXTRA_LARGE": "XL"
     },
-    "SizeEffort": {
-      "EXTRA_SMALL": "~1 hour of effort",
-      "SMALL": "~2 hours of effort",
-      "MEDIUM": "~3 hours of effort",
-      "LARGE": "~5 hours of effort",
-      "EXTRA_LARGE": "~8 hours of effort"
-    },
+    "sizeEffort": "~{hours, plural, one {# hour} other {# hours}} of effort",
     "PlanMode": {
       "NORMAL": "Normal",
       "EXTREME": "Extreme"
@@ -52,8 +46,8 @@
       "addAdhocTask": "Add ad-hoc task"
     },
     "Card": {
-      "atRisk": "⚠ at risk",
-      "urgent": "‼ urgent"
+      "atRisk": "at risk",
+      "urgent": "urgent"
     },
     "Dashboard": {
       "today": "Today",
@@ -127,7 +121,6 @@
     "closeAria": "Close",
     "closeBackdrop": "close",
     "sendMessageAria": "Send message",
-    "userAvatarInitial": "U",
     "welcomeNew": "Hi! I'm your planning assistant. Tell me what you'd like to focus on this period and I'll draft a plan of daily and weekly tasks for you. You can refine it together before adding anything to your board.",
     "welcomeReturning": "Welcome back! Last period you completed {completed} of {total} tasks ({completionPct}%) and earned {points} points. Your daily habits hit {dailyPct}%. Want to keep this plan, adjust the difficulty, or try something new?",
     "chipNewInterviews": "I'm preparing for tech interviews",

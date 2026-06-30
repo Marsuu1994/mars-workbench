@@ -34,7 +34,7 @@ export default function TaskModal({
 }: TaskModalProps) {
   const t = useTranslations("TaskModal");
   const tSize = useTranslations("Enums.TaskSize");
-  const tEffort = useTranslations("Enums.SizeEffort");
+  const tEnums = useTranslations("Enums");
   const dialogRef = useRef<HTMLDialogElement>(null);
   const mode: ModalMode = modeProp ?? (template ? "edit" : "create");
 
@@ -197,7 +197,9 @@ export default function TaskModal({
                 </button>
               ))}
             </div>
-            <p className="text-xs text-secondary mt-1.5">{tEffort(size)}</p>
+            <p className="text-xs text-secondary mt-1.5">
+              {tEnums("sizeEffort", { hours: sizeToPoints(size) })}
+            </p>
             {(size === TaskSize.LARGE || size === TaskSize.EXTRA_LARGE) && (
               <p className="text-xs text-warning mt-0.5">{t("sizeWarning")}</p>
             )}
