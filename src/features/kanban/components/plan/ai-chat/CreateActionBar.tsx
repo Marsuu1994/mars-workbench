@@ -23,7 +23,12 @@ export const CreateActionBar = ({ onApprove }: CreateActionBarProps) => {
   return (
     <div className="flex flex-shrink-0 items-center justify-between border-t border-dashed border-base-content/15 bg-base-200 px-5 py-3.5">
       <div className="text-[13px] text-base-content/60">
-        {t("templateSummary", { total, newCount, existing })}
+        {t.rich("templateSummary", {
+          total,
+          newCount,
+          existing,
+          b: (chunks) => <span className="font-semibold text-info">{chunks}</span>,
+        })}
       </div>
       <button
         type="button"
