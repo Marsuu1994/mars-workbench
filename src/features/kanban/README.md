@@ -5,14 +5,13 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 ## Current State
 
 - **Board**: 3-column kanban (Todo / In Progress / Done) with drag-and-drop, optimistic UI, risk badges, rollover indicators. Done cards are drop targets but cannot be dragged out; during a drag all droppable columns get a faint dashed outline and the hovered one a solid dashed highlight. Per-column accent colors (Todo=info, In Progress=warning, Done=success) and per-card left borders render correctly (risk cards override the left edge with their color).
-- **Backlog drawer**: stages template-generated instances (`status = BACKLOG`) and pulls them onto the board (`BACKLOG → TODO`). Desktop is a right-edge panel (drag to pull); mobile is a bottom sheet (`modal-bottom`) opened from a peeking "Backlog" pill above the tab bar (tap `↑ Todo` to pull). Reuses the board's badge/instance/rollover/risk language with a `#n` instance badge (when template `frequency > 1`); cards group by template and order by instance index (e.g. leetcode #1, #2, workout #1, #2). Desktop open/collapse cross-fades smoothly while the width animates. Excluded from Today totals, included in Week projection.
+- **Backlog drawer ("Queued")**: stages template-generated instances (`status = BACKLOG`) and pulls them onto the board (`BACKLOG → TODO`). Desktop is a right-edge panel (drag to pull); mobile is a bottom sheet (`modal-bottom`) opened from a peeking "Queued" pill above the tab bar (tap `↑ Todo` to pull). Reuses the board's badge/instance/rollover/risk language with a `#n` instance badge (when template `frequency > 1`); cards group by template and order by instance index (e.g. leetcode #1, #2, workout #1, #2). Desktop open/collapse cross-fades smoothly while the width animates. Excluded from Today totals, included in Week projection.
 - **Task sizing**: `TaskSize` enum (XS=1, S=2, M=3, L=5, XL=8) with fibonacci points; `SizeChip` display + pill toggle selector
 - **Progress dashboard**: Today ring, stat metrics (points/counts), Week Progress bar using two-query strategy (UI tasks + raw SQL aggregate)
 - **Plan management**: Create/edit plans with inline type/frequency config, Plan Mode toggle (NORMAL/EXTREME), `ReviewChangesModal` for diffs
 - **Priority matrix (Priorities page)**: full-page 2×2 Eisenhower matrix at `/kanban/priorities` (sidebar item + mobile dock tab) organizing all non-DONE AD_HOC tasks by `quadrant`. Drag between quadrants to reprioritize (tracked cards too — only `quadrant` changes); hover send `→` → popover (desktop) or tap card → bottom sheet (mobile) to "Track This Week" into Todo/In Progress (`BACKLOG → TODO/DOING` + plan link, one write); quadrant "Add" buttons open the task modal to create unassigned matrix tasks (`planId = null`, `BACKLOG`). Tracked cards render dimmed with a "This Week" tag (★ on mobile). No active plan (incl. the stale-ACTIVE-plan window after ISO week rollover, guarded server-side) → warn hint bar + disabled send/sheet buttons
-- **Ad-hoc tasks**: One-off tasks living on the priority matrix; every AD_HOC task carries an Eisenhower `quadrant` (`PriorityQuadrant` enum, backfilled to `SCHEDULE`). Created from the matrix only (board-side creation removed); reach the board via Track This Week; deselecting from a plan returns tasks to the matrix pool (`planId = null` + `status = BACKLOG`) while DONE tasks stay on their plan to preserve point history. Risk levels based on days since creation (board cards only; matrix risk treatment is an open design item)
-- **Daily sync**: Auto-expire stale tasks, generate today's dailies, 1-day rollover buffer, idempotent via `lastSyncDate`
-- **End-of-period sync**: Auto-detect new week, expire undone tasks, transition plan to `PENDING_UPDATE`
+- **Ad-hoc tasks**: One-off tasks living on the priority matrix; every AD_HOC task carries an Eisenhower `quadrant` (`PriorityQuadrant` enum, backfilled to `SCHEDULE`). Board cards show them with a blue "Todo" type badge. Created from the matrix only (board-side creation removed); reach the board via Track This Week; deselecting from a plan returns tasks to the matrix pool (`planId = null` + `status = BACKLOG`) while DONE tasks stay on their plan to preserve point history. Risk levels based on days since creation (board cards only; matrix risk treatment is an open design item)
+- **Sync lifecycle (`syncService.ensureSynced`)**: single entry point awaited by every kanban page (board / priorities / plan create / plan edit) before reading plan state — daily sync (auto-expire stale tasks, generate today's dailies, 1-day rollover buffer, idempotent via `lastSyncDate`) plus end-of-period sync (auto-detect new week, expire undone tasks, transition plan to `PENDING_UPDATE`). React `cache()`-deduped per request; page-visit order never matters
 - **Empty board states**: new-user ("No active plan") vs returning-user ("Plan period ended") recap showing last period's completion %, tasks done, and points earned; both link to plan creation
 - **Workspace sidebar**: Board/Plan nav (Board disabled when no plan, Plan shows "New" badge); Edit Plan button removed from board header
 - **Component gallery**: standalone `/design` dev page rendering the presentational primitives (`SizeChip`, `TaskTypeBadge`, `TaskCard` states, `ProgressDashboard`, AI-chat parts, `EmptyBoard`) with sample data and a scoped light/dark toggle; renders chromeless (no app sidebar)
@@ -26,7 +25,7 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 ## Backlog
 
 ### High Priority
-- [ ] Priority matrix follow-ups (PR 3): "Ad-hoc"→"Todo" badge + "Queued" drawer renames, `Review.adhocRemovedNote` copy, mockup back-ports (board/task-modal/backlog/review mockups + priorities deviations: TableCellsIcon nav icon, 4-tab dock, no drag rotate, default drag placeholder, no quadrant dim while dragging — dnd clone stacking-context conflict, drop-hint overlays instead of pushing cards, board-matching track dot colors, mobile no-plan sheet state), optional /design gallery entries. Known minor: track popover on a bottom card of a scrollable quadrant needs scrolling into view (absolute positioning inside the scroll container)
+- [x] Priority matrix follow-ups (PR 3): renames, sync consolidation, mockup back-ports, gallery entries
 - [x] End-of-period summary before starting a new plan
 
 ### Medium Priority
@@ -36,6 +35,8 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 - [ ] Refine the component gallery page (`/design`) — add remaining primitives (BoardColumn, TemplateItem, task-modal pieces), polish grouping/layout, and consider per-variant controls
 
 ### Future
+- [ ] Cron-driven sync: move daily / end-of-period sync to a scheduled job (Vercel Cron just after midnight `KANBAN_TZ`); pages keep the idempotent `ensureSynced` fallback. `runDailySync` / `runEndOfPeriodSync` are already standalone
+- [ ] Track popover on a bottom card of a scrollable quadrant needs scrolling into view (absolute positioning inside the scroll container) — revisit with a portal/fixed positioning approach
 - [ ] Set up i18n framework and move all user facing literals to using i18n
 - [ ] Inline editing of AI draft plan cards before approval (tweak frequency/size/selection without re-prompting)
 - [ ] Research timezone handling for traveling users
@@ -48,6 +49,7 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 
 ## Done
 
+- [x] Priority matrix follow-ups: "Todo"/"Queued" renames, `ensureSynced` sync consolidation, mockup back-ports, gallery entries
 - [x] Implement priority matrix page
 - [x] Add dashed border to droppable columns (drag-target highlight)
 - [x] Returning-user empty board ("Plan period ended" recap with last-period stats)
@@ -66,7 +68,13 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 - Navigation: "Priorities" added to `AppSidebar` (Board → Priorities → Plan, `TableCellsIcon` as the closest Heroicon to the mockup glyph) and `BottomTabBar` (4 tabs, Settings kept); `/kanban/priorities` added to `AppShell.SELF_SCROLLING_ROUTES` (dnd single-scroll-parent)
 - **Deprecated board-side ad-hoc creation**: removed the column "Add ad-hoc task" button (`BoardColumn`), the board's `TaskModal` wiring (`KanbanBoard`), and the `Board.Column.addAdhocTask` key; plan create/edit pages now preload only the relevant plan's ad-hoc tasks (unassigned ones are tracked from the matrix instead)
 - i18n: new `Priorities` namespace + `Enums.PriorityQuadrant`; `TaskModal` adhoc copy → "Add Priority Task" / "Add to matrix"; board/plan/AI-approve mutations now also revalidate `/kanban/priorities`
-- Docs synced: `api.md` (Priority Matrix section, createAdhocTaskAction rewrite, new DAL entries), `flows.md` (removed the deprecated Ad-hoc Task Creation Flow, renumbered Create Plan steps, stale-plan-guard + mobile no-plan rules), `baseline.md` (Priorities → Implemented V2; renames stay in Planned: Future). Renames ("Todo" badge / "Queued" drawer) + mockup back-ports land in PR 3
+- Docs synced: `api.md` (Priority Matrix section, createAdhocTaskAction rewrite, new DAL entries), `flows.md` (removed the deprecated Ad-hoc Task Creation Flow, renumbered Create Plan steps, stale-plan-guard + mobile no-plan rules), `baseline.md` (Priorities → Implemented V2)
+- Wrapped up the feature (PR 3 of 3):
+  - **Sync consolidation**: new `syncService.ensureSynced(userId)` — the single sync entry point (end-of-period + daily, React `cache()`-deduped, idempotent) awaited by board, matrix, and both plan pages before reading plan state; `runDailySync`/`runEndOfPeriodSync` moved from `boardService` to `syncService` (still standalone for a future cron — added to Backlog). Plan pages landing right after week rollover now see the pending plan correctly without visiting the board first
+  - **Renames**: AD_HOC type badge displays as **"Todo"** in blue (`Enums.TaskType.AD_HOC` + `TaskTypeBadge` primary tokens); backlog drawer → **"Queued"** (`Board.Backlog.title/openLabel/closeLabel`); `Review.adhocRemovedNote` → "Will return to the Priorities matrix"
+  - **Bug fix**: mobile matrix cards rendered two size chips — `SizeChip` hardcodes its own `display` class, so passing `hidden`/`md:*` via className was a stylesheet-order coin flip; visibility now lives on wrapper spans
+  - **Mockup back-ports** (source-of-truth sync): `mockup-priorities.html` (no drag rotate, no quadrant dim — dnd stacking-context conflict, drop-hint as non-layout overlay, blank ghost placeholder, TableCells-style nav icon, 4-tab dock with Settings, mobile no-plan sheet note); `mockup-board.html` + `mockup-board-backlog-drawer.html` (add-ad-hoc buttons removed, "Todo" badges, "Queued" labels); `mockup-task-modal.html` ("Add Priority Task" / "Add to matrix" / banner copy); `mockup-review-changes.html` (removed-note copy); `mockup-plan-form.html` (unassigned-pool cards removed); `mockup-mobile/mockup-board.html` ("Todo" badges); shared `styles.css` (`.badge-adhoc` → `.badge-todo`, blue)
+  - **/design gallery**: `MatrixTaskCard` section (default + tracked states)
 
 ### 2026-06-30
 - Started **i18n standardization** for the kanban feature with `next-intl` in single-locale "App Router without i18n routing" mode — no `[locale]` URL segment and no middleware, so the Supabase auth `src/proxy.ts` is untouched. Wired the `createNextIntlPlugin()` wrapper (`next.config.ts`), per-request config (`src/i18n/request.ts`, locale fixed to `en`), `<NextIntlClientProvider>` in the root layout, and compile-time type-safe keys via `src/global.d.ts` augmenting `messages/en.json`

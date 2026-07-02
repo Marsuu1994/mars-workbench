@@ -7,6 +7,7 @@ import { SunIcon, MoonIcon } from "@heroicons/react/24/outline";
 import { SizeChip } from "@/features/kanban/components/shared/SizeChip";
 import TaskTypeBadge from "@/features/kanban/components/shared/TaskTypeBadge";
 import TaskCard from "@/features/kanban/components/kanban/TaskCard";
+import MatrixTaskCard from "@/features/kanban/components/priorities/MatrixTaskCard";
 import ProgressDashboard from "@/features/kanban/components/kanban/ProgressDashboard";
 import EmptyBoard from "@/features/kanban/components/kanban/EmptyBoard";
 import { BotAvatar, UserAvatar } from "@/features/kanban/components/plan/ai-chat/Avatars";
@@ -25,6 +26,7 @@ import {
   SUGGESTION_CHIPS,
   LOADING_LABEL,
   TASK_CARD_FIXTURES,
+  MATRIX_CARD_FIXTURES,
   PROGRESS_FIXTURE,
 } from "./constants";
 
@@ -111,6 +113,43 @@ export const DesignGallery = () => {
     </Section>
   );
 
+  const renderMatrixCards = () => (
+    <Section
+      title="MatrixTaskCard"
+      description="Priorities-page card — hover reveals the track send button; tracked cards dim with a This Week tag (★ on mobile)."
+    >
+      <DragDropContext onDragEnd={() => undefined}>
+        <Droppable droppableId="gallery-matrix-cards">
+          {(provided) => (
+            <div
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+              className="flex flex-wrap items-start gap-6"
+            >
+              {MATRIX_CARD_FIXTURES.map((fixture, index) => (
+                <Variant key={fixture.task.id} label={fixture.label}>
+                  <div className="w-64">
+                    <MatrixTaskCard
+                      task={fixture.task}
+                      index={index}
+                      isTracked={fixture.isTracked}
+                      hasActivePlan
+                      isPopoverOpen={false}
+                      onSendToggle={() => undefined}
+                      onTrack={() => undefined}
+                      onTap={() => undefined}
+                    />
+                  </div>
+                </Variant>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
+    </Section>
+  );
+
   const renderProgress = () => (
     <Section
       title="ProgressDashboard"
@@ -181,6 +220,7 @@ export const DesignGallery = () => {
         {renderSizeChips()}
         {renderTypeBadges()}
         {renderTaskCards()}
+        {renderMatrixCards()}
         {renderProgress()}
         {renderChatPrimitives()}
         {renderEmptyState()}

@@ -128,8 +128,15 @@ export default function MatrixTaskCard({
             renderTrackedTag()
           ) : (
             <>
-              <SizeChip size={task.size} points={task.points} className="hidden md:inline-flex" />
-              <SizeChip size={task.size} points={task.points} labelOnly className="md:hidden" />
+              {/* Visibility lives on wrappers — SizeChip's own classes set
+                  display, so passing hidden/md:* into it is a CSS-order coin
+                  flip (this exact conflict shipped a double-chip bug). */}
+              <span className="hidden md:inline-flex">
+                <SizeChip size={task.size} points={task.points} />
+              </span>
+              <span className="inline-flex md:hidden">
+                <SizeChip size={task.size} points={task.points} labelOnly />
+              </span>
               {renderSendButton()}
             </>
           )}

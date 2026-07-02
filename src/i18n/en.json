@@ -3,7 +3,7 @@
     "TaskType": {
       "DAILY": "DAILY",
       "WEEKLY": "WEEKLY",
-      "AD_HOC": "Ad-hoc"
+      "AD_HOC": "Todo"
     },
     "TaskTypeShort": {
       "DAILY": "DAILY",
@@ -35,11 +35,11 @@
   },
   "Board": {
     "Backlog": {
-      "title": "Backlog",
+      "title": "Queued",
       "hintDragToTodo": "Drag tasks left to Todo to start working",
       "emptyState": "You're all caught up — no staged tasks.",
-      "openLabel": "Open backlog",
-      "closeLabel": "Close backlog",
+      "openLabel": "Open queued tasks",
+      "closeLabel": "Close queued tasks",
       "hintTapToTodo": "Tap to pull a task onto the board",
       "pullToTodoLabel": "Todo"
     },
@@ -229,7 +229,7 @@
     "addedToBoard": "Added to board",
     "adhocAddedNote": "Will appear on the board",
     "removedFromBoard": "Removed from board",
-    "adhocRemovedNote": "Will be moved to unassigned pool",
+    "adhocRemovedNote": "Will return to the Priorities matrix",
     "modeChangedHeading": "Mode Changed",
     "modeChangedNote": "{description} — change applies to future daily tasks only",
     "globalNote": "Done and Expired tasks are never affected by any change — your completed work is always preserved.",

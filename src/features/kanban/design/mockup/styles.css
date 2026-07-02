@@ -162,7 +162,7 @@ body {
 }
 .badge-daily { background: var(--m-teal-bg); color: var(--m-teal); }
 .badge-weekly { background: var(--m-pink-bg); color: var(--m-pink); }
-.badge-adhoc { background: var(--m-olive-bg); color: var(--m-olive); }
+.badge-todo { background: var(--m-blue-a10); color: var(--m-blue); } /* AD_HOC tasks display as "Todo" (blue) per the priority-matrix design */
 .task-points { font-size: 11px; font-weight: 700; color: var(--m-orange); margin-left: auto; display: flex; align-items: center; gap: 3px; }
 .task-points svg { width: 12px; height: 12px; }
 

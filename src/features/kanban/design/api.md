@@ -14,7 +14,9 @@
 
 ### `fetchBoard(): BoardData | null`
 
-Called directly from the `/kanban` Server Component. Orchestrates sync checks and returns board data with pre-computed metrics.
+Called directly from the `/kanban` Server Component. Returns board data with pre-computed metrics.
+
+**Sync lifecycle** is centralized in `syncService.ensureSynced(userId)` — every kanban page (board, priorities matrix, plan create/edit) awaits it before reading plan state, so no page carries its own sync branching and page-visit order never matters. It flips an ended ACTIVE plan to PENDING_UPDATE (`runEndOfPeriodSync`), runs the daily sync at most once per day (`runDailySync`, `lastSyncDate` short-circuit), and returns the current-week ACTIVE plan or null. Idempotent; wrapped in React `cache()` for per-request dedupe. `runDailySync` / `runEndOfPeriodSync` stay standalone for a future cron job.
 
 ```
 BoardData {
@@ -302,11 +304,11 @@ MatrixData {
 }
 
 Steps:
-1. Promise.all([getNonDoneAdhocTasks(userId), getActivePlan(userId)])
-2. Stale-plan guard: an ACTIVE plan whose periodKey != current ISO week counts
-   as null — the End of Period Sync only runs on the board's fetchBoard, so a
-   user landing here first after the week rolls over must not see (or track
-   into) last week's plan. Read-only; no sync side effects here.
+1. Promise.all([getNonDoneAdhocTasks(userId), ensureSynced(userId)])
+2. ensureSynced flips an ended ACTIVE plan to PENDING_UPDATE (same lifecycle
+   as the board), so a user landing here first after the week rolls over
+   neither sees nor tracks into last week's plan — and the no-plan hint's
+   "Create Plan" CTA works.
 3. Counts (total / tracking this week) are derived client-side from local
    state so the optimistic track flow keeps them in sync.
 ```
@@ -339,8 +341,8 @@ Input {
 
 Steps (service: matrixService.trackTaskThisWeek):
 1. Validate input with Zod
-2. Resolve the current-week ACTIVE plan (same stale-plan guard as the fetch) —
-   none → Errors.noActivePlan
+2. Resolve the current-week ACTIVE plan via ensureSynced — none →
+   Errors.noActivePlan
 3. trackAdhocTask(userId, taskId, plan.id, status) — single UPDATE setting
    planId + status together; WHERE requires { type: AD_HOC, planId: null,
    status: BACKLOG } so already-tracked/non-matrix tasks → Errors.taskNotFound

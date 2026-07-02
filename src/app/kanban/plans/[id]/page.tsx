@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getPlanWithTemplates } from "@/lib/db/plans";
 import { getTaskTemplates } from "@/lib/db/taskTemplates";
 import { getNonDoneAdhocTasks } from "@/lib/db/tasks";
+import { ensureSynced } from "@/features/kanban/services/syncService";
 import PlanForm from "@/features/kanban/components/plan/PlanForm";
 import { getCurrentUserId } from "@/lib/auth/getCurrentUserId";
 
@@ -12,6 +13,8 @@ export default async function EditPlanPage({
 }) {
   const { id } = await params;
   const userId = await getCurrentUserId();
+  // Keep the plan lifecycle current before reading (see syncService)
+  await ensureSynced(userId);
 
   const [plan, templates, allAdhocTasks] = await Promise.all([
     getPlanWithTemplates(userId, id),

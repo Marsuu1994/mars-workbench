@@ -3,10 +3,8 @@ import {
   trackAdhocTask,
   type TaskItem,
 } from "@/lib/db/tasks";
-import { getActivePlan, type PlanItem } from "@/lib/db/plans";
 import { TaskStatus } from "@/generated/prisma/client";
-import { isPeriodCurrent, getTodayDate } from "../utils/dateUtils";
-import { runEndOfPeriodSync } from "./boardService";
+import { ensureSynced } from "./syncService";
 
 export type MatrixActivePlan = { id: string; periodKey: string };
 
@@ -21,28 +19,13 @@ export type TrackTaskResult =
   | { task: TaskItem }
   | { error: "noActivePlan" | "taskNotFound" };
 
-/**
- * ACTIVE plan whose period has already ended counts as no plan here, and —
- * exactly like the board's fetchBoard — triggers the End of Period Sync
- * (ACTIVE → PENDING_UPDATE). Without the sync, the matrix's "Create Plan"
- * CTA would dead-end: a user landing on /kanban/priorities first after the
- * ISO week rolls over would reach /kanban/plans/new while the stale plan is
- * still ACTIVE, and plan creation would reject with "an active plan exists".
- */
-async function getCurrentWeekActivePlan(userId: string): Promise<PlanItem | null> {
-  const plan = await getActivePlan(userId);
-  if (!plan) return null;
-  if (!isPeriodCurrent(plan.periodKey, getTodayDate())) {
-    await runEndOfPeriodSync(userId, plan.id);
-    return null;
-  }
-  return plan;
-}
-
 export async function fetchPriorityMatrix(userId: string): Promise<MatrixData> {
+  // ensureSynced flips an ended ACTIVE plan to PENDING_UPDATE (same lifecycle
+  // as the board), so the matrix can neither display nor track into a stale
+  // plan and the no-plan "Create Plan" CTA works.
   const [tasks, plan] = await Promise.all([
     getNonDoneAdhocTasks(userId),
-    getCurrentWeekActivePlan(userId),
+    ensureSynced(userId),
   ]);
 
   return {
@@ -60,7 +43,7 @@ export async function trackTaskThisWeek(
   taskId: string,
   status: TaskStatus
 ): Promise<TrackTaskResult> {
-  const plan = await getCurrentWeekActivePlan(userId);
+  const plan = await ensureSynced(userId);
   if (!plan) return { error: "noActivePlan" };
 
   const task = await trackAdhocTask(userId, taskId, plan.id, status);
