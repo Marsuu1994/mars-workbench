@@ -1,6 +1,4 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 
 export default async function PlansLayout({
   children,
@@ -13,12 +11,6 @@ export default async function PlansLayout({
     <div className="flex flex-col h-screen">
       <div className="flex items-center justify-between px-4 py-3 border-b border-base-content/10">
         <div className="flex items-center gap-3">
-          <Link
-            href="/kanban"
-            className="p-1.5 rounded-md text-base-content hover:bg-base-content/8 transition-colors"
-          >
-            <ChevronLeftIcon className="size-5" />
-          </Link>
           <h1 className="text-xl font-bold">
             <span className="text-success">{t("titlePrefix")}</span>
             {t("titleSuffix")}

@@ -10,9 +10,7 @@ interface TaskTypeBadgeProps {
 const CLASS_CONFIG: Record<string, string> = {
   [TaskType.DAILY]: "bg-info/15 text-info",
   [TaskType.WEEKLY]: "bg-secondary/15 text-secondary",
-  // Displayed as "Todo" in blue per the priority-matrix design (the type
-  // stays AD_HOC internally — only the user-facing badge is renamed)
-  [TaskType.AD_HOC]: "bg-primary/10 text-primary",
+  [TaskType.AD_HOC]: "bg-warning/15 text-warning",
 };
 
 export default function TaskTypeBadge({ type }: TaskTypeBadgeProps) {
