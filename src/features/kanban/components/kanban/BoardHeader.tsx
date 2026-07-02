@@ -5,7 +5,6 @@ import { getWeekDateRange } from "@/features/kanban/utils/dateUtils";
 
 interface BoardHeaderProps {
   periodKey: string;
-  planId: string;
 }
 
 export default function BoardHeader({ periodKey }: BoardHeaderProps) {

@@ -4,7 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { BoltIcon } from "@heroicons/react/24/outline";
 import type { TaskTemplateItem } from "@/lib/db/taskTemplates";
-import { TaskSize, sizeToPoints } from "@/features/kanban/utils/enums";
+import {
+  TaskSize,
+  sizeToPoints,
+  type PriorityQuadrant,
+} from "@/features/kanban/utils/enums";
 import {
   createTaskTemplateAction,
   updateTaskTemplateAction,
@@ -21,7 +25,8 @@ interface TaskModalProps {
   onSaved: () => void;
   mode?: ModalMode;
   template?: TaskTemplateItem | null;
-  initialStatus?: string;
+  /** Source quadrant for adhoc mode — the created matrix task lands there */
+  quadrant?: PriorityQuadrant;
 }
 
 export default function TaskModal({
@@ -30,7 +35,7 @@ export default function TaskModal({
   onSaved,
   mode: modeProp,
   template,
-  initialStatus,
+  quadrant,
 }: TaskModalProps) {
   const t = useTranslations("TaskModal");
   const tSize = useTranslations("Enums.TaskSize");
@@ -98,14 +103,23 @@ export default function TaskModal({
         });
         break;
       case "adhoc":
-        result = await createAdhocTaskAction({ title, description, size, status: initialStatus });
+        result = await createAdhocTaskAction({ title, description, size, quadrant });
         break;
     }
 
     if (result.error) {
       const err = result.error;
-      const message =
-        "formErrors" in err ? err.formErrors.join(", ") : JSON.stringify(err);
+      let message: string;
+      if ("formErrors" in err) {
+        // Include fieldErrors so a validation failure with empty formErrors
+        // (e.g. a missing required field) never renders as a blank error.
+        const fieldMessages = Object.values(err.fieldErrors ?? {}).flatMap(
+          (messages) => messages ?? []
+        );
+        message = [...err.formErrors, ...fieldMessages].join(", ");
+      } else {
+        message = JSON.stringify(err);
+      }
       setError(message);
       setIsSubmitting(false);
       return;

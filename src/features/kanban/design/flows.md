@@ -135,22 +135,6 @@ Two parallel queries run after sync:
 
 ---
 
-### Ad-hoc Task Creation Flow
-
-> **To be deprecated by priority matrix** — board-side ad-hoc creation is replaced by the "Add Priority Task Flow"; tasks then reach the board via the "Track This Week Flow".
-
-#### Trigger / Entry Point
-
-User clicks the create Ad-hoc task button at the bottom of the To do / In progress column, which opens a modal to prompt the creation flow.
-
-#### Steps
-
-1. User fills in title, description, size and clicks "Add to board".
-2. Generate the Ad-hoc task with status matching the source column (Todo → TODO, In Progress → DOING) and link it to the current plan.
-3. UI state updates on success.
-
----
-
 ### Task Risky Level Visual Effect Flow
 
 #### Trigger / Entry Point
@@ -281,22 +265,19 @@ User clicks "Create Plan" on empty board → navigates to `/kanban/plans/new`.
 
 #### Steps
 
-1. Page preloads PlanTemplates (with type and frequency config) from the `PENDING_UPDATE` plan if one exists (returning user) and all non-DONE Ad-hoc tasks associated with that plan, so user can reuse last week's configuration.
-2. Page also preloads all non-DONE Ad-hoc tasks that doesn't associate with any plan from database. (**To be deprecated by priority matrix**)
-3. For non-Ad-hoc task templates
+1. Page preloads PlanTemplates (with type and frequency config) from the `PENDING_UPDATE` plan if one exists (returning user) and all non-DONE Ad-hoc tasks associated with that plan, so user can reuse last week's configuration. Unassigned Ad-hoc tasks are not offered here — they live on the priority matrix and reach the board via the "Track This Week Flow".
+2. For non-Ad-hoc task templates
    1. User adds, removes, or edits templates. First-time users create templates from scratch.
    2. For each selected template, user configures type and frequency. Size (and derived points) come from TaskTemplate directly and are not configurable per-plan.
-4. For non-DONE Ad-hoc tasks
-   1. non-Done Ad-hoc tasks from the `PENDING_UPDATE` plan will be preselected, user can deselect it to not include it to the coming plan.
-   2. User can select any other non-Done Ad-hoc tasks to include it to the coming plan. (**To be deprecated by priority matrix**)
-5. Toggle plan mode between NORMAL and EXTREME. Defaults to NORMAL.
-6. User submits.
-7. Create plan and link selected templates and Ad-hoc tasks (carried-over Ad-hoc tasks keep their status — only planId is re-pointed to the new plan).
-8. For Ad-hoc tasks from PENDING_UPDATE plan that were not selected: set planId = null and status back to BACKLOG (return to the priority matrix).
-9. Generate task instances **with `status = BACKLOG`** (staged in the backlog drawer): weekly tasks immediately, daily tasks for today only (respecting plan mode for weekend skipping).
-10. Set `lastSyncDate = today`.
-11. Archive any existing `PENDING_UPDATE` plan → `COMPLETED`.
-12. Revalidate `/kanban` to render board.
+3. For non-DONE Ad-hoc tasks from the `PENDING_UPDATE` plan: preselected, user can deselect it to not include it to the coming plan.
+4. Toggle plan mode between NORMAL and EXTREME. Defaults to NORMAL.
+5. User submits.
+6. Create plan and link selected templates and Ad-hoc tasks (carried-over Ad-hoc tasks keep their status — only planId is re-pointed to the new plan).
+7. For Ad-hoc tasks from PENDING_UPDATE plan that were not selected: set planId = null and status back to BACKLOG (return to the priority matrix). DONE Ad-hoc tasks stay linked so completed points keep their historical attribution.
+8. Generate task instances **with `status = BACKLOG`** (staged in the backlog drawer): weekly tasks immediately, daily tasks for today only (respecting plan mode for weekend skipping).
+9. Set `lastSyncDate = today`.
+10. Archive any existing `PENDING_UPDATE` plan → `COMPLETED`.
+11. Revalidate `/kanban` to render board.
 
 ---
 
@@ -442,6 +423,7 @@ User navigates to `/kanban/priorities` via the "Priorities" sidebar item (deskto
 
 - DONE Ad-hoc tasks never show on the matrix.
 - A task counts as **tracked this week** only when its `planId` equals the current `ACTIVE` plan's id: it renders dimmed with a "This Week" tag (mobile: ★) and hides the send button. Tasks still pointing at a `PENDING_UPDATE` plan (period ended) render as normal cards.
+- **Stale-plan guard:** an `ACTIVE` plan whose `periodKey` differs from the current ISO week is treated as no active plan, and the matrix runs the same End of Period Sync as the board (`ACTIVE → PENDING_UPDATE`). Without the sync, the no-plan hint's "Create Plan" CTA would dead-end — plan creation rejects while a stale plan is still `ACTIVE`.
 
 ---
 
@@ -480,7 +462,7 @@ User drags a card to a different quadrant (desktop and mobile).
 
 #### Rules
 
-- Requires an `ACTIVE` plan. When none exists (period ended, next plan not yet created), send buttons render disabled and the matrix hint bar shows a "No active plan — Create Plan to track tasks this week" notice.
+- Requires an `ACTIVE` plan (current-week per the stale-plan guard, enforced server-side too). When none exists (period ended, next plan not yet created), desktop send buttons render disabled with a "No active plan yet" tooltip and the matrix hint bar shows a "No active plan — Create Plan to track tasks this week" notice; the mobile track sheet still opens but its column buttons are disabled with the same note.
 - Already-tracked cards cannot be sent again (send button hidden).
 - There is no untrack from the matrix — detaching happens via the Update Plan flow's ad-hoc deselection (`planId = null`, status back to `BACKLOG`).
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { Droppable } from "@hello-pangea/dnd";
-import { PlusIcon } from "@heroicons/react/24/outline";
 import { useTranslations } from "next-intl";
 import { useBreakpoint } from "@/components/common/BreakpointProvider";
 import type { TaskItem } from "@/lib/db/tasks";
@@ -17,7 +16,6 @@ interface BoardColumnProps {
   templateFreqMap: Map<string, number>;
   /** True while any card is being dragged — faintly outlines all drop targets. */
   isDragActive?: boolean;
-  onAddAdhocTask?: (status: string) => void;
 }
 
 const STATUS_STYLE: Record<string, { accent: string; dotColor: string }> = {
@@ -33,11 +31,9 @@ export default function BoardColumn({
   riskMap,
   templateFreqMap,
   isDragActive = false,
-  onAddAdhocTask,
 }: BoardColumnProps) {
   const { isMobile } = useBreakpoint();
   const tStatus = useTranslations("Enums.TaskStatus");
-  const tColumn = useTranslations("Board.Column");
   const style = STATUS_STYLE[status] ?? { accent: "", dotColor: "bg-base-content" };
   const label =
     status === TaskStatus.TODO || status === TaskStatus.DOING || status === TaskStatus.DONE
@@ -89,15 +85,6 @@ export default function BoardColumn({
               />
             ))}
             {provided.placeholder}
-            {onAddAdhocTask && status !== TaskStatus.DONE && (
-              <button
-                onClick={() => onAddAdhocTask(status)}
-                className="hidden md:flex items-center justify-center gap-1.5 w-full p-3 rounded-lg border-2 border-dashed border-base-content/20 bg-transparent text-base-content/40 text-sm font-medium cursor-pointer transition-colors hover:border-info hover:text-info"
-              >
-                <PlusIcon className="size-4" />
-                {tColumn("addAdhocTask")}
-              </button>
-            )}
           </div>
         </div>
       )}

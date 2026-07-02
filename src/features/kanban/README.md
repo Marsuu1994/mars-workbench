@@ -9,7 +9,8 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 - **Task sizing**: `TaskSize` enum (XS=1, S=2, M=3, L=5, XL=8) with fibonacci points; `SizeChip` display + pill toggle selector
 - **Progress dashboard**: Today ring, stat metrics (points/counts), Week Progress bar using two-query strategy (UI tasks + raw SQL aggregate)
 - **Plan management**: Create/edit plans with inline type/frequency config, Plan Mode toggle (NORMAL/EXTREME), `ReviewChangesModal` for diffs
-- **Ad-hoc tasks**: One-off tasks with plan linking, column-aware initial status, risk levels based on days since creation. Priority-matrix groundwork landed: every AD_HOC task carries an Eisenhower `quadrant` (`PriorityQuadrant` enum, backfilled to `SCHEDULE`), and deselecting from a plan returns tasks to the matrix pool (`planId = null` + `status = BACKLOG`) while DONE tasks stay on their plan to preserve point history
+- **Priority matrix (Priorities page)**: full-page 2×2 Eisenhower matrix at `/kanban/priorities` (sidebar item + mobile dock tab) organizing all non-DONE AD_HOC tasks by `quadrant`. Drag between quadrants to reprioritize (tracked cards too — only `quadrant` changes); hover send `→` → popover (desktop) or tap card → bottom sheet (mobile) to "Track This Week" into Todo/In Progress (`BACKLOG → TODO/DOING` + plan link, one write); quadrant "Add" buttons open the task modal to create unassigned matrix tasks (`planId = null`, `BACKLOG`). Tracked cards render dimmed with a "This Week" tag (★ on mobile). No active plan (incl. the stale-ACTIVE-plan window after ISO week rollover, guarded server-side) → warn hint bar + disabled send/sheet buttons
+- **Ad-hoc tasks**: One-off tasks living on the priority matrix; every AD_HOC task carries an Eisenhower `quadrant` (`PriorityQuadrant` enum, backfilled to `SCHEDULE`). Created from the matrix only (board-side creation removed); reach the board via Track This Week; deselecting from a plan returns tasks to the matrix pool (`planId = null` + `status = BACKLOG`) while DONE tasks stay on their plan to preserve point history. Risk levels based on days since creation (board cards only; matrix risk treatment is an open design item)
 - **Daily sync**: Auto-expire stale tasks, generate today's dailies, 1-day rollover buffer, idempotent via `lastSyncDate`
 - **End-of-period sync**: Auto-detect new week, expire undone tasks, transition plan to `PENDING_UPDATE`
 - **Empty board states**: new-user ("No active plan") vs returning-user ("Plan period ended") recap showing last period's completion %, tasks done, and points earned; both link to plan creation
@@ -25,7 +26,7 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 ## Backlog
 
 ### High Priority
-- [ ] Implement priority matrix page
+- [ ] Priority matrix follow-ups (PR 3): "Ad-hoc"→"Todo" badge + "Queued" drawer renames, `Review.adhocRemovedNote` copy, mockup back-ports (board/task-modal/backlog/review mockups + priorities deviations: TableCellsIcon nav icon, 4-tab dock, no drag rotate, default drag placeholder, no quadrant dim while dragging — dnd clone stacking-context conflict, drop-hint overlays instead of pushing cards, board-matching track dot colors, mobile no-plan sheet state), optional /design gallery entries. Known minor: track popover on a bottom card of a scrollable quadrant needs scrolling into view (absolute positioning inside the scroll container)
 - [x] End-of-period summary before starting a new plan
 
 ### Medium Priority
@@ -43,11 +44,11 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 - [ ] Phone notifications for unfinished tasks
 - [ ] Weekly task rollover across periods
 - [ ] Biweekly and custom period types
-- [ ] Priority matrix page (Eisenhower matrix)
 - [ ] Setup storybook and optimize workflow for UI mockup
 
 ## Done
 
+- [x] Implement priority matrix page
 - [x] Add dashed border to droppable columns (drag-target highlight)
 - [x] Returning-user empty board ("Plan period ended" recap with last-period stats)
 - [x] Implement the AI assisted plan creation flow — UI (Zustand store + bridge hook + chat modal, wired to the plan form)
@@ -59,6 +60,13 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 - Started the **Priority Matrix implementation** (backend groundwork, PR 1 of 3 per the reviewed plan): migration `20260702000000_add_priority_quadrant` adds the `PriorityQuadrant` enum (`DO_FIRST / SCHEDULE / SQUEEZE_IN / MAYBE_LATER`) and a nullable `Task.quadrant` column (AD_HOC only), backfills all existing AD_HOC tasks to `SCHEDULE`, and normalizes unassigned ad-hoc tasks (plus any non-DONE strays on COMPLETED plans) to the uniform `BACKLOG` semantics; read-only pre-migration sanity queries in `scripts/one-time/check-adhoc-states.sql`
 - Behavior change/fix: `unlinkAdhocTasksFromPlan` now sends deselected ad-hoc tasks back to the priority matrix (`planId = null` + `status = BACKLOG`) and **excludes DONE tasks** — completed ad-hoc points keep their historical plan attribution (previously every plan turnover silently unlinked DONE ad-hoc tasks too)
 - Plumbing: `TaskItem` + `taskSelect` expose `quadrant`; client-safe `PriorityQuadrant` mirror in `utils/enums.ts`; `/design` gallery `baseTask` fixture extended; `api.md` synced with the new unlink semantics
+- Shipped the **Priorities page** (PR 2 of 3): new `/kanban/priorities` route (desktop 2×2 matrix + mobile compact grid, own `loading.tsx` skeleton, shared `BoardHeader` week badge with current-ISO-week fallback) with all four flows — landing (`fetchPriorityMatrixAction` → `matrixService.fetchPriorityMatrix`, counts derived client-side), reprioritize drag-and-drop (`updateTaskQuadrantAction`, optimistic + rollback, full drag visuals: dimmed quadrants, drop-target outline/label highlight, per-quadrant drop-hint banner), Track This Week (`trackTaskAction` → `trackAdhocTask` single-write `planId`+`status`; desktop hover-send popover, mobile tap → `modal-bottom` sheet; optimistic dim + "This Week"/★ tag + count bump), and Add Priority Task (quadrant `Add` buttons reuse `TaskModal` adhoc mode with a `quadrant` prop; `createAdhocTaskAction` rewritten to create `planId = null` + `BACKLOG`)
+- **Stale-plan guard** in `matrixService`: an ACTIVE plan whose `periodKey` ≠ current ISO week counts as no plan and triggers the same End of Period Sync as the board (shared `isPeriodCurrent` in `dateUtils`), so landing on Priorities first after week rollover can't display or track into an ended plan — and the no-plan "Create Plan" CTA actually works (a read-only guard would dead-end at plan creation's active-plan check); enforced in both fetch and track
+- New components `components/priorities/` (`PriorityMatrixPage`, `QuadrantCell`, `MatrixTaskCard`, `TrackPopover`, `MobileTrackSheet`, `constants.ts`), `SizeChip` gains a `labelOnly` variant (mobile matrix chips); null-quadrant cards defensively group into `SCHEDULE`
+- Navigation: "Priorities" added to `AppSidebar` (Board → Priorities → Plan, `TableCellsIcon` as the closest Heroicon to the mockup glyph) and `BottomTabBar` (4 tabs, Settings kept); `/kanban/priorities` added to `AppShell.SELF_SCROLLING_ROUTES` (dnd single-scroll-parent)
+- **Deprecated board-side ad-hoc creation**: removed the column "Add ad-hoc task" button (`BoardColumn`), the board's `TaskModal` wiring (`KanbanBoard`), and the `Board.Column.addAdhocTask` key; plan create/edit pages now preload only the relevant plan's ad-hoc tasks (unassigned ones are tracked from the matrix instead)
+- i18n: new `Priorities` namespace + `Enums.PriorityQuadrant`; `TaskModal` adhoc copy → "Add Priority Task" / "Add to matrix"; board/plan/AI-approve mutations now also revalidate `/kanban/priorities`
+- Docs synced: `api.md` (Priority Matrix section, createAdhocTaskAction rewrite, new DAL entries), `flows.md` (removed the deprecated Ad-hoc Task Creation Flow, renumbered Create Plan steps, stale-plan-guard + mobile no-plan rules), `baseline.md` (Priorities → Implemented V2; renames stay in Planned: Future). Renames ("Todo" badge / "Queued" drawer) + mockup back-ports land in PR 3
 
 ### 2026-06-30
 - Started **i18n standardization** for the kanban feature with `next-intl` in single-locale "App Router without i18n routing" mode — no `[locale]` URL segment and no middleware, so the Supabase auth `src/proxy.ts` is untouched. Wired the `createNextIntlPlugin()` wrapper (`next.config.ts`), per-request config (`src/i18n/request.ts`, locale fixed to `en`), `<NextIntlClientProvider>` in the root layout, and compile-time type-safe keys via `src/global.d.ts` augmenting `messages/en.json`

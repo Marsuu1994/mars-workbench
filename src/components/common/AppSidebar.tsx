@@ -7,6 +7,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   Squares2X2Icon,
+  TableCellsIcon,
   PencilSquareIcon,
   ArrowRightStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
@@ -49,6 +50,7 @@ export const AppSidebar = ({ user, activePlanId }: AppSidebarProps) => {
   const textOpacity = `transition-opacity duration-200 ${collapsed ? "opacity-0" : "opacity-100"}`;
 
   const isBoardActive = pathname === "/kanban";
+  const isPrioritiesActive = pathname.startsWith("/kanban/priorities");
   const isPlanActive = pathname.startsWith("/kanban/plans");
   const planHref = activePlanId ? `/kanban/plans/${activePlanId}` : "/kanban/plans/new";
 
@@ -84,6 +86,16 @@ export const AppSidebar = ({ user, activePlanId }: AppSidebarProps) => {
       </div>
     );
   };
+
+  const renderPrioritiesLink = () => (
+    <Link
+      href="/kanban/priorities"
+      className={isPrioritiesActive ? navItemActive : navItemInactive}
+    >
+      <TableCellsIcon className="h-[18px] w-[18px] flex-shrink-0" />
+      <span className={`text-[13px] ${textOpacity}`}>Priorities</span>
+    </Link>
+  );
 
   const renderPlanLink = () => (
     <Link href={planHref} className={isPlanActive ? navItemActive : navItemInactive}>
@@ -165,6 +177,7 @@ export const AppSidebar = ({ user, activePlanId }: AppSidebarProps) => {
         </div>
         <nav className="flex flex-col gap-0.5">
           {renderBoardLink()}
+          {renderPrioritiesLink()}
           {renderPlanLink()}
         </nav>
       </div>

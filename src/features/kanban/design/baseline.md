@@ -26,6 +26,7 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 2. **Workspace sidebar** — Sidebar redesigned from feature-level nav (Chat/Kanban) to kanban workspace nav (Board/Plan). Board disabled with tooltip when no active plan; Plan shows "New" nudge badge. Edit Plan button removed from board header (Plan entry in sidebar).
 3. **LLM-assisted plan creation** — AI drafts a plan via non-streaming structured JSON output. User approves the batch (commit-as-is, the latest `DRAFT_PLAN` message is the approval source of truth) or rejects with text feedback to re-generate; no per-card editing. Static no-LLM welcome + suggestion chips. The chat is durable (DB-backed): it resumes the most recent unapproved chat across modal close / reload / restart and auto-resumes a generation interrupted mid-run. Approval atomically creates new TaskTemplates + the plan, completes the prior `PENDING_UPDATE` plan, and carries over ad-hoc tasks. See **AI Assisted Plan Creation Flow** in `flows.md`.
 4. **Backlog drawer** — Collapsible right-edge panel (desktop) for staging template-generated task instances (`status = BACKLOG`) before pulling them onto the board via drag-and-drop (`BACKLOG → TODO`). Reduces visual clutter from duplicate (`frequency > 1`) cards. Reuses the board `TaskCard` (risk + rollover + `#n` instance badge stay in sync). Today ring/points count board tasks only; Week projection includes backlog. Mobile drawer is a follow-up. See the **Backlog Drawer Flow** in `flows.md` and the mockup at `design/mockup/mockup-board-backlog-drawer.html`.
+5. **Priorities page (Eisenhower matrix)** — Full-page 2×2 priority matrix at `/kanban/priorities` (sidebar item + mobile dock tab) for organizing one-off `AD_HOC` tasks by urgency/importance (`Task.quadrant`, unassigned tasks are `BACKLOG` with `planId = null`). Cards drag freely between quadrants (reprioritize); "Track This Week" attaches a task to the current ACTIVE plan (`BACKLOG → TODO/DOING`) via a desktop send-button popover or a mobile bottom sheet; quadrant "Add" buttons reuse the ad-hoc task modal to create matrix tasks. Board-side ad-hoc creation is removed; deselecting an ad-hoc task from a plan returns it to the matrix (DONE tasks stay linked to preserve point history). See the **Priorities** flows in `flows.md` and `mockup/mockup-priorities.html`. Pending follow-ups: "Ad-hoc"→"Todo" badge and backlog-drawer→"Queued" renames, mockup back-port.
 
 ### Planned: V2
 
@@ -47,7 +48,7 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 - End-of-period summary before starting a new plan
 - Weekly task rollover across periods
 - Biweekly and custom period types
-- Priorities page — Full-page Eisenhower priority matrix (Board/Priorities tab switcher) for organizing personal one-off tasks by urgency/importance. Tasks can be promoted to the board via "Track this week". Renames "Ad-hoc" to "Todo" badge, backlog drawer renamed to "Queued" — see `mockup/mockup-priorities.html`
+- Priorities-page renames (from the finalized matrix design, not yet applied): "Ad-hoc" task badge → "Todo" (blue), backlog drawer → "Queued" — see `mockup/mockup-priorities.html` board screen.
 - AI-assisted plan editing — Use a new Chat linked to the same plan to suggest modifications via LLM. Separate from creation flow.
 
 ## Entities

@@ -193,12 +193,13 @@ export async function getTasksByPlanIdAndStatus(
 }
 
 /**
- * Create a single task instance
+ * Create a single task instance. planId is null for matrix (unassigned
+ * ad-hoc) tasks; quadrant is set for AD_HOC tasks only.
  */
 export async function createTask(
   userId: string,
   data: {
-    planId: string;
+    planId: string | null;
     templateId?: string;
     type: TaskType;
     title: string;
@@ -208,6 +209,7 @@ export async function createTask(
     status: TaskStatus;
     forDate?: Date;
     periodKey?: string;
+    quadrant?: PriorityQuadrant;
     instanceIndex: number;
   }
 ): Promise<TaskItem> {
@@ -261,6 +263,49 @@ export async function updateTaskStatus(
       status,
       doneAt: status === "DONE" ? new Date() : null,
     },
+    select: taskSelect,
+  });
+  return task ?? null;
+}
+
+/**
+ * Reprioritize: set the Eisenhower quadrant of an owned AD_HOC task.
+ * Returns null when the task does not exist, is not owned, or is not AD_HOC.
+ */
+export async function updateTaskQuadrant(
+  userId: string,
+  taskId: string,
+  quadrant: PriorityQuadrant
+): Promise<TaskItem | null> {
+  const [task] = await prisma.task.updateManyAndReturn({
+    where: { id: taskId, userId, type: TaskType.AD_HOC },
+    data: { quadrant },
+    select: taskSelect,
+  });
+  return task ?? null;
+}
+
+/**
+ * Track This Week: attach an unassigned matrix task to a plan, crossing the
+ * BACKLOG → board boundary in a single write (planId + status together).
+ * The WHERE requires planId = null and status = BACKLOG, so already-tracked
+ * tasks (and anything not on the matrix) come back null instead of moving.
+ */
+export async function trackAdhocTask(
+  userId: string,
+  taskId: string,
+  planId: string,
+  status: TaskStatus
+): Promise<TaskItem | null> {
+  const [task] = await prisma.task.updateManyAndReturn({
+    where: {
+      id: taskId,
+      userId,
+      type: TaskType.AD_HOC,
+      planId: null,
+      status: TaskStatus.BACKLOG,
+    },
+    data: { planId, status },
     select: taskSelect,
   });
   return task ?? null;

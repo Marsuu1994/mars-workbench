@@ -13,7 +13,7 @@ export default async function EditPlanPage({
   const { id } = await params;
   const userId = await getCurrentUserId();
 
-  const [plan, templates, adhocTasks] = await Promise.all([
+  const [plan, templates, allAdhocTasks] = await Promise.all([
     getPlanWithTemplates(userId, id),
     getTaskTemplates(userId),
     getNonDoneAdhocTasks(userId),
@@ -29,9 +29,10 @@ export default async function EditPlanPage({
     frequency: pt.frequency,
   }));
 
-  const initialAdhocTaskIds = adhocTasks
-    .filter((t) => t.planId === id)
-    .map((t) => t.id);
+  // Only this plan's ad-hoc tasks are editable here (deselect → back to the
+  // matrix). Unassigned tasks are tracked from the priority matrix instead.
+  const adhocTasks = allAdhocTasks.filter((t) => t.planId === id);
+  const initialAdhocTaskIds = adhocTasks.map((t) => t.id);
 
   return (
     <PlanForm

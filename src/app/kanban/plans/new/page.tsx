@@ -8,7 +8,7 @@ import { getCurrentUserId } from "@/lib/auth/getCurrentUserId";
 export default async function NewPlanPage() {
   const userId = await getCurrentUserId();
 
-  const [templates, pendingPlan, adhocTasks] = await Promise.all([
+  const [templates, pendingPlan, allAdhocTasks] = await Promise.all([
     getTaskTemplates(userId),
     getPlanByStatus(userId, PlanStatus.PENDING_UPDATE),
     getNonDoneAdhocTasks(userId),
@@ -22,10 +22,13 @@ export default async function NewPlanPage() {
       })) ?? []
     : [];
 
-  // Preselect ad-hoc tasks that belong to the pending plan
-  const initialAdhocTaskIds = pendingPlan
-    ? adhocTasks.filter((t) => t.planId === pendingPlan.id).map((t) => t.id)
+  // Only the pending plan's ad-hoc tasks are offered for carry-over
+  // (preselected). Unassigned tasks live on the priority matrix and reach
+  // the board via its Track This Week flow instead.
+  const adhocTasks = pendingPlan
+    ? allAdhocTasks.filter((t) => t.planId === pendingPlan.id)
     : [];
+  const initialAdhocTaskIds = adhocTasks.map((t) => t.id);
 
   return (
     <PlanForm

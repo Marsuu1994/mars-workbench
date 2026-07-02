@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Squares2X2Icon,
+  TableCellsIcon,
   PencilSquareIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
@@ -21,6 +22,7 @@ export const BottomTabBar = ({ user, activePlanId }: BottomTabBarProps) => {
   }
 
   const isBoard = pathname === "/kanban";
+  const isPriorities = pathname.startsWith("/kanban/priorities");
   const isPlan = pathname.startsWith("/kanban/plans");
   const isSettings = pathname.startsWith("/kanban/settings");
 
@@ -29,6 +31,10 @@ export const BottomTabBar = ({ user, activePlanId }: BottomTabBarProps) => {
       <Link href="/kanban" className={isBoard ? "dock-active" : ""}>
         <Squares2X2Icon className="size-5" />
         <span className="dock-label">Board</span>
+      </Link>
+      <Link href="/kanban/priorities" className={isPriorities ? "dock-active" : ""}>
+        <TableCellsIcon className="size-5" />
+        <span className="dock-label">Priorities</span>
       </Link>
       <Link href={activePlanId ? `/kanban/plans/${activePlanId}` : "/kanban/plans/new"} className={isPlan ? "dock-active" : ""}>
         <PencilSquareIcon className="size-5" />
