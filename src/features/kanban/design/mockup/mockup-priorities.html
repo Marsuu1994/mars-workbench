@@ -213,6 +213,17 @@
   .send-popover-btn svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--m-text-muted); }
   .send-popover-btn .col-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
+  /* ── Track disabled — no active plan ── */
+  .matrix-page.no-plan .mx-card-send { color: var(--m-text-muted); cursor: not-allowed; }
+  .matrix-page.no-plan .mx-card-send:hover { background: transparent; color: var(--m-text-muted); }
+  .matrix-hint-bar.warn, .matrix-hint-bar.warn svg, .matrix-hint-bar.warn strong { color: var(--m-orange); }
+  .no-plan-tip {
+    position: absolute; top: 100%; right: 0; margin-top: 6px; z-index: 50;
+    background: var(--m-surface-raised); border: 1px solid var(--m-border); border-radius: 8px;
+    padding: 8px 10px; font-size: 11px; color: var(--m-text-secondary);
+    box-shadow: 0 8px 24px var(--m-shadow-heavy); white-space: nowrap;
+  }
+
   /* ── Quadrant add button ── */
   .mx-add-btn {
     display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%;
@@ -407,7 +418,7 @@
             <span class="quadrant-count">2</span>
           </div>
           <div class="quadrant-body">
-            <div class="mx-card on-board">
+            <div class="mx-card on-board" data-size="M" data-pts="3">
               <div class="mx-card-main">
                 <span class="mx-card-title">Shop birthday gift</span>
                 <span class="mx-card-desc">For mom &mdash; this Saturday</span>
@@ -440,7 +451,7 @@
             <span class="quadrant-count">3</span>
           </div>
           <div class="quadrant-body">
-            <div class="mx-card on-board">
+            <div class="mx-card on-board" data-size="L" data-pts="5">
               <div class="mx-card-main">
                 <span class="mx-card-title">File tax report</span>
                 <span class="mx-card-desc">Before the Apr 15 deadline</span>
@@ -563,6 +574,17 @@
 </div>
 
 <!-- ════════════════════════════════════════════════════════════════
+     Track this week — disabled state (no active plan)
+     ════════════════════════════════════════════════════════════════ -->
+<div class="screen app" id="screen-send-noplan" data-nav="priorities">
+  <div data-sidebar></div>
+  <div class="main">
+    <div data-header></div>
+    <div data-matrix data-no-plan></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
      Reprioritize — drag a card; droppable quadrant highlights
      ════════════════════════════════════════════════════════════════ -->
 <div class="screen app" id="screen-drag" data-nav="priorities">
@@ -646,10 +668,6 @@
                 <span class="size-chip"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span>
               </div>
             </div>
-            <button class="add-task-btn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
-              Add ad-hoc task
-            </button>
           </div>
         </div>
 
@@ -670,10 +688,6 @@
                 <span class="size-chip"><span class="sz-label">S</span><span class="sz-dot">&middot;</span><span class="sz-pts">2</span></span>
               </div>
             </div>
-            <button class="add-task-btn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
-              Add ad-hoc task
-            </button>
           </div>
         </div>
 
@@ -846,6 +860,7 @@
 <nav class="screen-nav">
   <button class="screen-btn active" data-target="screen-matrix" onclick="showScreen('screen-matrix')">Priorities</button>
   <button class="screen-btn" data-target="screen-send" onclick="showScreen('screen-send')">Track</button>
+  <button class="screen-btn" data-target="screen-send-noplan" onclick="showScreen('screen-send-noplan')">Track &mdash; No Plan</button>
   <button class="screen-btn" data-target="screen-drag" onclick="showScreen('screen-drag')">Drag &amp; Drop</button>
   <button class="screen-btn" data-target="screen-board" onclick="showScreen('screen-board')">Board</button>
   <button class="screen-btn" data-target="screen-mobile" onclick="showScreen('screen-mobile')">Mobile</button>
@@ -891,6 +906,43 @@
           '<button class="send-popover-btn"><span class="col-dot" style="background:var(--m-orange)"></span><span>In Progress</span>' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:auto"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';
         card.appendChild(pop);
+      }
+
+      if (mSlot.hasAttribute('data-no-plan')) {
+        node.querySelector('.matrix-page').classList.add('no-plan');
+        // Hint bar → page-level notice
+        var bar = node.querySelector('.matrix-hint-bar');
+        bar.classList.add('warn');
+        bar.innerHTML =
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 9v4m0 4h.01" stroke-linecap="round"/></svg>' +
+          'No active plan &mdash; <strong>Create Plan</strong> to track tasks this week';
+        // Nothing is tracked between periods
+        node.querySelectorAll('.page-title-count-num')[1].textContent = '0';
+        // Previously tracked cards revert to normal matrix cards
+        node.querySelectorAll('.mx-card.on-board').forEach(function (card) {
+          card.classList.remove('on-board');
+          card.querySelector('.on-board-tag').remove();
+          var chip = document.createElement('span');
+          chip.className = 'size-chip';
+          chip.innerHTML =
+            '<span class="sz-label">' + card.getAttribute('data-size') + '</span>' +
+            '<span class="sz-dot">&middot;</span>' +
+            '<span class="sz-pts">' + card.getAttribute('data-pts') + '</span>';
+          var send = document.createElement('button');
+          send.className = 'mx-card-send';
+          send.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-4-4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+          var drag = card.querySelector('.mx-card-drag');
+          card.insertBefore(chip, drag);
+          card.insertBefore(send, drag);
+        });
+        // One card shows the disabled send button + tooltip
+        var npCard = node.querySelector('[data-card="call-dentist"]');
+        npCard.style.zIndex = '60';
+        npCard.querySelector('.mx-card-send').style.display = 'flex';
+        var tip = document.createElement('div');
+        tip.className = 'no-plan-tip';
+        tip.textContent = 'No active plan yet';
+        npCard.appendChild(tip);
       }
 
       if (mSlot.hasAttribute('data-drag')) {

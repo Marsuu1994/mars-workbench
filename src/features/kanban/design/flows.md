@@ -1,10 +1,19 @@
 # Key Flows
 
+> **Doc convention:** Flows are grouped under a `##` domain section, one flow per `###` heading, separated by `---`. Every flow has two required `####` sections — `Trigger / Entry Point` and `Steps` — plus an optional `#### Rules` section for constraints and invariants. Extra `####` sections (e.g. `Metrics`) are allowed only for reference material that fits neither Steps nor Rules.
+
+## Kanban
+
+---
+
 ### Landing Flow
 
-**Trigger:** User navigates to `/kanban`
+#### Trigger / Entry Point
 
-**Steps:**
+User navigates to `/kanban`.
+
+#### Steps
+
 1. Fetch active plan. If none exists, show "Create Plan" prompt → stop.
 2. If current ISO week key differs from `plan.periodKey`, run End of Period Sync → return empty board with "Create Plan" prompt → stop.
 3. If `plan.lastSyncDate` is earlier than today, run Daily Sync.
@@ -14,15 +23,19 @@
 
 ### Daily Sync Flow
 
-**Trigger:** If `lastSyncDate` is earlier than today
+#### Trigger / Entry Point
 
-**Steps:**
+`lastSyncDate` is earlier than today.
+
+#### Steps
+
 1. Set `lastSyncDate = today` first to prevent concurrent re-runs.
 2. Expire all daily tasks where `forDate` is **strictly before yesterday** (i.e., `forDate < today - 1 day`) and status is not DONE.
 3. If today is a weekend day and plan mode is NORMAL, skip daily task generation.
 4. Otherwise, generate new daily task instances for today **with `status = BACKLOG`** (staged in the backlog drawer; the user pulls them onto the board — see "Backlog Drawer Flow").
 
-**Rules:**
+#### Rules
+
 - Idempotent — safe to re-run multiple times.
 - Plan creation and template updates also set `lastSyncDate` to avoid redundant sync on next page load.
 - **1-day rollover buffer:** tasks from yesterday are NOT expired on today's sync — they carry over and remain on the board for one extra day. They expire on the following day's sync.
@@ -36,20 +49,203 @@
 
 ### End of Period Sync Flow
 
-**Trigger:** If current ISO week key differs from `plan.periodKey`
+#### Trigger / Entry Point
 
-**Steps:**
+Current ISO week key differs from `plan.periodKey`.
+
+#### Steps
+
 1. Expire all remaining non-DONE tasks instances except Ad-hoc tasks.
 2. Set plan status: `ACTIVE` → `PENDING_UPDATE`.
 3. Return null → board renders "Create Plan" prompt.
 
 ---
 
+### Drag and Drop Flow
+
+#### Trigger / Entry Point
+
+User drags a task card to a different column.
+
+#### Steps
+
+1. UI updates optimistically.
+2. Server Action persists new status to DB.
+3. On failure, UI rolls back to previous state.
+
+#### Rules
+
+- Allowed transitions: BACKLOG → TODO → DOING → DONE only (no backwards movement). `BACKLOG → TODO` is the backlog drawer pull (drop onto the Todo column); see "Backlog Drawer Flow".
+- Exception: the Priorities "Track This Week Flow" may attach a matrix task directly as `BACKLOG → DOING` (tracked into the In Progress column).
+
+---
+
+### Progress Tracking Flow
+
+#### Trigger / Entry Point
+
+Computed server-side on every board page load as part of `fetchBoard()`.
+
+#### Steps
+
+Two parallel queries run after sync:
+
+1. `getBoardTasksByPlanId` — all non-expired tasks for the plan (`BACKLOG/TODO/DOING/DONE`). Today's total count/points exclude `BACKLOG` (filtered in-memory, not a separate query/field).
+2. `getBoardMetricsByPlanId` — a single raw SQL aggregate query that computes all historical counts and point sums using `FILTER` clauses. No in-memory aggregation for past data. Projection buckets (weekly-by-type, daily-past-by-`forDate`) count `BACKLOG` identically to `TODO`, so the Week projection includes backlog tasks unchanged.
+3. Future projections are then derived in-memory from the plan's current templates.
+
+**Points derivation:** Each task stores a denormalized `points` field derived from `size` via `SIZE_TO_POINTS` at creation time. All DB aggregation operates on this column directly — no runtime size-to-points conversion needed.
+
+#### Metrics
+
+**Today Ring** — circular progress ring showing task completion for the current day.
+
+- Done count: `COUNT(*)` where `status = DONE` and `doneAt` is within today (from DB aggregate).
+- Total count: number of non-`BACKLOG` tasks (in-memory).
+
+**Today Points** — points earned today vs total points available on the board.
+
+- Done points: `SUM(points)` where `status = DONE` and `doneAt` is within today (from DB aggregate).
+- Total points: `SUM(task.points)` across non-`BACKLOG` tasks (in-memory reduction).
+
+**Week Points** — cumulative points earned this period vs projected period total.
+
+- Done points: `SUM(points)` where `status = DONE` across the entire plan (from DB aggregate).
+- Projected total: `dailyPastPoints + dailyFuturePoints + weeklyPoints + adhocPoints`
+  - `dailyPastPoints` (DB): `SUM(points)` where `forDate < today` — points from daily tasks already generated on previous days.
+  - `dailyFuturePoints` (in-memory): `SUM(template.points × frequency)` for all daily plan templates × remaining days. Remaining days respects plan mode: NORMAL counts only weekdays via `countWeekdaysInRange`, EXTREME counts all calendar days.
+  - `weeklyPoints` (DB): `SUM(points)` where `type = WEEKLY`.
+  - `adhocPoints` (DB): `SUM(points)` where `type = AD_HOC`.
+
+  **Daily Avg** — rolling average of points earned per elapsed day.
+
+- `weekDonePoints / daysElapsed`, where `daysElapsed` = days since the period's Monday (clamped 1–7).
+
+**Week Progress Bar** — percentage of projected task count completed this period.
+
+- Done count: `COUNT(*)` where `status = DONE` across the plan (from DB aggregate).
+- Projected total: same four-part decomposition as Week Points but using task counts (`dailyPastCount + dailyFutureCount + weeklyCount + adhocCount`).
+
+#### Rules
+
+- Done points and done counts are append-only — they never decrease due to plan edits or template changes.
+- Past effort is preserved regardless of template modifications.
+- Future projection always reflects the current plan's active template snapshot.
+- Today's tasks are counted in the future projection bucket only — never double-counted with past.
+
+---
+
+### Ad-hoc Task Creation Flow
+
+> **To be deprecated by priority matrix** — board-side ad-hoc creation is replaced by the "Add Priority Task Flow"; tasks then reach the board via the "Track This Week Flow".
+
+#### Trigger / Entry Point
+
+User clicks the create Ad-hoc task button at the bottom of the To do / In progress column, which opens a modal to prompt the creation flow.
+
+#### Steps
+
+1. User fills in title, description, size and clicks "Add to board".
+2. Generate the Ad-hoc task with status matching the source column (Todo → TODO, In Progress → DOING) and link it to the current plan.
+3. UI state updates on success.
+
+---
+
+### Task Risky Level Visual Effect Flow
+
+#### Trigger / Entry Point
+
+Computed client-side on every board render, based on `forDate`, `createdAt`, task status, and current time to calculate the risky level (warning, dangerous).
+
+#### Steps
+
+1. For each task in BoardData, compute risk level using current client time.
+2. For each task, derive risk level based on the rules below and apply the corresponding visual treatment.
+
+#### Rules
+
+**Daily Task — `forDate = today`**
+
+- TODO, time < 20:00 → Normal
+- TODO, time >= 20:00 → Warning
+- DOING, time < 20:00 → Normal
+- DOING, time >= 20:00 → Warning
+
+**Daily Task — `forDate < today` (rollover)**
+
+- TODO, time < 15:00 → Warning
+- TODO, time >= 15:00 → Danger
+- DOING, any time → Warning
+
+**Weekly Task**
+
+- TODO, `daysElapsed >= 3` or `remainingDays < remainingTasks × 2` → Warning
+- TODO, `daysElapsed >= 5` or `remainingDays < remainingTasks × 1` → Danger
+- DOING, `daysElapsed >= 5` or `remainingDays < remainingTasks × 1` → Warning
+- DOING → never Danger
+
+**Ad-hoc Task**
+
+- TODO, `daysElapsedSinceCreation >= 5` → Warning
+- TODO, `daysElapsedSinceCreation >= 8` → Danger
+- DOING, `daysElapsedSinceCreation >= 8` → Warning
+- DOING → never Danger
+
+**General**
+
+- `remainingTasks = frequency - doneCount - doingCount` (completed + in-progress instances this week for the same template)
+- `remainingDays = 7 - daysElapsed` (days remaining until end of week)
+- Danger takes priority over Warning when multiple conditions are met
+- Risk level only escalates, never regresses (rollover tasks maintain at minimum Warning)
+- DONE, EXPIRED tasks never trigger any risk indicator
+- Ad-hoc task risk is based on days since creation (`daysElapsedSinceCreation`), not plan period.
+- Thresholds will be revisited once auto-clear logic is implemented (see Planned: Future).
+
+---
+
+### Backlog Drawer Flow
+
+#### Trigger / Entry Point
+
+- **Desktop (`md+`):** A collapsed backlog strip sits on the right edge of the board. The user clicks it to expand the drawer.
+- **Mobile (`< md`):** A peeking "Backlog" pill sits above the bottom tab bar. The user taps it to open a bottom sheet.
+
+The drawer/sheet holds the plan's template-generated task instances with `status === BACKLOG` — the staging area they land in before reaching the board. Ad-hoc tasks never appear in the drawer: while off the board they are also `BACKLOG`, but they live on the priority matrix (`planId = null`), outside the plan-scoped drawer query.
+
+#### Steps
+
+##### Desktop
+
+1. The collapsed strip shows the backlog count.
+
+2. On expand, render the backlog tasks (`status === BACKLOG`) as a flat list, ordered like a column (daily then weekly, by `instanceIndex`/`createdAt`).
+
+3. Drag a card onto the Todo column to move it to the board: optimistic update, then `updateTaskStatusAction(taskId, { status: TODO })`, rollback on failure. Todo is the only drop target; no un-pull (forward-only, per "Drag and Drop Flow").
+
+##### Mobile
+
+1. The pill shows the backlog count; it is hidden entirely when the backlog is empty.
+2. On tap, open a `modal-bottom` sheet (covers the tab bar as a standard modal; the board peeks behind the scrim). Render the same backlog list as full-width rows.
+3. Tap a card's `↑ Todo` button to pull it: same optimistic `updateTaskStatusAction(taskId, { status: TODO })` + rollback. The sheet stays open for consecutive pulls; tap-to-pull replaces drag (a sheet over the board makes drag-out unreliable; backlog is forward-only anyway).
+
+#### Rules
+
+- Desktop reuses the board `TaskCard`; mobile uses `BacklogSheetCard` (full-width, non-draggable) with the same badge/instance/rollover/risk language. Risk computation treats `BACKLOG` as `TODO` so visuals match the board (see "Task Risky Level Visual Effect Flow").
+- The `#{instanceIndex}` badge renders only when the template's `frequency > 1` (frequency-1 and ad-hoc tasks, always `instanceIndex = 1`, show none). The card reads `frequency` from `plan.planTemplates`.
+- The drawer/sheet open state is local UI state, default closed.
+- Empty backlog: desktop strip still shows (count `0`) with an empty-state body; the mobile pill is hidden (the sheet's empty state only appears if the last task is pulled while it is open).
+
+## Plan
+
+---
+
 ### Create Task Template Flow
 
-**Trigger:** User clicks the "New Template" button on the plan form page.
+#### Trigger / Entry Point
 
-**Steps:**
+User clicks the "New Template" button on the plan form page.
+
+#### Steps
 
 1. Open the template modal with empty fields for title, description, and size.
 2. The size selector displays all available sizes (XS–XL) with their corresponding point values and hour estimates. Selecting L or XL shows an inline warning suggesting the user consider splitting into smaller tasks.
@@ -60,39 +256,43 @@
 
 ### Update Task Template Flow
 
-**Trigger:** User clicks the edit button on an existing template card within the plan form page.
+#### Trigger / Entry Point
 
-**Steps:**
+User clicks the edit button on an existing template card within the plan form page.
+
+#### Steps
 
 1. Open the template modal pre-populated with the current title, description, and size.
 2. User modifies any fields. The size selector behaves identically to the create flow (point labels, L/XL warning).
 3. User clicks "Save". Validate input, then persist changes to the existing TaskTemplate.
 4. Revalidate the `/kanban/plans` route to reflect the updated template.
 
-**Note:** Editing a template does not retroactively change already-generated Task instances. Only future task generation uses the updated values.
+#### Rules
+
+- Editing a template does not retroactively change already-generated Task instances. Only future task generation uses the updated values.
 
 ---
 
 ### Create Plan Flow
 
-**Trigger:** User clicks "Create Plan" on empty board → navigates to `/kanban/plans/new`
+#### Trigger / Entry Point
 
-**Steps:**
-1. Page preloads PlanTemplates (with type and frequency config) from the `PENDING_UPDATE` plan  if one exists (returning user) and all non-DONE Ad-hoc tasks associated with that plan, so user can reuse last week's configuration.
-2. Page also preloads all non-DONE Ad-hoc tasks that doesn't associate with any plan from database.
+User clicks "Create Plan" on empty board → navigates to `/kanban/plans/new`.
+
+#### Steps
+
+1. Page preloads PlanTemplates (with type and frequency config) from the `PENDING_UPDATE` plan if one exists (returning user) and all non-DONE Ad-hoc tasks associated with that plan, so user can reuse last week's configuration.
+2. Page also preloads all non-DONE Ad-hoc tasks that doesn't associate with any plan from database. (**To be deprecated by priority matrix**)
 3. For non-Ad-hoc task templates
    1. User adds, removes, or edits templates. First-time users create templates from scratch.
    2. For each selected template, user configures type and frequency. Size (and derived points) come from TaskTemplate directly and are not configurable per-plan.
-
 4. For non-DONE Ad-hoc tasks
    1. non-Done Ad-hoc tasks from the `PENDING_UPDATE` plan will be preselected, user can deselect it to not include it to the coming plan.
-   2. User can select any other non-Done Ad-hoc tasks to include it to the coming plan.
-
+   2. User can select any other non-Done Ad-hoc tasks to include it to the coming plan. (**To be deprecated by priority matrix**)
 5. Toggle plan mode between NORMAL and EXTREME. Defaults to NORMAL.
-
 6. User submits.
-7. Create plan and link selected templates and Ad-hoc tasks.
-8. For Ad-hoc tasks from PENDING_UPDATE plan that were not selected: set planId = null (return to unassigned pool).
+7. Create plan and link selected templates and Ad-hoc tasks (carried-over Ad-hoc tasks keep their status — only planId is re-pointed to the new plan).
+8. For Ad-hoc tasks from PENDING_UPDATE plan that were not selected: set planId = null and status back to BACKLOG (return to the priority matrix).
 9. Generate task instances **with `status = BACKLOG`** (staged in the backlog drawer): weekly tasks immediately, daily tasks for today only (respecting plan mode for weekend skipping).
 10. Set `lastSyncDate = today`.
 11. Archive any existing `PENDING_UPDATE` plan → `COMPLETED`.
@@ -102,19 +302,22 @@
 
 ### Update Plan Flow
 
-**Trigger:** User clicks "Edit Plan" on board header → navigates to `/kanban/plans/[id]`
+#### Trigger / Entry Point
 
-**Steps:**
-1. Page preloads PlanTemplates (with type and frequency config) from the `ACTIVE` plan and all non-DONE Ad-hoc tasks from DB (Ad-hoc tasks associated with current plan will be preselected).
-2. For non-Ad-hoc task: user edits template selection and/or type and frequency for a choosen template .
-3. For Ad-hoc task: user select/deselect to include/exclude task from current plan, deselect will set the planId to null.
+User clicks "Edit Plan" on board header → navigates to `/kanban/plans/[id]`.
+
+#### Steps
+
+1. Page preloads PlanTemplates (with type and frequency config) from the `ACTIVE` plan and all non-DONE Ad-hoc tasks associated with current plan from DB. 
+2. For non-Ad-hoc task: user edits template selection and/or type and frequency for a choosen template.
+3. For Ad-hoc task: user select/deselect to include/exclude task from current plan, deselect will set the planId to null and change the taskStatus to backlog => move back to priority matrix.
 4. Toggle plan mode between NORMAL and EXTREME.
 5. On submit, show confirmation modal summarizing the changes (added, removed, modified, mode change).
 6. User clicks confirm and regenerate button.
 7. Apply template changes and regenerate tasks accordingly (respecting plan mode for weekend skipping).
 8. Revalidate `/kanban` to render updated board.
 
-**Rules:**
+#### Rules
 
 - DONE and EXPIRED tasks are never touched regardless of change type.
 - Changes are applied per-template, unaffected templates are fully preserved.
@@ -125,132 +328,13 @@
 
 ---
 
-### Drag and Drop Flow
-
-**Trigger:** User drags a task card to a different column
-
-**Steps:**
-1. UI updates optimistically.
-2. Server Action persists new status to DB.
-3. On failure, UI rolls back to previous state.
-
-**Rules:**
-- Allowed transitions: BACKLOG → TODO → DOING → DONE only (no backwards movement). `BACKLOG → TODO` is the backlog drawer pull (drop onto the Todo column); see "Backlog Drawer Flow".
-
----
-
-### Progress Tracking Flow
-
-**Trigger:** Computed server-side on every board page load as part of `fetchBoard()`.
-
-**Data fetching:** Two parallel queries run after sync:
-
-1. `getBoardTasksByPlanId` — all non-expired tasks for the plan (`BACKLOG/TODO/DOING/DONE`). Today's total count/points exclude `BACKLOG` (filtered in-memory, not a separate query/field).
-2. `getBoardMetricsByPlanId` — a single raw SQL aggregate query that computes all historical counts and point sums using `FILTER` clauses. No in-memory aggregation for past data. Projection buckets (weekly-by-type, daily-past-by-`forDate`) count `BACKLOG` identically to `TODO`, so the Week projection includes backlog tasks unchanged.
-
-Future projections are then derived in-memory from the plan's current templates.
-
-**Points derivation:** Each task stores a denormalized `points` field derived from `size` via `SIZE_TO_POINTS` at creation time. All DB aggregation operates on this column directly — no runtime size-to-points conversion needed.
-
-**Metrics:**
-
-**Today Ring** — circular progress ring showing task completion for the current day.
-- Done count: `COUNT(*)` where `status = DONE` and `doneAt` is within today (from DB aggregate).
-- Total count: number of non-`BACKLOG` tasks (in-memory).
-
-**Today Points** — points earned today vs total points available on the board.
-- Done points: `SUM(points)` where `status = DONE` and `doneAt` is within today (from DB aggregate).
-- Total points: `SUM(task.points)` across non-`BACKLOG` tasks (in-memory reduction).
-
-**Week Points** — cumulative points earned this period vs projected period total.
-- Done points: `SUM(points)` where `status = DONE` across the entire plan (from DB aggregate).
-- Projected total: `dailyPastPoints + dailyFuturePoints + weeklyPoints + adhocPoints`
-  - `dailyPastPoints` (DB): `SUM(points)` where `forDate < today` — points from daily tasks already generated on previous days.
-  - `dailyFuturePoints` (in-memory): `SUM(template.points × frequency)` for all daily plan templates × remaining days. Remaining days respects plan mode: NORMAL counts only weekdays via `countWeekdaysInRange`, EXTREME counts all calendar days.
-  - `weeklyPoints` (DB): `SUM(points)` where `type = WEEKLY`.
-  - `adhocPoints` (DB): `SUM(points)` where `type = AD_HOC`.
-
-  **Daily Avg** — rolling average of points earned per elapsed day.
-- `weekDonePoints / daysElapsed`, where `daysElapsed` = days since the period's Monday (clamped 1–7).
-
-**Week Progress Bar** — percentage of projected task count completed this period.
-- Done count: `COUNT(*)` where `status = DONE` across the plan (from DB aggregate).
-- Projected total: same four-part decomposition as Week Points but using task counts (`dailyPastCount + dailyFutureCount + weeklyCount + adhocCount`).
-
-**Rules:**
-- Done points and done counts are append-only — they never decrease due to plan edits or template changes.
-- Past effort is preserved regardless of template modifications.
-- Future projection always reflects the current plan's active template snapshot.
-- Today's tasks are counted in the future projection bucket only — never double-counted with past.
-
----
-
-### Ad-hoc Task Creation flow
-
-**Trigger:** user click the create Ad-hoc task button from bottom of To do/In progress column triggers a modal to prompt creation flow.
-
-**Steps:**
-
-1. User fills in title, description, size and clicks "Add to board".
-2. Generate the Ad-hoc task with status matching the source column (Todo → TODO, In Progress → DOING) and link it to the current plan.
-3. UI state updates on success.
-
----
-
-### Task Risky Level Visual Effect Flow
-
-**Trigger:** Computed client-side on every board render, based on `forDate`, `createdAt`, task status, and current time to calculate the risky level (warning, dangerous).
-
-**Steps:**
-
-1. For each task in BoardData, compute risk level using current client time.
-
-2. For each task, derive risk level based on the rules below and apply the corresponding visual treatment.
-
-   **Daily Task — `forDate = today`**
-
-   - TODO, time < 20:00 → Normal
-   - TODO, time >= 20:00 → Warning
-   - DOING, time < 20:00 → Normal
-   - DOING, time >= 20:00 → Warning
-
-   **Daily Task — `forDate < today` (rollover)**
-
-   - TODO, time < 15:00 → Warning
-   - TODO, time >= 15:00 → Danger
-   - DOING, any time → Warning
-
-   **Weekly Task**
-
-   - TODO, `daysElapsed >= 3` or `remainingDays < remainingTasks × 2` → Warning
-   - TODO, `daysElapsed >= 5` or `remainingDays < remainingTasks × 1` → Danger
-   - DOING, `daysElapsed >= 5` or `remainingDays < remainingTasks × 1` → Warning
-   - DOING → never Danger
-   
-   **Ad-hoc Task**
-   
-   - TODO, `daysElapsedSinceCreation >= 5`  → Warning
-   - TODO, `daysElapsedSinceCreation >= 8` → Danger
-   - DOING, `daysElapsedSinceCreation >= 8` → Warning
-   - DOING → never Danger
-
-**Rules:**
-
-* `remainingTasks = frequency - doneCount - doingCount` (completed + in-progress instances this week for the same template)
-* `remainingDays = 7 - daysElapsed` (days remaining until end of week)
-* Danger takes priority over Warning when multiple conditions are met
-* Risk level only escalates, never regresses (rollover tasks maintain at minimum Warning)
-* DONE, EXPIRED tasks never trigger any risk indicator
-* Ad-hoc task risk is based on days since creation(`daysElapsedSinceCreation`), not plan period. 
-* Thresholds will be revisited once auto-clear logic is implemented (see Planned: Future).
-
----
-
 ### AI Assisted Plan Creation Flow
 
-**Trigger:** User clicks the AI assistant button inside create plan page.
+#### Trigger / Entry Point
 
-**Steps:**
+User clicks the AI assistant button inside create plan page.
+
+#### Steps
 
 1. **Open AI panel → resume or create Chat**
    - **Resume-or-create (persistence):** the chat is durable — the DB chat row is the source of truth. On open, if the in-memory store already holds a `chatId` (same session), just reveal the modal. Otherwise (fresh load / restart) call `getActiveAiChatAction`, which returns the user's most recent **unapproved** chat (`planId IS NULL`) via `getLatestInProgressChat`; rehydrate its messages + draft from the DB. Only when none exists do we create a new Chat. Approval sets `planId`, so the next fresh open starts a brand-new chat.
@@ -265,7 +349,7 @@ Future projections are then derived in-memory from the plan's current templates.
 
    - New user (no PENDING_UPDATE plan): Brief welcome explaining how the planner works and prompting the user to describe their goals.
    - Returning user: A friendly summary of last week's performance, built by interpolating `lastPlanStats.overall` into a static template (e.g. "You completed 12 of 16 tasks (75%) and earned 47 points. Your daily habits hit 90%."), then asks about goals for the coming week. No LLM.
-   - ~~Inject stats + existing templates into the system prompt as context (no tool calling).~~ 
+   - ~~Inject stats + existing templates into the system prompt as context (no tool calling).~~
    - ~~Persist as the first assistant Message. No streaming — regular request/response.~~
    - **Suggestion chips:** Displayed below the welcome message as quick-start prompts. These are **static hardcoded templates**, not LLM-generated, to avoid extra latency and ensure instant rendering.
      - New user set: `["I'm preparing for tech interviews", "Help me build a fitness routine", "I want to learn a new skill"]`
@@ -313,7 +397,6 @@ Future projections are then derived in-memory from the plan's current templates.
    - Read the draft from `Chat.metadata.latestDraft` (already loaded with the chat).
    - In **one transaction** (atomic), via `planService.createPlanFromDraft(tx, ...)`: batch-create the new templates (entries where `templateId` is null) with `createManyTaskTemplates`, resolve all entries to `{ templateId, type, frequency }[]`, then run the shared `createPlanInTx` core with the draft's `description` as `Plan.description` and `mode = NORMAL`. The core also completes the prior `PENDING_UPDATE` plan and links/moves ad-hoc tasks.
    - **Ad-hoc carry-over (V1):** the pending plan's non-done `AD_HOC` tasks are passed as `adhocTaskIds`, so they move to the new plan.
-   - `updateChatPlanId(chatId, newPlan.id, tx)` to link the chat.
 
    **Error handling:** If the LLM returns an error or unusable output, show an error message in the chat bubble. No retry logic for V1.
 
@@ -335,34 +418,87 @@ All data is fetched server-side and injected into the LLM system prompt as conte
 - **Existing task templates:** All non-archived templates for the user, so LLM can reuse existing ones (returning `templateId`) or suggest new ones (`templateId: null`).
 - **Prior drafts:** Replayed as conversation history (each `DRAFT_PLAN` message's full JSON content), so the model sees its previous proposals and the user's rejection feedback in order — no separate "last draft" injection into the system prompt.
 
-#### LLM Calls
+##### LLM Calls
 
 - `generateDraftPlanAction`: Generates a draft plan. Input: user message + stats + templates + last draft. Output: structured JSON (`message`, `draftTemplates`, `followUp`). Called multiple times during iteration.
 
+## Priorities
+
 ---
 
-### Backlog Drawer Flow
+### Priorities Landing Flow
 
-**Trigger (desktop, `md+`):** A collapsed backlog strip sits on the right edge of the board. The user clicks it to expand the drawer.
-**Trigger (mobile, `< md`):** A peeking "Backlog" pill sits above the bottom tab bar. The user taps it to open a bottom sheet.
+#### Trigger / Entry Point
 
-The drawer/sheet holds task instances with `status === BACKLOG` — the staging area template instances land in before reaching the board. Ad-hoc tasks are created on the board directly and never enter the backlog.
+User navigates to `/kanban/priorities` via the "Priorities" sidebar item (desktop) or the "Priorities" dock tab (mobile).
 
-**Steps (desktop):**
+#### Steps
 
-1. The collapsed strip shows the backlog count.
-2. On expand, render the backlog tasks (`status === BACKLOG`) as a flat list, ordered like a column (daily then weekly, by `instanceIndex`/`createdAt`).
-3. Drag a card onto the Todo column to move it to the board: optimistic update, then `updateTaskStatusAction(taskId, { status: TODO })`, rollback on failure. Todo is the only drop target; no un-pull (forward-only, per "Drag and Drop Flow").
+1. Fetch all of the user's Ad-hoc tasks with `status !== DONE` (both unassigned and tracked).
+2. Group tasks by `quadrant` and render the 2×2 matrix (Do First / Schedule / Squeeze In / Maybe Later) with per-quadrant counts.
+3. Render the title bar summary: total count and "tracking this week" count.
 
-**Steps (mobile):**
+#### Rules
 
-1. The pill shows the backlog count; it is hidden entirely when the backlog is empty.
-2. On tap, open a `modal-bottom` sheet (covers the tab bar as a standard modal; the board peeks behind the scrim). Render the same backlog list as full-width rows.
-3. Tap a card's `↑ Todo` button to pull it: same optimistic `updateTaskStatusAction(taskId, { status: TODO })` + rollback. The sheet stays open for consecutive pulls; tap-to-pull replaces drag (a sheet over the board makes drag-out unreliable; backlog is forward-only anyway).
+- DONE Ad-hoc tasks never show on the matrix.
+- A task counts as **tracked this week** only when its `planId` equals the current `ACTIVE` plan's id: it renders dimmed with a "This Week" tag (mobile: ★) and hides the send button. Tasks still pointing at a `PENDING_UPDATE` plan (period ended) render as normal cards.
 
-**Rules:**
+---
 
-- Desktop reuses the board `TaskCard`; mobile uses `BacklogSheetCard` (full-width, non-draggable) with the same badge/instance/rollover/risk language. Risk computation treats `BACKLOG` as `TODO` so visuals match the board (see "Task Risky Level Visual Effect Flow").
-- The `#{instanceIndex}` badge renders only when the template's `frequency > 1` (frequency-1 and ad-hoc tasks, always `instanceIndex = 1`, show none). The card reads `frequency` from `plan.planTemplates`.
-- The drawer/sheet open state is local UI state, default closed.
-- Empty backlog: desktop strip still shows (count `0`) with an empty-state body; the mobile pill is hidden (the sheet's empty state only appears if the last task is pulled while it is open).
+### Reprioritize (Drag and Drop) Flow
+
+#### Trigger / Entry Point
+
+User drags a card to a different quadrant (desktop and mobile).
+
+#### Steps
+
+1. UI updates optimistically.
+2. Server Action persists the new quadrant to DB.
+3. On failure, UI rolls back to previous state.
+
+#### Rules
+
+- Cards move freely between all four quadrants — no ordering restriction.
+- Tracked ("This Week") cards are draggable too: dragging only changes `quadrant`, never `status`/`planId`.
+
+---
+
+### Track This Week Flow
+
+#### Trigger / Entry Point
+
+- **Desktop:** hover a card → click the "→" send button on its right edge → a popover offers the target kanban columns ("Todo" / "In Progress").
+- **Mobile:** tap a card → a bottom sheet shows the card summary and the same column options.
+
+#### Steps
+
+1. User picks the target column (Todo or In Progress).
+2. UI updates optimistically: the card dims, the "This Week" tag appears, the send button hides, and the "tracking this week" count increments.
+3. Server Action associates the task with the current `ACTIVE` plan and changes its status `BACKLOG → TODO` (Todo) or `BACKLOG → DOING` (In Progress); rollback on failure.
+4. Revalidate `/kanban` so the board renders the card in the chosen column.
+
+#### Rules
+
+- Requires an `ACTIVE` plan. When none exists (period ended, next plan not yet created), send buttons render disabled and the matrix hint bar shows a "No active plan — Create Plan to track tasks this week" notice.
+- Already-tracked cards cannot be sent again (send button hidden).
+- There is no untrack from the matrix — detaching happens via the Update Plan flow's ad-hoc deselection (`planId = null`, status back to `BACKLOG`).
+
+---
+
+### Add Priority Task Flow
+
+#### Trigger / Entry Point
+
+User clicks the "Add" button at the bottom of a quadrant, which opens the Ad-hoc task modal.
+
+#### Steps
+
+1. User fills in title, description, size and clicks "Add to matrix".
+2. Generate the Ad-hoc task with `quadrant` matching the source quadrant, `status = BACKLOG`, and `planId = null`.
+3. UI state updates on success.
+
+#### Rules
+
+- Reuses the existing Ad-hoc task creation modal; only the submit wiring differs (quadrant + unassigned, instead of column status + plan link).
+- Tasks created here reach the board only via the "Track This Week Flow".

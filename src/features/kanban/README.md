@@ -25,10 +25,11 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 ## Backlog
 
 ### High Priority
-- [ ] End-of-period summary before starting a new plan
-- [ ] Move all constants for kanban feature
+- [ ] Implement priority matrix page
+- [x] End-of-period summary before starting a new plan
 
 ### Medium Priority
+- [ ] Design risk level for ad-hoc task on priority matrix 
 - [ ] Design evidence submit feature when user move task to done
 - [ ] Ad-hoc task deletion and auto-clear logic
 - [ ] Refine the component gallery page (`/design`) — add remaining primitives (BoardColumn, TemplateItem, task-modal pieces), polish grouping/layout, and consider per-variant controls

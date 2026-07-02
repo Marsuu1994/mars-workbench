@@ -64,7 +64,7 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 - **Task** — A concrete instance generated from a template or user defined Ad-hoc tasks. This is what appears on the board and gets dragged between columns.
   - Daily task: has `forDate`, generated each day by daily sync
   - Weekly task: has `periodKey`, generated once at plan creation
-  - Ad hoc task: can be generated anytime as needed, does not expire with time, does not associate with any task template, optional for associated with a plan
+  - Ad hoc task: can be generated anytime as needed, does not expire with time, does not associate with any task template, optional for associated with a plan. Lives on the priority matrix (`quadrant`, `planId = null`) until tracked onto the board
 - **Chat** — A conversation session between the user and LLM for AI-assisted plan creation (and future edit). Each chat belongs to one plan. A plan can have multiple chats over its lifecycle. `Chat.metadata` stores the last plan stats snapshot (captured at creation) and `latestDraft` — the single-slot approval clipboard, overwritten on each generation. Every draft is also persisted as a `DRAFT_PLAN` message for history/rendering.
 - **Message** — A single message from either the LLM or the user. Each message has a `type` field: `TEXT` for plain text (welcome messages, user input) or `DRAFT_PLAN` for structured draft responses (content is JSON with `{ message, description, draftTemplates, followUp }`). `DRAFT_PLAN` messages are rendered in the chat and replayed to the LLM as conversation history; the latest draft is also mirrored to `Chat.metadata.latestDraft` for approval.
 
@@ -180,6 +180,7 @@ model Task {
   status        TaskStatus
   forDate       DateTime?    // Set for daily tasks (the date this task is for)
   periodKey     String?      // Set for weekly tasks (e.g. "2026-W06")
+  quadrant      PriorityQuadrant? // Set for AD_HOC tasks only — Eisenhower quadrant on the priority matrix
   instanceIndex Int          // 1..frequency
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
@@ -190,11 +191,18 @@ model Task {
 }
 
 enum TaskStatus {
-  BACKLOG   // Generated from a template, staged in the backlog drawer; not yet pulled onto the board
+  BACKLOG   // Not yet on the board: template instances staged in the backlog drawer, AD_HOC tasks on the priority matrix
   TODO
   DOING
   DONE
   EXPIRED
+}
+
+enum PriorityQuadrant {
+  DO_FIRST     // Urgent & Important
+  SCHEDULE     // Important, not urgent
+  SQUEEZE_IN   // Urgent, not important
+  MAYBE_LATER  // Neither urgent nor important
 }
 
 // Constraints:
@@ -203,12 +211,15 @@ enum TaskStatus {
 // - Daily tasks: UNIQUE(planId, templateId, forDate, instanceIndex)
 // - Weekly tasks: UNIQUE(planId, templateId, periodKey, instanceIndex)
 // - DAILY and WEEKLY tasks: planId is required (NOT NULL)
-// - AD_HOC tasks: templateId is null, planId is optional(NULL = unassigned, not on the board), forDate and periodKey are both null, instanceIndex = 1
+// - AD_HOC tasks: templateId is null, planId is optional(NULL = on the priority matrix, not on the board), forDate and periodKey are both null, instanceIndex = 1
 // - AD_HOC tasks do not expire
+// - quadrant is set for AD_HOC tasks only (null for DAILY/WEEKLY)
 // - Exactly one of forDate or periodKey must be set for DAILY and WEEKLY tasks
-// - Template-generated instances (DAILY, WEEKLY) are created with status = BACKLOG (staged in the
-//   backlog drawer). They move to TODO only when the user drags them onto the board. AD_HOC tasks are
-//   never BACKLOG — they are created directly as TODO/DOING on the board.
+// - BACKLOG means "not yet on the board" for every type. Template-generated instances (DAILY, WEEKLY)
+//   are created as BACKLOG in the plan's backlog drawer and move to TODO when pulled onto the board.
+//   AD_HOC tasks are created as BACKLOG on the priority matrix (planId = null) and move to TODO/DOING
+//   when tracked ("Track This Week"); detaching from a plan resets them to BACKLOG. Status changes only
+//   when a task crosses the BACKLOG↔board boundary — carry-over between plans re-points planId only.
 ```
 
 ### Chat
