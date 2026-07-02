@@ -15,7 +15,6 @@ import { updateTaskStatusAction } from "../../actions/taskActions";
 import BoardColumn from "./BoardColumn";
 import BacklogDrawer from "./BacklogDrawer";
 import MobileBacklogSheet from "./MobileBacklogSheet";
-import TaskModal from "../shared/task-modal/TaskModal";
 
 interface KanbanBoardProps {
   tasks: TaskItem[];
@@ -29,8 +28,6 @@ export default function KanbanBoard({
   planTemplates,
 }: KanbanBoardProps) {
   const [localTasks, setLocalTasks] = useState<TaskItem[]>(tasks);
-  const [isAdhocModalOpen, setIsAdhocModalOpen] = useState(false);
-  const [adhocInitialStatus, setAdhocInitialStatus] = useState<string>(TaskStatus.TODO);
   const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
@@ -114,12 +111,6 @@ export default function KanbanBoard({
     });
   }
 
-  const openAdhocModal = (status: string) => {
-    setAdhocInitialStatus(status);
-    setIsAdhocModalOpen(true);
-  };
-  const closeAdhocModal = () => setIsAdhocModalOpen(false);
-
   return (
     <DragDropContext onDragStart={() => setIsDragging(true)} onDragEnd={handleDragEnd}>
       <div className="flex h-full">
@@ -138,7 +129,6 @@ export default function KanbanBoard({
             riskMap={riskMap}
             templateFreqMap={templateFreqMap}
             isDragActive={isDragging}
-            onAddAdhocTask={openAdhocModal}
           />
           <BoardColumn
             status={TaskStatus.DOING}
@@ -147,7 +137,6 @@ export default function KanbanBoard({
             riskMap={riskMap}
             templateFreqMap={templateFreqMap}
             isDragActive={isDragging}
-            onAddAdhocTask={openAdhocModal}
           />
           <BoardColumn
             status={TaskStatus.DONE}
@@ -171,13 +160,6 @@ export default function KanbanBoard({
         riskMap={riskMap}
         templateFreqMap={templateFreqMap}
         onPull={handlePullToTodo}
-      />
-      <TaskModal
-        isOpen={isAdhocModalOpen}
-        onClose={closeAdhocModal}
-        onSaved={closeAdhocModal}
-        mode="adhoc"
-        initialStatus={adhocInitialStatus}
       />
     </DragDropContext>
   );

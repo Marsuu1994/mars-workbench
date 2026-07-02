@@ -19,7 +19,7 @@ const CHROMELESS_PREFIXES = ["/design"];
  * scroll parent, and the board page fills main exactly. Other routes
  * (/kanban/plans/*, etc.) still rely on main scrolling.
  */
-const SELF_SCROLLING_ROUTES = ["/kanban"];
+const SELF_SCROLLING_ROUTES = ["/kanban", "/kanban/priorities"];
 
 /**
  * Wraps page content in the app shell (sidebar + bottom tab bar), except on

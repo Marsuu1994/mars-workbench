@@ -19,7 +19,7 @@ import type { TaskItem } from "@/lib/db/tasks";
 import type { OverallStats } from "../types/aiChat";
 import { rollUpOverall } from "../utils/statsUtils";
 import { PlanMode, TaskType, TaskStatus, PlanStatus } from "@/generated/prisma/client";
-import { getTodayDate, getYesterdayDate, getISOWeekKey, getMondayFromPeriodKey, getSundayFromPeriodKey, isWeekend, countWeekdaysInRange } from "../utils/dateUtils";
+import { getTodayDate, getYesterdayDate, getMondayFromPeriodKey, getSundayFromPeriodKey, isPeriodCurrent, isWeekend, countWeekdaysInRange } from "../utils/dateUtils";
 import { sizeToPoints } from "../utils/sizeUtils";
 
 export type BoardData = {
@@ -128,7 +128,7 @@ export async function fetchBoard(userId: string): Promise<BoardData | null> {
   const today = getTodayDate();
 
   // Check if the plan's period has ended (new week started)
-  if (getISOWeekKey(today) !== activePlan.periodKey) {
+  if (!isPeriodCurrent(activePlan.periodKey, today)) {
     await runEndOfPeriodSync(userId, activePlan.id);
     return null;
   }
