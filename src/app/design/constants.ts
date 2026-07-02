@@ -48,6 +48,7 @@ const baseTask = (overrides: Partial<TaskItem>): TaskItem => ({
   status: TaskStatus.TODO,
   forDate: null,
   periodKey: null,
+  quadrant: null,
   instanceIndex: 0,
   createdAt: TODAY,
   updatedAt: TODAY,

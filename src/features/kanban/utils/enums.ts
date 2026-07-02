@@ -20,6 +20,14 @@ export const TaskStatus = {
 } as const;
 export type TaskStatus = (typeof TaskStatus)[keyof typeof TaskStatus];
 
+export const PriorityQuadrant = {
+  DO_FIRST: "DO_FIRST",
+  SCHEDULE: "SCHEDULE",
+  SQUEEZE_IN: "SQUEEZE_IN",
+  MAYBE_LATER: "MAYBE_LATER",
+} as const;
+export type PriorityQuadrant = (typeof PriorityQuadrant)[keyof typeof PriorityQuadrant];
+
 export const PeriodType = {
   WEEKLY: "WEEKLY",
 } as const;

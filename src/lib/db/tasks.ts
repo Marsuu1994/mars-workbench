@@ -1,5 +1,11 @@
 import prisma from "@/lib/prisma";
-import { Prisma, TaskSize, TaskStatus, TaskType } from "@/generated/prisma/client";
+import {
+  Prisma,
+  PriorityQuadrant,
+  TaskSize,
+  TaskStatus,
+  TaskType,
+} from "@/generated/prisma/client";
 
 export type TaskItem = {
   id: string;
@@ -13,6 +19,7 @@ export type TaskItem = {
   status: TaskStatus;
   forDate: Date | null;
   periodKey: string | null;
+  quadrant: PriorityQuadrant | null;
   instanceIndex: number;
   createdAt: Date;
   updatedAt: Date;
@@ -44,6 +51,7 @@ const taskSelect = {
   status: true,
   forDate: true,
   periodKey: true,
+  quadrant: true,
   instanceIndex: true,
   createdAt: true,
   updatedAt: true,
@@ -422,8 +430,10 @@ export async function updateTasksPlanId(
 }
 
 /**
- * Unlink ad-hoc tasks from a plan: set planId = null for AD_HOC tasks
- * on the given plan whose id is NOT in keepIds.
+ * Unlink ad-hoc tasks from a plan: AD_HOC tasks on the given plan whose id is
+ * NOT in keepIds go back to the priority matrix (planId = null, status =
+ * BACKLOG — "not yet on the board"). DONE tasks are excluded: they stay on
+ * their plan so completed points keep their historical attribution.
  */
 export async function unlinkAdhocTasksFromPlan(
   userId: string,
@@ -437,9 +447,10 @@ export async function unlinkAdhocTasksFromPlan(
       userId,
       planId,
       type: TaskType.AD_HOC,
+      status: { not: TaskStatus.DONE },
       id: { notIn: keepIds },
     },
-    data: { planId: null },
+    data: { planId: null, status: TaskStatus.BACKLOG },
   });
 }
 
