@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getPlanWithTemplates } from "@/lib/db/plans";
 import { getTaskTemplates } from "@/lib/db/taskTemplates";
 import { getNonDoneAdhocTasks } from "@/lib/db/tasks";
+import { ensureSynced } from "@/features/kanban/services/syncService";
 import PlanForm from "@/features/kanban/components/plan/PlanForm";
 import { getCurrentUserId } from "@/lib/auth/getCurrentUserId";
 
@@ -12,8 +13,10 @@ export default async function EditPlanPage({
 }) {
   const { id } = await params;
   const userId = await getCurrentUserId();
+  // Keep the plan lifecycle current before reading (see syncService)
+  await ensureSynced(userId);
 
-  const [plan, templates, adhocTasks] = await Promise.all([
+  const [plan, templates, allAdhocTasks] = await Promise.all([
     getPlanWithTemplates(userId, id),
     getTaskTemplates(userId),
     getNonDoneAdhocTasks(userId),
@@ -29,9 +32,10 @@ export default async function EditPlanPage({
     frequency: pt.frequency,
   }));
 
-  const initialAdhocTaskIds = adhocTasks
-    .filter((t) => t.planId === id)
-    .map((t) => t.id);
+  // Only this plan's ad-hoc tasks are editable here (deselect → back to the
+  // matrix). Unassigned tasks are tracked from the priority matrix instead.
+  const adhocTasks = allAdhocTasks.filter((t) => t.planId === id);
+  const initialAdhocTaskIds = adhocTasks.map((t) => t.id);
 
   return (
     <PlanForm

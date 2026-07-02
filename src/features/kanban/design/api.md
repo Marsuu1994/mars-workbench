@@ -14,7 +14,9 @@
 
 ### `fetchBoard(): BoardData | null`
 
-Called directly from the `/kanban` Server Component. Orchestrates sync checks and returns board data with pre-computed metrics.
+Called directly from the `/kanban` Server Component. Returns board data with pre-computed metrics.
+
+**Sync lifecycle** is centralized in `syncService.ensureSynced(userId)` — every kanban page (board, priorities matrix, plan create/edit) awaits it before reading plan state, so no page carries its own sync branching and page-visit order never matters. It flips an ended ACTIVE plan to PENDING_UPDATE (`runEndOfPeriodSync`), runs the daily sync at most once per day (`runDailySync`, `lastSyncDate` short-circuit), and returns the current-week ACTIVE plan or null. Idempotent; wrapped in React `cache()` for per-request dedupe. `runDailySync` / `runEndOfPeriodSync` stay standalone for a future cron job.
 
 ```
 BoardData {
@@ -241,28 +243,32 @@ Steps:
 
 ### `createAdhocTaskAction(input)`
 
+Serves the priority matrix "Add Priority Task" flow (board-side ad-hoc creation
+is removed). Tasks are born unassigned on the matrix and reach the board via
+`trackTaskAction`.
+
 ```
 Input {
   title:        string
   description?: string
-  size:         TaskSize    // EXTRA_SMALL | SMALL | MEDIUM | LARGE | EXTRA_LARGE
-  status?:      TaskStatus   // TODO (default) or DOING — matches source column
+  size:         TaskSize          // EXTRA_SMALL | SMALL | MEDIUM | LARGE | EXTRA_LARGE
+  quadrant:     PriorityQuadrant  // source quadrant of the "Add" button
 }
 
 Steps:
 1. Validate input with Zod
-2. Get active plan for user (must exist — button only visible on board)
-3. Derive points from size via SIZE_TO_POINTS mapping
-4. Create Task record:
-   - planId = activePlan.id
+2. Derive points from size via SIZE_TO_POINTS mapping
+3. Create Task record:
+   - planId = null (unassigned — lives on the matrix)
    - templateId = null
    - type = AD_HOC
    - size = input.size
    - points = sizeToPoints(input.size)
-   - status = input.status ?? TODO
+   - status = BACKLOG
+   - quadrant = input.quadrant
    - forDate = null, periodKey = null
    - instanceIndex = 1
-5. revalidatePath('/kanban')
+4. revalidatePath('/kanban/priorities')
 ```
 
 ---
@@ -281,6 +287,70 @@ Steps:
 ```
 
 Used by the edit plan UI to preview how many tasks will be removed per template before confirming changes.
+
+---
+
+## Priority Matrix
+
+### `fetchPriorityMatrixAction(): MatrixData`
+
+Called from the `/kanban/priorities` Server Component. Thin wrapper over
+`matrixService.fetchPriorityMatrix(userId)`.
+
+```
+MatrixData {
+  tasks:      TaskItem[]                              // all non-DONE AD_HOC tasks (unassigned + tracked)
+  activePlan: { id, periodKey } | null                // current-week ACTIVE plan; drives the no-plan state
+}
+
+Steps:
+1. Promise.all([getNonDoneAdhocTasks(userId), ensureSynced(userId)])
+2. ensureSynced flips an ended ACTIVE plan to PENDING_UPDATE (same lifecycle
+   as the board), so a user landing here first after the week rolls over
+   neither sees nor tracks into last week's plan — and the no-plan hint's
+   "Create Plan" CTA works.
+3. Counts (total / tracking this week) are derived client-side from local
+   state so the optimistic track flow keeps them in sync.
+```
+
+---
+
+### `updateTaskQuadrantAction(taskId, input)` — reprioritize
+
+```
+Input {
+  quadrant: PriorityQuadrant    // DO_FIRST | SCHEDULE | SQUEEZE_IN | MAYBE_LATER
+}
+
+Steps:
+1. Validate input with Zod
+2. updateTaskQuadrant(userId, taskId, quadrant) — owner + AD_HOC scoped;
+   null → Errors.taskNotFound. Only quadrant changes (tracked cards drag too —
+   status/planId are never touched by reprioritizing)
+3. revalidatePath('/kanban/priorities')
+```
+
+---
+
+### `trackTaskAction(taskId, input)` — Track This Week
+
+```
+Input {
+  status: TaskStatus    // TODO | DOING — the target board column
+}
+
+Steps (service: matrixService.trackTaskThisWeek):
+1. Validate input with Zod
+2. Resolve the current-week ACTIVE plan via ensureSynced — none →
+   Errors.noActivePlan
+3. trackAdhocTask(userId, taskId, plan.id, status) — single UPDATE setting
+   planId + status together; WHERE requires { type: AD_HOC, planId: null,
+   status: BACKLOG } so already-tracked/non-matrix tasks → Errors.taskNotFound
+4. revalidatePath('/kanban') + revalidatePath('/kanban/priorities')
+```
+
+There is no untrack from the matrix — detaching happens via the Update Plan
+flow's ad-hoc deselection (`unlinkAdhocTasksFromPlan`).
 
 ---
 
@@ -505,9 +575,11 @@ taskExists(userId, taskId)                                          // owned exi
 getNonDoneAdhocTasks(userId)                                        // user's non-DONE AD_HOC tasks (incl. planId = null)
 
 // Mutations
-createTask(userId, data: { ..., size, points })                    // single task instance; points derived from size via SIZE_TO_POINTS
+createTask(userId, data: { planId: string | null, ..., size, points, quadrant? })  // single task instance; planId null + quadrant for matrix tasks
 createManyTasks(data: { userId, ..., size, points }[], tx?)        // batch create with skipDuplicates; each element carries userId
 updateTaskStatus(userId, taskId, status)                            // → TaskItem | null; updateManyAndReturn, auto-sets/clears doneAt
+updateTaskQuadrant(userId, taskId, quadrant)                        // → TaskItem | null; reprioritize (owner + AD_HOC scoped)
+trackAdhocTask(userId, taskId, planId, status)                      // → TaskItem | null; single write planId + status, WHERE { planId: null, status: BACKLOG }
 
 // Expiry
 expireStaleDailyTasks(userId, planId, cutoffDate, tx?)             // DAILY tasks where forDate < cutoffDate → EXPIRED

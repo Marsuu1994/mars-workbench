@@ -3,7 +3,7 @@
     "TaskType": {
       "DAILY": "DAILY",
       "WEEKLY": "WEEKLY",
-      "AD_HOC": "Ad-hoc"
+      "AD_HOC": "Todo"
     },
     "TaskTypeShort": {
       "DAILY": "DAILY",
@@ -25,15 +25,21 @@
     "PlanMode": {
       "NORMAL": "Normal",
       "EXTREME": "Extreme"
+    },
+    "PriorityQuadrant": {
+      "DO_FIRST": "Do First",
+      "SCHEDULE": "Schedule",
+      "SQUEEZE_IN": "Squeeze In",
+      "MAYBE_LATER": "Maybe Later"
     }
   },
   "Board": {
     "Backlog": {
-      "title": "Backlog",
+      "title": "Queued",
       "hintDragToTodo": "Drag tasks left to Todo to start working",
       "emptyState": "You're all caught up — no staged tasks.",
-      "openLabel": "Open backlog",
-      "closeLabel": "Close backlog",
+      "openLabel": "Open queued tasks",
+      "closeLabel": "Close queued tasks",
       "hintTapToTodo": "Tap to pull a task onto the board",
       "pullToTodoLabel": "Todo"
     },
@@ -41,9 +47,6 @@
       "titlePrefix": "Kanban",
       "titleSuffix": " Planner",
       "planningMode": "Planning Mode"
-    },
-    "Column": {
-      "addAdhocTask": "Add ad-hoc task"
     },
     "Card": {
       "atRisk": "at risk",
@@ -73,19 +76,50 @@
       "statPointsEarned": "Points earned"
     }
   },
+  "Priorities": {
+    "title": "My Priorities",
+    "subtitle": "One-off things you want to do — not tied to your weekly plan",
+    "summary": "<num>{total}</num> total · <num>{tracked}</num> tracking this week",
+    "summaryMobile": "{total} total · {tracked} this week",
+    "weekBadge": "Week {week}",
+    "hint": "Drag between quadrants to reprioritize · click <arrow></arrow> to track this week",
+    "hintNoPlan": "No active plan — <em>Create Plan</em> to track tasks this week",
+    "axisImportant": "Important",
+    "axisNotImportant": "Not Important",
+    "axisNotImportantShort": "Not Imp.",
+    "axisUrgent": "Urgent",
+    "axisNotUrgent": "Not Urgent",
+    "QuadrantShort": {
+      "DO_FIRST": "Do First",
+      "SCHEDULE": "Schedule",
+      "SQUEEZE_IN": "Squeeze",
+      "MAYBE_LATER": "Later"
+    },
+    "sublabelDoFirst": "Urgent & Important",
+    "sublabelSchedule": "Important",
+    "sublabelSqueezeIn": "Urgent",
+    "add": "Add",
+    "thisWeek": "This Week",
+    "trackTitle": "Track this week",
+    "sendLabel": "Track this week",
+    "closeLabel": "Close",
+    "noPlanTooltip": "No active plan yet",
+    "dropHint": "{quadrant, select, DO_FIRST {Drop here — mark Urgent & Important} SCHEDULE {Drop here — mark Important} SQUEEZE_IN {Drop here — mark Urgent} MAYBE_LATER {Drop here — mark Maybe Later} other {Drop here}}",
+    "sheetPoints": "{points, plural, one {# pt} other {# pts}}"
+  },
   "TaskModal": {
     "header": {
       "create": "Create Task Template",
       "edit": "Edit Task Template",
-      "adhoc": "Add Ad-hoc Task"
+      "adhoc": "Add Priority Task"
     },
     "submit": {
       "create": "Create Template",
       "edit": "Save Changes",
-      "adhoc": "Add to Board"
+      "adhoc": "Add to matrix"
     },
     "cancel": "Cancel",
-    "adhocBanner": "Ad-hoc tasks are one-off items — they don't repeat and never expire.",
+    "adhocBanner": "Priority tasks are one-off items — they don't repeat and never expire.",
     "titleLabel": "Title",
     "titlePlaceholderAdhoc": "e.g. File tax report",
     "titlePlaceholderTemplate": "e.g. Solve 3 LeetCode problems",
@@ -195,7 +229,7 @@
     "addedToBoard": "Added to board",
     "adhocAddedNote": "Will appear on the board",
     "removedFromBoard": "Removed from board",
-    "adhocRemovedNote": "Will be moved to unassigned pool",
+    "adhocRemovedNote": "Will return to the Priorities matrix",
     "modeChangedHeading": "Mode Changed",
     "modeChangedNote": "{description} — change applies to future daily tasks only",
     "globalNote": "Done and Expired tasks are never affected by any change — your completed work is always preserved.",

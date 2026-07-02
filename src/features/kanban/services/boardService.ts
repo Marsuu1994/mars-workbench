@@ -1,15 +1,8 @@
-import prisma from "@/lib/prisma";
 import {
-  getActivePlan,
   getPlanByStatus,
   getPlanWithTemplates,
-  updateLastSyncDate,
-  updatePlanStatus,
 } from "@/lib/db/plans";
 import {
-  expireStaleDailyTasks,
-  expireAllNonDoneTasks,
-  createManyTasks,
   getBoardMetricsByPlanId,
   getBoardTasksByPlanId,
   getPlanTemplateStats,
@@ -19,8 +12,9 @@ import type { TaskItem } from "@/lib/db/tasks";
 import type { OverallStats } from "../types/aiChat";
 import { rollUpOverall } from "../utils/statsUtils";
 import { PlanMode, TaskType, TaskStatus, PlanStatus } from "@/generated/prisma/client";
-import { getTodayDate, getYesterdayDate, getISOWeekKey, getMondayFromPeriodKey, getSundayFromPeriodKey, isWeekend, countWeekdaysInRange } from "../utils/dateUtils";
+import { getTodayDate, getMondayFromPeriodKey, getSundayFromPeriodKey, countWeekdaysInRange } from "../utils/dateUtils";
 import { sizeToPoints } from "../utils/sizeUtils";
+import { ensureSynced } from "./syncService";
 
 export type BoardData = {
   plan: PlanWithTemplates;
@@ -58,89 +52,16 @@ export async function getEmptyBoardState(userId: string): Promise<EmptyBoardStat
 }
 
 /**
- * Run daily sync for a plan: expire stale tasks and generate today's daily tasks.
- * Standalone and reusable (e.g., by a future cron job).
- */
-export async function runDailySync(userId: string, planId: string, today: Date): Promise<void> {
-  // Read before transaction — template data doesn't change during sync
-  const planWithTemplates = await getPlanWithTemplates(userId, planId);
-  if (!planWithTemplates) return;
-
-  const skipDailyGeneration =
-    planWithTemplates.mode === PlanMode.NORMAL && isWeekend(today);
-
-  const dailyTaskData: Parameters<typeof createManyTasks>[0] = [];
-
-  if (!skipDailyGeneration) {
-    for (const pt of planWithTemplates.planTemplates) {
-      if (pt.type !== TaskType.DAILY) continue;
-
-      for (let i = 0; i < pt.frequency; i++) {
-        dailyTaskData.push({
-          userId,
-          planId,
-          templateId: pt.template.id,
-          type: TaskType.DAILY,
-          title: pt.template.title,
-          description: pt.template.description,
-          size: pt.template.size,
-          points: sizeToPoints(pt.template.size),
-          status: TaskStatus.BACKLOG,
-          forDate: today,
-          instanceIndex: i,
-        });
-      }
-    }
-  }
-
-  // 1-day rollover buffer: expire tasks older than yesterday, not older than today.
-  // Yesterday's tasks stay active for one more day before expiring.
-  const yesterday = getYesterdayDate();
-
-  await prisma.$transaction(async (tx) => {
-    await updateLastSyncDate(userId, planId, today, tx);
-    await expireStaleDailyTasks(userId, planId, yesterday, tx);
-    if (dailyTaskData.length > 0) {
-      await createManyTasks(dailyTaskData, tx);
-    }
-  });
-}
-
-/**
- * Run end-of-period sync: expire all undone tasks and move plan to PENDING_UPDATE.
- * Standalone and reusable (e.g., by a future cron job).
- */
-export async function runEndOfPeriodSync(userId: string, planId: string): Promise<void> {
-  await prisma.$transaction(async (tx) => {
-    await expireAllNonDoneTasks(userId, planId, tx);
-    await updatePlanStatus(userId, planId, PlanStatus.PENDING_UPDATE, tx);
-  });
-}
-
-/**
  * Fetch the board for the kanban page.
  * Checks if period has ended or daily sync is needed before running.
  */
 export async function fetchBoard(userId: string): Promise<BoardData | null> {
-  const activePlan = await getActivePlan(userId);
+  // End-of-period + daily sync live in syncService (shared with the matrix
+  // and plan pages); returns the current-week ACTIVE plan or null.
+  const activePlan = await ensureSynced(userId);
   if (!activePlan) return null;
 
   const today = getTodayDate();
-
-  // Check if the plan's period has ended (new week started)
-  if (getISOWeekKey(today) !== activePlan.periodKey) {
-    await runEndOfPeriodSync(userId, activePlan.id);
-    return null;
-  }
-
-  // Only run daily sync if it hasn't been done today
-  const needsSync =
-    !activePlan.lastSyncDate ||
-    activePlan.lastSyncDate.getTime() !== today.getTime();
-
-  if (needsSync) {
-    await runDailySync(userId, activePlan.id, today);
-  }
 
   // Fetch plan with templates for board display
   const planWithTemplates = await getPlanWithTemplates(userId, activePlan.id);

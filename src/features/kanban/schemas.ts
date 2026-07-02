@@ -2,7 +2,14 @@ import { z } from "zod";
 // Client-safe enum mirrors (same string values as the Prisma enums) so this
 // module can be imported from "use client" code without pulling in the
 // Node-only generated Prisma client.
-import { PeriodType, PlanMode, TaskSize, TaskType, TaskStatus } from "./utils/enums";
+import {
+  PeriodType,
+  PlanMode,
+  PriorityQuadrant,
+  TaskSize,
+  TaskType,
+  TaskStatus,
+} from "./utils/enums";
 // Validation copy is centralized in the i18n catalog. zod messages are set at
 // module load (no React context), so we read the English strings directly from
 // en.json here rather than via useTranslations/getTranslations. Single-locale
@@ -76,13 +83,30 @@ export const updateTaskStatusSchema = z.object({
 });
 export type UpdateTaskStatusInput = z.infer<typeof updateTaskStatusSchema>;
 
+// Matrix creation only ("Add Priority Task" flow): tasks are born unassigned
+// (planId = null, status = BACKLOG) in the source quadrant and reach the board
+// via the Track This Week flow. Board-side ad-hoc creation is removed.
 export const createAdhocTaskSchema = z.object({
   title: z.string().min(1, V.titleRequired),
   description: z.string().optional(),
   size: z.nativeEnum(TaskSize),
-  status: z.enum([TaskStatus.TODO, TaskStatus.DOING]).optional(),
+  quadrant: z.nativeEnum(PriorityQuadrant),
 });
 export type CreateAdhocTaskInput = z.infer<typeof createAdhocTaskSchema>;
+
+export const updateTaskQuadrantSchema = z.object({
+  quadrant: z.nativeEnum(PriorityQuadrant),
+});
+export type UpdateTaskQuadrantInput = z.infer<typeof updateTaskQuadrantSchema>;
+
+// Track This Week targets: Todo or In Progress only
+export const trackTaskSchema = z.object({
+  status: z.enum([TaskStatus.TODO, TaskStatus.DOING]),
+});
+export type TrackTaskInput = z.infer<typeof trackTaskSchema>;
+// Client-side union derived from the validated contract, so the UI options
+// can never drift from what the server accepts.
+export type TrackTargetStatus = TrackTaskInput["status"];
 
 // ── AI Chat Schemas ────────────────────────────────────────────────────
 

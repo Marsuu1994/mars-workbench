@@ -27,7 +27,7 @@
 <div class="screen-nav">
   <button class="screen-btn active" data-screen="new" onclick="show('new')">New Template</button>
   <button class="screen-btn" data-screen="edit" onclick="show('edit')">Edit Template</button>
-  <button class="screen-btn" data-screen="adhoc" onclick="show('adhoc')">Add Ad-hoc Task</button>
+  <button class="screen-btn" data-screen="adhoc" onclick="show('adhoc')">Add Priority Task</button>
 </div>
 
 <!-- ══ NEW TEMPLATE ══ -->
@@ -287,11 +287,11 @@
       </div>
     </div>
 
-    <!-- Add Ad-hoc Task Modal -->
+    <!-- Add Priority Task Modal -->
     <div class="modal-overlay">
       <div class="modal">
         <div class="modal-header">
-          <div class="modal-title">Add Ad-hoc Task</div>
+          <div class="modal-title">Add Priority Task</div>
           <button style="background:none;border:none;cursor:pointer;color:#888888;padding:4px">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
           </button>
@@ -300,7 +300,7 @@
           <!-- Info banner -->
           <div class="adhoc-banner">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Ad-hoc tasks are one-off items — they don't repeat and never expire.
+            Priority tasks are one-off items — they don't repeat and never expire.
           </div>
           <div class="form-group">
             <label class="form-label">Title <span style="color:#e93f33">*</span></label>
@@ -326,7 +326,7 @@
           <button class="btn btn-ghost">Cancel</button>
           <button class="btn btn-primary">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
-            Add to Board
+            Add to matrix
           </button>
         </div>
       </div>

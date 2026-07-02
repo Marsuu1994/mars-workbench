@@ -60,11 +60,18 @@ export function getMondayFromPeriodKey(periodKey: string): Date {
 }
 
 /**
+ * Parses a periodKey like "2026-W06" and returns the week number part ("06").
+ */
+export function getWeekNumberFromPeriodKey(periodKey: string): string {
+  return periodKey.split("-W")[1];
+}
+
+/**
  * Parses a periodKey like "2026-W06" and returns a formatted string
  * like "Week 06 · Feb 3 – Feb 9" (Monday–Sunday range).
  */
 export function getWeekDateRange(periodKey: string): string {
-  const weekStr = periodKey.split("-W")[1];
+  const weekStr = getWeekNumberFromPeriodKey(periodKey);
   const monday = getMondayFromPeriodKey(periodKey);
 
   const sunday = new Date(monday);
@@ -135,6 +142,15 @@ export function countWeekdaysInRange(from: Date, to: Date): number {
     current.setDate(current.getDate() + 1);
   }
   return count;
+}
+
+/**
+ * Whether a plan periodKey still covers today. Shared by the board's
+ * end-of-period check and the matrix's stale-plan guard so the "is this
+ * ACTIVE plan's period still current?" rule has a single home.
+ */
+export function isPeriodCurrent(periodKey: string, today: Date): boolean {
+  return getISOWeekKey(today) === periodKey;
 }
 
 /**

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Kanban — Backlog Drawer</title>
+<title>Kanban — Queued Drawer</title>
 <link rel="stylesheet" href="../../../mockup-theme.css" />
 <link rel="stylesheet" href="./styles.css" />
 <style>
@@ -187,14 +187,10 @@
         <div class="task-card">
           <div class="task-title">File tax report</div>
           <div class="task-meta">
-            <span class="task-badge badge-adhoc">Ad-hoc</span>
+            <span class="task-badge badge-todo">Todo</span>
             <span class="size-chip"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span>
           </div>
         </div>
-        <button class="add-task-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
-          Add ad-hoc task
-        </button>
       </div>
     </div>
     <div class="column col-doing">
@@ -207,10 +203,6 @@
             <span class="size-chip"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span>
           </div>
         </div>
-        <button class="add-task-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
-          Add ad-hoc task
-        </button>
       </div>
     </div>
     <div class="column col-done">
@@ -219,7 +211,7 @@
         <div class="task-card done-card">
           <div class="task-title">Buy birthday gift</div>
           <div class="task-meta">
-            <span class="task-badge badge-adhoc">Ad-hoc</span>
+            <span class="task-badge badge-todo">Todo</span>
             <span class="size-chip"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span>
           </div>
         </div>
@@ -249,14 +241,10 @@
         <div class="task-card">
           <div class="task-title">File tax report</div>
           <div class="task-meta">
-            <span class="task-badge badge-adhoc">Ad-hoc</span>
+            <span class="task-badge badge-todo">Todo</span>
             <span class="size-chip"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span>
           </div>
         </div>
-        <button class="add-task-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
-          Add ad-hoc task
-        </button>
       </div>
     </div>
     <div class="column col-doing">
@@ -269,10 +257,6 @@
             <span class="size-chip"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span>
           </div>
         </div>
-        <button class="add-task-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
-          Add ad-hoc task
-        </button>
       </div>
     </div>
     <div class="column col-done">
@@ -281,7 +265,7 @@
         <div class="task-card done-card">
           <div class="task-title">Buy birthday gift</div>
           <div class="task-meta">
-            <span class="task-badge badge-adhoc">Ad-hoc</span>
+            <span class="task-badge badge-todo">Todo</span>
             <span class="size-chip"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span>
           </div>
         </div>
@@ -361,7 +345,7 @@
       <div class="backlog-rstrip" onclick="showScreen('screen-open')">
         <svg class="backlog-rstrip-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span class="backlog-count-pill">5</span>
-        <span class="backlog-rstrip-label">Backlog</span>
+        <span class="backlog-rstrip-label">Queued</span>
       </div>
     </div>
   </div>
@@ -380,7 +364,7 @@
         <div class="backlog-right-header">
           <div class="backlog-title-row">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--m-blue)"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Backlog
+            Queued
             <span class="backlog-count-pill">5</span>
           </div>
           <button class="backlog-close-btn" onclick="showScreen('screen-closed')">

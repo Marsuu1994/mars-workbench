@@ -89,6 +89,8 @@ export async function approveDraftPlanAction(input: unknown) {
   try {
     const plan = await approveDraftPlan(userId, parsed.data.chatId);
     revalidatePath("/kanban");
+    // Carried-over ad-hoc tasks become tracked on the matrix
+    revalidatePath("/kanban/priorities");
     return { data: { planId: plan.id } };
   } catch {
     const t = await getTranslations("Errors");

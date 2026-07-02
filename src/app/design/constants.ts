@@ -1,4 +1,10 @@
-import { TaskType, TaskStatus, TaskSize, SIZE_TO_POINTS } from "@/features/kanban/utils/enums";
+import {
+  TaskType,
+  TaskStatus,
+  TaskSize,
+  PriorityQuadrant,
+  SIZE_TO_POINTS,
+} from "@/features/kanban/utils/enums";
 import type { TaskItem } from "@/lib/db/tasks";
 import type { RiskLevel } from "@/features/kanban/utils/taskUtils";
 
@@ -139,6 +145,43 @@ export const TASK_CARD_FIXTURES: TaskCardFixture[] = [
     taskType: TaskType.DAILY,
     riskLevel: "normal",
     frequency: 1,
+  },
+];
+
+// ── Matrix card fixtures ─────────────────────────────────────────────────────
+export interface MatrixCardFixture {
+  label: string;
+  task: TaskItem;
+  isTracked: boolean;
+}
+
+export const MATRIX_CARD_FIXTURES: MatrixCardFixture[] = [
+  {
+    label: "Default (hover for send)",
+    task: baseTask({
+      id: "m-default",
+      type: TaskType.AD_HOC,
+      title: "Call dentist",
+      description: "Annual checkup is overdue",
+      size: TaskSize.SMALL,
+      points: SIZE_TO_POINTS[TaskSize.SMALL],
+      status: TaskStatus.BACKLOG,
+      planId: null,
+      quadrant: PriorityQuadrant.DO_FIRST,
+    }),
+    isTracked: false,
+  },
+  {
+    label: "Tracked (This Week)",
+    task: baseTask({
+      id: "m-tracked",
+      type: TaskType.AD_HOC,
+      title: "Shop birthday gift",
+      description: "For mom — this Saturday",
+      status: TaskStatus.TODO,
+      quadrant: PriorityQuadrant.DO_FIRST,
+    }),
+    isTracked: true,
   },
 ];
 
