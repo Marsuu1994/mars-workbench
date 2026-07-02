@@ -123,7 +123,14 @@ export default function KanbanBoard({
   return (
     <DragDropContext onDragStart={() => setIsDragging(true)} onDragEnd={handleDragEnd}>
       <div className="flex h-full">
-        <div className="flex-1 min-w-0 flex flex-col gap-3.5 md:flex-row md:gap-4 overflow-y-auto md:overflow-x-auto md:overflow-y-visible p-4 max-md:pb-32">
+        {/* Scroll ownership: @hello-pangea/dnd supports one scroll parent per
+            Droppable, so this row must not add scroll axes beyond what it
+            owns — md:overflow-y-hidden keeps it x-only on desktop (overflow-x
+            auto would otherwise force computed overflow-y to auto), and
+            <main> is overflow-hidden on /kanban (AppShell SELF_SCROLLING_ROUTES).
+            The remaining dev warning (scrollable columns inside this
+            scrollable row) is the library's known kanban limitation. */}
+        <div className="flex-1 min-w-0 flex flex-col gap-3.5 md:flex-row md:gap-4 overflow-y-auto md:overflow-x-auto md:overflow-y-hidden p-4 max-md:pb-32">
           <BoardColumn
             status={TaskStatus.TODO}
             tasks={columns[TaskStatus.TODO]}

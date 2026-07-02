@@ -47,7 +47,7 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 - End-of-period summary before starting a new plan
 - Weekly task rollover across periods
 - Biweekly and custom period types
-- Priorities page — Full-page Eisenhower priority matrix (Board/Priorities tab switcher) for organizing personal one-off tasks by urgency/importance. Tasks can be promoted to the board via "Track this week". Renames "Ad-hoc" to "Todo" badge, backlog drawer renamed to "Queued" — see `mockup/future-work/mockup-priorities-v2.html`
+- Priorities page — Full-page Eisenhower priority matrix (Board/Priorities tab switcher) for organizing personal one-off tasks by urgency/importance. Tasks can be promoted to the board via "Track this week". Renames "Ad-hoc" to "Todo" badge, backlog drawer renamed to "Queued" — see `mockup/mockup-priorities.html`
 - AI-assisted plan editing — Use a new Chat linked to the same plan to suggest modifications via LLM. Separate from creation flow.
 
 ## Entities

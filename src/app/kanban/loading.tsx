@@ -1,6 +1,6 @@
 export default function KanbanLoading() {
   return (
-    <div className="flex flex-col h-screen animate-pulse">
+    <div className="flex flex-col h-full animate-pulse">
       {/* BoardHeader skeleton */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-base-content/10">
         <div className="flex items-center gap-3">

@@ -128,7 +128,7 @@ body {
 }
 
 /* ── Board ── */
-.board { flex: 1; display: flex; gap: 16px; padding: 20px 24px; overflow-x: auto; min-height: 0; }
+.board { flex: 1; display: flex; gap: 16px; padding: 20px 24px; overflow-x: auto; overflow-y: hidden; min-height: 0; }
 .column {
   flex: 1; min-width: 280px; display: flex; flex-direction: column;
   background: var(--m-surface); border-radius: 12px; border: 1px solid var(--m-border); overflow: hidden;
