@@ -32,6 +32,8 @@ public/
 prisma/
 ├── schema.prisma                  # Database schema
 └── migrations/                    # Database migrations
+scripts/
+└── one-time/                      # Ad-hoc/manual scripts (see One-Time Scripts section)
 src/
 ├── proxy.ts                       # Route protection (Supabase session check)
 ├── app/

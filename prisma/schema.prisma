@@ -87,6 +87,13 @@ enum TaskSize {
   EXTRA_LARGE
 }
 
+enum PriorityQuadrant {
+  DO_FIRST // Urgent & Important
+  SCHEDULE // Important, not urgent
+  SQUEEZE_IN // Urgent, not important
+  MAYBE_LATER // Neither urgent nor important
+}
+
 model Plan {
   id          String         @id @default(uuid()) @db.Uuid
   userId      String         @map("user_id") @db.Uuid
@@ -153,6 +160,7 @@ model Task {
   status        TaskStatus
   forDate       DateTime?   @map("for_date") @db.Date
   periodKey     String?     @map("period_key")
+  quadrant      PriorityQuadrant? // Eisenhower quadrant on the priority matrix; AD_HOC tasks only
   instanceIndex Int         @map("instance_index")
   createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz
   updatedAt     DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz

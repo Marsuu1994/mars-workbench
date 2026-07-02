@@ -9,7 +9,7 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 - **Task sizing**: `TaskSize` enum (XS=1, S=2, M=3, L=5, XL=8) with fibonacci points; `SizeChip` display + pill toggle selector
 - **Progress dashboard**: Today ring, stat metrics (points/counts), Week Progress bar using two-query strategy (UI tasks + raw SQL aggregate)
 - **Plan management**: Create/edit plans with inline type/frequency config, Plan Mode toggle (NORMAL/EXTREME), `ReviewChangesModal` for diffs
-- **Ad-hoc tasks**: One-off tasks with plan linking, column-aware initial status, risk levels based on days since creation
+- **Ad-hoc tasks**: One-off tasks with plan linking, column-aware initial status, risk levels based on days since creation. Priority-matrix groundwork landed: every AD_HOC task carries an Eisenhower `quadrant` (`PriorityQuadrant` enum, backfilled to `SCHEDULE`), and deselecting from a plan returns tasks to the matrix pool (`planId = null` + `status = BACKLOG`) while DONE tasks stay on their plan to preserve point history
 - **Daily sync**: Auto-expire stale tasks, generate today's dailies, 1-day rollover buffer, idempotent via `lastSyncDate`
 - **End-of-period sync**: Auto-detect new week, expire undone tasks, transition plan to `PENDING_UPDATE`
 - **Empty board states**: new-user ("No active plan") vs returning-user ("Plan period ended") recap showing last period's completion %, tasks done, and points earned; both link to plan creation
@@ -54,6 +54,11 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 - [x] Refactor the codebase, remove chatbot related code
 
 ## Update Log
+
+### 2026-07-02
+- Started the **Priority Matrix implementation** (backend groundwork, PR 1 of 3 per the reviewed plan): migration `20260702000000_add_priority_quadrant` adds the `PriorityQuadrant` enum (`DO_FIRST / SCHEDULE / SQUEEZE_IN / MAYBE_LATER`) and a nullable `Task.quadrant` column (AD_HOC only), backfills all existing AD_HOC tasks to `SCHEDULE`, and normalizes unassigned ad-hoc tasks (plus any non-DONE strays on COMPLETED plans) to the uniform `BACKLOG` semantics; read-only pre-migration sanity queries in `scripts/one-time/check-adhoc-states.sql`
+- Behavior change/fix: `unlinkAdhocTasksFromPlan` now sends deselected ad-hoc tasks back to the priority matrix (`planId = null` + `status = BACKLOG`) and **excludes DONE tasks** — completed ad-hoc points keep their historical plan attribution (previously every plan turnover silently unlinked DONE ad-hoc tasks too)
+- Plumbing: `TaskItem` + `taskSelect` expose `quadrant`; client-safe `PriorityQuadrant` mirror in `utils/enums.ts`; `/design` gallery `baseTask` fixture extended; `api.md` synced with the new unlink semantics
 
 ### 2026-06-30
 - Started **i18n standardization** for the kanban feature with `next-intl` in single-locale "App Router without i18n routing" mode — no `[locale]` URL segment and no middleware, so the Supabase auth `src/proxy.ts` is untouched. Wired the `createNextIntlPlugin()` wrapper (`next.config.ts`), per-request config (`src/i18n/request.ts`, locale fixed to `en`), `<NextIntlClientProvider>` in the root layout, and compile-time type-safe keys via `src/global.d.ts` augmenting `messages/en.json`

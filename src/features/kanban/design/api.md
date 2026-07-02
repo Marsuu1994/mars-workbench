@@ -128,7 +128,9 @@ Steps:
    - Daily templates: generate instances for today only
 6. Link ad-hoc tasks: update Task.planId = newPlanId for each adhocTaskId
 7. Unlink deselected ad-hoc tasks from PENDING_UPDATE plan: set planId = null
-   for ad-hoc tasks on old plan NOT in adhocTaskIds
+   and status = BACKLOG (back to the priority matrix) for non-DONE ad-hoc tasks
+   on old plan NOT in adhocTaskIds. DONE ad-hoc tasks stay on the old plan so
+   completed points keep their historical attribution.
 8. Set lastSyncDate = today
 9. Archive existing PENDING_UPDATE plan → COMPLETED
 10. revalidatePath('/kanban')
@@ -170,8 +172,9 @@ Steps:
 3. If description provided: update Plan.description
 4. If adhocTaskIds provided:
    a. Link new: update Task.planId = planId for each adhocTaskId not currently linked
-   b. Unlink removed: set Task.planId = null for ad-hoc tasks currently on plan
-      but NOT in adhocTaskIds
+   b. Unlink removed: set Task.planId = null and status = BACKLOG (back to the
+      priority matrix) for non-DONE ad-hoc tasks currently on plan but NOT in
+      adhocTaskIds (DONE tasks stay linked)
 5. revalidatePath('/kanban')
 ```
 
@@ -517,7 +520,7 @@ countTasksByTemplateIds(userId, planId, templateIds[])                  // total
 
 // Ad-hoc task linking
 updateTasksPlanId(userId, taskIds[], planId, tx?)                  // batch link to plan (owner-scoped)
-unlinkAdhocTasksFromPlan(userId, planId, keepIds[], tx?)           // unlink AD_HOC tasks not in keepIds
+unlinkAdhocTasksFromPlan(userId, planId, keepIds[], tx?)           // non-DONE AD_HOC tasks not in keepIds → planId = null + status = BACKLOG (back to matrix); DONE stay linked
 ```
 
 ### chats.ts
