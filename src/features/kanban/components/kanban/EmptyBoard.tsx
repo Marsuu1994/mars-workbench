@@ -65,8 +65,13 @@ const renderReturningUser = (stats: OverallStats) => (
 
 export default function EmptyBoard({ stats }: EmptyBoardProps) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-10">
-      {stats ? renderReturningUser(stats) : renderNewUser()}
+    // <main> is overflow-hidden on /kanban, so this screen scrolls itself;
+    // the min-h-full inner wrapper keeps content centered yet reachable on
+    // short viewports (no Droppables here, so an extra scroller is fine).
+    <div className="h-full overflow-y-auto">
+      <div className="flex min-h-full flex-col items-center justify-center gap-4 p-10">
+        {stats ? renderReturningUser(stats) : renderNewUser()}
+      </div>
     </div>
   );
 }

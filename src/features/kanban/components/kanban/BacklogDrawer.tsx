@@ -80,14 +80,15 @@ export default function BacklogDrawer({
   );
 
   const renderBody = () => (
-    <Droppable droppableId={TaskStatus.BACKLOG}>
-      {(provided, snapshot) => (
+    // isDropDisabled: cards only leave the backlog. Without it, the collapsed
+    // drawer's invisible panel (kept mounted for the cross-fade, overlapping
+    // the Done column) wins dnd's geometric hit-test and steals Done drops.
+    <Droppable droppableId={TaskStatus.BACKLOG} isDropDisabled>
+      {(provided) => (
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
-          className={`flex-1 overflow-y-auto p-3 flex flex-col gap-2 transition-colors duration-200 ${
-            snapshot.isDraggingOver ? "bg-base-300/40" : ""
-          }`}
+          className="flex-1 overflow-y-auto p-3 flex flex-col gap-2"
         >
           {tasks.length === 0 && (
             <p className="text-center text-xs text-base-content/40 mt-6 px-4">
