@@ -68,8 +68,6 @@ Current ISO week key differs from `plan.periodKey` (checked by Ensure Synced).
 2. Set plan status: `ACTIVE` → `PENDING_UPDATE`.
 3. Return null → the calling page renders its no-plan state (board: "Create Plan" prompt; matrix: warn hint bar + disabled send).
 
----
-
 ## Kanban
 
 ---
