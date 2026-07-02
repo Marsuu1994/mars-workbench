@@ -10,13 +10,38 @@
 
 ---
 
+## Shared (syncService)
+
+### `ensureSynced(userId): PlanItem | null`
+
+The single sync entry point. Every kanban page (board `fetchBoard`, priorities `fetchPriorityMatrix` / `trackTaskThisWeek`, plan create/edit page loaders) awaits it before reading plan state, so no page carries its own sync branching and page-visit order never matters.
+
+```
+Steps:
+1. getActivePlan(userId) — none → return null
+2. periodKey != current ISO week → runEndOfPeriodSync (ACTIVE → PENDING_UPDATE,
+   expire non-DONE non-AD_HOC tasks) → return null
+3. lastSyncDate earlier than today → runDailySync (expire stale dailies with the
+   1-day rollover buffer, generate today's instances as BACKLOG)
+4. Return the current-week ACTIVE plan
+
+Rules:
+- Idempotent; wrapped in React cache() so concurrent calls within one server
+  render pass dedupe to a single run. Server Actions run in their own request
+  and re-check fresh state.
+- runDailySync / runEndOfPeriodSync stay standalone — long-term home is a cron
+  job just after midnight in KANBAN_TZ, with ensureSynced as page-side fallback.
+```
+
+See the **Shared** section in `flows.md` for the flow-level spec.
+
+---
+
 ## Board
 
 ### `fetchBoard(): BoardData | null`
 
-Called directly from the `/kanban` Server Component. Returns board data with pre-computed metrics.
-
-**Sync lifecycle** is centralized in `syncService.ensureSynced(userId)` — every kanban page (board, priorities matrix, plan create/edit) awaits it before reading plan state, so no page carries its own sync branching and page-visit order never matters. It flips an ended ACTIVE plan to PENDING_UPDATE (`runEndOfPeriodSync`), runs the daily sync at most once per day (`runDailySync`, `lastSyncDate` short-circuit), and returns the current-week ACTIVE plan or null. Idempotent; wrapped in React `cache()` for per-request dedupe. `runDailySync` / `runEndOfPeriodSync` stay standalone for a future cron job.
+Called directly from the `/kanban` Server Component. Awaits `ensureSynced` first, then returns board data with pre-computed metrics.
 
 ```
 BoardData {

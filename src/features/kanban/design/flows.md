@@ -2,22 +2,31 @@
 
 > **Doc convention:** Flows are grouped under a `##` domain section, one flow per `###` heading, separated by `---`. Every flow has two required `####` sections — `Trigger / Entry Point` and `Steps` — plus an optional `#### Rules` section for constraints and invariants. Extra `####` sections (e.g. `Metrics`) are allowed only for reference material that fits neither Steps nor Rules.
 
-## Kanban
+## Shared
+
+Cross-page sync lifecycle, centralized in `syncService`. Every kanban page (board, priorities matrix, plan create/edit) awaits `ensureSynced` before reading plan state, so no page carries its own sync branching and page-visit order never matters.
 
 ---
 
-### Landing Flow
+### Ensure Synced Flow
 
 #### Trigger / Entry Point
 
-User navigates to `/kanban`.
+Awaited by every kanban page's data fetch before reading plan state: board (`fetchBoard`, first line), priorities (`fetchPriorityMatrix` and `trackTaskThisWeek`), and the plan create/edit pages (top of the page loaders). Single implementation: `syncService.ensureSynced(userId)`.
 
 #### Steps
 
-1. Fetch active plan. If none exists, show "Create Plan" prompt → stop.
-2. If current ISO week key differs from `plan.periodKey`, run End of Period Sync → return empty board with "Create Plan" prompt → stop.
-3. If `plan.lastSyncDate` is earlier than today, run Daily Sync.
-4. Return board data and render the kanban.
+1. Fetch the `ACTIVE` plan. If none exists → return null (caller renders its no-plan state).
+2. If current ISO week key differs from `plan.periodKey` → run End of Period Sync → return null.
+3. If `plan.lastSyncDate` is earlier than today → run Daily Sync.
+4. Return the current-week `ACTIVE` plan.
+
+#### Rules
+
+- Idempotent — safe to call from every page on every load.
+- Wrapped in React `cache()`: concurrent calls within one server render pass dedupe to a single run. Server Actions run in their own request, so mutations re-check fresh state.
+- This is what makes a matrix-first or plan-page-first landing after week rollover behave exactly like a board landing (e.g. the no-plan "Create Plan" CTA never dead-ends on a stale `ACTIVE` plan).
+- `runDailySync` / `runEndOfPeriodSync` remain standalone functions — the long-term home is a scheduled cron job just after midnight in `KANBAN_TZ`, with `ensureSynced` kept as the idempotent page-side fallback (see Planned: Future in `baseline.md`).
 
 ---
 
@@ -25,7 +34,7 @@ User navigates to `/kanban`.
 
 #### Trigger / Entry Point
 
-`lastSyncDate` is earlier than today.
+`lastSyncDate` is earlier than today (checked by Ensure Synced).
 
 #### Steps
 
@@ -51,13 +60,28 @@ User navigates to `/kanban`.
 
 #### Trigger / Entry Point
 
-Current ISO week key differs from `plan.periodKey`.
+Current ISO week key differs from `plan.periodKey` (checked by Ensure Synced).
 
 #### Steps
 
 1. Expire all remaining non-DONE tasks instances except Ad-hoc tasks.
 2. Set plan status: `ACTIVE` → `PENDING_UPDATE`.
-3. Return null → board renders "Create Plan" prompt.
+3. Return null → the calling page renders its no-plan state (board: "Create Plan" prompt; matrix: warn hint bar + disabled send).
+
+## Kanban
+
+---
+
+### Landing Flow
+
+#### Trigger / Entry Point
+
+User navigates to `/kanban`.
+
+#### Steps
+
+1. Run **Ensure Synced** (see Shared). If it returns no plan, show the "Create Plan" prompt (new user) or the period-ended recap (returning user) → stop.
+2. Return board data and render the kanban.
 
 ---
 
@@ -415,7 +439,7 @@ User navigates to `/kanban/priorities` via the "Priorities" sidebar item (deskto
 
 #### Steps
 
-1. Fetch all of the user's Ad-hoc tasks with `status !== DONE` (both unassigned and tracked).
+1. Run **Ensure Synced** (see Shared) to resolve the current-week `ACTIVE` plan, in parallel with fetching all of the user's Ad-hoc tasks with `status !== DONE` (both unassigned and tracked).
 2. Group tasks by `quadrant` and render the 2×2 matrix (Do First / Schedule / Squeeze In / Maybe Later) with per-quadrant counts.
 3. Render the title bar summary: total count and "tracking this week" count.
 
@@ -423,7 +447,7 @@ User navigates to `/kanban/priorities` via the "Priorities" sidebar item (deskto
 
 - DONE Ad-hoc tasks never show on the matrix.
 - A task counts as **tracked this week** only when its `planId` equals the current `ACTIVE` plan's id: it renders dimmed with a "This Week" tag (mobile: ★) and hides the send button. Tasks still pointing at a `PENDING_UPDATE` plan (period ended) render as normal cards.
-- **Stale-plan guard:** an `ACTIVE` plan whose `periodKey` differs from the current ISO week is treated as no active plan, and the matrix runs the same End of Period Sync as the board (`ACTIVE → PENDING_UPDATE`). Without the sync, the no-plan hint's "Create Plan" CTA would dead-end — plan creation rejects while a stale plan is still `ACTIVE`.
+- **Stale-plan handling** comes from the shared Ensure Synced flow: an `ACTIVE` plan whose period has ended is flipped to `PENDING_UPDATE` before the matrix reads it, so the matrix can neither display nor track into an ended plan, and the no-plan hint's "Create Plan" CTA never dead-ends.
 
 ---
 
@@ -462,7 +486,7 @@ User drags a card to a different quadrant (desktop and mobile).
 
 #### Rules
 
-- Requires an `ACTIVE` plan (current-week per the stale-plan guard, enforced server-side too). When none exists (period ended, next plan not yet created), desktop send buttons render disabled with a "No active plan yet" tooltip and the matrix hint bar shows a "No active plan — Create Plan to track tasks this week" notice; the mobile track sheet still opens but its column buttons are disabled with the same note.
+- Requires a current-week `ACTIVE` plan (resolved via Ensure Synced on both the page load and the track mutation, so tracking into an ended period is impossible). When none exists (period ended, next plan not yet created), desktop send buttons render disabled with a "No active plan yet" tooltip and the matrix hint bar shows a "No active plan — Create Plan to track tasks this week" notice; the mobile track sheet still opens but its column buttons are disabled with the same note.
 - Already-tracked cards cannot be sent again (send button hidden).
 - There is no untrack from the matrix — detaching happens via the Update Plan flow's ad-hoc deselection (`planId = null`, status back to `BACKLOG`).
 
