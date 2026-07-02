@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
-import { getTranslations } from "next-intl/server";
+import { getMessages, getTranslations } from "next-intl/server";
 import { ThemeProvider } from "@/components/common/ThemeProvider";
 import { BreakpointProvider } from "@/components/common/BreakpointProvider";
 import { AppShell } from "@/components/common/AppShell";
@@ -67,12 +67,17 @@ export default async function RootLayout({
 
   const activePlan = user ? await getActivePlan(user.id) : null;
 
+  // Pass messages explicitly rather than relying on next-intl v4's implicit
+  // Server->Client inheritance, so Client Components always receive the full
+  // catalog regardless of build/HMR quirks on the current Next.js version.
+  const messages = await getMessages();
+
   return (
     <html lang="en" data-theme="mars-dark" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-base-300 text-base-content antialiased`}
       >
-        <NextIntlClientProvider>
+        <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
             <BreakpointProvider>
               <AppShell user={userInfo} activePlanId={activePlan?.id ?? null}>
