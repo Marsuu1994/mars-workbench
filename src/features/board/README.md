@@ -1,51 +1,19 @@
-# Kanban Period Planner
+# Board
 
-A drag-and-drop kanban board for planning and tracking tasks within weekly periods. See [baseline.md](./design/baseline.md) for full design doc.
+The `/kanban` board page: a drag-and-drop kanban board for planning and tracking tasks within weekly periods. This feature was split out of the original monolithic `kanban` feature (board + plan + priorities) — the **Update Log** below is the append-only historical log of that whole pre-split feature, so older entries also cover plan and priorities work and reference pre-split paths. See [design/baseline.md](../../../design/baseline.md) for the app-wide design baseline and [design/flows/board.md](../../../design/flows/board.md) for flow docs.
 
 ## Current State
 
 - **Board**: 3-column kanban (Todo / In Progress / Done) with drag-and-drop, optimistic UI, risk badges, rollover indicators. Done cards are drop targets but cannot be dragged out; during a drag all droppable columns get a faint dashed outline and the hovered one a solid dashed highlight. Per-column accent colors (Todo=info, In Progress=warning, Done=success) and per-card left borders render correctly (risk cards override the left edge with their color).
 - **Backlog drawer ("Queued")**: stages template-generated instances (`status = BACKLOG`) and pulls them onto the board (`BACKLOG → TODO`). Desktop is a right-edge panel (drag to pull); mobile is a bottom sheet (`modal-bottom`) opened from a peeking "Queued" pill above the tab bar (tap `↑ Todo` to pull). Reuses the board's badge/instance/rollover/risk language with a `#n` instance badge (when template `frequency > 1`); cards group by template and order by instance index (e.g. leetcode #1, #2, workout #1, #2). Desktop open/collapse cross-fades smoothly while the width animates. Excluded from Today totals, included in Week projection.
-- **Task sizing**: `TaskSize` enum (XS=1, S=2, M=3, L=5, XL=8) with fibonacci points; `SizeChip` display + pill toggle selector
+- **Task sizing**: `TaskSize` enum (XS=1, S=2, M=3, L=5, XL=8) with fibonacci points; shared `SizeChip` display + pill toggle selector (`src/components/kanban/`)
 - **Progress dashboard**: Today ring, stat metrics (points/counts), Week Progress bar using two-query strategy (UI tasks + raw SQL aggregate)
-- **Plan management**: Create/edit plans with inline type/frequency config, Plan Mode toggle (NORMAL/EXTREME), `ReviewChangesModal` for diffs
-- **Priority matrix (Priorities page)**: full-page 2×2 Eisenhower matrix at `/kanban/priorities` (sidebar item + mobile dock tab) organizing all non-DONE AD_HOC tasks by `quadrant`. Drag between quadrants to reprioritize (tracked cards too — only `quadrant` changes); hover send `→` → popover (desktop) or tap card → bottom sheet (mobile) to "Track This Week" into Todo/In Progress (`BACKLOG → TODO/DOING` + plan link, one write); quadrant "Add" buttons open the task modal to create unassigned matrix tasks (`planId = null`, `BACKLOG`). Tracked cards render dimmed with a "This Week" tag (★ on mobile). No active plan (incl. the stale-ACTIVE-plan window after ISO week rollover, guarded server-side) → warn hint bar + disabled send/sheet buttons
-- **Ad-hoc tasks**: One-off tasks living on the priority matrix; every AD_HOC task carries an Eisenhower `quadrant` (`PriorityQuadrant` enum, backfilled to `SCHEDULE`). Board cards show them with a blue "Todo" type badge. Created from the matrix only (board-side creation removed); reach the board via Track This Week; deselecting from a plan returns tasks to the matrix pool (`planId = null` + `status = BACKLOG`) while DONE tasks stay on their plan to preserve point history. Risk levels based on days since creation (board cards only; matrix risk treatment is an open design item)
-- **Sync lifecycle (`syncService.ensureSynced`)**: single entry point awaited by every kanban page (board / priorities / plan create / plan edit) before reading plan state — daily sync (auto-expire stale tasks, generate today's dailies, 1-day rollover buffer, idempotent via `lastSyncDate`) plus end-of-period sync (auto-detect new week, expire undone tasks, transition plan to `PENDING_UPDATE`). React `cache()`-deduped per request; page-visit order never matters
+- **Sync lifecycle (`syncService.ensureSynced`)**: single entry point (`src/lib/kanban/syncService.ts`) awaited by every kanban page (board / priorities / plan create / plan edit) before reading plan state — daily sync (auto-expire stale tasks, generate today's dailies, 1-day rollover buffer, idempotent via `lastSyncDate`) plus end-of-period sync (auto-detect new week, expire undone tasks, transition plan to `PENDING_UPDATE`). React `cache()`-deduped per request; page-visit order never matters
 - **Empty board states**: new-user ("No active plan") vs returning-user ("Plan period ended") recap showing last period's completion %, tasks done, and points earned; both link to plan creation
-- **Workspace sidebar**: Board/Plan nav (Board disabled when no plan, Plan shows "New" badge); Edit Plan button removed from board header
-- **Component gallery**: standalone `/design` dev page rendering the presentational primitives (`SizeChip`, `TaskTypeBadge`, `TaskCard` states, `ProgressDashboard`, AI-chat parts, `EmptyBoard`) with sample data and a scoped light/dark toggle; renders chromeless (no app sidebar)
 - **PWA**: Manifest, service worker, mobile installability, safe-area insets
-- **Architecture**: Server Actions + DAL (3-layer), `prisma.$transaction()` for multi-step mutations, timezone anchored to `America/Los_Angeles`
+- **Mobile mockups**: board drag-and-drop flow (375x812) and backlog bottom-sheet drawer + placement-options comparison in [design/mockup/board/](../../../design/mockup/board/), shared `mockup-theme.css` with light/dark toggle
 
-**AI Assisted Plan Creation** — Fully designed and **complete (backend + UI)**. The standalone chat demo was removed and the shared `Chat`/`Message` tables now back this flow. All three server actions are done and verified end-to-end: `getTemplateStatsAction` (per-template stats), `createAiChatAction` (static no-LLM welcome + chips, snapshots last-period stats into `Chat.metadata`), `generateDraftPlanAction` (OpenAI `gpt-5-nano` structured draft — reuses templates, calibrates from stats, replays prior drafts as history), and `approveDraftPlanAction` (atomically creates the plan, completes the prior `PENDING_UPDATE` plan, carries over ad-hoc tasks). `Chat.metadata` holds the stats snapshot + a `latestDraft` approval clipboard. The chat UI is a Zustand-backed modal (`store/aiPlanChatStore` state + `hooks/useAiPlanChat` action bridge) opened from the plan form's AI assistant banner (create mode only), with suggestion chips, draft-plan cards, a refine→approve flow, and a success banner (`components/plan/ai-chat/`). The chat is **durable** — the DB chat row is the source of truth: on open it resumes the user's most recent unapproved chat (`getActiveAiChatAction` → rehydrate) across modal close, reload, and restart, and auto-resumes a generation interrupted mid-run (`resumeDraftPlanAction`). Approval sets `Chat.planId`, so the next open starts fresh.
-
-**Mobile Mockups** — Board drag-and-drop flow (375x812), settings page, backlog bottom-sheet drawer (`mockup-board-backlog-drawer.html`) + placement-options comparison, shared `mockup-theme.css` with light/dark toggle.
-
-## Backlog
-
-### High Priority
-- [x] Priority matrix follow-ups (PR 3): renames, sync consolidation, mockup back-ports, gallery entries
-- [x] End-of-period summary before starting a new plan
-
-### Medium Priority
-- [ ] Design risk level for ad-hoc task on priority matrix 
-- [ ] Design evidence submit feature when user move task to done
-- [ ] Ad-hoc task deletion and auto-clear logic
-- [ ] Refine the component gallery page (`/design`) — add remaining primitives (BoardColumn, TemplateItem, task-modal pieces), polish grouping/layout, and consider per-variant controls
-
-### Future
-- [ ] Cron-driven sync: move daily / end-of-period sync to a scheduled job (Vercel Cron just after midnight `KANBAN_TZ`); pages keep the idempotent `ensureSynced` fallback. `runDailySync` / `runEndOfPeriodSync` are already standalone
-- [ ] Track popover on a bottom card of a scrollable quadrant needs scrolling into view (absolute positioning inside the scroll container) — revisit with a portal/fixed positioning approach
-- [ ] Set up i18n framework and move all user facing literals to using i18n
-- [ ] Inline editing of AI draft plan cards before approval (tweak frequency/size/selection without re-prompting)
-- [ ] Research timezone handling for traveling users
-- [ ] Support same group ordering for drag and drop within same column
-- [ ] Add subtitle field to task template
-- [ ] Phone notifications for unfinished tasks
-- [ ] Weekly task rollover across periods
-- [ ] Biweekly and custom period types
-- [ ] Setup storybook and optimize workflow for UI mockup
+Open items: see [design/tracker.md](../../../design/tracker.md).
 
 ## Done
 

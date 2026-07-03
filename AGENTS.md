@@ -34,6 +34,19 @@ prisma/
 └── migrations/                    # Database migrations
 scripts/
 └── one-time/                      # Ad-hoc/manual scripts (see One-Time Scripts section)
+design/                            # Centralized design docs (see design/README.md)
+├── README.md                      # Index of what lives where
+├── baseline.md                    # The ONE app-wide baseline (goal, entities, schema, decisions)
+├── tracker.md                     # Consolidated roadmap — open items only
+├── reference.md                   # Lean lookup tables: server actions, services, DAL
+├── flows/                         # Per-feature flow docs (shared, board, plan, priorities, auth)
+└── mockup/                        # HTML mockups grouped by feature + shared styles.css / mockup-theme.css
+    ├── board/                     # Board + backlog drawer mockups (desktop + mobile)
+    ├── plan/                      # Plan form, AI chat, review changes
+    ├── priorities/                # Priority matrix
+    ├── auth/                      # Login, sidebar, settings
+    ├── shared/                    # Cross-feature UI (task modal)
+    └── future-work/               # Approved-but-not-implemented redesigns
 src/
 ├── proxy.ts                       # Route protection (Supabase session check)
 ├── app/
@@ -42,7 +55,9 @@ src/
 │   │   └── login/page.tsx         # Login page (Google OAuth sign-in)
 │   ├── kanban/                    # Kanban pages
 │   │   ├── page.tsx               # Board page
-│   │   └── plans/                 # Plan create/edit pages ([id], new)
+│   │   ├── plans/                 # Plan create/edit pages ([id], new)
+│   │   ├── priorities/            # Eisenhower priority matrix page
+│   │   └── settings/              # Settings page
 │   ├── design/                    # Component gallery (dev) — chromeless /design route
 │   ├── layout.tsx                 # Root layout (providers + AppShell wrapper)
 │   └── globals.css                # Global styles
@@ -54,33 +69,42 @@ src/
 │   │   ├── client.ts              # Browser client ('use client' components)
 │   │   ├── server.ts              # Server client (Server Components, Actions)
 │   │   └── middleware.ts          # Session refresh + redirect logic
-│   └── db/                        # Data access layer
-├── features/
-│   ├── auth/                      # Auth feature (see features/auth/README.md)
-│   └── kanban/                    # Kanban Planner feature (see features/kanban/README.md)
+│   ├── kanban/                    # Shared kanban domain core (used by multiple page features)
+│   │   ├── enums.ts / schemas.ts / dateUtils.ts / sizeUtils.ts   # Client-safe
+│   │   ├── statsUtils.ts / syncService.ts                        # Server-only (ensureSynced, React cache())
+│   │   └── types.ts               # Shared types (OverallStats, PerTemplateStat, LastPlanStats)
+│   └── db/                        # Data access layer (all Prisma queries)
+├── features/                      # Page features (each has its own README.md)
+│   ├── auth/                      # Auth + settings (SettingsContent, sidebarStore) — /auth/*, /kanban/settings
+│   ├── board/                     # Kanban board incl. backlog drawer — /kanban
+│   ├── plan/                      # Plan form, templates, AI plan chat — /kanban/plans/*
+│   └── priorities/                # Eisenhower priority matrix — /kanban/priorities
 └── components/
-    └── common/
-        ├── AppShell.tsx             # Client shell wrapper; hides chrome on chromeless routes (/design)
-        ├── AppSidebar.tsx           # Collapsible app sidebar (nav + sign-out)
-        └── ThemeProvider.tsx
+    ├── common/
+    │   ├── AppShell.tsx           # Client shell wrapper; hides chrome on chromeless routes (/design)
+    │   ├── AppSidebar.tsx         # Collapsible app sidebar (nav + sign-out)
+    │   ├── BottomTabBar.tsx       # Mobile bottom tab navigation
+    │   ├── BreakpointProvider.tsx
+    │   └── ThemeProvider.tsx
+    └── kanban/                    # Shared kanban UI (SizeChip, TaskTypeBadge, BoardHeader, task-modal/)
 ```
 
 ## Workflow
 
 ### Session Start
 
-Read feature design docs only when the task involves logic, data, or new flows. Skip for pure styling/copy/UI-only tweaks.
+Read design docs (repo-root `design/`) only when the task involves logic, data, or new flows. Skip for pure styling/copy/UI-only tweaks.
 
-- `baseline.md`: schema or entity changes
-- `flows.md`: flow changes or additions
-- `api.md`: REST/server action/DAL changes
-- `mockup/mockup-[flow].html`: flow-specific UI mockups
+- `design/baseline.md`: schema or entity changes
+- `design/flows/<feature>.md`: flow changes or additions
+- `design/reference.md`: REST/server action/DAL changes
+- `design/mockup/<feature>/mockup-[flow].html`: flow-specific UI mockups
 
 ## UI Workflow
 
 ### Initial Design for a Complex Feature
 
-When creating mockups for a new feature with multiple flows/pages, split into separate files in `features/[feature]/design/mockup/` with shared `styles.css`.
+When creating mockups for a new feature with multiple flows/pages, split into separate files in `design/mockup/[feature]/`. The shared `styles.css` and `mockup-theme.css` live one level up at `design/mockup/`.
 
 ### Modify Existing UI Mockup
 
@@ -102,11 +126,13 @@ Mockups are the source of truth for UI, but implementation may introduce details
 - Services (`features/[feature]/services/`): business logic, no `'use server'`
 - DAL (`src/lib/db/`): all Prisma queries
 - If an action requires multiple DAL calls or conditional orchestration, extract to service.
+- Shared domain logic/services used by multiple page features live in `src/lib/kanban/`. The module is mixed: `enums.ts` / `schemas.ts` / `dateUtils.ts` / `sizeUtils.ts` are client-safe; `statsUtils.ts` / `syncService.ts` are server-only — never import the server-only files from `'use client'` code.
+- Shared UI in `src/components/kanban/` may invoke feature server actions (e.g. `TaskModal` calls plan `templateActions` and priorities `createAdhocTaskAction`). This is a documented exception, not a layering violation — server actions behave like endpoints.
 
 ## Coding Conventions
 
 - New entries must be appended at the end of this section, never inserted in the middle. Include concrete bad/good examples.
-- Extract shared helpers to feature `utils/` folders; do not duplicate logic.
+- Keep feature-local helpers in the feature's `utils/` folder; move cross-feature domain helpers to `src/lib/kanban/`. Do not duplicate logic.
 - Always use enum constants (for example `TaskType.WEEKLY`), not raw strings.
 - Prefer `switch/case/default` for enum branching.
 - Prefer batch DB operations (`createMany`, `updateMany`) over per-row loops when possible.
@@ -150,7 +176,7 @@ Mockups are the source of truth for UI, but implementation may introduce details
   <Link href={CREATE_PLAN_HREF} />
   ```
 
-- All **user-facing copy** in the `kanban` feature is internationalized with `next-intl` — it lives in `src/i18n/en.json` and is read via `useTranslations` (Client Components) or `getTranslations` (Server Components / Server Actions / `generateMetadata`). Add each string under a namespace; use ICU for plurals/interpolation, `Enums.*` keys for enum→label display, and `t.rich` when part of a string needs inline markup. Keep decorative glyphs/emoji and presentational symbols in the JSX, not in the message. Never translated: `prompt/*.ts` LLM instructions and internal `throw new Error(...)` messages. Bad: `export const TITLE = "Create Weekly Plan";` (copy in a `constants.ts`). Good:
+- All **user-facing copy** app-wide is internationalized with `next-intl` — it lives in `src/i18n/en.json` and is read via `useTranslations` (Client Components) or `getTranslations` (Server Components / Server Actions / `generateMetadata`). Add each string under a namespace; use ICU for plurals/interpolation, `Enums.*` keys for enum→label display, and `t.rich` when part of a string needs inline markup. Keep decorative glyphs/emoji and presentational symbols in the JSX, not in the message. Never translated: `prompt/*.ts` LLM instructions and internal `throw new Error(...)` messages. Bad: `export const TITLE = "Create Weekly Plan";` (copy in a `constants.ts`). Good:
 
   ```json
   // src/i18n/en.json

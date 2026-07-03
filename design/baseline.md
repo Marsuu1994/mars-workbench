@@ -2,7 +2,7 @@
 
 ## Goal
 
-A tool to plan and track tasks within defined periods (e.g., weekly). It visualizes task progress on a drag-and-drop kanban board, helping users understand what's done, what's in progress, and what's been missed.
+A tool to plan and track tasks within defined periods (e.g., weekly). It visualizes task progress on a drag-and-drop kanban board, helping users understand what's done, what's in progress, and what's been missed. Authentication via Supabase Google OAuth identifies users and gates access to features, enabling per-user data isolation (each user sees only their own plans, chats, and tasks).
 
 ## Features
 
@@ -24,35 +24,21 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 
 1. **Mobile Kanban + PWA app** — PWA manifest, service worker, mobile board mockups, bottom tab bar dock, safe-area insets for iOS/Android standalone mode.
 2. **Workspace sidebar** — Sidebar redesigned from feature-level nav (Chat/Kanban) to kanban workspace nav (Board/Plan). Board disabled with tooltip when no active plan; Plan shows "New" nudge badge. Edit Plan button removed from board header (Plan entry in sidebar).
-3. **LLM-assisted plan creation** — AI drafts a plan via non-streaming structured JSON output. User approves the batch (commit-as-is, the latest `DRAFT_PLAN` message is the approval source of truth) or rejects with text feedback to re-generate; no per-card editing. Static no-LLM welcome + suggestion chips. The chat is durable (DB-backed): it resumes the most recent unapproved chat across modal close / reload / restart and auto-resumes a generation interrupted mid-run. Approval atomically creates new TaskTemplates + the plan, completes the prior `PENDING_UPDATE` plan, and carries over ad-hoc tasks. See **AI Assisted Plan Creation Flow** in `flows.md`.
-4. **Backlog drawer** — Collapsible right-edge panel (desktop) for staging template-generated task instances (`status = BACKLOG`) before pulling them onto the board via drag-and-drop (`BACKLOG → TODO`). Reduces visual clutter from duplicate (`frequency > 1`) cards. Reuses the board `TaskCard` (risk + rollover + `#n` instance badge stay in sync). Today ring/points count board tasks only; Week projection includes backlog. Mobile drawer is a follow-up. See the **Backlog Drawer Flow** in `flows.md` and the mockup at `design/mockup/mockup-board-backlog-drawer.html`.
-5. **Priorities page (Eisenhower matrix)** — Full-page 2×2 priority matrix at `/kanban/priorities` (sidebar item + mobile dock tab) for organizing one-off `AD_HOC` tasks by urgency/importance (`Task.quadrant`, unassigned tasks are `BACKLOG` with `planId = null`). Cards drag freely between quadrants (reprioritize); "Track This Week" attaches a task to the current ACTIVE plan (`BACKLOG → TODO/DOING`) via a desktop send-button popover or a mobile bottom sheet; quadrant "Add" buttons reuse the ad-hoc task modal to create matrix tasks. Board-side ad-hoc creation is removed; deselecting an ad-hoc task from a plan returns it to the matrix (DONE tasks stay linked to preserve point history). Renames shipped alongside: the AD_HOC type badge displays as "Todo" (blue) and the backlog drawer as "Queued". See the **Priorities** flows in `flows.md` and `mockup/mockup-priorities.html`.
+3. **LLM-assisted plan creation** — AI drafts a plan via non-streaming structured JSON output. User approves the batch (commit-as-is, the latest `DRAFT_PLAN` message is the approval source of truth) or rejects with text feedback to re-generate; no per-card editing. Static no-LLM welcome + suggestion chips. The chat is durable (DB-backed): it resumes the most recent unapproved chat across modal close / reload / restart and auto-resumes a generation interrupted mid-run. Approval atomically creates new TaskTemplates + the plan, completes the prior `PENDING_UPDATE` plan, and carries over ad-hoc tasks. See **AI Assisted Plan Creation Flow** in `./flows/plan.md`.
+4. **Backlog drawer** — Collapsible right-edge panel (desktop) for staging template-generated task instances (`status = BACKLOG`) before pulling them onto the board via drag-and-drop (`BACKLOG → TODO`). Reduces visual clutter from duplicate (`frequency > 1`) cards. Reuses the board `TaskCard` (risk + rollover + `#n` instance badge stay in sync). Today ring/points count board tasks only; Week projection includes backlog. Mobile drawer is a follow-up. See the **Backlog Drawer Flow** in `./flows/board.md` and the mockup at `./mockup/board/mockup-board-backlog-drawer.html`.
+5. **Priorities page (Eisenhower matrix)** — Full-page 2×2 priority matrix at `/kanban/priorities` (sidebar item + mobile dock tab) for organizing one-off `AD_HOC` tasks by urgency/importance (`Task.quadrant`, unassigned tasks are `BACKLOG` with `planId = null`). Cards drag freely between quadrants (reprioritize); "Track This Week" attaches a task to the current ACTIVE plan (`BACKLOG → TODO/DOING`) via a desktop send-button popover or a mobile bottom sheet; quadrant "Add" buttons reuse the ad-hoc task modal to create matrix tasks. Board-side ad-hoc creation is removed; deselecting an ad-hoc task from a plan returns it to the matrix (DONE tasks stay linked to preserve point history). Renames shipped alongside: the AD_HOC type badge displays as "Todo" (blue) and the backlog drawer as "Queued". See the **Priorities** flows in `./flows/priorities.md` and `./mockup/priorities/mockup-priorities.html`.
 
-### Planned: V2
+### Auth
 
-1. Support evidence flow, when user move a task to completed, submit evidence.
-2. Add AI generated tasks instance flow, LLM should be able to generate tasks based on past works + task template informatiosn to generate task instances, need to record the quality of task it generated.
+- Sign-up / login via Google OAuth (Supabase Auth), migrated from local PostgreSQL to Supabase and deployed on Vercel.
+- Route protection — unauthenticated users are redirected to login; authenticated users are redirected away from `/auth/login`.
+- Collapsible app sidebar with sign-out flow (mockup: `./mockup/auth/mockup-sidebar.html`).
 
-### Planned: Future
-
-- Template categories — Add optional `category` field to TaskTemplate for grouping templates in the plan form. Collapsible groups + search for scalability. Mockups in `design/mockup/future-work/`.
-- Expand the AI plan creation flow
-  - Per-card select/unselect to keep/remove individual draft templates during AI plan creation.
-  - Inline editing of size, type, frequency on draft template cards.
-  - Ad-hoc task carryover in AI plan creation flow.
-  - LLM-suggested plan mode (NORMAL/EXTREME).
-- User-configurable timezone — Date utils are currently anchored to `America/Los_Angeles` via `KANBAN_TZ` constant. Consider making this a user setting stored in the database for multi-user support or if the user relocates.
-- Support Ad-hoc task deletion and auto clear logic.
-- Phone notifications for unfinished tasks
-- LLM-generated motivational messages
-- End-of-period summary before starting a new plan
-- Weekly task rollover across periods
-- Biweekly and custom period types
-- AI-assisted plan editing — Use a new Chat linked to the same plan to suggest modifications via LLM. Separate from creation flow.
-- Cron-driven sync — move the daily / end-of-period sync to a scheduled job (e.g. Vercel Cron hitting a route just after midnight in `KANBAN_TZ`); pages keep the idempotent `ensureSynced` as fallback. `runDailySync` / `runEndOfPeriodSync` are already standalone for this.
+Roadmap and open ideas live in [tracker.md](./tracker.md).
 
 ## Entities
 
+- **User** — a Mars Workbench user who authenticates via Google OAuth. No additional schema required — Supabase Auth manages user records internally; app tables reference `auth.users` via `userId`.
 - **Plan** — A time-boxed container (e.g., one week) that groups task templates, their generated task instances, and/or Ad-hoc tasks. Only one plan can be active at a time. After the period ends, it becomes `PENDING_UPDATE` and serves as a template for the next plan.
 - **TaskTemplate** — A reusable blueprint defining what kind of task to generate (title, description, size). Shared across plans. Editing a template does not affect already-generated Task instances. Size is a standardized measurement of effort using the `TaskSize` enum, mapped to fibonacci points via `SIZE_TO_POINTS`:
   - XS (EXTRA_SMALL): 1 point, ~1 hour of effort
@@ -339,4 +325,4 @@ UI rendering: the latest `DRAFT_PLAN` message renders expanded with template car
 * Uses **Server Actions** for mutations and **direct DAL calls from Server Components** for data fetching. No REST API routes. Inputs are validated at the boundary with **Zod** schemas.
 * Ad-hoc tasks are not associated with any TaskTemplate.  They are optionally associated with a plan (planId = null means unassigned backlog).
 * **Size system** — `TaskSize` enum (EXTRA_SMALL → EXTRA_LARGE) replaces free-form integer points. Points are derived from size via `SIZE_TO_POINTS` constant and denormalized on the Task record at creation time. This keeps the raw SQL `SUM(points)` aggregation unchanged while the user-facing input is now a constrained enum. `TaskTemplate` stores only `size` (no `points` column); `Task` stores both `size` and `points`.
-* **Size UI** — Task cards and template items display a shared `SizeChip` component (green chip: `M·3`). Template and ad-hoc creation modals use a full-width pill toggle selector with effort description text ("~3 hours of effort") and a warning hint for L/XL sizes. Client-safe enums (`TaskSize`, `SIZE_TO_POINTS`, `SIZE_LABELS`, `SIZE_EFFORT`) live in `features/kanban/utils/enums.ts` for use in `"use client"` components; server-side code uses `features/kanban/utils/sizeUtils.ts`.
+* **Size UI** — Task cards and template items display a shared `SizeChip` component (green chip: `M·3`). Template and ad-hoc creation modals use a full-width pill toggle selector with effort description text ("~3 hours of effort") and a warning hint for L/XL sizes. Client-safe enums (`TaskSize`, `SIZE_TO_POINTS`, `SIZE_LABELS`, `SIZE_EFFORT`) live in `src/lib/kanban/enums.ts` for use in `"use client"` components; server-side code uses `src/lib/kanban/sizeUtils.ts`.

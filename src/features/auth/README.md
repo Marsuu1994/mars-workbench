@@ -1,21 +1,12 @@
 # Auth
 
-Authentication layer for Mars Workbench. See [baseline.md](./design/baseline.md) for design docs.
+Authentication layer for Mars Workbench. See [baseline.md](../../../design/baseline.md) for design docs.
 
 ## Current State
 
 Supabase Auth with Google OAuth, route protection, themed login page, and collapsible app sidebar with workspace navigation (Board/Plan) and sign-out. All mockups support light/dark theme toggle via shared `mockup-theme.css`. Deployed on Vercel.
 
-## Backlog
-
-### High Priority
-- [ ] Add signout prompt modal 
-- [ ] Persist sidebar collapse state across page refreshes (localStorage with SSR hydration)
-
-### Future
-- [ ] User profile/settings page
-- [ ] Postgres Row-Level Security (RLS) policies (`using (user_id = auth.uid())`) as DB-level defense-in-depth beneath the app-layer userId scoping. Needs Prisma↔Supabase JWT plumbing (per-request `SET` of claims, or a JWT-aware connection role).
-
+Open items: see [design/tracker.md](../../../design/tracker.md).
 
 ## Update Log
 
