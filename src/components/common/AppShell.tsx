@@ -35,10 +35,12 @@ export const AppShell = ({ user, activePlanId, children }: AppShellProps) => {
   }
 
   return (
-    <div className="flex h-screen pt-[env(safe-area-inset-top)]">
+    <div className="flex h-dvh pt-[env(safe-area-inset-top)]">
       <AppSidebar user={user} activePlanId={activePlanId} />
+      {/* Mobile bottom padding matches the fixed daisyUI dock exactly:
+          4rem + env(safe-area-inset-bottom) — see .dock in daisyUI. */}
       <main
-        className={`flex-1 min-w-0 pb-20 md:pb-0 ${
+        className={`flex-1 min-w-0 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0 ${
           isSelfScrolling ? "overflow-hidden" : "overflow-auto"
         }`}
       >
