@@ -1,7 +1,7 @@
-import { fetchPriorityMatrixAction } from "@/features/kanban/actions/matrixActions";
-import BoardHeader from "@/features/kanban/components/kanban/BoardHeader";
-import PriorityMatrixPage from "@/features/kanban/components/priorities/PriorityMatrixPage";
-import { getISOWeekKey, getTodayDate } from "@/features/kanban/utils/dateUtils";
+import { fetchPriorityMatrixAction } from "@/features/priorities/actions/matrixActions";
+import BoardHeader from "@/components/kanban/BoardHeader";
+import PriorityMatrixPage from "@/features/priorities/components/PriorityMatrixPage";
+import { getISOWeekKey, getTodayDate } from "@/lib/kanban/dateUtils";
 
 export default async function PrioritiesPage() {
   const matrix = await fetchPriorityMatrixAction();

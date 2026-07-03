@@ -1,0 +1,237 @@
+import type { TaskItem } from "@/lib/db/tasks";
+import { TaskStatus, TaskType as TaskTypeEnum } from "@/lib/kanban/enums";
+import { normalizeForDate } from "@/lib/kanban/dateUtils";
+
+// ─── Risk Level ────────────────────────────────────────────────────────────
+
+export type RiskLevel = "normal" | "warning" | "danger";
+
+/**
+ * Build a per-template progress map from all board tasks.
+ * Used by computeRiskLevel to determine how many instances are done/doing
+ * for weekly risk calculations.
+ */
+export function computeTemplateProgress(
+  tasks: TaskItem[]
+): Map<string, { done: number; doing: number }> {
+  const map = new Map<string, { done: number; doing: number }>();
+  for (const task of tasks) {
+    if (!task.templateId) continue;
+    const entry = map.get(task.templateId) ?? { done: 0, doing: 0 };
+    if (task.status === TaskStatus.DONE) entry.done += 1;
+    else if (task.status === TaskStatus.DOING) entry.doing += 1;
+    map.set(task.templateId, entry);
+  }
+  return map;
+}
+
+/**
+ * Compute the risk level for a single task. Call client-side so that
+ * time-of-day thresholds (20:00 / 15:00) reflect the live clock.
+ *
+ * @param today       - today at midnight (local time)
+ * @param currentHour - 0–23, from new Date().getHours()
+ * @param daysElapsed - 1–7, from BoardData
+ */
+export function computeRiskLevel(
+  task: TaskItem,
+  today: Date,
+  currentHour: number,
+  daysElapsed: number,
+  templateFreqMap: Map<string, number>,
+  templateProgressMap: Map<string, { done: number; doing: number }>
+): RiskLevel {
+  // DONE and EXPIRED tasks never carry risk
+  if (task.status === TaskStatus.DONE || task.status === TaskStatus.EXPIRED) {
+    return "normal";
+  }
+
+  // Backlog tasks are staged but not yet started — treat them as TODO for risk,
+  // so risk + rollover visuals match the board once pulled in.
+  const status =
+    task.status === TaskStatus.BACKLOG ? TaskStatus.TODO : task.status;
+
+  switch (task.type) {
+    case TaskTypeEnum.AD_HOC: {
+      const msElapsed = today.getTime() - new Date(task.createdAt).getTime();
+      const daysSinceCreation = Math.floor(msElapsed / 86400000);
+
+      if (status === TaskStatus.TODO) {
+        if (daysSinceCreation >= 8) return "danger";
+        if (daysSinceCreation >= 5) return "warning";
+      } else if (status === TaskStatus.DOING) {
+        if (daysSinceCreation >= 8) return "warning";
+      }
+      return "normal";
+    }
+
+    case TaskTypeEnum.DAILY: {
+      const isRollover =
+        task.forDate !== null && normalizeForDate(task.forDate) < today;
+
+      if (isRollover) {
+        if (status === TaskStatus.TODO) {
+          return currentHour < 15 ? "warning" : "danger";
+        }
+        // DOING rollover → warning regardless of time; never danger
+        return "warning";
+      } else {
+        // Fresh daily task (forDate = today)
+        return currentHour >= 20 ? "warning" : "normal";
+      }
+    }
+
+    case TaskTypeEnum.WEEKLY: {
+      const progress = task.templateId
+        ? (templateProgressMap.get(task.templateId) ?? { done: 0, doing: 0 })
+        : { done: 0, doing: 0 };
+      const frequency = task.templateId
+        ? (templateFreqMap.get(task.templateId) ?? 1)
+        : 1;
+      const remainingTasks = frequency - progress.done - progress.doing;
+      const remainingDays = 7 - daysElapsed;
+
+      if (status === TaskStatus.TODO) {
+        if (daysElapsed >= 5 || remainingDays < remainingTasks * 1) return "danger";
+        if (daysElapsed >= 3 || remainingDays < remainingTasks * 2) return "warning";
+        return "normal";
+      }
+
+      // DOING — never danger
+      if (daysElapsed >= 5 || remainingDays < remainingTasks * 1) return "warning";
+      return "normal";
+    }
+
+    default:
+      return "normal";
+  }
+}
+
+/**
+ * A daily task is "rollover" when it was scheduled for a past day and is not yet
+ * done. Shared by the board card and the mobile backlog sheet card so the ↩ tag
+ * renders identically in both.
+ */
+export function isRolloverTask(task: TaskItem, today: Date): boolean {
+  return (
+    task.status !== TaskStatus.DONE &&
+    task.type === TaskTypeEnum.DAILY &&
+    task.forDate !== null &&
+    normalizeForDate(task.forDate) < today
+  );
+}
+
+/**
+ * Resolve a task's template generation frequency. Ad-hoc tasks (no templateId)
+ * and unknown templates default to 1. Used to decide whether the instance-index
+ * badge is meaningful (frequency > 1).
+ */
+export function getTaskFrequency(
+  task: TaskItem,
+  templateFreqMap: Map<string, number>
+): number {
+  return task.templateId ? (templateFreqMap.get(task.templateId) ?? 1) : 1;
+}
+
+// ─── Sorting ───────────────────────────────────────────────────────────────
+
+/**
+ * Sort tasks within a column:
+ * 1. Today's daily tasks (forDate >= today)
+ * 2. Rollover daily tasks (forDate < today)
+ * 3. Weekly / AD_HOC
+ * Within each priority group, instances of the same template stay contiguous
+ * (ranked by the group's earliest createdAt) and are ordered by instanceIndex,
+ * so e.g. leetcode #1, leetcode #2, workout #1, workout #2 — not interleaved.
+ * Final tiebreakers: createdAt ascending, then id.
+ */
+export function sortTasks(tasks: TaskItem[], today: Date): TaskItem[] {
+  // Earliest createdAt per template — the group's sort rank, so all instances
+  // of a template sort together regardless of per-instance createdAt.
+  const templateRank = new Map<string, number>();
+  for (const t of tasks) {
+    if (!t.templateId) continue;
+    const created = new Date(t.createdAt).getTime();
+    const existing = templateRank.get(t.templateId);
+    if (existing === undefined || created < existing) {
+      templateRank.set(t.templateId, created);
+    }
+  }
+
+  const priority = (t: TaskItem): number => {
+    if (t.type !== TaskTypeEnum.DAILY) return 2;
+    if (t.forDate !== null && normalizeForDate(t.forDate) < today) return 1; // rollover
+    return 0; // fresh daily
+  };
+
+  // Templated tasks rank by their group's earliest createdAt; ad-hoc tasks
+  // (no template) rank by their own createdAt.
+  const groupRank = (t: TaskItem): number =>
+    t.templateId
+      ? (templateRank.get(t.templateId) ?? 0)
+      : new Date(t.createdAt).getTime();
+
+  return [...tasks].sort((a, b) => {
+    const pa = priority(a);
+    const pb = priority(b);
+    if (pa !== pb) return pa - pb;
+
+    const ga = groupRank(a);
+    const gb = groupRank(b);
+    if (ga !== gb) return ga - gb;
+
+    // Keep same-template groups contiguous even when ranks tie (batch-generated
+    // instances can share a createdAt), then order by instance index within.
+    const ta = a.templateId ?? "";
+    const tb = b.templateId ?? "";
+    if (ta !== tb) return ta.localeCompare(tb);
+    if (a.instanceIndex !== b.instanceIndex) {
+      return a.instanceIndex - b.instanceIndex;
+    }
+
+    const byCreatedAt =
+      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    if (byCreatedAt !== 0) return byCreatedAt;
+    return a.id.localeCompare(b.id);
+  });
+}
+
+/**
+ * Statuses rendered in the UI (excludes EXPIRED). BACKLOG is shown in the
+ * backlog drawer; TODO/DOING/DONE are the board columns.
+ */
+type BoardStatus =
+  | typeof TaskStatus.BACKLOG
+  | typeof TaskStatus.TODO
+  | typeof TaskStatus.DOING
+  | typeof TaskStatus.DONE;
+
+/**
+ * Group tasks by status and sort each group.
+ * Used by KanbanBoard for both initial render and optimistic state updates.
+ */
+export function groupAndSortTasks(
+  tasks: TaskItem[],
+  today: Date
+): Record<BoardStatus, TaskItem[]> {
+  const grouped: Record<BoardStatus, TaskItem[]> = {
+    [TaskStatus.BACKLOG]: [],
+    [TaskStatus.TODO]: [],
+    [TaskStatus.DOING]: [],
+    [TaskStatus.DONE]: [],
+  };
+
+  for (const task of tasks) {
+    const bucket = grouped[task.status as BoardStatus];
+    if (bucket) {
+      bucket.push(task);
+    }
+  }
+
+  return {
+    [TaskStatus.BACKLOG]: sortTasks(grouped[TaskStatus.BACKLOG], today),
+    [TaskStatus.TODO]: sortTasks(grouped[TaskStatus.TODO], today),
+    [TaskStatus.DOING]: sortTasks(grouped[TaskStatus.DOING], today),
+    [TaskStatus.DONE]: sortTasks(grouped[TaskStatus.DONE], today),
+  } as Record<BoardStatus, TaskItem[]>;
+}
