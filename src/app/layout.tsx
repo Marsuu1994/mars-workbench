@@ -70,7 +70,7 @@ export default async function RootLayout({
   return (
     <html lang="en" data-theme="mars-dark" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-base-300 text-base-content antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} min-h-dvh bg-base-300 text-base-content antialiased`}
       >
         <NextIntlClientProvider>
           <ThemeProvider>

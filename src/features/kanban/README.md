@@ -58,6 +58,11 @@ A drag-and-drop kanban board for planning and tracking tasks within weekly perio
 
 ## Update Log
 
+### 2026-07-03
+- Mobile viewport fixes from on-device testing of the Priorities page: the app shell (`AppShell` `h-screen`, root `body` `min-h-screen`) now sizes with dynamic viewport units (`h-dvh`/`min-h-dvh`), so the layout matches the real visible viewport on mobile Safari instead of overflowing behind the browser chrome (the page no longer hides the matrix x-axis behind a phantom scroll)
+- `<main>`'s mobile bottom padding now clears the fixed daisyUI dock exactly (`calc(4rem + env(safe-area-inset-bottom))` instead of `pb-20`), so content — including the matrix x-axis — is never covered by the tab bar on devices with a home indicator; dropped `BottomTabBar`'s manual safe-area padding (daisyUI's `.dock` already applies it)
+- The matrix y-axis now shows the full "Not Important" label on mobile (the "Not Imp." abbreviation and its `axisNotImportantShort` key are removed); mockup back-port: `mockup-priorities.html` mobile frames updated to match
+
 ### 2026-07-02
 - Started the **Priority Matrix implementation** (backend groundwork, PR 1 of 3 per the reviewed plan): migration `20260702000000_add_priority_quadrant` adds the `PriorityQuadrant` enum (`DO_FIRST / SCHEDULE / SQUEEZE_IN / MAYBE_LATER`) and a nullable `Task.quadrant` column (AD_HOC only), backfills all existing AD_HOC tasks to `SCHEDULE`, and normalizes unassigned ad-hoc tasks (plus any non-DONE strays on COMPLETED plans) to the uniform `BACKLOG` semantics; read-only pre-migration sanity queries in `scripts/one-time/check-adhoc-states.sql`
 - Behavior change/fix: `unlinkAdhocTasksFromPlan` now sends deselected ad-hoc tasks back to the priority matrix (`planId = null` + `status = BACKLOG`) and **excludes DONE tasks** — completed ad-hoc points keep their historical plan attribution (previously every plan turnover silently unlinked DONE ad-hoc tasks too)
