@@ -16,8 +16,8 @@
      ════════════════════════════════════════════ */
   .board-region { flex: 1; display: flex; min-height: 0; }
 
-  /* "Todo" badge — replaces "Ad-hoc" on board cards */
-  .badge-todo { background: var(--m-blue-a10); color: var(--m-blue); }
+  /* AD_HOC type badge — displays as "ONCE" (olive) */
+  .badge-adhoc { background: var(--m-olive-bg); color: var(--m-olive); }
 
   /* ── Queued (backlog) collapsed strip — right edge ── */
   .backlog-rstrip {
@@ -663,14 +663,14 @@
             <div class="task-card">
               <div class="task-title">File tax report</div>
               <div class="task-meta">
-                <span class="task-badge badge-todo">Todo</span>
+                <span class="task-badge badge-adhoc">ONCE</span>
                 <span class="size-chip"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span>
               </div>
             </div>
             <div class="task-card">
               <div class="task-title">Shop birthday gift</div>
               <div class="task-meta">
-                <span class="task-badge badge-todo">Todo</span>
+                <span class="task-badge badge-adhoc">ONCE</span>
                 <span class="size-chip"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span>
               </div>
             </div>
@@ -690,7 +690,7 @@
             <div class="task-card">
               <div class="task-title">Renew passport</div>
               <div class="task-meta">
-                <span class="task-badge badge-todo">Todo</span>
+                <span class="task-badge badge-adhoc">ONCE</span>
                 <span class="size-chip"><span class="sz-label">S</span><span class="sz-dot">&middot;</span><span class="sz-pts">2</span></span>
               </div>
             </div>
@@ -703,7 +703,7 @@
             <div class="task-card done-card">
               <div class="task-title">Buy birthday gift</div>
               <div class="task-meta">
-                <span class="task-badge badge-todo">Todo</span>
+                <span class="task-badge badge-adhoc">ONCE</span>
                 <span class="size-chip"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span>
               </div>
             </div>
@@ -740,7 +740,7 @@
           </div>
 
           <div class="m-matrix">
-            <div class="m-axis-y"><span>Important</span><span>Not Imp.</span></div>
+            <div class="m-axis-y"><span>Important</span><span>Not Important</span></div>
             <div class="m-grid">
               <div class="m-quadrant q-do-first">
                 <div class="m-quadrant-header">
@@ -825,7 +825,7 @@
             <span class="m-topbar-count">Week 09</span>
           </div>
           <div class="m-matrix" style="opacity:0.4">
-            <div class="m-axis-y"><span>Important</span><span>Not Imp.</span></div>
+            <div class="m-axis-y"><span>Important</span><span>Not Important</span></div>
             <div class="m-grid">
               <div class="m-quadrant q-do-first">
                 <div class="m-quadrant-header"><span class="quadrant-icon" style="color:var(--m-red)">&#9679;</span><span class="m-quadrant-label">Do First</span><span class="m-quadrant-count">2</span></div>

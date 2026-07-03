@@ -3,7 +3,7 @@
     "TaskType": {
       "DAILY": "DAILY",
       "WEEKLY": "WEEKLY",
-      "AD_HOC": "Todo"
+      "AD_HOC": "ONCE"
     },
     "TaskTypeShort": {
       "DAILY": "DAILY",
@@ -86,7 +86,6 @@
     "hintNoPlan": "No active plan — <em>Create Plan</em> to track tasks this week",
     "axisImportant": "Important",
     "axisNotImportant": "Not Important",
-    "axisNotImportantShort": "Not Imp.",
     "axisUrgent": "Urgent",
     "axisNotUrgent": "Not Urgent",
     "QuadrantShort": {
@@ -174,7 +173,7 @@
   },
   "Validation": {
     "frequencyPositive": "Frequency must be a positive integer",
-    "selectAtLeastOne": "Select at least one template or ad-hoc task",
+    "selectAtLeastOne": "Select at least one template or one-off task",
     "titleRequired": "Title is required",
     "descriptionRequired": "Description is required",
     "atLeastOneField": "At least one field must be provided"
@@ -195,10 +194,10 @@
     "taskTemplatesLabel": "Task Templates",
     "newTemplateButton": "+ New Template",
     "noTemplates": "No templates yet. Create a template to get started.",
-    "adhocTasksLabel": "Ad-hoc Tasks",
+    "adhocTasksLabel": "One-off Tasks",
     "taskCount": "{count, plural, one {# task} other {# tasks}}",
     "summary": "{templateCount, plural, one {# template} other {# templates}} selected",
-    "summaryWithAdhoc": "{templateCount, plural, one {# template} other {# templates}}, {adhocCount, plural, one {# ad-hoc task} other {# ad-hoc tasks}} selected",
+    "summaryWithAdhoc": "{templateCount, plural, one {# template} other {# templates}}, {adhocCount, plural, one {# one-off task} other {# one-off tasks}} selected",
     "cancel": "Cancel",
     "startWeek": "Start Week",
     "updatePlan": "Update Plan",
@@ -225,7 +224,7 @@
     "removedNoteWithTasks": "{count, plural, one {# Todo / In Progress task} other {# Todo / In Progress tasks}} will be deleted from the board",
     "removedNoteNoTasks": "No active tasks on the board",
     "modifiedNote": "{hasTasks, select, yes {Existing Todo / In Progress tasks deleted} other {No active tasks to remove}} — {count, plural, one {# new {type} instance} other {# new {type} instances}} will be generated",
-    "adhocHeading": "Ad-hoc Tasks",
+    "adhocHeading": "One-off Tasks",
     "addedToBoard": "Added to board",
     "adhocAddedNote": "Will appear on the board",
     "removedFromBoard": "Removed from board",

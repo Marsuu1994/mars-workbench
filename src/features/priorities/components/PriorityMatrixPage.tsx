@@ -195,8 +195,7 @@ export default function PriorityMatrixPage({
         {t("axisImportant")}
       </span>
       <span className="[writing-mode:vertical-rl] rotate-180 text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-base-content/40">
-        <span className="hidden md:inline">{t("axisNotImportant")}</span>
-        <span className="md:hidden">{t("axisNotImportantShort")}</span>
+        {t("axisNotImportant")}
       </span>
     </div>
   );

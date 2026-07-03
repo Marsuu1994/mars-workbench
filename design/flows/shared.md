@@ -1,8 +1,30 @@
 # Shared Flows
 
-Cross-page sync lifecycle flows — the daily and end-of-period syncs and the `ensureSynced` entry point (`src/lib/kanban/syncService.ts`) consumed by the board (`design/flows/board.md`), the priority matrix (`design/flows/priorities.md`), and the plan pages (`design/flows/plan.md`).
+Cross-page sync lifecycle, centralized in `syncService` (`src/lib/kanban/syncService.ts`). Every kanban page — board (`design/flows/board.md`), priorities matrix (`design/flows/priorities.md`), plan create/edit (`design/flows/plan.md`) — awaits `ensureSynced` before reading plan state, so no page carries its own sync branching and page-visit order never matters.
 
 > **Doc convention:** One flow per `##` heading, separated by `---`. Every flow has two required `###` sections — `Trigger / Entry Point` and `Steps` — plus an optional `### Rules` section for constraints and invariants. Extra `###` sections (e.g. `Metrics`) are allowed only for reference material that fits neither Steps nor Rules.
+
+---
+
+## Ensure Synced Flow
+
+### Trigger / Entry Point
+
+Awaited by every kanban page's data fetch before reading plan state: board (`fetchBoard`, first line), priorities (`fetchPriorityMatrix` and `trackTaskThisWeek`), and the plan create/edit pages (top of the page loaders). Single implementation: `syncService.ensureSynced(userId)`.
+
+### Steps
+
+1. Fetch the `ACTIVE` plan. If none exists → return null (caller renders its no-plan state).
+2. If current ISO week key differs from `plan.periodKey` → run End of Period Sync → return null.
+3. If `plan.lastSyncDate` is earlier than today → run Daily Sync.
+4. Return the current-week `ACTIVE` plan.
+
+### Rules
+
+- Idempotent — safe to call from every page on every load.
+- Wrapped in React `cache()`: concurrent calls within one server render pass dedupe to a single run. Server Actions run in their own request, so mutations re-check fresh state.
+- This is what makes a matrix-first or plan-page-first landing after week rollover behave exactly like a board landing (e.g. the no-plan "Create Plan" CTA never dead-ends on a stale `ACTIVE` plan).
+- `runDailySync` / `runEndOfPeriodSync` remain standalone functions — the long-term home is a scheduled cron job just after midnight in `KANBAN_TZ`, with `ensureSynced` kept as the idempotent page-side fallback (see the Cron-driven sync item in `design/tracker.md`).
 
 ---
 
@@ -10,7 +32,7 @@ Cross-page sync lifecycle flows — the daily and end-of-period syncs and the `e
 
 ### Trigger / Entry Point
 
-`lastSyncDate` is earlier than today.
+`lastSyncDate` is earlier than today (checked by Ensure Synced).
 
 ### Steps
 
@@ -36,32 +58,10 @@ Cross-page sync lifecycle flows — the daily and end-of-period syncs and the `e
 
 ### Trigger / Entry Point
 
-Current ISO week key differs from `plan.periodKey`.
+Current ISO week key differs from `plan.periodKey` (checked by Ensure Synced).
 
 ### Steps
 
-1. Expire all remaining non-DONE tasks instances except Ad-hoc tasks.
+1. Expire all remaining non-DONE tasks instances except one-off (`AD_HOC`) tasks.
 2. Set plan status: `ACTIVE` → `PENDING_UPDATE`.
-3. Return null → board renders "Create Plan" prompt.
-
----
-
-## Ensure Synced Flow
-
-### Trigger / Entry Point
-
-Every kanban page awaits `ensureSynced(userId)` (`src/lib/kanban/syncService.ts`) server-side before reading plan state: `boardService.fetchBoard` (board), `matrixService` (matrix fetch + track), and both plan pages (`/kanban/plans/new`, `/kanban/plans/[id]`).
-
-### Steps
-
-1. Fetch the user's `ACTIVE` plan. If none exists, return `null` → the caller renders its no-plan state.
-2. If the plan's `periodKey` is not the current ISO week, run the End of Period Sync (above) and return `null` — no active plan anymore.
-3. If `plan.lastSyncDate` differs from today, run the Daily Sync (above).
-4. Return the current-week `ACTIVE` plan.
-
-### Rules
-
-- Single entry point for the sync lifecycle: no page carries its own sync branching, and no "which page did the user visit first?" ordering matters.
-- Idempotent — the daily sync runs at most once per day via the `Plan.lastSyncDate` short-circuit.
-- Wrapped in React `cache()`, so concurrent calls within one server render pass (e.g. a page and a nested component) dedupe to a single run. Server Actions run in their own request, so mutations re-check fresh state.
-- `runDailySync` / `runEndOfPeriodSync` remain standalone exports for a future cron-driven sync (see Planned: Future in `design/baseline.md`); `ensureSynced` stays as the idempotent page-load fallback.
+3. Return null → the calling page renders its no-plan state (board: "Create Plan" prompt; matrix: warn hint bar + disabled send).

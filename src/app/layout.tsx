@@ -35,7 +35,11 @@ export async function generateMetadata(): Promise<Metadata> {
     manifest: "/manifest.json",
     appleWebApp: {
       capable: true,
-      statusBarStyle: "black-translucent",
+      // Opaque on purpose: with "black-translucent", iOS lays out the
+      // standalone viewport short by the status-bar height at launch (until
+      // the first scroll gesture), which floats the fixed dock above the
+      // screen bottom. We never draw content under the status bar anyway.
+      statusBarStyle: "black",
       title: t("title"),
     },
     icons: {
@@ -70,7 +74,7 @@ export default async function RootLayout({
   return (
     <html lang="en" data-theme="mars-dark" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-base-300 text-base-content antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} min-h-dvh bg-base-300 text-base-content antialiased`}
       >
         <NextIntlClientProvider>
           <ThemeProvider>

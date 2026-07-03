@@ -238,8 +238,9 @@ Mockups are the source of truth for UI, but implementation may introduce details
 
 ## Version Control
 
-- **Do NOT create a commit without explicit permission from the user.** The user reviews work before it is committed. Make and stage changes, summarize what changed, and wait for the user to approve before running `git commit`.
-- The same applies to `git push` and any other outward-facing or hard-to-reverse VCS action — ask first.
+- **Local sessions (running on the user's machine): do NOT commit or push without explicit permission from the user.** The user reviews work before it is committed. Make and stage changes, summarize what changed, and wait for the user to approve before running `git commit`, `git push`, or any other outward-facing or hard-to-reverse VCS action.
+- **Remote sessions (managed cloud environments — e.g. Claude Code on the web / GitHub integration, where the repo is cloned fresh into an ephemeral container): no permission needed for commit/push/PR.** Work on a new branch (or the session's designated working branch), commit with clear messages, push with `git push -u origin <branch>`, and open a pull request directly.
+- In both modes, never commit or push directly to `main` — changes land via pull requests.
 
 ## Commands
 

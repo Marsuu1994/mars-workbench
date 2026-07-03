@@ -41,6 +41,8 @@ Inventory of the handlers and data-access functions that already exist, so new w
 
 ## Shared Services (src/lib/kanban)
 
+Flow-level spec: [flows/shared.md](./flows/shared.md).
+
 | Function | Purpose |
 | --- | --- |
 | **`syncService.ts`** | |
