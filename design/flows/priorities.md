@@ -71,15 +71,16 @@ User drags a card to a different quadrant (desktop and mobile).
 
 ### Trigger / Entry Point
 
-User clicks the "Add" button at the bottom of a quadrant, which opens the Ad-hoc task modal.
+- **Desktop:** user clicks the "Add" button at the bottom of a quadrant, which opens the Ad-hoc task modal with that quadrant preset.
+- **Mobile:** the per-quadrant Add buttons are hidden; a round "+" button in the top bar opens the same modal as a bottom sheet with a 2×2 quadrant picker (mirroring the matrix layout, defaulting to Schedule).
 
 ### Steps
 
-1. User fills in title, description, size and clicks "Add to matrix".
-2. Generate the Ad-hoc task with `quadrant` matching the source quadrant, `status = BACKLOG`, and `planId = null`.
-3. UI state updates on success.
+1. User fills in title, description, size — and on mobile picks a quadrant — then clicks "Add to matrix".
+2. Generate the Ad-hoc task with `quadrant` matching the source quadrant (desktop) or the picked one (mobile), `status = BACKLOG`, and `planId = null`.
+3. UI state updates on success; the mobile picker flow confirms with a transient "Added to {quadrant}" toast (desktop shows the new card in its quadrant instead).
 
 ### Rules
 
-- Reuses the existing Ad-hoc task creation modal; only the submit wiring differs (quadrant + unassigned, instead of column status + plan link).
+- Reuses the existing Ad-hoc task creation modal; only the submit wiring differs (quadrant + unassigned, instead of column status + plan link). The quadrant picker renders only when no source quadrant is preset.
 - Tasks created here reach the board only via the "Track This Week Flow".
