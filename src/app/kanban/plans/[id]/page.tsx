@@ -47,6 +47,7 @@ export default async function EditPlanPage({
       initialPlanMode={plan.mode}
       adhocTasks={adhocTasks}
       initialAdhocTaskIds={initialAdhocTaskIds}
+      periodKey={plan.periodKey}
     />
   );
 }

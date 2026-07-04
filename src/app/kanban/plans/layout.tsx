@@ -9,7 +9,8 @@ export default async function PlansLayout({
 
   return (
     <div className="flex flex-col h-screen">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-base-content/10">
+      {/* Desktop header — mobile gets a sticky topbar inside PlanForm instead */}
+      <div className="hidden md:flex items-center justify-between px-4 py-3 border-b border-base-content/10">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-bold">
             <span className="text-success">{t("titlePrefix")}</span>
@@ -20,7 +21,7 @@ export default async function PlansLayout({
           </span>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto p-8">
+      <div className="flex-1 overflow-y-auto p-4 md:p-8">
         <div className="mx-auto max-w-xl">{children}</div>
       </div>
     </div>
