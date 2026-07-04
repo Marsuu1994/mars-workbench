@@ -35,13 +35,17 @@ export default function TaskModalFooter({
       <div className="modal-action">
         <button
           type="button"
-          className="btn btn-ghost"
+          className="btn btn-ghost flex-1 md:flex-none"
           onClick={onClose}
           disabled={isSubmitting}
         >
           {t("cancel")}
         </button>
-        <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+        <button
+          type="submit"
+          className="btn btn-primary flex-[2] md:flex-none"
+          disabled={isSubmitting}
+        >
           {isSubmitting ? (
             <span className="loading loading-spinner loading-sm" />
           ) : (

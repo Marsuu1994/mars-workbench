@@ -127,7 +127,8 @@
     "descriptionPlaceholderAdhoc": "Optional details about this task",
     "descriptionPlaceholderTemplate": "e.g. Focus on dynamic programming and graph problems",
     "sizeLabel": "Size",
-    "sizeWarning": "Consider splitting into smaller tasks"
+    "sizeWarning": "Consider splitting into smaller tasks",
+    "quadrantLabel": "Quadrant"
   },
   "Settings": {
     "title": "Settings",
