@@ -55,7 +55,7 @@ export const AppSidebar = ({ user, activePlanId }: AppSidebarProps) => {
   const planHref = activePlanId ? `/kanban/plans/${activePlanId}` : "/kanban/plans/new";
 
   const navItemBase = "flex items-center gap-2.5 rounded-lg px-3 py-2 whitespace-nowrap transition-colors";
-  const navItemActive = `${navItemBase} bg-primary/10 text-primary font-semibold`;
+  const navItemActive = `${navItemBase} fx-nav-rail bg-primary/10 text-primary font-semibold`;
   const navItemInactive = `${navItemBase} text-base-content/50 hover:bg-base-200 hover:text-base-content/70`;
 
   const renderBoardLink = () => {
@@ -111,12 +111,12 @@ export const AppSidebar = ({ user, activePlanId }: AppSidebarProps) => {
 
   return (
     <aside
-      className={`hidden md:flex flex-col flex-shrink-0 border-r border-base-200 bg-base-100 transition-all duration-200 ${
+      className={`fx-chrome hidden md:flex flex-col flex-shrink-0 border-r border-base-content/10 transition-all duration-200 ${
         collapsed ? "w-16" : "w-60"
       }`}
     >
       {/* Header — pl-[19px] centers the 28px logo with nav icons (nav icon center = 33px) */}
-      <div className="flex items-center gap-2.5 border-b border-base-200 min-h-14 pl-[19px] pr-4 py-3.5">
+      <div className="flex items-center gap-2.5 border-b border-base-content/10 min-h-14 pl-[19px] pr-4 py-3.5">
         {/* Logo */}
         <div
           className={`relative flex-shrink-0 ${collapsed ? "cursor-e-resize" : "cursor-default"}`}
@@ -124,7 +124,7 @@ export const AppSidebar = ({ user, activePlanId }: AppSidebarProps) => {
           onMouseEnter={() => setIsLogoHovered(true)}
           onMouseLeave={() => setIsLogoHovered(false)}
         >
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-info shadow-sm">
+          <div className="fx-glow flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-info">
             {collapsed && isLogoHovered ? (
               <ChevronRightIcon className="h-4 w-4 text-white" />
             ) : (
@@ -171,7 +171,7 @@ export const AppSidebar = ({ user, activePlanId }: AppSidebarProps) => {
       {/* Nav — workspace items */}
       <div className="px-3 pt-3 pb-1 overflow-hidden">
         <div className={`overflow-hidden transition-all duration-200 ${collapsed ? "h-0 mb-0" : "h-5 mb-1.5"}`}>
-          <span className={`block px-2 text-[10px] font-semibold uppercase tracking-widest text-base-content/40 whitespace-nowrap ${textOpacity}`}>
+          <span className={`fx-label block px-2 whitespace-nowrap ${textOpacity}`}>
             Workspace
           </span>
         </div>
@@ -184,7 +184,7 @@ export const AppSidebar = ({ user, activePlanId }: AppSidebarProps) => {
 
       {/* User section — consistent layout, info fades */}
       {/* User — pl-[17px] centers 32px avatar with nav icons (center = 33px) */}
-      <div className="mt-auto border-t border-base-200 flex items-center gap-2.5 pl-[17px] pr-3 py-3 overflow-hidden">
+      <div className="mt-auto border-t border-base-content/10 flex items-center gap-2.5 pl-[17px] pr-3 py-3 overflow-hidden">
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-warning to-error text-white text-xs font-bold flex-shrink-0">
           {initials}
         </div>

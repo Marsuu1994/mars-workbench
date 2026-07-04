@@ -17,10 +17,10 @@ interface EmptyBoardProps {
 
 const renderStatChip = (value: string, label: string, accent?: boolean) => (
   <div className="flex flex-col items-center gap-0.5">
-    <div className={`text-2xl font-bold ${accent ? "text-warning" : "text-primary"}`}>
+    <div className={`fx-num text-2xl font-bold ${accent ? "text-warning" : "text-primary"}`}>
       {value}
     </div>
-    <div className="text-xs text-base-content/50">{label}</div>
+    <div className="fx-label">{label}</div>
   </div>
 );
 
@@ -32,7 +32,7 @@ export default function EmptyBoard({ stats }: EmptyBoardProps) {
       <Squares2X2Icon className="size-20 text-base-content/15" />
       <h1 className="text-2xl font-semibold">{t("newTitle")}</h1>
       <p className="text-base-content/60 text-center max-w-md">{t("newDesc")}</p>
-      <Link href={CREATE_PLAN_HREF} className="btn btn-primary mt-2">
+      <Link href={CREATE_PLAN_HREF} className="btn btn-primary fx-glow mt-2">
         <PlusIcon className="size-5" />
         {t("newCta")}
       </Link>
@@ -50,7 +50,7 @@ export default function EmptyBoard({ stats }: EmptyBoardProps) {
         {renderStatChip(`${recap.totalPoints}`, t("statPointsEarned"), true)}
       </div>
       <p className="text-base-content/60 text-center">{t("returningPrompt")}</p>
-      <Link href={CREATE_PLAN_HREF} className="btn btn-primary mt-2">
+      <Link href={CREATE_PLAN_HREF} className="btn btn-primary fx-glow mt-2">
         <PlusIcon className="size-5" />
         {t("returningCta")}
       </Link>

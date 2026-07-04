@@ -133,7 +133,7 @@ export default function TaskModal({
 
   return (
     <dialog ref={dialogRef} className="modal" onClose={onClose}>
-      <div className="modal-box max-w-lg">
+      <div className="modal-box fx-panel-solid fx-corners fx-boot-in max-w-lg">
         <TaskModalHeader mode={mode} onClose={onClose} />
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">

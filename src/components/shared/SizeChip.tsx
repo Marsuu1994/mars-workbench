@@ -16,13 +16,13 @@ export const SizeChip = ({ size, points, className, labelOnly }: SizeChipProps) 
 
   return (
     <span
-      className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-success/10 text-success ${className ?? ""}`}
+      className={`fx-chip inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded text-success ${className ?? ""}`}
     >
       <span>{t(size)}</span>
       {!labelOnly && (
         <>
           <span className="opacity-40">&middot;</span>
-          <span className="font-semibold opacity-70">{points}</span>
+          <span className="fx-num font-semibold opacity-70">{points}</span>
         </>
       )}
     </span>

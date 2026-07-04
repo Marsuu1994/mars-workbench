@@ -4,8 +4,8 @@
   "description": "Agile-like personal kanban planner",
   "start_url": "/kanban",
   "display": "standalone",
-  "background_color": "#08081a",
-  "theme_color": "#141428",
+  "background_color": "#030610",
+  "theme_color": "#0d1321",
   "orientation": "portrait-primary",
   "icons": [
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },

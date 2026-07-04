@@ -17,7 +17,7 @@ export default function BoardHeader({ periodKey }: BoardHeaderProps) {
         <h1 className="text-lg md:text-xl font-bold">
           <span className="text-primary md:text-success">{t("titlePrefix")}</span>{t("titleSuffix")}
         </h1>
-        <span className="bg-primary/15 text-primary md:bg-success/15 md:text-success text-xs font-medium px-3 py-1 rounded-full font-semibold">
+        <span className="fx-chip fx-num text-primary md:text-success text-xs px-3 py-1 rounded-full font-semibold">
           {dateRange}
         </span>
       </div>

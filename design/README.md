@@ -7,6 +7,7 @@ Centralized design documentation for Mars Workbench. Code is organized layer-fir
 | Path | Purpose |
 | --- | --- |
 | [baseline.md](./baseline.md) | The one app-wide design baseline: goal, implemented features, entities, full Prisma schema, architecture decisions. |
+| [design-system.md](./design-system.md) | The visual design system ("Mission Control HUD"): OKLCH palette + contrast report, `fx-*` utility layer, typography, motion, palette sync points. |
 | [tracker.md](./tracker.md) | Consolidated roadmap — open items and ideas only (closed work moves to feature Update Logs). |
 | [reference.md](./reference.md) | Lean lookup tables for server actions, services, and DAL functions. |
 | [flows/](./flows/) | Per-page flow docs: `shared.md`, `board.md`, `plan.md`, `priorities.md`, `auth.md`. |

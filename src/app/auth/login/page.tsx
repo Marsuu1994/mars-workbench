@@ -30,7 +30,7 @@ const GoogleLogo = () => (
 );
 
 const BrandIcon = () => (
-  <div className="flex h-14 w-14 animate-[glow_4s_ease-in-out_infinite_alternate] items-center justify-center rounded-2xl bg-linear-to-br from-primary to-secondary shadow-[0_0_40px_rgba(0,212,240,0.15),0_0_80px_rgba(168,85,247,0.08)]">
+  <div className="flex h-14 w-14 animate-[glow_4s_ease-in-out_infinite_alternate] items-center justify-center rounded-2xl bg-linear-to-br from-primary to-secondary">
     <svg
       viewBox="0 0 24 24"
       className="h-7 w-7 fill-none stroke-white"
@@ -88,9 +88,10 @@ const LoginPage = () => {
         }}
       />
 
-      {/* Subtle grid */}
+      {/* Subtle grid — extends one 64px cell above the viewport so the
+          fx-grid-flow crawl wraps seamlessly */}
       <div
-        className="pointer-events-none fixed inset-0 z-0 bg-[size:64px_64px]"
+        className="fx-grid-flow pointer-events-none fixed inset-x-0 -top-16 bottom-0 z-0 bg-[size:64px_64px]"
         style={{
           backgroundImage: [
             "linear-gradient(var(--login-grid-color) 1px, transparent 1px)",

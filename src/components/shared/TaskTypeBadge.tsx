@@ -8,9 +8,9 @@ interface TaskTypeBadgeProps {
 }
 
 const CLASS_CONFIG: Record<string, string> = {
-  [TaskType.DAILY]: "bg-info/15 text-info",
-  [TaskType.WEEKLY]: "bg-secondary/15 text-secondary",
-  [TaskType.AD_HOC]: "bg-warning/15 text-warning",
+  [TaskType.DAILY]: "text-info",
+  [TaskType.WEEKLY]: "text-secondary",
+  [TaskType.AD_HOC]: "text-warning",
 };
 
 export default function TaskTypeBadge({ type }: TaskTypeBadgeProps) {
@@ -19,7 +19,7 @@ export default function TaskTypeBadge({ type }: TaskTypeBadgeProps) {
 
   return (
     <span
-      className={`text-[8px] md:text-[11px] font-semibold px-1.5 py-px md:px-2 md:py-0.5 rounded ${CLASS_CONFIG[key]}`}
+      className={`fx-chip text-[8px] md:text-[10px] font-semibold px-1.5 py-px md:px-2 md:py-0.5 rounded ${CLASS_CONFIG[key]}`}
     >
       {t(key)}
     </span>

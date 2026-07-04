@@ -60,12 +60,10 @@ export default function TaskCard({
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`card bg-base-100/70 shadow-sm border border-base-content/10 transition-[box-shadow,border-color,opacity] duration-150 hover:-translate-y-0.5 hover:shadow-md hover:border-base-content/25 flex-shrink-0 w-[136px] md:w-auto ${mobileRiskClass} ${desktopRiskClass} ${
+          className={`card fx-card bg-base-100/70 border border-base-content/10 hover:-translate-y-0.5 flex-shrink-0 w-[136px] md:w-auto ${mobileRiskClass} ${desktopRiskClass} ${
             isDone ? "opacity-50 cursor-default" : "cursor-grab"
           } ${
-            snapshot.isDragging
-              ? "shadow-lg ring-2 ring-primary/30 scale-[1.02] z-50"
-              : ""
+            snapshot.isDragging ? "fx-card-lift scale-[1.02] z-50" : ""
           }`}
         >
           <div className="card-body p-2.5 md:p-3 gap-1.5 md:gap-1">
@@ -73,7 +71,7 @@ export default function TaskCard({
             <div className="md:hidden flex items-center gap-1.5">
               <TaskTypeBadge type={taskType} />
               {showInstance && (
-                <span className="text-[8px] font-bold px-1 py-0.5 rounded bg-primary/10 text-primary">
+                <span className="fx-num text-[8px] font-bold px-1 py-0.5 rounded bg-primary/10 text-primary">
                   #{task.instanceIndex + 1}
                 </span>
               )}
@@ -98,13 +96,13 @@ export default function TaskCard({
               <TaskTypeBadge type={taskType} />
 
               {showInstance && (
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                <span className="fx-num text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary">
                   #{task.instanceIndex + 1}
                 </span>
               )}
 
               {isRollover && (
-                <span className="flex items-center gap-0.5 text-xs text-warning font-medium">
+                <span className="fx-num flex items-center gap-0.5 whitespace-nowrap text-xs text-warning font-medium">
                   ↩ {formatShortDate(new Date(task.forDate!))}
                 </span>
               )}
@@ -122,7 +120,7 @@ export default function TaskCard({
             {/* Mobile footer */}
             <div className="flex md:hidden items-center mt-auto">
               {isRollover && (
-                <span className="flex items-center gap-0.5 text-[8px] text-warning font-medium">
+                <span className="fx-num flex items-center gap-0.5 whitespace-nowrap text-[8px] text-warning font-medium">
                   ↩ {formatShortDate(new Date(task.forDate!))}
                 </span>
               )}

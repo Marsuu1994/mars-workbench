@@ -35,7 +35,7 @@ export const AppShell = ({ user, activePlanId, children }: AppShellProps) => {
   }
 
   return (
-    <div className="flex h-dvh pt-[env(safe-area-inset-top)]">
+    <div className="fx-shell-bg flex h-dvh pt-[env(safe-area-inset-top)]">
       <AppSidebar user={user} activePlanId={activePlanId} />
       {/* Mobile bottom padding matches the fixed daisyUI dock exactly:
           4rem + env(safe-area-inset-bottom) — see .dock in daisyUI. */}

@@ -44,28 +44,26 @@ export default function QuadrantCell({
     <div
       className={`flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 pt-1.5 md:pt-2.5 pb-1 md:pb-1.5 border-t-[3px] flex-shrink-0 ${config.accentBorder}`}
     >
-      <span className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full flex-shrink-0 ${config.dotClass}`} />
+      <span className={`fx-led ${config.ledClass}`} />
       <span
-        className={`text-[9px] md:text-[13px] font-bold uppercase tracking-wide ${
-          isDraggingOver ? "text-primary" : ""
-        }`}
+        className={`fx-label font-bold ${isDraggingOver ? "text-primary" : "fx-label-bright"}`}
       >
         <span className="hidden md:inline">{tQuadrant(quadrant)}</span>
-        <span className="md:hidden">{tQuadrantShort(quadrant)}</span>
+        <span className="md:hidden text-[9px]">{tQuadrantShort(quadrant)}</span>
       </span>
       {config.sublabelKey && (
         <span className="hidden md:inline text-[11px] text-base-content/50">
           — {t(config.sublabelKey)}
         </span>
       )}
-      <span className="ml-auto text-[9px] md:text-[11px] font-semibold text-base-content/50">
+      <span className="fx-num ml-auto text-[9px] md:text-[11px] font-semibold text-base-content/50">
         {tasks.length}
       </span>
     </div>
   );
 
   const renderDropHint = () => (
-    <div className="flex items-center justify-center gap-1.5 p-2 rounded-lg text-[11px] font-semibold text-primary bg-primary/5 border-[1.5px] border-dashed border-primary/40 mb-0.5">
+    <div className="flex items-center justify-center gap-1.5 p-2 rounded-lg text-[11px] font-semibold text-accent bg-accent/5 border-[1.5px] border-dashed border-accent/40 mb-0.5">
       <ArrowDownIcon className="size-3" />
       {t("dropHint", { quadrant })}
     </div>
@@ -91,8 +89,8 @@ export default function QuadrantCell({
         // stacking context (the board uses border highlighting for the same
         // reason).
         <div
-          className={`relative flex flex-col min-h-0 border border-base-content/10 transition-colors duration-150 ${
-            snapshot.isDraggingOver ? "bg-primary/5" : ""
+          className={`fx-quadrant ${config.bloomClass} relative flex flex-col min-h-0 border border-base-content/10 transition-colors duration-150 ${
+            snapshot.isDraggingOver ? "bg-accent/5" : ""
           }`}
         >
           {renderHeader(snapshot.isDraggingOver)}
@@ -107,7 +105,7 @@ export default function QuadrantCell({
             ref={provided.innerRef}
             {...provided.droppableProps}
             className={`flex-1 min-h-0 flex flex-col gap-1.5 overflow-y-auto px-2 md:px-4 pb-2 md:pb-4 pt-1 rounded-xl ${
-              snapshot.isDraggingOver ? "outline-2 outline-dashed outline-primary -outline-offset-8" : ""
+              snapshot.isDraggingOver ? "outline-2 outline-dashed outline-accent -outline-offset-8" : ""
             }`}
           >
             {tasks.map((task, index) => (

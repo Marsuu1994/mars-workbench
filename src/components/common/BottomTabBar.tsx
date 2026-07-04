@@ -27,7 +27,7 @@ export const BottomTabBar = ({ user, activePlanId }: BottomTabBarProps) => {
   const isSettings = pathname.startsWith("/kanban/settings");
 
   return (
-    <div className="dock md:hidden">
+    <div className="dock fx-chrome fx-hairline-top md:hidden">
       <Link href="/kanban" className={isBoard ? "dock-active" : ""}>
         <Squares2X2Icon className="size-5" />
         <span className="dock-label">Board</span>
