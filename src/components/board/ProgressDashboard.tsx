@@ -81,8 +81,20 @@ export default function ProgressDashboard({
       <div className="hidden md:flex items-center gap-6 px-4 py-3 border-b border-base-content/10 bg-base-200/50">
         {/* Today Ring */}
         <div className="flex items-center gap-3">
-          <div className="fx-orbit relative w-12 h-12 shrink-0">
-            <svg viewBox="0 0 52 52" width={48} height={48} className="fx-ring-glow -rotate-90">
+          {/* key remount restarts the finite fx-orbit spin on progress change,
+              so the celebration plays without state or an always-on loop */}
+          <div key={todayPct} className="fx-orbit relative w-12 h-12 shrink-0">
+            <svg viewBox="0 0 52 52" width={48} height={48} className="-rotate-90">
+              {/* Static halo — glow without a CSS filter, so the arc's
+                  stroke transition never re-runs a drop-shadow */}
+              <circle
+                cx={26}
+                cy={26}
+                r={RADIUS}
+                fill="none"
+                strokeWidth={7}
+                className="stroke-primary/15"
+              />
               <circle
                 cx={26}
                 cy={26}

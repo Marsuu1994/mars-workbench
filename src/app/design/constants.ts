@@ -9,7 +9,10 @@ import type { TaskItem } from "@/lib/db/tasks";
 import type { RiskLevel } from "@/utils/taskUtils";
 
 // ── Page copy ──────────────────────────────────────────────────────────────
-export const GALLERY_TITLE = "Design Console";
+/** Title halves — the accent word renders with fx-text-gradient (the
+    design system's "gradient on the first word only" restraint rule). */
+export const GALLERY_TITLE_ACCENT = "Design";
+export const GALLERY_TITLE_REST = "Console";
 export const GALLERY_SUBTITLE =
   "Mars Workbench design-system primitives — Mission Control HUD. Rendered with sample data; toggle the theme to preview both palettes.";
 
@@ -63,6 +66,15 @@ export const LED_STATES: { label: string; className: string; pulse: boolean }[] 
   { label: "At risk", className: "text-warning", pulse: false },
   { label: "Overdue", className: "text-error", pulse: false },
   { label: "AI live", className: "text-secondary", pulse: true },
+];
+
+/** Raw fx-chip specimens — generic channel names, deliberately NOT the
+    TaskType mapping (the real TaskTypeBadge has its own section below). */
+export const CHIP_SPECIMENS: { label: string; className: string }[] = [
+  { label: "DATALINK", className: "text-info" },
+  { label: "AI", className: "text-secondary" },
+  { label: "CAUTION", className: "text-warning" },
+  { label: "GO", className: "text-success" },
 ];
 
 // ── Task card fixtures ───────────────────────────────────────────────────────

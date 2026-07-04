@@ -17,6 +17,10 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## Current State
 
+### Design System
+
+- **"Mission Control HUD"** (`design/design-system.md`): app-wide visual language on two custom daisyUI themes — `mars-dark` (default, night) / `mars-light` (day) — built on seven OKLCH hue-wheel stops with numerically verified contrast (dark AAA, light ≥ 4.5:1), plus a token-derived `fx-*` utility layer in `globals.css` (holographic shell grid + blooms, console chips, status LEDs, mono telemetry type, glow CTAs, AI holo border, quadrant blooms). Color channels: cyan = action/telemetry, violet = AI, orange = drop-targets/signature, blue = datalink stats, green = go, amber/bronze = caution, red = abort. Palette changes must follow the sync points listed in the design doc (globals ↔ manifest ↔ viewport ↔ mockup-theme ↔ login mockup)
+
 ### Board
 
 - **Board**: 3-column kanban (Todo / In Progress / Done) with drag-and-drop, optimistic UI, risk badges, rollover indicators. Done cards are drop targets but cannot be dragged out; during a drag all droppable columns get a faint dashed outline and the hovered one a solid dashed highlight. Per-column accent colors (Todo=info, In Progress=warning, Done=success) and per-card left borders render correctly (risk cards override the left edge with their color).
@@ -74,6 +78,14 @@ Open items: see [design/tracker.md](./design/tracker.md).
 - [x] Deploy app on Vercel
 
 ## Update Log
+
+### 2026-07-04
+- **App-wide design-system redesign ("Mission Control HUD")** — the whole UI moved to a new visual language: your week as a flight plan flown from a console. Chosen by a 3-judge panel from four competing directions (Mission Control HUD, Aurora Holo-Glass, Synthwave Terraform, Bioluminal Deep Space), then hardened with the best elements of the losers. Spec + rationale in `design/design-system.md`
+- **New themes**: `mars-dark` (night ops deck — near-black blue consoles, phosphor-cyan primary, violet AI channel, mars-signal-orange accents) and `mars-light` (daylight ops room — cool paper-white, same seven hues driven deeper) rebuilt on seven OKLCH hue-wheel stops with numerically verified WCAG contrast: dark all AAA (≥ 7:1), light all pairs ≥ 4.5:1. Light `warning` re-seated to bronze, fixing three pre-existing AA failures where body-size `text-warning` sat on white (ReviewChangesModal, MobileTrackSheet, PriorityMatrixPage)
+- **`fx-*` utility layer** in `globals.css` (token-derived via `color-mix`, so both themes restyle automatically): holographic shell grid + four-corner horizon blooms, glass chrome (sidebar; the mobile dock stays solid for scroll perf), reticle corner brackets, `currentColor` console chips, glowing status LEDs, mono telemetry type (`fx-label`/`fx-num` — sans for humans, mono for the machine), glow CTAs, AI holo border, per-quadrant corner blooms, orange drop-target channel. All loops animate opacity/transform only and respect `prefers-reduced-motion`
+- **Components rewired**: board columns (LED status headers, mono telemetry labels, orange `fx-target` drop zones), TaskCard (edge-light + drag glow lift), TaskTypeBadge/SizeChip (console chips), ProgressDashboard (static halo ring + finite orbit-tail celebration on progress change, telemetry numerals), priority quadrants (semantic corner blooms + LED headers), AI chat (violet channel identity, holo loading bubble, gradient hairline header), sidebar/dock (glass/solid chrome, luminous active-nav rail, multi-hue dock hairline), login (token-derived glows, seamless grid-crawl animation, breathing brand halo), modals (console panel + reticle corners + boot-in)
+- **Mockups re-themed**: `mockup-theme.css` fully re-seated to the new palette (per-theme brand hexes + all ~40 rgba alpha-ladder values regenerated), login mockup's private token block synced, hardcoded palette bypasses fixed across ai-chat/task-modal/sidebar mockups and `styles.css`; mockup badges/chips adopt the mono console voice
+- PWA `manifest.json` + viewport `themeColor` synced to the new dark bases; `/design` gallery extended into a Design Console (palette swatches with roles, HUD-primitive specimens)
 
 ### 2026-07-03
 - Mobile viewport fixes from on-device testing of the Priorities page: the app shell (`AppShell` `h-screen`, root `body` `min-h-screen`) now sizes with dynamic viewport units (`h-dvh`/`min-h-dvh`), so the layout matches the real visible viewport on mobile Safari instead of overflowing behind the browser chrome (the page no longer hides the matrix x-axis behind a phantom scroll)

@@ -111,7 +111,7 @@ export const AppSidebar = ({ user, activePlanId }: AppSidebarProps) => {
 
   return (
     <aside
-      className={`fx-chrome hidden md:flex flex-col flex-shrink-0 border-r border-base-content/10 transition-all duration-200 ${
+      className={`fx-chrome-glass hidden md:flex flex-col flex-shrink-0 border-r border-base-content/10 transition-all duration-200 ${
         collapsed ? "w-16" : "w-60"
       }`}
     >

@@ -30,7 +30,7 @@ const GoogleLogo = () => (
 );
 
 const BrandIcon = () => (
-  <div className="flex h-14 w-14 animate-[glow_4s_ease-in-out_infinite_alternate] items-center justify-center rounded-2xl bg-linear-to-br from-primary to-secondary">
+  <div className="fx-glow-pulse flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-primary to-secondary">
     <svg
       viewBox="0 0 24 24"
       className="h-7 w-7 fill-none stroke-white"

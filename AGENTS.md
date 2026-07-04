@@ -14,7 +14,7 @@ A Next.js application centered on a Kanban Period Planner, with AI-assisted plan
 ## Tech Stack
 
 - Framework: Next.js 16 (App Router)
-- UI: React 19, Tailwind CSS 4, daisyUI 5 (custom `mars-dark` / `mars-light` themes)
+- UI: React 19, Tailwind CSS 4, daisyUI 5 (custom `mars-dark` / `mars-light` themes + `fx-*` FX utility layer — see `design/design-system.md` "Mission Control HUD")
 - State: Zustand
 - Database: PostgreSQL (Supabase) + Prisma ORM
 - Auth: Supabase Auth (Google OAuth)
@@ -37,6 +37,7 @@ scripts/
 design/                            # Centralized design docs (see design/README.md)
 ├── README.md                      # Index of what lives where
 ├── baseline.md                    # The ONE app-wide baseline (goal, entities, schema, decisions)
+├── design-system.md               # Visual design system: OKLCH palette + contrast, fx-* layer, sync points
 ├── tracker.md                     # Consolidated roadmap — open items only
 ├── reference.md                   # Lean lookup tables: server actions, services, DAL
 ├── flows/                         # Per-feature flow docs (shared, board, plan, priorities, auth)

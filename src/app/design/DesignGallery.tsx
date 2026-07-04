@@ -16,7 +16,8 @@ import { LoadingBubble } from "@/components/plan/ai-chat/LoadingBubble";
 
 import { Section, Variant, Row } from "./GalleryParts";
 import {
-  GALLERY_TITLE,
+  GALLERY_TITLE_ACCENT,
+  GALLERY_TITLE_REST,
   GALLERY_SUBTITLE,
   THEME_DARK,
   THEME_LIGHT,
@@ -30,6 +31,7 @@ import {
   PROGRESS_FIXTURE,
   TOKEN_SWATCHES,
   LED_STATES,
+  CHIP_SPECIMENS,
 } from "./constants";
 
 export const DesignGallery = () => {
@@ -40,8 +42,7 @@ export const DesignGallery = () => {
     <header className="flex items-start justify-between gap-4">
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold">
-          <span className="fx-text-gradient">{GALLERY_TITLE.split(" ")[0]}</span>{" "}
-          {GALLERY_TITLE.split(" ").slice(1).join(" ")}
+          <span className="fx-text-gradient">{GALLERY_TITLE_ACCENT}</span> {GALLERY_TITLE_REST}
         </h1>
         <p className="max-w-2xl text-sm text-base-content/60">{GALLERY_SUBTITLE}</p>
       </div>
@@ -87,10 +88,14 @@ export const DesignGallery = () => {
         <Row>
           <Variant label="Console chips (fx-chip)">
             <div className="flex gap-2">
-              <span className="fx-chip rounded px-2 py-0.5 text-[10px] font-semibold text-info">DAILY</span>
-              <span className="fx-chip rounded px-2 py-0.5 text-[10px] font-semibold text-secondary">WEEKLY</span>
-              <span className="fx-chip rounded px-2 py-0.5 text-[10px] font-semibold text-warning">ONCE</span>
-              <span className="fx-chip rounded px-2 py-0.5 text-[10px] font-semibold text-success">M · 3</span>
+              {CHIP_SPECIMENS.map(({ label, className }) => (
+                <span
+                  key={label}
+                  className={`fx-chip rounded px-2 py-0.5 text-[10px] font-semibold ${className}`}
+                >
+                  {label}
+                </span>
+              ))}
             </div>
           </Variant>
           <Variant label="Status LEDs (fx-led)">
@@ -121,7 +126,7 @@ export const DesignGallery = () => {
             <div className="fx-holo rounded-xl px-4 py-2.5">
               <span className="flex items-center gap-2 text-xs text-base-content/60">
                 <span className="fx-led fx-led-pulse text-secondary" />
-                Drafting your plan…
+                {LOADING_LABEL}
               </span>
             </div>
           </Variant>

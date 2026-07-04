@@ -60,7 +60,7 @@
   --m-red-a06: rgba(199,51,53,0.06);
   --m-red-a10: rgba(199,51,53,0.1);
   --m-red-a25: rgba(199,51,53,0.25);
-  --m-green-accent: #137d41;
+  --m-green-accent: var(--m-green);
   --m-green-accent-bg: rgba(19,125,65,0.04);
   --m-green-accent-border: rgba(19,125,65,0.35);
 
@@ -122,7 +122,7 @@
   --m-red-a06: rgba(253,115,109,0.08);
   --m-red-a10: rgba(253,115,109,0.15);
   --m-red-a25: rgba(253,115,109,0.35);
-  --m-green-accent: #50dc8e;
+  --m-green-accent: var(--m-green);
   --m-green-accent-bg: rgba(80,220,142,0.06);
   --m-green-accent-border: rgba(80,220,142,0.45);
 

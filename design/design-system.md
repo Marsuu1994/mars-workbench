@@ -56,7 +56,7 @@ All utilities derive colors from daisyUI tokens via `color-mix()`, so both theme
 | Utility | Use | Where it's applied |
 | --- | --- | --- |
 | `fx-shell-bg` | Holographic grid + 4-corner horizon blooms; paint once on a non-scrolling wrapper | `AppShell`, `/design` gallery |
-| `fx-chrome` | Glass chrome (translucent + blur, solid fallback via `@supports`) | sidebar, mobile dock |
+| `fx-chrome` / `fx-chrome-glass` | Chrome slab (always solid) / chrome that may blur. The dock stays solid — it floats over a scrolling board, where backdrop blur re-filters every frame; the sidebar's backdrop is static, so glass is cheap there | dock (solid), sidebar (glass) |
 | `fx-panel` / `fx-panel-solid` | Console panel (glass / no-blur). Glass is for stationary chrome only — never in scroll containers | modals |
 | `fx-corners` | Targeting-reticle corner brackets (inset 2px to clear the radius) | task modal, gallery specimens |
 | `fx-card` / `fx-card-lift` | Card edge-light + hover lift (shadow only — risk borders always win); lift = drag state class swap | `TaskCard` |
@@ -68,8 +68,8 @@ All utilities derive colors from daisyUI tokens via `color-mix()`, so both theme
 | `fx-led` (+`fx-led-pulse`) | Status LED dot from `currentColor` | column status, quadrant headers, AI live |
 | `fx-rule` / `fx-hairline-top` | Luminous gradient hairlines (single / multi-hue top edge) | dock top edge, AI modal header |
 | `fx-holo` | Conic holo border — the AI thinking/live state | `LoadingBubble` |
-| `fx-scanlines` / `fx-sweep` | Static scanlines / one drifting sheen — decorative stationary surfaces only | available (login/gallery) |
-| `fx-ring-glow` / `fx-orbit` | Progress-ring glow + rotating conic tail | `ProgressDashboard` |
+| `fx-orbit` | Rotating conic tail behind the progress ring — event-driven (spins ~4s after progress changes, then the compositor idles); the ring's halo is a static SVG under-circle, not a CSS filter | `ProgressDashboard` |
+| `fx-glow-pulse` | Breathing brand halo — pre-composited shadow on a pseudo-element, opacity-only loop | login `BrandIcon` |
 | `fx-text-gradient` | Cyan→violet headline gradient. Restraint rule: first word only | gallery title, login "Mars" |
 | `fx-boot-in` | 420ms mount animation (rise + scale + fade) | modals |
 | `fx-nav-rail` | Luminous active-nav left rail | sidebar active item |
