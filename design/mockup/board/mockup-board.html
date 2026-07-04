@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en" data-mockup-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kanban — Board View</title>
+<link rel="stylesheet" href="../mockup-theme.css" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+.stats-row { display: flex; gap: 24px; justify-content: center; margin-bottom: 8px; }
+.stat-chip { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.stat-chip-value { font-size: 22px; font-weight: 700; color: var(--m-blue); }
+.stat-chip-label { font-size: 12px; color: var(--m-text-tertiary); }
+</style>
+</head>
+<body>
+
+<div class="screen-nav">
+  <button class="screen-btn active" onclick="show('board')">Board</button>
+  <button class="screen-btn" onclick="show('no-plan')">No Plan</button>
+  <button class="screen-btn" onclick="show('returning')">Returning User</button>
+</div>
+
+<!-- ══ BOARD (active plan) ══ -->
+<div id="screen-board" class="app">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <span class="sidebar-brand">Mars Workbench</span>
+      <button class="sidebar-collapse">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-nav-label">Workspace</div>
+      <a class="sidebar-item active" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Board
+      </a>
+      <a class="sidebar-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Plan
+      </a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">LC</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">Liang Jun</div>
+        <div class="sidebar-user-email">liang@example.com</div>
+      </div>
+      <button class="sidebar-signout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </aside>
+  <div class="main">
+    <div class="header">
+      <div class="header-left">
+        <span class="header-title"><span>Kanban</span> Planner</span>
+        <span class="header-badge">Week 08 &middot; Feb 17 – Feb 23</span>
+      </div>
+    </div>
+
+    <div class="progress-dashboard">
+      <div class="ring-group">
+        <div class="progress-ring">
+          <svg viewBox="0 0 52 52" width="48" height="48">
+            <circle class="ring-track" cx="26" cy="26" r="22"/>
+            <circle class="ring-fill" cx="26" cy="26" r="22" stroke-dasharray="138.23" stroke-dashoffset="96.76"/>
+          </svg>
+          <div class="ring-center">30%</div>
+        </div>
+        <div class="ring-label">
+          <span class="ring-label-title">Today</span>
+          <span class="ring-label-sub">4 of 13 tasks</span>
+        </div>
+      </div>
+      <div class="dash-divider"></div>
+      <div class="stat-item">
+        <div class="stat-value green">6 / 13</div>
+        <div class="stat-label">Today Points</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value blue">58 / 166</div>
+        <div class="stat-label">Week Points</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value amber">8.3</div>
+        <div class="stat-label">Daily Avg</div>
+      </div>
+      <div class="dash-divider"></div>
+      <div class="week-bar-group">
+        <div class="week-bar-header">
+          <span class="week-bar-title">Week Progress</span>
+          <span class="week-bar-pct">19%</span>
+        </div>
+        <div class="week-bar-track"><div class="week-bar-fill"></div></div>
+        <span class="week-bar-sub">10 of 46 tasks</span>
+      </div>
+    </div>
+
+    <div class="board">
+      <!-- Todo -->
+      <div class="column col-todo">
+        <div class="column-header"><span>Todo</span><span class="column-count">8</span></div>
+        <div class="column-body">
+
+          <!-- Fresh daily — normal (no risk indicator) -->
+          <div class="task-card">
+            <div class="task-title">Solve 3 LeetCode problems</div>
+            <div class="task-desc">Focus on dynamic programming</div>
+            <div class="task-meta">
+              <span class="task-badge badge-daily">Daily</span>
+              <span class="task-instance">#2</span>
+              <span class="size-chip"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span>
+            </div>
+          </div>
+
+          <!-- Fresh daily — warning (after 20:00) -->
+          <div class="task-card risk-warning">
+            <div class="task-title">Read 30 pages</div>
+            <div class="task-desc">System Design Interview book</div>
+            <div class="task-meta">
+              <span class="task-badge badge-daily">Daily</span>
+              <span class="task-instance">#1</span>
+              <span class="risk-badge warning">⚠ at risk</span>
+              <span class="size-chip"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span>
+            </div>
+          </div>
+
+          <!-- Rollover daily — warning (before 15:00) -->
+          <div class="task-card risk-warning">
+            <div class="task-title">Practice mock interview</div>
+            <div class="task-meta">
+              <span class="task-badge badge-daily">Daily</span>
+              <span class="rollover-tag">↩ Mon, Feb 23</span>
+              <span class="risk-badge warning">⚠ at risk</span>
+              <span class="size-chip"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span>
+            </div>
+          </div>
+
+          <!-- Rollover daily — danger (after 15:00) -->
+          <div class="task-card risk-danger">
+            <div class="task-title">Write journal entry</div>
+            <div class="task-meta">
+              <span class="task-badge badge-daily">Daily</span>
+              <span class="rollover-tag">↩ Mon, Feb 23</span>
+              <span class="risk-badge danger">‼ urgent</span>
+              <span class="size-chip"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span>
+            </div>
+          </div>
+
+          <!-- Weekly — warning -->
+          <div class="task-card risk-warning">
+            <div class="task-title">Go to gym – Leg day</div>
+            <div class="task-desc">30 min workout</div>
+            <div class="task-meta">
+              <span class="task-badge badge-weekly">Weekly</span>
+              <span class="risk-badge warning">⚠ at risk</span>
+              <span class="size-chip"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span>
+            </div>
+          </div>
+
+          <!-- Weekly — danger -->
+          <div class="task-card risk-danger">
+            <div class="task-title">Write blog post</div>
+            <div class="task-desc">Technical blog about React patterns</div>
+            <div class="task-meta">
+              <span class="task-badge badge-weekly">Weekly</span>
+              <span class="risk-badge danger">‼ urgent</span>
+              <span class="size-chip"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span>
+            </div>
+          </div>
+
+          <!-- Ad-hoc — normal -->
+          <div class="task-card">
+            <div class="task-title">File tax report</div>
+            <div class="task-meta">
+              <span class="task-badge badge-adhoc">ONCE</span>
+              <span class="size-chip"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span>
+            </div>
+          </div>
+
+          <!-- Ad-hoc — warning -->
+          <div class="task-card risk-warning">
+            <div class="task-title">Get sinus CT scan</div>
+            <div class="task-meta">
+              <span class="task-badge badge-adhoc">ONCE</span>
+              <span class="risk-badge warning">⚠ at risk</span>
+              <span class="size-chip"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span>
+            </div>
+          </div>
+
+
+        </div>
+      </div>
+
+      <!-- Doing -->
+      <div class="column col-doing">
+        <div class="column-header"><span>In Progress</span><span class="column-count">4</span></div>
+        <div class="column-body">
+
+          <div class="task-card">
+            <div class="task-title">Morning jog 5km</div>
+            <div class="task-meta">
+              <span class="task-badge badge-daily">Daily</span>
+              <span class="size-chip"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span>
+            </div>
+          </div>
+
+          <div class="task-card risk-warning">
+            <div class="task-title">Meditate 10 min</div>
+            <div class="task-meta">
+              <span class="task-badge badge-daily">Daily</span>
+              <span class="rollover-tag">↩ Mon, Feb 23</span>
+              <span class="risk-badge warning">⚠ at risk</span>
+              <span class="size-chip"><span class="sz-label">S</span><span class="sz-dot">&middot;</span><span class="sz-pts">2</span></span>
+            </div>
+          </div>
+
+          <div class="task-card risk-warning">
+            <div class="task-title">Go to gym – Upper body</div>
+            <div class="task-desc">30 min workout</div>
+            <div class="task-meta">
+              <span class="task-badge badge-weekly">Weekly</span>
+              <span class="risk-badge warning">⚠ at risk</span>
+              <span class="size-chip"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span>
+            </div>
+          </div>
+
+          <div class="task-card risk-warning">
+            <div class="task-title">Renew passport</div>
+            <div class="task-meta">
+              <span class="task-badge badge-adhoc">ONCE</span>
+              <span class="risk-badge warning">⚠ at risk</span>
+              <span class="size-chip"><span class="sz-label">S</span><span class="sz-dot">&middot;</span><span class="sz-pts">2</span></span>
+            </div>
+          </div>
+
+
+        </div>
+      </div>
+
+      <!-- Done -->
+      <div class="column col-done">
+        <div class="column-header"><span>Done</span><span class="column-count">4</span></div>
+        <div class="column-body">
+
+          <div class="task-card done-card">
+            <div class="task-title">Solve 3 LeetCode problems</div>
+            <div class="task-meta">
+              <span class="task-badge badge-daily">Daily</span>
+              <span class="task-instance">#1</span>
+              <span class="size-chip"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span>
+            </div>
+          </div>
+
+          <div class="task-card done-card">
+            <div class="task-title">Morning jog 5km</div>
+            <div class="task-meta">
+              <span class="task-badge badge-daily">Daily</span>
+              <span class="size-chip"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span>
+            </div>
+          </div>
+
+          <div class="task-card done-card">
+            <div class="task-title">Go to gym – Push day</div>
+            <div class="task-desc">30 min workout</div>
+            <div class="task-meta">
+              <span class="task-badge badge-weekly">Weekly</span>
+              <span class="size-chip"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span>
+            </div>
+          </div>
+
+          <div class="task-card done-card">
+            <div class="task-title">Buy birthday gift</div>
+            <div class="task-meta">
+              <span class="task-badge badge-adhoc">ONCE</span>
+              <span class="size-chip"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ NO PLAN (new user) ══ -->
+<div id="screen-no-plan" class="app" style="display:none">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <span class="sidebar-brand">Mars Workbench</span>
+      <button class="sidebar-collapse">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-nav-label">Workspace</div>
+      <div class="sidebar-item-wrap is-disabled">
+        <a class="sidebar-item disabled" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Board
+        </a>
+        <div class="sidebar-tooltip">Create a plan first</div>
+      </div>
+      <a class="sidebar-item active" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Plan
+        <span class="sidebar-nudge">New</span>
+      </a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">LC</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">Liang Jun</div>
+        <div class="sidebar-user-email">liang@example.com</div>
+      </div>
+      <button class="sidebar-signout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </aside>
+  <div class="main">
+    <div class="empty-state">
+      <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="3" width="7" height="7" rx="1.5" stroke-dasharray="3 2"/>
+        <rect x="14" y="3" width="7" height="7" rx="1.5" stroke-dasharray="3 2"/>
+        <rect x="3" y="14" width="7" height="7" rx="1.5" stroke-dasharray="3 2"/>
+        <rect x="14" y="14" width="7" height="7" rx="1.5" stroke-dasharray="3 2"/>
+      </svg>
+      <div class="empty-title">No active plan</div>
+      <div class="empty-desc">Create a weekly plan to get started. Select templates, configure your schedule, and track your progress.</div>
+      <button class="btn btn-primary" style="margin-top:8px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+        Create Your First Plan
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ RETURNING USER (period ended) ══ -->
+<div id="screen-returning" class="app" style="display:none">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <span class="sidebar-brand">Mars Workbench</span>
+      <button class="sidebar-collapse">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-nav-label">Workspace</div>
+      <div class="sidebar-item-wrap is-disabled">
+        <a class="sidebar-item disabled" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Board
+        </a>
+        <div class="sidebar-tooltip">Create a plan first</div>
+      </div>
+      <a class="sidebar-item active" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Plan
+        <span class="sidebar-nudge">New</span>
+      </a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">LC</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">Liang Jun</div>
+        <div class="sidebar-user-email">liang@example.com</div>
+      </div>
+      <button class="sidebar-signout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </aside>
+  <div class="main">
+    <div class="empty-state">
+      <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M12 8v4l3 3" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="12" cy="12" r="9"/>
+      </svg>
+      <div class="empty-title">Plan period ended</div>
+      <div class="empty-desc">Your weekly plan has wrapped up. Here's how you did:</div>
+
+      <div class="stats-row">
+        <div class="stat-chip">
+          <div class="stat-chip-value">75%</div>
+          <div class="stat-chip-label">Completed</div>
+        </div>
+        <div class="stat-chip">
+          <div class="stat-chip-value">12/16</div>
+          <div class="stat-chip-label">Tasks done</div>
+        </div>
+        <div class="stat-chip">
+          <div class="stat-chip-value" style="color:var(--m-orange)">47</div>
+          <div class="stat-chip-label">Points earned</div>
+        </div>
+      </div>
+
+      <div class="empty-desc" style="margin-top:4px">Ready to start a new week?</div>
+      <button class="btn btn-primary" style="margin-top:8px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+        Create New Plan
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(name) {
+  document.querySelectorAll('.app').forEach(el => el.style.display = 'none');
+  document.getElementById('screen-' + name).style.display = 'flex';
+  var btns = document.querySelectorAll('.screen-btn');
+  var names = ['board','no-plan','returning'];
+  var idx = names.indexOf(name);
+  btns.forEach(function(b, i) { b.classList.toggle('active', i === idx); });
+}
+</script>
+<script>
+(function() {
+  var btn = document.createElement('button');
+  btn.className = 'mockup-theme-toggle';
+  btn.title = 'Toggle theme';
+  var sun = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
+  var moon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>';
+  function update() {
+    var t = document.documentElement.getAttribute('data-mockup-theme');
+    btn.innerHTML = t === 'dark' ? sun : moon;
+  }
+  btn.addEventListener('click', function() {
+    var t = document.documentElement.getAttribute('data-mockup-theme');
+    document.documentElement.setAttribute('data-mockup-theme', t === 'dark' ? 'light' : 'dark');
+    update();
+  });
+  document.body.appendChild(btn);
+  update();
+})();
+</script>
+</body>
+</html>

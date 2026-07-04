@@ -1,6 +1,6 @@
 ---
 name: design-explore
-description: Explore a UI redesign for future work — generate mockups, archive to future-work, update design docs
+description: Explore a UI redesign for future work — generate mockups, archive to future-work, log in the tracker
 disable-model-invocation: true
 user-invocable: true
 argument-hint: "[feature] [area]"
@@ -28,9 +28,9 @@ If the user already described the problem in their initial message, summarize yo
 
 Read the existing state to understand what's there today:
 
-- `src/features/$0/design/baseline.md` — entities, schema, current features
-- `src/features/$0/design/flows.md` — flows that touch the area being redesigned
-- `src/features/$0/design/mockup/mockup-$1.html` — current mockup (if it exists)
+- `design/baseline.md` — entities, schema, current features
+- `design/flows/$0.md` — flows that touch the area being redesigned
+- `design/mockup/$0/mockup-$1.html` — current mockup (if it exists)
 
 After reading, present a short **design proposal** to the user:
 
@@ -44,7 +44,7 @@ After reading, present a short **design proposal** to the user:
 
 Use the `/frontend-design` skill to create a **temporary** Before / After HTML mockup.
 
-- Place it at `src/features/$0/design/mockup/temp-$1-v2.html`
+- Place it at `design/mockup/$0/temp-$1-v2.html`
 - Show the current state (Before) alongside the proposed redesign (After)
 
 **STOP — Present the mockup to the user. Iterate with feedback until they explicitly approve it.** Only proceed to archiving after approval.
@@ -54,7 +54,7 @@ Use the `/frontend-design` skill to create a **temporary** Before / After HTML m
 Move the approved mockup to the `future-work/` directory:
 
 ```
-src/features/$0/design/mockup/future-work/mockup-$1-v2.html
+design/mockup/future-work/mockup-$1-v2.html
 ```
 
 **Cascade check:** If the redesign introduces new entity fields, UI patterns, or layout changes that affect other flows, generate updated mockups for those flows too and place them alongside:
@@ -62,19 +62,22 @@ src/features/$0/design/mockup/future-work/mockup-$1-v2.html
 ```
 design/mockup/
 ├── styles.css
-├── mockup-board.html              # existing
-├── mockup-plan-form.html          # existing
+├── mockup-theme.css
+├── board/
+│   └── mockup-board.html          # existing (active mockups, per feature)
+├── plan/
+│   └── mockup-plan-form.html      # existing
 └── future-work/
     ├── mockup-$1-v2.html          # primary redesign
     └── mockup-[other-flow]-v2.html # cascading updates
 ```
 
-## Step 5 — Update Design Doc
+## Step 5 — Update Tracker
 
-Add a one-line entry under `Planned: Future` in `src/features/$0/design/baseline.md`:
+Add a one-line open item to `design/tracker.md` under the feature's section (`## Board`, `## Plan`, … — typically under `### Future`):
 
 ```markdown
-- [Description of the redesign] — see `mockup/future-work/mockup-$1-v2.html`
+- [ ] [Description of the redesign] — see `design/mockup/future-work/mockup-$1-v2.html`
 ```
 
 ## Step 6 — Clean Up

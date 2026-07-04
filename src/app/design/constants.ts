@@ -4,9 +4,9 @@ import {
   TaskSize,
   PriorityQuadrant,
   SIZE_TO_POINTS,
-} from "@/features/kanban/utils/enums";
+} from "@/utils/enums";
 import type { TaskItem } from "@/lib/db/tasks";
-import type { RiskLevel } from "@/features/kanban/utils/taskUtils";
+import type { RiskLevel } from "@/utils/taskUtils";
 
 // ── Page copy ──────────────────────────────────────────────────────────────
 export const GALLERY_TITLE = "Component Gallery";

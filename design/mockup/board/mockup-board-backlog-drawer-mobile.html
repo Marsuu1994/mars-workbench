@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en" data-mockup-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kanban — Mobile Backlog Drawer (Bottom Sheet)</title>
+<link rel="stylesheet" href="../mockup-theme.css" />
+<style>
+/* ── Reset ── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--m-page-bg); min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 40px 20px 60px;
+}
+
+/* ── Section Titles ── */
+.page-title {
+  color: var(--m-text); font-size: 24px; font-weight: 700; margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+.page-subtitle { color: var(--m-text-tertiary); font-size: 14px; margin-bottom: 40px; text-align: center; max-width: 560px; }
+.section-title {
+  color: var(--m-text); font-size: 20px; font-weight: 700; margin: 60px 0 8px;
+  letter-spacing: -0.02em;
+}
+.section-subtitle { color: var(--m-text-tertiary); font-size: 13px; margin-bottom: 24px; }
+
+/* ── Phone Frames Container ── */
+.frames { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
+
+/* ── Frame Labels ── */
+.frame-wrapper { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.frame-label {
+  font-size: 13px; font-weight: 600; color: var(--m-blue); text-transform: uppercase;
+  letter-spacing: 0.08em; display: flex; align-items: center; gap: 8px;
+}
+.frame-label .step {
+  width: 24px; height: 24px; border-radius: 50%; background: var(--m-blue-a10);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: var(--m-blue);
+}
+
+/* ── Phone Frame ── */
+.phone {
+  width: 375px; height: 812px; background: var(--m-surface-inset);
+  border-radius: 40px; border: 3px solid var(--m-border);
+  overflow: hidden; position: relative;
+  box-shadow: 0 25px 60px var(--m-overlay), inset 0 0 0 1px rgba(255,255,255,0.05);
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+/* ── Status Bar ── */
+.status-bar {
+  height: 54px; padding: 14px 28px 0; display: flex;
+  align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.status-time { font-size: 15px; font-weight: 600; color: var(--m-text); }
+.status-icons { display: flex; gap: 5px; align-items: center; }
+.status-icons svg { width: 16px; height: 16px; color: var(--m-text); }
+
+/* ── Mobile Header ── */
+.mobile-header { padding: 4px 20px 8px; flex-shrink: 0; }
+.mobile-header-row { display: flex; align-items: center; justify-content: space-between; }
+.mobile-header-title { font-size: 18px; font-weight: 700; color: var(--m-text); }
+.mobile-header-title span { color: var(--m-blue); }
+.mobile-header-badge {
+  font-size: 10px; background: var(--m-blue-a10); color: var(--m-blue);
+  padding: 3px 8px; border-radius: 999px; font-weight: 500;
+  display: flex; flex-direction: column; align-items: center; line-height: 1.3;
+}
+.mobile-header-badge .date-range { font-size: 9px; color: var(--m-blue-a10); font-weight: 400; }
+
+/* ── Stats Dashboard ── */
+.stats-dashboard { padding: 8px 16px 10px; flex-shrink: 0; display: flex; flex-direction: column; gap: 6px; }
+.stats-row { display: flex; align-items: center; gap: 8px; height: 20px; }
+.stats-label { font-size: 11px; color: var(--m-text-tertiary); font-weight: 500; flex-shrink: 0; width: 36px; }
+.stats-count { font-size: 11px; font-weight: 700; color: var(--m-text-secondary); flex-shrink: 0; width: 36px; }
+.stats-bar-track { flex: 1; height: 8px; background: var(--m-border); border-radius: 4px; overflow: hidden; }
+.stats-bar-fill { height: 100%; border-radius: 4px; }
+.stats-bar-fill.today { background: var(--m-green); }
+.stats-bar-fill.week { background: var(--m-blue); }
+.stats-pts { font-size: 11px; color: var(--m-text-tertiary); flex-shrink: 0; }
+.stats-pts strong { color: var(--m-text-secondary); font-weight: 700; }
+.stats-avg { font-size: 11px; color: var(--m-text-tertiary); flex-shrink: 0; }
+.stats-avg strong { color: var(--m-orange); font-weight: 700; }
+
+/* ── Board Content (rows) ── */
+.board-content {
+  flex: 1; overflow-y: auto; padding: 0 0 8px;
+  display: flex; flex-direction: column; gap: 14px; position: relative;
+}
+.row { padding: 0 16px; transition: opacity 0.2s; }
+.row-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.row-title {
+  font-size: 13px; font-weight: 600; color: var(--m-text-secondary);
+  display: flex; align-items: center; gap: 6px;
+  text-transform: uppercase; letter-spacing: 0.03em;
+}
+.row-dot { width: 7px; height: 7px; border-radius: 50%; }
+.row-dot.todo { background: var(--m-blue); }
+.row-dot.doing { background: var(--m-orange); }
+.row-dot.done { background: var(--m-purple); }
+.row-count { font-size: 10px; font-weight: 500; background: var(--m-border); padding: 2px 7px; border-radius: 999px; color: var(--m-text-tertiary); }
+.row-cards { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+.row-cards::-webkit-scrollbar { display: none; }
+
+/* Highlight the Todo row when a backlog card is being pulled into it */
+.row.pull-target .row-cards {
+  border: 2px dashed var(--m-blue); border-radius: 12px;
+  padding: 6px; background: var(--m-blue-a06); min-height: 84px;
+}
+.row.pull-target .row-title { color: var(--m-blue); }
+
+/* ── Task Card (mobile board — compact) ── */
+.m-card {
+  flex-shrink: 0; width: 136px; background: var(--m-page-bg);
+  border: 1px solid var(--m-border); border-radius: 10px;
+  padding: 10px; cursor: grab; transition: all 0.2s;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.m-card.risk-warning { border-top: 3px solid var(--m-orange); }
+.m-card.risk-danger { border-top: 3px solid var(--m-red); }
+.m-card.fresh-pull { border: 2px solid var(--m-green); }
+.m-badge {
+  font-size: 8px; font-weight: 600; padding: 1px 5px; border-radius: 999px;
+  text-transform: uppercase; letter-spacing: 0.04em; align-self: flex-start;
+}
+.m-badge-daily { background: var(--m-teal-bg); color: var(--m-teal); }
+.m-badge-weekly { background: var(--m-pink-bg); color: var(--m-pink); }
+.m-badge-adhoc { background: var(--m-olive-bg); color: var(--m-olive); }
+.m-card-title {
+  font-size: 12px; font-weight: 500; color: var(--m-text); line-height: 1.3;
+  height: 2.6em; overflow: hidden; text-overflow: ellipsis;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+.m-card-footer { display: flex; align-items: center; margin-top: auto; }
+.m-card-points {
+  display: inline-flex; align-items: center; justify-content: center; gap: 3px;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.03em;
+  height: 16px; padding: 0 5px; border-radius: 3px;
+  background: var(--m-purple-bg); color: var(--m-purple); margin-left: auto;
+}
+.m-card-points .sz-dot { opacity: 0.4; }
+.m-card-points .sz-pts { font-weight: 600; opacity: 0.7; }
+.m-rollover-tag { font-size: 8px; color: var(--m-orange); font-weight: 500; display: flex; align-items: center; gap: 1px; }
+
+/* ── Bottom Tab Bar ── */
+.tab-bar {
+  height: 80px; background: var(--m-surface-inset); border-top: 1px solid var(--m-border);
+  display: flex; align-items: flex-start; justify-content: space-around;
+  padding-top: 10px; flex-shrink: 0;
+}
+.tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: var(--m-text-muted); transition: color 0.15s; }
+.tab-item.active { color: var(--m-blue); }
+.tab-item svg { width: 22px; height: 22px; }
+.tab-label { font-size: 10px; font-weight: 500; }
+
+/* ── Home Indicator ── */
+.home-indicator {
+  position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+  width: 134px; height: 5px; background: #ffffff; border-radius: 999px; opacity: 0.2;
+}
+
+/* ═══════════════════════════════════════════════
+   Backlog — Peeking pill (collapsed) docked above the tab bar
+   ═══════════════════════════════════════════════ */
+.backlog-pill {
+  margin: 0 16px 6px; flex-shrink: 0;
+  height: 44px; border-radius: 14px;
+  background: var(--m-surface-raised); border: 1px solid var(--m-border);
+  display: flex; align-items: center; gap: 10px; padding: 0 14px;
+  cursor: pointer; transition: all 0.15s;
+  box-shadow: 0 -2px 12px var(--m-overlay-light);
+}
+.backlog-pill:hover { border-color: var(--m-border-hover); }
+.backlog-pill .grabber { position: absolute; }
+.backlog-pill-icon { width: 18px; height: 18px; color: var(--m-blue); flex-shrink: 0; }
+.backlog-pill-label { font-size: 13px; font-weight: 600; color: var(--m-text); }
+.backlog-pill-count {
+  font-size: 11px; font-weight: 700; background: var(--m-blue); color: #fff;
+  min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
+  display: flex; align-items: center; justify-content: center;
+}
+.backlog-pill-chevron { width: 16px; height: 16px; color: var(--m-text-muted); margin-left: auto; }
+
+/* ═══════════════════════════════════════════════
+   Backlog — Bottom sheet (expanded)
+   ═══════════════════════════════════════════════ */
+/* Scrim dimming the board behind the sheet */
+.sheet-scrim {
+  position: absolute; inset: 0; z-index: 30;
+  background: var(--m-overlay); pointer-events: none;
+}
+.bottom-sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 40;
+  height: 540px; background: var(--m-surface-inset);
+  border-top-left-radius: 22px; border-top-right-radius: 22px;
+  border-top: 1px solid var(--m-border);
+  box-shadow: 0 -16px 48px var(--m-shadow-heavy);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.sheet-grabber {
+  width: 40px; height: 5px; border-radius: 999px; background: var(--m-border-hover);
+  margin: 10px auto 4px; flex-shrink: 0;
+}
+.sheet-header {
+  padding: 8px 18px 12px; display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--m-border); flex-shrink: 0;
+}
+.sheet-title-row { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; color: var(--m-text); }
+.sheet-title-row svg { width: 19px; height: 19px; color: var(--m-blue); }
+.sheet-count {
+  font-size: 11px; font-weight: 700; background: var(--m-blue); color: #fff;
+  min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
+  display: flex; align-items: center; justify-content: center;
+}
+.sheet-close {
+  width: 30px; height: 30px; border-radius: 8px; border: none; background: transparent;
+  color: var(--m-text-tertiary); cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.sheet-close:hover { background: var(--m-hover-bg); color: var(--m-text); }
+.sheet-close svg { width: 18px; height: 18px; }
+.sheet-hint {
+  padding: 9px 18px; font-size: 11px; color: var(--m-text-tertiary);
+  display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--m-border); flex-shrink: 0;
+}
+.sheet-hint svg { width: 13px; height: 13px; color: var(--m-blue); flex-shrink: 0; }
+.sheet-body {
+  flex: 1; overflow-y: auto; padding: 12px 16px 20px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+/* ── Backlog list card (full-width row inside the sheet) ── */
+.bl-card {
+  display: flex; align-items: stretch; gap: 12px;
+  background: var(--m-page-bg); border: 1px solid var(--m-border);
+  border-radius: 12px; padding: 12px; transition: all 0.15s;
+}
+.bl-card:hover { border-color: var(--m-border-hover); }
+.bl-card.risk-warning { border-left: 3px solid var(--m-orange); }
+.bl-card.risk-danger { border-left: 3px solid var(--m-red); }
+.bl-card-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.bl-card-badges { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.bl-instance { font-size: 9px; font-weight: 600; color: var(--m-text-tertiary); }
+.bl-rollover { font-size: 9px; color: var(--m-orange); font-weight: 500; display: flex; align-items: center; gap: 1px; }
+.bl-risk { font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 999px; }
+.bl-risk.warning { background: var(--m-orange-bg); color: var(--m-orange); }
+.bl-risk.danger { background: var(--m-red-bg); color: var(--m-red); }
+.bl-card-title { font-size: 13px; font-weight: 600; color: var(--m-text); line-height: 1.3; }
+.bl-card-desc { font-size: 11px; color: var(--m-text-tertiary); line-height: 1.3; }
+.bl-card-side {
+  display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between;
+  flex-shrink: 0; gap: 8px;
+}
+.bl-points {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.03em;
+  height: 16px; padding: 0 5px; border-radius: 3px;
+  background: var(--m-purple-bg); color: var(--m-purple);
+}
+.bl-points .sz-dot { opacity: 0.4; }
+.bl-points .sz-pts { font-weight: 600; opacity: 0.7; }
+/* Tap-to-pull action */
+.bl-pull-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 28px; padding: 0 10px; border-radius: 8px; border: none;
+  background: var(--m-blue); color: #fff;
+  font-size: 11px; font-weight: 600; cursor: pointer; transition: filter 0.15s;
+}
+.bl-pull-btn:hover { filter: brightness(1.08); }
+.bl-pull-btn svg { width: 13px; height: 13px; }
+
+/* Empty state */
+.bl-empty { text-align: center; color: var(--m-text-muted); font-size: 12px; padding: 40px 24px; }
+
+/* Pressed / pulling state on a card */
+.bl-card.pulling { opacity: 0.5; }
+.bl-card.pulling .bl-pull-btn { background: var(--m-green); }
+
+/* ── Toast confirmation ── */
+.toast {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  top: 120px; z-index: 50;
+  background: var(--m-green-accent-bg); color: var(--m-green-accent);
+  border: 1px solid var(--m-green-accent-border);
+  font-size: 12px; font-weight: 600; padding: 9px 14px; border-radius: 10px;
+  display: flex; align-items: center; gap: 7px;
+  box-shadow: 0 8px 24px var(--m-shadow);
+}
+.toast svg { width: 15px; height: 15px; }
+
+/* ═══════════════════════════════════════════════
+   Backlog card widget showcase
+   ═══════════════════════════════════════════════ */
+.widget-grid { display: flex; flex-direction: column; gap: 12px; width: 343px; }
+.widget-card-wrapper { display: flex; flex-direction: column; gap: 6px; }
+.widget-label { font-size: 10px; font-weight: 600; color: var(--m-text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+</style>
+</head>
+<body>
+
+<div class="page-title">Mobile Backlog — Bottom Sheet Drawer</div>
+<div class="page-subtitle">
+  The desktop right-edge drawer is re-cast as a bottom sheet that rises from a peeking
+  "Backlog" pill docked above the tab bar. Tap a card's <strong>↑ Todo</strong> button to
+  pull it onto the board. Three states shown at 375 × 812.
+</div>
+
+<div class="frames">
+
+<!-- ═══════════ FRAME 1: Collapsed — peeking pill ═══════════ -->
+<div class="frame-wrapper">
+  <div class="frame-label"><span class="step">1</span> Collapsed · Peeking Pill</div>
+  <div class="phone">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="status-icons">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2a7.074 7.074 0 0110 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="mobile-header">
+      <div class="mobile-header-row">
+        <div class="mobile-header-title"><span>Kanban</span> Planner</div>
+        <span class="mobile-header-badge">Week 08<span class="date-range">Feb 17 – Feb 23</span></span>
+      </div>
+    </div>
+    <div class="stats-dashboard">
+      <div class="stats-row">
+        <span class="stats-label">Today</span><span class="stats-count">4/13</span>
+        <div class="stats-bar-track"><div class="stats-bar-fill today" style="width:30%"></div></div>
+        <span class="stats-pts"><strong>6</strong> pts</span>
+      </div>
+      <div class="stats-row">
+        <span class="stats-label">Week</span><span class="stats-count">10/46</span>
+        <div class="stats-bar-track"><div class="stats-bar-fill week" style="width:21%"></div></div>
+        <span class="stats-pts"><strong>58</strong> pts</span><span class="stats-avg"><strong>8.3</strong> avg</span>
+      </div>
+    </div>
+
+    <div class="board-content">
+      <div class="row">
+        <div class="row-header"><div class="row-title"><span class="row-dot todo"></span> Todo</div><span class="row-count">5</span></div>
+        <div class="row-cards">
+          <div class="m-card"><span class="m-badge m-badge-daily">Daily</span><div class="m-card-title">Solve 3 LeetCode problems</div><div class="m-card-footer"><span class="m-card-points"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span></div></div>
+          <div class="m-card risk-warning"><span class="m-badge m-badge-daily">Daily</span><div class="m-card-title">Practice mock interview</div><div class="m-card-footer"><span class="m-rollover-tag">↩ Mon</span><span class="m-card-points"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span></div></div>
+          <div class="m-card"><span class="m-badge m-badge-adhoc">ONCE</span><div class="m-card-title">File tax report</div><div class="m-card-footer"><span class="m-card-points"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span></div></div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-header"><div class="row-title"><span class="row-dot doing"></span> In Progress</div><span class="row-count">4</span></div>
+        <div class="row-cards">
+          <div class="m-card"><span class="m-badge m-badge-daily">Daily</span><div class="m-card-title">Morning jog 5km</div><div class="m-card-footer"><span class="m-card-points"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span></div></div>
+          <div class="m-card risk-warning"><span class="m-badge m-badge-weekly">Weekly</span><div class="m-card-title">Go to gym – Upper body</div><div class="m-card-footer"><span class="m-card-points"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span></div></div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-header"><div class="row-title"><span class="row-dot done"></span> Done</div><span class="row-count">4</span></div>
+        <div class="row-cards">
+          <div class="m-card done-card" style="opacity:.5"><span class="m-badge m-badge-daily">Daily</span><div class="m-card-title" style="text-decoration:line-through">Morning jog 5km</div><div class="m-card-footer"><span class="m-card-points"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Peeking backlog pill -->
+    <div class="backlog-pill">
+      <svg class="backlog-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="backlog-pill-label">Backlog</span>
+      <span class="backlog-pill-count">5</span>
+      <svg class="backlog-pill-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span class="tab-label">Board</span></div>
+      <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="tab-label">Plan</span></div>
+      <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="tab-label">Settings</span></div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</div>
+
+<!-- ═══════════ FRAME 2: Expanded — bottom sheet ═══════════ -->
+<div class="frame-wrapper">
+  <div class="frame-label"><span class="step">2</span> Expanded · Bottom Sheet</div>
+  <div class="phone">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="status-icons">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2a7.074 7.074 0 0110 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="mobile-header">
+      <div class="mobile-header-row">
+        <div class="mobile-header-title"><span>Kanban</span> Planner</div>
+        <span class="mobile-header-badge">Week 08<span class="date-range">Feb 17 – Feb 23</span></span>
+      </div>
+    </div>
+    <div class="stats-dashboard">
+      <div class="stats-row">
+        <span class="stats-label">Today</span><span class="stats-count">4/13</span>
+        <div class="stats-bar-track"><div class="stats-bar-fill today" style="width:30%"></div></div>
+        <span class="stats-pts"><strong>6</strong> pts</span>
+      </div>
+      <div class="stats-row">
+        <span class="stats-label">Week</span><span class="stats-count">10/46</span>
+        <div class="stats-bar-track"><div class="stats-bar-fill week" style="width:21%"></div></div>
+        <span class="stats-pts"><strong>58</strong> pts</span><span class="stats-avg"><strong>8.3</strong> avg</span>
+      </div>
+    </div>
+
+    <!-- Board peeks behind the sheet (Todo row visible at top) -->
+    <div class="board-content">
+      <div class="row">
+        <div class="row-header"><div class="row-title"><span class="row-dot todo"></span> Todo</div><span class="row-count">5</span></div>
+        <div class="row-cards">
+          <div class="m-card"><span class="m-badge m-badge-daily">Daily</span><div class="m-card-title">Solve 3 LeetCode problems</div><div class="m-card-footer"><span class="m-card-points"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span></div></div>
+          <div class="m-card risk-warning"><span class="m-badge m-badge-daily">Daily</span><div class="m-card-title">Practice mock interview</div><div class="m-card-footer"><span class="m-rollover-tag">↩ Mon</span><span class="m-card-points"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span></div></div>
+          <div class="m-card"><span class="m-badge m-badge-adhoc">ONCE</span><div class="m-card-title">File tax report</div><div class="m-card-footer"><span class="m-card-points"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scrim + sheet -->
+    <div class="sheet-scrim"></div>
+    <div class="bottom-sheet">
+      <div class="sheet-grabber"></div>
+      <div class="sheet-header">
+        <div class="sheet-title-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Backlog <span class="sheet-count">5</span>
+        </div>
+        <button class="sheet-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+      <div class="sheet-hint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5m-7 7l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Tap <strong>↑ Todo</strong> to pull a task onto Todo
+      </div>
+      <div class="sheet-body">
+
+        <!-- Fresh daily — normal -->
+        <div class="bl-card">
+          <div class="bl-card-main">
+            <div class="bl-card-badges"><span class="m-badge m-badge-daily">Daily</span><span class="bl-instance">#1</span></div>
+            <div class="bl-card-title">Solve 3 LeetCode problems</div>
+            <div class="bl-card-desc">Focus on dynamic programming</div>
+          </div>
+          <div class="bl-card-side">
+            <span class="bl-points"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span>
+            <button class="bl-pull-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5m-7 7l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>Todo</button>
+          </div>
+        </div>
+
+        <!-- Fresh daily — warning -->
+        <div class="bl-card risk-warning">
+          <div class="bl-card-main">
+            <div class="bl-card-badges"><span class="m-badge m-badge-daily">Daily</span><span class="bl-instance">#2</span><span class="bl-risk warning">⚠ at risk</span></div>
+            <div class="bl-card-title">Solve 3 LeetCode problems</div>
+            <div class="bl-card-desc">Focus on dynamic programming</div>
+          </div>
+          <div class="bl-card-side">
+            <span class="bl-points"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span>
+            <button class="bl-pull-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5m-7 7l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>Todo</button>
+          </div>
+        </div>
+
+        <!-- Rollover daily — danger -->
+        <div class="bl-card risk-danger">
+          <div class="bl-card-main">
+            <div class="bl-card-badges"><span class="m-badge m-badge-daily">Daily</span><span class="bl-instance">#3</span><span class="bl-rollover">↩ Mon, Feb 23</span><span class="bl-risk danger">‼ urgent</span></div>
+            <div class="bl-card-title">Solve 3 LeetCode problems</div>
+            <div class="bl-card-desc">Focus on dynamic programming</div>
+          </div>
+          <div class="bl-card-side">
+            <span class="bl-points"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span>
+            <button class="bl-pull-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5m-7 7l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>Todo</button>
+          </div>
+        </div>
+
+        <!-- Fresh daily — normal -->
+        <div class="bl-card">
+          <div class="bl-card-main">
+            <div class="bl-card-badges"><span class="m-badge m-badge-daily">Daily</span><span class="bl-instance">#1</span></div>
+            <div class="bl-card-title">Read 30 pages</div>
+            <div class="bl-card-desc">System Design Interview book</div>
+          </div>
+          <div class="bl-card-side">
+            <span class="bl-points"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span>
+            <button class="bl-pull-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5m-7 7l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>Todo</button>
+          </div>
+        </div>
+
+        <!-- Fresh daily — warning -->
+        <div class="bl-card risk-warning">
+          <div class="bl-card-main">
+            <div class="bl-card-badges"><span class="m-badge m-badge-daily">Daily</span><span class="bl-instance">#2</span><span class="bl-risk warning">⚠ at risk</span></div>
+            <div class="bl-card-title">Read 30 pages</div>
+            <div class="bl-card-desc">System Design Interview book</div>
+          </div>
+          <div class="bl-card-side">
+            <span class="bl-points"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span>
+            <button class="bl-pull-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5m-7 7l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>Todo</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</div>
+
+<!-- ═══════════ FRAME 3: Pulled — confirmation ═══════════ -->
+<div class="frame-wrapper">
+  <div class="frame-label"><span class="step">3</span> Tap ↑ Todo · Pulled</div>
+  <div class="phone">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="status-icons">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2a7.074 7.074 0 0110 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="mobile-header">
+      <div class="mobile-header-row">
+        <div class="mobile-header-title"><span>Kanban</span> Planner</div>
+        <span class="mobile-header-badge">Week 08<span class="date-range">Feb 17 – Feb 23</span></span>
+      </div>
+    </div>
+    <div class="stats-dashboard">
+      <div class="stats-row">
+        <span class="stats-label">Today</span><span class="stats-count">4/13</span>
+        <div class="stats-bar-track"><div class="stats-bar-fill today" style="width:30%"></div></div>
+        <span class="stats-pts"><strong>6</strong> pts</span>
+      </div>
+      <div class="stats-row">
+        <span class="stats-label">Week</span><span class="stats-count">10/46</span>
+        <div class="stats-bar-track"><div class="stats-bar-fill week" style="width:21%"></div></div>
+        <span class="stats-pts"><strong>58</strong> pts</span><span class="stats-avg"><strong>8.3</strong> avg</span>
+      </div>
+    </div>
+
+    <!-- Todo row now shows the freshly pulled card (count 6), peeking above sheet -->
+    <div class="board-content">
+      <div class="row pull-target">
+        <div class="row-header"><div class="row-title"><span class="row-dot todo"></span> Todo</div><span class="row-count">6</span></div>
+        <div class="row-cards">
+          <div class="m-card fresh-pull"><span class="m-badge m-badge-daily">Daily</span><div class="m-card-title">Solve 3 LeetCode problems</div><div class="m-card-footer"><span class="m-card-points"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span></div></div>
+          <div class="m-card"><span class="m-badge m-badge-daily">Daily</span><div class="m-card-title">Solve 3 LeetCode problems</div><div class="m-card-footer"><span class="m-card-points"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Pulled to Todo
+    </div>
+
+    <!-- Sheet, now with 4 items (the #1 LeetCode card removed) -->
+    <div class="sheet-scrim"></div>
+    <div class="bottom-sheet">
+      <div class="sheet-grabber"></div>
+      <div class="sheet-header">
+        <div class="sheet-title-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Backlog <span class="sheet-count">4</span>
+        </div>
+        <button class="sheet-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+      <div class="sheet-hint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5m-7 7l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Tap <strong>↑ Todo</strong> to pull a task onto Todo
+      </div>
+      <div class="sheet-body">
+
+        <!-- The card just tapped — mid-pull (fading out) -->
+        <div class="bl-card risk-warning pulling">
+          <div class="bl-card-main">
+            <div class="bl-card-badges"><span class="m-badge m-badge-daily">Daily</span><span class="bl-instance">#2</span><span class="bl-risk warning">⚠ at risk</span></div>
+            <div class="bl-card-title">Solve 3 LeetCode problems</div>
+            <div class="bl-card-desc">Focus on dynamic programming</div>
+          </div>
+          <div class="bl-card-side">
+            <span class="bl-points"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span>
+            <button class="bl-pull-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Added</button>
+          </div>
+        </div>
+
+        <div class="bl-card risk-danger">
+          <div class="bl-card-main">
+            <div class="bl-card-badges"><span class="m-badge m-badge-daily">Daily</span><span class="bl-instance">#3</span><span class="bl-rollover">↩ Mon, Feb 23</span><span class="bl-risk danger">‼ urgent</span></div>
+            <div class="bl-card-title">Solve 3 LeetCode problems</div>
+            <div class="bl-card-desc">Focus on dynamic programming</div>
+          </div>
+          <div class="bl-card-side">
+            <span class="bl-points"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span>
+            <button class="bl-pull-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5m-7 7l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>Todo</button>
+          </div>
+        </div>
+
+        <div class="bl-card">
+          <div class="bl-card-main">
+            <div class="bl-card-badges"><span class="m-badge m-badge-daily">Daily</span><span class="bl-instance">#1</span></div>
+            <div class="bl-card-title">Read 30 pages</div>
+            <div class="bl-card-desc">System Design Interview book</div>
+          </div>
+          <div class="bl-card-side">
+            <span class="bl-points"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span>
+            <button class="bl-pull-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5m-7 7l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>Todo</button>
+          </div>
+        </div>
+
+        <div class="bl-card risk-warning">
+          <div class="bl-card-main">
+            <div class="bl-card-badges"><span class="m-badge m-badge-daily">Daily</span><span class="bl-instance">#2</span><span class="bl-risk warning">⚠ at risk</span></div>
+            <div class="bl-card-title">Read 30 pages</div>
+            <div class="bl-card-desc">System Design Interview book</div>
+          </div>
+          <div class="bl-card-side">
+            <span class="bl-points"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span>
+            <button class="bl-pull-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5m-7 7l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>Todo</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</div>
+
+</div><!-- /frames -->
+
+<!-- ═══════════════════════════════════════════════
+     Backlog list-card widget — all states
+     ═══════════════════════════════════════════════ -->
+<div class="section-title">Backlog List Card — All States</div>
+<div class="section-subtitle">Full-width row card used inside the sheet (343px)</div>
+
+<div class="widget-grid">
+  <div class="widget-card-wrapper">
+    <div class="widget-label">Normal · Daily</div>
+    <div class="bl-card">
+      <div class="bl-card-main"><div class="bl-card-badges"><span class="m-badge m-badge-daily">Daily</span><span class="bl-instance">#1</span></div><div class="bl-card-title">Solve 3 LeetCode problems</div><div class="bl-card-desc">Focus on dynamic programming</div></div>
+      <div class="bl-card-side"><span class="bl-points"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span><button class="bl-pull-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5m-7 7l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>Todo</button></div>
+    </div>
+  </div>
+  <div class="widget-card-wrapper">
+    <div class="widget-label">Warning (at risk)</div>
+    <div class="bl-card risk-warning">
+      <div class="bl-card-main"><div class="bl-card-badges"><span class="m-badge m-badge-weekly">Weekly</span><span class="bl-risk warning">⚠ at risk</span></div><div class="bl-card-title">Go to gym – Upper body</div></div>
+      <div class="bl-card-side"><span class="bl-points"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span><button class="bl-pull-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5m-7 7l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>Todo</button></div>
+    </div>
+  </div>
+  <div class="widget-card-wrapper">
+    <div class="widget-label">Rollover + Danger</div>
+    <div class="bl-card risk-danger">
+      <div class="bl-card-main"><div class="bl-card-badges"><span class="m-badge m-badge-daily">Daily</span><span class="bl-instance">#3</span><span class="bl-rollover">↩ Mon, Feb 23</span><span class="bl-risk danger">‼ urgent</span></div><div class="bl-card-title">Write journal entry</div></div>
+      <div class="bl-card-side"><span class="bl-points"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span><button class="bl-pull-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5m-7 7l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>Todo</button></div>
+    </div>
+  </div>
+  <div class="widget-card-wrapper">
+    <div class="widget-label">ONCE · no description</div>
+    <div class="bl-card">
+      <div class="bl-card-main"><div class="bl-card-badges"><span class="m-badge m-badge-adhoc">ONCE</span></div><div class="bl-card-title">File tax report</div></div>
+      <div class="bl-card-side"><span class="bl-points"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span><button class="bl-pull-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5m-7 7l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>Todo</button></div>
+    </div>
+  </div>
+  <div class="widget-card-wrapper">
+    <div class="widget-label">Pulling (mid-action)</div>
+    <div class="bl-card pulling">
+      <div class="bl-card-main"><div class="bl-card-badges"><span class="m-badge m-badge-daily">Daily</span><span class="bl-instance">#1</span></div><div class="bl-card-title">Solve 3 LeetCode problems</div><div class="bl-card-desc">Focus on dynamic programming</div></div>
+      <div class="bl-card-side"><span class="bl-points"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span><button class="bl-pull-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Added</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Empty-state mini showcase ── -->
+<div class="section-title">Empty Backlog</div>
+<div class="section-subtitle">Sheet body when nothing is staged</div>
+<div class="widget-grid" style="background:var(--m-surface-inset);border:1px solid var(--m-border);border-radius:14px;">
+  <div class="bl-empty">You're all caught up — no staged tasks.</div>
+</div>
+
+<script>
+(function() {
+  const btn = document.createElement('button');
+  btn.className = 'mockup-theme-toggle';
+  btn.title = 'Toggle theme';
+  const sun = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
+  const moon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>';
+  function update() {
+    const t = document.documentElement.getAttribute('data-mockup-theme');
+    btn.innerHTML = t === 'dark' ? sun : moon;
+  }
+  btn.addEventListener('click', function() {
+    const t = document.documentElement.getAttribute('data-mockup-theme');
+    document.documentElement.setAttribute('data-mockup-theme', t === 'dark' ? 'light' : 'dark');
+    update();
+  });
+  document.body.appendChild(btn);
+  update();
+})();
+</script>
+</body>
+</html>

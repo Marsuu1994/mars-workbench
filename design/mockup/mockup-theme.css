@@ -1,0 +1,142 @@
+/*
+ * Shared Mockup Theme — Mars Dark / Mars Light
+ *
+ * Usage:
+ *   <link rel="stylesheet" href="../mockup-theme.css" />
+ *   <html data-mockup-theme="light">  ← or "dark"
+ *
+ * Toggle button is injected by the script snippet at the bottom of each HTML.
+ */
+
+/* ── Light theme (default) ── */
+:root, [data-mockup-theme="light"] {
+  /* Page backgrounds */
+  --m-page-bg: #ffffff;
+  --m-surface: #f5f5f5;
+  --m-surface-raised: #ffffff;
+  --m-surface-inset: #fafafa;
+
+  /* Text */
+  --m-text: #161616;
+  --m-text-secondary: #888888;
+  --m-text-tertiary: #999999;
+  --m-text-muted: #bbbbbb;
+  --m-text-hover: #666666;
+
+  /* Borders */
+  --m-border: #dedede;
+  --m-border-hover: #bbbbbb;
+
+  /* Interactive */
+  --m-hover-bg: #e8e8e8;
+
+  /* Brand */
+  --m-blue: #45aeee;
+  --m-blue-light: #6bc4f5;
+  --m-purple: #823290;
+  --m-orange: #ee8134;
+  --m-red: #e93f33;
+  --m-pink: #e8488a;
+  --m-teal: #4ba8c0;
+  --m-olive: #8a7e00;
+  --m-green: #4be0a0;
+
+  /* Brand with alpha */
+  --m-blue-a04: rgba(69,174,238,0.04);
+  --m-blue-a06: rgba(69,174,238,0.06);
+  --m-blue-a08: rgba(69,174,238,0.08);
+  --m-blue-a10: rgba(69,174,238,0.1);
+  --m-blue-a12: rgba(69,174,238,0.12);
+  --m-blue-a15: rgba(69,174,238,0.15);
+  --m-blue-a20: rgba(69,174,238,0.2);
+  --m-blue-a25: rgba(69,174,238,0.25);
+  --m-blue-a35: rgba(69,174,238,0.35);
+  --m-teal-bg: rgba(75,168,192,0.12);
+  --m-pink-bg: rgba(232,72,138,0.12);
+  --m-olive-bg: rgba(197,184,0,0.15);
+  --m-orange-bg: rgba(238,129,52,0.12);
+  --m-red-bg: rgba(233,63,51,0.12);
+  --m-purple-bg: rgba(130,50,144,0.1);
+  --m-red-a06: rgba(233,63,51,0.06);
+  --m-red-a10: rgba(233,63,51,0.1);
+  --m-red-a25: rgba(233,63,51,0.25);
+  --m-green-accent: #22aa66;
+  --m-green-accent-bg: rgba(34,170,102,0.04);
+  --m-green-accent-border: rgba(34,170,102,0.35);
+
+  /* Misc */
+  --m-disabled-bg: #f0f0f0;
+
+  /* Shadows */
+  --m-shadow: rgba(0,0,0,0.1);
+  --m-shadow-heavy: rgba(0,0,0,0.15);
+  --m-overlay: rgba(0,0,0,0.3);
+  --m-overlay-light: rgba(0,0,0,0.25);
+}
+
+/* ── Dark theme ── */
+[data-mockup-theme="dark"] {
+  --m-page-bg: #0e0e1e;
+  --m-surface: #141428;
+  --m-surface-raised: #1a1a2e;
+  --m-surface-inset: #0f0f1a;
+
+  --m-text: #e0e0ec;
+  --m-text-secondary: #cccccc;
+  --m-text-tertiary: #888888;
+  --m-text-muted: #666666;
+  --m-text-hover: #e0e0ec;
+
+  --m-border: #2a2a3d;
+  --m-border-hover: #3a3a5d;
+
+  --m-hover-bg: #2a2a3d;
+
+  /* Brand alpha — slightly higher opacity on dark */
+  --m-blue-a04: rgba(69,174,238,0.06);
+  --m-blue-a06: rgba(69,174,238,0.08);
+  --m-blue-a08: rgba(69,174,238,0.1);
+  --m-blue-a10: rgba(69,174,238,0.15);
+  --m-blue-a12: rgba(69,174,238,0.18);
+  --m-blue-a15: rgba(69,174,238,0.2);
+  --m-blue-a20: rgba(69,174,238,0.25);
+  --m-blue-a25: rgba(69,174,238,0.3);
+  --m-blue-a35: rgba(69,174,238,0.45);
+  --m-teal-bg: rgba(75,168,192,0.15);
+  --m-pink-bg: rgba(232,72,138,0.15);
+  --m-olive-bg: rgba(197,184,0,0.18);
+  --m-orange-bg: rgba(238,129,52,0.15);
+  --m-red-bg: rgba(233,63,51,0.15);
+  --m-purple-bg: rgba(130,50,144,0.18);
+  --m-red-a06: rgba(233,63,51,0.08);
+  --m-red-a10: rgba(233,63,51,0.15);
+  --m-red-a25: rgba(233,63,51,0.35);
+  --m-green-accent: #22aa66;
+  --m-green-accent-bg: rgba(34,170,102,0.06);
+  --m-green-accent-border: rgba(34,170,102,0.45);
+
+  --m-disabled-bg: #2a2a3d;
+
+  --m-shadow: rgba(0,0,0,0.3);
+  --m-shadow-heavy: rgba(0,0,0,0.4);
+  --m-overlay: rgba(0,0,0,0.5);
+  --m-overlay-light: rgba(0,0,0,0.4);
+}
+
+/* ── Theme Toggle Button ── */
+.mockup-theme-toggle {
+  position: fixed; top: 16px; right: 16px; z-index: 9999;
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 1px solid var(--m-border);
+  background: var(--m-surface-raised);
+  color: var(--m-text-secondary);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 8px var(--m-shadow);
+  transition: background 0.2s, color 0.2s;
+}
+.mockup-theme-toggle:hover {
+  background: var(--m-hover-bg);
+  color: var(--m-text);
+}
+.mockup-theme-toggle svg { width: 20px; height: 20px; }
