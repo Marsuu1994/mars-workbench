@@ -4,15 +4,15 @@ import { useState } from "react";
 import { DragDropContext, Droppable } from "@hello-pangea/dnd";
 import { SunIcon, MoonIcon } from "@heroicons/react/24/outline";
 
-import { SizeChip } from "@/features/kanban/components/shared/SizeChip";
-import TaskTypeBadge from "@/features/kanban/components/shared/TaskTypeBadge";
-import TaskCard from "@/features/kanban/components/kanban/TaskCard";
-import MatrixTaskCard from "@/features/kanban/components/priorities/MatrixTaskCard";
-import ProgressDashboard from "@/features/kanban/components/kanban/ProgressDashboard";
-import EmptyBoard from "@/features/kanban/components/kanban/EmptyBoard";
-import { BotAvatar, UserAvatar } from "@/features/kanban/components/plan/ai-chat/Avatars";
-import { SuggestionChips } from "@/features/kanban/components/plan/ai-chat/SuggestionChips";
-import { LoadingBubble } from "@/features/kanban/components/plan/ai-chat/LoadingBubble";
+import { SizeChip } from "@/components/shared/SizeChip";
+import TaskTypeBadge from "@/components/shared/TaskTypeBadge";
+import TaskCard from "@/components/board/TaskCard";
+import MatrixTaskCard from "@/components/priorities/MatrixTaskCard";
+import ProgressDashboard from "@/components/board/ProgressDashboard";
+import EmptyBoard from "@/components/board/EmptyBoard";
+import { BotAvatar, UserAvatar } from "@/components/plan/ai-chat/Avatars";
+import { SuggestionChips } from "@/components/plan/ai-chat/SuggestionChips";
+import { LoadingBubble } from "@/components/plan/ai-chat/LoadingBubble";
 
 import { Section, Variant, Row } from "./GalleryParts";
 import {

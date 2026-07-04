@@ -1,6 +1,6 @@
 ---
 name: new-feature
-description: Scaffold a new feature with folder structure, design doc templates, and CLAUDE.md registration
+description: Scaffold a new feature with folder structure, centralized design-doc sections, and AGENTS.md registration
 disable-model-invocation: true
 user-invocable: true
 argument-hint: "[feature-name]"
@@ -23,58 +23,27 @@ Ask the user to describe:
 
 ## Step 2 — Scaffold Folder Structure
 
-Create the feature directory at `src/features/$0/` with this structure:
+The codebase is layer-first — a new feature adds files to the existing layer folders instead of creating its own directory:
 
 ```
-src/features/$0/
-├── actions/           # Server actions
-├── services/          # Business logic
-├── components/        # UI components
-├── utils/             # Helpers and enums
-├── design/
-│   ├── baseline.md    # Goal, entities, schema
-│   ├── flows.md       # Key flows
-│   ├── api.md         # Actions & data layer contracts
-│   └── mockup/
-│       └── styles.css # Shared mockup styles
-└── README.md          # Feature overview, current state, backlog, update log
+src/
+├── actions/[$0]Actions.ts       # Server actions for the feature
+├── services/[$0]Service.ts      # Business logic (if actions need orchestration)
+├── components/$0/               # NEW folder — the feature's UI components
+└── utils/ · store/ · hooks/     # Add files here only as needed
 ```
 
-Use the templates below for each design doc.
+Then register the feature in the centralized design docs:
 
-### baseline.md template
+- Add a `$0` section to `design/baseline.md` (entities/schema — see Step 3)
+- Create `design/flows/$0.md` from the flows template below
+- Create the `design/mockup/$0/` directory (mockups link the shared `../styles.css` and `../mockup-theme.css`)
 
-```markdown
-# Baseline Design
+### Root README registration
 
-## Goal
+Add a `### [Feature Name]` subsection under **Current State** in the root `README.md` ("(scaffolded — nothing implemented yet)") and note the scaffold in today's Update Log entry. No Backlog section anywhere — ideas and open items go to `design/tracker.md` under a `## [Feature Name]` section.
 
-[One-paragraph description of the feature's purpose]
-
-## Features
-
-### Implemented
-
-(none yet)
-
-### Planned: V1
-
-[Bullet list of V1 scope items]
-
-### Planned: Future
-
-(to be designed)
-
-## Entities
-
-[List entities and their key fields]
-
-## Schema
-
-[Prisma schema additions — models, relations, enums]
-```
-
-### flows.md template
+### design/flows/$0.md template
 
 ```markdown
 # Key Flows
@@ -82,45 +51,25 @@ Use the templates below for each design doc.
 [Flows will be added here via the `/new-flow` skill]
 ```
 
-### api.md template
-
-```markdown
-# Actions & Data Layer
-
-## Principles
-
-- Before adding a new action or endpoint, check if an existing one can be extended to cover the case.
-- Keep handlers thin — validate input, call service, return result. No business logic inside handlers.
-- One handler per logical operation, not per UI interaction. A single handler can cover multiple related mutations.
-- If two flows share the same mutation, they share the same handler. Never duplicate handler logic.
-- Use Server Actions for mutations triggered from Server or Client Components. Use API routes when you need webhooks, streaming, or third-party callbacks.
-
-## Data Fetching
-
-(to be designed)
-
-## Server Actions
-
-(to be designed)
-```
+No `reference.md` scaffolding is needed — action/DAL rows are appended to the existing tables in `design/reference.md` as flows are implemented (via `/new-flow` Step 5).
 
 ## Step 3 — Fill in Baseline
 
-Based on the user's description from Step 1, fill in `baseline.md`:
+Based on the user's description from Step 1, fill in the new `$0` section of `design/baseline.md`:
 
-- Write the Goal section
-- List Planned V1 features
+- Write the feature's goal
 - Define entities and their key fields
 - Draft the Prisma schema additions (models, relations, enums)
+- Add the planned V1 scope items to `design/tracker.md` under the new `## [Feature Name]` section
 
 Present for approval.
 
-## Step 4 — Register in CLAUDE.md
+## Step 4 — Register in AGENTS.md
 
-Update `CLAUDE.md`:
+Update `AGENTS.md`:
 
-1. Add the feature to the **Project Structure** tree under `features/`
-2. Add a row to the **Features** table with the feature name, status (`Scaffolded`), and route
+1. Add the feature to the **Project Structure** tree under `features/` with a one-line comment and its route
+2. Update the `CLAUDE.md` skill examples if the new feature makes a better example
 
 ## Step 5 — Create App Route
 

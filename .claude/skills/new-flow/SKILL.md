@@ -8,17 +8,17 @@ argument-hint: "[feature] [flow-name]"
 
 # Add a New Flow
 
-Add a new flow to feature `$0` named `$1`.
+Add a new flow to feature `$0` (`auth` | `board` | `plan` | `priorities`) named `$1`.
 
 Follow these steps **in order**. Do not proceed to the next step without explicit user approval.
 
 ## Step 1 — Read Context
 
-Read the feature's existing design docs to understand current state:
+Read the existing design docs (repo-root `design/`) to understand current state:
 
-- `src/features/$0/design/baseline.md` — entities and schema
-- `src/features/$0/design/flows.md` — existing flows
-- `src/features/$0/design/api.md` — actions and DAL contracts
+- `design/baseline.md` — app-wide entities and schema
+- `design/flows/$0.md` — the feature's existing flows
+- `design/reference.md` — inventory of existing actions, services, and DAL functions
 
 ## Step 2 — Draft Flow
 
@@ -39,14 +39,14 @@ Review the draft for clarity and completeness:
 - Does it conflict with or duplicate existing flows?
 - Are entity/schema changes needed?
 
-Present the updated flow for approval. Once approved, append it to `src/features/$0/design/flows.md`.
+Present the updated flow for approval. Once approved, append it to `design/flows/$0.md`.
 
 ## Step 4 — Mockup (if UI is involved)
 
 Skip this step if the flow is purely backend (no new UI).
 
-1. Use the `/frontend-design` skill to create an HTML mockup at `src/features/$0/design/mockup/mockup-$1.html`
-2. Link to the shared `./styles.css` in the mockup directory
+1. Use the `/frontend-design` skill to create an HTML mockup at `design/mockup/$0/mockup-$1.html`
+2. Link to the shared `../styles.css` and `../mockup-theme.css` (one level up, at `design/mockup/`)
 3. Show only the screens relevant to this flow
 4. Present for user review and iterate until approved
 
@@ -55,22 +55,22 @@ Skip this step if the flow is purely backend (no new UI).
 Write the implementation plan:
 
 1. Identify which layers are affected (Actions / Services / DAL / Components)
-2. For each new or modified **server action**: write pseudocode and its DAL contract
+2. For each new or modified **server action**: state its purpose and which service/DAL function it calls
 3. For each new **DAL function**: specify the query shape (params, select fields, return type)
 4. For each new **component**: note props interface and key behaviors
-5. Append the action/DAL contracts to `src/features/$0/design/api.md`
+5. Append the new rows to the tables in `design/reference.md` — one table row per new action / DAL function (name, purpose, calls). No pseudocode; detailed contracts live in the TypeScript code.
 
 Follow the project's layer conventions:
 - **Actions** — `'use server'`, thin: validate with Zod → call service → `revalidatePath`
 - **Services** — business logic, no `'use server'`. Required when an action needs multiple DAL calls or conditional logic
-- **DAL** — all Prisma queries in `src/lib/db/[resource]Queries.ts`, always use `select`
+- **DAL** — all Prisma queries in `src/lib/db/[resource].ts`, always use `select`
 - Wrap multi-step mutations in `prisma.$transaction()`
 
 Present the plan for approval.
 
 ## Step 6 — Implement
 
-Implement based on the approved plan. Follow all coding conventions from CLAUDE.md:
+Implement based on the approved plan. Follow all coding conventions from AGENTS.md:
 
 - Named exports, `const` arrow functions, explicit `interface` for props
 - Heroicons as JSX imports, daisyUI semantic tokens

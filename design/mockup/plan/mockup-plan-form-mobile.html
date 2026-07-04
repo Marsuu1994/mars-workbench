@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en" data-mockup-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kanban — Mobile Plan Form (Create / Edit / Template Sheet)</title>
+<link rel="stylesheet" href="../mockup-theme.css" />
+<style>
+/* ── Reset ── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--m-page-bg); min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 40px 20px 60px;
+}
+
+/* ── Section Titles ── */
+.page-title {
+  color: var(--m-text); font-size: 24px; font-weight: 700; margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+.page-subtitle { color: var(--m-text-tertiary); font-size: 14px; margin-bottom: 40px; text-align: center; max-width: 600px; }
+.section-title {
+  color: var(--m-text); font-size: 20px; font-weight: 700; margin: 60px 0 8px;
+  letter-spacing: -0.02em;
+}
+.section-subtitle { color: var(--m-text-tertiary); font-size: 13px; margin-bottom: 24px; }
+
+/* ── Phone Frames Container ── */
+.frames { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
+.frame-wrapper { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.frame-label {
+  font-size: 13px; font-weight: 600; color: var(--m-blue); text-transform: uppercase;
+  letter-spacing: 0.08em; display: flex; align-items: center; gap: 8px;
+}
+.frame-label .step {
+  width: 24px; height: 24px; border-radius: 50%; background: var(--m-blue-a10);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: var(--m-blue);
+}
+
+/* ── Phone Frame ── */
+.phone {
+  width: 375px; height: 812px; background: var(--m-surface-inset);
+  border-radius: 40px; border: 3px solid var(--m-border);
+  overflow: hidden; position: relative;
+  box-shadow: 0 25px 60px var(--m-overlay), inset 0 0 0 1px rgba(255,255,255,0.05);
+  display: flex; flex-direction: column;
+}
+
+/* ── Status Bar ── */
+.status-bar {
+  height: 54px; padding: 14px 28px 0; display: flex;
+  align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.status-time { font-size: 15px; font-weight: 600; color: var(--m-text); }
+.status-icons { display: flex; gap: 5px; align-items: center; }
+.status-icons svg { width: 16px; height: 16px; color: var(--m-text); }
+
+/* ── Mobile top bar (matches Priorities page pattern) ── */
+.m-topbar {
+  padding: 4px 16px 10px; border-bottom: 1px solid var(--m-border);
+  flex-shrink: 0; display: flex; align-items: flex-end; gap: 8px;
+}
+.m-topbar-text { display: flex; flex-direction: column; gap: 1px; }
+.m-topbar-title { font-size: 17px; font-weight: 700; color: var(--m-text); }
+.m-topbar-sub { font-size: 11px; color: var(--m-text-tertiary); }
+.m-topbar-badge {
+  margin-left: auto; font-size: 10px; font-weight: 600;
+  background: var(--m-red-a10); color: var(--m-red);
+  padding: 3px 9px; border-radius: 999px; margin-bottom: 2px;
+}
+
+/* ── Scrollable form body ── */
+.form-body { flex: 1; overflow-y: auto; padding: 14px 16px 16px; display: flex; flex-direction: column; }
+
+/* ── AI assistant row (compact banner) ── */
+.ai-row {
+  display: flex; align-items: center; gap: 11px; padding: 11px 12px;
+  background: var(--m-surface); border: 1px solid var(--m-border); border-radius: 10px;
+  margin-bottom: 14px; cursor: pointer;
+}
+.ai-row-icon {
+  width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+  background: var(--m-blue-a08); border: 1px solid var(--m-blue-a20);
+  display: flex; align-items: center; justify-content: center;
+}
+.ai-row-icon svg { width: 16px; height: 16px; color: var(--m-blue); }
+.ai-row-text { flex: 1; min-width: 0; }
+.ai-row-title { font-size: 13px; font-weight: 600; color: var(--m-text); }
+.ai-row-sub { font-size: 11px; color: var(--m-text-tertiary); }
+.ai-row-chevron { width: 16px; height: 16px; color: var(--m-text-muted); flex-shrink: 0; }
+
+/* ── Form fields ── */
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 12px; font-weight: 500; color: var(--m-text-tertiary); margin-bottom: 6px; display: block; }
+.form-input {
+  width: 100%; padding: 10px 12px; background: var(--m-surface); border: 1px solid var(--m-border);
+  border-radius: 8px; color: var(--m-text); font-size: 14px; outline: none;
+}
+.form-input::placeholder { color: var(--m-text-muted); }
+
+/* ── Plan Mode toggle ── */
+.mode-section {
+  background: var(--m-surface); border: 1px solid var(--m-border); border-radius: 10px;
+  padding: 11px 12px; margin-bottom: 16px;
+}
+.mode-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.05em;
+  text-transform: uppercase; color: var(--m-text-secondary); margin-bottom: 7px;
+}
+.mode-toggle {
+  display: flex; background: var(--m-surface-raised); border-radius: 8px;
+  padding: 3px; border: 1px solid var(--m-border);
+}
+.mode-option {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px;
+  padding: 7px 8px; border-radius: 6px; cursor: pointer; border: 1px solid transparent;
+}
+.mode-option.active.normal { border-color: var(--m-blue); background: var(--m-blue-a06); }
+.mode-option.active.extreme { border-color: var(--m-red); background: var(--m-red-a06); }
+.mode-option-name { font-size: 12px; font-weight: 600; }
+.mode-option.active.normal .mode-option-name { color: var(--m-blue); }
+.mode-option.active.extreme .mode-option-name { color: var(--m-red); }
+.mode-option:not(.active) .mode-option-name { color: var(--m-text-muted); }
+.mode-option-desc { font-size: 10px; }
+.mode-option.active .mode-option-desc { color: var(--m-text-secondary); }
+.mode-option:not(.active) .mode-option-desc { color: var(--m-text-muted); }
+
+/* ── Section headers ── */
+.list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.list-header .form-label { margin: 0; }
+.btn-new-tmpl {
+  padding: 5px 10px; font-size: 11px; font-weight: 600; border-radius: 7px;
+  border: 1px solid var(--m-border); background: transparent; color: var(--m-text-tertiary); cursor: pointer;
+}
+.oneoff-count {
+  font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+  background: var(--m-olive-bg); color: var(--m-olive);
+}
+
+/* ── Template rows ── */
+.template-list { display: flex; flex-direction: column; gap: 8px; }
+.tmpl-row {
+  background: var(--m-surface); border: 1px solid var(--m-border); border-radius: 10px;
+  padding: 11px 12px;
+}
+.tmpl-row.selected { border-color: var(--m-blue); background: var(--m-blue-a06); }
+.tmpl-row-main { display: flex; align-items: center; gap: 11px; }
+.tmpl-check {
+  width: 19px; height: 19px; border-radius: 5px; border: 2px solid var(--m-border-hover);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.tmpl-row.selected .tmpl-check { background: var(--m-blue); border-color: var(--m-blue); }
+.tmpl-check svg { width: 12px; height: 12px; }
+.tmpl-info { flex: 1; min-width: 0; }
+.tmpl-name { font-size: 13px; font-weight: 500; color: var(--m-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tmpl-detail { margin-top: 3px; }
+.size-chip {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.03em;
+  height: 16px; padding: 0 6px; border-radius: 3px;
+  background: var(--m-purple-bg); color: var(--m-purple);
+}
+.size-chip .sz-dot { opacity: 0.4; }
+.size-chip .sz-pts { font-weight: 600; opacity: 0.7; }
+.tmpl-edit-btn {
+  background: none; border: none; cursor: pointer; color: var(--m-text-secondary);
+  padding: 7px; border-radius: 6px; flex-shrink: 0;
+}
+.tmpl-edit-btn svg { width: 14px; height: 14px; }
+
+/* Inline type + frequency config (selected rows only) */
+.tmpl-config {
+  border-top: 1px solid var(--m-border); margin-top: 10px; padding-top: 9px;
+  display: flex; align-items: center; gap: 7px;
+}
+.config-label { font-size: 10px; color: var(--m-text-secondary); flex-shrink: 0; }
+.type-pills { display: flex; gap: 4px; }
+.type-pill {
+  padding: 4px 9px; font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
+  border-radius: 999px; border: 1px solid var(--m-border); cursor: pointer;
+  background: transparent; color: var(--m-text-secondary);
+}
+.type-pill.p-daily  { background: var(--m-teal-bg); border-color: var(--m-teal); color: var(--m-teal); }
+.type-pill.p-weekly { background: var(--m-pink-bg); border-color: var(--m-pink); color: var(--m-pink); }
+.config-divider { width: 1px; height: 15px; background: var(--m-border); flex-shrink: 0; }
+/* Frequency stepper — thumb-friendly −/+ instead of a bare number input */
+.freq-stepper {
+  display: flex; align-items: center; height: 30px; flex-shrink: 0;
+  border: 1px solid var(--m-border); border-radius: 8px;
+  background: var(--m-surface-raised); overflow: hidden;
+}
+.freq-btn {
+  width: 32px; height: 100%; border: none; background: transparent;
+  color: var(--m-text-secondary); font-size: 15px; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.freq-btn:active { background: var(--m-hover-bg); }
+.freq-btn.disabled { color: var(--m-text-muted); opacity: 0.4; cursor: default; }
+.freq-value { min-width: 26px; text-align: center; font-size: 13px; font-weight: 700; color: var(--m-text); }
+.freq-unit { font-size: 11px; color: var(--m-text-secondary); }
+
+/* ── One-off task rows ── */
+.oneoff-row {
+  display: flex; align-items: center; gap: 11px; padding: 11px 12px;
+  background: var(--m-surface); border: 1px solid var(--m-border); border-radius: 10px;
+}
+.oneoff-row.selected { border-color: var(--m-blue); background: var(--m-blue-a06); }
+.oneoff-row.selected .tmpl-check { background: var(--m-blue); border-color: var(--m-blue); }
+.oneoff-status {
+  font-size: 9px; font-weight: 600; padding: 2px 7px; border-radius: 999px;
+  background: var(--m-disabled-bg); color: var(--m-text-tertiary);
+  text-transform: uppercase; letter-spacing: 0.04em; flex-shrink: 0;
+}
+
+/* ── Sticky action footer (docked above the tab bar) ── */
+.form-footer {
+  flex-shrink: 0; padding: 10px 16px; border-top: 1px solid var(--m-border);
+  background: var(--m-surface-inset);
+  display: flex; align-items: center; gap: 12px;
+}
+.form-footer-summary { font-size: 11px; color: var(--m-text-secondary); line-height: 1.4; flex: 1; }
+.form-footer-summary span { color: var(--m-blue); font-weight: 700; }
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 16px; border-radius: 9px; border: none; cursor: pointer;
+  font-size: 13px; font-weight: 600; color: #fff;
+  background: linear-gradient(135deg, var(--m-blue), var(--m-blue-light));
+  box-shadow: 0 0 20px var(--m-blue-a20); white-space: nowrap;
+}
+.btn-primary svg { width: 15px; height: 15px; }
+.btn-ghost {
+  padding: 10px 16px; border-radius: 9px; font-size: 13px; font-weight: 500;
+  border: 1px solid var(--m-border); background: transparent; color: var(--m-text-tertiary); cursor: pointer;
+}
+
+/* ── Bottom Tab Bar (4 tabs, matches app dock) ── */
+.tab-bar {
+  height: 80px; background: var(--m-surface-inset); border-top: 1px solid var(--m-border);
+  display: flex; align-items: flex-start; justify-content: space-around;
+  padding-top: 10px; flex-shrink: 0;
+}
+.tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: var(--m-text-muted); transition: color 0.15s; }
+.tab-item.active { color: var(--m-blue); }
+.tab-item svg { width: 22px; height: 22px; }
+.tab-label { font-size: 10px; font-weight: 500; }
+
+/* ── Home Indicator ── */
+.home-indicator {
+  position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+  width: 134px; height: 5px; background: #ffffff; border-radius: 999px; opacity: 0.2;
+}
+
+/* ═══════════════════════════════════════════════
+   Task Template — Bottom sheet (create / edit)
+   ═══════════════════════════════════════════════ */
+.sheet-scrim {
+  position: absolute; inset: 0; z-index: 30;
+  background: var(--m-overlay); pointer-events: none;
+}
+.bottom-sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 40;
+  background: var(--m-surface-raised);
+  border-top-left-radius: 20px; border-top-right-radius: 20px;
+  border-top: 1px solid var(--m-border);
+  box-shadow: 0 -16px 48px var(--m-shadow-heavy);
+  padding: 6px 16px 22px;
+}
+.sheet-grip { width: 38px; height: 4px; border-radius: 2px; background: var(--m-border-hover); margin: 6px auto 12px; }
+.sheet-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.sheet-title { font-size: 16px; font-weight: 700; color: var(--m-text); }
+.sheet-close {
+  width: 30px; height: 30px; border-radius: 8px; border: none; background: transparent;
+  color: var(--m-text-tertiary); cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.sheet-close svg { width: 18px; height: 18px; }
+.sheet-hint-inline { font-size: 10px; color: var(--m-text-muted); font-weight: 400; margin-left: 4px; }
+textarea.form-input { resize: vertical; font-family: inherit; line-height: 1.4; }
+
+/* Size pill toggle */
+.size-pills { display: flex; gap: 5px; width: 100%; }
+.size-pill-btn {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px;
+  padding: 8px 0; border-radius: 999px;
+  border: 1px solid var(--m-border); background: var(--m-surface);
+  cursor: pointer;
+}
+.size-pill-btn.active { background: var(--m-purple-bg); border-color: var(--m-purple); }
+.size-pill-size { font-size: 11px; font-weight: 700; color: var(--m-text-secondary); }
+.size-pill-btn.active .size-pill-size { color: var(--m-purple); }
+.size-pill-pts { font-size: 9px; font-weight: 500; color: var(--m-text-muted); }
+.size-pill-btn.active .size-pill-pts { color: var(--m-purple); opacity: 0.7; }
+.size-hint { font-size: 11px; margin-top: 6px; }
+.size-hint-info { color: var(--m-purple); }
+.size-hint-warn { color: var(--m-orange); }
+
+.sheet-footer { display: flex; gap: 10px; margin-top: 18px; }
+.sheet-footer .btn-ghost { flex: 1; text-align: center; }
+.sheet-footer .btn-primary { flex: 2; justify-content: center; }
+
+/* ═══════════════════════════════════════════════
+   Review Plan Changes — tall sheet with scrolling body
+   ═══════════════════════════════════════════════ */
+.bottom-sheet.review { height: 660px; display: flex; flex-direction: column; }
+.sheet-scroll { flex: 1; overflow-y: auto; margin: 0 -16px; padding: 0 16px; }
+.sheet-footer.pinned {
+  flex-shrink: 0; border-top: 1px solid var(--m-border);
+  margin: 0 -16px; padding: 12px 16px 0; margin-top: 0;
+}
+
+/* Change-summary sections (compact mobile versions of the desktop modal) */
+.cs-section { margin-bottom: 12px; }
+.cs-head {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  display: flex; align-items: center; gap: 6px; margin-bottom: 6px;
+}
+.cs-head svg { width: 13px; height: 13px; flex-shrink: 0; }
+.cs-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; }
+.cs-added   { color: var(--m-blue); } .cs-badge-added   { background: var(--m-blue-a10); color: var(--m-blue); }
+.cs-removed { color: var(--m-red); } .cs-badge-removed { background: var(--m-red-a10); color: var(--m-red); }
+.cs-mod     { color: var(--m-orange); } .cs-badge-mod     { background: var(--m-orange-bg); color: var(--m-orange); }
+.cs-adhoc   { color: var(--m-olive); } .cs-badge-adhoc   { background: var(--m-olive-bg); color: var(--m-olive); }
+.cs-mode    { color: var(--m-blue); }
+.cs-row {
+  display: flex; align-items: flex-start; gap: 9px; padding: 9px 11px;
+  background: var(--m-surface); border: 1px solid var(--m-border); border-radius: 8px; margin-bottom: 6px;
+}
+.cs-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.cs-name   { font-size: 12px; font-weight: 500; color: var(--m-text); }
+.cs-detail { font-size: 11px; color: var(--m-text-secondary); margin-top: 2px; }
+.cs-impact { font-size: 10px; margin-top: 3px; font-style: italic; line-height: 1.35; }
+.adhoc-subgroup { font-size: 10px; font-weight: 600; margin: 6px 0 4px 2px; }
+.impact-note {
+  display: flex; gap: 7px; align-items: flex-start; padding: 10px 12px;
+  background: var(--m-surface); border: 1px dashed var(--m-border-hover); border-radius: 8px;
+  margin-top: 10px; margin-bottom: 14px;
+}
+.impact-note svg { width: 13px; height: 13px; flex-shrink: 0; margin-top: 1px; color: var(--m-text-secondary); }
+.impact-note span { font-size: 11px; color: var(--m-text-tertiary); line-height: 1.45; }
+
+/* ── Widget showcase ── */
+.widget-grid { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+.widget-card-wrapper { display: flex; flex-direction: column; gap: 8px; width: 375px; }
+.widget-label { font-size: 10px; font-weight: 600; color: var(--m-text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.widget-sheet {
+  position: relative; background: var(--m-surface-raised);
+  border: 1px solid var(--m-border); border-radius: 20px 20px 14px 14px;
+  padding: 6px 16px 22px; box-shadow: 0 12px 32px var(--m-shadow);
+}
+</style>
+</head>
+<body>
+
+<div class="page-title">Mobile Plan — Create / Edit + Template Sheet</div>
+<div class="page-subtitle">
+  The desktop plan form re-flowed as a single-column mobile page under the <strong>Plan</strong> tab.
+  The action footer docks above the tab bar (no Cancel — leaving via the dock discards).
+  Frequency uses a <strong>−/+ stepper</strong> (− disabled at 1, max 10) instead of a bare number input.
+  Tapping <strong>Update Plan</strong> opens the Review Plan Changes confirmation as a tall bottom sheet
+  (scrolling body, pinned footer); Create / Edit Task Template opens as a bottom sheet too —
+  both reuse the Track-this-week sheet pattern. Frames at 375 × 812.
+</div>
+
+<div class="frames">
+
+<!-- ═══════════ FRAME 1: Create mode ═══════════ -->
+<div class="frame-wrapper">
+  <div class="frame-label"><span class="step">1</span> Create Weekly Plan</div>
+  <div class="phone">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="status-icons">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2a7.074 7.074 0 0110 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+
+    <div class="m-topbar">
+      <div class="m-topbar-text">
+        <span class="m-topbar-title">Create Weekly Plan</span>
+        <span class="m-topbar-sub">Set up templates and start a new week</span>
+      </div>
+      <span class="m-topbar-badge">Planning</span>
+    </div>
+
+    <div class="form-body">
+      <!-- AI assistant row -->
+      <div class="ai-row">
+        <div class="ai-row-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="ai-row-text">
+          <div class="ai-row-title">Plan with AI</div>
+          <div class="ai-row-sub">Suggest templates from your goals &amp; history</div>
+        </div>
+        <svg class="ai-row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Description (optional)</label>
+        <input class="form-input" placeholder="e.g. Focus on interview prep this week" />
+      </div>
+
+      <div class="mode-section">
+        <div class="mode-label">Plan Mode</div>
+        <div class="mode-toggle">
+          <div class="mode-option active normal">
+            <div class="mode-option-name">&#9790; Normal</div>
+            <div class="mode-option-desc">Weekdays only</div>
+          </div>
+          <div class="mode-option extreme">
+            <div class="mode-option-name">&#9889; Extreme</div>
+            <div class="mode-option-desc">Every day incl. weekends</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="list-header">
+        <label class="form-label">Task Templates</label>
+        <button class="btn-new-tmpl">+ New Template</button>
+      </div>
+
+      <div class="template-list">
+        <!-- Selected: expands with type + freq config -->
+        <div class="tmpl-row selected">
+          <div class="tmpl-row-main">
+            <div class="tmpl-check"><svg viewBox="0 0 24 24" fill="none" stroke="var(--m-surface-raised)" stroke-width="3"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="tmpl-info">
+              <div class="tmpl-name">Solve 3 LeetCode problems</div>
+              <div class="tmpl-detail"><span class="size-chip"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span></div>
+            </div>
+            <button class="tmpl-edit-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round"/></svg></button>
+          </div>
+          <div class="tmpl-config">
+            <span class="config-label">Type</span>
+            <div class="type-pills">
+              <button class="type-pill p-daily">DAILY</button>
+              <button class="type-pill">WEEKLY</button>
+            </div>
+            <div class="config-divider"></div>
+            <div class="freq-stepper">
+              <button class="freq-btn disabled">&minus;</button>
+              <span class="freq-value">1</span>
+              <button class="freq-btn">+</button>
+            </div>
+            <span class="freq-unit">/ day</span>
+          </div>
+        </div>
+
+        <div class="tmpl-row selected">
+          <div class="tmpl-row-main">
+            <div class="tmpl-check"><svg viewBox="0 0 24 24" fill="none" stroke="var(--m-surface-raised)" stroke-width="3"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="tmpl-info">
+              <div class="tmpl-name">Go to gym</div>
+              <div class="tmpl-detail"><span class="size-chip"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span></div>
+            </div>
+            <button class="tmpl-edit-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round"/></svg></button>
+          </div>
+          <div class="tmpl-config">
+            <span class="config-label">Type</span>
+            <div class="type-pills">
+              <button class="type-pill">DAILY</button>
+              <button class="type-pill p-weekly">WEEKLY</button>
+            </div>
+            <div class="config-divider"></div>
+            <div class="freq-stepper">
+              <button class="freq-btn">&minus;</button>
+              <span class="freq-value">3</span>
+              <button class="freq-btn">+</button>
+            </div>
+            <span class="freq-unit">/ week</span>
+          </div>
+        </div>
+
+        <!-- Unselected: compact row -->
+        <div class="tmpl-row">
+          <div class="tmpl-row-main">
+            <div class="tmpl-check"></div>
+            <div class="tmpl-info">
+              <div class="tmpl-name">Write blog post</div>
+              <div class="tmpl-detail"><span class="size-chip"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span></div>
+            </div>
+            <button class="tmpl-edit-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="list-header" style="margin-top:18px">
+        <label class="form-label">One-off Tasks</label>
+        <span class="oneoff-count">2 tasks</span>
+      </div>
+
+      <div class="template-list">
+        <div class="oneoff-row selected">
+          <div class="tmpl-check"><svg viewBox="0 0 24 24" fill="none" stroke="var(--m-surface-raised)" stroke-width="3"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="tmpl-info">
+            <div class="tmpl-name">File tax report</div>
+            <div class="tmpl-detail"><span class="size-chip"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span></div>
+          </div>
+          <span class="oneoff-status">Todo</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-footer">
+      <div class="form-footer-summary"><span>2</span> templates, <span>1</span> one-off selected</div>
+      <button class="btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7" stroke-linecap="round"/></svg>
+        Start Week
+      </button>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span class="tab-label">Board</span></div>
+      <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="M3 9.75h18M9 9.75v9.75M15 9.75v9.75" stroke-linecap="round"/></svg><span class="tab-label">Priorities</span></div>
+      <div class="tab-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="tab-label">Plan</span></div>
+      <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="tab-label">Settings</span></div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</div>
+
+<!-- ═══════════ FRAME 2: Edit mode ═══════════ -->
+<div class="frame-wrapper">
+  <div class="frame-label"><span class="step">2</span> Update Weekly Plan</div>
+  <div class="phone">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="status-icons">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2a7.074 7.074 0 0110 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+
+    <div class="m-topbar">
+      <div class="m-topbar-text">
+        <span class="m-topbar-title">Update Weekly Plan</span>
+        <span class="m-topbar-sub">Week 09 &middot; Feb 24 – Mar 2</span>
+      </div>
+      <span class="m-topbar-badge">Planning</span>
+    </div>
+
+    <div class="form-body">
+      <div class="form-group">
+        <label class="form-label">Description (optional)</label>
+        <input class="form-input" value="Interview prep + system design" />
+      </div>
+
+      <div class="mode-section">
+        <div class="mode-label">Plan Mode</div>
+        <div class="mode-toggle">
+          <div class="mode-option normal">
+            <div class="mode-option-name">&#9790; Normal</div>
+            <div class="mode-option-desc">Weekdays only</div>
+          </div>
+          <div class="mode-option active extreme">
+            <div class="mode-option-name">&#9889; Extreme</div>
+            <div class="mode-option-desc">Every day incl. weekends</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="list-header">
+        <label class="form-label">Task Templates</label>
+        <button class="btn-new-tmpl">+ New Template</button>
+      </div>
+
+      <div class="template-list">
+        <div class="tmpl-row selected">
+          <div class="tmpl-row-main">
+            <div class="tmpl-check"><svg viewBox="0 0 24 24" fill="none" stroke="var(--m-surface-raised)" stroke-width="3"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="tmpl-info">
+              <div class="tmpl-name">Solve 3 LeetCode problems</div>
+              <div class="tmpl-detail"><span class="size-chip"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span></div>
+            </div>
+            <button class="tmpl-edit-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round"/></svg></button>
+          </div>
+          <div class="tmpl-config">
+            <span class="config-label">Type</span>
+            <div class="type-pills">
+              <button class="type-pill p-daily">DAILY</button>
+              <button class="type-pill">WEEKLY</button>
+            </div>
+            <div class="config-divider"></div>
+            <div class="freq-stepper">
+              <button class="freq-btn disabled">&minus;</button>
+              <span class="freq-value">1</span>
+              <button class="freq-btn">+</button>
+            </div>
+            <span class="freq-unit">/ day</span>
+          </div>
+        </div>
+
+        <div class="tmpl-row">
+          <div class="tmpl-row-main">
+            <div class="tmpl-check"></div>
+            <div class="tmpl-info">
+              <div class="tmpl-name">Morning jog 5km</div>
+              <div class="tmpl-detail"><span class="size-chip"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span></div>
+            </div>
+            <button class="tmpl-edit-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round"/></svg></button>
+          </div>
+        </div>
+
+        <div class="tmpl-row">
+          <div class="tmpl-row-main">
+            <div class="tmpl-check"></div>
+            <div class="tmpl-info">
+              <div class="tmpl-name">Write blog post</div>
+              <div class="tmpl-detail"><span class="size-chip"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span></div>
+            </div>
+            <button class="tmpl-edit-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="list-header" style="margin-top:18px">
+        <label class="form-label">One-off Tasks</label>
+        <span class="oneoff-count">2 tasks</span>
+      </div>
+
+      <div class="template-list">
+        <div class="oneoff-row selected">
+          <div class="tmpl-check"><svg viewBox="0 0 24 24" fill="none" stroke="var(--m-surface-raised)" stroke-width="3"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="tmpl-info">
+            <div class="tmpl-name">File tax report</div>
+            <div class="tmpl-detail"><span class="size-chip"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span></div>
+          </div>
+          <span class="oneoff-status">Todo</span>
+        </div>
+        <div class="oneoff-row selected">
+          <div class="tmpl-check"><svg viewBox="0 0 24 24" fill="none" stroke="var(--m-surface-raised)" stroke-width="3"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="tmpl-info">
+            <div class="tmpl-name">Renew passport</div>
+            <div class="tmpl-detail"><span class="size-chip"><span class="sz-label">S</span><span class="sz-dot">&middot;</span><span class="sz-pts">2</span></span></div>
+          </div>
+          <span class="oneoff-status">Doing</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-footer">
+      <div class="form-footer-summary"><span>1</span> template, <span>2</span> one-off selected</div>
+      <button class="btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7" stroke-linecap="round"/></svg>
+        Update Plan
+      </button>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span class="tab-label">Board</span></div>
+      <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="M3 9.75h18M9 9.75v9.75M15 9.75v9.75" stroke-linecap="round"/></svg><span class="tab-label">Priorities</span></div>
+      <div class="tab-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="tab-label">Plan</span></div>
+      <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="tab-label">Settings</span></div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</div>
+
+<!-- ═══════════ FRAME 3: Review Plan Changes — confirmation sheet ═══════════ -->
+<div class="frame-wrapper">
+  <div class="frame-label"><span class="step">3</span> Update Plan · Review Sheet</div>
+  <div class="phone">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="status-icons">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2a7.074 7.074 0 0110 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+
+    <div class="m-topbar">
+      <div class="m-topbar-text">
+        <span class="m-topbar-title">Update Weekly Plan</span>
+        <span class="m-topbar-sub">Week 09 &middot; Feb 24 – Mar 2</span>
+      </div>
+      <span class="m-topbar-badge">Planning</span>
+    </div>
+
+    <!-- Dimmed edit form behind the sheet -->
+    <div class="form-body">
+      <div class="form-group">
+        <label class="form-label">Description (optional)</label>
+        <input class="form-input" value="Interview prep + system design" />
+      </div>
+      <div class="list-header">
+        <label class="form-label">Task Templates</label>
+        <button class="btn-new-tmpl">+ New Template</button>
+      </div>
+      <div class="template-list">
+        <div class="tmpl-row selected">
+          <div class="tmpl-row-main">
+            <div class="tmpl-check"><svg viewBox="0 0 24 24" fill="none" stroke="var(--m-surface-raised)" stroke-width="3"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="tmpl-info">
+              <div class="tmpl-name">Read 30 pages</div>
+              <div class="tmpl-detail"><span class="size-chip"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scrim + review changes sheet -->
+    <div class="sheet-scrim"></div>
+    <div class="bottom-sheet review">
+      <div class="sheet-grip"></div>
+      <div class="sheet-title-row">
+        <span class="sheet-title">Review Plan Changes</span>
+        <button class="sheet-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg></button>
+      </div>
+
+      <div class="sheet-scroll">
+        <!-- Added -->
+        <div class="cs-section">
+          <div class="cs-head cs-added">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--m-blue)" stroke-width="2.5"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+            Added
+            <span class="cs-badge cs-badge-added">1 template</span>
+          </div>
+          <div class="cs-row" style="border-color:var(--m-blue-a25)">
+            <div class="cs-dot" style="background:var(--m-blue)"></div>
+            <div>
+              <div class="cs-name">Read 30 pages</div>
+              <div class="cs-detail"><span class="size-chip"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span> &middot; Daily &middot; 1&times; per day</div>
+              <div class="cs-impact cs-added">New daily tasks will be generated starting today</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Removed -->
+        <div class="cs-section">
+          <div class="cs-head cs-removed">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--m-red)" stroke-width="2.5"><path d="M5 12h14" stroke-linecap="round"/></svg>
+            Removed
+            <span class="cs-badge cs-badge-removed">1 template</span>
+          </div>
+          <div class="cs-row" style="border-color:var(--m-red-a25)">
+            <div class="cs-dot" style="background:var(--m-red)"></div>
+            <div>
+              <div class="cs-name">Morning jog 5km</div>
+              <div class="cs-detail"><span class="size-chip"><span class="sz-label">M</span><span class="sz-dot">&middot;</span><span class="sz-pts">3</span></span> &middot; Daily &middot; 1&times; per day</div>
+              <div class="cs-impact cs-removed">3 Todo / In Progress tasks will be deleted from the board</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modified -->
+        <div class="cs-section">
+          <div class="cs-head cs-mod">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--m-orange)" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round"/></svg>
+            Modified
+            <span class="cs-badge cs-badge-mod">1 template</span>
+          </div>
+          <div class="cs-row" style="border-color:var(--m-orange-bg)">
+            <div class="cs-dot" style="background:var(--m-orange)"></div>
+            <div>
+              <div class="cs-name">Go to gym</div>
+              <div class="cs-detail">
+                <span style="text-decoration:line-through;opacity:0.5">Daily &middot; 1&times; per day</span>
+                <span style="margin:0 5px;color:var(--m-orange)">&rarr;</span>
+                <span style="color:var(--m-orange)">Weekly &middot; 3&times; per week</span>
+              </div>
+              <div class="cs-impact cs-mod">Existing Todo / In Progress tasks deleted &mdash; 3 new weekly instances will be generated</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- One-off Tasks -->
+        <div class="cs-section">
+          <div class="cs-head cs-adhoc">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--m-olive)" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            One-off Tasks
+            <span class="cs-badge cs-badge-adhoc">2 tasks</span>
+          </div>
+          <div class="adhoc-subgroup" style="color:var(--m-blue)">Added to board</div>
+          <div class="cs-row" style="border-color:var(--m-blue-a25)">
+            <div class="cs-dot" style="background:var(--m-blue)"></div>
+            <div>
+              <div class="cs-name">Get sinus CT scan</div>
+              <div class="cs-impact cs-added">Will appear on the board</div>
+            </div>
+          </div>
+          <div class="adhoc-subgroup" style="color:var(--m-red)">Removed from board</div>
+          <div class="cs-row" style="border-color:var(--m-red-a25)">
+            <div class="cs-dot" style="background:var(--m-red)"></div>
+            <div>
+              <div class="cs-name">Renew passport</div>
+              <div class="cs-impact cs-removed">Will return to the Priorities matrix</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mode Changed -->
+        <div class="cs-section">
+          <div class="cs-head cs-mode">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--m-blue)" stroke-width="2.5"><path d="M4 4v5h5M20 20v-5h-5" stroke-linecap="round"/><path d="M20 9a8 8 0 00-14.9-2M4 15a8 8 0 0014.9 2" stroke-linecap="round"/></svg>
+            Mode Changed
+          </div>
+          <div class="cs-row" style="border-color:var(--m-blue-a25)">
+            <div class="cs-dot" style="background:var(--m-blue)"></div>
+            <div>
+              <div class="cs-detail">
+                <span style="text-decoration:line-through;opacity:0.5">Normal</span>
+                <span style="margin:0 5px;color:var(--m-blue)">&rarr;</span>
+                <span style="color:var(--m-blue);font-weight:500">Extreme</span>
+              </div>
+              <div class="cs-impact cs-mode">Daily tasks every day including weekends — future daily tasks only</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Global note -->
+        <div class="impact-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4m0 4h.01" stroke-linecap="round"/></svg>
+          <span>Done and Expired tasks are never affected by any change — your completed work is always preserved.</span>
+        </div>
+      </div>
+
+      <div class="sheet-footer pinned">
+        <button class="btn-ghost">Cancel</button>
+        <button class="btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v5h5M20 20v-5h-5" stroke-linecap="round"/><path d="M20 9a8 8 0 00-14.9-2M4 15a8 8 0 0014.9 2" stroke-linecap="round"/></svg>
+          Confirm &amp; Regenerate
+        </button>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</div>
+
+<!-- ═══════════ FRAME 4: Create Task Template — bottom sheet ═══════════ -->
+<div class="frame-wrapper">
+  <div class="frame-label"><span class="step">4</span> New Template · Bottom Sheet</div>
+  <div class="phone">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="status-icons">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2a7.074 7.074 0 0110 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+
+    <div class="m-topbar">
+      <div class="m-topbar-text">
+        <span class="m-topbar-title">Create Weekly Plan</span>
+        <span class="m-topbar-sub">Set up templates and start a new week</span>
+      </div>
+      <span class="m-topbar-badge">Planning</span>
+    </div>
+
+    <!-- Dimmed form behind the sheet -->
+    <div class="form-body">
+      <div class="ai-row">
+        <div class="ai-row-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16l-6.4 5.2 2.4-7.2-6-4.8h7.6z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="ai-row-text">
+          <div class="ai-row-title">Plan with AI</div>
+          <div class="ai-row-sub">Suggest templates from your goals &amp; history</div>
+        </div>
+        <svg class="ai-row-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description (optional)</label>
+        <input class="form-input" placeholder="e.g. Focus on interview prep this week" />
+      </div>
+      <div class="list-header">
+        <label class="form-label">Task Templates</label>
+        <button class="btn-new-tmpl" style="border-color:var(--m-blue);color:var(--m-blue)">+ New Template</button>
+      </div>
+      <div class="template-list">
+        <div class="tmpl-row selected">
+          <div class="tmpl-row-main">
+            <div class="tmpl-check"><svg viewBox="0 0 24 24" fill="none" stroke="var(--m-surface-raised)" stroke-width="3"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="tmpl-info">
+              <div class="tmpl-name">Solve 3 LeetCode problems</div>
+              <div class="tmpl-detail"><span class="size-chip"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scrim + template sheet -->
+    <div class="sheet-scrim"></div>
+    <div class="bottom-sheet">
+      <div class="sheet-grip"></div>
+      <div class="sheet-title-row">
+        <span class="sheet-title">Create Task Template</span>
+        <button class="sheet-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg></button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Title <span style="color:var(--m-red)">*</span></label>
+        <input class="form-input" placeholder="e.g. Solve 3 LeetCode problems" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description<span class="sheet-hint-inline">(used by AI for task generation)</span></label>
+        <textarea class="form-input" rows="2" placeholder="e.g. Focus on dynamic programming and graph problems."></textarea>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Size <span style="color:var(--m-red)">*</span></label>
+        <div class="size-pills">
+          <button class="size-pill-btn"><span class="size-pill-size">XS</span><span class="size-pill-pts">1</span></button>
+          <button class="size-pill-btn"><span class="size-pill-size">S</span><span class="size-pill-pts">2</span></button>
+          <button class="size-pill-btn active"><span class="size-pill-size">M</span><span class="size-pill-pts">3</span></button>
+          <button class="size-pill-btn"><span class="size-pill-size">L</span><span class="size-pill-pts">5</span></button>
+          <button class="size-pill-btn"><span class="size-pill-size">XL</span><span class="size-pill-pts">8</span></button>
+        </div>
+        <div class="size-hint size-hint-info">~3 hours of effort</div>
+      </div>
+      <div class="sheet-footer">
+        <button class="btn-ghost">Cancel</button>
+        <button class="btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg>
+          Create Template
+        </button>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</div>
+
+</div><!-- /frames -->
+
+<!-- ═══════════════════════════════════════════════
+     Template sheet — edit variant
+     ═══════════════════════════════════════════════ -->
+<div class="section-title">Edit Task Template — Sheet Variant</div>
+<div class="section-subtitle">Same sheet opened from a row's pencil button: prefilled fields, "Save Changes" action, XL warning hint</div>
+
+<div class="widget-grid">
+  <div class="widget-card-wrapper">
+    <div class="widget-label">Edit mode · prefilled</div>
+    <div class="widget-sheet">
+      <div class="sheet-grip"></div>
+      <div class="sheet-title-row">
+        <span class="sheet-title">Edit Task Template</span>
+        <button class="sheet-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg></button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Title <span style="color:var(--m-red)">*</span></label>
+        <input class="form-input" value="Go to gym" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description<span class="sheet-hint-inline">(used by AI for task generation)</span></label>
+        <textarea class="form-input" rows="2">30 min workout focusing on compound lifts</textarea>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Size <span style="color:var(--m-red)">*</span></label>
+        <div class="size-pills">
+          <button class="size-pill-btn"><span class="size-pill-size">XS</span><span class="size-pill-pts">1</span></button>
+          <button class="size-pill-btn"><span class="size-pill-size">S</span><span class="size-pill-pts">2</span></button>
+          <button class="size-pill-btn"><span class="size-pill-size">M</span><span class="size-pill-pts">3</span></button>
+          <button class="size-pill-btn"><span class="size-pill-size">L</span><span class="size-pill-pts">5</span></button>
+          <button class="size-pill-btn active"><span class="size-pill-size">XL</span><span class="size-pill-pts">8</span></button>
+        </div>
+        <div class="size-hint size-hint-warn">&#9888; Consider splitting into smaller tasks</div>
+      </div>
+      <div class="sheet-footer">
+        <button class="btn-ghost">Cancel</button>
+        <button class="btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7" stroke-linecap="round"/></svg>
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     Template row widget — all states
+     ═══════════════════════════════════════════════ -->
+<div class="section-title">Template Row — All States</div>
+<div class="section-subtitle">Full-width rows at 343px; selected rows expand with the inline Type / Freq config</div>
+
+<div class="widget-grid" style="flex-direction:column;align-items:center">
+  <div class="widget-card-wrapper" style="width:343px">
+    <div class="widget-label">Unselected</div>
+    <div class="tmpl-row">
+      <div class="tmpl-row-main">
+        <div class="tmpl-check"></div>
+        <div class="tmpl-info">
+          <div class="tmpl-name">Write blog post</div>
+          <div class="tmpl-detail"><span class="size-chip"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span></div>
+        </div>
+        <button class="tmpl-edit-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round"/></svg></button>
+      </div>
+    </div>
+  </div>
+  <div class="widget-card-wrapper" style="width:343px">
+    <div class="widget-label">Selected · Daily</div>
+    <div class="tmpl-row selected">
+      <div class="tmpl-row-main">
+        <div class="tmpl-check"><svg viewBox="0 0 24 24" fill="none" stroke="var(--m-surface-raised)" stroke-width="3"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="tmpl-info">
+          <div class="tmpl-name">Solve 3 LeetCode problems</div>
+          <div class="tmpl-detail"><span class="size-chip"><span class="sz-label">XL</span><span class="sz-dot">&middot;</span><span class="sz-pts">8</span></span></div>
+        </div>
+        <button class="tmpl-edit-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round"/></svg></button>
+      </div>
+      <div class="tmpl-config">
+        <span class="config-label">Type</span>
+        <div class="type-pills">
+          <button class="type-pill p-daily">DAILY</button>
+          <button class="type-pill">WEEKLY</button>
+        </div>
+        <div class="config-divider"></div>
+        <div class="freq-stepper">
+          <button class="freq-btn disabled">&minus;</button>
+          <span class="freq-value">1</span>
+          <button class="freq-btn">+</button>
+        </div>
+        <span class="freq-unit">/ day</span>
+      </div>
+    </div>
+  </div>
+  <div class="widget-card-wrapper" style="width:343px">
+    <div class="widget-label">Selected · Weekly</div>
+    <div class="tmpl-row selected">
+      <div class="tmpl-row-main">
+        <div class="tmpl-check"><svg viewBox="0 0 24 24" fill="none" stroke="var(--m-surface-raised)" stroke-width="3"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="tmpl-info">
+          <div class="tmpl-name">Go to gym</div>
+          <div class="tmpl-detail"><span class="size-chip"><span class="sz-label">L</span><span class="sz-dot">&middot;</span><span class="sz-pts">5</span></span></div>
+        </div>
+        <button class="tmpl-edit-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round"/></svg></button>
+      </div>
+      <div class="tmpl-config">
+        <span class="config-label">Type</span>
+        <div class="type-pills">
+          <button class="type-pill">DAILY</button>
+          <button class="type-pill p-weekly">WEEKLY</button>
+        </div>
+        <div class="config-divider"></div>
+        <div class="freq-stepper">
+          <button class="freq-btn">&minus;</button>
+          <span class="freq-value">3</span>
+          <button class="freq-btn">+</button>
+        </div>
+        <span class="freq-unit">/ week</span>
+      </div>
+    </div>
+  </div>
+  <div class="widget-card-wrapper" style="width:343px">
+    <div class="widget-label">One-off · on plan (status locked)</div>
+    <div class="oneoff-row selected">
+      <div class="tmpl-check"><svg viewBox="0 0 24 24" fill="none" stroke="var(--m-surface-raised)" stroke-width="3"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="tmpl-info">
+        <div class="tmpl-name">Renew passport</div>
+        <div class="tmpl-detail"><span class="size-chip"><span class="sz-label">S</span><span class="sz-dot">&middot;</span><span class="sz-pts">2</span></span></div>
+      </div>
+      <span class="oneoff-status">Doing</span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const btn = document.createElement('button');
+  btn.className = 'mockup-theme-toggle';
+  btn.title = 'Toggle theme';
+  const sun = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
+  const moon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>';
+  function update() {
+    const t = document.documentElement.getAttribute('data-mockup-theme');
+    btn.innerHTML = t === 'dark' ? sun : moon;
+  }
+  btn.addEventListener('click', function() {
+    const t = document.documentElement.getAttribute('data-mockup-theme');
+    document.documentElement.setAttribute('data-mockup-theme', t === 'dark' ? 'light' : 'dark');
+    update();
+  });
+  document.body.appendChild(btn);
+  update();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en" data-mockup-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kanban — Mobile Settings</title>
+<link rel="stylesheet" href="../mockup-theme.css" />
+<style>
+/* ── Reset ── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--m-page-bg); min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 40px 20px 60px;
+}
+
+/* ── Page Titles ── */
+.page-title {
+  color: var(--m-text); font-size: 24px; font-weight: 700; margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+.page-subtitle { color: var(--m-text-tertiary); font-size: 14px; margin-bottom: 40px; }
+
+/* ── Phone Frame ── */
+.phone {
+  width: 375px; height: 812px; background: var(--m-surface-inset);
+  border-radius: 40px; border: 3px solid var(--m-border);
+  overflow: hidden; position: relative;
+  box-shadow: 0 25px 60px var(--m-overlay), inset 0 0 0 1px rgba(255,255,255,0.05);
+  display: flex; flex-direction: column;
+}
+
+/* ── Status Bar ── */
+.status-bar {
+  height: 54px; padding: 14px 28px 0; display: flex;
+  align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.status-time { font-size: 15px; font-weight: 600; color: var(--m-text); }
+.status-icons { display: flex; gap: 5px; align-items: center; }
+.status-icons svg { width: 16px; height: 16px; color: var(--m-text); }
+
+/* ── Mobile Header ── */
+.mobile-header {
+  padding: 4px 20px 12px; flex-shrink: 0;
+}
+.mobile-header-title { font-size: 18px; font-weight: 700; color: var(--m-text); }
+.mobile-header-title span { color: var(--m-blue); }
+
+/* ── Settings Content ── */
+.settings-content {
+  flex: 1; overflow-y: auto; padding: 8px 20px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+
+/* ── Profile Card ── */
+.profile-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px; background: var(--m-page-bg);
+  border: 1px solid var(--m-border); border-radius: 14px;
+}
+.profile-avatar {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--m-blue), var(--m-purple));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700; color: #ffffff;
+  flex-shrink: 0;
+}
+.profile-info { flex: 1; min-width: 0; }
+.profile-name {
+  font-size: 15px; font-weight: 600; color: var(--m-text);
+  margin-bottom: 2px;
+}
+.profile-email {
+  font-size: 12px; color: var(--m-text-tertiary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ── Sign Out ── */
+.signout-section { margin-top: auto; padding-bottom: 8px; }
+.signout-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 14px;
+  background: var(--m-red-a06); border: 1px solid var(--m-red-a25);
+  border-radius: 14px; cursor: pointer;
+  font-family: inherit; font-size: 14px; font-weight: 600;
+  color: var(--m-red); transition: all 0.15s;
+}
+.signout-btn:hover {
+  background: var(--m-red-a10); border-color: var(--m-red);
+}
+.signout-btn svg { width: 18px; height: 18px; }
+
+/* ── App Version ── */
+.app-version {
+  text-align: center; font-size: 11px; color: var(--m-text-muted);
+  padding: 8px 0 4px;
+}
+
+/* ── Bottom Tab Bar ── */
+.tab-bar {
+  height: 80px; background: var(--m-surface-inset); border-top: 1px solid var(--m-border);
+  display: flex; align-items: flex-start; justify-content: space-around;
+  padding-top: 10px; flex-shrink: 0;
+}
+.tab-item {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  cursor: pointer; color: var(--m-text-muted); transition: color 0.15s;
+}
+.tab-item.active { color: var(--m-blue); }
+.tab-item svg { width: 22px; height: 22px; }
+.tab-label { font-size: 10px; font-weight: 500; }
+
+/* ── Home Indicator ── */
+.home-indicator {
+  position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+  width: 134px; height: 5px; background: #ffffff;
+  border-radius: 999px; opacity: 0.2;
+}
+
+</style>
+</head>
+<body>
+
+<div class="page-title">Mobile Settings</div>
+<div class="page-subtitle">Settings page with sign-out at 375 &times; 812</div>
+  <div class="phone">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="status-icons">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2a7.074 7.074 0 0110 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+
+    <div class="mobile-header">
+      <div class="mobile-header-title"><span>Settings</span></div>
+    </div>
+
+    <div class="settings-content">
+      <!-- Profile Card -->
+      <div class="profile-card">
+        <div class="profile-avatar">LC</div>
+        <div class="profile-info">
+          <div class="profile-name">Liang Jun</div>
+          <div class="profile-email">liang@example.com</div>
+        </div>
+      </div>
+
+      <!-- Sign Out -->
+      <div class="signout-section">
+        <button class="signout-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke-linecap="round" stroke-linejoin="round"/><polyline points="16 17 21 12 16 7" stroke-linecap="round" stroke-linejoin="round"/><line x1="21" y1="12" x2="9" y2="12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Sign Out
+        </button>
+        <div class="app-version">Mars Workbench v0.1.0</div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span class="tab-label">Board</span>
+      </div>
+      <div class="tab-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="tab-label">Plan</span>
+      </div>
+      <div class="tab-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="tab-label">Settings</span>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+
+<script>
+(function() {
+  const btn = document.createElement('button');
+  btn.className = 'mockup-theme-toggle';
+  btn.title = 'Toggle theme';
+  const sun = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
+  const moon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>';
+  function update() {
+    const t = document.documentElement.getAttribute('data-mockup-theme');
+    btn.innerHTML = t === 'dark' ? sun : moon;
+  }
+  btn.addEventListener('click', function() {
+    const t = document.documentElement.getAttribute('data-mockup-theme');
+    document.documentElement.setAttribute('data-mockup-theme', t === 'dark' ? 'light' : 'dark');
+    update();
+  });
+  document.body.appendChild(btn);
+  update();
+})();
+</script>
+</body>
+</html>

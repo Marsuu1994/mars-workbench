@@ -14,16 +14,16 @@ If there is a conflict, use `AGENTS.md` for general engineering rules and this f
 Use Claude slash-skills where applicable:
 
 - `/new-flow` for adding a new flow.
-  - Example: `/new-flow kanban daily-sync`
+  - Example: `/new-flow priorities track-this-week`
   - Reference: `.claude/skills/new-flow/SKILL.md`
 - `/new-feature` for adding a new feature scaffold.
   - Example: `/new-feature auth`
   - Reference: `.claude/skills/new-feature/SKILL.md`
 - `/design-explore` for future design exploration.
-  - Example: `/design-explore kanban board`
+  - Example: `/design-explore board drag-drop`
   - Reference: `.claude/skills/design-explore/SKILL.md`
 
 ## Claude-Specific Notes
 
 - Keep skills usage explicit in prompts when a task matches one of the above domains.
-- Keep source-of-truth active mockups in `src/features/[feature]/design/mockup/`.
+- Keep source-of-truth active mockups in `design/mockup/[feature]/`.

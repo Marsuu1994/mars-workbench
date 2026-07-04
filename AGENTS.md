@@ -34,6 +34,19 @@ prisma/
 └── migrations/                    # Database migrations
 scripts/
 └── one-time/                      # Ad-hoc/manual scripts (see One-Time Scripts section)
+design/                            # Centralized design docs (see design/README.md)
+├── README.md                      # Index of what lives where
+├── baseline.md                    # The ONE app-wide baseline (goal, entities, schema, decisions)
+├── tracker.md                     # Consolidated roadmap — open items only
+├── reference.md                   # Lean lookup tables: server actions, services, DAL
+├── flows/                         # Per-feature flow docs (shared, board, plan, priorities, auth)
+└── mockup/                        # HTML mockups grouped by feature + shared styles.css / mockup-theme.css
+    ├── board/                     # Board + backlog drawer mockups (desktop + mobile)
+    ├── plan/                      # Plan form, AI chat, review changes
+    ├── priorities/                # Priority matrix
+    ├── auth/                      # Login, sidebar, settings
+    ├── shared/                    # Cross-feature UI (task modal)
+    └── future-work/               # Approved-but-not-implemented redesigns
 src/
 ├── proxy.ts                       # Route protection (Supabase session check)
 ├── app/
@@ -42,45 +55,60 @@ src/
 │   │   └── login/page.tsx         # Login page (Google OAuth sign-in)
 │   ├── kanban/                    # Kanban pages
 │   │   ├── page.tsx               # Board page
-│   │   └── plans/                 # Plan create/edit pages ([id], new)
+│   │   ├── plans/                 # Plan create/edit pages ([id], new)
+│   │   ├── priorities/            # Eisenhower priority matrix page
+│   │   └── settings/              # Settings page
 │   ├── design/                    # Component gallery (dev) — chromeless /design route
 │   ├── layout.tsx                 # Root layout (providers + AppShell wrapper)
 │   └── globals.css                # Global styles
 ├── generated/prisma/              # Generated Prisma client (gitignored)
-├── lib/                           # Shared utilities
+├── actions/                       # ALL server actions ('use server'): boardActions, taskActions,
+│                                  #   planActions, templateActions, aiChatActions, matrixActions
+├── services/                      # ALL business logic: boardService, planService, aiChatService,
+│                                  #   matrixService, syncService (ensureSynced, React cache())
+├── store/                         # Zustand stores: aiPlanChatStore, sidebarStore
+├── hooks/                         # useAiPlanChat (store ↔ server-action bridge)
+├── prompt/                        # LLM prompt builders (draftPlanPrompt) — never translated
+├── types/                         # Shared domain types (aiChat.ts: stats + chat types)
+├── utils/                         # Domain helpers: enums, dateUtils, sizeUtils, taskUtils,
+│                                  #   aiChatContent, draftSummary, reconstructChat (client-safe)
+│                                  #   + statsUtils (server-only — imports the generated Prisma client)
+├── schemas.ts                     # All zod schemas (plan / template / task / matrix / AI chat)
+├── lib/                           # Infrastructure only
 │   ├── prisma.ts                  # Prisma client singleton (pooled connection)
 │   ├── llm/                       # OpenAI client singleton + model constant
 │   ├── supabase/                  # Supabase client utilities
 │   │   ├── client.ts              # Browser client ('use client' components)
 │   │   ├── server.ts              # Server client (Server Components, Actions)
 │   │   └── middleware.ts          # Session refresh + redirect logic
-│   └── db/                        # Data access layer
-├── features/
-│   ├── auth/                      # Auth feature (see features/auth/README.md)
-│   └── kanban/                    # Kanban Planner feature (see features/kanban/README.md)
-└── components/
-    └── common/
-        ├── AppShell.tsx             # Client shell wrapper; hides chrome on chromeless routes (/design)
-        ├── AppSidebar.tsx           # Collapsible app sidebar (nav + sign-out)
-        └── ThemeProvider.tsx
+│   ├── auth/                      # getCurrentUserId
+│   └── db/                        # Data access layer (all Prisma queries)
+└── components/                    # UI, grouped by page
+    ├── common/                    # App shell chrome (AppShell, AppSidebar, BottomTabBar,
+    │                              #   BreakpointProvider, ThemeProvider)
+    ├── shared/                    # Cross-page UI (SizeChip, TaskTypeBadge, BoardHeader, task-modal/)
+    ├── board/                     # /kanban — KanbanBoard, BoardColumn, TaskCard, backlog drawer, …
+    ├── plan/                      # /kanban/plans/* — PlanForm, ReviewChangesModal, TemplateItem, ai-chat/
+    ├── priorities/                # /kanban/priorities — PriorityMatrixPage, QuadrantCell, …
+    └── auth/                      # SettingsContent (/kanban/settings)
 ```
 
 ## Workflow
 
 ### Session Start
 
-Read feature design docs only when the task involves logic, data, or new flows. Skip for pure styling/copy/UI-only tweaks.
+Read design docs (repo-root `design/`) only when the task involves logic, data, or new flows. Skip for pure styling/copy/UI-only tweaks.
 
-- `baseline.md`: schema or entity changes
-- `flows.md`: flow changes or additions
-- `api.md`: REST/server action/DAL changes
-- `mockup/mockup-[flow].html`: flow-specific UI mockups
+- `design/baseline.md`: schema or entity changes
+- `design/flows/<feature>.md`: flow changes or additions
+- `design/reference.md`: REST/server action/DAL changes
+- `design/mockup/<feature>/mockup-[flow].html`: flow-specific UI mockups
 
 ## UI Workflow
 
 ### Initial Design for a Complex Feature
 
-When creating mockups for a new feature with multiple flows/pages, split into separate files in `features/[feature]/design/mockup/` with shared `styles.css`.
+When creating mockups for a new feature with multiple flows/pages, split into separate files in `design/mockup/[feature]/`. The shared `styles.css` and `mockup-theme.css` live one level up at `design/mockup/`.
 
 ### Modify Existing UI Mockup
 
@@ -98,15 +126,17 @@ Mockups are the source of truth for UI, but implementation may introduce details
 
 ## Layers
 
-- Actions (`features/[feature]/actions/`): `'use server'`, thin layer (validate with Zod -> call service -> `revalidatePath`)
-- Services (`features/[feature]/services/`): business logic, no `'use server'`
+- Actions (`src/actions/`): `'use server'`, thin layer (validate with Zod -> call service -> `revalidatePath`)
+- Services (`src/services/`): business logic, no `'use server'`. `syncService.ensureSynced` is the single sync entry point awaited by every kanban page.
 - DAL (`src/lib/db/`): all Prisma queries
 - If an action requires multiple DAL calls or conditional orchestration, extract to service.
+- Server-only modules — everything in `src/services/` plus `src/utils/statsUtils.ts` (imports the generated Prisma client) — must never be imported from `'use client'` code. `src/utils/` is otherwise client-safe (`enums`, `dateUtils`, `sizeUtils`, …), as is `src/schemas.ts`.
+- Components in `src/components/` may invoke server actions directly (e.g. the shared `TaskModal` calls `templateActions` and `createAdhocTaskAction`) — server actions behave like endpoints, this is not a layering violation. Direct service/DAL imports from components remain forbidden.
 
 ## Coding Conventions
 
 - New entries must be appended at the end of this section, never inserted in the middle. Include concrete bad/good examples.
-- Extract shared helpers to feature `utils/` folders; do not duplicate logic.
+- Keep domain helpers in `src/utils/`. Do not duplicate logic.
 - Always use enum constants (for example `TaskType.WEEKLY`), not raw strings.
 - Prefer `switch/case/default` for enum branching.
 - Prefer batch DB operations (`createMany`, `updateMany`) over per-row loops when possible.
@@ -150,7 +180,7 @@ Mockups are the source of truth for UI, but implementation may introduce details
   <Link href={CREATE_PLAN_HREF} />
   ```
 
-- All **user-facing copy** in the `kanban` feature is internationalized with `next-intl` — it lives in `src/i18n/en.json` and is read via `useTranslations` (Client Components) or `getTranslations` (Server Components / Server Actions / `generateMetadata`). Add each string under a namespace; use ICU for plurals/interpolation, `Enums.*` keys for enum→label display, and `t.rich` when part of a string needs inline markup. Keep decorative glyphs/emoji and presentational symbols in the JSX, not in the message. Never translated: `prompt/*.ts` LLM instructions and internal `throw new Error(...)` messages. Bad: `export const TITLE = "Create Weekly Plan";` (copy in a `constants.ts`). Good:
+- All **user-facing copy** app-wide is internationalized with `next-intl` — it lives in `src/i18n/en.json` and is read via `useTranslations` (Client Components) or `getTranslations` (Server Components / Server Actions / `generateMetadata`). Add each string under a namespace; use ICU for plurals/interpolation, `Enums.*` keys for enum→label display, and `t.rich` when part of a string needs inline markup. Keep decorative glyphs/emoji and presentational symbols in the JSX, not in the message. Never translated: `prompt/*.ts` LLM instructions and internal `throw new Error(...)` messages. Bad: `export const TITLE = "Create Weekly Plan";` (copy in a `constants.ts`). Good:
 
   ```json
   // src/i18n/en.json
@@ -182,7 +212,7 @@ Mockups are the source of truth for UI, but implementation may introduce details
 
 ## State Management (Zustand)
 
-- One store per feature at `features/[feature]/store/[feature]Store.ts`.
+- One store per domain at `src/store/[domain]Store.ts` (e.g. `aiPlanChatStore`, `sidebarStore`).
 - No direct DB/fetch calls inside stores; use hooks/actions as bridge.
 - Keep state flat.
 - Use slice pattern when store grows beyond about five actions.
