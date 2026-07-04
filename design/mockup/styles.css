@@ -158,7 +158,8 @@ body {
 .task-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .task-badge {
   font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 999px;
-  text-transform: uppercase; letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-family: ui-monospace, "Geist Mono", monospace; letter-spacing: 0.08em;
 }
 .badge-daily { background: var(--m-teal-bg); color: var(--m-teal); }
 .badge-weekly { background: var(--m-pink-bg); color: var(--m-pink); }
@@ -169,7 +170,8 @@ body {
 /* ── Size chip (purple, used on task cards and template lists) ── */
 .size-chip {
   display: inline-flex; align-items: center; justify-content: center; gap: 4px;
-  font-size: 10px; font-weight: 700; letter-spacing: 0.03em;
+  font-size: 10px; font-weight: 700;
+  font-family: ui-monospace, "Geist Mono", monospace; letter-spacing: 0.08em;
   height: 18px; padding: 0 7px;
   border-radius: 4px; margin-left: auto;
   background: var(--m-purple-bg); color: var(--m-purple);
@@ -217,7 +219,10 @@ body {
 .task-instance { font-size: 10px; font-weight: 700; background: var(--m-blue-a12); color: var(--m-blue); padding: 2px 6px; border-radius: 4px; }
 
 /* ── Risk badges ── */
-.risk-badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 999px; }
+.risk-badge {
+  font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 999px;
+  font-family: ui-monospace, "Geist Mono", monospace; letter-spacing: 0.08em;
+}
 .risk-badge.warning { background: var(--m-orange-bg); color: var(--m-orange); }
 .risk-badge.danger  { background: var(--m-red-bg);  color: var(--m-red); }
 
@@ -295,7 +300,7 @@ body {
 }
 .template-item.selected { border-color: var(--m-blue); background: var(--m-blue-a06); }
 .template-check {
-  width: 18px; height: 18px; border-radius: 4px; border: 2px solid #bbbbbb;
+  width: 18px; height: 18px; border-radius: 4px; border: 2px solid var(--m-text-muted);
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .template-item.selected .template-check { background: var(--m-blue); border-color: var(--m-blue); }
