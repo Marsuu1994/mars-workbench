@@ -103,6 +103,8 @@
     "sendLabel": "Track this week",
     "closeLabel": "Close",
     "noPlanTooltip": "No active plan yet",
+    "addTaskLabel": "Add priority task",
+    "addedToast": "Added to {quadrant}",
     "dropHint": "{quadrant, select, DO_FIRST {Drop here — mark Urgent & Important} SCHEDULE {Drop here — mark Important} SQUEEZE_IN {Drop here — mark Urgent} MAYBE_LATER {Drop here — mark Maybe Later} other {Drop here}}",
     "sheetPoints": "{points, plural, one {# pt} other {# pts}}"
   },

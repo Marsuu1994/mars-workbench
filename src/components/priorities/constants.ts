@@ -59,3 +59,6 @@ export const TRACK_TARGETS: { status: TrackTargetStatus; dotClass: string }[] = 
  * out of the 2×2 grid.
  */
 export const FALLBACK_QUADRANT = PriorityQuadrant.SCHEDULE;
+
+/** How long the mobile "Added to …" confirmation toast stays visible. */
+export const TOAST_DURATION_MS = 2500;
