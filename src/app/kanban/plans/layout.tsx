@@ -9,10 +9,10 @@ export default async function PlansLayout({
 
   return (
     <div className="flex flex-col h-screen">
-      {/* Desktop header — mobile gets a sticky topbar inside PlanForm instead */}
-      <div className="hidden md:flex items-center justify-between px-4 py-3 border-b border-base-content/10">
+      {/* Same header on both breakpoints (matches BoardHeader's responsive sizing) */}
+      <div className="flex items-center justify-between px-4 py-2 md:py-3 border-b border-base-content/10">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold">
+          <h1 className="text-lg md:text-xl font-bold">
             <span className="text-success">{t("titlePrefix")}</span>
             {t("titleSuffix")}
           </h1>

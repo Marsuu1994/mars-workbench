@@ -289,49 +289,32 @@ export default function PlanForm({
     ? computeDiff()
     : { added: [], removed: [], modified: [], addedAdhoc: [], removedAdhoc: [], modeChanged: false, fromMode: initialPlanMode, toMode: planMode };
 
-  const mobileSubtitle =
-    mode === "create"
-      ? t("createSubtitle")
-      : periodKey
-        ? getWeekDateRange(periodKey)
-        : null;
-
-  const renderMobileTopBar = () => (
-    <div className="md:hidden sticky top-0 z-20 -mx-4 -mt-4 mb-3.5 flex items-center gap-2 border-b border-base-content/10 bg-base-100 px-4 pt-4 pb-2.5">
-      <div className="flex flex-col gap-px min-w-0">
-        <span className="text-[17px] font-bold truncate">
-          {mode === "create" ? t("createTitle") : t("updateTitle")}
-        </span>
-        {mobileSubtitle && (
-          <span className="text-[11px] text-base-content/50 truncate">
-            {mobileSubtitle}
-          </span>
-        )}
-      </div>
-      <span className="ml-auto shrink-0 rounded-full bg-error/15 px-2.5 py-1 text-[10px] font-semibold text-error">
-        {t("planningBadge")}
-      </span>
-    </div>
-  );
-
-  const renderDesktopHeading = () => (
-    <div className="hidden md:block">
-      <h2 className="text-2xl font-bold mb-1">
+  // Heading scrolls with the form on both breakpoints; the page chrome
+  // (Kanban Planner + Planning Mode badge) lives in the plans layout.
+  const renderHeading = () => (
+    <>
+      <h2 className="text-xl md:text-2xl font-bold mb-1">
         {mode === "create" ? t("createTitle") : t("updateTitle")}
       </h2>
       {mode === "create" && (
-        <p className="text-base-content/50 mb-7">
+        <p className="text-sm md:text-base text-base-content/50 mb-5 md:mb-7">
           {t("createSubtitle")}
         </p>
       )}
-      {mode === "edit" && <div className="mb-6" />}
-    </div>
+      {mode === "edit" && periodKey && (
+        <p className="md:hidden text-sm text-base-content/50 mb-5">
+          {getWeekDateRange(periodKey)}
+        </p>
+      )}
+      {mode === "edit" && (
+        <div className={`mb-6 ${periodKey ? "hidden md:block" : ""}`} />
+      )}
+    </>
   );
 
   return (
     <>
-      {renderMobileTopBar()}
-      {renderDesktopHeading()}
+      {renderHeading()}
       <form onSubmit={handleSubmit} className="flex flex-col gap-6 pb-16 md:pb-0">
         {/* Description */}
         <div className="form-control">

@@ -81,7 +81,6 @@
     "subtitle": "One-off things you want to do — not tied to your weekly plan",
     "summary": "<num>{total}</num> total · <num>{tracked}</num> tracking this week",
     "summaryMobile": "{total} total · {tracked} this week",
-    "weekBadge": "Week {week}",
     "hint": "Drag between quadrants to reprioritize · click <arrow></arrow> to track this week",
     "hintNoPlan": "No active plan — <em>Create Plan</em> to track tasks this week",
     "axisImportant": "Important",
@@ -212,8 +211,7 @@
     "freqDecrease": "Decrease frequency",
     "freqIncrease": "Increase frequency",
     "perDayUnit": "/ day",
-    "perWeekUnit": "/ week",
-    "planningBadge": "Planning"
+    "perWeekUnit": "/ week"
   },
   "Review": {
     "title": "Review Plan Changes",

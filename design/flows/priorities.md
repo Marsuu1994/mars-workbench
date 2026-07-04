@@ -72,7 +72,7 @@ User drags a card to a different quadrant (desktop and mobile).
 ### Trigger / Entry Point
 
 - **Desktop:** user clicks the "Add" button at the bottom of a quadrant, which opens the Ad-hoc task modal with that quadrant preset.
-- **Mobile:** the per-quadrant Add buttons are hidden; a round "+" button in the top bar opens the same modal as a bottom sheet with a 2×2 quadrant picker (mirroring the matrix layout, defaulting to Schedule).
+- **Mobile:** the per-quadrant Add buttons are hidden; a round "+" button appended to the My Priorities title bar opens the same modal as a bottom sheet with a 2×2 quadrant picker (mirroring the matrix layout, defaulting to Schedule).
 
 ### Steps
 
