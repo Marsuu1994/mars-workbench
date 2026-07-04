@@ -39,7 +39,7 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | `trackTaskAction` | Track This Week: pull a matrix task onto the board | `matrixService.trackTaskThisWeek` |
 | `createAdhocTaskAction` | Add an unassigned ad-hoc task to a quadrant | `db/tasks.createTask` |
 
-## Shared Services (src/lib/kanban)
+## Sync Service (src/services/syncService.ts)
 
 Flow-level spec: [flows/shared.md](./flows/shared.md).
 

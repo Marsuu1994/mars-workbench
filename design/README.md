@@ -1,6 +1,6 @@
 # Design Docs
 
-Centralized design documentation for Mars Workbench. Code lives in `src/features/<page>` (page features) and `src/lib/kanban` (shared domain core); the design source of truth lives here.
+Centralized design documentation for Mars Workbench. Code is organized layer-first under `src/` (`actions/`, `services/`, `utils/`, `components/<page>/`, …); the design source of truth lives here.
 
 ## What Lives Where
 
@@ -18,6 +18,6 @@ Centralized design documentation for Mars Workbench. Code lives in `src/features
 - To modify existing UI, create a temporary before/after mockup for review; after approval, promote it to source of truth (keep only the approved screens, strip before/after labels and navigator entries).
 - After completing a UI task, back-port any implementation details (hover states, cursor styles, copy changes) to the source-of-truth mockup so it stays accurate.
 
-## Per-Feature READMEs
+## App README
 
-Feature-level docs stay with the code: each `src/features/<feature>/README.md` holds that feature's **Current State** and its append-only **Update Log**.
+The repo-root [README.md](../README.md) holds the app-wide **Current State** (per-page sections) and the append-only **Update Log**.

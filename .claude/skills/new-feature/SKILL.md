@@ -23,15 +23,14 @@ Ask the user to describe:
 
 ## Step 2 — Scaffold Folder Structure
 
-Create the feature directory at `src/features/$0/` with this structure (code + README only — design docs are centralized at repo-root `design/`):
+The codebase is layer-first — a new feature adds files to the existing layer folders instead of creating its own directory:
 
 ```
-src/features/$0/
-├── actions/           # Server actions
-├── services/          # Business logic
-├── components/        # UI components
-├── utils/             # Feature-local helpers (cross-feature domain helpers go to src/lib/kanban/)
-└── README.md          # Current State + tracker pointer + update log
+src/
+├── actions/[$0]Actions.ts       # Server actions for the feature
+├── services/[$0]Service.ts      # Business logic (if actions need orchestration)
+├── components/$0/               # NEW folder — the feature's UI components
+└── utils/ · store/ · hooks/     # Add files here only as needed
 ```
 
 Then register the feature in the centralized design docs:
@@ -40,27 +39,9 @@ Then register the feature in the centralized design docs:
 - Create `design/flows/$0.md` from the flows template below
 - Create the `design/mockup/$0/` directory (mockups link the shared `../styles.css` and `../mockup-theme.css`)
 
-### README.md template
+### Root README registration
 
-```markdown
-# [Feature Name]
-
-[One-line description of the feature and its route.]
-
-## Current State
-
-(scaffolded — nothing implemented yet)
-
-Open items and ideas live in [design/tracker.md](../../../design/tracker.md), not here.
-
-## Update Log
-
-### YYYY-MM-DD
-
-- Scaffolded the feature
-```
-
-No Backlog section — ideas and open items go to `design/tracker.md` under a `## [Feature Name]` section.
+Add a `### [Feature Name]` subsection under **Current State** in the root `README.md` ("(scaffolded — nothing implemented yet)") and note the scaffold in today's Update Log entry. No Backlog section anywhere — ideas and open items go to `design/tracker.md` under a `## [Feature Name]` section.
 
 ### design/flows/$0.md template
 

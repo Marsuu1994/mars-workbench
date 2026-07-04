@@ -1,6 +1,6 @@
 # Shared Flows
 
-Cross-page sync lifecycle, centralized in `syncService` (`src/lib/kanban/syncService.ts`). Every kanban page — board (`design/flows/board.md`), priorities matrix (`design/flows/priorities.md`), plan create/edit (`design/flows/plan.md`) — awaits `ensureSynced` before reading plan state, so no page carries its own sync branching and page-visit order never matters.
+Cross-page sync lifecycle, centralized in `syncService` (`src/services/syncService.ts`). Every kanban page — board (`design/flows/board.md`), priorities matrix (`design/flows/priorities.md`), plan create/edit (`design/flows/plan.md`) — awaits `ensureSynced` before reading plan state, so no page carries its own sync branching and page-visit order never matters.
 
 > **Doc convention:** One flow per `##` heading, separated by `---`. Every flow has two required `###` sections — `Trigger / Entry Point` and `Steps` — plus an optional `### Rules` section for constraints and invariants. Extra `###` sections (e.g. `Metrics`) are allowed only for reference material that fits neither Steps nor Rules.
 

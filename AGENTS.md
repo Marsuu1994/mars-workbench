@@ -62,31 +62,35 @@ src/
 │   ├── layout.tsx                 # Root layout (providers + AppShell wrapper)
 │   └── globals.css                # Global styles
 ├── generated/prisma/              # Generated Prisma client (gitignored)
-├── lib/                           # Shared utilities
+├── actions/                       # ALL server actions ('use server'): boardActions, taskActions,
+│                                  #   planActions, templateActions, aiChatActions, matrixActions
+├── services/                      # ALL business logic: boardService, planService, aiChatService,
+│                                  #   matrixService, syncService (ensureSynced, React cache())
+├── store/                         # Zustand stores: aiPlanChatStore, sidebarStore
+├── hooks/                         # useAiPlanChat (store ↔ server-action bridge)
+├── prompt/                        # LLM prompt builders (draftPlanPrompt) — never translated
+├── types/                         # Shared domain types (aiChat.ts: stats + chat types)
+├── utils/                         # Domain helpers: enums, dateUtils, sizeUtils, taskUtils,
+│                                  #   aiChatContent, draftSummary, reconstructChat (client-safe)
+│                                  #   + statsUtils (server-only — imports the generated Prisma client)
+├── schemas.ts                     # All zod schemas (plan / template / task / matrix / AI chat)
+├── lib/                           # Infrastructure only
 │   ├── prisma.ts                  # Prisma client singleton (pooled connection)
 │   ├── llm/                       # OpenAI client singleton + model constant
 │   ├── supabase/                  # Supabase client utilities
 │   │   ├── client.ts              # Browser client ('use client' components)
 │   │   ├── server.ts              # Server client (Server Components, Actions)
 │   │   └── middleware.ts          # Session refresh + redirect logic
-│   ├── kanban/                    # Shared kanban domain core (used by multiple page features)
-│   │   ├── enums.ts / schemas.ts / dateUtils.ts / sizeUtils.ts   # Client-safe
-│   │   ├── statsUtils.ts / syncService.ts                        # Server-only (ensureSynced, React cache())
-│   │   └── types.ts               # Shared types (OverallStats, PerTemplateStat, LastPlanStats)
+│   ├── auth/                      # getCurrentUserId
 │   └── db/                        # Data access layer (all Prisma queries)
-├── features/                      # Page features (each has its own README.md)
-│   ├── auth/                      # Auth + settings (SettingsContent, sidebarStore) — /auth/*, /kanban/settings
-│   ├── board/                     # Kanban board incl. backlog drawer — /kanban
-│   ├── plan/                      # Plan form, templates, AI plan chat — /kanban/plans/*
-│   └── priorities/                # Eisenhower priority matrix — /kanban/priorities
-└── components/
-    ├── common/
-    │   ├── AppShell.tsx           # Client shell wrapper; hides chrome on chromeless routes (/design)
-    │   ├── AppSidebar.tsx         # Collapsible app sidebar (nav + sign-out)
-    │   ├── BottomTabBar.tsx       # Mobile bottom tab navigation
-    │   ├── BreakpointProvider.tsx
-    │   └── ThemeProvider.tsx
-    └── kanban/                    # Shared kanban UI (SizeChip, TaskTypeBadge, BoardHeader, task-modal/)
+└── components/                    # UI, grouped by page
+    ├── common/                    # App shell chrome (AppShell, AppSidebar, BottomTabBar,
+    │                              #   BreakpointProvider, ThemeProvider)
+    ├── shared/                    # Cross-page UI (SizeChip, TaskTypeBadge, BoardHeader, task-modal/)
+    ├── board/                     # /kanban — KanbanBoard, BoardColumn, TaskCard, backlog drawer, …
+    ├── plan/                      # /kanban/plans/* — PlanForm, ReviewChangesModal, TemplateItem, ai-chat/
+    ├── priorities/                # /kanban/priorities — PriorityMatrixPage, QuadrantCell, …
+    └── auth/                      # SettingsContent (/kanban/settings)
 ```
 
 ## Workflow
@@ -122,17 +126,17 @@ Mockups are the source of truth for UI, but implementation may introduce details
 
 ## Layers
 
-- Actions (`features/[feature]/actions/`): `'use server'`, thin layer (validate with Zod -> call service -> `revalidatePath`)
-- Services (`features/[feature]/services/`): business logic, no `'use server'`
+- Actions (`src/actions/`): `'use server'`, thin layer (validate with Zod -> call service -> `revalidatePath`)
+- Services (`src/services/`): business logic, no `'use server'`. `syncService.ensureSynced` is the single sync entry point awaited by every kanban page.
 - DAL (`src/lib/db/`): all Prisma queries
 - If an action requires multiple DAL calls or conditional orchestration, extract to service.
-- Shared domain logic/services used by multiple page features live in `src/lib/kanban/`. The module is mixed: `enums.ts` / `schemas.ts` / `dateUtils.ts` / `sizeUtils.ts` are client-safe; `statsUtils.ts` / `syncService.ts` are server-only — never import the server-only files from `'use client'` code.
-- Shared UI in `src/components/kanban/` may invoke feature server actions (e.g. `TaskModal` calls plan `templateActions` and priorities `createAdhocTaskAction`). This is a documented exception, not a layering violation — server actions behave like endpoints.
+- Server-only modules — everything in `src/services/` plus `src/utils/statsUtils.ts` (imports the generated Prisma client) — must never be imported from `'use client'` code. `src/utils/` is otherwise client-safe (`enums`, `dateUtils`, `sizeUtils`, …), as is `src/schemas.ts`.
+- Components in `src/components/` may invoke server actions directly (e.g. the shared `TaskModal` calls `templateActions` and `createAdhocTaskAction`) — server actions behave like endpoints, this is not a layering violation. Direct service/DAL imports from components remain forbidden.
 
 ## Coding Conventions
 
 - New entries must be appended at the end of this section, never inserted in the middle. Include concrete bad/good examples.
-- Keep feature-local helpers in the feature's `utils/` folder; move cross-feature domain helpers to `src/lib/kanban/`. Do not duplicate logic.
+- Keep domain helpers in `src/utils/`. Do not duplicate logic.
 - Always use enum constants (for example `TaskType.WEEKLY`), not raw strings.
 - Prefer `switch/case/default` for enum branching.
 - Prefer batch DB operations (`createMany`, `updateMany`) over per-row loops when possible.
@@ -208,7 +212,7 @@ Mockups are the source of truth for UI, but implementation may introduce details
 
 ## State Management (Zustand)
 
-- One store per feature at `features/[feature]/store/[feature]Store.ts`.
+- One store per domain at `src/store/[domain]Store.ts` (e.g. `aiPlanChatStore`, `sidebarStore`).
 - No direct DB/fetch calls inside stores; use hooks/actions as bridge.
 - Keep state flat.
 - Use slice pattern when store grows beyond about five actions.

@@ -1,6 +1,6 @@
 # Tracker
 
-Single source of truth for open ideas and todos across the app — open items only; completed work moves to the feature README Update Logs (`src/features/<feature>/README.md`), not here.
+Single source of truth for open ideas and todos across the app — open items only; completed work is recorded in the root `README.md` Update Log, not here.
 
 ## Board
 
