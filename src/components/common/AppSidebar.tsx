@@ -11,7 +11,7 @@ import {
   PencilSquareIcon,
   ArrowRightStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
-import { useSidebarStore } from "@/features/auth/store/sidebarStore";
+import { useSidebarStore } from "@/store/sidebarStore";
 import { createClient } from "@/lib/supabase/client";
 
 interface AppSidebarProps {
