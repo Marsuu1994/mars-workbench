@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { Droppable } from "@hello-pangea/dnd";
-import { useTranslations } from "next-intl";
-import { PlusIcon, ArrowDownIcon } from "@heroicons/react/24/outline";
-import type { TaskItem } from "@/lib/db/tasks";
-import { PriorityQuadrant } from "@/utils/enums";
-import type { TrackTargetStatus } from "@/schemas";
-import { QUADRANT_CONFIG } from "./constants";
-import MatrixTaskCard from "./MatrixTaskCard";
+import {Droppable} from '@hello-pangea/dnd';
+import {useTranslations} from 'next-intl';
+import {PlusIcon, ArrowDownIcon} from '@heroicons/react/24/outline';
+import type {TaskItem} from '@/lib/db/tasks';
+import {PriorityQuadrant} from '@/utils/enums';
+import type {TrackTargetStatus} from '@/schemas';
+import {QUADRANT_CONFIG} from './constants';
+import MatrixTaskCard from './MatrixTaskCard';
 
 interface QuadrantCellProps {
   quadrant: PriorityQuadrant;
@@ -35,19 +35,21 @@ export default function QuadrantCell({
   onCardTap,
   onAdd,
 }: QuadrantCellProps) {
-  const t = useTranslations("Priorities");
-  const tQuadrant = useTranslations("Enums.PriorityQuadrant");
-  const tQuadrantShort = useTranslations("Priorities.QuadrantShort");
+  const t = useTranslations('Priorities');
+  const tQuadrant = useTranslations('Enums.PriorityQuadrant');
+  const tQuadrantShort = useTranslations('Priorities.QuadrantShort');
   const config = QUADRANT_CONFIG[quadrant];
 
   const renderHeader = (isDraggingOver: boolean) => (
     <div
       className={`flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 pt-1.5 md:pt-2.5 pb-1 md:pb-1.5 border-t-[3px] flex-shrink-0 ${config.accentBorder}`}
     >
-      <span className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full flex-shrink-0 ${config.dotClass}`} />
+      <span
+        className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full flex-shrink-0 ${config.dotClass}`}
+      />
       <span
         className={`text-[9px] md:text-[13px] font-bold uppercase tracking-wide ${
-          isDraggingOver ? "text-primary" : ""
+          isDraggingOver ? 'text-primary' : ''
         }`}
       >
         <span className="hidden md:inline">{tQuadrant(quadrant)}</span>
@@ -67,7 +69,7 @@ export default function QuadrantCell({
   const renderDropHint = () => (
     <div className="flex items-center justify-center gap-1.5 p-2 rounded-lg text-[11px] font-semibold text-primary bg-primary/5 border-[1.5px] border-dashed border-primary/40 mb-0.5">
       <ArrowDownIcon className="size-3" />
-      {t("dropHint", { quadrant })}
+      {t('dropHint', {quadrant})}
     </div>
   );
 
@@ -78,7 +80,7 @@ export default function QuadrantCell({
       className="hidden md:flex items-center justify-center gap-1 w-full mt-auto p-2 rounded-lg border-[1.5px] border-dashed border-base-content/20 text-base-content/40 text-xs font-medium cursor-pointer transition-colors hover:border-primary hover:text-primary flex-shrink-0"
     >
       <PlusIcon className="size-3.5" />
-      {t("add")}
+      {t('add')}
     </button>
   );
 
@@ -92,7 +94,7 @@ export default function QuadrantCell({
         // reason).
         <div
           className={`relative flex flex-col min-h-0 border border-base-content/10 transition-colors duration-150 ${
-            snapshot.isDraggingOver ? "bg-primary/5" : ""
+            snapshot.isDraggingOver ? 'bg-primary/5' : ''
           }`}
         >
           {renderHeader(snapshot.isDraggingOver)}
@@ -107,7 +109,9 @@ export default function QuadrantCell({
             ref={provided.innerRef}
             {...provided.droppableProps}
             className={`flex-1 min-h-0 flex flex-col gap-1.5 overflow-y-auto px-2 md:px-4 pb-2 md:pb-4 pt-1 rounded-xl ${
-              snapshot.isDraggingOver ? "outline-2 outline-dashed outline-primary -outline-offset-8" : ""
+              snapshot.isDraggingOver
+                ? 'outline-2 outline-dashed outline-primary -outline-offset-8'
+                : ''
             }`}
           >
             {tasks.map((task, index) => (
@@ -115,7 +119,9 @@ export default function QuadrantCell({
                 key={task.id}
                 task={task}
                 index={index}
-                isTracked={activePlanId !== null && task.planId === activePlanId}
+                isTracked={
+                  activePlanId !== null && task.planId === activePlanId
+                }
                 hasActivePlan={activePlanId !== null}
                 isPopoverOpen={openPopoverTaskId === task.id}
                 onSendToggle={onSendToggle}

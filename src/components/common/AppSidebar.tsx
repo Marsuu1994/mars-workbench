@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import Link from "next/link";
+import {useState} from 'react';
+import {usePathname, useRouter} from 'next/navigation';
+import Link from 'next/link';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -10,36 +10,36 @@ import {
   TableCellsIcon,
   PencilSquareIcon,
   ArrowRightStartOnRectangleIcon,
-} from "@heroicons/react/24/outline";
-import { useSidebarStore } from "@/store/sidebarStore";
-import { createClient } from "@/lib/supabase/client";
+} from '@heroicons/react/24/outline';
+import {useSidebarStore} from '@/store/sidebarStore';
+import {createClient} from '@/lib/supabase/client';
 
 interface AppSidebarProps {
-  user: { name: string; email: string } | null;
+  user: {name: string; email: string} | null;
   activePlanId: string | null;
 }
 
-export const AppSidebar = ({ user, activePlanId }: AppSidebarProps) => {
+export const AppSidebar = ({user, activePlanId}: AppSidebarProps) => {
   const pathname = usePathname();
   const router = useRouter();
-  const { isCollapsed, toggleSidebar } = useSidebarStore();
+  const {isCollapsed, toggleSidebar} = useSidebarStore();
   const [isLogoHovered, setIsLogoHovered] = useState(false);
   const [isBoardHovered, setIsBoardHovered] = useState(false);
 
-  if (!user || pathname.startsWith("/auth")) {
+  if (!user || pathname.startsWith('/auth')) {
     return null;
   }
 
   const handleSignOut = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/auth/login");
+    router.push('/auth/login');
   };
 
   const initials = user.name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
+    .split(' ')
+    .map(n => n[0])
+    .join('')
     .toUpperCase()
     .slice(0, 2);
 
@@ -47,21 +47,27 @@ export const AppSidebar = ({ user, activePlanId }: AppSidebarProps) => {
   const hasPlan = !!activePlanId;
 
   // Shared: text fades so it's invisible before overflow-hidden clips it
-  const textOpacity = `transition-opacity duration-200 ${collapsed ? "opacity-0" : "opacity-100"}`;
+  const textOpacity = `transition-opacity duration-200 ${collapsed ? 'opacity-0' : 'opacity-100'}`;
 
-  const isBoardActive = pathname === "/kanban";
-  const isPrioritiesActive = pathname.startsWith("/kanban/priorities");
-  const isPlanActive = pathname.startsWith("/kanban/plans");
-  const planHref = activePlanId ? `/kanban/plans/${activePlanId}` : "/kanban/plans/new";
+  const isBoardActive = pathname === '/kanban';
+  const isPrioritiesActive = pathname.startsWith('/kanban/priorities');
+  const isPlanActive = pathname.startsWith('/kanban/plans');
+  const planHref = activePlanId
+    ? `/kanban/plans/${activePlanId}`
+    : '/kanban/plans/new';
 
-  const navItemBase = "flex items-center gap-2.5 rounded-lg px-3 py-2 whitespace-nowrap transition-colors";
+  const navItemBase =
+    'flex items-center gap-2.5 rounded-lg px-3 py-2 whitespace-nowrap transition-colors';
   const navItemActive = `${navItemBase} bg-primary/10 text-primary font-semibold`;
   const navItemInactive = `${navItemBase} text-base-content/50 hover:bg-base-200 hover:text-base-content/70`;
 
   const renderBoardLink = () => {
     if (hasPlan) {
       return (
-        <Link href="/kanban" className={isBoardActive ? navItemActive : navItemInactive}>
+        <Link
+          href="/kanban"
+          className={isBoardActive ? navItemActive : navItemInactive}
+        >
           <Squares2X2Icon className="h-[18px] w-[18px] flex-shrink-0" />
           <span className={`text-[13px] ${textOpacity}`}>Board</span>
         </Link>
@@ -74,7 +80,9 @@ export const AppSidebar = ({ user, activePlanId }: AppSidebarProps) => {
         onMouseEnter={() => setIsBoardHovered(true)}
         onMouseLeave={() => setIsBoardHovered(false)}
       >
-        <span className={`${navItemBase} text-base-content/25 cursor-not-allowed`}>
+        <span
+          className={`${navItemBase} text-base-content/25 cursor-not-allowed`}
+        >
           <Squares2X2Icon className="h-[18px] w-[18px] flex-shrink-0" />
           <span className={`text-[13px] ${textOpacity}`}>Board</span>
         </span>
@@ -98,7 +106,10 @@ export const AppSidebar = ({ user, activePlanId }: AppSidebarProps) => {
   );
 
   const renderPlanLink = () => (
-    <Link href={planHref} className={isPlanActive ? navItemActive : navItemInactive}>
+    <Link
+      href={planHref}
+      className={isPlanActive ? navItemActive : navItemInactive}
+    >
       <PencilSquareIcon className="h-[18px] w-[18px] flex-shrink-0" />
       <span className={`text-[13px] ${textOpacity}`}>Plan</span>
       {!hasPlan && !collapsed && (
@@ -112,14 +123,14 @@ export const AppSidebar = ({ user, activePlanId }: AppSidebarProps) => {
   return (
     <aside
       className={`hidden md:flex flex-col flex-shrink-0 border-r border-base-200 bg-base-100 transition-all duration-200 ${
-        collapsed ? "w-16" : "w-60"
+        collapsed ? 'w-16' : 'w-60'
       }`}
     >
       {/* Header — pl-[19px] centers the 28px logo with nav icons (nav icon center = 33px) */}
       <div className="flex items-center gap-2.5 border-b border-base-200 min-h-14 pl-[19px] pr-4 py-3.5">
         {/* Logo */}
         <div
-          className={`relative flex-shrink-0 ${collapsed ? "cursor-e-resize" : "cursor-default"}`}
+          className={`relative flex-shrink-0 ${collapsed ? 'cursor-e-resize' : 'cursor-default'}`}
           onClick={collapsed ? toggleSidebar : undefined}
           onMouseEnter={() => setIsLogoHovered(true)}
           onMouseLeave={() => setIsLogoHovered(false)}
@@ -150,7 +161,9 @@ export const AppSidebar = ({ user, activePlanId }: AppSidebarProps) => {
         </div>
 
         {/* Brand text — fades out, never unmounted */}
-        <span className={`text-sm font-bold tracking-tight text-base-content whitespace-nowrap ${textOpacity}`}>
+        <span
+          className={`text-sm font-bold tracking-tight text-base-content whitespace-nowrap ${textOpacity}`}
+        >
           Mars Workbench
         </span>
 
@@ -170,8 +183,12 @@ export const AppSidebar = ({ user, activePlanId }: AppSidebarProps) => {
 
       {/* Nav — workspace items */}
       <div className="px-3 pt-3 pb-1 overflow-hidden">
-        <div className={`overflow-hidden transition-all duration-200 ${collapsed ? "h-0 mb-0" : "h-5 mb-1.5"}`}>
-          <span className={`block px-2 text-[10px] font-semibold uppercase tracking-widest text-base-content/40 whitespace-nowrap ${textOpacity}`}>
+        <div
+          className={`overflow-hidden transition-all duration-200 ${collapsed ? 'h-0 mb-0' : 'h-5 mb-1.5'}`}
+        >
+          <span
+            className={`block px-2 text-[10px] font-semibold uppercase tracking-widest text-base-content/40 whitespace-nowrap ${textOpacity}`}
+          >
             Workspace
           </span>
         </div>

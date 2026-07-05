@@ -1,5 +1,5 @@
-import prisma from "@/lib/prisma";
-import { Prisma } from "@/generated/prisma/client";
+import prisma from '@/lib/prisma';
+import {Prisma} from '@/generated/prisma/client';
 
 // Minimal chat record used by the kanban AI plan-creation flow.
 export type ChatRecord = {
@@ -40,10 +40,10 @@ export async function createChat(data: {
  */
 export async function getChatById(
   userId: string,
-  chatId: string
+  chatId: string,
 ): Promise<ChatRecord | null> {
   return prisma.chat.findFirst({
-    where: { id: chatId, userId },
+    where: {id: chatId, userId},
     select: chatSelect,
   });
 }
@@ -54,11 +54,11 @@ export async function getChatById(
  * draft conversation to resume, or null if there is none.
  */
 export async function getLatestInProgressChat(
-  userId: string
+  userId: string,
 ): Promise<ChatRecord | null> {
   return prisma.chat.findFirst({
-    where: { userId, planId: null },
-    orderBy: { createdAt: "desc" },
+    where: {userId, planId: null},
+    orderBy: {createdAt: 'desc'},
     select: chatSelect,
   });
 }
@@ -69,11 +69,11 @@ export async function getLatestInProgressChat(
  */
 export async function updateChatMetadata(
   chatId: string,
-  metadata: Prisma.InputJsonValue
+  metadata: Prisma.InputJsonValue,
 ): Promise<void> {
   await prisma.chat.update({
-    where: { id: chatId },
-    data: { metadata },
+    where: {id: chatId},
+    data: {metadata},
   });
 }
 
@@ -83,11 +83,11 @@ export async function updateChatMetadata(
 export async function updateChatPlanId(
   chatId: string,
   planId: string,
-  tx?: Prisma.TransactionClient
+  tx?: Prisma.TransactionClient,
 ): Promise<void> {
   const db = tx ?? prisma;
   await db.chat.update({
-    where: { id: chatId },
-    data: { planId },
+    where: {id: chatId},
+    data: {planId},
   });
 }

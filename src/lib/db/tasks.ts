@@ -1,11 +1,11 @@
-import prisma from "@/lib/prisma";
+import prisma from '@/lib/prisma';
 import {
   Prisma,
   PriorityQuadrant,
   TaskSize,
   TaskStatus,
   TaskType,
-} from "@/generated/prisma/client";
+} from '@/generated/prisma/client';
 
 export type TaskItem = {
   id: string;
@@ -61,10 +61,13 @@ const taskSelect = {
 /**
  * Get all of a user's tasks for a plan ordered by creation time
  */
-export async function getTasksByPlanId(userId: string, planId: string): Promise<TaskItem[]> {
+export async function getTasksByPlanId(
+  userId: string,
+  planId: string,
+): Promise<TaskItem[]> {
   return prisma.task.findMany({
-    where: { userId, planId },
-    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+    where: {userId, planId},
+    orderBy: [{createdAt: 'asc'}, {id: 'asc'}],
     select: taskSelect,
   });
 }
@@ -72,14 +75,17 @@ export async function getTasksByPlanId(userId: string, planId: string): Promise<
 /**
  * Get all board-visible tasks for a user's plan (excludes EXPIRED)
  */
-export async function getBoardTasksByPlanId(userId: string, planId: string): Promise<TaskItem[]> {
+export async function getBoardTasksByPlanId(
+  userId: string,
+  planId: string,
+): Promise<TaskItem[]> {
   return prisma.task.findMany({
     where: {
       userId,
       planId,
-      status: { not: TaskStatus.EXPIRED },
+      status: {not: TaskStatus.EXPIRED},
     },
-    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+    orderBy: [{createdAt: 'asc'}, {id: 'asc'}],
     select: taskSelect,
   });
 }
@@ -111,16 +117,16 @@ type BoardMetricsRow = {
 };
 
 function toNumber(value: unknown): number {
-  if (typeof value === "number") return value;
-  if (typeof value === "bigint") return Number(value);
-  if (typeof value === "string") return Number(value);
+  if (typeof value === 'number') return value;
+  if (typeof value === 'bigint') return Number(value);
+  if (typeof value === 'string') return Number(value);
   return 0;
 }
 
 function toLocalDateKey(date: Date): string {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
 
@@ -131,7 +137,7 @@ export async function getBoardMetricsByPlanId(
   userId: string,
   planId: string,
   todayStart: Date,
-  tomorrowStart: Date
+  tomorrowStart: Date,
 ): Promise<BoardMetrics> {
   const todayDateKey = toLocalDateKey(todayStart);
 
@@ -183,11 +189,11 @@ export async function getBoardMetricsByPlanId(
 export async function getTasksByPlanIdAndStatus(
   userId: string,
   planId: string,
-  statuses: TaskStatus[]
+  statuses: TaskStatus[],
 ): Promise<TaskItem[]> {
   return prisma.task.findMany({
-    where: { userId, planId, status: { in: statuses } },
-    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+    where: {userId, planId, status: {in: statuses}},
+    orderBy: [{createdAt: 'asc'}, {id: 'asc'}],
     select: taskSelect,
   });
 }
@@ -211,10 +217,10 @@ export async function createTask(
     periodKey?: string;
     quadrant?: PriorityQuadrant;
     instanceIndex: number;
-  }
+  },
 ): Promise<TaskItem> {
   return prisma.task.create({
-    data: { ...data, userId },
+    data: {...data, userId},
     select: taskSelect,
   });
 }
@@ -237,8 +243,8 @@ export async function createManyTasks(
     periodKey?: string;
     instanceIndex: number;
   }[],
-  tx?: Prisma.TransactionClient
-): Promise<{ count: number }> {
+  tx?: Prisma.TransactionClient,
+): Promise<{count: number}> {
   const db = tx ?? prisma;
   return db.task.createMany({
     data,
@@ -255,13 +261,13 @@ export async function createManyTasks(
 export async function updateTaskStatus(
   userId: string,
   taskId: string,
-  status: TaskStatus
+  status: TaskStatus,
 ): Promise<TaskItem | null> {
   const [task] = await prisma.task.updateManyAndReturn({
-    where: { id: taskId, userId },
+    where: {id: taskId, userId},
     data: {
       status,
-      doneAt: status === "DONE" ? new Date() : null,
+      doneAt: status === 'DONE' ? new Date() : null,
     },
     select: taskSelect,
   });
@@ -275,11 +281,11 @@ export async function updateTaskStatus(
 export async function updateTaskQuadrant(
   userId: string,
   taskId: string,
-  quadrant: PriorityQuadrant
+  quadrant: PriorityQuadrant,
 ): Promise<TaskItem | null> {
   const [task] = await prisma.task.updateManyAndReturn({
-    where: { id: taskId, userId, type: TaskType.AD_HOC },
-    data: { quadrant },
+    where: {id: taskId, userId, type: TaskType.AD_HOC},
+    data: {quadrant},
     select: taskSelect,
   });
   return task ?? null;
@@ -295,7 +301,7 @@ export async function trackAdhocTask(
   userId: string,
   taskId: string,
   planId: string,
-  status: TaskStatus
+  status: TaskStatus,
 ): Promise<TaskItem | null> {
   const [task] = await prisma.task.updateManyAndReturn({
     where: {
@@ -305,7 +311,7 @@ export async function trackAdhocTask(
       planId: null,
       status: TaskStatus.BACKLOG,
     },
-    data: { planId, status },
+    data: {planId, status},
     select: taskSelect,
   });
   return task ?? null;
@@ -320,17 +326,17 @@ export async function expireStaleDailyTasks(
   userId: string,
   planId: string,
   cutoffDate: Date,
-  tx?: Prisma.TransactionClient
-): Promise<{ count: number }> {
+  tx?: Prisma.TransactionClient,
+): Promise<{count: number}> {
   const db = tx ?? prisma;
   return db.task.updateMany({
     where: {
       userId,
       planId,
-      forDate: { lt: cutoffDate },
-      status: { not: "DONE" },
+      forDate: {lt: cutoffDate},
+      status: {not: 'DONE'},
     },
-    data: { status: "EXPIRED" },
+    data: {status: 'EXPIRED'},
   });
 }
 
@@ -340,17 +346,17 @@ export async function expireStaleDailyTasks(
 export async function expireAllNonDoneTasks(
   userId: string,
   planId: string,
-  tx?: Prisma.TransactionClient
-): Promise<{ count: number }> {
+  tx?: Prisma.TransactionClient,
+): Promise<{count: number}> {
   const db = tx ?? prisma;
   return db.task.updateMany({
     where: {
       userId,
       planId,
-      status: { not: "DONE" },
-      type: { not: TaskType.AD_HOC },
+      status: {not: 'DONE'},
+      type: {not: TaskType.AD_HOC},
     },
-    data: { status: "EXPIRED" },
+    data: {status: 'EXPIRED'},
   });
 }
 
@@ -361,10 +367,10 @@ export async function getDailyTasksForDate(
   userId: string,
   planId: string,
   templateId: string,
-  forDate: Date
+  forDate: Date,
 ): Promise<TaskItem[]> {
   return prisma.task.findMany({
-    where: { userId, planId, templateId, forDate },
+    where: {userId, planId, templateId, forDate},
     select: taskSelect,
   });
 }
@@ -372,10 +378,13 @@ export async function getDailyTasksForDate(
 /**
  * Check if a task exists and is owned by the user
  */
-export async function taskExists(userId: string, taskId: string): Promise<boolean> {
+export async function taskExists(
+  userId: string,
+  taskId: string,
+): Promise<boolean> {
   const task = await prisma.task.findFirst({
-    where: { id: taskId, userId },
-    select: { id: true },
+    where: {id: taskId, userId},
+    select: {id: true},
   });
   return task !== null;
 }
@@ -387,15 +396,15 @@ export async function deleteIncompleteTasksByTemplateIds(
   userId: string,
   planId: string,
   templateIds: string[],
-  tx?: Prisma.TransactionClient
-): Promise<{ count: number }> {
+  tx?: Prisma.TransactionClient,
+): Promise<{count: number}> {
   const db = tx ?? prisma;
   return db.task.deleteMany({
     where: {
       userId,
       planId,
-      templateId: { in: templateIds },
-      status: { in: ["BACKLOG", "TODO", "DOING"] },
+      templateId: {in: templateIds},
+      status: {in: ['BACKLOG', 'TODO', 'DOING']},
     },
   });
 }
@@ -406,17 +415,17 @@ export async function deleteIncompleteTasksByTemplateIds(
 export async function countTasksByTemplateIds(
   userId: string,
   planId: string,
-  templateIds: string[]
-): Promise<{ removeCount: number }> {
+  templateIds: string[],
+): Promise<{removeCount: number}> {
   const removeCount = await prisma.task.count({
     where: {
       userId,
       planId,
-      templateId: { in: templateIds },
-      status: { in: ["BACKLOG", "TODO", "DOING"] },
+      templateId: {in: templateIds},
+      status: {in: ['BACKLOG', 'TODO', 'DOING']},
     },
   });
-  return { removeCount };
+  return {removeCount};
 }
 
 /**
@@ -426,32 +435,32 @@ export async function countTasksByTemplateIds(
 export async function countIncompleteTasksByTemplateId(
   userId: string,
   planId: string,
-  templateIds: string[]
+  templateIds: string[],
 ): Promise<Map<string, number>> {
   if (templateIds.length === 0) return new Map();
   const counts = await prisma.task.groupBy({
-    by: ["templateId"],
+    by: ['templateId'],
     where: {
       userId,
       planId,
-      templateId: { in: templateIds },
-      status: { in: ["BACKLOG", "TODO", "DOING"] },
+      templateId: {in: templateIds},
+      status: {in: ['BACKLOG', 'TODO', 'DOING']},
     },
     _count: true,
   });
-  return new Map(
-    counts.map((c) => [c.templateId!, c._count])
-  );
+  return new Map(counts.map(c => [c.templateId!, c._count]));
 }
 
 /**
  * Get all of a user's non-DONE AD_HOC tasks (any planId, including unlinked
  * ones with planId = null). Filter in-memory for plan-specific needs.
  */
-export async function getNonDoneAdhocTasks(userId: string): Promise<TaskItem[]> {
+export async function getNonDoneAdhocTasks(
+  userId: string,
+): Promise<TaskItem[]> {
   return prisma.task.findMany({
-    where: { userId, type: TaskType.AD_HOC, status: { not: TaskStatus.DONE } },
-    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+    where: {userId, type: TaskType.AD_HOC, status: {not: TaskStatus.DONE}},
+    orderBy: [{createdAt: 'asc'}, {id: 'asc'}],
     select: taskSelect,
   });
 }
@@ -464,13 +473,13 @@ export async function updateTasksPlanId(
   userId: string,
   taskIds: string[],
   planId: string,
-  tx?: Prisma.TransactionClient
-): Promise<{ count: number }> {
-  if (taskIds.length === 0) return { count: 0 };
+  tx?: Prisma.TransactionClient,
+): Promise<{count: number}> {
+  if (taskIds.length === 0) return {count: 0};
   const db = tx ?? prisma;
   return db.task.updateMany({
-    where: { userId, id: { in: taskIds } },
-    data: { planId },
+    where: {userId, id: {in: taskIds}},
+    data: {planId},
   });
 }
 
@@ -484,18 +493,18 @@ export async function unlinkAdhocTasksFromPlan(
   userId: string,
   planId: string,
   keepIds: string[],
-  tx?: Prisma.TransactionClient
-): Promise<{ count: number }> {
+  tx?: Prisma.TransactionClient,
+): Promise<{count: number}> {
   const db = tx ?? prisma;
   return db.task.updateMany({
     where: {
       userId,
       planId,
       type: TaskType.AD_HOC,
-      status: { not: TaskStatus.DONE },
-      id: { notIn: keepIds },
+      status: {not: TaskStatus.DONE},
+      id: {notIn: keepIds},
     },
-    data: { planId: null, status: TaskStatus.BACKLOG },
+    data: {planId: null, status: TaskStatus.BACKLOG},
   });
 }
 
@@ -516,25 +525,35 @@ export type PlanTemplateStatRow = {
 
 export async function getPlanTemplateStats(
   userId: string,
-  planId: string
+  planId: string,
 ): Promise<PlanTemplateStatRow[]> {
   const grouped = await prisma.task.groupBy({
-    by: ["templateId", "type", "status"],
-    where: { userId, planId, templateId: { not: null } },
+    by: ['templateId', 'type', 'status'],
+    where: {userId, planId, templateId: {not: null}},
     _count: true,
-    _sum: { points: true },
+    _sum: {points: true},
   });
 
   const byTemplate = new Map<
     string,
-    { type: TaskType; completed: number; expired: number; total: number; pointsEarned: number }
+    {
+      type: TaskType;
+      completed: number;
+      expired: number;
+      total: number;
+      pointsEarned: number;
+    }
   >();
 
   for (const row of grouped) {
     const templateId = row.templateId!;
-    const entry =
-      byTemplate.get(templateId) ??
-      { type: row.type, completed: 0, expired: 0, total: 0, pointsEarned: 0 };
+    const entry = byTemplate.get(templateId) ?? {
+      type: row.type,
+      completed: 0,
+      expired: 0,
+      total: 0,
+      pointsEarned: 0,
+    };
 
     entry.total += row._count;
     switch (row.status) {
@@ -566,7 +585,12 @@ export async function getPlanTemplateStats(
 /**
  * Valid task statuses for validation
  */
-export const VALID_TASK_STATUSES: TaskStatus[] = ["TODO", "DOING", "DONE", "EXPIRED"];
+export const VALID_TASK_STATUSES: TaskStatus[] = [
+  'TODO',
+  'DOING',
+  'DONE',
+  'EXPIRED',
+];
 
 /**
  * Check if a status string is a valid TaskStatus

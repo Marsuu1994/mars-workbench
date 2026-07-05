@@ -1,25 +1,25 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useMemo } from "react";
-import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
-import type { TaskItem } from "@/lib/db/tasks";
-import { TaskStatus } from "@/utils/enums";
+import {useState, useEffect, useMemo} from 'react';
+import {DragDropContext, type DropResult} from '@hello-pangea/dnd';
+import type {TaskItem} from '@/lib/db/tasks';
+import {TaskStatus} from '@/utils/enums';
 import {
   groupAndSortTasks,
   computeTemplateProgress,
   computeRiskLevel,
   type RiskLevel,
-} from "@/utils/taskUtils";
-import { getTodayDate } from "@/utils/dateUtils";
-import { updateTaskStatusAction } from "@/actions/taskActions";
-import BoardColumn from "./BoardColumn";
-import BacklogDrawer from "./BacklogDrawer";
-import MobileBacklogSheet from "./MobileBacklogSheet";
+} from '@/utils/taskUtils';
+import {getTodayDate} from '@/utils/dateUtils';
+import {updateTaskStatusAction} from '@/actions/taskActions';
+import BoardColumn from './BoardColumn';
+import BacklogDrawer from './BacklogDrawer';
+import MobileBacklogSheet from './MobileBacklogSheet';
 
 interface KanbanBoardProps {
   tasks: TaskItem[];
   daysElapsed: number;
-  planTemplates: Array<{ templateId: string; frequency: number }>;
+  planTemplates: Array<{templateId: string; frequency: number}>;
 }
 
 export default function KanbanBoard({
@@ -39,17 +39,17 @@ export default function KanbanBoard({
   const currentHour = useMemo(() => new Date().getHours(), []);
 
   const templateFreqMap = useMemo(
-    () => new Map(planTemplates.map((pt) => [pt.templateId, pt.frequency])),
-    [planTemplates]
+    () => new Map(planTemplates.map(pt => [pt.templateId, pt.frequency])),
+    [planTemplates],
   );
   const templateProgressMap = useMemo(
     () => computeTemplateProgress(localTasks),
-    [localTasks]
+    [localTasks],
   );
   const riskMap = useMemo(
     () =>
       new Map<string, RiskLevel>(
-        localTasks.map((t) => [
+        localTasks.map(t => [
           t.id,
           computeRiskLevel(
             t,
@@ -57,18 +57,25 @@ export default function KanbanBoard({
             currentHour,
             daysElapsed,
             templateFreqMap,
-            templateProgressMap
+            templateProgressMap,
           ),
-        ])
+        ]),
       ),
-    [localTasks, today, currentHour, daysElapsed, templateFreqMap, templateProgressMap]
+    [
+      localTasks,
+      today,
+      currentHour,
+      daysElapsed,
+      templateFreqMap,
+      templateProgressMap,
+    ],
   );
 
   const columns = groupAndSortTasks(localTasks, today);
 
   function handleDragEnd(result: DropResult) {
     setIsDragging(false);
-    const { destination, source, draggableId } = result;
+    const {destination, source, draggableId} = result;
 
     if (!destination) return;
     if (destination.droppableId === source.droppableId) return;
@@ -79,15 +86,15 @@ export default function KanbanBoard({
     const newStatus = destination.droppableId as TaskStatus;
     const snapshot = localTasks;
 
-    setLocalTasks((prev) =>
-      prev.map((task) =>
-        task.id === draggableId ? { ...task, status: newStatus } : task
-      )
+    setLocalTasks(prev =>
+      prev.map(task =>
+        task.id === draggableId ? {...task, status: newStatus} : task,
+      ),
     );
 
-    updateTaskStatusAction(draggableId, { status: newStatus }).then((result) => {
+    updateTaskStatusAction(draggableId, {status: newStatus}).then(result => {
       if (result.error) {
-        console.error("Failed to update task status:", result.error);
+        console.error('Failed to update task status:', result.error);
         setLocalTasks(snapshot);
       }
     });
@@ -97,22 +104,25 @@ export default function KanbanBoard({
   function handlePullToTodo(taskId: string) {
     const snapshot = localTasks;
 
-    setLocalTasks((prev) =>
-      prev.map((task) =>
-        task.id === taskId ? { ...task, status: TaskStatus.TODO } : task
-      )
+    setLocalTasks(prev =>
+      prev.map(task =>
+        task.id === taskId ? {...task, status: TaskStatus.TODO} : task,
+      ),
     );
 
-    updateTaskStatusAction(taskId, { status: TaskStatus.TODO }).then((result) => {
+    updateTaskStatusAction(taskId, {status: TaskStatus.TODO}).then(result => {
       if (result.error) {
-        console.error("Failed to pull task to Todo:", result.error);
+        console.error('Failed to pull task to Todo:', result.error);
         setLocalTasks(snapshot);
       }
     });
   }
 
   return (
-    <DragDropContext onDragStart={() => setIsDragging(true)} onDragEnd={handleDragEnd}>
+    <DragDropContext
+      onDragStart={() => setIsDragging(true)}
+      onDragEnd={handleDragEnd}
+    >
       <div className="flex h-full">
         {/* Scroll ownership: @hello-pangea/dnd supports one scroll parent per
             Droppable, so this row must not add scroll axes beyond what it

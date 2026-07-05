@@ -1,7 +1,7 @@
-"use server";
+'use server';
 
-import { fetchBoard, getEmptyBoardState } from "../services/boardService";
-import { getCurrentUserId } from "@/lib/auth/getCurrentUserId";
+import {fetchBoard, getEmptyBoardState} from '../services/boardService';
+import {getCurrentUserId} from '@/lib/auth/getCurrentUserId';
 
 export async function fetchBoardAction() {
   const userId = await getCurrentUserId();

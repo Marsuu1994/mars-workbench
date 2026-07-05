@@ -1,20 +1,27 @@
-import {
-  getPlanByStatus,
-  getPlanWithTemplates,
-} from "@/lib/db/plans";
+import {getPlanByStatus, getPlanWithTemplates} from '@/lib/db/plans';
 import {
   getBoardMetricsByPlanId,
   getBoardTasksByPlanId,
   getPlanTemplateStats,
-} from "@/lib/db/tasks";
-import type { PlanWithTemplates } from "@/lib/db/plans";
-import type { TaskItem } from "@/lib/db/tasks";
-import type { OverallStats } from "@/types/aiChat";
-import { rollUpOverall } from "@/utils/statsUtils";
-import { PlanMode, TaskType, TaskStatus, PlanStatus } from "@/generated/prisma/client";
-import { getTodayDate, getMondayFromPeriodKey, getSundayFromPeriodKey, countWeekdaysInRange } from "@/utils/dateUtils";
-import { sizeToPoints } from "@/utils/sizeUtils";
-import { ensureSynced } from "@/services/syncService";
+} from '@/lib/db/tasks';
+import type {PlanWithTemplates} from '@/lib/db/plans';
+import type {TaskItem} from '@/lib/db/tasks';
+import type {OverallStats} from '@/types/aiChat';
+import {rollUpOverall} from '@/utils/statsUtils';
+import {
+  PlanMode,
+  TaskType,
+  TaskStatus,
+  PlanStatus,
+} from '@/generated/prisma/client';
+import {
+  getTodayDate,
+  getMondayFromPeriodKey,
+  getSundayFromPeriodKey,
+  countWeekdaysInRange,
+} from '@/utils/dateUtils';
+import {sizeToPoints} from '@/utils/sizeUtils';
+import {ensureSynced} from '@/services/syncService';
 
 export type BoardData = {
   plan: PlanWithTemplates;
@@ -36,19 +43,20 @@ export type BoardData = {
  * whose finished-plan stats drive the celebratory recap.
  */
 export type EmptyBoardState =
-  | { kind: "new" }
-  | { kind: "returning"; stats: OverallStats };
+  {kind: 'new'} | {kind: 'returning'; stats: OverallStats};
 
 /**
  * Resolve the empty-board state for a user with no ACTIVE plan. Must be called
  * after `fetchBoard` so any end-of-period sync (ACTIVE → PENDING_UPDATE) has run.
  */
-export async function getEmptyBoardState(userId: string): Promise<EmptyBoardState> {
+export async function getEmptyBoardState(
+  userId: string,
+): Promise<EmptyBoardState> {
   const pendingPlan = await getPlanByStatus(userId, PlanStatus.PENDING_UPDATE);
-  if (!pendingPlan) return { kind: "new" };
+  if (!pendingPlan) return {kind: 'new'};
 
   const rows = await getPlanTemplateStats(userId, pendingPlan.id);
-  return { kind: "returning", stats: rollUpOverall(rows) };
+  return {kind: 'returning', stats: rollUpOverall(rows)};
 }
 
 /**
@@ -78,9 +86,7 @@ export async function fetchBoard(userId: string): Promise<BoardData | null> {
   // — Today metrics —
   // Backlog tasks are staged off-board (drawer), so they are excluded from the
   // Today ring/points. Week projection (from the DB aggregate) still counts them.
-  const onBoardTasks = boardTasks.filter(
-    (t) => t.status !== TaskStatus.BACKLOG
-  );
+  const onBoardTasks = boardTasks.filter(t => t.status !== TaskStatus.BACKLOG);
   const todayDoneCount = boardMetrics.todayDoneCount;
   const todayTotalCount = onBoardTasks.length;
   const todayDonePoints = boardMetrics.todayDonePoints;
@@ -94,15 +100,18 @@ export async function fetchBoard(userId: string): Promise<BoardData | null> {
   const remainingDays =
     planWithTemplates.mode === PlanMode.NORMAL
       ? countWeekdaysInRange(today, weekEnd)
-      : Math.max(1, Math.floor((weekEnd.getTime() - today.getTime()) / 86400000) + 1);
+      : Math.max(
+          1,
+          Math.floor((weekEnd.getTime() - today.getTime()) / 86400000) + 1,
+        );
 
   const currentDailyTemplates = planWithTemplates.planTemplates.filter(
-    (pt) => pt.type === TaskType.DAILY
+    pt => pt.type === TaskType.DAILY,
   );
   const dailyFuturePoints =
     currentDailyTemplates.reduce(
       (s, pt) => s + sizeToPoints(pt.template.size) * pt.frequency,
-      0
+      0,
     ) * remainingDays;
   const dailyFutureCount =
     currentDailyTemplates.reduce((s, pt) => s + pt.frequency, 0) *
@@ -115,8 +124,10 @@ export async function fetchBoard(userId: string): Promise<BoardData | null> {
   const adhocPoints = boardMetrics.adhocPoints;
   const adhocCount = boardMetrics.adhocCount;
 
-  const weekProjectedPoints = dailyPastPoints + dailyFuturePoints + weeklyPoints + adhocPoints;
-  const weekProjectedCount = dailyPastCount + dailyFutureCount + weeklyCount + adhocCount;
+  const weekProjectedPoints =
+    dailyPastPoints + dailyFuturePoints + weeklyPoints + adhocPoints;
+  const weekProjectedCount =
+    dailyPastCount + dailyFutureCount + weeklyCount + adhocCount;
 
   const weekDoneCount = boardMetrics.weekDoneCount;
   const weekDonePoints = boardMetrics.weekDonePoints;
@@ -124,7 +135,10 @@ export async function fetchBoard(userId: string): Promise<BoardData | null> {
   // — Days elapsed (1–7) —
   const weekStart = getMondayFromPeriodKey(planWithTemplates.periodKey);
   const diffMs = today.getTime() - weekStart.getTime();
-  const daysElapsed = Math.min(7, Math.max(1, Math.floor(diffMs / 86400000) + 1));
+  const daysElapsed = Math.min(
+    7,
+    Math.max(1, Math.floor(diffMs / 86400000) + 1),
+  );
 
   return {
     plan: planWithTemplates,

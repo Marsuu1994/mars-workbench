@@ -1,31 +1,40 @@
-import { cache } from "react";
-import prisma from "@/lib/prisma";
+import {cache} from 'react';
+import prisma from '@/lib/prisma';
 import {
   getActivePlan,
   getPlanWithTemplates,
   updateLastSyncDate,
   updatePlanStatus,
   type PlanItem,
-} from "@/lib/db/plans";
+} from '@/lib/db/plans';
 import {
   createManyTasks,
   expireAllNonDoneTasks,
   expireStaleDailyTasks,
-} from "@/lib/db/tasks";
-import { PlanMode, PlanStatus, TaskType, TaskStatus } from "@/generated/prisma/client";
+} from '@/lib/db/tasks';
+import {
+  PlanMode,
+  PlanStatus,
+  TaskType,
+  TaskStatus,
+} from '@/generated/prisma/client';
 import {
   getTodayDate,
   getYesterdayDate,
   isPeriodCurrent,
   isWeekend,
-} from "../utils/dateUtils";
-import { sizeToPoints } from "../utils/sizeUtils";
+} from '../utils/dateUtils';
+import {sizeToPoints} from '../utils/sizeUtils';
 
 /**
  * Run daily sync for a plan: expire stale tasks and generate today's daily tasks.
  * Standalone and reusable (e.g., by a future cron job).
  */
-export async function runDailySync(userId: string, planId: string, today: Date): Promise<void> {
+export async function runDailySync(
+  userId: string,
+  planId: string,
+  today: Date,
+): Promise<void> {
   // Read before transaction — template data doesn't change during sync
   const planWithTemplates = await getPlanWithTemplates(userId, planId);
   if (!planWithTemplates) return;
@@ -61,7 +70,7 @@ export async function runDailySync(userId: string, planId: string, today: Date):
   // Yesterday's tasks stay active for one more day before expiring.
   const yesterday = getYesterdayDate();
 
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async tx => {
     await updateLastSyncDate(userId, planId, today, tx);
     await expireStaleDailyTasks(userId, planId, yesterday, tx);
     if (dailyTaskData.length > 0) {
@@ -74,8 +83,11 @@ export async function runDailySync(userId: string, planId: string, today: Date):
  * Run end-of-period sync: expire all undone tasks and move plan to PENDING_UPDATE.
  * Standalone and reusable (e.g., by a future cron job).
  */
-export async function runEndOfPeriodSync(userId: string, planId: string): Promise<void> {
-  await prisma.$transaction(async (tx) => {
+export async function runEndOfPeriodSync(
+  userId: string,
+  planId: string,
+): Promise<void> {
+  await prisma.$transaction(async tx => {
     await expireAllNonDoneTasks(userId, planId, tx);
     await updatePlanStatus(userId, planId, PlanStatus.PENDING_UPDATE, tx);
   });
@@ -92,24 +104,26 @@ export async function runEndOfPeriodSync(userId: string, planId: string): Promis
  * server render pass (e.g. a page and a nested component) dedupe to one run.
  * Server Actions run in their own request, so mutations re-check fresh state.
  */
-export const ensureSynced = cache(async (userId: string): Promise<PlanItem | null> => {
-  const plan = await getActivePlan(userId);
-  if (!plan) return null;
+export const ensureSynced = cache(
+  async (userId: string): Promise<PlanItem | null> => {
+    const plan = await getActivePlan(userId);
+    if (!plan) return null;
 
-  const today = getTodayDate();
+    const today = getTodayDate();
 
-  // Period ended (new ISO week) → complete the period, no active plan anymore
-  if (!isPeriodCurrent(plan.periodKey, today)) {
-    await runEndOfPeriodSync(userId, plan.id);
-    return null;
-  }
+    // Period ended (new ISO week) → complete the period, no active plan anymore
+    if (!isPeriodCurrent(plan.periodKey, today)) {
+      await runEndOfPeriodSync(userId, plan.id);
+      return null;
+    }
 
-  // Daily sync at most once per day (lastSyncDate short-circuit)
-  const needsSync =
-    !plan.lastSyncDate || plan.lastSyncDate.getTime() !== today.getTime();
-  if (needsSync) {
-    await runDailySync(userId, plan.id, today);
-  }
+    // Daily sync at most once per day (lastSyncDate short-circuit)
+    const needsSync =
+      !plan.lastSyncDate || plan.lastSyncDate.getTime() !== today.getTime();
+    if (needsSync) {
+      await runDailySync(userId, plan.id, today);
+    }
 
-  return plan;
-});
+    return plan;
+  },
+);

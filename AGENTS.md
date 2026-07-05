@@ -202,6 +202,20 @@ Mockups are the source of truth for UI, but implementation may introduce details
 - Prefer async Server Components where no client interactivity is needed.
 - Add `'use client'` only when required.
 
+## Formatting (Prettier)
+
+- All code formatting is handled by Prettier using Google's style (the `gts`
+  config: single quotes, no bracket spacing, trailing commas, `arrow` parens
+  avoided, 2-space indent, 80-col, semicolons). Config lives in
+  `.prettierrc.json`; do not hand-tune spacing/quotes against it.
+- Run `npm run format` before finishing a task so every agent leaves the same
+  style. CI runs `npm run format:check` and fails on any unformatted file.
+- Prettier is scoped to code (TS/TSX/JS/JSON/CSS). Markdown docs and `design/`
+  assets are ignored (see `.prettierignore`) — the README Update Logs are
+  append-only and must not be reflowed.
+- ESLint is layered with `eslint-config-prettier`, so lint rules never fight
+  Prettier; use ESLint for correctness, Prettier for formatting.
+
 ## API Conventions
 
 - API handlers live in `app/api/[resource]/route.ts`.
@@ -252,6 +266,8 @@ Mockups are the source of truth for UI, but implementation may introduce details
 npm run dev      # Start dev server
 npm run build    # Production build
 npm run lint     # Lint
+npm run format       # Format all code with Prettier (Google style)
+npm run format:check # Verify formatting (used in CI)
 npx prisma studio
 npx prisma migrate dev
 npx prisma generate

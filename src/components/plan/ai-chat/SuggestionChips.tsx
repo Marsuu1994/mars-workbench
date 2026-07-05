@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 interface SuggestionChipsProps {
   chips: string[];
@@ -6,9 +6,9 @@ interface SuggestionChipsProps {
 }
 
 /** Quick-start chips under the welcome message. Clicking sends the chip text. */
-export const SuggestionChips = ({ chips, onSelect }: SuggestionChipsProps) => (
+export const SuggestionChips = ({chips, onSelect}: SuggestionChipsProps) => (
   <div className="mt-2.5 flex flex-wrap gap-1.5">
-    {chips.map((chip) => (
+    {chips.map(chip => (
       <button
         key={chip}
         type="button"

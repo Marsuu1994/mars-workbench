@@ -1,21 +1,22 @@
-"use client";
+'use client';
 
-import { useTranslations } from "next-intl";
-import { TaskType } from "@/utils/enums";
+import {useTranslations} from 'next-intl';
+import {TaskType} from '@/utils/enums';
 
 interface TaskTypeBadgeProps {
   type: string;
 }
 
 const CLASS_CONFIG: Record<string, string> = {
-  [TaskType.DAILY]: "bg-info/15 text-info",
-  [TaskType.WEEKLY]: "bg-secondary/15 text-secondary",
-  [TaskType.AD_HOC]: "bg-warning/15 text-warning",
+  [TaskType.DAILY]: 'bg-info/15 text-info',
+  [TaskType.WEEKLY]: 'bg-secondary/15 text-secondary',
+  [TaskType.AD_HOC]: 'bg-warning/15 text-warning',
 };
 
-export default function TaskTypeBadge({ type }: TaskTypeBadgeProps) {
-  const t = useTranslations("Enums.TaskType");
-  const key: TaskType = type in CLASS_CONFIG ? (type as TaskType) : TaskType.DAILY;
+export default function TaskTypeBadge({type}: TaskTypeBadgeProps) {
+  const t = useTranslations('Enums.TaskType');
+  const key: TaskType =
+    type in CLASS_CONFIG ? (type as TaskType) : TaskType.DAILY;
 
   return (
     <span
