@@ -301,14 +301,14 @@ export default function PlanForm({
           {t("createSubtitle")}
         </p>
       )}
-      {mode === "edit" && periodKey && (
-        <p className="md:hidden text-sm text-base-content/50 mb-5">
-          {getWeekDateRange(periodKey)}
-        </p>
-      )}
-      {mode === "edit" && (
-        <div className={`mb-6 ${periodKey ? "hidden md:block" : ""}`} />
-      )}
+      {mode === "edit" &&
+        (periodKey ? (
+          <p className="text-sm md:text-base text-base-content/50 mb-5 md:mb-7">
+            {getWeekDateRange(periodKey)}
+          </p>
+        ) : (
+          <div className="mb-6" />
+        ))}
     </>
   );
 
