@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { CheckIcon, MoonIcon, BoltIcon } from "@heroicons/react/24/outline";
 import { TaskType, TaskStatus, PeriodType, PlanMode, TaskSize } from "@/utils/enums";
+import { getWeekDateRange } from "@/utils/dateUtils";
 import { SizeChip } from "@/components/shared/SizeChip";
 import type { TaskTemplateItem } from "@/lib/db/taskTemplates";
 import { sizeToPoints } from "@/utils/enums";
@@ -51,6 +52,8 @@ interface PlanFormProps {
   initialAdhocTaskIds?: string[];
   /** Plan whose stats seed the AI assistant's returning-user welcome. */
   aiContextPlanId?: string;
+  /** Plan period (edit mode) — shown as the week range in the mobile topbar. */
+  periodKey?: string;
 }
 
 export default function PlanForm({
@@ -63,6 +66,7 @@ export default function PlanForm({
   adhocTasks = [],
   initialAdhocTaskIds = [],
   aiContextPlanId,
+  periodKey,
 }: PlanFormProps) {
   const router = useRouter();
   const t = useTranslations("Plan");
@@ -285,18 +289,33 @@ export default function PlanForm({
     ? computeDiff()
     : { added: [], removed: [], modified: [], addedAdhoc: [], removedAdhoc: [], modeChanged: false, fromMode: initialPlanMode, toMode: planMode };
 
-  return (
+  // Heading scrolls with the form on both breakpoints; the page chrome
+  // (Kanban Planner + Planning Mode badge) lives in the plans layout.
+  const renderHeading = () => (
     <>
-      <h2 className="text-2xl font-bold mb-1">
+      <h2 className="text-xl md:text-2xl font-bold mb-1">
         {mode === "create" ? t("createTitle") : t("updateTitle")}
       </h2>
       {mode === "create" && (
-        <p className="text-base-content/50 mb-7">
+        <p className="text-sm md:text-base text-base-content/50 mb-5 md:mb-7">
           {t("createSubtitle")}
         </p>
       )}
-      {mode === "edit" && <div className="mb-6" />}
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      {mode === "edit" &&
+        (periodKey ? (
+          <p className="text-sm md:text-base text-base-content/50 mb-5 md:mb-7">
+            {getWeekDateRange(periodKey)}
+          </p>
+        ) : (
+          <div className="mb-6" />
+        ))}
+    </>
+  );
+
+  return (
+    <>
+      {renderHeading()}
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6 pb-16 md:pb-0">
         {/* Description */}
         <div className="form-control">
           <label className="label">
@@ -471,9 +490,9 @@ export default function PlanForm({
         {/* Error */}
         {error && <div className="alert alert-error text-sm">{error}</div>}
 
-        {/* Summary + Actions */}
-        <div className="flex items-center justify-between border-t border-base-content/10 pt-5">
-          <div className="text-sm text-base-content/50">
+        {/* Summary + Actions — sticky bar above the dock on mobile, inline on desktop */}
+        <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4rem)] z-30 flex items-center gap-3 border-t border-base-content/10 bg-base-100 px-4 py-2.5 md:static md:inset-x-auto md:z-auto md:justify-between md:gap-2 md:bg-transparent md:px-0 md:py-0 md:pt-5">
+          <div className="flex-1 text-[11px] leading-snug text-base-content/50 md:flex-none md:text-sm">
             {adhocTasks.length > 0
               ? t("summaryWithAdhoc", {
                   templateCount: selectedTemplates.size,
@@ -481,8 +500,8 @@ export default function PlanForm({
                 })
               : t("summary", { templateCount: selectedTemplates.size })}
           </div>
-          <div className="flex gap-2">
-            <Link href="/kanban" className="btn btn-ghost">
+          <div className="flex gap-2 shrink-0">
+            <Link href="/kanban" className="btn btn-ghost hidden md:inline-flex">
               {t("cancel")}
             </Link>
             <button

@@ -113,10 +113,17 @@ export function ReviewChangesModal({
   const totalAdhocChanges = addedAdhoc.length + removedAdhoc.length;
 
   return (
-    <dialog ref={dialogRef} className="modal" onClose={onClose}>
-      <div className="modal-box max-w-lg">
+    <dialog
+      ref={dialogRef}
+      className="modal modal-bottom md:modal-middle"
+      onClose={onClose}
+    >
+      {/* Tall sheet on mobile: header + footer pinned, sections scroll between */}
+      <div className="modal-box max-w-lg flex flex-col overflow-hidden max-h-[85vh] pt-2 md:pt-6 md:max-h-[calc(100vh-5em)]">
+        {/* Sheet grip (mobile only) */}
+        <div className="md:hidden w-[38px] h-1 shrink-0 rounded-full bg-base-content/20 mx-auto mb-3" />
         {/* Header */}
-        <div className="flex items-center justify-between -mx-6 px-6 pb-4 mb-4 border-b border-base-content/10">
+        <div className="shrink-0 flex items-center justify-between -mx-6 px-6 pb-4 mb-4 border-b border-base-content/10">
           <h3 className="text-lg font-semibold">{tr("title")}</h3>
           <button
             type="button"
@@ -127,7 +134,8 @@ export function ReviewChangesModal({
           </button>
         </div>
 
-        {/* Sections */}
+        {/* Scrolling body: change sections + global note */}
+        <div className="flex-1 overflow-y-auto -mx-6 px-6">
         <div className="flex flex-col gap-4">
           {/* Added */}
           {added.length > 0 && (
@@ -378,12 +386,13 @@ export function ReviewChangesModal({
             {tr("globalNote")}
           </span>
         </div>
+        </div>
 
-        {/* Footer */}
-        <div className="modal-action">
+        {/* Footer (pinned) */}
+        <div className="modal-action shrink-0 -mx-6 mt-0 border-t border-base-content/10 px-6 pt-4">
           <button
             type="button"
-            className="btn btn-ghost"
+            className="btn btn-ghost flex-1 md:flex-none"
             onClick={onClose}
             disabled={isSubmitting}
           >
@@ -391,7 +400,7 @@ export function ReviewChangesModal({
           </button>
           <button
             type="button"
-            className="btn btn-primary"
+            className="btn btn-primary flex-[2] md:flex-none"
             onClick={onConfirm}
             disabled={isSubmitting}
           >

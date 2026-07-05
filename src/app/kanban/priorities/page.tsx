@@ -10,15 +10,9 @@ export default async function PrioritiesPage() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Mobile renders its own top bar inside PriorityMatrixPage */}
-      <div className="hidden md:block">
-        <BoardHeader periodKey={periodKey} />
-      </div>
-      <PriorityMatrixPage
-        tasks={matrix.tasks}
-        activePlan={matrix.activePlan}
-        periodKey={periodKey}
-      />
+      {/* Same app header on both breakpoints, like the board page */}
+      <BoardHeader periodKey={periodKey} />
+      <PriorityMatrixPage tasks={matrix.tasks} activePlan={matrix.activePlan} />
     </div>
   );
 }

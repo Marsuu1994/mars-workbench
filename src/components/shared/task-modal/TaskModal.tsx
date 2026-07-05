@@ -14,18 +14,25 @@ import {
   updateTaskTemplateAction,
 } from "@/actions/templateActions";
 import { createAdhocTaskAction } from "@/actions/taskActions";
+import { FALLBACK_QUADRANT } from "@/components/priorities/constants";
 import TaskModalHeader from "./TaskModalHeader";
 import TaskModalFooter from "./TaskModalFooter";
+import QuadrantPicker from "./QuadrantPicker";
 
 type ModalMode = "create" | "edit" | "adhoc";
 
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSaved: () => void;
+  /** For adhoc mode, receives the quadrant the created task landed in. */
+  onSaved: (quadrant?: PriorityQuadrant) => void;
   mode?: ModalMode;
   template?: TaskTemplateItem | null;
-  /** Source quadrant for adhoc mode — the created matrix task lands there */
+  /**
+   * Source quadrant for adhoc mode — the created matrix task lands there.
+   * When omitted in adhoc mode (mobile top-bar "+" entry), the modal shows
+   * a quadrant picker instead.
+   */
   quadrant?: PriorityQuadrant;
 }
 
@@ -51,6 +58,8 @@ export default function TaskModal({
   const [title, setTitle] = useState(initialTitle);
   const [description, setDescription] = useState(initialDescription);
   const [size, setSize] = useState<TaskSize>(initialSize);
+  const [selectedQuadrant, setSelectedQuadrant] =
+    useState<PriorityQuadrant>(FALLBACK_QUADRANT);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,6 +77,7 @@ export default function TaskModal({
       setTitle(initialTitle);
       setDescription(initialDescription);
       setSize(initialSize);
+      setSelectedQuadrant(FALLBACK_QUADRANT);
       setError(null);
       setIsSubmitting(false);
     }
@@ -90,6 +100,7 @@ export default function TaskModal({
     setError(null);
     setIsSubmitting(true);
 
+    const effectiveQuadrant = quadrant ?? selectedQuadrant;
     let result;
     switch (mode) {
       case "create":
@@ -103,7 +114,12 @@ export default function TaskModal({
         });
         break;
       case "adhoc":
-        result = await createAdhocTaskAction({ title, description, size, quadrant });
+        result = await createAdhocTaskAction({
+          title,
+          description,
+          size,
+          quadrant: effectiveQuadrant,
+        });
         break;
     }
 
@@ -125,15 +141,21 @@ export default function TaskModal({
       return;
     }
 
-    onSaved();
+    onSaved(mode === "adhoc" ? effectiveQuadrant : undefined);
     onClose();
   }
 
   const isAdhoc = mode === "adhoc";
 
   return (
-    <dialog ref={dialogRef} className="modal" onClose={onClose}>
-      <div className="modal-box max-w-lg">
+    <dialog
+      ref={dialogRef}
+      className="modal modal-bottom md:modal-middle"
+      onClose={onClose}
+    >
+      <div className="modal-box max-w-lg pt-2 md:pt-6">
+        {/* Sheet grip (mobile only) */}
+        <div className="md:hidden w-[38px] h-1 rounded-full bg-base-content/20 mx-auto mb-3" />
         <TaskModalHeader mode={mode} onClose={onClose} />
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -218,6 +240,11 @@ export default function TaskModal({
               <p className="text-xs text-warning mt-0.5">{t("sizeWarning")}</p>
             )}
           </div>
+
+          {/* Quadrant (adhoc without a preset source quadrant) */}
+          {isAdhoc && quadrant === undefined && (
+            <QuadrantPicker value={selectedQuadrant} onChange={setSelectedQuadrant} />
+          )}
 
           <TaskModalFooter
             mode={mode}

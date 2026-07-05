@@ -14,12 +14,14 @@ interface AppShellProps {
 const CHROMELESS_PREFIXES = ["/design"];
 
 /**
- * Routes (exact match) whose page owns all scrolling, so <main> must not be a
- * scroll container there: @hello-pangea/dnd Droppables support only one
- * scroll parent, and the board page fills main exactly. Other routes
- * (/kanban/plans/*, etc.) still rely on main scrolling.
+ * Routes whose page owns all scrolling, so <main> must not be a scroll
+ * container there — otherwise the page header scrolls away with <main> and
+ * mobile shows two scrollbars. Board/priorities also need it because
+ * @hello-pangea/dnd Droppables support only one scroll parent. The plans
+ * layout keeps its header fixed and scrolls the form body itself.
  */
 const SELF_SCROLLING_ROUTES = ["/kanban", "/kanban/priorities"];
+const SELF_SCROLLING_PREFIXES = ["/kanban/plans"];
 
 /**
  * Wraps page content in the app shell (sidebar + bottom tab bar), except on
@@ -28,7 +30,9 @@ const SELF_SCROLLING_ROUTES = ["/kanban", "/kanban/priorities"];
 export const AppShell = ({ user, activePlanId, children }: AppShellProps) => {
   const pathname = usePathname();
   const isChromeless = CHROMELESS_PREFIXES.some((prefix) => pathname.startsWith(prefix));
-  const isSelfScrolling = SELF_SCROLLING_ROUTES.includes(pathname);
+  const isSelfScrolling =
+    SELF_SCROLLING_ROUTES.includes(pathname) ||
+    SELF_SCROLLING_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 
   if (isChromeless) {
     return <>{children}</>;

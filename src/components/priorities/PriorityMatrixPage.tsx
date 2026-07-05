@@ -8,12 +8,13 @@ import {
   StarIcon,
   ListBulletIcon,
   ExclamationTriangleIcon,
+  PlusIcon,
+  CheckIcon,
 } from "@heroicons/react/24/outline";
 import type { TaskItem } from "@/lib/db/tasks";
 import { PriorityQuadrant } from "@/utils/enums";
 import type { TrackTargetStatus } from "@/schemas";
 import type { MatrixActivePlan } from "@/services/matrixService";
-import { getWeekNumberFromPeriodKey } from "@/utils/dateUtils";
 import {
   updateTaskQuadrantAction,
   trackTaskAction,
@@ -25,32 +26,41 @@ import {
   QUADRANT_ORDER,
   FALLBACK_QUADRANT,
   CREATE_PLAN_HREF,
+  TOAST_DURATION_MS,
 } from "./constants";
 
 interface PriorityMatrixPageProps {
   tasks: TaskItem[];
   activePlan: MatrixActivePlan | null;
-  /** Active plan's period, or the current ISO week when there is no plan */
-  periodKey: string;
 }
 
 export default function PriorityMatrixPage({
   tasks,
   activePlan,
-  periodKey,
 }: PriorityMatrixPageProps) {
   const t = useTranslations("Priorities");
+  const tQuadrant = useTranslations("Enums.PriorityQuadrant");
   const [localTasks, setLocalTasks] = useState<TaskItem[]>(tasks);
   const [openPopoverTaskId, setOpenPopoverTaskId] = useState<string | null>(null);
   const [sheetTask, setSheetTask] = useState<TaskItem | null>(null);
-  const [modalQuadrant, setModalQuadrant] = useState<PriorityQuadrant | null>(null);
+  // null = closed; quadrant undefined = mobile global add (modal shows its picker)
+  const [addModal, setAddModal] = useState<{ quadrant?: PriorityQuadrant } | null>(
+    null
+  );
+  const [toastQuadrant, setToastQuadrant] = useState<PriorityQuadrant | null>(null);
 
   useEffect(() => {
     setLocalTasks(tasks);
   }, [tasks]);
 
+  // Auto-dismiss the mobile "Added to …" confirmation toast
+  useEffect(() => {
+    if (toastQuadrant === null) return;
+    const timer = setTimeout(() => setToastQuadrant(null), TOAST_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [toastQuadrant]);
+
   const activePlanId = activePlan?.id ?? null;
-  const weekNumber = getWeekNumberFromPeriodKey(periodKey);
 
   const byQuadrant = useMemo(() => {
     const groups: Record<PriorityQuadrant, TaskItem[]> = {
@@ -125,38 +135,51 @@ export default function PriorityMatrixPage({
     );
   }
 
-  const renderMobileTopBar = () => (
-    <div className="md:hidden flex items-end gap-2 px-4 pt-4 pb-2.5 border-b border-base-content/10 flex-shrink-0">
-      <div className="flex flex-col gap-px">
-        <span className="text-[17px] font-bold">{t("title")}</span>
-        <span className="text-[11px] text-base-content/50">
-          {t("summaryMobile", { total: totalCount, tracked: trackedCount })}
-        </span>
+  const renderAddedToast = () =>
+    toastQuadrant !== null && (
+      <div className="md:hidden fixed top-[calc(env(safe-area-inset-top)+7rem)] left-1/2 -translate-x-1/2 z-50">
+        <div className="flex items-center gap-2 rounded-[10px] border border-success/30 bg-success/15 px-3.5 py-2 text-xs font-semibold text-success shadow-lg backdrop-blur-sm">
+          <CheckIcon className="size-[15px] stroke-[2.5]" />
+          {t("addedToast", { quadrant: tQuadrant(toastQuadrant) })}
+        </div>
       </div>
-      <span className="ml-auto text-[11px] font-semibold text-base-content/60">
-        {t("weekBadge", { week: weekNumber })}
-      </span>
-    </div>
-  );
+    );
 
+  // Same title bar on both breakpoints; mobile appends the round add button
+  // and truncates the subtitle when space runs out.
   const renderTitleBar = () => (
-    <div className="hidden md:flex items-center gap-3 px-4 py-3 border-b border-base-content/10 flex-shrink-0">
+    <div className="flex items-center gap-3 px-4 py-2.5 md:py-3 border-b border-base-content/10 flex-shrink-0">
       <div className="flex size-9 items-center justify-center rounded-[10px] bg-secondary/10 flex-shrink-0">
         <StarIcon className="size-[18px] text-secondary" />
       </div>
-      <div className="flex flex-col">
-        <span className="text-base font-bold">{t("title")}</span>
-        <span className="text-xs text-base-content/50">{t("subtitle")}</span>
+      <div className="flex flex-col min-w-0 flex-1 md:flex-initial">
+        <span className="text-base font-bold truncate">{t("title")}</span>
+        <span className="hidden md:block text-xs text-base-content/50 truncate">
+          {t("subtitle")}
+        </span>
       </div>
-      <span className="ml-auto text-xs font-semibold text-base-content/60">
-        {t.rich("summary", {
-          total: totalCount,
-          tracked: trackedCount,
-          num: (chunks) => (
-            <span className="text-[13px] font-bold text-base-content">{chunks}</span>
-          ),
-        })}
+      <span className="ml-auto text-xs font-semibold text-base-content/60 shrink-0">
+        <span className="md:hidden">
+          {t("summaryMobile", { total: totalCount, tracked: trackedCount })}
+        </span>
+        <span className="hidden md:inline">
+          {t.rich("summary", {
+            total: totalCount,
+            tracked: trackedCount,
+            num: (chunks) => (
+              <span className="text-[13px] font-bold text-base-content">{chunks}</span>
+            ),
+          })}
+        </span>
       </span>
+      <button
+        type="button"
+        title={t("addTaskLabel")}
+        onClick={() => setAddModal({})}
+        className="md:hidden flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-content shadow-md shadow-primary/30 cursor-pointer"
+      >
+        <PlusIcon className="size-[18px] stroke-[2.5]" />
+      </button>
     </div>
   );
 
@@ -217,7 +240,6 @@ export default function PriorityMatrixPage({
       onDragEnd={handleDragEnd}
     >
       <div className="flex-1 min-h-0 flex flex-col">
-        {renderMobileTopBar()}
         {renderTitleBar()}
         {renderHintBar()}
 
@@ -234,7 +256,7 @@ export default function PriorityMatrixPage({
                 onSendToggle={setOpenPopoverTaskId}
                 onTrack={handleTrack}
                 onCardTap={setSheetTask}
-                onAdd={setModalQuadrant}
+                onAdd={(quadrant) => setAddModal({ quadrant })}
               />
             ))}
           </div>
@@ -251,6 +273,8 @@ export default function PriorityMatrixPage({
         />
       )}
 
+      {renderAddedToast()}
+
       <MobileTrackSheet
         task={sheetTask}
         hasActivePlan={activePlanId !== null}
@@ -258,11 +282,18 @@ export default function PriorityMatrixPage({
         onTrack={handleTrack}
       />
       <TaskModal
-        isOpen={modalQuadrant !== null}
-        onClose={() => setModalQuadrant(null)}
-        onSaved={() => setModalQuadrant(null)}
+        isOpen={addModal !== null}
+        onClose={() => setAddModal(null)}
+        onSaved={(quadrant) => {
+          setAddModal(null);
+          // Confirmation toast only for the mobile global add (picker flow) —
+          // desktop's per-quadrant entry shows the new card in place instead.
+          if (addModal?.quadrant === undefined && quadrant) {
+            setToastQuadrant(quadrant);
+          }
+        }}
         mode="adhoc"
-        quadrant={modalQuadrant ?? undefined}
+        quadrant={addModal?.quadrant}
       />
     </DragDropContext>
   );

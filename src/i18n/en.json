@@ -81,7 +81,6 @@
     "subtitle": "One-off things you want to do — not tied to your weekly plan",
     "summary": "<num>{total}</num> total · <num>{tracked}</num> tracking this week",
     "summaryMobile": "{total} total · {tracked} this week",
-    "weekBadge": "Week {week}",
     "hint": "Drag between quadrants to reprioritize · click <arrow></arrow> to track this week",
     "hintNoPlan": "No active plan — <em>Create Plan</em> to track tasks this week",
     "axisImportant": "Important",
@@ -103,6 +102,8 @@
     "sendLabel": "Track this week",
     "closeLabel": "Close",
     "noPlanTooltip": "No active plan yet",
+    "addTaskLabel": "Add priority task",
+    "addedToast": "Added to {quadrant}",
     "dropHint": "{quadrant, select, DO_FIRST {Drop here — mark Urgent & Important} SCHEDULE {Drop here — mark Important} SQUEEZE_IN {Drop here — mark Urgent} MAYBE_LATER {Drop here — mark Maybe Later} other {Drop here}}",
     "sheetPoints": "{points, plural, one {# pt} other {# pts}}"
   },
@@ -127,7 +128,8 @@
     "descriptionPlaceholderAdhoc": "Optional details about this task",
     "descriptionPlaceholderTemplate": "e.g. Focus on dynamic programming and graph problems",
     "sizeLabel": "Size",
-    "sizeWarning": "Consider splitting into smaller tasks"
+    "sizeWarning": "Consider splitting into smaller tasks",
+    "quadrantLabel": "Quadrant"
   },
   "Settings": {
     "title": "Settings",
@@ -147,6 +149,8 @@
     "viewBoardLabel": "View on Board",
     "bannerPrompt": "Need help planning? Let AI suggest task templates based on your goals and history.",
     "bannerButton": "Open AI Assistant",
+    "bannerTitleMobile": "Plan with AI",
+    "bannerSubMobile": "Suggest templates from your goals & history",
     "templateSummary": "<b>{total}</b> {total, plural, one {template} other {templates}} · <b>{newCount}</b> new, <b>{existing}</b> existing",
     "createdSummary": "{total, plural, one {# template} other {# templates}} added · {newCount} new, {existing} existing",
     "previousDraftSummary": "Previous draft ({count, plural, one {# template} other {# templates}})",
@@ -204,6 +208,8 @@
     "editTemplateTitle": "Edit template (title, description, points)",
     "typeLabel": "Type",
     "freqLabel": "Freq",
+    "freqDecrease": "Decrease frequency",
+    "freqIncrease": "Increase frequency",
     "perDayUnit": "/ day",
     "perWeekUnit": "/ week"
   },
