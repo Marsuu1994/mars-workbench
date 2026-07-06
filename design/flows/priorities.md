@@ -61,7 +61,7 @@ User drags a card to a different quadrant (desktop and mobile).
 
 ### Rules
 
-- Requires an `ACTIVE` plan (current-week per the stale-plan guard, enforced server-side too). When none exists (period ended, next plan not yet created), desktop send buttons render disabled with a "No active plan yet" tooltip and the matrix hint bar shows a "No active plan — Create Plan to track tasks this week" notice; the mobile track sheet still opens but its column buttons are disabled with the same note.
+- Requires an `ACTIVE` plan (current-week per the stale-plan guard, enforced server-side too). When none exists (period ended, next plan not yet created), desktop send buttons render disabled with a "No active plan yet" tooltip; the matrix hint bar shows a "No active plan — Create Plan to track tasks this week" notice on **both** breakpoints (the instruction variant of the bar stays desktop-only — this warning is the only case where mobile renders the bar, and its Create Plan link is mobile's only in-page path to plan creation); the mobile track sheet still opens but its column buttons are disabled with the same note.
 - Already-tracked cards cannot be sent again (send button hidden).
 - There is no untrack from the matrix — detaching happens via the Update Plan flow's ad-hoc deselection (`planId = null`, status back to `BACKLOG`; see `design/flows/plan.md`).
 
