@@ -1,7 +1,7 @@
-import { draftPlanResponseSchema } from "@/schemas";
-import type { ActiveChatMessage } from "../types/aiChat";
-import type { NewUiMessage } from "../store/aiPlanChatStore";
-import { MessageRole, MessageType } from "@/utils/enums";
+import {draftPlanResponseSchema} from '@/schemas';
+import type {ActiveChatMessage} from '../types/aiChat';
+import type {NewUiMessage} from '../store/aiPlanChatStore';
+import {MessageRole, MessageType} from '@/utils/enums';
 
 /**
  * Rebuild the client `UiMessage[]` from persisted chat rows so a chat can be
@@ -13,23 +13,25 @@ import { MessageRole, MessageType } from "@/utils/enums";
  */
 export function reconstructMessages(
   messages: ActiveChatMessage[],
-  welcomeChips: string[]
+  welcomeChips: string[],
 ): NewUiMessage[] {
   const result: NewUiMessage[] = [];
   let welcomeSeen = false;
 
   for (const message of messages) {
     if (message.role === MessageRole.USER) {
-      result.push({ role: "user", type: "user", text: message.content });
+      result.push({role: 'user', type: 'user', text: message.content});
       continue;
     }
 
     if (message.role !== MessageRole.ASSISTANT) continue; // ignore system turns
 
     if (message.type === MessageType.DRAFT_PLAN) {
-      const parsed = draftPlanResponseSchema.safeParse(safeJsonParse(message.content));
+      const parsed = draftPlanResponseSchema.safeParse(
+        safeJsonParse(message.content),
+      );
       if (parsed.success) {
-        result.push({ role: "assistant", type: "draft", draft: parsed.data });
+        result.push({role: 'assistant', type: 'draft', draft: parsed.data});
       }
       continue;
     }
@@ -38,13 +40,13 @@ export function reconstructMessages(
     if (!welcomeSeen) {
       welcomeSeen = true;
       result.push({
-        role: "assistant",
-        type: "welcome",
+        role: 'assistant',
+        type: 'welcome',
         text: message.content,
         chips: [...welcomeChips],
       });
     } else {
-      result.push({ role: "assistant", type: "text", text: message.content });
+      result.push({role: 'assistant', type: 'text', text: message.content});
     }
   }
 

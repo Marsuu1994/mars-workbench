@@ -1,11 +1,11 @@
-import { TaskType } from "@/generated/prisma/client";
-import type { PlanTemplateStatRow } from "@/lib/db/tasks";
-import type { OverallStats } from "../types/aiChat";
+import {TaskType} from '@/generated/prisma/client';
+import type {PlanTemplateStatRow} from '@/lib/db/tasks';
+import type {OverallStats} from '../types/aiChat';
 
 /** The subset of per-template fields the overall rollup reads. */
 type RollUpInput = Pick<
   PlanTemplateStatRow,
-  "completed" | "total" | "pointsEarned" | "type"
+  'completed' | 'total' | 'pointsEarned' | 'type'
 >;
 
 /**

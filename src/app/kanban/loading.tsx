@@ -46,8 +46,11 @@ export default function KanbanLoading() {
       {/* Kanban columns skeleton */}
       <div className="flex-1 min-h-0 p-4">
         <div className="grid grid-cols-3 gap-4 h-full">
-          {["Todo", "Doing", "Done"].map((col) => (
-            <div key={col} className="flex flex-col gap-3 bg-base-200/50 rounded-xl p-3">
+          {['Todo', 'Doing', 'Done'].map(col => (
+            <div
+              key={col}
+              className="flex flex-col gap-3 bg-base-200/50 rounded-xl p-3"
+            >
               <div className="skeleton h-5 w-16" />
               <div className="skeleton h-20 w-full rounded-lg" />
               <div className="skeleton h-20 w-full rounded-lg" />

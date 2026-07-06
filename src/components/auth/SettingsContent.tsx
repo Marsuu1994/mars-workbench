@@ -1,29 +1,29 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { ArrowRightStartOnRectangleIcon } from "@heroicons/react/24/outline";
-import { createClient } from "@/lib/supabase/client";
+import {useRouter} from 'next/navigation';
+import {useTranslations} from 'next-intl';
+import {ArrowRightStartOnRectangleIcon} from '@heroicons/react/24/outline';
+import {createClient} from '@/lib/supabase/client';
 
 interface SettingsContentProps {
-  user: { name: string; email: string };
+  user: {name: string; email: string};
 }
 
-export const SettingsContent = ({ user }: SettingsContentProps) => {
+export const SettingsContent = ({user}: SettingsContentProps) => {
   const router = useRouter();
-  const t = useTranslations("Settings");
+  const t = useTranslations('Settings');
 
   const initials = user.name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
+    .split(' ')
+    .map(n => n[0])
+    .join('')
     .toUpperCase()
     .slice(0, 2);
 
   const handleSignOut = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/auth/login");
+    router.push('/auth/login');
   };
 
   return (
@@ -31,7 +31,7 @@ export const SettingsContent = ({ user }: SettingsContentProps) => {
       {/* Header */}
       <div className="px-5 pt-4 pb-3">
         <h1 className="text-lg font-bold">
-          <span className="text-primary">{t("title")}</span>
+          <span className="text-primary">{t('title')}</span>
         </h1>
       </div>
 
@@ -59,10 +59,10 @@ export const SettingsContent = ({ user }: SettingsContentProps) => {
             className="flex items-center justify-center gap-2 w-full p-3.5 bg-error/10 border border-error/25 rounded-xl text-error text-sm font-semibold cursor-pointer transition-colors hover:bg-error/15 hover:border-error"
           >
             <ArrowRightStartOnRectangleIcon className="size-[18px]" />
-            {t("signOut")}
+            {t('signOut')}
           </button>
           <div className="text-center text-[11px] text-base-content/30 pt-2 pb-1">
-            {t("version")}
+            {t('version')}
           </div>
         </div>
       </div>

@@ -1,5 +1,10 @@
-import type { MessageRole, MessageType, TaskSize, TaskType } from "@/generated/prisma/client";
-import type { DraftPlanResponse } from "../schemas";
+import type {
+  MessageRole,
+  MessageType,
+  TaskSize,
+  TaskType,
+} from '@/generated/prisma/client';
+import type {DraftPlanResponse} from '../schemas';
 
 /**
  * Rolled-up stats across all templates of a finished plan. Consumed by the
@@ -64,7 +69,7 @@ export type DraftTemplate = {
  */
 export type ChatMetadata = {
   lastPlanStats?: LastPlanStats;
-  latestDraft?: { description: string; draftTemplates: DraftTemplate[] };
+  latestDraft?: {description: string; draftTemplates: DraftTemplate[]};
 };
 
 /**
@@ -77,13 +82,19 @@ export type ChatMetadata = {
  * - `draft`       — an LLM draft plan; flagged `approved` once committed
  */
 export type UiMessage =
-  | { id: string; role: "user"; type: "user"; text: string }
-  | { id: string; role: "assistant"; type: "welcome"; text: string; chips?: string[] }
-  | { id: string; role: "assistant"; type: "text"; text: string }
+  | {id: string; role: 'user'; type: 'user'; text: string}
   | {
       id: string;
-      role: "assistant";
-      type: "draft";
+      role: 'assistant';
+      type: 'welcome';
+      text: string;
+      chips?: string[];
+    }
+  | {id: string; role: 'assistant'; type: 'text'; text: string}
+  | {
+      id: string;
+      role: 'assistant';
+      type: 'draft';
       draft: DraftPlanResponse;
       approved?: boolean;
     };

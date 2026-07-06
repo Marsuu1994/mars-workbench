@@ -2,13 +2,13 @@
  * Canonical timezone for all kanban date calculations.
  * Ensures consistent "today" regardless of server timezone (UTC on Vercel vs local dev).
  */
-const KANBAN_TZ = "America/Los_Angeles";
+const KANBAN_TZ = 'America/Los_Angeles';
 
-const tzFormatter = new Intl.DateTimeFormat("en-US", {
+const tzFormatter = new Intl.DateTimeFormat('en-US', {
   timeZone: KANBAN_TZ,
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
 });
 
 /**
@@ -17,9 +17,9 @@ const tzFormatter = new Intl.DateTimeFormat("en-US", {
  */
 export function getTodayDate(): Date {
   const parts = tzFormatter.formatToParts(new Date());
-  const year = Number(parts.find((p) => p.type === "year")!.value);
-  const month = Number(parts.find((p) => p.type === "month")!.value) - 1;
-  const day = Number(parts.find((p) => p.type === "day")!.value);
+  const year = Number(parts.find(p => p.type === 'year')!.value);
+  const month = Number(parts.find(p => p.type === 'month')!.value) - 1;
+  const day = Number(parts.find(p => p.type === 'day')!.value);
   return new Date(year, month, day);
 }
 
@@ -46,7 +46,7 @@ export function sameDay(a: Date | null, b: Date): boolean {
  * Parses a periodKey like "2026-W06" and returns the Monday of that ISO week.
  */
 export function getMondayFromPeriodKey(periodKey: string): Date {
-  const [yearStr, weekStr] = periodKey.split("-W");
+  const [yearStr, weekStr] = periodKey.split('-W');
   const year = Number(yearStr);
   const week = Number(weekStr);
 
@@ -63,7 +63,7 @@ export function getMondayFromPeriodKey(periodKey: string): Date {
  * Parses a periodKey like "2026-W06" and returns the week number part ("06").
  */
 export function getWeekNumberFromPeriodKey(periodKey: string): string {
-  return periodKey.split("-W")[1];
+  return periodKey.split('-W')[1];
 }
 
 /**
@@ -77,7 +77,10 @@ export function getWeekDateRange(periodKey: string): string {
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
 
-  const fmt = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
+  const fmt = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
   const monStr = fmt.format(monday);
   const sunStr = fmt.format(sunday);
 
@@ -113,11 +116,11 @@ export function normalizeForDate(date: Date): Date {
  * display the correct calendar date regardless of the client's local offset.
  */
 export function formatShortDate(date: Date): string {
-  return new Date(date).toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC",
+  return new Date(date).toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
   });
 }
 
@@ -161,7 +164,7 @@ export function getISOWeekKey(date: Date): string {
   d.setDate(d.getDate() + 4 - (d.getDay() || 7));
   const yearStart = new Date(d.getFullYear(), 0, 1);
   const weekNo = Math.ceil(
-    ((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7
+    ((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7,
   );
-  return `${d.getFullYear()}-W${String(weekNo).padStart(2, "0")}`;
+  return `${d.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
 }

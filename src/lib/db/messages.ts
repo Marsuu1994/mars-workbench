@@ -1,5 +1,5 @@
-import prisma from "@/lib/prisma";
-import { MessageRole, MessageType } from "@/generated/prisma/client";
+import prisma from '@/lib/prisma';
+import {MessageRole, MessageType} from '@/generated/prisma/client';
 
 // Serialized message (BigInt id -> string for client transport).
 export type MessageItem = {
@@ -27,16 +27,18 @@ const messageSelect = {
 } as const;
 
 function serializeMessage(msg: MessageRaw): MessageItem {
-  return { ...msg, id: msg.id.toString() };
+  return {...msg, id: msg.id.toString()};
 }
 
 /**
  * Get all messages for a chat, ordered by creation time (LLM conversation history).
  */
-export async function getMessagesByChatId(chatId: string): Promise<MessageItem[]> {
+export async function getMessagesByChatId(
+  chatId: string,
+): Promise<MessageItem[]> {
   const messages = await prisma.message.findMany({
-    where: { chatId },
-    orderBy: { createdAt: "asc" },
+    where: {chatId},
+    orderBy: {createdAt: 'asc'},
     select: messageSelect,
   });
   return messages.map(serializeMessage);
@@ -62,8 +64,8 @@ export async function createMessage(data: {
   });
 
   await prisma.chat.update({
-    where: { id: data.chatId },
-    data: { updatedAt: new Date() },
+    where: {id: data.chatId},
+    data: {updatedAt: new Date()},
   });
 
   return serializeMessage(message);

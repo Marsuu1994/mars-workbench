@@ -1,11 +1,11 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @plugin "daisyui" {
   themes: all;
 }
 
 /* ── Mars Dark ─────────────────────────────────────────────── */
 @plugin "daisyui/theme" {
-  name: "mars-dark";
+  name: 'mars-dark';
   default: true;
   color-scheme: dark;
 
@@ -43,7 +43,7 @@
 
 /* ── Mars Light ────────────────────────────────────────────── */
 @plugin "daisyui/theme" {
-  name: "mars-light";
+  name: 'mars-light';
   color-scheme: light;
 
   --color-base-100: #ffffff;
@@ -88,7 +88,11 @@
 }
 
 body {
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-family:
+    var(--font-geist-sans),
+    system-ui,
+    -apple-system,
+    sans-serif;
 }
 
 .textarea-ghost:focus {
@@ -105,7 +109,7 @@ body {
 }
 
 /* ── Login page theme-aware decorations ── */
-[data-theme="mars-dark"] {
+[data-theme='mars-dark'] {
   --login-grid-color: rgba(224, 224, 236, 0.02);
   --login-glow-cyan: rgba(0, 212, 240, 0.06);
   --login-glow-purple: rgba(168, 85, 247, 0.04);
@@ -113,7 +117,7 @@ body {
   --login-btn-hover-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
 }
 
-[data-theme="mars-light"] {
+[data-theme='mars-light'] {
   --login-grid-color: rgba(26, 26, 46, 0.04);
   --login-glow-cyan: rgba(8, 145, 178, 0.08);
   --login-glow-purple: rgba(124, 58, 237, 0.06);
@@ -127,11 +131,13 @@ body {
 
 @keyframes glow {
   0% {
-    box-shadow: 0 0 40px rgba(0, 212, 240, 0.15),
+    box-shadow:
+      0 0 40px rgba(0, 212, 240, 0.15),
       0 0 80px rgba(168, 85, 247, 0.08);
   }
   100% {
-    box-shadow: 0 0 50px rgba(0, 212, 240, 0.22),
+    box-shadow:
+      0 0 50px rgba(0, 212, 240, 0.22),
       0 0 100px rgba(168, 85, 247, 0.12);
   }
 }
@@ -153,5 +159,10 @@ body {
 }
 
 /* ── Scrollbar hide (mobile horizontal scroll) ── */
-.scrollbar-hide::-webkit-scrollbar { display: none; }
-.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
