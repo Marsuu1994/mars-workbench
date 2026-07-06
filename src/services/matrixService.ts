@@ -16,8 +16,7 @@ export type MatrixData = {
 };
 
 export type TrackTaskResult =
-  | {task: TaskItem}
-  | {error: 'noActivePlan' | 'taskNotFound'};
+  {task: TaskItem} | {error: 'noActivePlan' | 'taskNotFound'};
 
 export async function fetchPriorityMatrix(userId: string): Promise<MatrixData> {
   // ensureSynced flips an ended ACTIVE plan to PENDING_UPDATE (same lifecycle

@@ -4,7 +4,7 @@ The app-wide visual language. Source of truth for tokens, the FX utility layer, 
 
 ## Concept
 
-Your week is a flight plan; the app is the console you fly it from. **mars-dark** is a night ops deck: near-black blue console panels over a faint holographic grid, phosphor-cyan telemetry as the primary voice, mars signal-orange for targeting (drag & drop), violet for the AI channel. **mars-light** is the same room on the daylight shift: cool paper-white consoles with the identical seven signal hues driven deeper so the identity survives at full brightness.
+Your week is a flight plan; the app is the console you fly it from. **mars-dark** is a night ops deck: near-black blue console panels over a faint telemetry dot-field, phosphor-cyan telemetry as the primary voice, mars signal-orange for targeting (drag & drop), violet for the AI channel. **mars-light** is **dawn on Mars** — deliberately not a white theme: warm sunlit-sand consoles, cool space-ink text, the identical seven signal hues driven deep so the identity survives daylight.
 
 Two rules carry the identity:
 
@@ -32,22 +32,22 @@ Seven OKLCH hue-wheel stops (25 error · 55 accent · 85 warning · 155 success 
 
 Every signal color is **body-text grade (≥ 4.5:1)** on base-100 and base-200. All pairs AAA (≥ 7:1).
 
-### mars-light (daylight ops)
+### mars-light (dawn on Mars)
 
 | Token | OKLCH | ≈ Hex | Pair contrast |
 | --- | --- | --- | --- |
-| base-100 / 200 / 300 | 0.985/0.955/0.915 H240 | `#f7fbfd` `#eaf1f6` `#dae5ec` | base-content ≥ 12.8:1 |
+| base-100 / 200 / 300 (sand) | 0.955/0.925/0.885 H≈78 | `#f7efe3` `#efe5d5` `#e5d7c4` | base-content ≥ 11.6:1 |
 | base-content (space ink) | 0.24 0.032 265 | `#181f2f` | — |
-| primary | 0.52 0.09 215 | `#097689` | 5.1 |
-| secondary | 0.5 0.185 295 | `#6e43bf` | 6.3 |
-| accent | 0.57 0.14 50 | `#b65a18` | 4.5 |
-| info | 0.52 0.115 240 | `#0d70a4` | 5.2 |
-| success | 0.52 0.13 152 | `#137d41` | 5.0 |
-| warning (bronze) | 0.5 0.1 75 | `#845a0f` | 5.9 |
-| error | 0.55 0.185 25 | `#c73335` | 5.1 |
-| neutral | 0.35 0.04 265 | `#303a50` | 10.4 |
+| primary | 0.5 0.085 215 | `#0e6f81` | 5.4 |
+| secondary | 0.5 0.185 295 | `#6e43bf` | 6.1 |
+| accent (rust) | 0.54 0.14 50 | `#ac5107` | 5.0 |
+| info | 0.5 0.115 240 | `#006a9e` | 5.5 |
+| success | 0.5 0.13 152 | `#05773b` | 5.3 |
+| warning (bronze) | 0.49 0.1 75 | `#815709` | 6.0 |
+| error | 0.53 0.19 25 | `#c2272d` | 5.4 |
+| neutral (mars rock) | 0.34 0.045 55 | `#4a3221` | 10.9 |
 
-Light warning is deliberately a deep bronze so `text-warning` (star points, at-risk labels) stays **body-text grade on white** — the old amber failed AA in three components. **Constraint to preserve:** light accent on base-200 is 4.13:1 — icon/large-text grade only; don't use `text-accent` for small body copy on base-200 surfaces.
+The light theme is intentionally sand-warm, not white — the "dawn shift" of the same console. Warning stays a deep bronze so `text-warning` (star points, at-risk labels) is **body-text grade on the sand bases** (the pre-redesign amber failed AA in three components). **Constraint to preserve:** light accent on base-200 is 4.27:1 — icon/large-text grade only; don't use `text-accent` for small body copy on base-200 surfaces.
 
 ## FX utility layer (`fx-*`)
 
@@ -55,7 +55,7 @@ All utilities derive colors from daisyUI tokens via `color-mix()`, so both theme
 
 | Utility | Use | Where it's applied |
 | --- | --- | --- |
-| `fx-shell-bg` | Holographic grid + 4-corner horizon blooms; paint once on a non-scrolling wrapper | `AppShell`, `/design` gallery |
+| `fx-shell-bg` | 4-corner horizon blooms + telemetry dot lattice (fine 24px field + sparse 96px "stars"; mobile keeps only the sparse layer); paint once on a non-scrolling wrapper | `AppShell`, `/design` gallery |
 | `fx-chrome` / `fx-chrome-glass` | Chrome slab (always solid) / chrome that may blur. The dock stays solid — it floats over a scrolling board, where backdrop blur re-filters every frame; the sidebar's backdrop is static, so glass is cheap there | dock (solid), sidebar (glass) |
 | `fx-panel` / `fx-panel-solid` | Console panel (glass / no-blur). Glass is for stationary chrome only — never in scroll containers | modals |
 | `fx-corners` | Targeting-reticle corner brackets (inset 2px to clear the radius) | task modal, gallery specimens |
@@ -68,7 +68,7 @@ All utilities derive colors from daisyUI tokens via `color-mix()`, so both theme
 | `fx-led` (+`fx-led-pulse`) | Status LED dot from `currentColor` | column status, quadrant headers, AI live |
 | `fx-rule` / `fx-hairline-top` | Luminous gradient hairlines (single / multi-hue top edge) | dock top edge, AI modal header |
 | `fx-holo` | Conic holo border — the AI thinking/live state | `LoadingBubble` |
-| `fx-orbit` | Rotating conic tail behind the progress ring — event-driven (spins ~4s after progress changes, then the compositor idles); the ring's halo is a static SVG under-circle, not a CSS filter | `ProgressDashboard` |
+| `fx-orbit` | Rotating conic tail behind the progress ring — continuous by deliberate product choice (transform-only on a tiny masked layer; reduced-motion disables it); the ring's halo is a static SVG under-circle, not a CSS filter | `ProgressDashboard` |
 | `fx-glow-pulse` | Breathing brand halo — pre-composited shadow on a pseudo-element, opacity-only loop | login `BrandIcon` |
 | `fx-text-gradient` | Cyan→violet headline gradient. Restraint rule: first word only | gallery title, login "Mars" |
 | `fx-boot-in` | 420ms mount animation (rise + scale + fade) | modals |

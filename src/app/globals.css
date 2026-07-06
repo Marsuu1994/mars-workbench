@@ -19,10 +19,10 @@
    Contrast (WCAG, verified numerically — see design/design-system.md):
    · mars-dark: every X/X-content pair ≥ 7:1 (AAA); every signal color
      is body-text grade (≥ 4.5:1) on base-100 and base-200.
-   · mars-light: every pair ≥ 4.5:1; signal colors are body-text grade
-     on base-100. Exception: accent on base-200 is 4.13:1 — icon/large-
-     text grade only there; never use text-accent for small body copy
-     on base-200 surfaces.
+   · mars-light ("dawn on Mars" — warm sand, not white): every pair
+     ≥ 4.9:1; signal colors are body-text grade on base-100. Exception:
+     accent on base-200 is 4.27:1 — icon/large-text grade only there;
+     never use text-accent for small body copy on base-200 surfaces.
    ═══════════════════════════════════════════════════════════════════ */
 
 /* ── Mars Dark — night ops deck ────────────────────────────────── */
@@ -66,36 +66,39 @@
   --noise: 0;
 }
 
-/* ── Mars Light — daylight ops room ────────────────────────────── */
+/* ── Mars Light — dawn on Mars ─────────────────────────────────────
+   Not a white theme: warm sand consoles under a rising sun, cool
+   space ink for text, the same seven signal hues driven deep. All
+   values re-verified against the sand bases (see design doc).       */
 @plugin "daisyui/theme" {
   name: 'mars-light';
   color-scheme: light;
 
-  --color-base-100: oklch(0.985 0.005 240); /* console paper */
-  --color-base-200: oklch(0.955 0.01 240); /* room wall */
-  --color-base-300: oklch(0.915 0.015 240); /* inset tray */
+  --color-base-100: oklch(0.955 0.018 80); /* sunlit sand   #f7efe3 */
+  --color-base-200: oklch(0.925 0.024 78); /* dune floor    #efe5d5 */
+  --color-base-300: oklch(0.885 0.03 76); /* dune shadow   #e5d7c4 */
   --color-base-content: oklch(0.24 0.032 265); /* space ink */
 
-  --color-primary: oklch(0.52 0.09 215); /* deep phosphor cyan */
-  --color-primary-content: oklch(0.985 0.005 210);
+  --color-primary: oklch(0.5 0.085 215); /* deep phosphor cyan */
+  --color-primary-content: oklch(0.975 0.01 90);
   --color-secondary: oklch(0.5 0.185 295); /* telemetry violet */
-  --color-secondary-content: oklch(0.985 0.005 295);
-  --color-accent: oklch(0.57 0.14 50); /* mars signal orange */
-  --color-accent-content: oklch(0.985 0.005 50);
+  --color-secondary-content: oklch(0.975 0.008 295);
+  --color-accent: oklch(0.54 0.14 50); /* mars signal rust */
+  --color-accent-content: oklch(0.975 0.01 60);
 
-  --color-neutral: oklch(0.35 0.04 265); /* slate console slab */
-  --color-neutral-content: oklch(0.97 0.008 240);
+  --color-neutral: oklch(0.34 0.045 55); /* mars-rock slab */
+  --color-neutral-content: oklch(0.97 0.012 80);
 
-  --color-info: oklch(0.52 0.115 240); /* datalink blue */
-  --color-info-content: oklch(0.985 0.005 240);
-  --color-success: oklch(0.52 0.13 152); /* go-green */
-  --color-success-content: oklch(0.985 0.005 152);
+  --color-info: oklch(0.5 0.115 240); /* datalink blue */
+  --color-info-content: oklch(0.975 0.008 240);
+  --color-success: oklch(0.5 0.13 152); /* go-green */
+  --color-success-content: oklch(0.975 0.008 152);
   --color-warning: oklch(
-    0.5 0.1 75
-  ); /* bronze caution — body-text grade on white */
-  --color-warning-content: oklch(0.985 0.008 75);
-  --color-error: oklch(0.55 0.185 25); /* abort red */
-  --color-error-content: oklch(0.985 0.005 25);
+    0.49 0.1 75
+  ); /* bronze caution — body-text grade on sand */
+  --color-warning-content: oklch(0.98 0.012 80);
+  --color-error: oklch(0.53 0.19 25); /* abort red */
+  --color-error-content: oklch(0.975 0.008 25);
 
   --radius-selector: 0.25rem;
   --radius-field: 0.375rem;
@@ -125,12 +128,8 @@ body {
    ═══════════════════════════════════════════════════════════════════ */
 
 [data-theme='mars-dark'] {
-  --fx-grid-line: color-mix(in oklab, var(--color-primary) 6%, transparent);
-  --fx-grid-line-major: color-mix(
-    in oklab,
-    var(--color-primary) 11%,
-    transparent
-  );
+  --fx-dot: color-mix(in oklab, var(--color-primary) 18%, transparent);
+  --fx-dot-bright: color-mix(in oklab, var(--color-primary) 34%, transparent);
   --fx-bloom-1: color-mix(in oklab, var(--color-primary) 14%, transparent);
   --fx-bloom-2: color-mix(in oklab, var(--color-secondary) 12%, transparent);
   --fx-bloom-3: color-mix(in oklab, var(--color-accent) 9%, transparent);
@@ -170,20 +169,14 @@ body {
 }
 
 [data-theme='mars-light'] {
-  --fx-grid-line: color-mix(
-    in oklab,
-    var(--color-base-content) 5%,
-    transparent
-  );
-  --fx-grid-line-major: color-mix(
-    in oklab,
-    var(--color-base-content) 9%,
-    transparent
-  );
-  --fx-bloom-1: color-mix(in oklab, var(--color-primary) 10%, transparent);
-  --fx-bloom-2: color-mix(in oklab, var(--color-secondary) 8%, transparent);
-  --fx-bloom-3: color-mix(in oklab, var(--color-accent) 6%, transparent);
-  --fx-bloom-4: color-mix(in oklab, var(--color-info) 6%, transparent);
+  /* Dawn mode: dots stay whisper-quiet; the warmth comes from the
+     sand bases and richer blooms, not from pattern density. */
+  --fx-dot: color-mix(in oklab, var(--color-base-content) 9%, transparent);
+  --fx-dot-bright: color-mix(in oklab, var(--color-accent) 22%, transparent);
+  --fx-bloom-1: color-mix(in oklab, var(--color-primary) 12%, transparent);
+  --fx-bloom-2: color-mix(in oklab, var(--color-secondary) 10%, transparent);
+  --fx-bloom-3: color-mix(in oklab, var(--color-accent) 10%, transparent);
+  --fx-bloom-4: color-mix(in oklab, var(--color-info) 8%, transparent);
   --fx-bracket: color-mix(in oklab, var(--color-primary) 55%, transparent);
   --fx-panel-bg: color-mix(in oklab, var(--color-base-100) 82%, transparent);
   --fx-panel-bg-solid: var(--color-base-100);
@@ -216,9 +209,11 @@ body {
    utility (text-primary, text-[9px], …) can override their
    properties, same as daisyUI component classes.                     */
 @layer components {
-  /* ── Shell background: horizon blooms + holographic grid ──
+  /* ── Shell background: horizon blooms + telemetry dot lattice ──
    Apply to the fixed-height app shell wrapper (children scroll, the
-   background paints once). Blooms anchor all four viewport corners. */
+   background paints once). Blooms anchor all four viewport corners;
+   the dot field replaces the earlier line grid (calmer, no moiré) —
+   a fine 24px lattice plus a sparse 96px "star" layer for depth.    */
   .fx-shell-bg {
     position: relative;
     isolation: isolate;
@@ -235,29 +230,31 @@ body {
       radial-gradient(55% 38% at 88% 0%, var(--fx-bloom-2), transparent 65%),
       radial-gradient(45% 30% at 8% 4%, var(--fx-bloom-3), transparent 65%),
       radial-gradient(60% 34% at 82% 104%, var(--fx-bloom-4), transparent 65%);
-    --_grid-major:
-      repeating-linear-gradient(
-        0deg,
-        var(--fx-grid-line-major) 0 1px,
-        transparent 1px 120px
-      ),
-      repeating-linear-gradient(
-        90deg,
-        var(--fx-grid-line-major) 0 1px,
-        transparent 1px 120px
-      );
-    --_grid-minor:
-      repeating-linear-gradient(
-        0deg,
-        var(--fx-grid-line) 0 1px,
-        transparent 1px 24px
-      ),
-      repeating-linear-gradient(
-        90deg,
-        var(--fx-grid-line) 0 1px,
-        transparent 1px 24px
-      );
-    background-image: var(--_blooms), var(--_grid-minor), var(--_grid-major);
+    --_dots-fine: radial-gradient(
+      circle,
+      var(--fx-dot) 0 1px,
+      transparent 1.5px
+    );
+    --_dots-star: radial-gradient(
+      circle,
+      var(--fx-dot-bright) 0 1.5px,
+      transparent 2.5px
+    );
+    background-image: var(--_blooms), var(--_dots-fine), var(--_dots-star);
+    background-size:
+      auto,
+      auto,
+      auto,
+      auto,
+      24px 24px,
+      96px 96px;
+    background-position:
+      0 0,
+      0 0,
+      0 0,
+      0 0,
+      12px 12px,
+      36px 60px;
     -webkit-mask-image: linear-gradient(
       to bottom,
       black 0%,
@@ -271,10 +268,22 @@ body {
       transparent 100%
     );
   }
-  /* Mobile: drop the 24px minor grid (moiré risk on fractional-DPR screens) */
+  /* Mobile: keep only the sparse star layer (small screens stay calm) */
   @media (max-width: 767px) {
     .fx-shell-bg::before {
-      background-image: var(--_blooms), var(--_grid-major);
+      background-image: var(--_blooms), var(--_dots-star);
+      background-size:
+        auto,
+        auto,
+        auto,
+        auto,
+        96px 96px;
+      background-position:
+        0 0,
+        0 0,
+        0 0,
+        0 0,
+        36px 60px;
     }
   }
 
@@ -540,9 +549,9 @@ body {
       black 96%,
       transparent 100%
     );
-    /* Finite spin (~4s), restarted by a key remount on progress change —
-     the compositor idles once the celebration ends */
-    animation: fx-orbit 1.3s linear 3;
+    /* Continuous heartbeat by design decision (transform-only, tiny
+     masked layer); reduced-motion turns it off */
+    animation: fx-orbit 2s linear infinite;
   }
 
   /* ── Gradient headline text (restraint rule: first word only) ── */

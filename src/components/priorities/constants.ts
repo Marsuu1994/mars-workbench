@@ -20,10 +20,7 @@ interface QuadrantConfig {
   bloomClass: string;
   /** Static i18n key for the header sublabel (Maybe Later has none) */
   sublabelKey:
-    | 'sublabelDoFirst'
-    | 'sublabelSchedule'
-    | 'sublabelSqueezeIn'
-    | null;
+    'sublabelDoFirst' | 'sublabelSchedule' | 'sublabelSqueezeIn' | null;
 }
 
 export const QUADRANT_CONFIG: Record<PriorityQuadrant, QuadrantConfig> = {
