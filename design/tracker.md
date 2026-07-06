@@ -58,7 +58,14 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### Medium
 
-- [ ] Refine the component gallery page (`/design`) — add remaining primitives (BoardColumn, TemplateItem, task-modal pieces), polish grouping/layout, and consider per-variant controls
+- [ ] Design-system layer (`src/components/ui/`) on top of daisyUI — full proposal in `design/design-system.md`; phases below merge independently
+  - Phase 1: foundations — `ui/` folder, `Pill`, tailwind-merge, type/radius tokens, gallery entries
+  - Phase 2: badge family — InstanceBadge / RiskBadge / RolloverTag / riskBorderClass (~30 call sites); SizeChip + TaskTypeBadge onto Pill
+  - Phase 3: bottom sheets — `useDialogSync` + `BottomSheet`; migrate MobileTrackSheet, MobileBacklogSheet
+  - Phase 4: modal shells — OverlayShell for TaskModal / ReviewChangesModal / AiPlanChatModal; explicit `dismissOnBackdrop`
+  - Phase 5: form kit — FieldRow / ChoicePills / Stepper / SubmitButton; refactor TaskModal + PlanForm; delete dead IconNumberField
+  - Phase 6: content blocks — StatBlock / ProgressBar / EmptyState / SectionLabel; align loading skeletons
+- [ ] Refine the component gallery page (`/design`) — add remaining primitives (BoardColumn, TemplateItem, task-modal pieces), polish grouping/layout, and consider per-variant controls; gallery doubles as the design-system acceptance spec (see `design/design-system.md`)
 
 ### Future
 
