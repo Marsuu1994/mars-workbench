@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { usePathname } from "next/navigation";
-import { AppSidebar } from "./AppSidebar";
-import { BottomTabBar } from "./BottomTabBar";
+import {usePathname} from 'next/navigation';
+import {AppSidebar} from './AppSidebar';
+import {BottomTabBar} from './BottomTabBar';
 
 interface AppShellProps {
-  user: { name: string; email: string } | null;
+  user: {name: string; email: string} | null;
   activePlanId: string | null;
   children: React.ReactNode;
 }
 
 /** Route prefixes that render without the app sidebar / bottom tab bar. */
-const CHROMELESS_PREFIXES = ["/design"];
+const CHROMELESS_PREFIXES = ['/design'];
 
 /**
  * Routes whose page owns all scrolling, so <main> must not be a scroll
@@ -20,19 +20,21 @@ const CHROMELESS_PREFIXES = ["/design"];
  * @hello-pangea/dnd Droppables support only one scroll parent. The plans
  * layout keeps its header fixed and scrolls the form body itself.
  */
-const SELF_SCROLLING_ROUTES = ["/kanban", "/kanban/priorities"];
-const SELF_SCROLLING_PREFIXES = ["/kanban/plans"];
+const SELF_SCROLLING_ROUTES = ['/kanban', '/kanban/priorities'];
+const SELF_SCROLLING_PREFIXES = ['/kanban/plans'];
 
 /**
  * Wraps page content in the app shell (sidebar + bottom tab bar), except on
  * routes listed in CHROMELESS_PREFIXES, which render standalone.
  */
-export const AppShell = ({ user, activePlanId, children }: AppShellProps) => {
+export const AppShell = ({user, activePlanId, children}: AppShellProps) => {
   const pathname = usePathname();
-  const isChromeless = CHROMELESS_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  const isChromeless = CHROMELESS_PREFIXES.some(prefix =>
+    pathname.startsWith(prefix),
+  );
   const isSelfScrolling =
     SELF_SCROLLING_ROUTES.includes(pathname) ||
-    SELF_SCROLLING_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+    SELF_SCROLLING_PREFIXES.some(prefix => pathname.startsWith(prefix));
 
   if (isChromeless) {
     return <>{children}</>;
@@ -45,7 +47,7 @@ export const AppShell = ({ user, activePlanId, children }: AppShellProps) => {
           4rem + env(safe-area-inset-bottom) — see .dock in daisyUI. */}
       <main
         className={`flex-1 min-w-0 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0 ${
-          isSelfScrolling ? "overflow-hidden" : "overflow-auto"
+          isSelfScrolling ? 'overflow-hidden' : 'overflow-auto'
         }`}
       >
         {children}

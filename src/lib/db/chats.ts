@@ -1,5 +1,5 @@
-import prisma from "@/lib/prisma";
-import { Prisma } from "@/generated/prisma/client";
+import prisma from '@/lib/prisma';
+import {Prisma} from '@/generated/prisma/client';
 
 // Minimal chat record used by the kanban AI plan-creation flow.
 export type ChatRecord = {
@@ -40,10 +40,10 @@ export async function createChat(data: {
  */
 export async function getChatById(
   userId: string,
-  chatId: string
+  chatId: string,
 ): Promise<ChatRecord | null> {
   return prisma.chat.findFirst({
-    where: { id: chatId, userId },
+    where: {id: chatId, userId},
     select: chatSelect,
   });
 }
@@ -51,14 +51,21 @@ export async function getChatById(
 /**
  * Find the user's most recent in-progress AI chat — one not yet linked to a
  * plan (`planId` null). Approval sets `planId`, so this returns the active
- * draft conversation to resume, or null if there is none.
+ * draft conversation to resume, or null if there is none. `since` bounds the
+ * search to chats created on/after that instant (the caller scopes resume to
+ * the current period so a stale prior-period chat can't be resumed).
  */
 export async function getLatestInProgressChat(
-  userId: string
+  userId: string,
+  since?: Date,
 ): Promise<ChatRecord | null> {
   return prisma.chat.findFirst({
-    where: { userId, planId: null },
-    orderBy: { createdAt: "desc" },
+    where: {
+      userId,
+      planId: null,
+      ...(since ? {createdAt: {gte: since}} : {}),
+    },
+    orderBy: {createdAt: 'desc'},
     select: chatSelect,
   });
 }
@@ -69,11 +76,11 @@ export async function getLatestInProgressChat(
  */
 export async function updateChatMetadata(
   chatId: string,
-  metadata: Prisma.InputJsonValue
+  metadata: Prisma.InputJsonValue,
 ): Promise<void> {
   await prisma.chat.update({
-    where: { id: chatId },
-    data: { metadata },
+    where: {id: chatId},
+    data: {metadata},
   });
 }
 
@@ -83,11 +90,11 @@ export async function updateChatMetadata(
 export async function updateChatPlanId(
   chatId: string,
   planId: string,
-  tx?: Prisma.TransactionClient
+  tx?: Prisma.TransactionClient,
 ): Promise<void> {
   const db = tx ?? prisma;
   await db.chat.update({
-    where: { id: chatId },
-    data: { planId },
+    where: {id: chatId},
+    data: {planId},
   });
 }

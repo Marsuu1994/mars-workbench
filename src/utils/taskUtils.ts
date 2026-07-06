@@ -1,10 +1,10 @@
-import type { TaskItem } from "@/lib/db/tasks";
-import { TaskStatus, TaskType as TaskTypeEnum } from "@/utils/enums";
-import { normalizeForDate } from "@/utils/dateUtils";
+import type {TaskItem} from '@/lib/db/tasks';
+import {TaskStatus, TaskType as TaskTypeEnum} from '@/utils/enums';
+import {normalizeForDate} from '@/utils/dateUtils';
 
 // ─── Risk Level ────────────────────────────────────────────────────────────
 
-export type RiskLevel = "normal" | "warning" | "danger";
+export type RiskLevel = 'normal' | 'warning' | 'danger';
 
 /**
  * Build a per-template progress map from all board tasks.
@@ -12,12 +12,12 @@ export type RiskLevel = "normal" | "warning" | "danger";
  * for weekly risk calculations.
  */
 export function computeTemplateProgress(
-  tasks: TaskItem[]
-): Map<string, { done: number; doing: number }> {
-  const map = new Map<string, { done: number; doing: number }>();
+  tasks: TaskItem[],
+): Map<string, {done: number; doing: number}> {
+  const map = new Map<string, {done: number; doing: number}>();
   for (const task of tasks) {
     if (!task.templateId) continue;
-    const entry = map.get(task.templateId) ?? { done: 0, doing: 0 };
+    const entry = map.get(task.templateId) ?? {done: 0, doing: 0};
     if (task.status === TaskStatus.DONE) entry.done += 1;
     else if (task.status === TaskStatus.DOING) entry.doing += 1;
     map.set(task.templateId, entry);
@@ -39,11 +39,11 @@ export function computeRiskLevel(
   currentHour: number,
   daysElapsed: number,
   templateFreqMap: Map<string, number>,
-  templateProgressMap: Map<string, { done: number; doing: number }>
+  templateProgressMap: Map<string, {done: number; doing: number}>,
 ): RiskLevel {
   // DONE and EXPIRED tasks never carry risk
   if (task.status === TaskStatus.DONE || task.status === TaskStatus.EXPIRED) {
-    return "normal";
+    return 'normal';
   }
 
   // Backlog tasks are staged but not yet started — treat them as TODO for risk,
@@ -57,12 +57,12 @@ export function computeRiskLevel(
       const daysSinceCreation = Math.floor(msElapsed / 86400000);
 
       if (status === TaskStatus.TODO) {
-        if (daysSinceCreation >= 8) return "danger";
-        if (daysSinceCreation >= 5) return "warning";
+        if (daysSinceCreation >= 8) return 'danger';
+        if (daysSinceCreation >= 5) return 'warning';
       } else if (status === TaskStatus.DOING) {
-        if (daysSinceCreation >= 8) return "warning";
+        if (daysSinceCreation >= 8) return 'warning';
       }
-      return "normal";
+      return 'normal';
     }
 
     case TaskTypeEnum.DAILY: {
@@ -71,20 +71,20 @@ export function computeRiskLevel(
 
       if (isRollover) {
         if (status === TaskStatus.TODO) {
-          return currentHour < 15 ? "warning" : "danger";
+          return currentHour < 15 ? 'warning' : 'danger';
         }
         // DOING rollover → warning regardless of time; never danger
-        return "warning";
+        return 'warning';
       } else {
         // Fresh daily task (forDate = today)
-        return currentHour >= 20 ? "warning" : "normal";
+        return currentHour >= 20 ? 'warning' : 'normal';
       }
     }
 
     case TaskTypeEnum.WEEKLY: {
       const progress = task.templateId
-        ? (templateProgressMap.get(task.templateId) ?? { done: 0, doing: 0 })
-        : { done: 0, doing: 0 };
+        ? (templateProgressMap.get(task.templateId) ?? {done: 0, doing: 0})
+        : {done: 0, doing: 0};
       const frequency = task.templateId
         ? (templateFreqMap.get(task.templateId) ?? 1)
         : 1;
@@ -92,18 +92,21 @@ export function computeRiskLevel(
       const remainingDays = 7 - daysElapsed;
 
       if (status === TaskStatus.TODO) {
-        if (daysElapsed >= 5 || remainingDays < remainingTasks * 1) return "danger";
-        if (daysElapsed >= 3 || remainingDays < remainingTasks * 2) return "warning";
-        return "normal";
+        if (daysElapsed >= 5 || remainingDays < remainingTasks * 1)
+          return 'danger';
+        if (daysElapsed >= 3 || remainingDays < remainingTasks * 2)
+          return 'warning';
+        return 'normal';
       }
 
       // DOING — never danger
-      if (daysElapsed >= 5 || remainingDays < remainingTasks * 1) return "warning";
-      return "normal";
+      if (daysElapsed >= 5 || remainingDays < remainingTasks * 1)
+        return 'warning';
+      return 'normal';
     }
 
     default:
-      return "normal";
+      return 'normal';
   }
 }
 
@@ -128,7 +131,7 @@ export function isRolloverTask(task: TaskItem, today: Date): boolean {
  */
 export function getTaskFrequency(
   task: TaskItem,
-  templateFreqMap: Map<string, number>
+  templateFreqMap: Map<string, number>,
 ): number {
   return task.templateId ? (templateFreqMap.get(task.templateId) ?? 1) : 1;
 }
@@ -182,8 +185,8 @@ export function sortTasks(tasks: TaskItem[], today: Date): TaskItem[] {
 
     // Keep same-template groups contiguous even when ranks tie (batch-generated
     // instances can share a createdAt), then order by instance index within.
-    const ta = a.templateId ?? "";
-    const tb = b.templateId ?? "";
+    const ta = a.templateId ?? '';
+    const tb = b.templateId ?? '';
     if (ta !== tb) return ta.localeCompare(tb);
     if (a.instanceIndex !== b.instanceIndex) {
       return a.instanceIndex - b.instanceIndex;
@@ -212,7 +215,7 @@ type BoardStatus =
  */
 export function groupAndSortTasks(
   tasks: TaskItem[],
-  today: Date
+  today: Date,
 ): Record<BoardStatus, TaskItem[]> {
   const grouped: Record<BoardStatus, TaskItem[]> = {
     [TaskStatus.BACKLOG]: [],

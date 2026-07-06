@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import {redirect} from 'next/navigation';
+import {createClient} from '@/lib/supabase/server';
 
 /**
  * Resolve the authenticated user's id for use in the data layer.
@@ -15,11 +15,11 @@ import { createClient } from "@/lib/supabase/server";
 export async function getCurrentUserId(): Promise<string> {
   const supabase = await createClient();
   const {
-    data: { user },
+    data: {user},
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth/login");
+    redirect('/auth/login');
   }
 
   return user.id;

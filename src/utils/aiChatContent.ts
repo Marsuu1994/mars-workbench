@@ -7,13 +7,13 @@
  * `AiChat.welcomeNew` / `AiChat.welcomeReturning` at those call sites.
  */
 export const NEW_USER_CHIP_KEYS = [
-  "chipNewInterviews",
-  "chipNewFitness",
-  "chipNewSkill",
+  'chipNewInterviews',
+  'chipNewFitness',
+  'chipNewSkill',
 ] as const;
 
 export const RETURNING_USER_CHIP_KEYS = [
-  "chipReturningKeep",
-  "chipReturningAdjust",
-  "chipReturningTry",
+  'chipReturningKeep',
+  'chipReturningAdjust',
+  'chipReturningTry',
 ] as const;

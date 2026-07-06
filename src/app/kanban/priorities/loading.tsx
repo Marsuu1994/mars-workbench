@@ -26,8 +26,11 @@ export default function PrioritiesLoading() {
 
       {/* 2×2 matrix skeleton */}
       <div className="flex-1 min-h-0 grid grid-cols-2 grid-rows-2 gap-px p-px">
-        {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="flex flex-col gap-2 border border-base-content/10 p-4">
+        {[0, 1, 2, 3].map(i => (
+          <div
+            key={i}
+            className="flex flex-col gap-2 border border-base-content/10 p-4"
+          >
             <div className="skeleton h-4 w-32" />
             <div className="skeleton h-12 w-full rounded-lg" />
             <div className="skeleton h-12 w-full rounded-lg" />

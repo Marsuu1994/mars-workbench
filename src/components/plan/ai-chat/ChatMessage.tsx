@@ -1,12 +1,16 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useTranslations } from "next-intl";
-import { CheckIcon, ChevronRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
-import type { UiMessage } from "@/types/aiChat";
-import { BotAvatar, UserAvatar } from "./Avatars";
-import { DraftPlanCards } from "./DraftPlanCards";
-import { SuggestionChips } from "./SuggestionChips";
+import {useState} from 'react';
+import {useTranslations} from 'next-intl';
+import {
+  CheckIcon,
+  ChevronRightIcon,
+  ChevronDownIcon,
+} from '@heroicons/react/24/outline';
+import type {UiMessage} from '@/types/aiChat';
+import {BotAvatar, UserAvatar} from './Avatars';
+import {DraftPlanCards} from './DraftPlanCards';
+import {SuggestionChips} from './SuggestionChips';
 
 interface ChatMessageProps {
   message: UiMessage;
@@ -15,12 +19,16 @@ interface ChatMessageProps {
   onChipSelect: (chip: string) => void;
 }
 
-export const ChatMessage = ({ message, isLatestDraft, onChipSelect }: ChatMessageProps) => {
-  const t = useTranslations("AiChat");
+export const ChatMessage = ({
+  message,
+  isLatestDraft,
+  onChipSelect,
+}: ChatMessageProps) => {
+  const t = useTranslations('AiChat');
   const [expanded, setExpanded] = useState(false);
 
   // User turn
-  if (message.role === "user") {
+  if (message.role === 'user') {
     return (
       <div className="flex flex-row-reverse items-start gap-2.5">
         <UserAvatar />
@@ -32,22 +40,24 @@ export const ChatMessage = ({ message, isLatestDraft, onChipSelect }: ChatMessag
   }
 
   // Assistant text (welcome or clarifying reply)
-  if (message.type === "welcome" || message.type === "text") {
+  if (message.type === 'welcome' || message.type === 'text') {
     return (
       <div className="flex items-start gap-2.5">
         <BotAvatar />
         <div className="max-w-[85%] rounded-xl rounded-tl-sm border border-base-content/10 bg-base-200 px-4 py-3 text-[13px] leading-relaxed">
           <div className="whitespace-pre-line">{message.text}</div>
-          {message.type === "welcome" && message.chips && message.chips.length > 0 && (
-            <SuggestionChips chips={message.chips} onSelect={onChipSelect} />
-          )}
+          {message.type === 'welcome' &&
+            message.chips &&
+            message.chips.length > 0 && (
+              <SuggestionChips chips={message.chips} onSelect={onChipSelect} />
+            )}
         </div>
       </div>
     );
   }
 
   // Assistant draft
-  const { draft, approved } = message;
+  const {draft, approved} = message;
   const isCollapsed = !isLatestDraft && !approved;
 
   // Superseded draft, collapsed into a one-line summary until expanded.
@@ -60,7 +70,7 @@ export const ChatMessage = ({ message, isLatestDraft, onChipSelect }: ChatMessag
       >
         <ChevronRightIcon className="size-3.5 shrink-0" />
         <span className="flex-1 text-left">
-          {t("previousDraftSummary", { count: draft.draftTemplates.length })}
+          {t('previousDraftSummary', {count: draft.draftTemplates.length})}
         </span>
         <ChevronDownIcon className="size-3 shrink-0" />
       </button>
@@ -73,20 +83,22 @@ export const ChatMessage = ({ message, isLatestDraft, onChipSelect }: ChatMessag
       <div
         className={`max-w-[85%] rounded-xl rounded-tl-sm border px-4 py-3 text-[13px] leading-relaxed ${
           approved
-            ? "border-success/30 bg-success/10"
-            : "border-base-content/10 bg-base-200"
+            ? 'border-success/30 bg-success/10'
+            : 'border-base-content/10 bg-base-200'
         }`}
       >
         {approved && (
           <div className="mb-2 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-success">
             <CheckIcon className="size-3 stroke-2" />
-            {t("createdBadge")}
+            {t('createdBadge')}
           </div>
         )}
         <div>{draft.message}</div>
         <DraftPlanCards templates={draft.draftTemplates} />
         {draft.followUp && !approved && (
-          <div className="mt-3 text-xs text-base-content/60">{draft.followUp}</div>
+          <div className="mt-3 text-xs text-base-content/60">
+            {draft.followUp}
+          </div>
         )}
       </div>
     </div>

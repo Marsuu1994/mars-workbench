@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type {ReactNode} from 'react';
 
 interface IconNumberFieldProps {
   label: string;
@@ -31,8 +31,8 @@ export default function IconNumberField({
           type="number"
           className="input input-bordered w-full pl-9"
           placeholder={placeholder}
-          value={value || ""}
-          onChange={(e) => onChange(Number(e.target.value))}
+          value={value || ''}
+          onChange={e => onChange(Number(e.target.value))}
           min={1}
           required={required}
         />
@@ -40,7 +40,9 @@ export default function IconNumberField({
           {icon}
         </span>
       </div>
-      <span className="text-[11px] text-base-content/40 mt-1">{helperText}</span>
+      <span className="text-[11px] text-base-content/40 mt-1">
+        {helperText}
+      </span>
     </div>
   );
 }
