@@ -42,6 +42,19 @@ Single source of truth for open ideas and todos across the app — open items on
 
 - [ ] Track popover on a bottom card of a scrollable quadrant needs scrolling into view (absolute positioning inside the scroll container) — revisit with a portal/fixed positioning approach
 
+## Journal
+
+### High
+
+- [ ] Journal V1 (design proposed, awaiting approval) — quick-capture page at `/kanban/journal`: capture box, day-grouped timeline, category filter chips, stats strip (week count, streak, 7-day bars, category distribution). Mockups: `design/mockup/journal/mockup-journal.html` (desktop), `design/mockup/journal/mockup-journal-mobile.html`
+- [ ] Nightly LLM auto-classification — batch-classify unsorted entries into a fixed `JournalCategory` enum (IDEA / ACTION / REFLECTION / MOOD / LOG); manual category overrides are never re-sorted
+- [ ] Entry detail — desktop modal / mobile bottom sheet: edit text, manual category override, delete
+
+### Future
+
+- [ ] "Send to Priorities" — promote an ACTION entry to an ad-hoc task on the priority matrix
+- [ ] Weekly LLM digest — short summary of the week's entries
+
 ## Auth
 
 ### High

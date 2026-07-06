@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en" data-mockup-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Journal — Mobile Quick Capture</title>
+<link rel="stylesheet" href="../mockup-theme.css" />
+<style>
+/* ── Reset ── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--m-page-bg); min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 40px 20px 60px;
+}
+
+/* ── Section Titles ── */
+.page-title {
+  color: var(--m-text); font-size: 24px; font-weight: 700; margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+.page-subtitle { color: var(--m-text-tertiary); font-size: 14px; margin-bottom: 40px; }
+.section-title {
+  color: var(--m-text); font-size: 20px; font-weight: 700; margin: 60px 0 8px;
+  letter-spacing: -0.02em;
+}
+.section-subtitle { color: var(--m-text-tertiary); font-size: 13px; margin-bottom: 24px; }
+
+/* ── Phone Frames Container ── */
+.frames { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
+.frame-wrapper { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.frame-label {
+  font-size: 13px; font-weight: 600; color: var(--m-blue); text-transform: uppercase;
+  letter-spacing: 0.08em; display: flex; align-items: center; gap: 8px;
+}
+.frame-label .step {
+  width: 24px; height: 24px; border-radius: 50%; background: var(--m-blue-a10);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: var(--m-blue);
+}
+
+/* ── Phone Frame ── */
+.phone {
+  width: 375px; height: 812px; background: var(--m-surface-inset);
+  border-radius: 40px; border: 3px solid var(--m-border);
+  overflow: hidden; position: relative;
+  box-shadow: 0 25px 60px var(--m-overlay), inset 0 0 0 1px rgba(255,255,255,0.05);
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+/* ── Status Bar ── */
+.status-bar {
+  height: 54px; padding: 14px 28px 0; display: flex;
+  align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.status-time { font-size: 15px; font-weight: 600; color: var(--m-text); }
+.status-icons { display: flex; gap: 5px; align-items: center; }
+.status-icons svg { width: 16px; height: 16px; color: var(--m-text); }
+
+/* ── Mobile Header ── */
+.mobile-header { padding: 4px 20px 8px; flex-shrink: 0; }
+.mobile-header-row { display: flex; align-items: center; justify-content: space-between; }
+.mobile-header-title { font-size: 18px; font-weight: 700; color: var(--m-text); }
+.mobile-header-title span { color: var(--m-blue); }
+.mobile-header-badge {
+  font-size: 10px; background: var(--m-blue-a10); color: var(--m-blue);
+  padding: 3px 8px; border-radius: 999px; font-weight: 500;
+}
+
+/* ── Capture box ── */
+.m-capture {
+  margin: 0 16px 4px; background: var(--m-page-bg);
+  border: 1px solid var(--m-border); border-radius: 12px;
+  padding: 10px 12px; flex-shrink: 0;
+  display: flex; align-items: center; gap: 10px;
+}
+.m-capture-placeholder { flex: 1; font-size: 13px; color: var(--m-text-muted); }
+.m-capture-btn {
+  width: 30px; height: 30px; border-radius: 50%; border: none; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--m-blue), var(--m-blue-light));
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 12px var(--m-blue-a25); cursor: pointer;
+}
+.m-capture-btn svg { width: 15px; height: 15px; }
+/* Focused / expanded capture (keyboard open) */
+.m-capture.expanded {
+  flex-direction: column; align-items: stretch; gap: 8px;
+  border-color: var(--m-blue); box-shadow: 0 0 0 3px var(--m-blue-a10);
+}
+.m-capture-text { font-size: 13px; color: var(--m-text); line-height: 1.5; }
+.m-capture-text .cursor {
+  display: inline-block; width: 2px; height: 14px; background: var(--m-blue);
+  vertical-align: text-bottom;
+}
+.m-capture-footer { display: flex; align-items: center; gap: 8px; }
+.m-capture-hint { font-size: 10px; color: var(--m-text-muted); }
+.m-capture-save {
+  margin-left: auto; border: none; border-radius: 999px; padding: 6px 16px;
+  background: linear-gradient(135deg, var(--m-blue), var(--m-blue-light));
+  color: #fff; font-size: 12px; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; gap: 5px;
+  box-shadow: 0 0 12px var(--m-blue-a25);
+}
+.m-capture-save svg { width: 13px; height: 13px; }
+
+/* ── Mini stats ── */
+.m-stats { padding: 4px 16px 8px; flex-shrink: 0; display: flex; flex-direction: column; gap: 6px; }
+.m-stats-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--m-text-tertiary); }
+.m-stats-row strong { color: var(--m-text-secondary); font-weight: 700; }
+.m-stats-row .amber { color: var(--m-orange); }
+.m-stats-dot { color: var(--m-text-muted); }
+.cat-bar-track {
+  height: 6px; border-radius: 999px; overflow: hidden; display: flex;
+  background: var(--m-border);
+}
+.cat-seg { height: 100%; }
+.cat-idea       { background: var(--m-blue); }
+.cat-action     { background: var(--m-olive); }
+.cat-reflection { background: var(--m-purple); }
+.cat-mood       { background: var(--m-pink); }
+.cat-log        { background: var(--m-teal); }
+.cat-unsorted   { background: var(--m-text-muted); }
+
+/* ── Filter chips (horizontal scroll) ── */
+.m-filter-row {
+  display: flex; gap: 6px; overflow-x: auto; padding: 0 16px 8px; flex-shrink: 0;
+  -webkit-overflow-scrolling: touch;
+}
+.m-filter-row::-webkit-scrollbar { display: none; }
+.m-filter-chip {
+  display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; flex-shrink: 0;
+  border-radius: 999px; border: 1px solid var(--m-border); background: var(--m-page-bg);
+  font-size: 11px; font-weight: 500; color: var(--m-text-secondary); cursor: pointer;
+  white-space: nowrap;
+}
+.m-filter-chip.active { background: var(--m-blue-a10); border-color: var(--m-blue); color: var(--m-blue); font-weight: 600; }
+.cat-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.m-filter-count { font-size: 10px; color: var(--m-text-muted); font-weight: 600; }
+.m-filter-chip.active .m-filter-count { color: var(--m-blue); opacity: 0.7; }
+
+/* ── Feed ── */
+.m-feed {
+  flex: 1; overflow-y: auto; padding: 0 16px 8px; min-height: 0;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.m-day-header {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--m-text-secondary); display: flex; align-items: center; gap: 8px; margin-top: 8px;
+}
+.m-day-header:first-child { margin-top: 0; }
+.m-day-header::after { content: ''; flex: 1; height: 1px; background: var(--m-border); }
+.m-day-count { font-size: 10px; color: var(--m-text-muted); font-weight: 500; text-transform: none; letter-spacing: 0; }
+
+.m-entry {
+  background: var(--m-page-bg); border: 1px solid var(--m-border); border-radius: 10px;
+  padding: 10px 12px; display: flex; flex-direction: column; gap: 6px;
+}
+.m-entry.just-captured { border-color: var(--m-green-accent-border); background: var(--m-green-accent-bg); }
+.m-entry-top { display: flex; align-items: center; gap: 7px; }
+.m-entry-time { font-size: 10px; font-weight: 600; color: var(--m-text-tertiary); font-variant-numeric: tabular-nums; }
+.m-entry-chip {
+  font-size: 9px; font-weight: 600; padding: 2px 7px; border-radius: 999px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.chip-idea       { background: var(--m-blue-a12); color: var(--m-blue); }
+.chip-action     { background: var(--m-olive-bg); color: var(--m-olive); }
+.chip-reflection { background: var(--m-purple-bg); color: var(--m-purple); }
+.chip-mood       { background: var(--m-pink-bg); color: var(--m-pink); }
+.chip-log        { background: var(--m-teal-bg); color: var(--m-teal); }
+.chip-unsorted   { background: transparent; color: var(--m-text-muted); border: 1px dashed var(--m-text-muted); }
+.m-pending-hint { font-size: 10px; color: var(--m-text-muted); }
+.m-entry-text {
+  font-size: 12px; color: var(--m-text); line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+/* ── Keyboard placeholder ── */
+.kb {
+  margin-top: auto; background: var(--m-surface); border-top: 1px solid var(--m-border);
+  padding: 10px 6px 24px; display: flex; flex-direction: column; gap: 7px; flex-shrink: 0;
+}
+.kb-row { display: flex; gap: 5px; justify-content: center; }
+.kb-key {
+  height: 40px; flex: 1; max-width: 32px; background: var(--m-surface-raised);
+  border-radius: 5px; box-shadow: 0 1px 0 var(--m-shadow);
+}
+.kb-key.wide { max-width: 46px; }
+.kb-key.space { max-width: 178px; flex: 5; }
+
+/* ── Bottom sheet (entry detail) ── */
+.sheet-overlay { position: absolute; inset: 0; background: var(--m-overlay); z-index: 30; }
+.sheet {
+  position: absolute; bottom: 0; left: 0; right: 0; z-index: 31;
+  background: var(--m-surface); border-top: 1px solid var(--m-border);
+  border-radius: 20px 20px 0 0; padding: 10px 20px 30px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.sheet-grabber { width: 40px; height: 5px; border-radius: 999px; background: var(--m-border); margin: 0 auto 2px; }
+.sheet-meta { display: flex; align-items: center; gap: 8px; }
+.sheet-date { font-size: 12px; font-weight: 600; color: var(--m-text-tertiary); }
+.sheet-text { font-size: 13px; color: var(--m-text); line-height: 1.55; }
+.sheet-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--m-text-tertiary); margin-top: 2px;
+}
+.sheet-cats { display: flex; gap: 6px; overflow-x: auto; }
+.sheet-cats::-webkit-scrollbar { display: none; }
+.sheet-cat-pill {
+  display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; flex-shrink: 0;
+  border-radius: 999px; border: 1px solid var(--m-border); background: var(--m-page-bg);
+  font-size: 12px; font-weight: 600; color: var(--m-text-secondary); cursor: pointer;
+  white-space: nowrap;
+}
+.sheet-cat-pill.active-action { background: var(--m-olive-bg); border-color: var(--m-olive); color: var(--m-olive); }
+.sheet-cat-hint { font-size: 10px; color: var(--m-text-muted); }
+.sheet-promote {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; padding: 10px; border-radius: 10px; border: 1px dashed var(--m-olive);
+  background: var(--m-olive-bg); color: var(--m-olive);
+  font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 2px;
+}
+.sheet-promote svg { width: 15px; height: 15px; }
+.sheet-actions { display: flex; gap: 10px; margin-top: 2px; }
+.sheet-delete {
+  width: 44px; height: 40px; border-radius: 10px; border: 1px solid var(--m-border);
+  background: transparent; color: var(--m-red); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.sheet-delete svg { width: 17px; height: 17px; }
+.sheet-save {
+  flex: 1; height: 40px; border-radius: 10px; border: none;
+  background: linear-gradient(135deg, var(--m-blue), var(--m-blue-light));
+  color: #fff; font-size: 14px; font-weight: 600; cursor: pointer;
+  box-shadow: 0 0 16px var(--m-blue-a25);
+}
+
+/* ── Bottom Tab Bar (5 tabs) ── */
+.tab-bar {
+  height: 80px; background: var(--m-surface-inset); border-top: 1px solid var(--m-border);
+  display: flex; align-items: flex-start; justify-content: space-around;
+  padding-top: 10px; flex-shrink: 0;
+}
+.tab-item {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  cursor: pointer; color: var(--m-text-muted); transition: color 0.15s;
+}
+.tab-item.active { color: var(--m-blue); }
+.tab-item svg { width: 22px; height: 22px; }
+.tab-label { font-size: 10px; font-weight: 500; }
+
+/* ── Home Indicator ── */
+.home-indicator {
+  position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+  width: 134px; height: 5px; background: #ffffff;
+  border-radius: 999px; opacity: 0.2; z-index: 40;
+}
+
+/* ── Widget showcase ── */
+.widget-grid {
+  display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;
+  max-width: 900px; align-items: flex-start;
+}
+.widget-card-wrapper { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.widget-label {
+  font-size: 10px; font-weight: 600; color: var(--m-text-muted);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+</style>
+</head>
+<body>
+
+<div class="page-title">Journal — Mobile Quick Capture</div>
+<div class="page-subtitle">Three states shown side-by-side at 375 &times; 812</div>
+
+<div class="frames">
+
+<!-- ═══════════ FRAME 1: Journal Tab ═══════════ -->
+<div class="frame-wrapper">
+  <div class="frame-label"><span class="step">1</span> Journal Tab</div>
+  <div class="phone">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="status-icons">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2a7.074 7.074 0 0110 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="mobile-header">
+      <div class="mobile-header-row">
+        <div class="mobile-header-title"><span>Journal</span></div>
+        <span class="mobile-header-badge">Sun &middot; Jul 6</span>
+      </div>
+    </div>
+
+    <!-- Capture box (collapsed) -->
+    <div class="m-capture">
+      <span class="m-capture-placeholder">What's on your mind?</span>
+      <button class="m-capture-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5m-7 7l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+
+    <!-- Mini stats -->
+    <div class="m-stats">
+      <div class="m-stats-row">
+        <span><strong>23</strong> this week</span>
+        <span class="m-stats-dot">&middot;</span>
+        <span><strong class="amber">6-day</strong> streak</span>
+        <span class="m-stats-dot">&middot;</span>
+        <span>30 days by category</span>
+      </div>
+      <div class="cat-bar-track">
+        <div class="cat-seg cat-idea" style="width:27%"></div>
+        <div class="cat-seg cat-action" style="width:17%"></div>
+        <div class="cat-seg cat-reflection" style="width:20%"></div>
+        <div class="cat-seg cat-mood" style="width:13%"></div>
+        <div class="cat-seg cat-log" style="width:20%"></div>
+        <div class="cat-seg cat-unsorted" style="width:3%"></div>
+      </div>
+    </div>
+
+    <!-- Filter chips -->
+    <div class="m-filter-row">
+      <button class="m-filter-chip active">All <span class="m-filter-count">30</span></button>
+      <button class="m-filter-chip"><span class="cat-dot cat-idea"></span>Idea <span class="m-filter-count">8</span></button>
+      <button class="m-filter-chip"><span class="cat-dot cat-action"></span>Action <span class="m-filter-count">5</span></button>
+      <button class="m-filter-chip"><span class="cat-dot cat-reflection"></span>Reflection <span class="m-filter-count">6</span></button>
+      <button class="m-filter-chip"><span class="cat-dot cat-mood"></span>Mood <span class="m-filter-count">4</span></button>
+      <button class="m-filter-chip"><span class="cat-dot cat-log"></span>Log <span class="m-filter-count">6</span></button>
+    </div>
+
+    <!-- Feed -->
+    <div class="m-feed">
+      <div class="m-day-header">Today &middot; Sun, Jul 6 <span class="m-day-count">4 entries</span></div>
+
+      <div class="m-entry">
+        <div class="m-entry-top">
+          <span class="m-entry-time">21:47</span>
+          <span class="m-entry-chip chip-unsorted">Unsorted</span>
+          <span class="m-pending-hint">✨ sorts tonight</span>
+        </div>
+        <div class="m-entry-text">Keep waking up at 3am with app ideas — maybe I should just dump them here instead of losing sleep over them.</div>
+      </div>
+
+      <div class="m-entry">
+        <div class="m-entry-top">
+          <span class="m-entry-time">18:20</span>
+          <span class="m-entry-chip chip-mood">Mood</span>
+        </div>
+        <div class="m-entry-text">Energy way better after cutting the afternoon coffee. Third day in a row feeling clear-headed at night.</div>
+      </div>
+
+      <div class="m-entry">
+        <div class="m-entry-top">
+          <span class="m-entry-time">14:05</span>
+          <span class="m-entry-chip chip-idea">Idea</span>
+        </div>
+        <div class="m-entry-text">Backlog drawer could show a tiny sparkline of how many queued tasks got pulled each day — would make the drawer feel alive.</div>
+      </div>
+
+      <div class="m-entry">
+        <div class="m-entry-top">
+          <span class="m-entry-time">09:32</span>
+          <span class="m-entry-chip chip-action">Action</span>
+        </div>
+        <div class="m-entry-text">Passport renewal form needs the new address — remember to bring the utility bill to the office.</div>
+      </div>
+
+      <div class="m-day-header">Yesterday &middot; Sat, Jul 5 <span class="m-day-count">3 entries</span></div>
+
+      <div class="m-entry">
+        <div class="m-entry-top">
+          <span class="m-entry-time">23:11</span>
+          <span class="m-entry-chip chip-reflection">Reflection</span>
+        </div>
+        <div class="m-entry-text">Looking back at this week's plan, I overloaded Tuesday and underloaded Friday again. The pattern is always the same: I'm optimistic on Monday, pack the early week full, then drag the leftovers across the rest of the week.</div>
+      </div>
+
+      <div class="m-entry">
+        <div class="m-entry-top">
+          <span class="m-entry-time">16:40</span>
+          <span class="m-entry-chip chip-log">Log</span>
+        </div>
+        <div class="m-entry-text">Leg day done. New PR on squats — 90kg × 5.</div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span class="tab-label">Board</span>
+      </div>
+      <div class="tab-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="M3 9.75h18M9 9.75v9.75M15 9.75v9.75" stroke-linecap="round"/></svg>
+        <span class="tab-label">Priorities</span>
+      </div>
+      <div class="tab-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
+        <span class="tab-label">Journal</span>
+      </div>
+      <div class="tab-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="tab-label">Plan</span>
+      </div>
+      <div class="tab-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="tab-label">Settings</span>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</div>
+
+<!-- ═══════════ FRAME 2: Capturing (keyboard open) ═══════════ -->
+<div class="frame-wrapper">
+  <div class="frame-label"><span class="step">2</span> Capturing</div>
+  <div class="phone">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="status-icons">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2a7.074 7.074 0 0110 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="mobile-header">
+      <div class="mobile-header-row">
+        <div class="mobile-header-title"><span>Journal</span></div>
+        <span class="mobile-header-badge">Sun &middot; Jul 6</span>
+      </div>
+    </div>
+
+    <!-- Capture box (expanded, focused) -->
+    <div class="m-capture expanded">
+      <div class="m-capture-text">Dinner with Wei next Friday — he mentioned a good hotpot place near the office.<span class="cursor"></span></div>
+      <div class="m-capture-footer">
+        <span class="m-capture-hint">✨ sorted by AI tonight</span>
+        <button class="m-capture-save">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5m-7 7l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Capture
+        </button>
+      </div>
+    </div>
+
+    <!-- Feed dimmed behind keyboard, partially visible -->
+    <div class="m-feed" style="opacity:0.45">
+      <div class="m-day-header">Today &middot; Sun, Jul 6 <span class="m-day-count">4 entries</span></div>
+      <div class="m-entry">
+        <div class="m-entry-top">
+          <span class="m-entry-time">21:47</span>
+          <span class="m-entry-chip chip-unsorted">Unsorted</span>
+          <span class="m-pending-hint">✨ sorts tonight</span>
+        </div>
+        <div class="m-entry-text">Keep waking up at 3am with app ideas — maybe I should just dump them here instead of losing sleep over them.</div>
+      </div>
+      <div class="m-entry">
+        <div class="m-entry-top">
+          <span class="m-entry-time">18:20</span>
+          <span class="m-entry-chip chip-mood">Mood</span>
+        </div>
+        <div class="m-entry-text">Energy way better after cutting the afternoon coffee. Third day in a row feeling clear-headed at night.</div>
+      </div>
+    </div>
+
+    <!-- Keyboard placeholder -->
+    <div class="kb">
+      <div class="kb-row">
+        <div class="kb-key"></div><div class="kb-key"></div><div class="kb-key"></div><div class="kb-key"></div><div class="kb-key"></div><div class="kb-key"></div><div class="kb-key"></div><div class="kb-key"></div><div class="kb-key"></div><div class="kb-key"></div>
+      </div>
+      <div class="kb-row">
+        <div class="kb-key"></div><div class="kb-key"></div><div class="kb-key"></div><div class="kb-key"></div><div class="kb-key"></div><div class="kb-key"></div><div class="kb-key"></div><div class="kb-key"></div><div class="kb-key"></div>
+      </div>
+      <div class="kb-row">
+        <div class="kb-key wide"></div><div class="kb-key"></div><div class="kb-key"></div><div class="kb-key"></div><div class="kb-key"></div><div class="kb-key"></div><div class="kb-key"></div><div class="kb-key wide"></div>
+      </div>
+      <div class="kb-row">
+        <div class="kb-key wide"></div><div class="kb-key space"></div><div class="kb-key wide"></div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</div>
+
+<!-- ═══════════ FRAME 3: Entry Sheet ═══════════ -->
+<div class="frame-wrapper">
+  <div class="frame-label"><span class="step">3</span> Entry Sheet</div>
+  <div class="phone">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="status-icons">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2a7.074 7.074 0 0110 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="mobile-header">
+      <div class="mobile-header-row">
+        <div class="mobile-header-title"><span>Journal</span></div>
+        <span class="mobile-header-badge">Sun &middot; Jul 6</span>
+      </div>
+    </div>
+
+    <div class="m-capture">
+      <span class="m-capture-placeholder">What's on your mind?</span>
+      <button class="m-capture-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5m-7 7l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+
+    <div class="m-feed">
+      <div class="m-day-header">Today &middot; Sun, Jul 6 <span class="m-day-count">4 entries</span></div>
+      <div class="m-entry">
+        <div class="m-entry-top">
+          <span class="m-entry-time">21:47</span>
+          <span class="m-entry-chip chip-unsorted">Unsorted</span>
+        </div>
+        <div class="m-entry-text">Keep waking up at 3am with app ideas — maybe I should just dump them here instead of losing sleep over them.</div>
+      </div>
+      <div class="m-entry">
+        <div class="m-entry-top">
+          <span class="m-entry-time">18:20</span>
+          <span class="m-entry-chip chip-mood">Mood</span>
+        </div>
+        <div class="m-entry-text">Energy way better after cutting the afternoon coffee. Third day in a row feeling clear-headed at night.</div>
+      </div>
+      <div class="m-entry">
+        <div class="m-entry-top">
+          <span class="m-entry-time">09:32</span>
+          <span class="m-entry-chip chip-action">Action</span>
+        </div>
+        <div class="m-entry-text">Passport renewal form needs the new address — remember to bring the utility bill to the office.</div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span class="tab-label">Board</span>
+      </div>
+      <div class="tab-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="M3 9.75h18M9 9.75v9.75M15 9.75v9.75" stroke-linecap="round"/></svg>
+        <span class="tab-label">Priorities</span>
+      </div>
+      <div class="tab-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
+        <span class="tab-label">Journal</span>
+      </div>
+      <div class="tab-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="tab-label">Plan</span>
+      </div>
+      <div class="tab-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="tab-label">Settings</span>
+      </div>
+    </div>
+
+    <!-- Bottom sheet: tap an entry to view / edit / recategorize / delete -->
+    <div class="sheet-overlay"></div>
+    <div class="sheet">
+      <div class="sheet-grabber"></div>
+      <div class="sheet-meta">
+        <span class="m-entry-chip chip-action">Action</span>
+        <span class="sheet-date">Sun, Jul 6 &middot; 09:32</span>
+      </div>
+      <div class="sheet-text">Passport renewal form needs the new address — remember to bring the utility bill to the office.</div>
+      <div class="sheet-label">Category</div>
+      <div class="sheet-cats">
+        <button class="sheet-cat-pill"><span class="cat-dot cat-idea"></span>Idea</button>
+        <button class="sheet-cat-pill active-action"><span class="cat-dot cat-action"></span>Action</button>
+        <button class="sheet-cat-pill"><span class="cat-dot cat-reflection"></span>Reflection</button>
+        <button class="sheet-cat-pill"><span class="cat-dot cat-mood"></span>Mood</button>
+        <button class="sheet-cat-pill"><span class="cat-dot cat-log"></span>Log</button>
+      </div>
+      <div class="sheet-cat-hint">✨ Assigned by AI — pick another to override. Manual picks are never re-sorted.</div>
+      <button class="sheet-promote">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
+        Send to Priorities
+      </button>
+      <div class="sheet-actions">
+        <button class="sheet-delete">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg>
+        </button>
+        <button class="sheet-save">Save</button>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+</div>
+
+</div><!-- /frames -->
+
+<!-- ═══════════════════════════════════════════════
+     Category Chip Widget — All States
+     ═══════════════════════════════════════════════ -->
+<div class="section-title">Category Chips</div>
+<div class="section-subtitle">Entry chip states — fixed category set, assigned nightly by the LLM</div>
+
+<div class="widget-grid">
+  <div class="widget-card-wrapper">
+    <div class="widget-label">Idea</div>
+    <span class="m-entry-chip chip-idea">Idea</span>
+  </div>
+  <div class="widget-card-wrapper">
+    <div class="widget-label">Action</div>
+    <span class="m-entry-chip chip-action">Action</span>
+  </div>
+  <div class="widget-card-wrapper">
+    <div class="widget-label">Reflection</div>
+    <span class="m-entry-chip chip-reflection">Reflection</span>
+  </div>
+  <div class="widget-card-wrapper">
+    <div class="widget-label">Mood</div>
+    <span class="m-entry-chip chip-mood">Mood</span>
+  </div>
+  <div class="widget-card-wrapper">
+    <div class="widget-label">Log</div>
+    <span class="m-entry-chip chip-log">Log</span>
+  </div>
+  <div class="widget-card-wrapper">
+    <div class="widget-label">Unsorted (pending)</div>
+    <span class="m-entry-chip chip-unsorted">Unsorted</span>
+  </div>
+</div>
+
+<script>
+(function() {
+  var btn = document.createElement('button');
+  btn.className = 'mockup-theme-toggle';
+  btn.title = 'Toggle theme';
+  var sun = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
+  var moon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>';
+  function update() {
+    var t = document.documentElement.getAttribute('data-mockup-theme');
+    btn.innerHTML = t === 'dark' ? sun : moon;
+  }
+  btn.addEventListener('click', function() {
+    var t = document.documentElement.getAttribute('data-mockup-theme');
+    document.documentElement.setAttribute('data-mockup-theme', t === 'dark' ? 'light' : 'dark');
+    update();
+  });
+  document.body.appendChild(btn);
+  update();
+})();
+</script>
+</body>
+</html>

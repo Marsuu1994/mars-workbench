@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en" data-mockup-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Journal — Quick Capture</title>
+<link rel="stylesheet" href="../mockup-theme.css" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+/* ── Stats strip (mirrors .progress-dashboard) ── */
+.journal-stats {
+  padding: 12px 24px; display: flex; align-items: center; gap: 24px;
+  border-bottom: 1px solid var(--m-border); background: var(--m-surface-inset); flex-shrink: 0;
+}
+.mini-bars { display: flex; align-items: flex-end; gap: 6px; height: 42px; }
+.mini-bar-col { display: flex; flex-direction: column; align-items: center; gap: 3px; height: 100%; justify-content: flex-end; }
+.mini-bar { width: 14px; border-radius: 3px 3px 0 0; background: var(--m-blue-a25); }
+.mini-bar.today { background: var(--m-blue); }
+.mini-bar-day { font-size: 9px; color: var(--m-text-muted); font-weight: 600; }
+.cat-bar-group { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.cat-bar-header { display: flex; justify-content: space-between; align-items: center; }
+.cat-bar-title { font-size: 13px; font-weight: 600; color: var(--m-text); }
+.cat-bar-sub { font-size: 12px; color: var(--m-text-tertiary); }
+.cat-bar-track { height: 8px; border-radius: 999px; overflow: hidden; display: flex; background: var(--m-border); }
+.cat-seg { height: 100%; }
+.cat-legend { display: flex; gap: 12px; flex-wrap: wrap; }
+.cat-legend-item { font-size: 11px; color: var(--m-text-tertiary); display: flex; align-items: center; gap: 5px; }
+.cat-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── Category colors ── */
+.cat-idea       { background: var(--m-blue); }
+.cat-action     { background: var(--m-olive); }
+.cat-reflection { background: var(--m-purple); }
+.cat-mood       { background: var(--m-pink); }
+.cat-log        { background: var(--m-teal); }
+.cat-unsorted   { background: var(--m-text-muted); }
+
+/* ── Centered content column ── */
+.journal-scroll { flex: 1; overflow-y: auto; min-height: 0; }
+.journal-col { max-width: 760px; margin: 0 auto; padding: 20px 24px 32px; display: flex; flex-direction: column; }
+
+/* ── Capture box ── */
+.capture-box {
+  background: var(--m-surface-raised); border: 1px solid var(--m-border); border-radius: 12px;
+  padding: 14px 16px 12px; flex-shrink: 0;
+}
+.capture-box.focused { border-color: var(--m-blue); box-shadow: 0 0 0 3px var(--m-blue-a10); }
+.capture-input {
+  width: 100%; border: none; background: transparent; resize: none; outline: none;
+  font: inherit; font-size: 14px; color: var(--m-text); line-height: 1.5; min-height: 44px; display: block;
+}
+.capture-input::placeholder { color: var(--m-text-muted); }
+.capture-footer { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.capture-hint { font-size: 11px; color: var(--m-text-muted); }
+.capture-hint kbd {
+  font-family: inherit; font-size: 10px; font-weight: 600; color: var(--m-text-tertiary);
+  background: var(--m-surface); border: 1px solid var(--m-border); border-radius: 4px; padding: 1px 5px;
+}
+.btn-capture { margin-left: auto; padding: 7px 16px; font-size: 13px; }
+
+/* ── Filter chips ── */
+.filter-row { display: flex; gap: 8px; flex-wrap: wrap; padding: 14px 0 2px; }
+.filter-chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px;
+  border-radius: 999px; border: 1px solid var(--m-border); background: var(--m-surface);
+  font-size: 12px; font-weight: 500; color: var(--m-text-secondary); cursor: pointer;
+}
+.filter-chip:hover { border-color: var(--m-text-muted); }
+.filter-chip.active { background: var(--m-blue-a10); border-color: var(--m-blue); color: var(--m-blue); font-weight: 600; }
+.filter-count { font-size: 11px; color: var(--m-text-muted); font-weight: 600; }
+.filter-chip.active .filter-count { color: var(--m-blue); opacity: 0.7; }
+
+/* ── Timeline ── */
+.journal-feed { display: flex; flex-direction: column; gap: 8px; padding-top: 14px; }
+.day-header {
+  font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--m-text-secondary); display: flex; align-items: center; gap: 8px; margin-top: 12px;
+}
+.day-header:first-child { margin-top: 0; }
+.day-header::after { content: ''; flex: 1; height: 1px; background: var(--m-border); }
+.day-count { font-size: 11px; color: var(--m-text-muted); font-weight: 500; text-transform: none; letter-spacing: 0; }
+
+/* ── Entry card ── */
+.entry-card {
+  background: var(--m-surface-raised); border: 1px solid var(--m-border); border-radius: 10px;
+  padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;
+}
+.entry-card:hover { border-color: var(--m-text-muted); }
+.entry-card.just-captured { border-color: var(--m-green-accent-border); background: var(--m-green-accent-bg); }
+.entry-top { display: flex; align-items: center; gap: 8px; min-height: 24px; }
+.entry-time { font-size: 11px; font-weight: 600; color: var(--m-text-tertiary); font-variant-numeric: tabular-nums; }
+.entry-chip {
+  font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 999px;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.chip-idea       { background: var(--m-blue-a12); color: var(--m-blue); }
+.chip-action     { background: var(--m-olive-bg); color: var(--m-olive); }
+.chip-reflection { background: var(--m-purple-bg); color: var(--m-purple); }
+.chip-mood       { background: var(--m-pink-bg); color: var(--m-pink); }
+.chip-log        { background: var(--m-teal-bg); color: var(--m-teal); }
+.chip-unsorted   { background: transparent; color: var(--m-text-muted); border: 1px dashed var(--m-text-muted); }
+.entry-pending-hint { font-size: 11px; color: var(--m-text-muted); }
+.entry-text { font-size: 13px; color: var(--m-text); line-height: 1.55; white-space: pre-line; }
+.entry-text.clamped {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.entry-more { font-size: 11px; color: var(--m-blue); font-weight: 500; cursor: pointer; align-self: flex-start; }
+
+/* Hover actions — hidden until hover; .show-actions simulates hover in the mockup */
+.entry-actions { margin-left: auto; display: flex; align-items: center; gap: 4px; opacity: 0; transition: opacity 0.15s; }
+.entry-card:hover .entry-actions, .entry-card.show-actions .entry-actions { opacity: 1; }
+.entry-promote {
+  display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600;
+  color: var(--m-olive); background: var(--m-olive-bg); border: none; border-radius: 6px;
+  padding: 4px 9px; cursor: pointer;
+}
+.entry-promote svg { width: 12px; height: 12px; }
+.entry-action-btn {
+  width: 24px; height: 24px; border-radius: 6px; border: none; background: transparent;
+  color: var(--m-text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.entry-action-btn:hover { background: var(--m-hover-bg); color: var(--m-text-secondary); }
+.entry-action-btn.danger:hover { background: var(--m-red-a10); color: var(--m-red); }
+.entry-action-btn svg { width: 14px; height: 14px; }
+
+/* ── Captured toast ── */
+.main { position: relative; }
+.toast {
+  position: absolute; top: 70px; left: 50%; transform: translateX(-50%);
+  background: var(--m-surface-raised); border: 1px solid var(--m-green-accent-border);
+  color: var(--m-green-accent); padding: 8px 18px; border-radius: 999px;
+  font-size: 13px; font-weight: 600; box-shadow: 0 8px 24px var(--m-shadow);
+  display: flex; align-items: center; gap: 6px; z-index: 50;
+}
+.toast svg { width: 15px; height: 15px; }
+
+/* ── Entry modal ── */
+.cat-pills { display: flex; gap: 6px; width: 100%; }
+.cat-pill-btn {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 7px 10px; border-radius: 999px; border: 1px solid var(--m-border);
+  background: var(--m-surface); cursor: pointer; font-size: 12px; font-weight: 600;
+  color: var(--m-text-secondary); transition: all 0.15s;
+}
+.cat-pill-btn:hover { border-color: var(--m-text-muted); }
+.cat-pill-btn.active.pill-reflection { background: var(--m-purple-bg); border-color: var(--m-purple); color: var(--m-purple); }
+.cat-pill-hint { font-size: 11px; color: var(--m-text-muted); margin-top: 6px; }
+.modal-meta { font-size: 12px; color: var(--m-text-tertiary); font-weight: 500; }
+.modal-close {
+  width: 28px; height: 28px; border-radius: 6px; border: none; background: transparent;
+  color: var(--m-text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.modal-close:hover { background: var(--m-hover-bg); color: var(--m-text-secondary); }
+.modal-close svg { width: 16px; height: 16px; }
+.btn-danger-ghost { background: transparent; color: var(--m-red); border: 1px solid transparent; margin-right: auto; }
+.btn-danger-ghost:hover { background: var(--m-red-a10); }
+.entry-edit-input {
+  width: 100%; padding: 10px 12px; background: var(--m-surface); border: 1px solid var(--m-border);
+  border-radius: 8px; color: var(--m-text); font: inherit; font-size: 13px; line-height: 1.55;
+  outline: none; resize: vertical; min-height: 120px;
+}
+.entry-edit-input:focus { border-color: var(--m-blue); }
+</style>
+</head>
+<body>
+
+<div class="screen-nav">
+  <button class="screen-btn active" onclick="show('journal')">Journal</button>
+  <button class="screen-btn" onclick="show('captured')">Just Captured</button>
+  <button class="screen-btn" onclick="show('modal')">Entry Modal</button>
+  <button class="screen-btn" onclick="show('empty')">Empty</button>
+</div>
+
+<!-- ══ JOURNAL (default) ══ -->
+<div id="screen-journal" class="app">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <span class="sidebar-brand">Mars Workbench</span>
+      <button class="sidebar-collapse">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-nav-label">Workspace</div>
+      <a class="sidebar-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Board
+      </a>
+      <a class="sidebar-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="M3 9.75h18M9 9.75v9.75M15 9.75v9.75" stroke-linecap="round"/></svg>
+        Priorities
+      </a>
+      <a class="sidebar-item active" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
+        Journal
+      </a>
+      <a class="sidebar-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Plan
+      </a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">LC</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">Liang Jun</div>
+        <div class="sidebar-user-email">liang@example.com</div>
+      </div>
+      <button class="sidebar-signout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </aside>
+  <div class="main">
+    <div class="header">
+      <div class="header-left">
+        <span class="header-title"><span>Journal</span></span>
+        <span class="header-badge">Sun &middot; Jul 6</span>
+      </div>
+    </div>
+
+    <!-- Stats strip: this week · streak · 7-day bars · category distribution -->
+    <div class="journal-stats">
+      <div class="stat-item">
+        <div class="stat-value blue">23</div>
+        <div class="stat-label">This Week</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value amber">6 days</div>
+        <div class="stat-label">Streak</div>
+      </div>
+      <div class="dash-divider"></div>
+      <div class="mini-bars">
+        <div class="mini-bar-col"><div class="mini-bar" style="height:16px"></div><span class="mini-bar-day">M</span></div>
+        <div class="mini-bar-col"><div class="mini-bar" style="height:26px"></div><span class="mini-bar-day">T</span></div>
+        <div class="mini-bar-col"><div class="mini-bar" style="height:11px"></div><span class="mini-bar-day">W</span></div>
+        <div class="mini-bar-col"><div class="mini-bar" style="height:31px"></div><span class="mini-bar-day">T</span></div>
+        <div class="mini-bar-col"><div class="mini-bar" style="height:21px"></div><span class="mini-bar-day">F</span></div>
+        <div class="mini-bar-col"><div class="mini-bar" style="height:11px"></div><span class="mini-bar-day">S</span></div>
+        <div class="mini-bar-col"><div class="mini-bar today" style="height:21px"></div><span class="mini-bar-day">S</span></div>
+      </div>
+      <div class="dash-divider"></div>
+      <div class="cat-bar-group">
+        <div class="cat-bar-header">
+          <span class="cat-bar-title">By Category</span>
+          <span class="cat-bar-sub">last 30 days &middot; 30 entries</span>
+        </div>
+        <div class="cat-bar-track">
+          <div class="cat-seg cat-idea" style="width:27%"></div>
+          <div class="cat-seg cat-action" style="width:17%"></div>
+          <div class="cat-seg cat-reflection" style="width:20%"></div>
+          <div class="cat-seg cat-mood" style="width:13%"></div>
+          <div class="cat-seg cat-log" style="width:20%"></div>
+          <div class="cat-seg cat-unsorted" style="width:3%"></div>
+        </div>
+        <div class="cat-legend">
+          <span class="cat-legend-item"><span class="cat-dot cat-idea"></span>Idea 8</span>
+          <span class="cat-legend-item"><span class="cat-dot cat-action"></span>Action 5</span>
+          <span class="cat-legend-item"><span class="cat-dot cat-reflection"></span>Reflection 6</span>
+          <span class="cat-legend-item"><span class="cat-dot cat-mood"></span>Mood 4</span>
+          <span class="cat-legend-item"><span class="cat-dot cat-log"></span>Log 6</span>
+          <span class="cat-legend-item"><span class="cat-dot cat-unsorted"></span>Unsorted 1</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="journal-scroll">
+      <div class="journal-col">
+
+        <!-- Capture box — autofocused on page load -->
+        <div class="capture-box">
+          <textarea class="capture-input" rows="2" placeholder="What's on your mind? A thought, a worry, a win — one line is enough."></textarea>
+          <div class="capture-footer">
+            <span class="capture-hint"><kbd>⌘</kbd> + <kbd>↩</kbd> to capture &middot; sorted by AI tonight</span>
+            <button class="btn btn-primary btn-capture">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5m-7 7l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Capture
+            </button>
+          </div>
+        </div>
+
+        <!-- Category filter -->
+        <div class="filter-row">
+          <button class="filter-chip active">All <span class="filter-count">30</span></button>
+          <button class="filter-chip"><span class="cat-dot cat-idea"></span>Idea <span class="filter-count">8</span></button>
+          <button class="filter-chip"><span class="cat-dot cat-action"></span>Action <span class="filter-count">5</span></button>
+          <button class="filter-chip"><span class="cat-dot cat-reflection"></span>Reflection <span class="filter-count">6</span></button>
+          <button class="filter-chip"><span class="cat-dot cat-mood"></span>Mood <span class="filter-count">4</span></button>
+          <button class="filter-chip"><span class="cat-dot cat-log"></span>Log <span class="filter-count">6</span></button>
+          <button class="filter-chip"><span class="cat-dot cat-unsorted"></span>Unsorted <span class="filter-count">1</span></button>
+        </div>
+
+        <!-- Timeline -->
+        <div class="journal-feed">
+
+          <div class="day-header">Today &middot; Sun, Jul 6 <span class="day-count">4 entries</span></div>
+
+          <div class="entry-card">
+            <div class="entry-top">
+              <span class="entry-time">21:47</span>
+              <span class="entry-chip chip-unsorted">Unsorted</span>
+              <span class="entry-pending-hint">✨ sorts tonight</span>
+              <div class="entry-actions">
+                <button class="entry-action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                <button class="entry-action-btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg></button>
+              </div>
+            </div>
+            <div class="entry-text">Keep waking up at 3am with app ideas — maybe I should just dump them here instead of losing sleep over them.</div>
+          </div>
+
+          <div class="entry-card">
+            <div class="entry-top">
+              <span class="entry-time">18:20</span>
+              <span class="entry-chip chip-mood">Mood</span>
+              <div class="entry-actions">
+                <button class="entry-action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                <button class="entry-action-btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg></button>
+              </div>
+            </div>
+            <div class="entry-text">Energy way better after cutting the afternoon coffee. Third day in a row feeling clear-headed at night.</div>
+          </div>
+
+          <div class="entry-card">
+            <div class="entry-top">
+              <span class="entry-time">14:05</span>
+              <span class="entry-chip chip-idea">Idea</span>
+              <div class="entry-actions">
+                <button class="entry-action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                <button class="entry-action-btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg></button>
+              </div>
+            </div>
+            <div class="entry-text">Backlog drawer could show a tiny sparkline of how many queued tasks got pulled each day — would make the drawer feel alive.</div>
+          </div>
+
+          <!-- Hover state simulated: actions visible; Action entries get "Send to Priorities" -->
+          <div class="entry-card show-actions">
+            <div class="entry-top">
+              <span class="entry-time">09:32</span>
+              <span class="entry-chip chip-action">Action</span>
+              <div class="entry-actions">
+                <button class="entry-promote">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
+                  Send to Priorities
+                </button>
+                <button class="entry-action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                <button class="entry-action-btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg></button>
+              </div>
+            </div>
+            <div class="entry-text">Passport renewal form needs the new address — remember to bring the utility bill to the office.</div>
+          </div>
+
+          <div class="day-header">Yesterday &middot; Sat, Jul 5 <span class="day-count">3 entries</span></div>
+
+          <div class="entry-card">
+            <div class="entry-top">
+              <span class="entry-time">23:11</span>
+              <span class="entry-chip chip-reflection">Reflection</span>
+              <div class="entry-actions">
+                <button class="entry-action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                <button class="entry-action-btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg></button>
+              </div>
+            </div>
+            <div class="entry-text clamped">Looking back at this week's plan, I overloaded Tuesday and underloaded Friday again. The pattern is always the same: I'm optimistic on Monday, pack the early week full, then drag the leftovers across the rest of the week. Maybe cap weekday points at 12 and see how that feels for one full period before changing anything else.</div>
+            <span class="entry-more">Show more</span>
+          </div>
+
+          <div class="entry-card">
+            <div class="entry-top">
+              <span class="entry-time">16:40</span>
+              <span class="entry-chip chip-log">Log</span>
+              <div class="entry-actions">
+                <button class="entry-action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                <button class="entry-action-btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg></button>
+              </div>
+            </div>
+            <div class="entry-text">Leg day done. New PR on squats — 90kg × 5.</div>
+          </div>
+
+          <div class="entry-card">
+            <div class="entry-top">
+              <span class="entry-time">08:15</span>
+              <span class="entry-chip chip-idea">Idea</span>
+              <div class="entry-actions">
+                <button class="entry-action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                <button class="entry-action-btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg></button>
+              </div>
+            </div>
+            <div class="entry-text">What if the AI plan chat could read my journal from last week for context before drafting?</div>
+          </div>
+
+          <div class="day-header">Fri, Jul 4 <span class="day-count">2 entries</span></div>
+
+          <div class="entry-card">
+            <div class="entry-top">
+              <span class="entry-time">22:30</span>
+              <span class="entry-chip chip-mood">Mood</span>
+              <div class="entry-actions">
+                <button class="entry-action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                <button class="entry-action-btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg></button>
+              </div>
+            </div>
+            <div class="entry-text">Bit anxious about the interview loop next month. Writing it down actually helps.</div>
+          </div>
+
+          <div class="entry-card">
+            <div class="entry-top">
+              <span class="entry-time">12:10</span>
+              <span class="entry-chip chip-log">Log</span>
+              <div class="entry-actions">
+                <button class="entry-action-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                <button class="entry-action-btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg></button>
+              </div>
+            </div>
+            <div class="entry-text">Sinus CT scheduled for the 15th.</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ JUST CAPTURED (toast + new unsorted entry) ══ -->
+<div id="screen-captured" class="app" style="display:none">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <span class="sidebar-brand">Mars Workbench</span>
+      <button class="sidebar-collapse">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-nav-label">Workspace</div>
+      <a class="sidebar-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Board
+      </a>
+      <a class="sidebar-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="M3 9.75h18M9 9.75v9.75M15 9.75v9.75" stroke-linecap="round"/></svg>
+        Priorities
+      </a>
+      <a class="sidebar-item active" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
+        Journal
+      </a>
+      <a class="sidebar-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Plan
+      </a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">LC</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">Liang Jun</div>
+        <div class="sidebar-user-email">liang@example.com</div>
+      </div>
+      <button class="sidebar-signout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </aside>
+  <div class="main">
+    <div class="toast">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Captured
+    </div>
+    <div class="header">
+      <div class="header-left">
+        <span class="header-title"><span>Journal</span></span>
+        <span class="header-badge">Sun &middot; Jul 6</span>
+      </div>
+    </div>
+
+    <div class="journal-stats">
+      <div class="stat-item">
+        <div class="stat-value blue">24</div>
+        <div class="stat-label">This Week</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value amber">6 days</div>
+        <div class="stat-label">Streak</div>
+      </div>
+      <div class="dash-divider"></div>
+      <div class="mini-bars">
+        <div class="mini-bar-col"><div class="mini-bar" style="height:16px"></div><span class="mini-bar-day">M</span></div>
+        <div class="mini-bar-col"><div class="mini-bar" style="height:26px"></div><span class="mini-bar-day">T</span></div>
+        <div class="mini-bar-col"><div class="mini-bar" style="height:11px"></div><span class="mini-bar-day">W</span></div>
+        <div class="mini-bar-col"><div class="mini-bar" style="height:31px"></div><span class="mini-bar-day">T</span></div>
+        <div class="mini-bar-col"><div class="mini-bar" style="height:21px"></div><span class="mini-bar-day">F</span></div>
+        <div class="mini-bar-col"><div class="mini-bar" style="height:11px"></div><span class="mini-bar-day">S</span></div>
+        <div class="mini-bar-col"><div class="mini-bar today" style="height:26px"></div><span class="mini-bar-day">S</span></div>
+      </div>
+      <div class="dash-divider"></div>
+      <div class="cat-bar-group">
+        <div class="cat-bar-header">
+          <span class="cat-bar-title">By Category</span>
+          <span class="cat-bar-sub">last 30 days &middot; 31 entries</span>
+        </div>
+        <div class="cat-bar-track">
+          <div class="cat-seg cat-idea" style="width:26%"></div>
+          <div class="cat-seg cat-action" style="width:16%"></div>
+          <div class="cat-seg cat-reflection" style="width:19%"></div>
+          <div class="cat-seg cat-mood" style="width:13%"></div>
+          <div class="cat-seg cat-log" style="width:20%"></div>
+          <div class="cat-seg cat-unsorted" style="width:6%"></div>
+        </div>
+        <div class="cat-legend">
+          <span class="cat-legend-item"><span class="cat-dot cat-idea"></span>Idea 8</span>
+          <span class="cat-legend-item"><span class="cat-dot cat-action"></span>Action 5</span>
+          <span class="cat-legend-item"><span class="cat-dot cat-reflection"></span>Reflection 6</span>
+          <span class="cat-legend-item"><span class="cat-dot cat-mood"></span>Mood 4</span>
+          <span class="cat-legend-item"><span class="cat-dot cat-log"></span>Log 6</span>
+          <span class="cat-legend-item"><span class="cat-dot cat-unsorted"></span>Unsorted 2</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="journal-scroll">
+      <div class="journal-col">
+
+        <!-- Capture box cleared after save, still focused for the next thought -->
+        <div class="capture-box focused">
+          <textarea class="capture-input" rows="2" placeholder="What's on your mind? A thought, a worry, a win — one line is enough."></textarea>
+          <div class="capture-footer">
+            <span class="capture-hint"><kbd>⌘</kbd> + <kbd>↩</kbd> to capture &middot; sorted by AI tonight</span>
+            <button class="btn btn-primary btn-capture">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5m-7 7l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Capture
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-row">
+          <button class="filter-chip active">All <span class="filter-count">31</span></button>
+          <button class="filter-chip"><span class="cat-dot cat-idea"></span>Idea <span class="filter-count">8</span></button>
+          <button class="filter-chip"><span class="cat-dot cat-action"></span>Action <span class="filter-count">5</span></button>
+          <button class="filter-chip"><span class="cat-dot cat-reflection"></span>Reflection <span class="filter-count">6</span></button>
+          <button class="filter-chip"><span class="cat-dot cat-mood"></span>Mood <span class="filter-count">4</span></button>
+          <button class="filter-chip"><span class="cat-dot cat-log"></span>Log <span class="filter-count">6</span></button>
+          <button class="filter-chip"><span class="cat-dot cat-unsorted"></span>Unsorted <span class="filter-count">2</span></button>
+        </div>
+
+        <div class="journal-feed">
+
+          <div class="day-header">Today &middot; Sun, Jul 6 <span class="day-count">5 entries</span></div>
+
+          <!-- The entry that was just captured -->
+          <div class="entry-card just-captured">
+            <div class="entry-top">
+              <span class="entry-time">22:03</span>
+              <span class="entry-chip chip-unsorted">Unsorted</span>
+              <span class="entry-pending-hint">✨ sorts tonight</span>
+            </div>
+            <div class="entry-text">Dinner with Wei next Friday — he mentioned a good hotpot place near the office.</div>
+          </div>
+
+          <div class="entry-card">
+            <div class="entry-top">
+              <span class="entry-time">21:47</span>
+              <span class="entry-chip chip-unsorted">Unsorted</span>
+              <span class="entry-pending-hint">✨ sorts tonight</span>
+            </div>
+            <div class="entry-text">Keep waking up at 3am with app ideas — maybe I should just dump them here instead of losing sleep over them.</div>
+          </div>
+
+          <div class="entry-card">
+            <div class="entry-top">
+              <span class="entry-time">18:20</span>
+              <span class="entry-chip chip-mood">Mood</span>
+            </div>
+            <div class="entry-text">Energy way better after cutting the afternoon coffee. Third day in a row feeling clear-headed at night.</div>
+          </div>
+
+          <div class="entry-card">
+            <div class="entry-top">
+              <span class="entry-time">14:05</span>
+              <span class="entry-chip chip-idea">Idea</span>
+            </div>
+            <div class="entry-text">Backlog drawer could show a tiny sparkline of how many queued tasks got pulled each day — would make the drawer feel alive.</div>
+          </div>
+
+          <div class="entry-card">
+            <div class="entry-top">
+              <span class="entry-time">09:32</span>
+              <span class="entry-chip chip-action">Action</span>
+            </div>
+            <div class="entry-text">Passport renewal form needs the new address — remember to bring the utility bill to the office.</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ENTRY MODAL (view / edit / recategorize / delete) ══ -->
+<div id="screen-modal" class="app" style="display:none">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <span class="sidebar-brand">Mars Workbench</span>
+      <button class="sidebar-collapse">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-nav-label">Workspace</div>
+      <a class="sidebar-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Board
+      </a>
+      <a class="sidebar-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="M3 9.75h18M9 9.75v9.75M15 9.75v9.75" stroke-linecap="round"/></svg>
+        Priorities
+      </a>
+      <a class="sidebar-item active" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
+        Journal
+      </a>
+      <a class="sidebar-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Plan
+      </a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">LC</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">Liang Jun</div>
+        <div class="sidebar-user-email">liang@example.com</div>
+      </div>
+      <button class="sidebar-signout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </aside>
+  <div class="main">
+    <div class="header">
+      <div class="header-left">
+        <span class="header-title"><span>Journal</span></span>
+        <span class="header-badge">Sun &middot; Jul 6</span>
+      </div>
+    </div>
+
+    <div class="journal-scroll">
+      <div class="journal-col">
+        <div class="capture-box">
+          <textarea class="capture-input" rows="2" placeholder="What's on your mind? A thought, a worry, a win — one line is enough."></textarea>
+          <div class="capture-footer">
+            <span class="capture-hint"><kbd>⌘</kbd> + <kbd>↩</kbd> to capture &middot; sorted by AI tonight</span>
+            <button class="btn btn-primary btn-capture">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5m-7 7l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Capture
+            </button>
+          </div>
+        </div>
+
+        <div class="journal-feed">
+          <div class="day-header">Yesterday &middot; Sat, Jul 5 <span class="day-count">3 entries</span></div>
+          <div class="entry-card">
+            <div class="entry-top">
+              <span class="entry-time">23:11</span>
+              <span class="entry-chip chip-reflection">Reflection</span>
+            </div>
+            <div class="entry-text clamped">Looking back at this week's plan, I overloaded Tuesday and underloaded Friday again. The pattern is always the same: I'm optimistic on Monday, pack the early week full, then drag the leftovers across the rest of the week. Maybe cap weekday points at 12 and see how that feels for one full period before changing anything else.</div>
+            <span class="entry-more">Show more</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: opened by clicking an entry -->
+    <div class="modal-overlay">
+      <div class="modal" style="width: 620px">
+        <div class="modal-header">
+          <div>
+            <div class="modal-title">Journal Entry</div>
+            <div class="modal-meta">Sat, Jul 5 &middot; 23:11</div>
+          </div>
+          <button class="modal-close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <textarea class="entry-edit-input" rows="6">Looking back at this week's plan, I overloaded Tuesday and underloaded Friday again. The pattern is always the same: I'm optimistic on Monday, pack the early week full, then drag the leftovers across the rest of the week. Maybe cap weekday points at 12 and see how that feels for one full period before changing anything else.</textarea>
+          </div>
+          <div class="form-group" style="margin-bottom: 0">
+            <label class="form-label">Category</label>
+            <div class="cat-pills">
+              <button class="cat-pill-btn"><span class="cat-dot cat-idea"></span>Idea</button>
+              <button class="cat-pill-btn"><span class="cat-dot cat-action"></span>Action</button>
+              <button class="cat-pill-btn active pill-reflection"><span class="cat-dot cat-reflection"></span>Reflection</button>
+              <button class="cat-pill-btn"><span class="cat-dot cat-mood"></span>Mood</button>
+              <button class="cat-pill-btn"><span class="cat-dot cat-log"></span>Log</button>
+            </div>
+            <div class="cat-pill-hint">✨ Assigned by AI — pick another to override. Manual picks are never re-sorted.</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-danger-ghost">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg>
+            Delete
+          </button>
+          <button class="btn btn-ghost">Cancel</button>
+          <button class="btn btn-primary">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EMPTY (first-time user) ══ -->
+<div id="screen-empty" class="app" style="display:none">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <span class="sidebar-brand">Mars Workbench</span>
+      <button class="sidebar-collapse">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-nav-label">Workspace</div>
+      <a class="sidebar-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Board
+      </a>
+      <a class="sidebar-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="M3 9.75h18M9 9.75v9.75M15 9.75v9.75" stroke-linecap="round"/></svg>
+        Priorities
+      </a>
+      <a class="sidebar-item active" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
+        Journal
+      </a>
+      <a class="sidebar-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Plan
+      </a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">LC</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">Liang Jun</div>
+        <div class="sidebar-user-email">liang@example.com</div>
+      </div>
+      <button class="sidebar-signout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </aside>
+  <div class="main">
+    <div class="header">
+      <div class="header-left">
+        <span class="header-title"><span>Journal</span></span>
+        <span class="header-badge">Sun &middot; Jul 6</span>
+      </div>
+    </div>
+
+    <div class="journal-scroll">
+      <div class="journal-col">
+        <div class="capture-box focused">
+          <textarea class="capture-input" rows="2" placeholder="What's on your mind? A thought, a worry, a win — one line is enough."></textarea>
+          <div class="capture-footer">
+            <span class="capture-hint"><kbd>⌘</kbd> + <kbd>↩</kbd> to capture &middot; sorted by AI tonight</span>
+            <button class="btn btn-primary btn-capture">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5m-7 7l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Capture
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-state" style="padding-top: 60px">
+        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 2"/>
+        </svg>
+        <div class="empty-title">Your journal is empty</div>
+        <div class="empty-desc">Dump whatever's in your head — a thought, a worry, a win. One line is enough. Every night the AI sorts your entries into categories, so you never have to file anything.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(name) {
+  document.querySelectorAll('.app').forEach(el => el.style.display = 'none');
+  document.getElementById('screen-' + name).style.display = 'flex';
+  var btns = document.querySelectorAll('.screen-btn');
+  var names = ['journal','captured','modal','empty'];
+  var idx = names.indexOf(name);
+  btns.forEach(function(b, i) { b.classList.toggle('active', i === idx); });
+}
+</script>
+<script>
+(function() {
+  var btn = document.createElement('button');
+  btn.className = 'mockup-theme-toggle';
+  btn.title = 'Toggle theme';
+  var sun = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
+  var moon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>';
+  function update() {
+    var t = document.documentElement.getAttribute('data-mockup-theme');
+    btn.innerHTML = t === 'dark' ? sun : moon;
+  }
+  btn.addEventListener('click', function() {
+    var t = document.documentElement.getAttribute('data-mockup-theme');
+    document.documentElement.setAttribute('data-mockup-theme', t === 'dark' ? 'light' : 'dark');
+    update();
+  });
+  document.body.appendChild(btn);
+  update();
+})();
+</script>
+</body>
+</html>
