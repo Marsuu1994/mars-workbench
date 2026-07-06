@@ -61,7 +61,13 @@ export default function BoardColumn({
           >
             <div className="flex items-center gap-2">
               <span className={`block md:hidden w-1.5 h-1.5 rounded-full ${style.dotColor}`} />
-              <h2 className="font-semibold text-sm">{label}</h2>
+              <h2
+                className={`font-semibold text-sm ${
+                  snapshot.isDraggingOver ? "max-md:text-info" : ""
+                }`}
+              >
+                {label}
+              </h2>
             </div>
             <span className="badge badge-ghost badge-sm">{tasks.length}</span>
           </div>
@@ -69,8 +75,10 @@ export default function BoardColumn({
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={`flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide md:flex-col md:p-3 md:overflow-y-auto md:overflow-x-visible md:flex-1 md:rounded-b-xl transition-colors duration-200 ${
-              snapshot.isDraggingOver ? "max-md:bg-base-300/40" : ""
+            className={`flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide md:flex-col md:p-3 md:overflow-y-auto md:overflow-x-visible md:flex-1 md:rounded-b-xl max-md:rounded-xl max-md:border-2 max-md:border-dashed transition-colors duration-200 ${
+              snapshot.isDraggingOver
+                ? "max-md:border-info max-md:bg-info/5"
+                : "max-md:border-transparent"
             }`}
           >
             {tasks.map((task, index) => (

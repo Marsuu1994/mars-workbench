@@ -18,6 +18,8 @@ Single source of truth for open ideas and todos across the app — open items on
 ### Medium
 
 - [ ] Add AI-generated task instance flow — LLM should be able to generate task instances based on past work + task template information; need to record the quality of tasks it generated
+- [ ] Mobile adaptation for the AI plan chat modal — it stays a 640px-capped centered card on phones while sibling modals (TaskModal, ReviewChangesModal) switch to `modal-bottom` sheets; no mobile AI-chat mockup exists (design the mobile presentation first, then implement)
+- [ ] Redesign the template edit (pencil) affordance for discoverability — currently `opacity-0 group-hover:opacity-100` on TemplateItem, so it's invisible on touch and hidden-until-hover on desktop; both plan-form mockups draw it always visible. Needs a design exploration (`/design-explore`) before implementation
 
 ### Future
 
@@ -59,6 +61,7 @@ Single source of truth for open ideas and todos across the app — open items on
 ### Medium
 
 - [ ] Refine the component gallery page (`/design`) — add remaining primitives (BoardColumn, TemplateItem, task-modal pieces), polish grouping/layout, and consider per-variant controls
+- [ ] Uniform page header across pages (board, priorities, settings) — one shared header treatment on both breakpoints; plan pages keep their distinct planning-mode header. Also resolves the BoardHeader accent drift (desktop `md:text-success` green vs mobile `text-primary`; the desktop mockup shows the primary accent)
 
 ### Future
 

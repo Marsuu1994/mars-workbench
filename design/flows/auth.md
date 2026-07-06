@@ -33,3 +33,10 @@ Same as login — Supabase auto-creates a user record on first Google sign-in.
 
 1. Call `supabase.auth.signOut()` to end the session
 2. Redirect to `/auth/login`
+
+## Settings Entry Points
+
+Known chrome asymmetry, accepted for now:
+
+- Mobile: the bottom dock has a Settings tab → `/kanban/settings` (profile card, sign-out button, app version).
+- Desktop: the sidebar has no Settings link — profile info and sign-out live inline in the sidebar user section, so `/kanban/settings` is reachable only on mobile (or by direct URL). Revisit when the tracker's "User profile/settings page" item lands.

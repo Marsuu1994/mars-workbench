@@ -24,7 +24,6 @@ export const AppSidebar = ({ user, activePlanId }: AppSidebarProps) => {
   const router = useRouter();
   const { isCollapsed, toggleSidebar } = useSidebarStore();
   const [isLogoHovered, setIsLogoHovered] = useState(false);
-  const [isBoardHovered, setIsBoardHovered] = useState(false);
 
   if (!user || pathname.startsWith("/auth")) {
     return null;
@@ -58,34 +57,14 @@ export const AppSidebar = ({ user, activePlanId }: AppSidebarProps) => {
   const navItemActive = `${navItemBase} bg-primary/10 text-primary font-semibold`;
   const navItemInactive = `${navItemBase} text-base-content/50 hover:bg-base-200 hover:text-base-content/70`;
 
-  const renderBoardLink = () => {
-    if (hasPlan) {
-      return (
-        <Link href="/kanban" className={isBoardActive ? navItemActive : navItemInactive}>
-          <Squares2X2Icon className="h-[18px] w-[18px] flex-shrink-0" />
-          <span className={`text-[13px] ${textOpacity}`}>Board</span>
-        </Link>
-      );
-    }
-
-    return (
-      <div
-        className="relative"
-        onMouseEnter={() => setIsBoardHovered(true)}
-        onMouseLeave={() => setIsBoardHovered(false)}
-      >
-        <span className={`${navItemBase} text-base-content/25 cursor-not-allowed`}>
-          <Squares2X2Icon className="h-[18px] w-[18px] flex-shrink-0" />
-          <span className={`text-[13px] ${textOpacity}`}>Board</span>
-        </span>
-        {isBoardHovered && (
-          <div className="absolute left-[calc(100%+8px)] top-1/2 -translate-y-1/2 z-100 rounded-md bg-neutral px-2.5 py-1 text-xs font-medium text-neutral-content whitespace-nowrap shadow-lg">
-            Create a plan first
-          </div>
-        )}
-      </div>
-    );
-  };
+  // No pre-plan guard here (matching the mobile dock) — without a plan the
+  // board route just shows its EmptyBoard state.
+  const renderBoardLink = () => (
+    <Link href="/kanban" className={isBoardActive ? navItemActive : navItemInactive}>
+      <Squares2X2Icon className="h-[18px] w-[18px] flex-shrink-0" />
+      <span className={`text-[13px] ${textOpacity}`}>Board</span>
+    </Link>
+  );
 
   const renderPrioritiesLink = () => (
     <Link
