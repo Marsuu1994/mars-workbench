@@ -51,13 +51,20 @@ export async function getChatById(
 /**
  * Find the user's most recent in-progress AI chat — one not yet linked to a
  * plan (`planId` null). Approval sets `planId`, so this returns the active
- * draft conversation to resume, or null if there is none.
+ * draft conversation to resume, or null if there is none. `since` bounds the
+ * search to chats created on/after that instant (the caller scopes resume to
+ * the current period so a stale prior-period chat can't be resumed).
  */
 export async function getLatestInProgressChat(
   userId: string,
+  since?: Date,
 ): Promise<ChatRecord | null> {
   return prisma.chat.findFirst({
-    where: {userId, planId: null},
+    where: {
+      userId,
+      planId: null,
+      ...(since ? {createdAt: {gte: since}} : {}),
+    },
     orderBy: {createdAt: 'desc'},
     select: chatSelect,
   });

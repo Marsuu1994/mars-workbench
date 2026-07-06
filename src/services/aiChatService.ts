@@ -26,7 +26,11 @@ import {openai, DRAFT_PLAN_MODEL} from '@/lib/llm/openai';
 import {createPlanFromDraft} from './planService';
 import {draftPlanResponseSchema, type DraftPlanResponse} from '@/schemas';
 import {buildDraftPlanSystemPrompt} from '../prompt/draftPlanPrompt';
-import {getTodayDate, getISOWeekKey} from '@/utils/dateUtils';
+import {
+  getTodayDate,
+  getISOWeekKey,
+  getMondayFromPeriodKey,
+} from '@/utils/dateUtils';
 import type {
   ActiveChatPayload,
   ChatMetadata,
@@ -233,7 +237,14 @@ export async function resumeDraftPlan(
 export async function getActiveAiChat(
   userId: string,
 ): Promise<ActiveChatPayload | null> {
-  const chat = await getLatestInProgressChat(userId);
+  // Only resume an unapproved chat from the current period. A chat left
+  // unapproved in a prior period predates the current pending plan, so its
+  // metadata has no last-period stats — resuming it would show the new-user
+  // (statless) welcome instead of the returning-user recap. Scoping to the
+  // current period drops those stale chats so a fresh, stats-bearing chat is
+  // created instead.
+  const periodStart = getMondayFromPeriodKey(getISOWeekKey(getTodayDate()));
+  const chat = await getLatestInProgressChat(userId, periodStart);
   if (!chat) return null;
 
   const messages = await getMessagesByChatId(chat.id);

@@ -28,6 +28,9 @@ export const ChatInputBar = ({combined}: ChatInputBarProps) => {
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Ignore Enter that confirms an IME composition (e.g. a Chinese/Japanese
+    // input method upleveling text) — it must commit the candidate, not send.
+    if (event.nativeEvent.isComposing) return;
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       handleSend();
