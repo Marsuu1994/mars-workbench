@@ -1,0 +1,26 @@
+# Build output
+.next/
+out/
+build/
+dist/
+
+# Dependencies
+node_modules/
+
+# Generated Prisma client
+src/generated/prisma/
+
+# Lockfiles and generated data
+package-lock.json
+
+# Prisma migrations (generated SQL)
+prisma/migrations/
+
+# Markdown docs & design assets are hand-authored; Prettier is scoped to code
+# only (README Update Logs are append-only — see AGENTS.md).
+**/*.md
+design/
+
+# Misc
+*.tsbuildinfo
+next-env.d.ts

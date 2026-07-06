@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import {useEffect, useState} from 'react';
+import {useRouter} from 'next/navigation';
+import {createClient} from '@/lib/supabase/client';
 
 const GoogleLogo = () => (
   <svg
@@ -51,9 +51,9 @@ const LoginPage = () => {
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(({data: {user}}) => {
       if (user) {
-        router.push("/");
+        router.push('/');
       } else {
         setChecking(false);
       }
@@ -63,7 +63,7 @@ const LoginPage = () => {
   const handleGoogleSignIn = async () => {
     const supabase = createClient();
     await supabase.auth.signInWithOAuth({
-      provider: "google",
+      provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
@@ -81,10 +81,10 @@ const LoginPage = () => {
         className="pointer-events-none fixed inset-0 z-0"
         style={{
           background: [
-            "radial-gradient(ellipse 60% 50% at 50% 100%, var(--login-glow-cyan) 0%, transparent 70%)",
-            "radial-gradient(ellipse 40% 40% at 20% 20%, var(--login-glow-purple) 0%, transparent 60%)",
-            "radial-gradient(ellipse 50% 50% at 80% 30%, var(--login-glow-rose) 0%, transparent 60%)",
-          ].join(", "),
+            'radial-gradient(ellipse 60% 50% at 50% 100%, var(--login-glow-cyan) 0%, transparent 70%)',
+            'radial-gradient(ellipse 40% 40% at 20% 20%, var(--login-glow-purple) 0%, transparent 60%)',
+            'radial-gradient(ellipse 50% 50% at 80% 30%, var(--login-glow-rose) 0%, transparent 60%)',
+          ].join(', '),
         }}
       />
 
@@ -94,9 +94,9 @@ const LoginPage = () => {
         className="fx-grid-flow pointer-events-none fixed inset-x-0 -top-16 bottom-0 z-0 bg-[size:64px_64px]"
         style={{
           backgroundImage: [
-            "linear-gradient(var(--login-grid-color) 1px, transparent 1px)",
-            "linear-gradient(90deg, var(--login-grid-color) 1px, transparent 1px)",
-          ].join(", "),
+            'linear-gradient(var(--login-grid-color) 1px, transparent 1px)',
+            'linear-gradient(90deg, var(--login-grid-color) 1px, transparent 1px)',
+          ].join(', '),
         }}
       />
 
@@ -108,7 +108,7 @@ const LoginPage = () => {
           <h1 className="font-[family-name:var(--font-sans)] text-[26px] font-bold tracking-tight text-base-content">
             <span className="bg-linear-to-br from-primary to-secondary bg-clip-text text-transparent">
               Mars
-            </span>{" "}
+            </span>{' '}
             Workbench
           </h1>
           <p className="text-[15px] font-light tracking-wide text-base-content/45">

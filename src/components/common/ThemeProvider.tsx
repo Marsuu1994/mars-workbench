@@ -1,24 +1,24 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
+import {useEffect} from 'react';
 
-const getThemeForTime = (): "mars-dark" | "mars-light" => {
+const getThemeForTime = (): 'mars-dark' | 'mars-light' => {
   const hour = new Date().getHours();
   // 6pm (18) to 6am (6) → dark, otherwise → light
-  return hour >= 18 || hour < 6 ? "mars-dark" : "mars-light";
+  return hour >= 18 || hour < 6 ? 'mars-dark' : 'mars-light';
 };
 
-export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+export const ThemeProvider = ({children}: {children: React.ReactNode}) => {
   useEffect(() => {
     const applyTheme = () => {
-      document.documentElement.setAttribute("data-theme", getThemeForTime());
+      document.documentElement.setAttribute('data-theme', getThemeForTime());
     };
 
     applyTheme();
 
     // Register service worker for PWA installability
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js");
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js');
     }
 
     // Re-check every minute so the theme switches at 6am/6pm

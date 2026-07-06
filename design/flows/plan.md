@@ -14,7 +14,7 @@ User clicks the "New Template" button on the plan form page.
 
 ### Steps
 
-1. Open the template modal with empty fields for title, description, and size.
+1. Open the template modal (a centered modal on desktop, a bottom sheet on mobile) with empty fields for title, description, and size.
 2. The size selector displays all available sizes (XS–XL) with their corresponding point values and hour estimates. Selecting L or XL shows an inline warning suggesting the user consider splitting into smaller tasks.
 3. User completes the form and clicks "Create". Validate input via Zod schema, then persist the new TaskTemplate.
 4. Revalidate the `/kanban/plans` route to reflect the new template in the plan form.
@@ -51,7 +51,7 @@ User clicks "Create Plan" on empty board → navigates to `/kanban/plans/new`.
 1. Page preloads PlanTemplates (with type and frequency config) from the `PENDING_UPDATE` plan if one exists (returning user) and all non-DONE Ad-hoc tasks associated with that plan, so user can reuse last week's configuration. Unassigned Ad-hoc tasks are not offered here — they live on the priority matrix and reach the board via the "Track This Week Flow" (see `design/flows/priorities.md`).
 2. For non-Ad-hoc task templates
    1. User adds, removes, or edits templates. First-time users create templates from scratch.
-   2. For each selected template, user configures type and frequency. Size (and derived points) come from TaskTemplate directly and are not configurable per-plan.
+   2. For each selected template, user configures type and frequency (a −/+ stepper bounded to 1–10). Size (and derived points) come from TaskTemplate directly and are not configurable per-plan.
 3. For non-DONE Ad-hoc tasks from the `PENDING_UPDATE` plan: preselected, user can deselect it to not include it to the coming plan.
 4. Toggle plan mode between NORMAL and EXTREME. Defaults to NORMAL.
 5. User submits.
@@ -76,7 +76,7 @@ User clicks "Edit Plan" on board header → navigates to `/kanban/plans/[id]`.
 2. For non-Ad-hoc task: user edits template selection and/or type and frequency for a choosen template.
 3. For Ad-hoc task: user select/deselect to include/exclude task from current plan, deselect will set the planId to null and change the taskStatus to backlog => move back to priority matrix.
 4. Toggle plan mode between NORMAL and EXTREME.
-5. On submit, show confirmation modal summarizing the changes (added, removed, modified, mode change).
+5. On submit, show the confirmation modal summarizing the changes (added, removed, modified, mode change) — a centered modal on desktop, a tall bottom sheet with a scrolling summary and pinned footer on mobile.
 6. User clicks confirm and regenerate button.
 7. Apply template changes and regenerate tasks accordingly (respecting plan mode for weekend skipping).
 8. Revalidate `/kanban` to render updated board.

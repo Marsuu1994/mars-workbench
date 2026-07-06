@@ -1,4 +1,4 @@
-import type { DraftTemplate } from "../types/aiChat";
+import type {DraftTemplate} from '../types/aiChat';
 
 /**
  * Roll up a draft's templates into the counts shown in the create bar / success
@@ -11,6 +11,6 @@ export function summarizeDraftTemplates(templates: DraftTemplate[]): {
   existing: number;
 } {
   const total = templates.length;
-  const newCount = templates.filter((t) => t.templateId === null).length;
-  return { total, newCount, existing: total - newCount };
+  const newCount = templates.filter(t => t.templateId === null).length;
+  return {total, newCount, existing: total - newCount};
 }

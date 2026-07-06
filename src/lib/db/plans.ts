@@ -1,5 +1,11 @@
-import prisma from "@/lib/prisma";
-import { Prisma, PlanMode, PlanStatus, TaskSize, TaskType } from "@/generated/prisma/client";
+import prisma from '@/lib/prisma';
+import {
+  Prisma,
+  PlanMode,
+  PlanStatus,
+  TaskSize,
+  TaskType,
+} from '@/generated/prisma/client';
 
 export type PlanItem = {
   id: string;
@@ -48,7 +54,7 @@ const planSelect = {
  */
 export async function getActivePlan(userId: string): Promise<PlanItem | null> {
   return prisma.plan.findFirst({
-    where: { userId, status: "ACTIVE" },
+    where: {userId, status: 'ACTIVE'},
     select: planSelect,
   });
 }
@@ -58,10 +64,10 @@ export async function getActivePlan(userId: string): Promise<PlanItem | null> {
  */
 export async function getPlanByStatus(
   userId: string,
-  status: PlanStatus
+  status: PlanStatus,
 ): Promise<PlanItem | null> {
   return prisma.plan.findFirst({
-    where: { userId, status },
+    where: {userId, status},
     select: planSelect,
   });
 }
@@ -73,10 +79,10 @@ export async function getPlanByStatus(
  */
 export async function getPlanWithTemplates(
   userId: string,
-  planId: string
+  planId: string,
 ): Promise<PlanWithTemplates | null> {
   return prisma.plan.findFirst({
-    where: { id: planId, userId },
+    where: {id: planId, userId},
     select: {
       ...planSelect,
       planTemplates: {
@@ -105,8 +111,13 @@ export async function getPlanWithTemplates(
  */
 export async function createPlan(
   userId: string,
-  data: { periodType: "WEEKLY"; periodKey: string; description?: string; mode?: PlanMode },
-  tx?: Prisma.TransactionClient
+  data: {
+    periodType: 'WEEKLY';
+    periodKey: string;
+    description?: string;
+    mode?: PlanMode;
+  },
+  tx?: Prisma.TransactionClient,
 ): Promise<PlanItem> {
   const db = tx ?? prisma;
   return db.plan.create({
@@ -116,7 +127,7 @@ export async function createPlan(
       periodKey: data.periodKey,
       description: data.description,
       mode: data.mode,
-      status: "ACTIVE",
+      status: 'ACTIVE',
     },
     select: planSelect,
   });
@@ -130,12 +141,12 @@ export async function createPlan(
 export async function updatePlan(
   userId: string,
   planId: string,
-  data: { description?: string; mode?: PlanMode },
-  tx?: Prisma.TransactionClient
-): Promise<{ count: number }> {
+  data: {description?: string; mode?: PlanMode},
+  tx?: Prisma.TransactionClient,
+): Promise<{count: number}> {
   const db = tx ?? prisma;
   return db.plan.updateMany({
-    where: { id: planId, userId },
+    where: {id: planId, userId},
     data,
   });
 }
@@ -147,12 +158,12 @@ export async function updatePlanStatus(
   userId: string,
   planId: string,
   status: PlanStatus,
-  tx?: Prisma.TransactionClient
-): Promise<{ count: number }> {
+  tx?: Prisma.TransactionClient,
+): Promise<{count: number}> {
   const db = tx ?? prisma;
   return db.plan.updateMany({
-    where: { id: planId, userId },
-    data: { status },
+    where: {id: planId, userId},
+    data: {status},
   });
 }
 
@@ -163,11 +174,11 @@ export async function updateLastSyncDate(
   userId: string,
   planId: string,
   date: Date,
-  tx?: Prisma.TransactionClient
+  tx?: Prisma.TransactionClient,
 ): Promise<void> {
   const db = tx ?? prisma;
   await db.plan.updateMany({
-    where: { id: planId, userId },
-    data: { lastSyncDate: date },
+    where: {id: planId, userId},
+    data: {lastSyncDate: date},
   });
 }

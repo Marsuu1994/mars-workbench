@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @plugin "daisyui" {
   themes: all;
 }
@@ -27,7 +27,7 @@
 
 /* ── Mars Dark — night ops deck ────────────────────────────────── */
 @plugin "daisyui/theme" {
-  name: "mars-dark";
+  name: 'mars-dark';
   default: true;
   color-scheme: dark;
 
@@ -38,7 +38,9 @@
 
   --color-primary: oklch(0.83 0.135 205); /* phosphor cyan  #2ce0f1 */
   --color-primary-content: oklch(0.2 0.04 225);
-  --color-secondary: oklch(0.74 0.15 295); /* telemetry violet — the AI channel */
+  --color-secondary: oklch(
+    0.74 0.15 295
+  ); /* telemetry violet — the AI channel */
   --color-secondary-content: oklch(0.18 0.045 295);
   --color-accent: oklch(0.76 0.155 55); /* mars signal orange #fb9344 */
   --color-accent-content: oklch(0.2 0.045 55);
@@ -66,7 +68,7 @@
 
 /* ── Mars Light — daylight ops room ────────────────────────────── */
 @plugin "daisyui/theme" {
-  name: "mars-light";
+  name: 'mars-light';
   color-scheme: light;
 
   --color-base-100: oklch(0.985 0.005 240); /* console paper */
@@ -88,7 +90,9 @@
   --color-info-content: oklch(0.985 0.005 240);
   --color-success: oklch(0.52 0.13 152); /* go-green */
   --color-success-content: oklch(0.985 0.005 152);
-  --color-warning: oklch(0.5 0.1 75); /* bronze caution — body-text grade on white */
+  --color-warning: oklch(
+    0.5 0.1 75
+  ); /* bronze caution — body-text grade on white */
   --color-warning-content: oklch(0.985 0.008 75);
   --color-error: oklch(0.55 0.185 25); /* abort red */
   --color-error-content: oklch(0.985 0.005 25);
@@ -107,7 +111,11 @@
 }
 
 body {
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-family:
+    var(--font-geist-sans),
+    system-ui,
+    -apple-system,
+    sans-serif;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -116,19 +124,35 @@ body {
    below only tune per-theme intensity.
    ═══════════════════════════════════════════════════════════════════ */
 
-[data-theme="mars-dark"] {
+[data-theme='mars-dark'] {
   --fx-grid-line: color-mix(in oklab, var(--color-primary) 6%, transparent);
-  --fx-grid-line-major: color-mix(in oklab, var(--color-primary) 11%, transparent);
+  --fx-grid-line-major: color-mix(
+    in oklab,
+    var(--color-primary) 11%,
+    transparent
+  );
   --fx-bloom-1: color-mix(in oklab, var(--color-primary) 14%, transparent);
   --fx-bloom-2: color-mix(in oklab, var(--color-secondary) 12%, transparent);
   --fx-bloom-3: color-mix(in oklab, var(--color-accent) 9%, transparent);
   --fx-bloom-4: color-mix(in oklab, var(--color-info) 8%, transparent);
   --fx-bracket: color-mix(in oklab, var(--color-primary) 60%, transparent);
   --fx-panel-bg: color-mix(in oklab, var(--color-base-100) 74%, transparent);
-  --fx-panel-bg-solid: color-mix(in oklab, var(--color-base-100) 94%, var(--color-base-300));
+  --fx-panel-bg-solid: color-mix(
+    in oklab,
+    var(--color-base-100) 94%,
+    var(--color-base-300)
+  );
   --fx-panel-border: color-mix(in oklab, var(--color-primary) 16%, transparent);
-  --fx-edge-light: color-mix(in oklab, var(--color-base-content) 12%, transparent);
-  --fx-card-border: color-mix(in oklab, var(--color-base-content) 10%, transparent);
+  --fx-edge-light: color-mix(
+    in oklab,
+    var(--color-base-content) 12%,
+    transparent
+  );
+  --fx-card-border: color-mix(
+    in oklab,
+    var(--color-base-content) 10%,
+    transparent
+  );
   --fx-shadow-ambient: 0 8px 24px oklch(0.05 0.02 265 / 0.5);
   --fx-shadow-hover: 0 6px 18px oklch(0.05 0.02 265 / 0.55);
   --fx-glow-primary:
@@ -145,9 +169,17 @@ body {
     0 0 42px color-mix(in oklab, var(--color-accent) 12%, transparent);
 }
 
-[data-theme="mars-light"] {
-  --fx-grid-line: color-mix(in oklab, var(--color-base-content) 5%, transparent);
-  --fx-grid-line-major: color-mix(in oklab, var(--color-base-content) 9%, transparent);
+[data-theme='mars-light'] {
+  --fx-grid-line: color-mix(
+    in oklab,
+    var(--color-base-content) 5%,
+    transparent
+  );
+  --fx-grid-line-major: color-mix(
+    in oklab,
+    var(--color-base-content) 9%,
+    transparent
+  );
   --fx-bloom-1: color-mix(in oklab, var(--color-primary) 10%, transparent);
   --fx-bloom-2: color-mix(in oklab, var(--color-secondary) 8%, transparent);
   --fx-bloom-3: color-mix(in oklab, var(--color-accent) 6%, transparent);
@@ -155,9 +187,17 @@ body {
   --fx-bracket: color-mix(in oklab, var(--color-primary) 55%, transparent);
   --fx-panel-bg: color-mix(in oklab, var(--color-base-100) 82%, transparent);
   --fx-panel-bg-solid: var(--color-base-100);
-  --fx-panel-border: color-mix(in oklab, var(--color-base-content) 13%, transparent);
+  --fx-panel-border: color-mix(
+    in oklab,
+    var(--color-base-content) 13%,
+    transparent
+  );
   --fx-edge-light: oklch(1 0 0 / 0.7);
-  --fx-card-border: color-mix(in oklab, var(--color-base-content) 12%, transparent);
+  --fx-card-border: color-mix(
+    in oklab,
+    var(--color-base-content) 12%,
+    transparent
+  );
   --fx-shadow-ambient: 0 6px 20px oklch(0.35 0.04 265 / 0.1);
   --fx-shadow-hover: 0 6px 18px oklch(0.35 0.04 265 / 0.16);
   /* Daylight mode: glow reads as a crisp signal ring + tinted lift */
@@ -176,43 +216,69 @@ body {
    utility (text-primary, text-[9px], …) can override their
    properties, same as daisyUI component classes.                     */
 @layer components {
-/* ── Shell background: horizon blooms + holographic grid ──
+  /* ── Shell background: horizon blooms + holographic grid ──
    Apply to the fixed-height app shell wrapper (children scroll, the
    background paints once). Blooms anchor all four viewport corners. */
-.fx-shell-bg {
-  position: relative;
-  isolation: isolate;
-  background-color: var(--color-base-100);
-}
-.fx-shell-bg::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  --_blooms:
-    radial-gradient(110% 55% at 50% -8%, var(--fx-bloom-1), transparent 62%),
-    radial-gradient(55% 38% at 88% 0%, var(--fx-bloom-2), transparent 65%),
-    radial-gradient(45% 30% at 8% 4%, var(--fx-bloom-3), transparent 65%),
-    radial-gradient(60% 34% at 82% 104%, var(--fx-bloom-4), transparent 65%);
-  --_grid-major:
-    repeating-linear-gradient(0deg, var(--fx-grid-line-major) 0 1px, transparent 1px 120px),
-    repeating-linear-gradient(90deg, var(--fx-grid-line-major) 0 1px, transparent 1px 120px);
-  --_grid-minor:
-    repeating-linear-gradient(0deg, var(--fx-grid-line) 0 1px, transparent 1px 24px),
-    repeating-linear-gradient(90deg, var(--fx-grid-line) 0 1px, transparent 1px 24px);
-  background-image: var(--_blooms), var(--_grid-minor), var(--_grid-major);
-  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 55%, transparent 100%);
-  mask-image: linear-gradient(to bottom, black 0%, black 55%, transparent 100%);
-}
-/* Mobile: drop the 24px minor grid (moiré risk on fractional-DPR screens) */
-@media (max-width: 767px) {
-  .fx-shell-bg::before {
-    background-image: var(--_blooms), var(--_grid-major);
+  .fx-shell-bg {
+    position: relative;
+    isolation: isolate;
+    background-color: var(--color-base-100);
   }
-}
+  .fx-shell-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    --_blooms:
+      radial-gradient(110% 55% at 50% -8%, var(--fx-bloom-1), transparent 62%),
+      radial-gradient(55% 38% at 88% 0%, var(--fx-bloom-2), transparent 65%),
+      radial-gradient(45% 30% at 8% 4%, var(--fx-bloom-3), transparent 65%),
+      radial-gradient(60% 34% at 82% 104%, var(--fx-bloom-4), transparent 65%);
+    --_grid-major:
+      repeating-linear-gradient(
+        0deg,
+        var(--fx-grid-line-major) 0 1px,
+        transparent 1px 120px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        var(--fx-grid-line-major) 0 1px,
+        transparent 1px 120px
+      );
+    --_grid-minor:
+      repeating-linear-gradient(
+        0deg,
+        var(--fx-grid-line) 0 1px,
+        transparent 1px 24px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        var(--fx-grid-line) 0 1px,
+        transparent 1px 24px
+      );
+    background-image: var(--_blooms), var(--_grid-minor), var(--_grid-major);
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      black 0%,
+      black 55%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      black 0%,
+      black 55%,
+      transparent 100%
+    );
+  }
+  /* Mobile: drop the 24px minor grid (moiré risk on fractional-DPR screens) */
+  @media (max-width: 767px) {
+    .fx-shell-bg::before {
+      background-image: var(--_blooms), var(--_grid-major);
+    }
+  }
 
-/* ── Console chrome & panels ──
+  /* ── Console chrome & panels ──
    .fx-chrome        — radius-free chrome slab (mobile dock): always
                        solid; the dock floats over a scrolling board,
                        so backdrop blur there re-filters every frame.
@@ -220,78 +286,82 @@ body {
                        backdrop is the static shell, blur is cheap).
    .fx-panel         — glass console panel; stationary chrome only.
    .fx-panel-solid   — same look, never blurs — safe anywhere.        */
-.fx-chrome,
-.fx-chrome-glass {
-  background: var(--fx-panel-bg-solid);
-}
-.fx-panel,
-.fx-panel-solid {
-  background: var(--fx-panel-bg-solid);
-  border: 1px solid var(--fx-panel-border);
-  border-radius: var(--radius-box);
-  box-shadow: inset 0 1px 0 var(--fx-edge-light), var(--fx-shadow-ambient);
-}
-@supports (backdrop-filter: blur(1px)) {
-  .fx-chrome-glass,
-  .fx-panel {
-    background: var(--fx-panel-bg);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
+  .fx-chrome,
+  .fx-chrome-glass {
+    background: var(--fx-panel-bg-solid);
   }
-}
+  .fx-panel,
+  .fx-panel-solid {
+    background: var(--fx-panel-bg-solid);
+    border: 1px solid var(--fx-panel-border);
+    border-radius: var(--radius-box);
+    box-shadow:
+      inset 0 1px 0 var(--fx-edge-light),
+      var(--fx-shadow-ambient);
+  }
+  @supports (backdrop-filter: blur(1px)) {
+    .fx-chrome-glass,
+    .fx-panel {
+      background: var(--fx-panel-bg);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+    }
+  }
 
-/* ── Corner brackets (targeting-reticle framing) ──
-   Inset 2px so the square strokes clear the rounded corners.
-   Bracket length overridable via --fx-bracket-len.                   */
-.fx-corners {
-  position: relative;
-}
-.fx-corners::after {
-  content: "";
-  position: absolute;
-  inset: 2px;
-  pointer-events: none;
-  --_l: var(--fx-bracket-len, 12px);
-  --_g: linear-gradient(var(--fx-bracket), var(--fx-bracket));
-  background:
-    var(--_g) 0 0 / var(--_l) 1.5px,
-    var(--_g) 0 0 / 1.5px var(--_l),
-    var(--_g) 100% 0 / var(--_l) 1.5px,
-    var(--_g) 100% 0 / 1.5px var(--_l),
-    var(--_g) 0 100% / var(--_l) 1.5px,
-    var(--_g) 0 100% / 1.5px var(--_l),
-    var(--_g) 100% 100% / var(--_l) 1.5px,
-    var(--_g) 100% 100% / 1.5px var(--_l);
-  background-repeat: no-repeat;
-}
-
-/* ── Task cards ──
+  /* ── Task cards ──
    Hover = lift + glow shadow ONLY (no border-color change, so the
    risk edge classes md:border-l-error/-warning always win). Drag
    lift is a class swap (.fx-card-lift), not a transition.            */
-.fx-card {
-  box-shadow: inset 0 1px 0 var(--fx-edge-light);
-  transition:
-    box-shadow 0.15s cubic-bezier(0.2, 0, 0, 1),
-    transform 0.15s cubic-bezier(0.2, 0, 0, 1);
-}
-.fx-card:hover {
-  box-shadow:
-    inset 0 1px 0 var(--fx-edge-light),
-    0 0 0 1px color-mix(in oklab, var(--color-primary) 18%, transparent),
-    var(--fx-shadow-hover);
-}
-.fx-card-lift {
-  box-shadow:
-    var(--fx-glow-primary),
-    0 14px 32px color-mix(in oklab, var(--color-base-300) 70%, transparent);
-}
+  .fx-card {
+    box-shadow: inset 0 1px 0 var(--fx-edge-light);
+    transition:
+      box-shadow 0.15s cubic-bezier(0.2, 0, 0, 1),
+      transform 0.15s cubic-bezier(0.2, 0, 0, 1);
+  }
+  .fx-card:hover {
+    box-shadow:
+      inset 0 1px 0 var(--fx-edge-light),
+      0 0 0 1px color-mix(in oklab, var(--color-primary) 18%, transparent),
+      var(--fx-shadow-hover);
+  }
+  .fx-card-lift {
+    box-shadow:
+      var(--fx-glow-primary),
+      0 14px 32px color-mix(in oklab, var(--color-base-300) 70%, transparent);
+  }
 } /* end @layer components */
 
 /* ── Drop-target highlight (mars-signal-orange channel) ──
    Pulse is a pseudo-element whose OPACITY animates over a
    pre-composited glow — zero repaint during drag. Defined with
    @utility so it composes with responsive variants (md:fx-target).   */
+
+/* ── Corner brackets (targeting-reticle framing) ──
+   Inset 2px so the square strokes clear the rounded corners.
+   Bracket length overridable via --fx-bracket-len. @utility so it
+   composes with responsive variants (md:fx-corners).                 */
+@utility fx-corners {
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    pointer-events: none;
+    --_l: var(--fx-bracket-len, 12px);
+    --_g: linear-gradient(var(--fx-bracket), var(--fx-bracket));
+    background:
+      var(--_g) 0 0 / var(--_l) 1.5px,
+      var(--_g) 0 0 / 1.5px var(--_l),
+      var(--_g) 100% 0 / var(--_l) 1.5px,
+      var(--_g) 100% 0 / 1.5px var(--_l),
+      var(--_g) 0 100% / var(--_l) 1.5px,
+      var(--_g) 0 100% / 1.5px var(--_l),
+      var(--_g) 100% 100% / var(--_l) 1.5px,
+      var(--_g) 100% 100% / 1.5px var(--_l);
+    background-repeat: no-repeat;
+  }
+}
+
 @utility fx-target {
   position: relative;
   border-radius: var(--radius-box);
@@ -299,12 +369,13 @@ body {
   outline-offset: -1px;
   background: color-mix(in oklab, var(--color-accent) 6%, transparent);
   &::before {
-    content: "";
+    content: '';
     position: absolute;
     inset: 0;
     border-radius: inherit;
     pointer-events: none;
-    box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-accent) 12%, transparent);
+    box-shadow: 0 0 0 4px
+      color-mix(in oklab, var(--color-accent) 12%, transparent);
     animation: fx-pulse-opacity 1.6s ease-in-out infinite;
   }
   @media (prefers-reduced-motion: reduce) {
@@ -315,237 +386,275 @@ body {
 }
 
 @layer components {
-/* ── Powered-up glow for primary / accent actions ── */
-.fx-glow {
-  box-shadow: var(--fx-glow-primary);
-  transition: box-shadow 0.15s cubic-bezier(0.2, 0, 0, 1);
-}
-.fx-glow:is(:hover, :focus-visible) {
-  box-shadow: var(--fx-glow-primary-hi);
-}
-.fx-glow-accent {
-  box-shadow: var(--fx-glow-accent);
-  transition: box-shadow 0.15s cubic-bezier(0.2, 0, 0, 1);
-}
+  /* ── Powered-up glow for primary / accent actions ── */
+  .fx-glow {
+    box-shadow: var(--fx-glow-primary);
+    transition: box-shadow 0.15s cubic-bezier(0.2, 0, 0, 1);
+  }
+  .fx-glow:is(:hover, :focus-visible) {
+    box-shadow: var(--fx-glow-primary-hi);
+  }
+  .fx-glow-accent {
+    box-shadow: var(--fx-glow-accent);
+    transition: box-shadow 0.15s cubic-bezier(0.2, 0, 0, 1);
+  }
 
-/* ── Console chip: tinted badge derived from currentColor ──
+  /* ── Console chip: tinted badge derived from currentColor ──
    Pair with any text token (text-info, text-secondary, …): border,
    fill and inset highlight all derive from the text color.           */
-.fx-chip {
-  border: 1px solid color-mix(in oklab, currentColor 28%, transparent);
-  background: color-mix(in oklab, currentColor 10%, transparent);
-  box-shadow: inset 0 1px 0 color-mix(in oklab, currentColor 10%, transparent);
-  letter-spacing: 0.08em;
-  font-variant-numeric: tabular-nums;
-}
+  .fx-chip {
+    border: 1px solid color-mix(in oklab, currentColor 28%, transparent);
+    background: color-mix(in oklab, currentColor 10%, transparent);
+    box-shadow: inset 0 1px 0 color-mix(in oklab, currentColor 10%, transparent);
+    letter-spacing: 0.08em;
+    font-variant-numeric: tabular-nums;
+  }
 
-/* The telemetry voice — one place binds the mono face for all three */
-.fx-chip,
-.fx-label,
-.fx-num {
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
-}
+  /* The telemetry voice — one place binds the mono face for all three */
+  .fx-chip,
+  .fx-label,
+  .fx-num {
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+  }
 
-/* ── HUD micro-label: mono, uppercase, wide tracking ──
+  /* ── HUD micro-label: mono, uppercase, wide tracking ──
    Column headers, quadrant titles, section headers — meaning-bearing
    wayfinding stays at 11px; only badge glyphs go smaller.            */
-.fx-label {
-  font-size: 0.6875rem;
-  font-weight: 500;
-  line-height: 1.2;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: color-mix(in oklab, var(--color-base-content) 62%, transparent);
-}
-.fx-label-bright {
-  color: var(--color-base-content);
-}
+  .fx-label {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: color-mix(in oklab, var(--color-base-content) 62%, transparent);
+  }
+  .fx-label-bright {
+    color: var(--color-base-content);
+  }
 
-/* Telemetry numerals: points, counts, %, dates */
-.fx-num {
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
-}
+  /* Telemetry numerals: points, counts, %, dates */
+  .fx-num {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
 
-/* ── Status LED: <span class="fx-led text-success" /> ──
+  /* ── Status LED: <span class="fx-led text-success" /> ──
    success = on-track · warning = at-risk · error = overdue ·
    secondary = AI live. Pulse animates opacity only (composited).     */
-.fx-led {
-  display: inline-block;
-  width: 0.375rem;
-  height: 0.375rem;
-  border-radius: 9999px;
-  background: currentColor;
-  box-shadow: 0 0 6px currentColor;
-  flex-shrink: 0;
-}
-.fx-led-pulse {
-  animation: fx-pulse-opacity 2.4s ease-in-out infinite;
-}
+  .fx-led {
+    display: inline-block;
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 9999px;
+    background: currentColor;
+    box-shadow: 0 0 6px currentColor;
+    flex-shrink: 0;
+  }
+  .fx-led-pulse {
+    animation: fx-pulse-opacity 2.4s ease-in-out infinite;
+  }
 
-/* ── Luminous gradient hairlines ──
+  /* ── Luminous gradient hairlines ──
    .fx-rule: standalone 1px divider (sidebar sections, chat groups).
    .fx-hairline-top: multi-hue top edge for dock / AI bubbles.        */
-.fx-rule {
-  height: 1px;
-  border: 0;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    color-mix(in oklab, var(--color-primary) 35%, transparent),
-    color-mix(in oklab, var(--color-secondary) 30%, transparent),
-    transparent
-  );
-}
-.fx-hairline-top {
-  position: relative;
-}
-.fx-hairline-top::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    color-mix(in oklab, var(--color-primary) 55%, transparent) 25%,
-    color-mix(in oklab, var(--color-secondary) 55%, transparent) 60%,
-    color-mix(in oklab, var(--color-accent) 45%, transparent) 85%,
-    transparent
-  );
-}
+  .fx-rule {
+    height: 1px;
+    border: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--color-primary) 35%, transparent),
+      color-mix(in oklab, var(--color-secondary) 30%, transparent),
+      transparent
+    );
+  }
+  .fx-hairline-top {
+    position: relative;
+  }
+  .fx-hairline-top::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--color-primary) 55%, transparent) 25%,
+      color-mix(in oklab, var(--color-secondary) 55%, transparent) 60%,
+      color-mix(in oklab, var(--color-accent) 45%, transparent) 85%,
+      transparent
+    );
+  }
 
-/* ── Holo border: the AI "thinking / live" state ──
+  /* ── Holo border: the AI "thinking / live" state ──
    Static conic gradient border (padding-box/border-box trick),
    token-derived. Violet-led — the AI channel.                        */
-.fx-holo {
-  border: 1px solid transparent;
-  border-radius: var(--radius-box);
-  background:
-    linear-gradient(var(--fx-panel-bg-solid), var(--fx-panel-bg-solid)) padding-box,
-    conic-gradient(
-        from 140deg,
-        color-mix(in oklab, var(--color-secondary) 55%, transparent),
-        color-mix(in oklab, var(--color-primary) 40%, transparent),
-        color-mix(in oklab, var(--color-secondary) 20%, transparent),
-        color-mix(in oklab, var(--color-accent) 35%, transparent),
-        color-mix(in oklab, var(--color-secondary) 55%, transparent)
-      )
-      border-box;
-}
+  .fx-holo {
+    border: 1px solid transparent;
+    border-radius: var(--radius-box);
+    background:
+      linear-gradient(var(--fx-panel-bg-solid), var(--fx-panel-bg-solid))
+        padding-box,
+      conic-gradient(
+          from 140deg,
+          color-mix(in oklab, var(--color-secondary) 55%, transparent),
+          color-mix(in oklab, var(--color-primary) 40%, transparent),
+          color-mix(in oklab, var(--color-secondary) 20%, transparent),
+          color-mix(in oklab, var(--color-accent) 35%, transparent),
+          color-mix(in oklab, var(--color-secondary) 55%, transparent)
+        )
+        border-box;
+  }
 
-/* ── Progress ring flourish ── */
-/* Rotating conic tail behind the ring — transform-only heartbeat */
-.fx-orbit {
-  position: relative;
-}
-.fx-orbit::before {
-  content: "";
-  position: absolute;
-  inset: -3px;
-  border-radius: 9999px;
-  pointer-events: none;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0 78%,
-    color-mix(in oklab, var(--color-primary) 35%, transparent) 92%,
-    transparent 100%
-  );
-  -webkit-mask-image: radial-gradient(closest-side, transparent 82%, black 84%, black 96%, transparent 100%);
-  mask-image: radial-gradient(closest-side, transparent 82%, black 84%, black 96%, transparent 100%);
-  /* Finite spin (~4s), restarted by a key remount on progress change —
+  /* ── Progress ring flourish ── */
+  /* Rotating conic tail behind the ring — transform-only heartbeat */
+  .fx-orbit {
+    position: relative;
+  }
+  .fx-orbit::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 9999px;
+    pointer-events: none;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0 78%,
+      color-mix(in oklab, var(--color-primary) 35%, transparent) 92%,
+      transparent 100%
+    );
+    -webkit-mask-image: radial-gradient(
+      closest-side,
+      transparent 82%,
+      black 84%,
+      black 96%,
+      transparent 100%
+    );
+    mask-image: radial-gradient(
+      closest-side,
+      transparent 82%,
+      black 84%,
+      black 96%,
+      transparent 100%
+    );
+    /* Finite spin (~4s), restarted by a key remount on progress change —
      the compositor idles once the celebration ends */
-  animation: fx-orbit 1.3s linear 3;
-}
+    animation: fx-orbit 1.3s linear 3;
+  }
 
-/* ── Gradient headline text (restraint rule: first word only) ── */
-.fx-text-gradient {
-  background: linear-gradient(92deg, var(--color-primary), var(--color-secondary));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
+  /* ── Gradient headline text (restraint rule: first word only) ── */
+  .fx-text-gradient {
+    background: linear-gradient(
+      92deg,
+      var(--color-primary),
+      var(--color-secondary)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
 
-/* ── Panel boot-in (mount animation for modals/drawers) ── */
-.fx-boot-in {
-  animation: fx-boot-in 0.42s cubic-bezier(0.2, 0, 0, 1) both;
-}
+  /* ── Panel boot-in (mount animation for modals/drawers) ── */
+  .fx-boot-in {
+    animation: fx-boot-in 0.42s cubic-bezier(0.2, 0, 0, 1) both;
+  }
 
-/* ── Active-nav luminous rail (sidebar) ── */
-.fx-nav-rail {
-  position: relative;
-}
-.fx-nav-rail::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 2px;
-  height: 60%;
-  border-radius: 9999px;
-  background: var(--color-primary);
-  box-shadow: 0 0 8px color-mix(in oklab, var(--color-primary) 60%, transparent);
-}
+  /* ── Active-nav luminous rail (sidebar) ── */
+  .fx-nav-rail {
+    position: relative;
+  }
+  .fx-nav-rail::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2px;
+    height: 60%;
+    border-radius: 9999px;
+    background: var(--color-primary);
+    box-shadow: 0 0 8px
+      color-mix(in oklab, var(--color-primary) 60%, transparent);
+  }
 
-/* ── Priority-matrix quadrant bloom ──
+  /* ── Priority-matrix quadrant bloom ──
    Corner glow keyed to the quadrant's semantic hue. Set the hue with
    fx-q-* and the anchor corner with fx-q-tl/tr/bl/br.                */
-.fx-quadrant {
-  position: relative;
-}
-.fx-quadrant::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(
-    55% 45% at var(--fx-q-x, 0%) var(--fx-q-y, 0%),
-    color-mix(in oklab, var(--fx-q, var(--color-primary)) 10%, transparent),
-    transparent 70%
-  );
-}
-.fx-q-error { --fx-q: var(--color-error); }
-.fx-q-primary { --fx-q: var(--color-primary); }
-.fx-q-warning { --fx-q: var(--color-warning); }
-.fx-q-neutral { --fx-q: color-mix(in oklab, var(--color-base-content) 40%, transparent); }
-.fx-q-tl { --fx-q-x: 0%; --fx-q-y: 0%; }
-.fx-q-tr { --fx-q-x: 100%; --fx-q-y: 0%; }
-.fx-q-bl { --fx-q-x: 0%; --fx-q-y: 100%; }
-.fx-q-br { --fx-q-x: 100%; --fx-q-y: 100%; }
+  .fx-quadrant {
+    position: relative;
+  }
+  .fx-quadrant::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+      55% 45% at var(--fx-q-x, 0%) var(--fx-q-y, 0%),
+      color-mix(in oklab, var(--fx-q, var(--color-primary)) 10%, transparent),
+      transparent 70%
+    );
+  }
+  .fx-q-error {
+    --fx-q: var(--color-error);
+  }
+  .fx-q-primary {
+    --fx-q: var(--color-primary);
+  }
+  .fx-q-warning {
+    --fx-q: var(--color-warning);
+  }
+  .fx-q-neutral {
+    --fx-q: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+  }
+  .fx-q-tl {
+    --fx-q-x: 0%;
+    --fx-q-y: 0%;
+  }
+  .fx-q-tr {
+    --fx-q-x: 100%;
+    --fx-q-y: 0%;
+  }
+  .fx-q-bl {
+    --fx-q-x: 0%;
+    --fx-q-y: 100%;
+  }
+  .fx-q-br {
+    --fx-q-x: 100%;
+    --fx-q-y: 100%;
+  }
 
-/* ── Login-only: grid crawl toward the viewer ──
+  /* ── Login-only: grid crawl toward the viewer ──
    Transform-only loop; the host element must extend 64px (one grid
    cell) above the viewport so the wrap-around is seamless.           */
-.fx-grid-flow {
-  animation: fx-grid-flow 4s linear infinite;
-}
+  .fx-grid-flow {
+    animation: fx-grid-flow 4s linear infinite;
+  }
 
-/* ── Brand glow pulse (login icon) ──
+  /* ── Brand glow pulse (login icon) ──
    Pre-composited halo on a pseudo-element; only its OPACITY breathes,
    so the loop composites instead of repainting box-shadow.           */
-.fx-glow-pulse {
-  position: relative;
-}
-.fx-glow-pulse::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  box-shadow:
-    0 0 50px color-mix(in oklab, var(--color-primary) 22%, transparent),
-    0 0 100px color-mix(in oklab, var(--color-secondary) 12%, transparent);
-  animation: fx-breathe 4s ease-in-out infinite alternate;
-}
+  .fx-glow-pulse {
+    position: relative;
+  }
+  .fx-glow-pulse::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow:
+      0 0 50px color-mix(in oklab, var(--color-primary) 22%, transparent),
+      0 0 100px color-mix(in oklab, var(--color-secondary) 12%, transparent);
+    animation: fx-breathe 4s ease-in-out infinite alternate;
+  }
 } /* end @layer components */
 
 /* ── Focus: single app-wide reticle ring in signal cyan ── */
-:is([data-theme="mars-dark"], [data-theme="mars-light"])
-  :is(a, button, input, select, textarea, [role="button"]):focus-visible {
+:is([data-theme='mars-dark'], [data-theme='mars-light'])
+  :is(a, button, input, select, textarea, [role='button']):focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
@@ -610,18 +719,34 @@ body {
 }
 
 /* ── Login page theme-aware decorations (token-derived) ── */
-[data-theme="mars-dark"] {
-  --login-grid-color: color-mix(in oklab, var(--color-base-content) 2%, transparent);
+[data-theme='mars-dark'] {
+  --login-grid-color: color-mix(
+    in oklab,
+    var(--color-base-content) 2%,
+    transparent
+  );
   --login-glow-cyan: color-mix(in oklab, var(--color-primary) 7%, transparent);
-  --login-glow-purple: color-mix(in oklab, var(--color-secondary) 5%, transparent);
+  --login-glow-purple: color-mix(
+    in oklab,
+    var(--color-secondary) 5%,
+    transparent
+  );
   --login-glow-rose: color-mix(in oklab, var(--color-accent) 4%, transparent);
   --login-btn-hover-shadow: 0 4px 24px oklch(0.05 0.02 265 / 0.4);
 }
 
-[data-theme="mars-light"] {
-  --login-grid-color: color-mix(in oklab, var(--color-base-content) 4%, transparent);
+[data-theme='mars-light'] {
+  --login-grid-color: color-mix(
+    in oklab,
+    var(--color-base-content) 4%,
+    transparent
+  );
   --login-glow-cyan: color-mix(in oklab, var(--color-primary) 9%, transparent);
-  --login-glow-purple: color-mix(in oklab, var(--color-secondary) 7%, transparent);
+  --login-glow-purple: color-mix(
+    in oklab,
+    var(--color-secondary) 7%,
+    transparent
+  );
   --login-glow-rose: color-mix(in oklab, var(--color-accent) 5%, transparent);
   --login-btn-hover-shadow: 0 4px 16px oklch(0.35 0.04 265 / 0.12);
 }

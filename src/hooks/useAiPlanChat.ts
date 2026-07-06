@@ -1,41 +1,44 @@
-"use client";
+'use client';
 
-import { useCallback } from "react";
-import { useTranslations } from "next-intl";
+import {useCallback} from 'react';
+import {useTranslations} from 'next-intl';
 import {
   approveDraftPlanAction,
   createAiChatAction,
   generateDraftPlanAction,
   getActiveAiChatAction,
   resumeDraftPlanAction,
-} from "../actions/aiChatActions";
-import { useAiPlanChatStore } from "../store/aiPlanChatStore";
-import { reconstructMessages } from "../utils/reconstructChat";
+} from '../actions/aiChatActions';
+import {useAiPlanChatStore} from '../store/aiPlanChatStore';
+import {reconstructMessages} from '../utils/reconstructChat';
 import {
   NEW_USER_CHIP_KEYS,
   RETURNING_USER_CHIP_KEYS,
-} from "../utils/aiChatContent";
+} from '../utils/aiChatContent';
 
-type ActionError = { formErrors: string[]; fieldErrors: Record<string, unknown> };
+type ActionError = {formErrors: string[]; fieldErrors: Record<string, unknown>};
 type DraftActionResult = Awaited<ReturnType<typeof generateDraftPlanAction>>;
 
 // Mirror the error-flattening used in TaskModal / PlanForm. `fallback` is the
 // translated generic message supplied by the caller (hooks own i18n).
 function extractError(error: ActionError | unknown, fallback: string): string {
-  if (error && typeof error === "object" && "formErrors" in error) {
+  if (error && typeof error === 'object' && 'formErrors' in error) {
     const formErrors = (error as ActionError).formErrors;
-    if (formErrors.length > 0) return formErrors.join(", ");
+    if (formErrors.length > 0) return formErrors.join(', ');
   }
   return fallback;
 }
 
 // Shared tail of generate/resume: append the draft (or a clarifying text reply)
 // and return to idle, or surface the error and re-enable input.
-function applyDraftResult(result: DraftActionResult, genericError: string): void {
+function applyDraftResult(
+  result: DraftActionResult,
+  genericError: string,
+): void {
   const store = useAiPlanChatStore.getState();
-  if ("error" in result) {
+  if ('error' in result) {
     store.setError(extractError(result.error, genericError));
-    store.setStatus("idle");
+    store.setStatus('idle');
     return;
   }
 
@@ -44,10 +47,12 @@ function applyDraftResult(result: DraftActionResult, genericError: string): void
     store.setLatestDraft(draft);
   } else {
     // Clarifying-question turn: render the reply as plain text, no draft cards.
-    const replyText = [draft.message, draft.followUp].filter(Boolean).join("\n\n");
-    store.appendMessage({ role: "assistant", type: "text", text: replyText });
+    const replyText = [draft.message, draft.followUp]
+      .filter(Boolean)
+      .join('\n\n');
+    store.appendMessage({role: 'assistant', type: 'text', text: replyText});
   }
-  store.setStatus("idle");
+  store.setStatus('idle');
 }
 
 /**
@@ -56,9 +61,9 @@ function applyDraftResult(result: DraftActionResult, genericError: string): void
  * writes results back into the store.
  */
 export function useAiPlanChat() {
-  const tErrors = useTranslations("Errors");
-  const tAi = useTranslations("AiChat");
-  const genericError = tErrors("generic");
+  const tErrors = useTranslations('Errors');
+  const tAi = useTranslations('AiChat');
+  const genericError = tErrors('generic');
 
   // Zustand action methods are stable references that always operate on current
   // state, so it is safe to keep one `store` handle and call its actions after
@@ -70,10 +75,10 @@ export function useAiPlanChat() {
     async (chatId: string) => {
       const store = useAiPlanChatStore.getState();
       store.setError(null);
-      store.setStatus("generating");
-      applyDraftResult(await resumeDraftPlanAction({ chatId }), genericError);
+      store.setStatus('generating');
+      applyDraftResult(await resumeDraftPlanAction({chatId}), genericError);
     },
-    [genericError]
+    [genericError],
   );
 
   const init = useCallback(
@@ -85,48 +90,51 @@ export function useAiPlanChat() {
       // finish into the store (no reload, no double-generation). Excludes the
       // `created` state so reopening after an approval starts a fresh chat
       // instead of showing the stale success banner.
-      if (store.chatId && store.status !== "created") {
+      if (store.chatId && store.status !== 'created') {
         store.open();
         return;
       }
 
       store.reset();
       store.open();
-      store.setStatus("initializing");
+      store.setStatus('initializing');
 
       // Fresh memory (e.g. page reload): the DB is the source of truth. Resume
       // the user's most recent unapproved chat if one exists.
       const active = await getActiveAiChatAction();
       if (active.data) {
-        const { chatId, messages, hasStats, pendingGeneration } = active.data;
+        const {chatId, messages, hasStats, pendingGeneration} = active.data;
         const welcomeChips = (
           hasStats ? RETURNING_USER_CHIP_KEYS : NEW_USER_CHIP_KEYS
-        ).map((k) => tAi(k));
-        store.hydrate({ chatId, messages: reconstructMessages(messages, welcomeChips) });
+        ).map(k => tAi(k));
+        store.hydrate({
+          chatId,
+          messages: reconstructMessages(messages, welcomeChips),
+        });
         // Last turn was an unanswered user message → finish the interrupted run.
         if (pendingGeneration) await resume(chatId);
         return;
       }
 
       // No resumable chat — create a fresh one.
-      const result = await createAiChatAction(planId ? { planId } : {});
-      if ("error" in result) {
+      const result = await createAiChatAction(planId ? {planId} : {});
+      if ('error' in result) {
         store.setError(extractError(result.error, genericError));
-        store.setStatus("idle");
+        store.setStatus('idle');
         return;
       }
 
-      const { chatId, message, suggestionChips } = result.data;
+      const {chatId, message, suggestionChips} = result.data;
       store.setChatId(chatId);
       store.appendMessage({
-        role: "assistant",
-        type: "welcome",
+        role: 'assistant',
+        type: 'welcome',
         text: message,
         chips: [...suggestionChips],
       });
-      store.setStatus("idle");
+      store.setStatus('idle');
     },
-    [resume, genericError, tAi]
+    [resume, genericError, tAi],
   );
 
   const send = useCallback(
@@ -135,39 +143,44 @@ export function useAiPlanChat() {
       if (!message) return;
 
       const store = useAiPlanChatStore.getState();
-      if (!store.chatId || store.status === "generating" || store.status === "approving") {
+      if (
+        !store.chatId ||
+        store.status === 'generating' ||
+        store.status === 'approving'
+      ) {
         return;
       }
 
-      store.appendMessage({ role: "user", type: "user", text: message });
-      store.setInput("");
+      store.appendMessage({role: 'user', type: 'user', text: message});
+      store.setInput('');
       store.setError(null);
-      store.setStatus("generating");
+      store.setStatus('generating');
 
       applyDraftResult(
-        await generateDraftPlanAction({ chatId: store.chatId, message }),
-        genericError
+        await generateDraftPlanAction({chatId: store.chatId, message}),
+        genericError,
       );
     },
-    [genericError]
+    [genericError],
   );
 
   const approve = useCallback(async () => {
     const store = useAiPlanChatStore.getState();
-    if (!store.chatId || !store.latestDraft || store.status === "approving") return;
+    if (!store.chatId || !store.latestDraft || store.status === 'approving')
+      return;
 
     store.setError(null);
-    store.setStatus("approving");
+    store.setStatus('approving');
 
-    const result = await approveDraftPlanAction({ chatId: store.chatId });
-    if ("error" in result) {
+    const result = await approveDraftPlanAction({chatId: store.chatId});
+    if ('error' in result) {
       store.setError(extractError(result.error, genericError));
-      store.setStatus("idle");
+      store.setStatus('idle');
       return;
     }
 
     store.markLatestApproved(result.data.planId);
   }, [genericError]);
 
-  return { init, send, approve };
+  return {init, send, approve};
 }

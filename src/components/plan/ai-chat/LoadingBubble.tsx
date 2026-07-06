@@ -1,4 +1,4 @@
-import { BotAvatar } from "./Avatars";
+import {BotAvatar} from './Avatars';
 
 interface LoadingBubbleProps {
   label: string;
@@ -6,7 +6,7 @@ interface LoadingBubbleProps {
 
 /** Transient assistant bubble shown while a server action is in flight —
     the holo border + pulsing LED mark the AI channel as live. */
-export const LoadingBubble = ({ label }: LoadingBubbleProps) => (
+export const LoadingBubble = ({label}: LoadingBubbleProps) => (
   <div className="flex items-start gap-2.5">
     <BotAvatar />
     <div className="fx-holo rounded-xl rounded-tl-sm px-4 py-3">

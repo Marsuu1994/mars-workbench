@@ -1,17 +1,17 @@
-import { notFound } from "next/navigation";
-import { getPlanWithTemplates } from "@/lib/db/plans";
-import { getTaskTemplates } from "@/lib/db/taskTemplates";
-import { getNonDoneAdhocTasks } from "@/lib/db/tasks";
-import { ensureSynced } from "@/services/syncService";
-import PlanForm from "@/components/plan/PlanForm";
-import { getCurrentUserId } from "@/lib/auth/getCurrentUserId";
+import {notFound} from 'next/navigation';
+import {getPlanWithTemplates} from '@/lib/db/plans';
+import {getTaskTemplates} from '@/lib/db/taskTemplates';
+import {getNonDoneAdhocTasks} from '@/lib/db/tasks';
+import {ensureSynced} from '@/services/syncService';
+import PlanForm from '@/components/plan/PlanForm';
+import {getCurrentUserId} from '@/lib/auth/getCurrentUserId';
 
 export default async function EditPlanPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{id: string}>;
 }) {
-  const { id } = await params;
+  const {id} = await params;
   const userId = await getCurrentUserId();
   // Keep the plan lifecycle current before reading (see syncService)
   await ensureSynced(userId);
@@ -26,7 +26,7 @@ export default async function EditPlanPage({
     notFound();
   }
 
-  const initialPlanTemplates = plan.planTemplates.map((pt) => ({
+  const initialPlanTemplates = plan.planTemplates.map(pt => ({
     templateId: pt.templateId,
     type: pt.type,
     frequency: pt.frequency,
@@ -34,8 +34,8 @@ export default async function EditPlanPage({
 
   // Only this plan's ad-hoc tasks are editable here (deselect → back to the
   // matrix). Unassigned tasks are tracked from the priority matrix instead.
-  const adhocTasks = allAdhocTasks.filter((t) => t.planId === id);
-  const initialAdhocTaskIds = adhocTasks.map((t) => t.id);
+  const adhocTasks = allAdhocTasks.filter(t => t.planId === id);
+  const initialAdhocTaskIds = adhocTasks.map(t => t.id);
 
   return (
     <PlanForm
@@ -43,10 +43,11 @@ export default async function EditPlanPage({
       mode="edit"
       planId={id}
       initialPlanTemplates={initialPlanTemplates}
-      initialDescription={plan.description ?? ""}
+      initialDescription={plan.description ?? ''}
       initialPlanMode={plan.mode}
       adhocTasks={adhocTasks}
       initialAdhocTaskIds={initialAdhocTaskIds}
+      periodKey={plan.periodKey}
     />
   );
 }

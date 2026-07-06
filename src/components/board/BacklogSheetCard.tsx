@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useTranslations } from "next-intl";
-import { ArrowUpIcon } from "@heroicons/react/24/outline";
-import type { TaskItem } from "@/lib/db/tasks";
-import { SizeChip } from "@/components/shared/SizeChip";
-import TaskTypeBadge from "@/components/shared/TaskTypeBadge";
-import { formatShortDate } from "@/utils/dateUtils";
-import { isRolloverTask, type RiskLevel } from "@/utils/taskUtils";
+import {useTranslations} from 'next-intl';
+import {ArrowUpIcon} from '@heroicons/react/24/outline';
+import type {TaskItem} from '@/lib/db/tasks';
+import {SizeChip} from '@/components/shared/SizeChip';
+import TaskTypeBadge from '@/components/shared/TaskTypeBadge';
+import {formatShortDate} from '@/utils/dateUtils';
+import {isRolloverTask, type RiskLevel} from '@/utils/taskUtils';
 
 interface BacklogSheetCardProps {
   task: TaskItem;
@@ -29,20 +29,22 @@ export default function BacklogSheetCard({
   frequency,
   onPull,
 }: BacklogSheetCardProps) {
-  const t = useTranslations("Board.Backlog");
-  const tCard = useTranslations("Board.Card");
+  const t = useTranslations('Board.Backlog');
+  const tCard = useTranslations('Board.Card');
   const showInstance = frequency > 1;
   const isRollover = isRolloverTask(task, today);
 
   const riskBorder =
-    riskLevel === "danger"
-      ? "border-l-4 border-l-error"
-      : riskLevel === "warning"
-        ? "border-l-4 border-l-warning"
-        : "border-l-4 border-l-transparent";
+    riskLevel === 'danger'
+      ? 'border-l-4 border-l-error'
+      : riskLevel === 'warning'
+        ? 'border-l-4 border-l-warning'
+        : 'border-l-4 border-l-transparent';
 
   return (
-    <div className={`card bg-base-100 border border-base-content/10 ${riskBorder}`}>
+    <div
+      className={`card bg-base-100 border border-base-content/10 ${riskBorder}`}
+    >
       <div className="card-body flex-row items-stretch gap-3 p-3">
         <div className="flex-1 min-w-0 flex flex-col gap-1.5">
           <div className="flex items-center gap-1.5 flex-wrap">
@@ -57,11 +59,15 @@ export default function BacklogSheetCard({
                 ↩ {formatShortDate(new Date(task.forDate!))}
               </span>
             )}
-            {riskLevel === "warning" && (
-              <span className="badge badge-warning badge-sm">⚠ {tCard("atRisk")}</span>
+            {riskLevel === 'warning' && (
+              <span className="badge badge-warning badge-sm">
+                ⚠ {tCard('atRisk')}
+              </span>
             )}
-            {riskLevel === "danger" && (
-              <span className="badge badge-error badge-sm">‼ {tCard("urgent")}</span>
+            {riskLevel === 'danger' && (
+              <span className="badge badge-error badge-sm">
+                ‼ {tCard('urgent')}
+              </span>
             )}
           </div>
 
@@ -81,7 +87,7 @@ export default function BacklogSheetCard({
             className="btn btn-primary btn-sm gap-1"
           >
             <ArrowUpIcon className="size-3.5" />
-            {t("pullToTodoLabel")}
+            {t('pullToTodoLabel')}
           </button>
         </div>
       </div>

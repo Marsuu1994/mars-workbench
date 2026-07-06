@@ -1,56 +1,70 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useMemo } from "react";
-import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
+import {useState, useEffect, useMemo} from 'react';
+import {DragDropContext, type DropResult} from '@hello-pangea/dnd';
+import {useTranslations} from 'next-intl';
+import Link from 'next/link';
 import {
   StarIcon,
   ListBulletIcon,
   ExclamationTriangleIcon,
-} from "@heroicons/react/24/outline";
-import type { TaskItem } from "@/lib/db/tasks";
-import { PriorityQuadrant } from "@/utils/enums";
-import type { TrackTargetStatus } from "@/schemas";
-import type { MatrixActivePlan } from "@/services/matrixService";
-import { getWeekNumberFromPeriodKey } from "@/utils/dateUtils";
+  PlusIcon,
+  CheckIcon,
+} from '@heroicons/react/24/outline';
+import type {TaskItem} from '@/lib/db/tasks';
+import {PriorityQuadrant} from '@/utils/enums';
+import type {TrackTargetStatus} from '@/schemas';
+import type {MatrixActivePlan} from '@/services/matrixService';
 import {
   updateTaskQuadrantAction,
   trackTaskAction,
-} from "@/actions/matrixActions";
-import TaskModal from "@/components/shared/task-modal/TaskModal";
-import QuadrantCell from "./QuadrantCell";
-import MobileTrackSheet from "./MobileTrackSheet";
+} from '@/actions/matrixActions';
+import TaskModal from '@/components/shared/task-modal/TaskModal';
+import QuadrantCell from './QuadrantCell';
+import MobileTrackSheet from './MobileTrackSheet';
 import {
   QUADRANT_ORDER,
   FALLBACK_QUADRANT,
   CREATE_PLAN_HREF,
-} from "./constants";
+  TOAST_DURATION_MS,
+} from './constants';
 
 interface PriorityMatrixPageProps {
   tasks: TaskItem[];
   activePlan: MatrixActivePlan | null;
-  /** Active plan's period, or the current ISO week when there is no plan */
-  periodKey: string;
 }
 
 export default function PriorityMatrixPage({
   tasks,
   activePlan,
-  periodKey,
 }: PriorityMatrixPageProps) {
-  const t = useTranslations("Priorities");
+  const t = useTranslations('Priorities');
+  const tQuadrant = useTranslations('Enums.PriorityQuadrant');
   const [localTasks, setLocalTasks] = useState<TaskItem[]>(tasks);
-  const [openPopoverTaskId, setOpenPopoverTaskId] = useState<string | null>(null);
+  const [openPopoverTaskId, setOpenPopoverTaskId] = useState<string | null>(
+    null,
+  );
   const [sheetTask, setSheetTask] = useState<TaskItem | null>(null);
-  const [modalQuadrant, setModalQuadrant] = useState<PriorityQuadrant | null>(null);
+  // null = closed; quadrant undefined = mobile global add (modal shows its picker)
+  const [addModal, setAddModal] = useState<{
+    quadrant?: PriorityQuadrant;
+  } | null>(null);
+  const [toastQuadrant, setToastQuadrant] = useState<PriorityQuadrant | null>(
+    null,
+  );
 
   useEffect(() => {
     setLocalTasks(tasks);
   }, [tasks]);
 
+  // Auto-dismiss the mobile "Added to …" confirmation toast
+  useEffect(() => {
+    if (toastQuadrant === null) return;
+    const timer = setTimeout(() => setToastQuadrant(null), TOAST_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [toastQuadrant]);
+
   const activePlanId = activePlan?.id ?? null;
-  const weekNumber = getWeekNumberFromPeriodKey(periodKey);
 
   const byQuadrant = useMemo(() => {
     const groups: Record<PriorityQuadrant, TaskItem[]> = {
@@ -60,14 +74,16 @@ export default function PriorityMatrixPage({
       [PriorityQuadrant.MAYBE_LATER]: [],
     };
     for (const task of localTasks) {
-      groups[(task.quadrant as PriorityQuadrant | null) ?? FALLBACK_QUADRANT].push(task);
+      groups[
+        (task.quadrant as PriorityQuadrant | null) ?? FALLBACK_QUADRANT
+      ].push(task);
     }
     return groups;
   }, [localTasks]);
 
   const totalCount = localTasks.length;
   const trackedCount = activePlanId
-    ? localTasks.filter((task) => task.planId === activePlanId).length
+    ? localTasks.filter(task => task.planId === activePlanId).length
     : 0;
 
   // Optimistically patch one task and fire the server action; on failure only
@@ -76,28 +92,28 @@ export default function PriorityMatrixPage({
   function runOptimisticTaskUpdate(
     taskId: string,
     patch: Partial<TaskItem>,
-    action: () => Promise<{ error?: unknown }>,
-    errorLabel: string
+    action: () => Promise<{error?: unknown}>,
+    errorLabel: string,
   ) {
-    const previous = localTasks.find((task) => task.id === taskId);
+    const previous = localTasks.find(task => task.id === taskId);
     if (!previous) return;
 
-    setLocalTasks((prev) =>
-      prev.map((task) => (task.id === taskId ? { ...task, ...patch } : task))
+    setLocalTasks(prev =>
+      prev.map(task => (task.id === taskId ? {...task, ...patch} : task)),
     );
 
-    action().then((result) => {
+    action().then(result => {
       if (result.error) {
         console.error(errorLabel, result.error);
-        setLocalTasks((prev) =>
-          prev.map((task) => (task.id === taskId ? previous : task))
+        setLocalTasks(prev =>
+          prev.map(task => (task.id === taskId ? previous : task)),
         );
       }
     });
   }
 
   function handleDragEnd(result: DropResult) {
-    const { destination, source, draggableId } = result;
+    const {destination, source, draggableId} = result;
 
     if (!destination) return;
     if (destination.droppableId === source.droppableId) return;
@@ -105,9 +121,9 @@ export default function PriorityMatrixPage({
     const newQuadrant = destination.droppableId as PriorityQuadrant;
     runOptimisticTaskUpdate(
       draggableId,
-      { quadrant: newQuadrant },
-      () => updateTaskQuadrantAction(draggableId, { quadrant: newQuadrant }),
-      "Failed to reprioritize task:"
+      {quadrant: newQuadrant},
+      () => updateTaskQuadrantAction(draggableId, {quadrant: newQuadrant}),
+      'Failed to reprioritize task:',
     );
   }
 
@@ -119,44 +135,59 @@ export default function PriorityMatrixPage({
 
     runOptimisticTaskUpdate(
       taskId,
-      { planId: activePlanId, status },
-      () => trackTaskAction(taskId, { status }),
-      "Failed to track task:"
+      {planId: activePlanId, status},
+      () => trackTaskAction(taskId, {status}),
+      'Failed to track task:',
     );
   }
 
-  const renderMobileTopBar = () => (
-    <div className="md:hidden flex items-end gap-2 px-4 pt-4 pb-2.5 border-b border-base-content/10 flex-shrink-0">
-      <div className="flex flex-col gap-px">
-        <span className="text-[17px] font-bold">{t("title")}</span>
-        <span className="text-[11px] text-base-content/50">
-          {t("summaryMobile", { total: totalCount, tracked: trackedCount })}
-        </span>
+  const renderAddedToast = () =>
+    toastQuadrant !== null && (
+      <div className="md:hidden fixed top-[calc(env(safe-area-inset-top)+7rem)] left-1/2 -translate-x-1/2 z-50">
+        <div className="flex items-center gap-2 rounded-[10px] border border-success/30 bg-success/15 px-3.5 py-2 text-xs font-semibold text-success shadow-lg backdrop-blur-sm">
+          <CheckIcon className="size-[15px] stroke-[2.5]" />
+          {t('addedToast', {quadrant: tQuadrant(toastQuadrant)})}
+        </div>
       </div>
-      <span className="ml-auto text-[11px] font-semibold text-base-content/60">
-        {t("weekBadge", { week: weekNumber })}
-      </span>
-    </div>
-  );
+    );
 
+  // Same title bar on both breakpoints; mobile appends the round add button
+  // and truncates the subtitle when space runs out.
   const renderTitleBar = () => (
-    <div className="hidden md:flex items-center gap-3 px-4 py-3 border-b border-base-content/10 flex-shrink-0">
+    <div className="flex items-center gap-3 px-4 py-2.5 md:py-3 border-b border-base-content/10 flex-shrink-0">
       <div className="flex size-9 items-center justify-center rounded-[10px] bg-secondary/10 flex-shrink-0">
         <StarIcon className="size-[18px] text-secondary" />
       </div>
-      <div className="flex flex-col">
-        <span className="text-base font-bold">{t("title")}</span>
-        <span className="text-xs text-base-content/50">{t("subtitle")}</span>
+      <div className="flex flex-col min-w-0 flex-1 md:flex-initial">
+        <span className="text-base font-bold truncate">{t('title')}</span>
+        <span className="hidden md:block text-xs text-base-content/50 truncate">
+          {t('subtitle')}
+        </span>
       </div>
-      <span className="ml-auto text-xs font-semibold text-base-content/60">
-        {t.rich("summary", {
-          total: totalCount,
-          tracked: trackedCount,
-          num: (chunks) => (
-            <span className="text-[13px] font-bold text-base-content">{chunks}</span>
-          ),
-        })}
+      <span className="ml-auto text-xs font-semibold text-base-content/60 shrink-0">
+        <span className="md:hidden">
+          {t('summaryMobile', {total: totalCount, tracked: trackedCount})}
+        </span>
+        <span className="hidden md:inline">
+          {t.rich('summary', {
+            total: totalCount,
+            tracked: trackedCount,
+            num: chunks => (
+              <span className="text-[13px] font-bold text-base-content">
+                {chunks}
+              </span>
+            ),
+          })}
+        </span>
       </span>
+      <button
+        type="button"
+        title={t('addTaskLabel')}
+        onClick={() => setAddModal({})}
+        className="md:hidden flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-content shadow-md shadow-primary/30 cursor-pointer"
+      >
+        <PlusIcon className="size-[18px] stroke-[2.5]" />
+      </button>
     </div>
   );
 
@@ -166,7 +197,7 @@ export default function PriorityMatrixPage({
         <>
           <ListBulletIcon className="size-3.5 text-primary flex-shrink-0" />
           <span className="text-base-content/60">
-            {t.rich("hint", {
+            {t.rich('hint', {
               // Decorative send-button glyph stays in JSX, not the message
               arrow: () => <strong className="text-primary">→</strong>,
             })}
@@ -176,8 +207,8 @@ export default function PriorityMatrixPage({
         <>
           <ExclamationTriangleIcon className="size-3.5 text-warning flex-shrink-0" />
           <span className="text-warning">
-            {t.rich("hintNoPlan", {
-              em: (chunks) => (
+            {t.rich('hintNoPlan', {
+              em: chunks => (
                 <Link href={CREATE_PLAN_HREF} className="font-bold underline">
                   {chunks}
                 </Link>
@@ -192,10 +223,10 @@ export default function PriorityMatrixPage({
   const renderAxisY = () => (
     <div className="w-4 md:w-7 flex-shrink-0 flex flex-col items-center justify-around bg-base-200/60">
       <span className="[writing-mode:vertical-rl] rotate-180 text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-base-content/40">
-        {t("axisImportant")}
+        {t('axisImportant')}
       </span>
       <span className="[writing-mode:vertical-rl] rotate-180 text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-base-content/40">
-        {t("axisNotImportant")}
+        {t('axisNotImportant')}
       </span>
     </div>
   );
@@ -203,10 +234,10 @@ export default function PriorityMatrixPage({
   const renderAxisX = () => (
     <div className="flex h-3.5 md:h-6 ml-4 md:ml-7 bg-base-200/60 flex-shrink-0">
       <span className="flex-1 text-center text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-base-content/40 leading-[14px] md:leading-6">
-        {t("axisUrgent")}
+        {t('axisUrgent')}
       </span>
       <span className="flex-1 text-center text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-base-content/40 leading-[14px] md:leading-6">
-        {t("axisNotUrgent")}
+        {t('axisNotUrgent')}
       </span>
     </div>
   );
@@ -217,14 +248,13 @@ export default function PriorityMatrixPage({
       onDragEnd={handleDragEnd}
     >
       <div className="flex-1 min-h-0 flex flex-col">
-        {renderMobileTopBar()}
         {renderTitleBar()}
         {renderHintBar()}
 
         <div className="flex-1 min-h-0 flex">
           {renderAxisY()}
           <div className="flex-1 min-w-0 grid grid-cols-2 grid-rows-2">
-            {QUADRANT_ORDER.map((quadrant) => (
+            {QUADRANT_ORDER.map(quadrant => (
               <QuadrantCell
                 key={quadrant}
                 quadrant={quadrant}
@@ -234,7 +264,7 @@ export default function PriorityMatrixPage({
                 onSendToggle={setOpenPopoverTaskId}
                 onTrack={handleTrack}
                 onCardTap={setSheetTask}
-                onAdd={setModalQuadrant}
+                onAdd={quadrant => setAddModal({quadrant})}
               />
             ))}
           </div>
@@ -251,6 +281,8 @@ export default function PriorityMatrixPage({
         />
       )}
 
+      {renderAddedToast()}
+
       <MobileTrackSheet
         task={sheetTask}
         hasActivePlan={activePlanId !== null}
@@ -258,11 +290,18 @@ export default function PriorityMatrixPage({
         onTrack={handleTrack}
       />
       <TaskModal
-        isOpen={modalQuadrant !== null}
-        onClose={() => setModalQuadrant(null)}
-        onSaved={() => setModalQuadrant(null)}
+        isOpen={addModal !== null}
+        onClose={() => setAddModal(null)}
+        onSaved={quadrant => {
+          setAddModal(null);
+          // Confirmation toast only for the mobile global add (picker flow) —
+          // desktop's per-quadrant entry shows the new card in place instead.
+          if (addModal?.quadrant === undefined && quadrant) {
+            setToastQuadrant(quadrant);
+          }
+        }}
         mode="adhoc"
-        quadrant={modalQuadrant ?? undefined}
+        quadrant={addModal?.quadrant}
       />
     </DragDropContext>
   );

@@ -1,22 +1,25 @@
-"use client";
+'use client';
 
-import { useTranslations } from "next-intl";
-import { PlusIcon, CheckIcon } from "@heroicons/react/24/outline";
+import {useTranslations} from 'next-intl';
+import {PlusIcon, CheckIcon} from '@heroicons/react/24/outline';
 
 interface TaskModalFooterProps {
-  mode: "create" | "edit" | "adhoc";
+  mode: 'create' | 'edit' | 'adhoc';
   isSubmitting: boolean;
   error: string | null;
   onClose: () => void;
 }
 
 const BUTTON_CONFIG: Record<
-  TaskModalFooterProps["mode"],
-  { icon: typeof PlusIcon; labelKey: "submit.create" | "submit.edit" | "submit.adhoc" }
+  TaskModalFooterProps['mode'],
+  {
+    icon: typeof PlusIcon;
+    labelKey: 'submit.create' | 'submit.edit' | 'submit.adhoc';
+  }
 > = {
-  create: { icon: PlusIcon, labelKey: "submit.create" },
-  edit: { icon: CheckIcon, labelKey: "submit.edit" },
-  adhoc: { icon: PlusIcon, labelKey: "submit.adhoc" },
+  create: {icon: PlusIcon, labelKey: 'submit.create'},
+  edit: {icon: CheckIcon, labelKey: 'submit.edit'},
+  adhoc: {icon: PlusIcon, labelKey: 'submit.adhoc'},
 };
 
 export default function TaskModalFooter({
@@ -25,7 +28,7 @@ export default function TaskModalFooter({
   error,
   onClose,
 }: TaskModalFooterProps) {
-  const t = useTranslations("TaskModal");
+  const t = useTranslations('TaskModal');
   const config = BUTTON_CONFIG[mode];
   const Icon = config.icon;
 
@@ -35,13 +38,17 @@ export default function TaskModalFooter({
       <div className="modal-action">
         <button
           type="button"
-          className="btn btn-ghost"
+          className="btn btn-ghost flex-1 md:flex-none"
           onClick={onClose}
           disabled={isSubmitting}
         >
-          {t("cancel")}
+          {t('cancel')}
         </button>
-        <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+        <button
+          type="submit"
+          className="btn btn-primary flex-[2] md:flex-none"
+          disabled={isSubmitting}
+        >
           {isSubmitting ? (
             <span className="loading loading-spinner loading-sm" />
           ) : (

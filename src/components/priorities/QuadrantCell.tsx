@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { Droppable } from "@hello-pangea/dnd";
-import { useTranslations } from "next-intl";
-import { PlusIcon, ArrowDownIcon } from "@heroicons/react/24/outline";
-import type { TaskItem } from "@/lib/db/tasks";
-import { PriorityQuadrant } from "@/utils/enums";
-import type { TrackTargetStatus } from "@/schemas";
-import { QUADRANT_CONFIG } from "./constants";
-import MatrixTaskCard from "./MatrixTaskCard";
+import {Droppable} from '@hello-pangea/dnd';
+import {useTranslations} from 'next-intl';
+import {PlusIcon, ArrowDownIcon} from '@heroicons/react/24/outline';
+import type {TaskItem} from '@/lib/db/tasks';
+import {PriorityQuadrant} from '@/utils/enums';
+import type {TrackTargetStatus} from '@/schemas';
+import {QUADRANT_CONFIG} from './constants';
+import MatrixTaskCard from './MatrixTaskCard';
 
 interface QuadrantCellProps {
   quadrant: PriorityQuadrant;
@@ -35,9 +35,9 @@ export default function QuadrantCell({
   onCardTap,
   onAdd,
 }: QuadrantCellProps) {
-  const t = useTranslations("Priorities");
-  const tQuadrant = useTranslations("Enums.PriorityQuadrant");
-  const tQuadrantShort = useTranslations("Priorities.QuadrantShort");
+  const t = useTranslations('Priorities');
+  const tQuadrant = useTranslations('Enums.PriorityQuadrant');
+  const tQuadrantShort = useTranslations('Priorities.QuadrantShort');
   const config = QUADRANT_CONFIG[quadrant];
 
   const renderHeader = (isDraggingOver: boolean) => (
@@ -46,7 +46,7 @@ export default function QuadrantCell({
     >
       <span className={`fx-led ${config.ledClass}`} />
       <span
-        className={`fx-label font-bold ${isDraggingOver ? "text-primary" : "fx-label-bright"}`}
+        className={`fx-label font-bold ${isDraggingOver ? 'text-primary' : 'fx-label-bright'}`}
       >
         <span className="hidden md:inline">{tQuadrant(quadrant)}</span>
         <span className="md:hidden text-[9px]">{tQuadrantShort(quadrant)}</span>
@@ -65,7 +65,7 @@ export default function QuadrantCell({
   const renderDropHint = () => (
     <div className="flex items-center justify-center gap-1.5 p-2 rounded-lg text-[11px] font-semibold text-accent bg-accent/5 border-[1.5px] border-dashed border-accent/40 mb-0.5">
       <ArrowDownIcon className="size-3" />
-      {t("dropHint", { quadrant })}
+      {t('dropHint', {quadrant})}
     </div>
   );
 
@@ -76,7 +76,7 @@ export default function QuadrantCell({
       className="hidden md:flex items-center justify-center gap-1 w-full mt-auto p-2 rounded-lg border-[1.5px] border-dashed border-base-content/20 text-base-content/40 text-xs font-medium cursor-pointer transition-colors hover:border-primary hover:text-primary flex-shrink-0"
     >
       <PlusIcon className="size-3.5" />
-      {t("add")}
+      {t('add')}
     </button>
   );
 
@@ -90,7 +90,7 @@ export default function QuadrantCell({
         // reason).
         <div
           className={`fx-quadrant ${config.bloomClass} relative flex flex-col min-h-0 border border-base-content/10 transition-colors duration-150 ${
-            snapshot.isDraggingOver ? "bg-accent/5" : ""
+            snapshot.isDraggingOver ? 'bg-accent/5' : ''
           }`}
         >
           {renderHeader(snapshot.isDraggingOver)}
@@ -105,7 +105,9 @@ export default function QuadrantCell({
             ref={provided.innerRef}
             {...provided.droppableProps}
             className={`flex-1 min-h-0 flex flex-col gap-1.5 overflow-y-auto px-2 md:px-4 pb-2 md:pb-4 pt-1 rounded-xl ${
-              snapshot.isDraggingOver ? "outline-2 outline-dashed outline-accent -outline-offset-8" : ""
+              snapshot.isDraggingOver
+                ? 'outline-2 outline-dashed outline-accent -outline-offset-8'
+                : ''
             }`}
           >
             {tasks.map((task, index) => (
@@ -113,7 +115,9 @@ export default function QuadrantCell({
                 key={task.id}
                 task={task}
                 index={index}
-                isTracked={activePlanId !== null && task.planId === activePlanId}
+                isTracked={
+                  activePlanId !== null && task.planId === activePlanId
+                }
                 hasActivePlan={activePlanId !== null}
                 isPopoverOpen={openPopoverTaskId === task.id}
                 onSendToggle={onSendToggle}

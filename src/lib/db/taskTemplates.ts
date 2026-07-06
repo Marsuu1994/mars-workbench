@@ -1,5 +1,5 @@
-import prisma from "@/lib/prisma";
-import type { Prisma, TaskSize } from "@/generated/prisma/client";
+import prisma from '@/lib/prisma';
+import type {Prisma, TaskSize} from '@/generated/prisma/client';
 
 export type TaskTemplateItem = {
   id: string;
@@ -26,10 +26,12 @@ const taskTemplateSelect = {
 /**
  * Get all of a user's non-archived task templates ordered by most recently created
  */
-export async function getTaskTemplates(userId: string): Promise<TaskTemplateItem[]> {
+export async function getTaskTemplates(
+  userId: string,
+): Promise<TaskTemplateItem[]> {
   return prisma.taskTemplate.findMany({
-    where: { userId, isArchived: false },
-    orderBy: { createdAt: "desc" },
+    where: {userId, isArchived: false},
+    orderBy: {createdAt: 'desc'},
     select: taskTemplateSelect,
   });
 }
@@ -41,14 +43,14 @@ export async function getTaskTemplates(userId: string): Promise<TaskTemplateItem
  */
 export async function getTaskTemplateTitlesByIds(
   userId: string,
-  ids: string[]
+  ids: string[],
 ): Promise<Map<string, string>> {
   if (ids.length === 0) return new Map();
   const rows = await prisma.taskTemplate.findMany({
-    where: { id: { in: ids }, userId },
-    select: { id: true, title: true },
+    where: {id: {in: ids}, userId},
+    select: {id: true, title: true},
   });
-  return new Map(rows.map((r) => [r.id, r.title]));
+  return new Map(rows.map(r => [r.id, r.title]));
 }
 
 /**
@@ -56,10 +58,10 @@ export async function getTaskTemplateTitlesByIds(
  */
 export async function getTaskTemplateById(
   userId: string,
-  id: string
+  id: string,
 ): Promise<TaskTemplateItem | null> {
   return prisma.taskTemplate.findFirst({
-    where: { id, userId },
+    where: {id, userId},
     select: taskTemplateSelect,
   });
 }
@@ -73,10 +75,10 @@ export async function createTaskTemplate(
     title: string;
     description: string;
     size: TaskSize;
-  }
+  },
 ): Promise<TaskTemplateItem> {
   return prisma.taskTemplate.create({
-    data: { ...data, userId },
+    data: {...data, userId},
     select: taskTemplateSelect,
   });
 }
@@ -87,13 +89,13 @@ export async function createTaskTemplate(
  * back to the input array by index.
  */
 export async function createManyTaskTemplates(
-  data: { userId: string; title: string; description: string; size: TaskSize }[],
-  tx?: Prisma.TransactionClient
-): Promise<{ id: string }[]> {
+  data: {userId: string; title: string; description: string; size: TaskSize}[],
+  tx?: Prisma.TransactionClient,
+): Promise<{id: string}[]> {
   const db = tx ?? prisma;
   return db.taskTemplate.createManyAndReturn({
     data,
-    select: { id: true },
+    select: {id: true},
   });
 }
 
@@ -109,10 +111,10 @@ export async function updateTaskTemplate(
     title?: string;
     description?: string;
     size?: TaskSize;
-  }
-): Promise<{ count: number }> {
+  },
+): Promise<{count: number}> {
   return prisma.taskTemplate.updateMany({
-    where: { id, userId },
+    where: {id, userId},
     data,
   });
 }

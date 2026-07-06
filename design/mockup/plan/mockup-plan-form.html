@@ -31,10 +31,21 @@
   .type-pill.p-daily  { background: var(--m-teal-bg); border-color: var(--m-teal); color: var(--m-teal); }
   .type-pill.p-weekly { background: var(--m-pink-bg); border-color: var(--m-pink); color: var(--m-pink); }
   .config-divider { width: 1px; height: 16px; background: var(--m-border); margin: 0 2px; flex-shrink: 0; }
-  .freq-input {
-    width: 48px; padding: 4px 8px; background: var(--m-surface-raised); border: 1px solid var(--m-border);
-    border-radius: 6px; color: var(--m-text); font-size: 13px; text-align: center; outline: none;
+  /* Frequency stepper — −/+ instead of a bare number input */
+  .freq-stepper {
+    display: flex; align-items: center; height: 30px; flex-shrink: 0;
+    border: 1px solid var(--m-border); border-radius: 8px;
+    background: var(--m-surface-raised); overflow: hidden;
   }
+  .freq-btn {
+    width: 32px; height: 100%; border: none; background: transparent;
+    color: var(--m-text-secondary); font-size: 15px; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .freq-btn:hover { color: var(--m-text); }
+  .freq-btn:active { background: var(--m-hover-bg); }
+  .freq-btn.disabled { color: var(--m-text-muted); opacity: 0.4; cursor: default; }
+  .freq-value { min-width: 26px; text-align: center; font-size: 13px; font-weight: 700; color: var(--m-text); }
   .freq-unit { font-size: 12px; color: var(--m-text-secondary); }
 
   /* Mode toggle */
@@ -227,7 +238,11 @@
               </div>
               <div class="config-divider"></div>
               <span class="config-label">Freq</span>
-              <input class="freq-input" value="1" type="number" />
+              <div class="freq-stepper">
+                <button class="freq-btn disabled">&minus;</button>
+                <span class="freq-value">1</span>
+                <button class="freq-btn">+</button>
+              </div>
               <span class="freq-unit">/ day</span>
             </div>
           </div>
@@ -249,7 +264,11 @@
               </div>
               <div class="config-divider"></div>
               <span class="config-label">Freq</span>
-              <input class="freq-input" value="1" type="number" />
+              <div class="freq-stepper">
+                <button class="freq-btn disabled">&minus;</button>
+                <span class="freq-value">1</span>
+                <button class="freq-btn">+</button>
+              </div>
               <span class="freq-unit">/ day</span>
             </div>
           </div>
@@ -271,7 +290,11 @@
               </div>
               <div class="config-divider"></div>
               <span class="config-label">Freq</span>
-              <input class="freq-input" value="1" type="number" />
+              <div class="freq-stepper">
+                <button class="freq-btn disabled">&minus;</button>
+                <span class="freq-value">1</span>
+                <button class="freq-btn">+</button>
+              </div>
               <span class="freq-unit">/ day</span>
             </div>
           </div>
@@ -293,7 +316,11 @@
               </div>
               <div class="config-divider"></div>
               <span class="config-label">Freq</span>
-              <input class="freq-input" value="3" type="number" />
+              <div class="freq-stepper">
+                <button class="freq-btn">&minus;</button>
+                <span class="freq-value">3</span>
+                <button class="freq-btn">+</button>
+              </div>
               <span class="freq-unit">/ week</span>
             </div>
           </div>
@@ -396,7 +423,8 @@
     </div>
     <div class="form-scroll">
       <div class="form-inner">
-        <h2 style="font-size:24px;font-weight:700;color:var(--m-text);margin-bottom:28px">Update Weekly Plan</h2>
+        <h2 style="font-size:24px;font-weight:700;color:var(--m-text);margin-bottom:4px">Update Weekly Plan</h2>
+        <p style="color:var(--m-text-secondary);margin-bottom:20px">Week 09 &middot; Feb 24 – Mar 2</p>
         <div class="form-group">
           <label class="form-label">Description (optional)</label>
           <input class="form-input" value="Interview prep + system design" />
@@ -444,7 +472,11 @@
               </div>
               <div class="config-divider"></div>
               <span class="config-label">Freq</span>
-              <input class="freq-input" value="1" type="number" />
+              <div class="freq-stepper">
+                <button class="freq-btn disabled">&minus;</button>
+                <span class="freq-value">1</span>
+                <button class="freq-btn">+</button>
+              </div>
               <span class="freq-unit">/ day</span>
             </div>
           </div>
@@ -466,7 +498,11 @@
               </div>
               <div class="config-divider"></div>
               <span class="config-label">Freq</span>
-              <input class="freq-input" value="3" type="number" />
+              <div class="freq-stepper">
+                <button class="freq-btn">&minus;</button>
+                <span class="freq-value">3</span>
+                <button class="freq-btn">+</button>
+              </div>
               <span class="freq-unit">/ week</span>
             </div>
           </div>

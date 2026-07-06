@@ -1,28 +1,28 @@
-"use client";
+'use client';
 
-import { useEffect, useRef } from "react";
-import { useTranslations } from "next-intl";
-import { SparklesIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useAiPlanChatStore } from "@/store/aiPlanChatStore";
-import { useAiPlanChat } from "@/hooks/useAiPlanChat";
-import { ChatMessage } from "./ChatMessage";
-import { ChatInputBar } from "./ChatInputBar";
-import { CreateActionBar } from "./CreateActionBar";
-import { CreatedBanner } from "./CreatedBanner";
-import { LoadingBubble } from "./LoadingBubble";
+import {useEffect, useRef} from 'react';
+import {useTranslations} from 'next-intl';
+import {SparklesIcon, XMarkIcon} from '@heroicons/react/24/outline';
+import {useAiPlanChatStore} from '@/store/aiPlanChatStore';
+import {useAiPlanChat} from '@/hooks/useAiPlanChat';
+import {ChatMessage} from './ChatMessage';
+import {ChatInputBar} from './ChatInputBar';
+import {CreateActionBar} from './CreateActionBar';
+import {CreatedBanner} from './CreatedBanner';
+import {LoadingBubble} from './LoadingBubble';
 
 export const AiPlanChatModal = () => {
-  const t = useTranslations("AiChat");
+  const t = useTranslations('AiChat');
   const dialogRef = useRef<HTMLDialogElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
 
-  const isOpen = useAiPlanChatStore((state) => state.isOpen);
-  const messages = useAiPlanChatStore((state) => state.messages);
-  const status = useAiPlanChatStore((state) => state.status);
-  const error = useAiPlanChatStore((state) => state.error);
-  const latestDraft = useAiPlanChatStore((state) => state.latestDraft);
-  const close = useAiPlanChatStore((state) => state.close);
-  const { send, approve } = useAiPlanChat();
+  const isOpen = useAiPlanChatStore(state => state.isOpen);
+  const messages = useAiPlanChatStore(state => state.messages);
+  const status = useAiPlanChatStore(state => state.status);
+  const error = useAiPlanChatStore(state => state.error);
+  const latestDraft = useAiPlanChatStore(state => state.latestDraft);
+  const close = useAiPlanChatStore(state => state.close);
+  const {send, approve} = useAiPlanChat();
 
   // Sync the native <dialog> with store-driven open state.
   useEffect(() => {
@@ -42,13 +42,13 @@ export const AiPlanChatModal = () => {
   let lastDraftIndex = -1;
   for (let i = messages.length - 1; i >= 0; i--) {
     const message = messages[i];
-    if (message.role === "assistant" && message.type === "draft") {
+    if (message.role === 'assistant' && message.type === 'draft') {
       lastDraftIndex = i;
       break;
     }
   }
 
-  const isCreated = status === "created";
+  const isCreated = status === 'created';
   const showCreateBar = latestDraft !== null && !isCreated;
 
   const renderHeader = () => (
@@ -57,15 +57,15 @@ export const AiPlanChatModal = () => {
         <span className="flex size-7 items-center justify-center rounded-lg border border-secondary/20 bg-secondary/10 text-secondary">
           <SparklesIcon className="size-3.5" />
         </span>
-        <span className="text-base font-semibold">{t("modalTitle")}</span>
+        <span className="text-base font-semibold">{t('modalTitle')}</span>
         <span className="fx-chip rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase text-secondary">
-          {t("betaLabel")}
+          {t('betaLabel')}
         </span>
       </div>
       <button
         type="button"
         onClick={close}
-        aria-label={t("closeAria")}
+        aria-label={t('closeAria')}
         className="btn btn-ghost btn-sm btn-square"
       >
         <XMarkIcon className="size-5" />
@@ -74,7 +74,10 @@ export const AiPlanChatModal = () => {
   );
 
   const renderBody = () => (
-    <div ref={bodyRef} className="flex flex-1 flex-col gap-4 overflow-y-auto p-5">
+    <div
+      ref={bodyRef}
+      className="flex flex-1 flex-col gap-4 overflow-y-auto p-5"
+    >
       {messages.map((message, index) => (
         <ChatMessage
           key={message.id}
@@ -83,8 +86,12 @@ export const AiPlanChatModal = () => {
           onChipSelect={send}
         />
       ))}
-      {status === "initializing" && <LoadingBubble label={t("loadingInitializing")} />}
-      {status === "generating" && <LoadingBubble label={t("loadingGenerating")} />}
+      {status === 'initializing' && (
+        <LoadingBubble label={t('loadingInitializing')} />
+      )}
+      {status === 'generating' && (
+        <LoadingBubble label={t('loadingGenerating')} />
+      )}
     </div>
   );
 
@@ -112,8 +119,8 @@ export const AiPlanChatModal = () => {
       </div>
 
       <form method="dialog" className="modal-backdrop">
-        <button type="submit" aria-label={t("closeAria")}>
-          {t("closeBackdrop")}
+        <button type="submit" aria-label={t('closeAria')}>
+          {t('closeBackdrop')}
         </button>
       </form>
     </dialog>

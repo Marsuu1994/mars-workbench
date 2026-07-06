@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { Draggable } from "@hello-pangea/dnd";
-import { useTranslations } from "next-intl";
-import type { TaskItem } from "@/lib/db/tasks";
-import { TaskStatus } from "@/utils/enums";
-import { SizeChip } from "@/components/shared/SizeChip";
-import { formatShortDate } from "@/utils/dateUtils";
-import { isRolloverTask, type RiskLevel } from "@/utils/taskUtils";
-import TaskTypeBadge from "@/components/shared/TaskTypeBadge";
+import {Draggable} from '@hello-pangea/dnd';
+import {useTranslations} from 'next-intl';
+import type {TaskItem} from '@/lib/db/tasks';
+import {TaskStatus} from '@/utils/enums';
+import {SizeChip} from '@/components/shared/SizeChip';
+import {formatShortDate} from '@/utils/dateUtils';
+import {isRolloverTask, type RiskLevel} from '@/utils/taskUtils';
+import TaskTypeBadge from '@/components/shared/TaskTypeBadge';
 
 type TaskCardProps = {
   task: TaskItem;
@@ -28,7 +28,7 @@ export default function TaskCard({
   riskLevel,
   frequency,
 }: TaskCardProps) {
-  const t = useTranslations("Board.Card");
+  const t = useTranslations('Board.Card');
   const isDone = task.status === TaskStatus.DONE;
 
   // instanceIndex is 0-based; only meaningful when the template has siblings
@@ -39,19 +39,19 @@ export default function TaskCard({
   // Desktop: left border for risk (preserve on hover). Normal cards keep the
   // base 1px border on all sides — no override, so the left edge stays visible.
   const desktopRiskClass =
-    riskLevel === "danger"
-      ? "md:border-l-4 md:border-l-error md:hover:border-l-error"
-      : riskLevel === "warning"
-        ? "md:border-l-4 md:border-l-warning md:hover:border-l-warning"
-        : "";
+    riskLevel === 'danger'
+      ? 'md:border-l-4 md:border-l-error md:hover:border-l-error'
+      : riskLevel === 'warning'
+        ? 'md:border-l-4 md:border-l-warning md:hover:border-l-warning'
+        : '';
 
   // Mobile: top border for risk, scoped to < md (preserve on hover)
   const mobileRiskClass =
-    riskLevel === "danger"
-      ? "max-md:border-t-[3px] max-md:border-t-error max-md:hover:border-t-error"
-      : riskLevel === "warning"
-        ? "max-md:border-t-[3px] max-md:border-t-warning max-md:hover:border-t-warning"
-        : "";
+    riskLevel === 'danger'
+      ? 'max-md:border-t-[3px] max-md:border-t-error max-md:hover:border-t-error'
+      : riskLevel === 'warning'
+        ? 'max-md:border-t-[3px] max-md:border-t-warning max-md:hover:border-t-warning'
+        : '';
 
   return (
     <Draggable draggableId={task.id} index={index} isDragDisabled={isDone}>
@@ -61,10 +61,8 @@ export default function TaskCard({
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           className={`card fx-card bg-base-100/70 border border-base-content/10 hover:-translate-y-0.5 flex-shrink-0 w-[136px] md:w-auto ${mobileRiskClass} ${desktopRiskClass} ${
-            isDone ? "opacity-50 cursor-default" : "cursor-grab"
-          } ${
-            snapshot.isDragging ? "fx-card-lift scale-[1.02] z-50" : ""
-          }`}
+            isDone ? 'opacity-50 cursor-default' : 'cursor-grab'
+          } ${snapshot.isDragging ? 'fx-card-lift scale-[1.02] z-50' : ''}`}
         >
           <div className="card-body p-2.5 md:p-3 gap-1.5 md:gap-1">
             {/* Mobile: badge first, then title, then footer */}
@@ -79,7 +77,7 @@ export default function TaskCard({
 
             <h3
               className={`card-title text-xs md:text-sm font-medium line-clamp-2 h-[2.6em] md:h-auto md:line-clamp-none ${
-                isDone ? "line-through text-base-content/50" : ""
+                isDone ? 'line-through text-base-content/50' : ''
               }`}
             >
               {task.title}
@@ -107,14 +105,22 @@ export default function TaskCard({
                 </span>
               )}
 
-              {riskLevel === "warning" && !isDone && (
-                <span className="badge badge-warning badge-sm">⚠ {t("atRisk")}</span>
+              {riskLevel === 'warning' && !isDone && (
+                <span className="badge badge-warning badge-sm">
+                  ⚠ {t('atRisk')}
+                </span>
               )}
-              {riskLevel === "danger" && !isDone && (
-                <span className="badge badge-error badge-sm">‼ {t("urgent")}</span>
+              {riskLevel === 'danger' && !isDone && (
+                <span className="badge badge-error badge-sm">
+                  ‼ {t('urgent')}
+                </span>
               )}
 
-              <SizeChip size={task.size} points={task.points} className="ml-auto" />
+              <SizeChip
+                size={task.size}
+                points={task.points}
+                className="ml-auto"
+              />
             </div>
 
             {/* Mobile footer */}
@@ -124,7 +130,11 @@ export default function TaskCard({
                   ↩ {formatShortDate(new Date(task.forDate!))}
                 </span>
               )}
-              <SizeChip size={task.size} points={task.points} className="ml-auto text-[8px]" />
+              <SizeChip
+                size={task.size}
+                points={task.points}
+                className="ml-auto text-[8px]"
+              />
             </div>
           </div>
         </div>

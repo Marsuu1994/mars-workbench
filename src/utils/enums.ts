@@ -5,46 +5,47 @@
  */
 
 export const TaskType = {
-  DAILY: "DAILY",
-  WEEKLY: "WEEKLY",
-  AD_HOC: "AD_HOC",
+  DAILY: 'DAILY',
+  WEEKLY: 'WEEKLY',
+  AD_HOC: 'AD_HOC',
 } as const;
 export type TaskType = (typeof TaskType)[keyof typeof TaskType];
 
 export const TaskStatus = {
-  BACKLOG: "BACKLOG",
-  TODO: "TODO",
-  DOING: "DOING",
-  DONE: "DONE",
-  EXPIRED: "EXPIRED",
+  BACKLOG: 'BACKLOG',
+  TODO: 'TODO',
+  DOING: 'DOING',
+  DONE: 'DONE',
+  EXPIRED: 'EXPIRED',
 } as const;
 export type TaskStatus = (typeof TaskStatus)[keyof typeof TaskStatus];
 
 export const PriorityQuadrant = {
-  DO_FIRST: "DO_FIRST",
-  SCHEDULE: "SCHEDULE",
-  SQUEEZE_IN: "SQUEEZE_IN",
-  MAYBE_LATER: "MAYBE_LATER",
+  DO_FIRST: 'DO_FIRST',
+  SCHEDULE: 'SCHEDULE',
+  SQUEEZE_IN: 'SQUEEZE_IN',
+  MAYBE_LATER: 'MAYBE_LATER',
 } as const;
-export type PriorityQuadrant = (typeof PriorityQuadrant)[keyof typeof PriorityQuadrant];
+export type PriorityQuadrant =
+  (typeof PriorityQuadrant)[keyof typeof PriorityQuadrant];
 
 export const PeriodType = {
-  WEEKLY: "WEEKLY",
+  WEEKLY: 'WEEKLY',
 } as const;
 export type PeriodType = (typeof PeriodType)[keyof typeof PeriodType];
 
 export const PlanMode = {
-  NORMAL: "NORMAL",
-  EXTREME: "EXTREME",
+  NORMAL: 'NORMAL',
+  EXTREME: 'EXTREME',
 } as const;
 export type PlanMode = (typeof PlanMode)[keyof typeof PlanMode];
 
 export const TaskSize = {
-  EXTRA_SMALL: "EXTRA_SMALL",
-  SMALL: "SMALL",
-  MEDIUM: "MEDIUM",
-  LARGE: "LARGE",
-  EXTRA_LARGE: "EXTRA_LARGE",
+  EXTRA_SMALL: 'EXTRA_SMALL',
+  SMALL: 'SMALL',
+  MEDIUM: 'MEDIUM',
+  LARGE: 'LARGE',
+  EXTRA_LARGE: 'EXTRA_LARGE',
 } as const;
 export type TaskSize = (typeof TaskSize)[keyof typeof TaskSize];
 
@@ -63,14 +64,14 @@ export const sizeToPoints = (size: TaskSize): number => SIZE_TO_POINTS[size];
 // `hours`) — render them via useTranslations.
 
 export const MessageRole = {
-  USER: "user",
-  ASSISTANT: "assistant",
-  SYSTEM: "system",
+  USER: 'user',
+  ASSISTANT: 'assistant',
+  SYSTEM: 'system',
 } as const;
 export type MessageRole = (typeof MessageRole)[keyof typeof MessageRole];
 
 export const MessageType = {
-  TEXT: "TEXT",
-  DRAFT_PLAN: "DRAFT_PLAN",
+  TEXT: 'TEXT',
+  DRAFT_PLAN: 'DRAFT_PLAN',
 } as const;
 export type MessageType = (typeof MessageType)[keyof typeof MessageType];

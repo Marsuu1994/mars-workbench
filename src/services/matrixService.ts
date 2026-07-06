@@ -2,11 +2,11 @@ import {
   getNonDoneAdhocTasks,
   trackAdhocTask,
   type TaskItem,
-} from "@/lib/db/tasks";
-import { TaskStatus } from "@/generated/prisma/client";
-import { ensureSynced } from "@/services/syncService";
+} from '@/lib/db/tasks';
+import {TaskStatus} from '@/generated/prisma/client';
+import {ensureSynced} from '@/services/syncService';
 
-export type MatrixActivePlan = { id: string; periodKey: string };
+export type MatrixActivePlan = {id: string; periodKey: string};
 
 export type MatrixData = {
   /** All of the user's non-DONE AD_HOC tasks — unassigned and tracked alike. */
@@ -16,8 +16,8 @@ export type MatrixData = {
 };
 
 export type TrackTaskResult =
-  | { task: TaskItem }
-  | { error: "noActivePlan" | "taskNotFound" };
+  | {task: TaskItem}
+  | {error: 'noActivePlan' | 'taskNotFound'};
 
 export async function fetchPriorityMatrix(userId: string): Promise<MatrixData> {
   // ensureSynced flips an ended ACTIVE plan to PENDING_UPDATE (same lifecycle
@@ -30,7 +30,7 @@ export async function fetchPriorityMatrix(userId: string): Promise<MatrixData> {
 
   return {
     tasks,
-    activePlan: plan ? { id: plan.id, periodKey: plan.periodKey } : null,
+    activePlan: plan ? {id: plan.id, periodKey: plan.periodKey} : null,
   };
 }
 
@@ -41,13 +41,13 @@ export async function fetchPriorityMatrix(userId: string): Promise<MatrixData> {
 export async function trackTaskThisWeek(
   userId: string,
   taskId: string,
-  status: TaskStatus
+  status: TaskStatus,
 ): Promise<TrackTaskResult> {
   const plan = await ensureSynced(userId);
-  if (!plan) return { error: "noActivePlan" };
+  if (!plan) return {error: 'noActivePlan'};
 
   const task = await trackAdhocTask(userId, taskId, plan.id, status);
-  if (!task) return { error: "taskNotFound" };
+  if (!task) return {error: 'taskNotFound'};
 
-  return { task };
+  return {task};
 }
