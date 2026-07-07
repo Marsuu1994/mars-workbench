@@ -1,5 +1,6 @@
 'use client';
 
+import type {ReactNode} from 'react';
 import {useTranslations} from 'next-intl';
 import {
   ArrowPathIcon,
@@ -8,13 +9,13 @@ import {
   MinusIcon,
   PencilSquareIcon,
   PlusIcon,
-  XMarkIcon,
 } from '@heroicons/react/24/outline';
 import {TaskType, PlanMode} from '@/utils/enums';
 import type {TaskSize} from '@/utils/enums';
 import {SizeChip} from '@/components/ui/SizeChip';
-import {Pill} from '@/components/ui/Pill';
+import {Pill, type PillColor} from '@/components/ui/Pill';
 import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
+import {SheetCloseButton} from '@/components/ui/overlay/SheetCloseButton';
 import {SubmitButton} from '@/components/ui/form/SubmitButton';
 
 interface AddedTemplate {
@@ -67,6 +68,84 @@ interface ReviewChangesModalProps {
   toMode?: PlanMode;
 }
 
+/* One accent drives a whole change section — dot, border, heading and
+   note all read from here (literal classes so Tailwind can see them). */
+type Accent = Extract<PillColor, 'success' | 'error' | 'warning' | 'info'>;
+const ACCENT: Record<Accent, {dot: string; border: string; text: string}> = {
+  success: {
+    dot: 'bg-success',
+    border: 'border-success/30',
+    text: 'text-success',
+  },
+  error: {dot: 'bg-error', border: 'border-error/30', text: 'text-error'},
+  warning: {
+    dot: 'bg-warning',
+    border: 'border-warning/30',
+    text: 'text-warning',
+  },
+  info: {dot: 'bg-info', border: 'border-info/30', text: 'text-info'},
+};
+
+/** Section header: icon + uppercase heading + optional count pill. */
+const ChangeSection = ({
+  icon,
+  heading,
+  accent,
+  count,
+  children,
+}: {
+  icon: ReactNode;
+  heading: string;
+  accent: Accent;
+  count?: number;
+  children: ReactNode;
+}) => (
+  <div>
+    <div className="flex items-center gap-2 mb-2">
+      {icon}
+      <span
+        className={`text-[11px] font-bold uppercase tracking-widest ${ACCENT[accent].text}`}
+      >
+        {heading}
+      </span>
+      {count !== undefined && (
+        <Pill color={accent} className="rounded-full font-bold">
+          {count}
+        </Pill>
+      )}
+    </div>
+    {children}
+  </div>
+);
+
+/** One change entry: accent dot + title + meta line + italic note. */
+const ChangeRow = ({
+  accent,
+  title,
+  meta,
+  note,
+}: {
+  accent: Accent;
+  title: ReactNode;
+  meta?: ReactNode;
+  note: ReactNode;
+}) => (
+  <div
+    className={`flex items-start gap-2.5 px-3 py-2.5 bg-base-300 border ${ACCENT[accent].border} rounded-lg`}
+  >
+    <div
+      className={`size-[7px] rounded-full ${ACCENT[accent].dot} shrink-0 mt-[5px]`}
+    />
+    <div>
+      <div className="text-sm font-medium text-base-content">{title}</div>
+      {meta}
+      <div className={`text-[11px] italic ${ACCENT[accent].text} mt-1`}>
+        {note}
+      </div>
+    </div>
+  </div>
+);
+
 export function ReviewChangesModal({
   isOpen,
   onClose,
@@ -103,305 +182,253 @@ export function ReviewChangesModal({
 
   const totalAdhocChanges = addedAdhoc.length + removedAdhoc.length;
 
+  // ── Meta-line builders (need tr, so they live in component scope) ──
+  const templateMeta = (
+    size: TaskSize,
+    points: number,
+    type: TaskType,
+    frequency: number,
+  ) => (
+    <div className="flex items-center gap-1.5 text-xs text-base-content/50 mt-0.5">
+      <SizeChip size={size} points={points} />
+      <span className="mx-0.5">&middot;</span>
+      <span>{typeLabel(type)}</span>
+      <span className="mx-0.5">&middot;</span>
+      <span>{freqLabel(type, frequency)}</span>
+    </div>
+  );
+
+  const sizeMeta = (size: TaskSize, points: number) => (
+    <div className="flex items-center gap-1.5 text-xs text-base-content/50 mt-0.5">
+      <SizeChip size={size} points={points} />
+    </div>
+  );
+
+  const removedNote = (templateId: string) => {
+    const count = incompleteCounts[templateId] ?? 0;
+    return count > 0
+      ? tr('removedNoteWithTasks', {count})
+      : tr('removedNoteNoTasks');
+  };
+
+  const modifiedMeta = (t: ModifiedTemplate) => (
+    <div className="flex items-center gap-1 text-xs mt-0.5">
+      <span className="text-base-content/30 line-through">
+        {typeLabel(t.fromType)} &middot;{' '}
+        {freqLabel(t.fromType, t.fromFrequency)}
+      </span>
+      <span className="text-warning mx-0.5">&rarr;</span>
+      <span className="text-warning">
+        {typeLabel(t.toType)} &middot; {freqLabel(t.toType, t.toFrequency)}
+      </span>
+    </div>
+  );
+
+  const renderHeader = () => (
+    <div className="shrink-0 flex items-center justify-between -mx-6 px-6 pb-4 mb-4 border-b border-base-content/10">
+      <h3 className="text-lg font-semibold">{tr('title')}</h3>
+      <SheetCloseButton onClick={onClose} label={tr('cancel')} />
+    </div>
+  );
+
+  const renderAdhocGroup = (
+    label: string,
+    labelClass: string,
+    rows: AdhocTaskChange[],
+    accent: Accent,
+    note: string,
+    trailingGap: boolean,
+  ) => (
+    <>
+      <div className={`text-[11px] font-semibold ${labelClass} mb-1 pl-0.5`}>
+        {label}
+      </div>
+      <div className={`flex flex-col gap-1.5${trailingGap ? ' mb-2' : ''}`}>
+        {rows.map(t => (
+          <ChangeRow
+            key={t.id}
+            accent={accent}
+            title={t.title}
+            meta={sizeMeta(t.size, t.points)}
+            note={note}
+          />
+        ))}
+      </div>
+    </>
+  );
+
+  const renderBody = () => (
+    <div className="flex-1 overflow-y-auto -mx-6 px-6">
+      <div className="flex flex-col gap-4">
+        {added.length > 0 && (
+          <ChangeSection
+            icon={<PlusIcon className="size-3.5 text-success" />}
+            heading={tr('addedHeading')}
+            accent="success"
+            count={added.length}
+          >
+            <div className="flex flex-col gap-1.5">
+              {added.map(t => (
+                <ChangeRow
+                  key={t.templateId}
+                  accent="success"
+                  title={t.title}
+                  meta={templateMeta(t.size, t.points, t.type, t.frequency)}
+                  note={tr('addedNote', {
+                    type: typeLabel(t.type).toLowerCase(),
+                  })}
+                />
+              ))}
+            </div>
+          </ChangeSection>
+        )}
+
+        {removed.length > 0 && (
+          <ChangeSection
+            icon={<MinusIcon className="size-3.5 text-error" />}
+            heading={tr('removedHeading')}
+            accent="error"
+            count={removed.length}
+          >
+            <div className="flex flex-col gap-1.5">
+              {removed.map(t => (
+                <ChangeRow
+                  key={t.templateId}
+                  accent="error"
+                  title={t.title}
+                  meta={templateMeta(t.size, t.points, t.type, t.frequency)}
+                  note={removedNote(t.templateId)}
+                />
+              ))}
+            </div>
+          </ChangeSection>
+        )}
+
+        {modified.length > 0 && (
+          <ChangeSection
+            icon={<PencilSquareIcon className="size-3.5 text-warning" />}
+            heading={tr('modifiedHeading')}
+            accent="warning"
+            count={modified.length}
+          >
+            <div className="flex flex-col gap-1.5">
+              {modified.map(t => (
+                <ChangeRow
+                  key={t.templateId}
+                  accent="warning"
+                  title={t.title}
+                  meta={modifiedMeta(t)}
+                  note={tr('modifiedNote', {
+                    hasTasks:
+                      (incompleteCounts[t.templateId] ?? 0) > 0 ? 'yes' : 'no',
+                    count: t.toFrequency,
+                    type: typeLabel(t.toType).toLowerCase(),
+                  })}
+                />
+              ))}
+            </div>
+          </ChangeSection>
+        )}
+
+        {totalAdhocChanges > 0 && (
+          <ChangeSection
+            icon={<BoltIcon className="size-3.5 text-warning" />}
+            heading={tr('adhocHeading')}
+            accent="warning"
+            count={totalAdhocChanges}
+          >
+            {addedAdhoc.length > 0 &&
+              renderAdhocGroup(
+                tr('addedToBoard'),
+                'text-info',
+                addedAdhoc,
+                'info',
+                tr('adhocAddedNote'),
+                removedAdhoc.length > 0,
+              )}
+            {removedAdhoc.length > 0 &&
+              renderAdhocGroup(
+                tr('removedFromBoard'),
+                'text-error',
+                removedAdhoc,
+                'error',
+                tr('adhocRemovedNote'),
+                false,
+              )}
+          </ChangeSection>
+        )}
+
+        {modeChanged && fromMode && toMode && (
+          <ChangeSection
+            icon={<ArrowPathIcon className="size-3.5 text-info" />}
+            heading={tr('modeChangedHeading')}
+            accent="info"
+          >
+            <ChangeRow
+              accent="info"
+              title={
+                <span className="flex items-center gap-1">
+                  <span className="text-base-content/30 line-through font-normal">
+                    {modeLabel(fromMode)}
+                  </span>
+                  <span className="text-info mx-0.5">&rarr;</span>
+                  <span className="text-info">{modeLabel(toMode)}</span>
+                </span>
+              }
+              note={tr('modeChangedNote', {
+                description: modeDescription(toMode),
+              })}
+            />
+          </ChangeSection>
+        )}
+      </div>
+
+      {/* Global note */}
+      <div className="flex gap-2 items-start px-3.5 py-3 rounded-lg bg-base-300 border border-dashed border-base-content/20 mt-4">
+        <InformationCircleIcon className="size-3.5 text-base-content/40 shrink-0 mt-0.5" />
+        <span className="text-xs text-base-content/50 leading-relaxed">
+          {tr('globalNote')}
+        </span>
+      </div>
+    </div>
+  );
+
+  const renderFooter = () => (
+    <div className="modal-action shrink-0 -mx-6 mt-0 border-t border-base-content/10 px-6 pt-4">
+      <button
+        type="button"
+        className="btn btn-ghost flex-1 md:flex-none"
+        onClick={onClose}
+        disabled={isSubmitting}
+      >
+        {tr('cancel')}
+      </button>
+      <SubmitButton
+        type="button"
+        onClick={onConfirm}
+        isSubmitting={isSubmitting}
+        icon={<ArrowPathIcon className="size-4" />}
+        className="flex-[2] md:flex-none"
+      >
+        {tr('confirmButton')}
+      </SubmitButton>
+    </div>
+  );
+
   return (
     // Tall sheet on mobile: header + footer pinned, sections scroll between.
-    // Backdrop-dismiss stays off — the review selection must survive a stray tap.
+    // A read-only review (no text input) → backdrop tap dismisses = Cancel.
     <OverlayShell
       variant="responsive"
       isOpen={isOpen}
       onClose={onClose}
-      dismissOnBackdrop={false}
+      closeLabel={tr('cancel')}
       grip
       boxClassName="max-w-lg flex flex-col overflow-hidden max-h-[85vh] pt-2 md:pt-6 md:max-h-[calc(100vh-5em)]"
     >
-      {/* Header */}
-      <div className="shrink-0 flex items-center justify-between -mx-6 px-6 pb-4 mb-4 border-b border-base-content/10">
-        <h3 className="text-lg font-semibold">{tr('title')}</h3>
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm btn-square"
-          onClick={onClose}
-        >
-          <XMarkIcon className="size-5" />
-        </button>
-      </div>
-
-      {/* Scrolling body: change sections + global note */}
-      <div className="flex-1 overflow-y-auto -mx-6 px-6">
-        <div className="flex flex-col gap-4">
-          {/* Added */}
-          {added.length > 0 && (
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <PlusIcon className="size-3.5 text-success" />
-                <span className="text-[11px] font-bold uppercase tracking-widest text-success">
-                  {tr('addedHeading')}
-                </span>
-                <Pill color="success" className="rounded-full font-bold">
-                  {tr('templateCount', {count: added.length})}
-                </Pill>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                {added.map(t => (
-                  <div
-                    key={t.templateId}
-                    className="flex items-start gap-2.5 px-3 py-2.5 bg-base-300 border border-success/30 rounded-lg"
-                  >
-                    <div className="size-[7px] rounded-full bg-success shrink-0 mt-[5px]" />
-                    <div>
-                      <div className="text-sm font-medium text-base-content">
-                        {t.title}
-                      </div>
-                      <div className="flex items-center gap-1.5 text-xs text-base-content/50 mt-0.5">
-                        <SizeChip size={t.size} points={t.points} />
-                        <span className="mx-0.5">&middot;</span>
-                        <span>{typeLabel(t.type)}</span>
-                        <span className="mx-0.5">&middot;</span>
-                        <span>{freqLabel(t.type, t.frequency)}</span>
-                      </div>
-                      <div className="text-[11px] italic text-success mt-1">
-                        {tr('addedNote', {
-                          type: typeLabel(t.type).toLowerCase(),
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Removed */}
-          {removed.length > 0 && (
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <MinusIcon className="size-3.5 text-error" />
-                <span className="text-[11px] font-bold uppercase tracking-widest text-error">
-                  {tr('removedHeading')}
-                </span>
-                <Pill color="error" className="rounded-full font-bold">
-                  {tr('templateCount', {count: removed.length})}
-                </Pill>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                {removed.map(t => (
-                  <div
-                    key={t.templateId}
-                    className="flex items-start gap-2.5 px-3 py-2.5 bg-base-300 border border-error/30 rounded-lg"
-                  >
-                    <div className="size-[7px] rounded-full bg-error shrink-0 mt-[5px]" />
-                    <div>
-                      <div className="text-sm font-medium text-base-content">
-                        {t.title}
-                      </div>
-                      <div className="flex items-center gap-1.5 text-xs text-base-content/50 mt-0.5">
-                        <SizeChip size={t.size} points={t.points} />
-                        <span className="mx-0.5">&middot;</span>
-                        <span>{typeLabel(t.type)}</span>
-                        <span className="mx-0.5">&middot;</span>
-                        <span>{freqLabel(t.type, t.frequency)}</span>
-                      </div>
-                      <div className="text-[11px] italic text-error mt-1">
-                        {(() => {
-                          const count = incompleteCounts[t.templateId] ?? 0;
-                          return count > 0
-                            ? tr('removedNoteWithTasks', {count})
-                            : tr('removedNoteNoTasks');
-                        })()}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Modified */}
-          {modified.length > 0 && (
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <PencilSquareIcon className="size-3.5 text-warning" />
-                <span className="text-[11px] font-bold uppercase tracking-widest text-warning">
-                  {tr('modifiedHeading')}
-                </span>
-                <Pill color="warning" className="rounded-full font-bold">
-                  {tr('templateCount', {count: modified.length})}
-                </Pill>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                {modified.map(t => (
-                  <div
-                    key={t.templateId}
-                    className="flex items-start gap-2.5 px-3 py-2.5 bg-base-300 border border-warning/30 rounded-lg"
-                  >
-                    <div className="size-[7px] rounded-full bg-warning shrink-0 mt-[5px]" />
-                    <div>
-                      <div className="text-sm font-medium text-base-content">
-                        {t.title}
-                      </div>
-                      <div className="flex items-center gap-1 text-xs mt-0.5">
-                        <span className="text-base-content/30 line-through">
-                          {typeLabel(t.fromType)} &middot;{' '}
-                          {freqLabel(t.fromType, t.fromFrequency)}
-                        </span>
-                        <span className="text-warning mx-0.5">&rarr;</span>
-                        <span className="text-warning">
-                          {typeLabel(t.toType)} &middot;{' '}
-                          {freqLabel(t.toType, t.toFrequency)}
-                        </span>
-                      </div>
-                      <div className="text-[11px] italic text-warning mt-1">
-                        {(() => {
-                          const count = incompleteCounts[t.templateId] ?? 0;
-                          return tr('modifiedNote', {
-                            hasTasks: count > 0 ? 'yes' : 'no',
-                            count: t.toFrequency,
-                            type: typeLabel(t.toType).toLowerCase(),
-                          });
-                        })()}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Ad-hoc Tasks */}
-          {totalAdhocChanges > 0 && (
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <BoltIcon className="size-3.5 text-warning" />
-                <span className="text-[11px] font-bold uppercase tracking-widest text-warning">
-                  {tr('adhocHeading')}
-                </span>
-                <Pill color="warning" className="rounded-full font-bold">
-                  {tr('taskCount', {count: totalAdhocChanges})}
-                </Pill>
-              </div>
-
-              {/* Added to board */}
-              {addedAdhoc.length > 0 && (
-                <>
-                  <div className="text-[11px] font-semibold text-info mb-1 pl-0.5">
-                    {tr('addedToBoard')}
-                  </div>
-                  <div className="flex flex-col gap-1.5 mb-2">
-                    {addedAdhoc.map(t => (
-                      <div
-                        key={t.id}
-                        className="flex items-start gap-2.5 px-3 py-2.5 bg-base-300 border border-info/30 rounded-lg"
-                      >
-                        <div className="size-[7px] rounded-full bg-info shrink-0 mt-[5px]" />
-                        <div>
-                          <div className="text-sm font-medium text-base-content">
-                            {t.title}
-                          </div>
-                          <div className="flex items-center gap-1.5 text-xs text-base-content/50 mt-0.5">
-                            <SizeChip size={t.size} points={t.points} />
-                          </div>
-                          <div className="text-[11px] italic text-info mt-1">
-                            {tr('adhocAddedNote')}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-
-              {/* Removed from board */}
-              {removedAdhoc.length > 0 && (
-                <>
-                  <div className="text-[11px] font-semibold text-error mb-1 pl-0.5">
-                    {tr('removedFromBoard')}
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    {removedAdhoc.map(t => (
-                      <div
-                        key={t.id}
-                        className="flex items-start gap-2.5 px-3 py-2.5 bg-base-300 border border-error/30 rounded-lg"
-                      >
-                        <div className="size-[7px] rounded-full bg-error shrink-0 mt-[5px]" />
-                        <div>
-                          <div className="text-sm font-medium text-base-content">
-                            {t.title}
-                          </div>
-                          <div className="flex items-center gap-1.5 text-xs text-base-content/50 mt-0.5">
-                            <SizeChip size={t.size} points={t.points} />
-                          </div>
-                          <div className="text-[11px] italic text-error mt-1">
-                            {tr('adhocRemovedNote')}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-          {/* Mode Changed */}
-          {modeChanged && fromMode && toMode && (
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <ArrowPathIcon className="size-3.5 text-info" />
-                <span className="text-[11px] font-bold uppercase tracking-widest text-info">
-                  {tr('modeChangedHeading')}
-                </span>
-              </div>
-              <div className="flex items-start gap-2.5 px-3 py-2.5 bg-base-300 border border-info/30 rounded-lg">
-                <div className="size-[7px] rounded-full bg-info shrink-0 mt-[5px]" />
-                <div>
-                  <div className="flex items-center gap-1 text-sm">
-                    <span className="text-base-content/30 line-through">
-                      {modeLabel(fromMode)}
-                    </span>
-                    <span className="text-info mx-0.5">&rarr;</span>
-                    <span className="text-info font-medium">
-                      {modeLabel(toMode)}
-                    </span>
-                  </div>
-                  <div className="text-[11px] italic text-info mt-1">
-                    {tr('modeChangedNote', {
-                      description: modeDescription(toMode),
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Global note */}
-        <div className="flex gap-2 items-start px-3.5 py-3 rounded-lg bg-base-300 border border-dashed border-base-content/20 mt-4">
-          <InformationCircleIcon className="size-3.5 text-base-content/40 shrink-0 mt-0.5" />
-          <span className="text-xs text-base-content/50 leading-relaxed">
-            {tr('globalNote')}
-          </span>
-        </div>
-      </div>
-
-      {/* Footer (pinned) */}
-      <div className="modal-action shrink-0 -mx-6 mt-0 border-t border-base-content/10 px-6 pt-4">
-        <button
-          type="button"
-          className="btn btn-ghost flex-1 md:flex-none"
-          onClick={onClose}
-          disabled={isSubmitting}
-        >
-          {tr('cancel')}
-        </button>
-        <SubmitButton
-          type="button"
-          onClick={onConfirm}
-          isSubmitting={isSubmitting}
-          icon={<ArrowPathIcon className="size-4" />}
-          className="flex-[2] md:flex-none"
-        >
-          {tr('confirmButton')}
-        </SubmitButton>
-      </div>
+      {renderHeader()}
+      {renderBody()}
+      {renderFooter()}
     </OverlayShell>
   );
 }

@@ -68,6 +68,34 @@ interface PlanFormProps {
   periodKey?: string;
 }
 
+/* Plan-mode segmented control — one config drives both options; the label
+   body lives in renderModeOption (component scope, needs i18n). */
+const PLAN_MODE_OPTIONS: {
+  value: PlanMode;
+  selectedClass: string;
+  icon: typeof MoonIcon;
+  accentText: string;
+  labelKey: 'NORMAL' | 'EXTREME';
+  descKey: 'normalModeShortDesc' | 'extremeModeShortDesc';
+}[] = [
+  {
+    value: PlanMode.NORMAL,
+    selectedClass: 'border-info/50 bg-info/5',
+    icon: MoonIcon,
+    accentText: 'text-info',
+    labelKey: 'NORMAL',
+    descKey: 'normalModeShortDesc',
+  },
+  {
+    value: PlanMode.EXTREME,
+    selectedClass: 'border-error/50 bg-error/5',
+    icon: BoltIcon,
+    accentText: 'text-error',
+    labelKey: 'EXTREME',
+    descKey: 'extremeModeShortDesc',
+  },
+];
+
 export default function PlanForm({
   templates,
   mode,
@@ -327,6 +355,27 @@ export default function PlanForm({
           toMode: planMode,
         };
 
+  const modeOptionLabel = (
+    o: (typeof PLAN_MODE_OPTIONS)[number],
+    selected: boolean,
+  ) => {
+    const Icon = o.icon;
+    const accent = selected ? o.accentText : 'text-base-content/30';
+    return (
+      <>
+        <Icon className={`size-4 ${accent}`} />
+        <span className={`text-[13px] font-semibold tracking-wide ${accent}`}>
+          {tMode(o.labelKey)}
+        </span>
+        <span
+          className={`text-[11px] ${selected ? 'text-base-content/60' : 'text-base-content/30'}`}
+        >
+          {t(o.descKey)}
+        </span>
+      </>
+    );
+  };
+
   // Heading scrolls with the form on both breakpoints; the page chrome
   // (Kanban Planner + Planning Mode badge) lives in the plans layout.
   const renderHeading = () => (
@@ -387,50 +436,11 @@ export default function PlanForm({
               className="gap-0"
               value={planMode}
               onChange={setPlanMode}
-              options={[
-                {
-                  value: PlanMode.NORMAL,
-                  selectedClass: 'border-info/50 bg-info/5',
-                  label: (selected: boolean) => (
-                    <>
-                      <MoonIcon
-                        className={`size-4 ${selected ? 'text-info' : 'text-base-content/30'}`}
-                      />
-                      <span
-                        className={`text-[13px] font-semibold tracking-wide ${selected ? 'text-info' : 'text-base-content/30'}`}
-                      >
-                        {tMode('NORMAL')}
-                      </span>
-                      <span
-                        className={`text-[11px] ${selected ? 'text-base-content/60' : 'text-base-content/30'}`}
-                      >
-                        {t('normalModeShortDesc')}
-                      </span>
-                    </>
-                  ),
-                },
-                {
-                  value: PlanMode.EXTREME,
-                  selectedClass: 'border-error/50 bg-error/5',
-                  label: (selected: boolean) => (
-                    <>
-                      <BoltIcon
-                        className={`size-4 ${selected ? 'text-error' : 'text-base-content/30'}`}
-                      />
-                      <span
-                        className={`text-[13px] font-semibold tracking-wide ${selected ? 'text-error' : 'text-base-content/30'}`}
-                      >
-                        {tMode('EXTREME')}
-                      </span>
-                      <span
-                        className={`text-[11px] ${selected ? 'text-base-content/60' : 'text-base-content/30'}`}
-                      >
-                        {t('extremeModeShortDesc')}
-                      </span>
-                    </>
-                  ),
-                },
-              ]}
+              options={PLAN_MODE_OPTIONS.map(o => ({
+                value: o.value,
+                selectedClass: o.selectedClass,
+                label: (selected: boolean) => modeOptionLabel(o, selected),
+              }))}
               pillClass="flex flex-col items-center gap-0.5 rounded-md px-3 py-2.5"
               unselectedClass="border-transparent"
             />

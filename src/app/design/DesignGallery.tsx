@@ -29,6 +29,7 @@ import BoardColumn from '@/components/board/BoardColumn';
 import BoardHeader from '@/components/shared/BoardHeader';
 import MatrixTaskCard from '@/components/priorities/MatrixTaskCard';
 import TemplateItem from '@/components/plan/TemplateItem';
+import {ReviewChangesModal} from '@/components/plan/ReviewChangesModal';
 import ProgressDashboard from '@/components/board/ProgressDashboard';
 import EmptyBoard from '@/components/board/EmptyBoard';
 import {BotAvatar, UserAvatar} from '@/components/plan/ai-chat/Avatars';
@@ -36,7 +37,7 @@ import {SuggestionChips} from '@/components/plan/ai-chat/SuggestionChips';
 import {LoadingBubble} from '@/components/plan/ai-chat/LoadingBubble';
 
 import {Zone, Section, Variant, Row} from './GalleryParts';
-import {TaskType} from '@/utils/enums';
+import {TaskType, PlanMode} from '@/utils/enums';
 import {
   GALLERY_TITLE_ACCENT,
   GALLERY_TITLE_REST,
@@ -84,6 +85,7 @@ import {
   BOARD_COLUMN_TASKS,
   BOARD_COLUMN_RISK,
   TEMPLATE_FIXTURE,
+  REVIEW_FIXTURE,
 } from './constants';
 
 export const DesignGallery = () => {
@@ -92,6 +94,7 @@ export const DesignGallery = () => {
   const [shellOpen, setShellOpen] = useState(false);
   const [choice, setChoice] = useState<string>(FORM_DEMO_CHOICES[0].value);
   const [freq, setFreq] = useState(FORM_DEMO_STEP_MIN);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const [templateSelected, setTemplateSelected] = useState(true);
   const [templateCfg, setTemplateCfg] = useState<{
     type: TaskType;
@@ -248,7 +251,7 @@ export const DesignGallery = () => {
 
   const renderPills = () => (
     <Section
-      title="Pill (ui)"
+      title="Pill"
       description="The one tinted-pill primitive: fx-chip recipe + text token + size preset. Every badge in the app composes this — never hand-roll a pill."
     >
       <div className="flex flex-col gap-6">
@@ -279,7 +282,7 @@ export const DesignGallery = () => {
 
   const renderBadgeFamily = () => (
     <Section
-      title="Badge family (ui)"
+      title="Badge family"
       description="Domain chips built on Pill: multi-instance index, risk level, rollover marker."
     >
       <Row>
@@ -407,7 +410,7 @@ export const DesignGallery = () => {
 
   const renderOverlays = () => (
     <Section
-      title="BottomSheet (ui)"
+      title="BottomSheet"
       description="The uniform mobile sheet container: grip bar, optional pinned header + subheader, internal scroll region, explicit backdrop dismissal."
     >
       <button
@@ -449,7 +452,7 @@ export const DesignGallery = () => {
 
   const renderModalShell = () => (
     <Section
-      title="OverlayShell (ui)"
+      title="OverlayShell"
       description="The one dialog shell behind every modal: responsive sheet-to-center morph, HUD panel chrome (fx-panel-solid + fx-boot-in), optional reticle corners and grip, explicit dismissOnBackdrop contract."
     >
       <button
@@ -485,7 +488,7 @@ export const DesignGallery = () => {
 
   const renderFormKit = () => (
     <Section
-      title="Form kit (ui)"
+      title="Form kit"
       description="The canonical form building blocks: FieldRow (label + required + hint), ChoicePills (mutually-exclusive group), Stepper (−/+), SubmitButton (spinner swap)."
     >
       <div className="flex flex-col gap-5">
@@ -545,7 +548,7 @@ export const DesignGallery = () => {
 
   const renderContentBlocks = () => (
     <Section
-      title="Content blocks (ui)"
+      title="Content blocks"
       description="StatBlock (telemetry value + micro-label), ProgressBar (linear track + fill), SectionLabel (mono uppercase header)."
     >
       <div className="flex flex-col gap-6">
@@ -675,6 +678,36 @@ export const DesignGallery = () => {
     </Section>
   );
 
+  const renderReviewModal = () => (
+    <Section
+      title="ReviewChangesModal"
+      description="Plan-edit confirmation — every change type (added / removed / modified / ad-hoc / mode) through the shared ChangeSection + ChangeRow. A read-only review, so backdrop tap dismisses; chevron-down close."
+    >
+      <button
+        type="button"
+        className="btn btn-primary btn-sm"
+        onClick={() => setReviewOpen(true)}
+      >
+        Open review modal
+      </button>
+      <ReviewChangesModal
+        isOpen={reviewOpen}
+        onClose={() => setReviewOpen(false)}
+        onConfirm={() => setReviewOpen(false)}
+        added={REVIEW_FIXTURE.added}
+        removed={REVIEW_FIXTURE.removed}
+        modified={REVIEW_FIXTURE.modified}
+        addedAdhoc={REVIEW_FIXTURE.addedAdhoc}
+        removedAdhoc={REVIEW_FIXTURE.removedAdhoc}
+        incompleteCounts={REVIEW_FIXTURE.incompleteCounts}
+        isSubmitting={false}
+        modeChanged
+        fromMode={PlanMode.NORMAL}
+        toMode={PlanMode.EXTREME}
+      />
+    </Section>
+  );
+
   const renderEmptyState = () => (
     <Section
       title="EmptyBoard"
@@ -748,6 +781,7 @@ export const DesignGallery = () => {
           {renderBoardColumn()}
           {renderMatrixCards()}
           {renderTemplateItem()}
+          {renderReviewModal()}
           {renderProgress()}
           {renderChatPrimitives()}
           {renderEmptyState()}

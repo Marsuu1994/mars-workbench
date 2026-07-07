@@ -194,6 +194,33 @@ Mockups are the source of truth for UI, but implementation may introduce details
   <span>{t("taskCount", { count })}</span>
   ```
 
+- **DRY repeated JSX blocks.** When the same markup repeats with only data/color differences (list rows, change sections, cards), extract ONE parameterized sub-component instead of copy-pasting the block per case. If the only difference is a semantic color, drive it from a `Record<Key, string>` of literal Tailwind classes. Bad: five near-identical `added`/`removed`/`modified` sections each hand-writing the same dot + title + meta + note row. Good:
+
+  ```tsx
+  // Literal classes only — never interpolate `bg-${accent}`, Tailwind can't see it.
+  const ACCENT: Record<Accent, {dot: string; border: string}> = {
+    success: {dot: "bg-success", border: "border-success/30"},
+    error: {dot: "bg-error", border: "border-error/30"},
+    warning: {dot: "bg-warning", border: "border-warning/30"},
+  };
+  const ChangeRow = ({accent, title, children}: ChangeRowProps) => (
+    <div className={`… border ${ACCENT[accent].border}`}>
+      <div className={`size-[7px] rounded-full ${ACCENT[accent].dot} …`} />
+      <div>
+        <div className="text-sm font-medium">{title}</div>
+        {children}
+      </div>
+    </div>
+  );
+  ```
+
+- **Don't inline long render functions as prop values.** A render-prop or option-label callback longer than a couple of lines belongs in a named function (or a `const` element list), not inlined at the call site — the call site should read as an outline. Bad: a `ChoicePills options={[{value, label: selected => (<>…12 lines…</>)}, …]}` with the whole label body inlined. Good:
+
+  ```tsx
+  const renderModeOption = (mode: PlanMode) => (selected: boolean) => ( /* … */ );
+  <ChoicePills options={MODES.map(m => ({value: m, label: renderModeOption(m)}))} />
+  ```
+
 ## Code Style
 
 - Named exports only (except Next.js `page.tsx` and `layout.tsx` defaults).

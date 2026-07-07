@@ -381,3 +381,54 @@ export const TEMPLATE_FIXTURE = {
   createdAt: TODAY,
   updatedAt: TODAY,
 };
+
+// ── ReviewChangesModal fixture (all change types) ────────────────────────────
+export const REVIEW_FIXTURE = {
+  added: [
+    {
+      templateId: 'r-add',
+      title: 'Morning workout',
+      size: TaskSize.SMALL,
+      points: SIZE_TO_POINTS[TaskSize.SMALL],
+      type: TaskType.DAILY,
+      frequency: 1,
+    },
+  ],
+  removed: [
+    {
+      templateId: 'r-rem',
+      title: 'Weekly review',
+      size: TaskSize.MEDIUM,
+      points: SIZE_TO_POINTS[TaskSize.MEDIUM],
+      type: TaskType.WEEKLY,
+      frequency: 1,
+    },
+  ],
+  modified: [
+    {
+      templateId: 'r-mod',
+      title: 'Read a chapter',
+      fromType: TaskType.DAILY,
+      fromFrequency: 1,
+      toType: TaskType.WEEKLY,
+      toFrequency: 3,
+    },
+  ],
+  addedAdhoc: [
+    {
+      id: 'r-aa',
+      title: 'Book flights',
+      size: TaskSize.SMALL,
+      points: SIZE_TO_POINTS[TaskSize.SMALL],
+    },
+  ],
+  removedAdhoc: [
+    {
+      id: 'r-ra',
+      title: 'Fix the leaky tap',
+      size: TaskSize.EXTRA_SMALL,
+      points: SIZE_TO_POINTS[TaskSize.EXTRA_SMALL],
+    },
+  ],
+  incompleteCounts: {'r-rem': 2, 'r-mod': 1},
+};

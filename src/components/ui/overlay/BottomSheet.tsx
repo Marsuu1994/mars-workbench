@@ -1,9 +1,9 @@
 'use client';
 
 import type {ReactNode} from 'react';
-import {ChevronDownIcon} from '@heroicons/react/24/outline';
 import {cn} from '../cn';
 import {OverlayShell} from './OverlayShell';
+import {SheetCloseButton} from './SheetCloseButton';
 
 interface BottomSheetHeader {
   icon?: ReactNode;
@@ -55,14 +55,7 @@ export const BottomSheet = ({
         {title}
         {badge}
       </div>
-      <button
-        type="button"
-        onClick={onClose}
-        title={closeLabel}
-        className="size-8 rounded-lg flex items-center justify-center text-base-content/60 hover:bg-base-300 hover:text-base-content cursor-pointer"
-      >
-        <ChevronDownIcon className="size-5" />
-      </button>
+      <SheetCloseButton onClick={onClose} label={closeLabel} />
     </div>
   );
 
