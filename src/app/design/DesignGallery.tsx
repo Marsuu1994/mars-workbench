@@ -2,7 +2,7 @@
 
 import {useState} from 'react';
 import {DragDropContext, Droppable} from '@hello-pangea/dnd';
-import {SunIcon, MoonIcon} from '@heroicons/react/24/outline';
+import {SunIcon, MoonIcon, InboxStackIcon} from '@heroicons/react/24/outline';
 
 import {Pill} from '@/components/ui/Pill';
 import {SizeChip} from '@/components/ui/SizeChip';
@@ -10,6 +10,7 @@ import {TaskTypeBadge} from '@/components/ui/TaskTypeBadge';
 import {InstanceBadge} from '@/components/ui/InstanceBadge';
 import {RiskBadge} from '@/components/ui/RiskBadge';
 import {RolloverTag} from '@/components/ui/RolloverTag';
+import {BottomSheet} from '@/components/ui/overlay/BottomSheet';
 import TaskCard from '@/components/board/TaskCard';
 import MatrixTaskCard from '@/components/priorities/MatrixTaskCard';
 import ProgressDashboard from '@/components/board/ProgressDashboard';
@@ -38,10 +39,16 @@ import {
   CHIP_SPECIMENS,
   PILL_COLORS,
   PILL_SIZES,
+  SHEET_DEMO_TITLE,
+  SHEET_DEMO_OPEN,
+  SHEET_DEMO_CLOSE,
+  SHEET_DEMO_HINT,
+  SHEET_DEMO_ROWS,
 } from './constants';
 
 export const DesignGallery = () => {
   const [theme, setTheme] = useState<string>(THEME_DARK);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const isDark = theme === THEME_DARK;
 
   const renderHeader = () => (
@@ -342,6 +349,48 @@ export const DesignGallery = () => {
     </Section>
   );
 
+  const renderOverlays = () => (
+    <Section
+      title="BottomSheet (ui)"
+      description="The uniform mobile sheet container: grip bar, optional pinned header + subheader, internal scroll region, explicit backdrop dismissal."
+    >
+      <button
+        type="button"
+        className="btn btn-primary btn-sm"
+        onClick={() => setSheetOpen(true)}
+      >
+        {SHEET_DEMO_OPEN}
+      </button>
+      <BottomSheet
+        isOpen={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        closeLabel={SHEET_DEMO_CLOSE}
+        mobileOnly={false}
+        header={{
+          icon: <InboxStackIcon className="size-5 text-primary" />,
+          title: SHEET_DEMO_TITLE,
+          badge: <Pill color="primary">{SHEET_DEMO_ROWS.length}</Pill>,
+        }}
+        subheader={
+          <div className="px-4 py-2.5 text-xs text-base-content/50 border-b border-base-content/10">
+            {SHEET_DEMO_HINT}
+          </div>
+        }
+        scrollable
+        bodyClassName="p-4 flex flex-col gap-2"
+      >
+        {SHEET_DEMO_ROWS.map(row => (
+          <div
+            key={row}
+            className="rounded-card border border-base-content/10 bg-base-100 px-3.5 py-3 text-sm"
+          >
+            {row}
+          </div>
+        ))}
+      </BottomSheet>
+    </Section>
+  );
+
   const renderProgress = () => (
     <Section
       title="ProgressDashboard"
@@ -423,6 +472,7 @@ export const DesignGallery = () => {
         {renderTypeBadges()}
         {renderTaskCards()}
         {renderMatrixCards()}
+        {renderOverlays()}
         {renderProgress()}
         {renderChatPrimitives()}
         {renderEmptyState()}

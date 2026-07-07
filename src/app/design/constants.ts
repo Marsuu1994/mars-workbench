@@ -295,3 +295,19 @@ export const PILL_COLORS = [
 ] as const;
 
 export const PILL_SIZES = ['xs', 'sm', 'md'] as const;
+
+// ── BottomSheet demo fixtures ────────────────────────────────────────────────
+export const SHEET_DEMO_TITLE = 'Staged tasks';
+export const SHEET_DEMO_OPEN = 'Open bottom sheet';
+export const SHEET_DEMO_CLOSE = 'Close';
+export const SHEET_DEMO_HINT = 'Pinned subheader — hints live here.';
+export const SHEET_DEMO_ROWS = [
+  'Row one — sheets scroll internally',
+  'Row two — grip, header and subheader stay pinned',
+  'Row three',
+  'Row four',
+  'Row five',
+  'Row six',
+  'Row seven',
+  'Row eight',
+];
