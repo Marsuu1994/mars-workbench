@@ -21,6 +21,8 @@ interface OverlayShellProps {
   closeLabel?: string;
   /** Targeting-reticle corner brackets from md up */
   corners?: boolean;
+  /** Mobile sheet grip bar pinned above the content (hidden from md up) */
+  grip?: boolean;
   /** Extra classes on the modal-box */
   boxClassName?: string;
   children: ReactNode;
@@ -45,6 +47,7 @@ export const OverlayShell = ({
   dismissOnBackdrop = true,
   closeLabel,
   corners,
+  grip,
   boxClassName,
   children,
 }: OverlayShellProps) => {
@@ -64,6 +67,9 @@ export const OverlayShell = ({
           boxClassName,
         )}
       >
+        {grip && (
+          <div className="md:hidden w-[38px] h-1 shrink-0 rounded-full bg-base-content/20 mx-auto mb-3" />
+        )}
         {children}
       </div>
       {dismissOnBackdrop && (

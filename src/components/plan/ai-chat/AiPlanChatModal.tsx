@@ -6,6 +6,7 @@ import {SparklesIcon, XMarkIcon} from '@heroicons/react/24/outline';
 import {useAiPlanChatStore} from '@/store/aiPlanChatStore';
 import {useAiPlanChat} from '@/hooks/useAiPlanChat';
 import {Pill} from '@/components/ui/Pill';
+import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
 import {ChatMessage} from './ChatMessage';
 import {ChatInputBar} from './ChatInputBar';
 import {CreateActionBar} from './CreateActionBar';
@@ -14,7 +15,6 @@ import {LoadingBubble} from './LoadingBubble';
 
 export const AiPlanChatModal = () => {
   const t = useTranslations('AiChat');
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
 
   const isOpen = useAiPlanChatStore(state => state.isOpen);
@@ -24,14 +24,6 @@ export const AiPlanChatModal = () => {
   const latestDraft = useAiPlanChatStore(state => state.latestDraft);
   const close = useAiPlanChatStore(state => state.close);
   const {send, approve} = useAiPlanChat();
-
-  // Sync the native <dialog> with store-driven open state.
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (isOpen && !dialog.open) dialog.showModal();
-    else if (!isOpen && dialog.open) dialog.close();
-  }, [isOpen]);
 
   // Keep the conversation pinned to the newest message.
   useEffect(() => {
@@ -112,18 +104,16 @@ export const AiPlanChatModal = () => {
   };
 
   return (
-    <dialog ref={dialogRef} className="modal" onClose={close}>
-      <div className="modal-box fx-panel-solid fx-boot-in flex h-[700px] max-h-[80vh] w-[640px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden p-0">
-        {renderHeader()}
-        {renderBody()}
-        {renderFooter()}
-      </div>
-
-      <form method="dialog" className="modal-backdrop">
-        <button type="submit" aria-label={t('closeAria')}>
-          {t('closeBackdrop')}
-        </button>
-      </form>
-    </dialog>
+    <OverlayShell
+      variant="center"
+      isOpen={isOpen}
+      onClose={close}
+      closeLabel={t('closeBackdrop')}
+      boxClassName="flex h-[700px] max-h-[80vh] w-[640px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden p-0"
+    >
+      {renderHeader()}
+      {renderBody()}
+      {renderFooter()}
+    </OverlayShell>
   );
 };

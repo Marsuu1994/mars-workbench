@@ -11,6 +11,7 @@ import {InstanceBadge} from '@/components/ui/InstanceBadge';
 import {RiskBadge} from '@/components/ui/RiskBadge';
 import {RolloverTag} from '@/components/ui/RolloverTag';
 import {BottomSheet} from '@/components/ui/overlay/BottomSheet';
+import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
 import TaskCard from '@/components/board/TaskCard';
 import MatrixTaskCard from '@/components/priorities/MatrixTaskCard';
 import ProgressDashboard from '@/components/board/ProgressDashboard';
@@ -44,11 +45,16 @@ import {
   SHEET_DEMO_CLOSE,
   SHEET_DEMO_HINT,
   SHEET_DEMO_ROWS,
+  SHELL_DEMO_OPEN,
+  SHELL_DEMO_TITLE,
+  SHELL_DEMO_BODY,
+  SHELL_DEMO_CLOSE_ACTION,
 } from './constants';
 
 export const DesignGallery = () => {
   const [theme, setTheme] = useState<string>(THEME_DARK);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [shellOpen, setShellOpen] = useState(false);
   const isDark = theme === THEME_DARK;
 
   const renderHeader = () => (
@@ -391,6 +397,42 @@ export const DesignGallery = () => {
     </Section>
   );
 
+  const renderModalShell = () => (
+    <Section
+      title="OverlayShell (ui)"
+      description="The one dialog shell behind every modal: responsive sheet-to-center morph, HUD panel chrome (fx-panel-solid + fx-boot-in), optional reticle corners and grip, explicit dismissOnBackdrop contract."
+    >
+      <button
+        type="button"
+        className="btn btn-primary btn-sm"
+        onClick={() => setShellOpen(true)}
+      >
+        {SHELL_DEMO_OPEN}
+      </button>
+      <OverlayShell
+        variant="responsive"
+        isOpen={shellOpen}
+        onClose={() => setShellOpen(false)}
+        dismissOnBackdrop={false}
+        corners
+        grip
+        boxClassName="max-w-lg pt-2 md:pt-6"
+      >
+        <h3 className="text-lg font-semibold">{SHELL_DEMO_TITLE}</h3>
+        <p className="py-3 text-sm text-base-content/60">{SHELL_DEMO_BODY}</p>
+        <div className="modal-action">
+          <button
+            type="button"
+            className="btn btn-primary flex-1 md:flex-none"
+            onClick={() => setShellOpen(false)}
+          >
+            {SHELL_DEMO_CLOSE_ACTION}
+          </button>
+        </div>
+      </OverlayShell>
+    </Section>
+  );
+
   const renderProgress = () => (
     <Section
       title="ProgressDashboard"
@@ -473,6 +515,7 @@ export const DesignGallery = () => {
         {renderTaskCards()}
         {renderMatrixCards()}
         {renderOverlays()}
+        {renderModalShell()}
         {renderProgress()}
         {renderChatPrimitives()}
         {renderEmptyState()}

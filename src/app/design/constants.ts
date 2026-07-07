@@ -311,3 +311,10 @@ export const SHEET_DEMO_ROWS = [
   'Row seven',
   'Row eight',
 ];
+
+// ── OverlayShell demo fixtures ───────────────────────────────────────────────
+export const SHELL_DEMO_OPEN = 'Open modal shell';
+export const SHELL_DEMO_TITLE = 'Responsive shell';
+export const SHELL_DEMO_BODY =
+  'Bottom sheet below md, centered reticle panel above. Backdrop taps are ignored (dismissOnBackdrop=false) — Esc or the button closes.';
+export const SHELL_DEMO_CLOSE_ACTION = 'Close';

@@ -11,6 +11,7 @@ import type {TaskItem} from '@/lib/db/tasks';
 import type {TrackTargetStatus} from '@/schemas';
 import {SizeChip} from '@/components/ui/SizeChip';
 import {Pill} from '@/components/ui/Pill';
+import {Popover} from '@/components/ui/overlay/Popover';
 import TrackPopover from './TrackPopover';
 
 interface MatrixTaskCardProps {
@@ -156,9 +157,9 @@ export default function MatrixTaskCard({
             (hasActivePlan ? (
               <TrackPopover onTrack={status => onTrack(task.id, status)} />
             ) : (
-              <div className="absolute top-full right-0 mt-1.5 z-50 rounded-lg border border-base-content/10 bg-base-100 px-2.5 py-2 text-[11px] text-base-content/60 shadow-xl whitespace-nowrap">
+              <Popover className="px-2.5 py-2 text-[11px] text-base-content/60 whitespace-nowrap">
                 {t('noPlanTooltip')}
-              </div>
+              </Popover>
             ))}
         </div>
       )}

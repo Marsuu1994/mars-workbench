@@ -1,8 +1,9 @@
 'use client';
 
-import {useEffect, useRef, useState} from 'react';
+import {useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {BoltIcon} from '@heroicons/react/24/outline';
+import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
 import type {TaskTemplateItem} from '@/lib/db/taskTemplates';
 import {TaskSize, sizeToPoints, type PriorityQuadrant} from '@/utils/enums';
 import {
@@ -43,7 +44,6 @@ export default function TaskModal({
   const t = useTranslations('TaskModal');
   const tSize = useTranslations('Enums.TaskSize');
   const tEnums = useTranslations('Enums');
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const mode: ModalMode = modeProp ?? (template ? 'edit' : 'create');
 
   const initialTitle = mode === 'adhoc' ? '' : (template?.title ?? '');
@@ -81,18 +81,6 @@ export default function TaskModal({
       setIsSubmitting(false);
     }
   }
-
-  // Dialog open/close control
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-
-    if (isOpen) {
-      dialog.showModal();
-    } else {
-      dialog.close();
-    }
-  }, [isOpen]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -147,123 +135,124 @@ export default function TaskModal({
   const isAdhoc = mode === 'adhoc';
 
   return (
-    <dialog
-      ref={dialogRef}
-      className="modal modal-bottom md:modal-middle"
+    // Backdrop-dismiss stays off: a stray tap must not discard form input
+    <OverlayShell
+      variant="responsive"
+      isOpen={isOpen}
       onClose={onClose}
+      dismissOnBackdrop={false}
+      corners
+      grip
+      boxClassName="max-w-lg pt-2 md:pt-6"
     >
-      <div className="modal-box fx-panel-solid fx-boot-in md:fx-corners max-w-lg pt-2 md:pt-6">
-        {/* Sheet grip (mobile only) */}
-        <div className="md:hidden w-[38px] h-1 rounded-full bg-base-content/20 mx-auto mb-3" />
-        <TaskModalHeader mode={mode} onClose={onClose} />
+      <TaskModalHeader mode={mode} onClose={onClose} />
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {/* Ad-hoc info banner */}
-          {isAdhoc && (
-            <div className="flex items-center gap-2 bg-warning/10 text-warning text-sm px-3.5 py-2.5 rounded-lg">
-              <BoltIcon className="size-4.5 shrink-0" />
-              {t('adhocBanner')}
-            </div>
-          )}
-
-          {/* Title */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text text-xs font-medium">
-                {t('titleLabel')} <span className="text-error">*</span>
-              </span>
-            </label>
-            <input
-              type="text"
-              className="input input-bordered w-full"
-              placeholder={
-                isAdhoc
-                  ? t('titlePlaceholderAdhoc')
-                  : t('titlePlaceholderTemplate')
-              }
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              required
-            />
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {/* Ad-hoc info banner */}
+        {isAdhoc && (
+          <div className="flex items-center gap-2 bg-warning/10 text-warning text-sm px-3.5 py-2.5 rounded-lg">
+            <BoltIcon className="size-4.5 shrink-0" />
+            {t('adhocBanner')}
           </div>
+        )}
 
-          {/* Description */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text text-xs font-medium">
-                {t('descriptionLabel')}{' '}
-                {!isAdhoc && (
-                  <span className="text-base-content/40">
-                    {t('descriptionAiHint')}
-                  </span>
-                )}
-              </span>
-            </label>
-            <textarea
-              className="textarea textarea-bordered w-full"
-              rows={3}
-              placeholder={
-                isAdhoc
-                  ? t('descriptionPlaceholderAdhoc')
-                  : t('descriptionPlaceholderTemplate')
-              }
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-            />
-          </div>
-
-          {/* Size */}
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text text-xs font-medium">
-                {t('sizeLabel')} <span className="text-error">*</span>
-              </span>
-            </label>
-            <div className="flex gap-1.5 w-full">
-              {Object.values(TaskSize).map(s => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => setSize(s)}
-                  className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-full border text-xs font-bold transition-colors ${
-                    size === s
-                      ? 'bg-secondary/10 border-secondary text-secondary'
-                      : 'bg-base-200 border-base-300 text-base-content/50 hover:border-base-content/30'
-                  }`}
-                >
-                  <span>{tSize(s)}</span>
-                  <span
-                    className={`text-[10px] font-semibold ${size === s ? 'opacity-70' : 'opacity-50'}`}
-                  >
-                    {sizeToPoints(s)}
-                  </span>
-                </button>
-              ))}
-            </div>
-            <p className="text-xs text-secondary mt-1.5">
-              {tEnums('sizeEffort', {hours: sizeToPoints(size)})}
-            </p>
-            {(size === TaskSize.LARGE || size === TaskSize.EXTRA_LARGE) && (
-              <p className="text-xs text-warning mt-0.5">{t('sizeWarning')}</p>
-            )}
-          </div>
-
-          {/* Quadrant (adhoc without a preset source quadrant) */}
-          {isAdhoc && quadrant === undefined && (
-            <QuadrantPicker
-              value={selectedQuadrant}
-              onChange={setSelectedQuadrant}
-            />
-          )}
-
-          <TaskModalFooter
-            mode={mode}
-            isSubmitting={isSubmitting}
-            error={error}
-            onClose={onClose}
+        {/* Title */}
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text text-xs font-medium">
+              {t('titleLabel')} <span className="text-error">*</span>
+            </span>
+          </label>
+          <input
+            type="text"
+            className="input input-bordered w-full"
+            placeholder={
+              isAdhoc
+                ? t('titlePlaceholderAdhoc')
+                : t('titlePlaceholderTemplate')
+            }
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            required
           />
-        </form>
-      </div>
-    </dialog>
+        </div>
+
+        {/* Description */}
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text text-xs font-medium">
+              {t('descriptionLabel')}{' '}
+              {!isAdhoc && (
+                <span className="text-base-content/40">
+                  {t('descriptionAiHint')}
+                </span>
+              )}
+            </span>
+          </label>
+          <textarea
+            className="textarea textarea-bordered w-full"
+            rows={3}
+            placeholder={
+              isAdhoc
+                ? t('descriptionPlaceholderAdhoc')
+                : t('descriptionPlaceholderTemplate')
+            }
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+          />
+        </div>
+
+        {/* Size */}
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text text-xs font-medium">
+              {t('sizeLabel')} <span className="text-error">*</span>
+            </span>
+          </label>
+          <div className="flex gap-1.5 w-full">
+            {Object.values(TaskSize).map(s => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setSize(s)}
+                className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-full border text-xs font-bold transition-colors ${
+                  size === s
+                    ? 'bg-secondary/10 border-secondary text-secondary'
+                    : 'bg-base-200 border-base-300 text-base-content/50 hover:border-base-content/30'
+                }`}
+              >
+                <span>{tSize(s)}</span>
+                <span
+                  className={`text-[10px] font-semibold ${size === s ? 'opacity-70' : 'opacity-50'}`}
+                >
+                  {sizeToPoints(s)}
+                </span>
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-secondary mt-1.5">
+            {tEnums('sizeEffort', {hours: sizeToPoints(size)})}
+          </p>
+          {(size === TaskSize.LARGE || size === TaskSize.EXTRA_LARGE) && (
+            <p className="text-xs text-warning mt-0.5">{t('sizeWarning')}</p>
+          )}
+        </div>
+
+        {/* Quadrant (adhoc without a preset source quadrant) */}
+        {isAdhoc && quadrant === undefined && (
+          <QuadrantPicker
+            value={selectedQuadrant}
+            onChange={setSelectedQuadrant}
+          />
+        )}
+
+        <TaskModalFooter
+          mode={mode}
+          isSubmitting={isSubmitting}
+          error={error}
+          onClose={onClose}
+        />
+      </form>
+    </OverlayShell>
   );
 }
