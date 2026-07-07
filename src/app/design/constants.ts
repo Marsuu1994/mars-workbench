@@ -318,3 +318,20 @@ export const SHELL_DEMO_TITLE = 'Responsive shell';
 export const SHELL_DEMO_BODY =
   'Bottom sheet below md, centered reticle panel above. Backdrop taps are ignored (dismissOnBackdrop=false) — Esc or the button closes.';
 export const SHELL_DEMO_CLOSE_ACTION = 'Close';
+
+// ── Form-kit demo fixtures ───────────────────────────────────────────────────
+export const FORM_DEMO_FIELD_LABEL = 'Task title';
+export const FORM_DEMO_FIELD_HINT = '(used by the AI assistant)';
+export const FORM_DEMO_FIELD_PLACEHOLDER = 'e.g. Review pull requests';
+export const FORM_DEMO_CHOICE_LABEL = 'Recurrence';
+export const FORM_DEMO_CHOICES = [
+  {value: 'daily', label: 'Daily'},
+  {value: 'weekly', label: 'Weekly'},
+  {value: 'adhoc', label: 'Once'},
+] as const;
+export const FORM_DEMO_STEP_LABEL = 'Frequency';
+export const FORM_DEMO_STEP_DEC = 'Decrease';
+export const FORM_DEMO_STEP_INC = 'Increase';
+export const FORM_DEMO_STEP_MIN = 1;
+export const FORM_DEMO_STEP_MAX = 7;
+export const FORM_DEMO_SUBMIT = 'Save task';

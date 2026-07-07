@@ -1,16 +1,13 @@
 'use client';
 
 import {useTranslations} from 'next-intl';
-import {
-  CheckIcon,
-  PencilSquareIcon,
-  MinusIcon,
-  PlusIcon,
-} from '@heroicons/react/24/outline';
+import {CheckIcon, PencilSquareIcon} from '@heroicons/react/24/outline';
 import {TaskType} from '@/utils/enums';
 import type {TaskTemplateItem} from '@/lib/db/taskTemplates';
 import {sizeToPoints} from '@/utils/enums';
 import {SizeChip} from '@/components/ui/SizeChip';
+import {ChoicePills} from '@/components/ui/form/ChoicePills';
+import {Stepper} from '@/components/ui/form/Stepper';
 import {FREQ_MIN, FREQ_MAX} from './constants';
 
 interface TemplateItemConfig {
@@ -108,30 +105,25 @@ export default function TemplateItem({
           </span>
 
           {/* Type pills */}
-          <div className="flex gap-1">
-            <button
-              type="button"
-              className={`px-2.5 py-0.5 rounded-full text-xs font-semibold transition-colors border ${
-                config.type === TaskType.DAILY
-                  ? 'bg-info/15 border-info text-info'
-                  : 'bg-transparent border-base-content/20 text-base-content/40 hover:border-base-content/30 hover:text-base-content/60'
-              }`}
-              onClick={() => onConfigChange({...config, type: TaskType.DAILY})}
-            >
-              {tType('DAILY')}
-            </button>
-            <button
-              type="button"
-              className={`px-2.5 py-0.5 rounded-full text-xs font-semibold transition-colors border ${
-                config.type === TaskType.WEEKLY
-                  ? 'bg-secondary/15 border-secondary text-secondary'
-                  : 'bg-transparent border-base-content/20 text-base-content/40 hover:border-base-content/30 hover:text-base-content/60'
-              }`}
-              onClick={() => onConfigChange({...config, type: TaskType.WEEKLY})}
-            >
-              {tType('WEEKLY')}
-            </button>
-          </div>
+          <ChoicePills
+            value={config.type}
+            onChange={type => onConfigChange({...config, type})}
+            options={[
+              {
+                value: TaskType.DAILY,
+                label: tType('DAILY'),
+                selectedClass: 'bg-info/15 border-info text-info',
+              },
+              {
+                value: TaskType.WEEKLY,
+                label: tType('WEEKLY'),
+                selectedClass:
+                  'bg-secondary/15 border-secondary text-secondary',
+              },
+            ]}
+            pillClass="px-2.5 py-0.5 rounded-full text-xs font-semibold"
+            unselectedClass="bg-transparent border-base-content/20 text-base-content/40 hover:border-base-content/30 hover:text-base-content/60"
+          />
 
           {/* Divider */}
           <div className="w-px h-4 bg-base-content/15 mx-0.5" />
@@ -143,33 +135,14 @@ export default function TemplateItem({
 
           {/* Frequency stepper — thumb-friendly −/+ instead of a number input */}
           <div className="flex items-center gap-1.5">
-            <div className="flex h-[30px] items-center overflow-hidden rounded-lg border border-base-content/15 bg-base-100">
-              <button
-                type="button"
-                aria-label={t('freqDecrease')}
-                disabled={config.frequency <= FREQ_MIN}
-                onClick={() =>
-                  onConfigChange({...config, frequency: config.frequency - 1})
-                }
-                className="flex h-full w-8 items-center justify-center text-base-content/60 transition-colors enabled:cursor-pointer enabled:hover:text-base-content enabled:active:bg-base-300 disabled:opacity-40"
-              >
-                <MinusIcon className="size-3.5" />
-              </button>
-              <span className="min-w-[26px] text-center text-[13px] font-bold">
-                {config.frequency}
-              </span>
-              <button
-                type="button"
-                aria-label={t('freqIncrease')}
-                disabled={config.frequency >= FREQ_MAX}
-                onClick={() =>
-                  onConfigChange({...config, frequency: config.frequency + 1})
-                }
-                className="flex h-full w-8 items-center justify-center text-base-content/60 transition-colors enabled:cursor-pointer enabled:hover:text-base-content enabled:active:bg-base-300 disabled:opacity-40"
-              >
-                <PlusIcon className="size-3.5" />
-              </button>
-            </div>
+            <Stepper
+              value={config.frequency}
+              min={FREQ_MIN}
+              max={FREQ_MAX}
+              onChange={frequency => onConfigChange({...config, frequency})}
+              decreaseLabel={t('freqDecrease')}
+              increaseLabel={t('freqIncrease')}
+            />
             <span className="text-xs text-base-content/50">
               {config.type === TaskType.DAILY
                 ? t('perDayUnit')

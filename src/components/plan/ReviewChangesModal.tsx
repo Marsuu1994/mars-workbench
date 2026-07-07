@@ -15,6 +15,7 @@ import type {TaskSize} from '@/utils/enums';
 import {SizeChip} from '@/components/ui/SizeChip';
 import {Pill} from '@/components/ui/Pill';
 import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
+import {SubmitButton} from '@/components/ui/form/SubmitButton';
 
 interface AddedTemplate {
   templateId: string;
@@ -391,19 +392,15 @@ export function ReviewChangesModal({
         >
           {tr('cancel')}
         </button>
-        <button
+        <SubmitButton
           type="button"
-          className="btn btn-primary flex-[2] md:flex-none"
           onClick={onConfirm}
-          disabled={isSubmitting}
+          isSubmitting={isSubmitting}
+          icon={<ArrowPathIcon className="size-4" />}
+          className="flex-[2] md:flex-none"
         >
-          {isSubmitting ? (
-            <span className="loading loading-spinner loading-sm" />
-          ) : (
-            <ArrowPathIcon className="size-4" />
-          )}
           {tr('confirmButton')}
-        </button>
+        </SubmitButton>
       </div>
     </OverlayShell>
   );

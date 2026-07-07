@@ -2,7 +2,12 @@
 
 import {useState} from 'react';
 import {DragDropContext, Droppable} from '@hello-pangea/dnd';
-import {SunIcon, MoonIcon, InboxStackIcon} from '@heroicons/react/24/outline';
+import {
+  SunIcon,
+  MoonIcon,
+  InboxStackIcon,
+  CheckIcon,
+} from '@heroicons/react/24/outline';
 
 import {Pill} from '@/components/ui/Pill';
 import {SizeChip} from '@/components/ui/SizeChip';
@@ -12,6 +17,10 @@ import {RiskBadge} from '@/components/ui/RiskBadge';
 import {RolloverTag} from '@/components/ui/RolloverTag';
 import {BottomSheet} from '@/components/ui/overlay/BottomSheet';
 import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
+import {FieldRow} from '@/components/ui/form/FieldRow';
+import {ChoicePills} from '@/components/ui/form/ChoicePills';
+import {Stepper} from '@/components/ui/form/Stepper';
+import {SubmitButton} from '@/components/ui/form/SubmitButton';
 import TaskCard from '@/components/board/TaskCard';
 import MatrixTaskCard from '@/components/priorities/MatrixTaskCard';
 import ProgressDashboard from '@/components/board/ProgressDashboard';
@@ -49,12 +58,25 @@ import {
   SHELL_DEMO_TITLE,
   SHELL_DEMO_BODY,
   SHELL_DEMO_CLOSE_ACTION,
+  FORM_DEMO_FIELD_LABEL,
+  FORM_DEMO_FIELD_HINT,
+  FORM_DEMO_FIELD_PLACEHOLDER,
+  FORM_DEMO_CHOICE_LABEL,
+  FORM_DEMO_CHOICES,
+  FORM_DEMO_STEP_LABEL,
+  FORM_DEMO_STEP_DEC,
+  FORM_DEMO_STEP_INC,
+  FORM_DEMO_STEP_MIN,
+  FORM_DEMO_STEP_MAX,
+  FORM_DEMO_SUBMIT,
 } from './constants';
 
 export const DesignGallery = () => {
   const [theme, setTheme] = useState<string>(THEME_DARK);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [shellOpen, setShellOpen] = useState(false);
+  const [choice, setChoice] = useState<string>(FORM_DEMO_CHOICES[0].value);
+  const [freq, setFreq] = useState(FORM_DEMO_STEP_MIN);
   const isDark = theme === THEME_DARK;
 
   const renderHeader = () => (
@@ -433,6 +455,66 @@ export const DesignGallery = () => {
     </Section>
   );
 
+  const renderFormKit = () => (
+    <Section
+      title="Form kit (ui)"
+      description="The canonical form building blocks: FieldRow (label + required + hint), ChoicePills (mutually-exclusive group), Stepper (−/+), SubmitButton (spinner swap)."
+    >
+      <div className="flex flex-col gap-5">
+        <FieldRow
+          label={FORM_DEMO_FIELD_LABEL}
+          required
+          labelHint={FORM_DEMO_FIELD_HINT}
+        >
+          <input
+            type="text"
+            className="input input-bordered w-full"
+            placeholder={FORM_DEMO_FIELD_PLACEHOLDER}
+          />
+        </FieldRow>
+
+        <FieldRow label={FORM_DEMO_CHOICE_LABEL} required>
+          <ChoicePills
+            layout="fill"
+            value={choice}
+            onChange={setChoice}
+            options={FORM_DEMO_CHOICES.map(c => ({
+              value: c.value,
+              label: c.label,
+            }))}
+            pillClass="flex items-center justify-center py-2 rounded-full text-xs font-bold"
+            selectedClass="bg-secondary/10 border-secondary text-secondary"
+            unselectedClass="bg-base-200 border-base-300 text-base-content/50 hover:border-base-content/30"
+          />
+        </FieldRow>
+
+        <Row>
+          <Variant label={FORM_DEMO_STEP_LABEL}>
+            <Stepper
+              value={freq}
+              min={FORM_DEMO_STEP_MIN}
+              max={FORM_DEMO_STEP_MAX}
+              onChange={setFreq}
+              decreaseLabel={FORM_DEMO_STEP_DEC}
+              increaseLabel={FORM_DEMO_STEP_INC}
+            />
+          </Variant>
+          <Variant label="SubmitButton (idle / submitting)">
+            <Row>
+              <SubmitButton
+                isSubmitting={false}
+                icon={<CheckIcon className="size-4" />}
+              >
+                {FORM_DEMO_SUBMIT}
+              </SubmitButton>
+              <SubmitButton isSubmitting>{FORM_DEMO_SUBMIT}</SubmitButton>
+            </Row>
+          </Variant>
+        </Row>
+      </div>
+    </Section>
+  );
+
   const renderProgress = () => (
     <Section
       title="ProgressDashboard"
@@ -516,6 +598,7 @@ export const DesignGallery = () => {
         {renderMatrixCards()}
         {renderOverlays()}
         {renderModalShell()}
+        {renderFormKit()}
         {renderProgress()}
         {renderChatPrimitives()}
         {renderEmptyState()}

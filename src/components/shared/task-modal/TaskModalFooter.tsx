@@ -2,6 +2,8 @@
 
 import {useTranslations} from 'next-intl';
 import {PlusIcon, CheckIcon} from '@heroicons/react/24/outline';
+import {SubmitButton} from '@/components/ui/form/SubmitButton';
+import {FormErrorAlert} from '@/components/ui/form/FormErrorAlert';
 
 interface TaskModalFooterProps {
   mode: 'create' | 'edit' | 'adhoc';
@@ -34,7 +36,7 @@ export default function TaskModalFooter({
 
   return (
     <>
-      {error && <div className="alert alert-error text-sm">{error}</div>}
+      <FormErrorAlert error={error} />
       <div className="modal-action">
         <button
           type="button"
@@ -44,18 +46,13 @@ export default function TaskModalFooter({
         >
           {t('cancel')}
         </button>
-        <button
-          type="submit"
-          className="btn btn-primary flex-[2] md:flex-none"
-          disabled={isSubmitting}
+        <SubmitButton
+          isSubmitting={isSubmitting}
+          icon={<Icon className="size-4" />}
+          className="flex-[2] md:flex-none"
         >
-          {isSubmitting ? (
-            <span className="loading loading-spinner loading-sm" />
-          ) : (
-            <Icon className="size-4" />
-          )}
           {t(config.labelKey)}
-        </button>
+        </SubmitButton>
       </div>
     </>
   );

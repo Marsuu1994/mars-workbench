@@ -4,6 +4,8 @@ import {useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {BoltIcon} from '@heroicons/react/24/outline';
 import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
+import {FieldRow} from '@/components/ui/form/FieldRow';
+import {ChoicePills} from '@/components/ui/form/ChoicePills';
 import type {TaskTemplateItem} from '@/lib/db/taskTemplates';
 import {TaskSize, sizeToPoints, type PriorityQuadrant} from '@/utils/enums';
 import {
@@ -157,12 +159,7 @@ export default function TaskModal({
         )}
 
         {/* Title */}
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text text-xs font-medium">
-              {t('titleLabel')} <span className="text-error">*</span>
-            </span>
-          </label>
+        <FieldRow label={t('titleLabel')} required>
           <input
             type="text"
             className="input input-bordered w-full"
@@ -175,20 +172,13 @@ export default function TaskModal({
             onChange={e => setTitle(e.target.value)}
             required
           />
-        </div>
+        </FieldRow>
 
         {/* Description */}
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text text-xs font-medium">
-              {t('descriptionLabel')}{' '}
-              {!isAdhoc && (
-                <span className="text-base-content/40">
-                  {t('descriptionAiHint')}
-                </span>
-              )}
-            </span>
-          </label>
+        <FieldRow
+          label={t('descriptionLabel')}
+          labelHint={!isAdhoc ? t('descriptionAiHint') : undefined}
+        >
           <textarea
             className="textarea textarea-bordered w-full"
             rows={3}
@@ -200,43 +190,38 @@ export default function TaskModal({
             value={description}
             onChange={e => setDescription(e.target.value)}
           />
-        </div>
+        </FieldRow>
 
         {/* Size */}
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text text-xs font-medium">
-              {t('sizeLabel')} <span className="text-error">*</span>
-            </span>
-          </label>
-          <div className="flex gap-1.5 w-full">
-            {Object.values(TaskSize).map(s => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setSize(s)}
-                className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-full border text-xs font-bold transition-colors ${
-                  size === s
-                    ? 'bg-secondary/10 border-secondary text-secondary'
-                    : 'bg-base-200 border-base-300 text-base-content/50 hover:border-base-content/30'
-                }`}
-              >
-                <span>{tSize(s)}</span>
-                <span
-                  className={`text-[10px] font-semibold ${size === s ? 'opacity-70' : 'opacity-50'}`}
-                >
-                  {sizeToPoints(s)}
-                </span>
-              </button>
-            ))}
-          </div>
+        <FieldRow label={t('sizeLabel')} required>
+          <ChoicePills
+            layout="fill"
+            value={size}
+            onChange={setSize}
+            options={Object.values(TaskSize).map(s => ({
+              value: s,
+              label: (selected: boolean) => (
+                <>
+                  <span>{tSize(s)}</span>
+                  <span
+                    className={`text-[10px] font-semibold ${selected ? 'opacity-70' : 'opacity-50'}`}
+                  >
+                    {sizeToPoints(s)}
+                  </span>
+                </>
+              ),
+            }))}
+            pillClass="flex items-center justify-center gap-1 py-2 rounded-full text-xs font-bold"
+            selectedClass="bg-secondary/10 border-secondary text-secondary"
+            unselectedClass="bg-base-200 border-base-300 text-base-content/50 hover:border-base-content/30"
+          />
           <p className="text-xs text-secondary mt-1.5">
             {tEnums('sizeEffort', {hours: sizeToPoints(size)})}
           </p>
           {(size === TaskSize.LARGE || size === TaskSize.EXTRA_LARGE) && (
             <p className="text-xs text-warning mt-0.5">{t('sizeWarning')}</p>
           )}
-        </div>
+        </FieldRow>
 
         {/* Quadrant (adhoc without a preset source quadrant) */}
         {isAdhoc && quadrant === undefined && (

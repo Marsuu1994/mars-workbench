@@ -15,6 +15,10 @@ import {
 import {getWeekDateRange} from '@/utils/dateUtils';
 import {SizeChip} from '@/components/ui/SizeChip';
 import {Pill} from '@/components/ui/Pill';
+import {FieldRow} from '@/components/ui/form/FieldRow';
+import {ChoicePills} from '@/components/ui/form/ChoicePills';
+import {SubmitButton} from '@/components/ui/form/SubmitButton';
+import {FormErrorAlert} from '@/components/ui/form/FormErrorAlert';
 import type {TaskTemplateItem} from '@/lib/db/taskTemplates';
 import {sizeToPoints} from '@/utils/enums';
 import {
@@ -353,12 +357,10 @@ export default function PlanForm({
         className="flex flex-col gap-6 pb-16 md:pb-0"
       >
         {/* Description */}
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text text-base-content/60 text-xs font-medium">
-              {t('descriptionLabel')}
-            </span>
-          </label>
+        <FieldRow
+          label={t('descriptionLabel')}
+          labelClassName="text-base-content/60"
+        >
           <input
             type="text"
             className="input input-bordered w-full"
@@ -366,7 +368,7 @@ export default function PlanForm({
             value={description}
             onChange={e => setDescription(e.target.value)}
           />
-        </div>
+        </FieldRow>
 
         {/* AI Assistant entry (create mode only) */}
         {mode === 'create' && (
@@ -378,53 +380,59 @@ export default function PlanForm({
           <span className="text-[11px] font-semibold uppercase tracking-wider text-base-content/50 block mb-2">
             {t('planModeLabel')}
           </span>
-          <div className="flex gap-0 rounded-lg border border-base-content/10 bg-base-100 p-[3px]">
-            <button
-              type="button"
-              onClick={() => setPlanMode(PlanMode.NORMAL)}
-              className={`flex flex-1 flex-col items-center gap-0.5 rounded-md px-3 py-2.5 cursor-pointer border transition-colors ${
-                planMode === PlanMode.NORMAL
-                  ? 'border-info/50 bg-info/5'
-                  : 'border-transparent'
-              }`}
-            >
-              <MoonIcon
-                className={`size-4 ${planMode === PlanMode.NORMAL ? 'text-info' : 'text-base-content/30'}`}
-              />
-              <span
-                className={`text-[13px] font-semibold tracking-wide ${planMode === PlanMode.NORMAL ? 'text-info' : 'text-base-content/30'}`}
-              >
-                {tMode('NORMAL')}
-              </span>
-              <span
-                className={`text-[11px] ${planMode === PlanMode.NORMAL ? 'text-base-content/60' : 'text-base-content/30'}`}
-              >
-                {t('normalModeShortDesc')}
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setPlanMode(PlanMode.EXTREME)}
-              className={`flex flex-1 flex-col items-center gap-0.5 rounded-md px-3 py-2.5 cursor-pointer border transition-colors ${
-                planMode === PlanMode.EXTREME
-                  ? 'border-error/50 bg-error/5'
-                  : 'border-transparent'
-              }`}
-            >
-              <BoltIcon
-                className={`size-4 ${planMode === PlanMode.EXTREME ? 'text-error' : 'text-base-content/30'}`}
-              />
-              <span
-                className={`text-[13px] font-semibold tracking-wide ${planMode === PlanMode.EXTREME ? 'text-error' : 'text-base-content/30'}`}
-              >
-                {tMode('EXTREME')}
-              </span>
-              <span
-                className={`text-[11px] ${planMode === PlanMode.EXTREME ? 'text-base-content/60' : 'text-base-content/30'}`}
-              >
-                {t('extremeModeShortDesc')}
-              </span>
-            </button>
+          <div className="rounded-lg border border-base-content/10 bg-base-100 p-[3px]">
+            <ChoicePills
+              layout="fill"
+              className="gap-0"
+              value={planMode}
+              onChange={setPlanMode}
+              options={[
+                {
+                  value: PlanMode.NORMAL,
+                  selectedClass: 'border-info/50 bg-info/5',
+                  label: (selected: boolean) => (
+                    <>
+                      <MoonIcon
+                        className={`size-4 ${selected ? 'text-info' : 'text-base-content/30'}`}
+                      />
+                      <span
+                        className={`text-[13px] font-semibold tracking-wide ${selected ? 'text-info' : 'text-base-content/30'}`}
+                      >
+                        {tMode('NORMAL')}
+                      </span>
+                      <span
+                        className={`text-[11px] ${selected ? 'text-base-content/60' : 'text-base-content/30'}`}
+                      >
+                        {t('normalModeShortDesc')}
+                      </span>
+                    </>
+                  ),
+                },
+                {
+                  value: PlanMode.EXTREME,
+                  selectedClass: 'border-error/50 bg-error/5',
+                  label: (selected: boolean) => (
+                    <>
+                      <BoltIcon
+                        className={`size-4 ${selected ? 'text-error' : 'text-base-content/30'}`}
+                      />
+                      <span
+                        className={`text-[13px] font-semibold tracking-wide ${selected ? 'text-error' : 'text-base-content/30'}`}
+                      >
+                        {tMode('EXTREME')}
+                      </span>
+                      <span
+                        className={`text-[11px] ${selected ? 'text-base-content/60' : 'text-base-content/30'}`}
+                      >
+                        {t('extremeModeShortDesc')}
+                      </span>
+                    </>
+                  ),
+                },
+              ]}
+              pillClass="flex flex-col items-center gap-0.5 rounded-md px-3 py-2.5"
+              unselectedClass="border-transparent"
+            />
           </div>
         </div>
 
@@ -547,7 +555,7 @@ export default function PlanForm({
         )}
 
         {/* Error */}
-        {error && <div className="alert alert-error text-sm">{error}</div>}
+        <FormErrorAlert error={error} />
 
         {/* Summary + Actions — sticky bar above the dock on mobile, inline on desktop */}
         <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4rem)] z-30 flex items-center gap-3 border-t border-base-content/10 bg-base-100 px-4 py-2.5 md:static md:inset-x-auto md:z-auto md:justify-between md:gap-2 md:bg-transparent md:px-0 md:py-0 md:pt-5">
@@ -566,21 +574,15 @@ export default function PlanForm({
             >
               {t('cancel')}
             </Link>
-            <button
-              type="submit"
-              className="btn btn-primary"
+            <SubmitButton
+              isSubmitting={isSubmitting}
+              icon={<CheckIcon className="size-4" />}
               disabled={
-                (selectedTemplates.size === 0 && selectedAdhocIds.size === 0) ||
-                isSubmitting
+                selectedTemplates.size === 0 && selectedAdhocIds.size === 0
               }
             >
-              {isSubmitting ? (
-                <span className="loading loading-spinner loading-sm" />
-              ) : (
-                <CheckIcon className="size-4" />
-              )}
               {mode === 'create' ? t('startWeek') : t('updatePlan')}
-            </button>
+            </SubmitButton>
           </div>
         </div>
       </form>
