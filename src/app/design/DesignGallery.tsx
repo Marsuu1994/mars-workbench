@@ -113,18 +113,23 @@ export const DesignGallery = () => {
           {GALLERY_SUBTITLE}
         </p>
       </div>
-      <button
-        type="button"
-        onClick={() => setTheme(isDark ? THEME_LIGHT : THEME_DARK)}
-        className="btn btn-sm btn-outline shrink-0"
-      >
-        {isDark ? (
-          <SunIcon className="size-4" />
-        ) : (
-          <MoonIcon className="size-4" />
-        )}
-        {isDark ? 'Light' : 'Dark'}
-      </button>
+      <div className="flex shrink-0 items-center gap-2">
+        <a href="/design/scenarios" className="btn btn-sm btn-ghost">
+          Scenarios
+        </a>
+        <button
+          type="button"
+          onClick={() => setTheme(isDark ? THEME_LIGHT : THEME_DARK)}
+          className="btn btn-sm btn-outline"
+        >
+          {isDark ? (
+            <SunIcon className="size-4" />
+          ) : (
+            <MoonIcon className="size-4" />
+          )}
+          {isDark ? 'Light' : 'Dark'}
+        </button>
+      </div>
     </header>
   );
 
