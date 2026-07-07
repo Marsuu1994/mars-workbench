@@ -61,7 +61,7 @@ export default function BoardColumn({
     >
       {(provided, snapshot) => (
         <div
-          className={`w-full md:min-w-[280px] md:flex-1 md:bg-base-200/60 md:rounded-xl flex flex-col transition-colors duration-200 ${columnBorder(
+          className={`w-full md:min-w-[280px] md:flex-1 md:bg-base-200/10 md:rounded-xl flex flex-col transition-colors duration-200 ${columnBorder(
             snapshot.isDraggingOver,
           )}`}
         >
