@@ -61,6 +61,7 @@ Single source of truth for open ideas and todos across the app — open items on
 ### Medium
 
 - [ ] Refine the component gallery page (`/design`) — add remaining primitives (BoardColumn, TemplateItem, task-modal pieces), polish grouping/layout, and consider per-variant controls
+- [ ] Back-port the Mission Control HUD FX language (mono `fx-label`/`fx-num` telemetry type, LED dots, corner brackets, glow states) into the mockup component classes in `design/mockup/styles.css` and per-mockup CSS — the palette swap landed in `mockup-theme.css`, but mockups don't yet render the FX layer (see `design/design-system.md`)
 - [ ] Uniform page header across pages (board, priorities, settings) — one shared header treatment on both breakpoints; plan pages keep their distinct planning-mode header. Also resolves the BoardHeader accent drift (desktop `md:text-success` green vs mobile `text-primary`; the desktop mockup shows the primary accent)
 
 ### Future

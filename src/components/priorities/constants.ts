@@ -14,8 +14,10 @@ export const QUADRANT_ORDER: PriorityQuadrant[] = [
 interface QuadrantConfig {
   /** Header top-accent border color */
   accentBorder: string;
-  /** Header ● dot color */
-  dotClass: string;
+  /** Header ● LED color (fx-led reads currentColor) */
+  ledClass: string;
+  /** Corner-bloom hue + anchor corner (fx-quadrant reads --fx-q/--fx-q-x/y) */
+  bloomClass: string;
   /** Static i18n key for the header sublabel (Maybe Later has none) */
   sublabelKey:
     'sublabelDoFirst' | 'sublabelSchedule' | 'sublabelSqueezeIn' | null;
@@ -24,22 +26,26 @@ interface QuadrantConfig {
 export const QUADRANT_CONFIG: Record<PriorityQuadrant, QuadrantConfig> = {
   [PriorityQuadrant.DO_FIRST]: {
     accentBorder: 'border-t-error',
-    dotClass: 'bg-error',
+    ledClass: 'text-error',
+    bloomClass: 'fx-q-error fx-q-tl',
     sublabelKey: 'sublabelDoFirst',
   },
   [PriorityQuadrant.SCHEDULE]: {
     accentBorder: 'border-t-primary',
-    dotClass: 'bg-primary',
+    ledClass: 'text-primary',
+    bloomClass: 'fx-q-primary fx-q-tr',
     sublabelKey: 'sublabelSchedule',
   },
   [PriorityQuadrant.SQUEEZE_IN]: {
     accentBorder: 'border-t-warning',
-    dotClass: 'bg-warning',
+    ledClass: 'text-warning',
+    bloomClass: 'fx-q-warning fx-q-bl',
     sublabelKey: 'sublabelSqueezeIn',
   },
   [PriorityQuadrant.MAYBE_LATER]: {
     accentBorder: 'border-t-base-content/40',
-    dotClass: 'bg-base-content/40',
+    ledClass: 'text-base-content/40',
+    bloomClass: 'fx-q-neutral fx-q-br',
     sublabelKey: null,
   },
 };

@@ -152,7 +152,7 @@ export default function TaskModal({
       className="modal modal-bottom md:modal-middle"
       onClose={onClose}
     >
-      <div className="modal-box max-w-lg pt-2 md:pt-6">
+      <div className="modal-box fx-panel-solid fx-boot-in md:fx-corners max-w-lg pt-2 md:pt-6">
         {/* Sheet grip (mobile only) */}
         <div className="md:hidden w-[38px] h-1 rounded-full bg-base-content/20 mx-auto mb-3" />
         <TaskModalHeader mode={mode} onClose={onClose} />

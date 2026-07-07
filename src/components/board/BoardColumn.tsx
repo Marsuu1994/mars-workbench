@@ -18,10 +18,10 @@ interface BoardColumnProps {
   isDragActive?: boolean;
 }
 
-const STATUS_STYLE: Record<string, {accent: string; dotColor: string}> = {
-  [TaskStatus.TODO]: {accent: 'md:border-l-info', dotColor: 'bg-info'},
-  [TaskStatus.DOING]: {accent: 'md:border-l-warning', dotColor: 'bg-warning'},
-  [TaskStatus.DONE]: {accent: 'md:border-l-success', dotColor: 'bg-success'},
+const STATUS_STYLE: Record<string, {accent: string; ledColor: string}> = {
+  [TaskStatus.TODO]: {accent: 'md:border-l-info', ledColor: 'text-info'},
+  [TaskStatus.DOING]: {accent: 'md:border-l-warning', ledColor: 'text-warning'},
+  [TaskStatus.DONE]: {accent: 'md:border-l-success', ledColor: 'text-success'},
 };
 
 export default function BoardColumn({
@@ -36,7 +36,7 @@ export default function BoardColumn({
   const tStatus = useTranslations('Enums.TaskStatus');
   const style = STATUS_STYLE[status] ?? {
     accent: '',
-    dotColor: 'bg-base-content',
+    ledColor: 'text-base-content',
   };
   const label =
     status === TaskStatus.TODO ||
@@ -46,10 +46,11 @@ export default function BoardColumn({
       : status;
 
   // Only one border-color utility is active at a time, so highlights override
-  // the base color cleanly (no Tailwind class-ordering ambiguity).
+  // the base color cleanly (no Tailwind class-ordering ambiguity). Drop
+  // targets speak the mars-signal-orange channel (fx-target).
   const columnBorder = (isDraggingOver: boolean): string => {
-    if (isDraggingOver) return 'md:border md:border-dashed md:border-info';
-    if (isDragActive) return 'md:border md:border-dashed md:border-info/30';
+    if (isDraggingOver) return 'md:fx-target md:border md:border-transparent';
+    if (isDragActive) return 'md:border md:border-dashed md:border-accent/30';
     return 'md:border md:border-base-content/10';
   };
 
@@ -60,7 +61,7 @@ export default function BoardColumn({
     >
       {(provided, snapshot) => (
         <div
-          className={`w-full md:min-w-[280px] md:flex-1 md:bg-base-200/60 md:rounded-xl flex flex-col transition-colors duration-200 ${columnBorder(
+          className={`w-full md:min-w-[280px] md:flex-1 md:bg-base-200/10 md:rounded-xl flex flex-col transition-colors duration-200 ${columnBorder(
             snapshot.isDraggingOver,
           )}`}
         >
@@ -68,18 +69,18 @@ export default function BoardColumn({
             className={`flex items-center justify-between md:justify-start gap-2 px-4 py-1.5 md:py-3 md:border-l-4 md:border-b md:border-b-base-content/10 ${style.accent} md:rounded-tl-xl`}
           >
             <div className="flex items-center gap-2">
-              <span
-                className={`block md:hidden w-1.5 h-1.5 rounded-full ${style.dotColor}`}
-              />
+              <span className={`fx-led md:hidden ${style.ledColor}`} />
               <h2
-                className={`font-semibold text-sm ${
-                  snapshot.isDraggingOver ? 'max-md:text-info' : ''
+                className={`fx-label fx-label-bright font-semibold ${
+                  snapshot.isDraggingOver ? 'max-md:text-accent' : ''
                 }`}
               >
                 {label}
               </h2>
             </div>
-            <span className="badge badge-ghost badge-sm">{tasks.length}</span>
+            <span className="badge badge-ghost badge-sm fx-num">
+              {tasks.length}
+            </span>
           </div>
 
           <div
@@ -87,7 +88,7 @@ export default function BoardColumn({
             {...provided.droppableProps}
             className={`flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide md:flex-col md:p-3 md:overflow-y-auto md:overflow-x-visible md:flex-1 md:rounded-b-xl max-md:rounded-xl max-md:border-2 max-md:border-dashed transition-colors duration-200 ${
               snapshot.isDraggingOver
-                ? 'max-md:border-info max-md:bg-info/5'
+                ? 'max-md:border-accent max-md:bg-accent/10'
                 : 'max-md:border-transparent'
             }`}
           >

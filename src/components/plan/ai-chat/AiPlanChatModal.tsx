@@ -52,13 +52,13 @@ export const AiPlanChatModal = () => {
   const showCreateBar = latestDraft !== null && !isCreated;
 
   const renderHeader = () => (
-    <div className="flex flex-shrink-0 items-center justify-between border-b border-base-content/10 px-5 py-4">
+    <div className="fx-hairline-top flex flex-shrink-0 items-center justify-between border-b border-base-content/10 px-5 py-4">
       <div className="flex items-center gap-2.5">
-        <span className="flex size-7 items-center justify-center rounded-lg border border-info/20 bg-info/10 text-info">
+        <span className="flex size-7 items-center justify-center rounded-lg border border-secondary/20 bg-secondary/10 text-secondary">
           <SparklesIcon className="size-3.5" />
         </span>
         <span className="text-base font-semibold">{t('modalTitle')}</span>
-        <span className="rounded-full bg-info/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-info">
+        <span className="fx-chip rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase text-secondary">
           {t('betaLabel')}
         </span>
       </div>
@@ -112,7 +112,7 @@ export const AiPlanChatModal = () => {
 
   return (
     <dialog ref={dialogRef} className="modal" onClose={close}>
-      <div className="modal-box flex h-[700px] max-h-[80vh] w-[640px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden p-0">
+      <div className="modal-box fx-panel-solid fx-boot-in flex h-[700px] max-h-[80vh] w-[640px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden p-0">
         {renderHeader()}
         {renderBody()}
         {renderFooter()}

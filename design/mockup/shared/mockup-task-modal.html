@@ -12,8 +12,8 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    background: rgba(197,184,0,0.1);
-    color: #8a7e00;
+    background: var(--m-olive-bg);
+    color: var(--m-olive);
     font-size: 13px;
     padding: 10px 14px;
     border-radius: 8px;
@@ -69,12 +69,12 @@
       <div class="header-left">
         <div class="back-btn"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
         <span class="header-title"><span>Kanban</span> Planner</span>
-        <span class="header-badge" style="background:rgba(233,63,51,0.1);color:#e93f33;">Planning Mode</span>
+        <span class="header-badge" style="background:var(--m-red-bg);color:var(--m-red);">Planning Mode</span>
       </div>
     </div>
     <div class="dimmed">
       <div style="max-width:640px;margin:0 auto">
-        <h2 style="font-size:24px;font-weight:700;color:#161616;margin-bottom:24px">Create Weekly Plan</h2>
+        <h2 style="font-size:24px;font-weight:700;color:var(--m-text);margin-bottom:24px">Create Weekly Plan</h2>
         <div class="template-list">
           <div class="template-item selected"><div class="template-check"></div><div class="template-info"><div class="template-name">Solve 3 LeetCode problems</div></div></div>
           <div class="template-item selected"><div class="template-check"></div><div class="template-info"><div class="template-name">Morning jog 5km</div></div></div>
@@ -85,24 +85,24 @@
       <div class="modal">
         <div class="modal-header">
           <div class="modal-title">Create Task Template</div>
-          <button style="background:none;border:none;cursor:pointer;color:#888888;padding:4px">
+          <button style="background:none;border:none;cursor:pointer;color:var(--m-text-secondary);padding:4px">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
           </button>
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label class="form-label">Title <span style="color:#e93f33">*</span></label>
+            <label class="form-label">Title <span style="color:var(--m-red)">*</span></label>
             <input class="form-input" placeholder="e.g. Solve 3 LeetCode problems" />
           </div>
           <div class="form-group">
             <label class="form-label">
               Description
-              <span style="font-size:11px;color:#888888;font-weight:400;margin-left:4px">(used by AI for task generation)</span>
+              <span style="font-size:11px;color:var(--m-text-secondary);font-weight:400;margin-left:4px">(used by AI for task generation)</span>
             </label>
             <textarea class="form-input" rows="3" placeholder="e.g. Focus on dynamic programming and graph problems. Aim for optimal solutions." style="resize:vertical;font-family:inherit"></textarea>
           </div>
           <div class="form-group">
-            <label class="form-label">Size <span style="color:#e93f33">*</span></label>
+            <label class="form-label">Size <span style="color:var(--m-red)">*</span></label>
             <div class="size-pills">
               <button class="size-pill-btn"><span class="size-pill-size">XS</span><span class="size-pill-pts">1</span></button>
               <button class="size-pill-btn"><span class="size-pill-size">S</span><span class="size-pill-pts">2</span></button>
@@ -164,12 +164,12 @@
       <div class="header-left">
         <div class="back-btn"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
         <span class="header-title"><span>Kanban</span> Planner</span>
-        <span class="header-badge" style="background:rgba(233,63,51,0.1);color:#e93f33;">Planning Mode</span>
+        <span class="header-badge" style="background:var(--m-red-bg);color:var(--m-red);">Planning Mode</span>
       </div>
     </div>
     <div class="dimmed">
       <div style="max-width:640px;margin:0 auto">
-        <h2 style="font-size:24px;font-weight:700;color:#161616;margin-bottom:24px">Update Weekly Plan</h2>
+        <h2 style="font-size:24px;font-weight:700;color:var(--m-text);margin-bottom:24px">Update Weekly Plan</h2>
         <div class="template-list">
           <div class="template-item selected"><div class="template-check"></div><div class="template-info"><div class="template-name">Solve 3 LeetCode problems</div></div></div>
           <div class="template-item selected"><div class="template-check"></div><div class="template-info"><div class="template-name">Morning jog 5km</div></div></div>
@@ -181,24 +181,24 @@
       <div class="modal">
         <div class="modal-header">
           <div class="modal-title">Edit Task Template</div>
-          <button style="background:none;border:none;cursor:pointer;color:#888888;padding:4px">
+          <button style="background:none;border:none;cursor:pointer;color:var(--m-text-secondary);padding:4px">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
           </button>
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label class="form-label">Title <span style="color:#e93f33">*</span></label>
+            <label class="form-label">Title <span style="color:var(--m-red)">*</span></label>
             <input class="form-input" value="Go to gym" />
           </div>
           <div class="form-group">
             <label class="form-label">
               Description
-              <span style="font-size:11px;color:#888888;font-weight:400;margin-left:4px">(used by AI for task generation)</span>
+              <span style="font-size:11px;color:var(--m-text-secondary);font-weight:400;margin-left:4px">(used by AI for task generation)</span>
             </label>
             <textarea class="form-input" rows="3" style="resize:vertical;font-family:inherit">30 min workout focusing on compound lifts</textarea>
           </div>
           <div class="form-group">
-            <label class="form-label">Size <span style="color:#e93f33">*</span></label>
+            <label class="form-label">Size <span style="color:var(--m-red)">*</span></label>
             <div class="size-pills">
               <button class="size-pill-btn"><span class="size-pill-size">XS</span><span class="size-pill-pts">1</span></button>
               <button class="size-pill-btn"><span class="size-pill-size">S</span><span class="size-pill-pts">2</span></button>
@@ -292,7 +292,7 @@
       <div class="modal">
         <div class="modal-header">
           <div class="modal-title">Add Priority Task</div>
-          <button style="background:none;border:none;cursor:pointer;color:#888888;padding:4px">
+          <button style="background:none;border:none;cursor:pointer;color:var(--m-text-secondary);padding:4px">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
           </button>
         </div>
@@ -303,7 +303,7 @@
             Priority tasks are one-off items — they don't repeat and never expire.
           </div>
           <div class="form-group">
-            <label class="form-label">Title <span style="color:#e93f33">*</span></label>
+            <label class="form-label">Title <span style="color:var(--m-red)">*</span></label>
             <input class="form-input" placeholder="e.g. File tax report" />
           </div>
           <div class="form-group">
@@ -311,7 +311,7 @@
             <textarea class="form-input" rows="3" placeholder="Optional details about this task" style="resize:vertical;font-family:inherit"></textarea>
           </div>
           <div class="form-group">
-            <label class="form-label">Size <span style="color:#e93f33">*</span></label>
+            <label class="form-label">Size <span style="color:var(--m-red)">*</span></label>
             <div class="size-pills">
               <button class="size-pill-btn active"><span class="size-pill-size">XS</span><span class="size-pill-pts">1</span></button>
               <button class="size-pill-btn"><span class="size-pill-size">S</span><span class="size-pill-pts">2</span></button>

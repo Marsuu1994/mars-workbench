@@ -40,9 +40,7 @@ export default function QuadrantPicker({value, onChange}: QuadrantPickerProps) {
                 : 'border-base-content/10 bg-base-200 font-medium hover:border-base-content/30'
             }`}
           >
-            <span
-              className={`size-2 rounded-full flex-shrink-0 ${QUADRANT_CONFIG[quadrant].dotClass}`}
-            />
+            <span className={`fx-led ${QUADRANT_CONFIG[quadrant].ledClass}`} />
             {tQuadrant(quadrant)}
           </button>
         ))}
