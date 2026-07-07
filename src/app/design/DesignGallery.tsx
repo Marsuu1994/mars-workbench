@@ -25,14 +25,18 @@ import {StatBlock} from '@/components/ui/StatBlock';
 import {ProgressBar} from '@/components/ui/ProgressBar';
 import {SectionLabel} from '@/components/ui/SectionLabel';
 import TaskCard from '@/components/board/TaskCard';
+import BoardColumn from '@/components/board/BoardColumn';
+import BoardHeader from '@/components/shared/BoardHeader';
 import MatrixTaskCard from '@/components/priorities/MatrixTaskCard';
+import TemplateItem from '@/components/plan/TemplateItem';
 import ProgressDashboard from '@/components/board/ProgressDashboard';
 import EmptyBoard from '@/components/board/EmptyBoard';
 import {BotAvatar, UserAvatar} from '@/components/plan/ai-chat/Avatars';
 import {SuggestionChips} from '@/components/plan/ai-chat/SuggestionChips';
 import {LoadingBubble} from '@/components/plan/ai-chat/LoadingBubble';
 
-import {Section, Variant, Row} from './GalleryParts';
+import {Zone, Section, Variant, Row} from './GalleryParts';
+import {TaskType} from '@/utils/enums';
 import {
   GALLERY_TITLE_ACCENT,
   GALLERY_TITLE_REST,
@@ -75,6 +79,11 @@ import {
   CONTENT_STATS,
   CONTENT_BARS,
   CONTENT_SECTION_LABELS,
+  BOARD_HEADER_PERIOD,
+  BOARD_COLUMN_STATUS,
+  BOARD_COLUMN_TASKS,
+  BOARD_COLUMN_RISK,
+  TEMPLATE_FIXTURE,
 } from './constants';
 
 export const DesignGallery = () => {
@@ -83,6 +92,14 @@ export const DesignGallery = () => {
   const [shellOpen, setShellOpen] = useState(false);
   const [choice, setChoice] = useState<string>(FORM_DEMO_CHOICES[0].value);
   const [freq, setFreq] = useState(FORM_DEMO_STEP_MIN);
+  const [templateSelected, setTemplateSelected] = useState(true);
+  const [templateCfg, setTemplateCfg] = useState<{
+    type: TaskType;
+    frequency: number;
+  }>({
+    type: TaskType.DAILY,
+    frequency: 3,
+  });
   const isDark = theme === THEME_DARK;
 
   const renderHeader = () => (
@@ -605,6 +622,54 @@ export const DesignGallery = () => {
     </Section>
   );
 
+  const renderBoardHeader = () => (
+    <Section
+      title="BoardHeader"
+      description="Board page title bar. Documents a known accent drift — primary (cyan) on mobile, success (green) from md up — tracked separately for the uniform-header pass."
+    >
+      <div className="overflow-hidden rounded-lg border border-base-content/10">
+        <BoardHeader periodKey={BOARD_HEADER_PERIOD} />
+      </div>
+    </Section>
+  );
+
+  const renderBoardColumn = () => (
+    <Section
+      title="BoardColumn"
+      description="One kanban column: LED-accented header, count badge, and a droppable task list."
+    >
+      <DragDropContext onDragEnd={() => undefined}>
+        <div className="max-w-sm">
+          <BoardColumn
+            status={BOARD_COLUMN_STATUS}
+            tasks={BOARD_COLUMN_TASKS}
+            today={TODAY}
+            riskMap={new Map(BOARD_COLUMN_RISK)}
+            templateFreqMap={new Map()}
+          />
+        </div>
+      </DragDropContext>
+    </Section>
+  );
+
+  const renderTemplateItem = () => (
+    <Section
+      title="TemplateItem"
+      description="A selectable plan-template row — checkbox, size chip, and (when selected) the type/frequency config strip built on ChoicePills + Stepper."
+    >
+      <div className="max-w-md">
+        <TemplateItem
+          template={TEMPLATE_FIXTURE}
+          isSelected={templateSelected}
+          config={templateSelected ? templateCfg : undefined}
+          onToggle={() => setTemplateSelected(v => !v)}
+          onConfigChange={setTemplateCfg}
+          onEdit={() => undefined}
+        />
+      </div>
+    </Section>
+  );
+
   const renderEmptyState = () => (
     <Section
       title="EmptyBoard"
@@ -638,23 +703,50 @@ export const DesignGallery = () => {
       data-theme={theme}
       className="fx-shell-bg min-h-screen text-base-content"
     >
-      <div className="mx-auto flex max-w-5xl flex-col gap-10 p-6 md:p-10">
+      <div className="mx-auto flex max-w-5xl flex-col gap-12 p-6 md:p-10">
         {renderHeader()}
-        {renderPalette()}
-        {renderHudPrimitives()}
-        {renderPills()}
-        {renderBadgeFamily()}
-        {renderSizeChips()}
-        {renderTypeBadges()}
-        {renderTaskCards()}
-        {renderMatrixCards()}
-        {renderOverlays()}
-        {renderModalShell()}
-        {renderFormKit()}
-        {renderContentBlocks()}
-        {renderProgress()}
-        {renderChatPrimitives()}
-        {renderEmptyState()}
+
+        <Zone
+          title="Tokens & FX"
+          description="The visual foundation — OKLCH palette and the fx-* skin utilities every ui/ component composes."
+        >
+          {renderPalette()}
+          {renderHudPrimitives()}
+        </Zone>
+
+        <Zone
+          title="UI primitives"
+          description="src/components/ui/ — the structural layer on top of the FX skin. New UI composes these; it never hand-rolls the recipes."
+        >
+          {renderPills()}
+          {renderBadgeFamily()}
+          {renderSizeChips()}
+          {renderTypeBadges()}
+          {renderFormKit()}
+          {renderContentBlocks()}
+        </Zone>
+
+        <Zone
+          title="Overlays"
+          description="ui/overlay/ — the one dialog stack. Every sheet, modal and popover routes through OverlayShell."
+        >
+          {renderOverlays()}
+          {renderModalShell()}
+        </Zone>
+
+        <Zone
+          title="Domain components"
+          description="Feature components composed from the primitives above, rendered with fixture data across their states."
+        >
+          {renderBoardHeader()}
+          {renderTaskCards()}
+          {renderBoardColumn()}
+          {renderMatrixCards()}
+          {renderTemplateItem()}
+          {renderProgress()}
+          {renderChatPrimitives()}
+          {renderEmptyState()}
+        </Zone>
       </div>
     </div>
   );

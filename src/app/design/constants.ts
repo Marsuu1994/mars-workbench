@@ -356,3 +356,28 @@ export const CONTENT_SECTION_LABELS = [
   'Track to',
   'Plan mode',
 ];
+
+// ── Domain specimen fixtures (Phase 7) ───────────────────────────────────────
+/** BoardHeader shows the desktop/mobile accent drift — documented, not fixed. */
+export const BOARD_HEADER_PERIOD = '2026-W28';
+
+/** A Todo column filled from the first three task-card fixtures. */
+export const BOARD_COLUMN_STATUS = TaskStatus.TODO;
+export const BOARD_COLUMN_TASKS: TaskItem[] = TASK_CARD_FIXTURES.slice(
+  0,
+  3,
+).map(f => f.task);
+export const BOARD_COLUMN_RISK: [string, RiskLevel][] =
+  TASK_CARD_FIXTURES.slice(0, 3).map(f => [f.task.id, f.riskLevel]);
+
+/** TemplateItem — a single selectable plan-template row. */
+export const TEMPLATE_FIXTURE = {
+  id: 'tmpl-1',
+  userId: 'user-1',
+  title: 'Morning workout',
+  description: 'A short routine to start the day.',
+  size: TaskSize.SMALL,
+  isArchived: false,
+  createdAt: TODAY,
+  updatedAt: TODAY,
+};

@@ -1,5 +1,28 @@
 import type {ReactNode} from 'react';
 
+interface ZoneProps {
+  title: string;
+  /** One-line orientation for the whole group of sections */
+  description?: string;
+  children: ReactNode;
+}
+
+/** A top-level layer of the system (Tokens, UI primitives, Overlays, Domain). */
+export const Zone = ({title, description, children}: ZoneProps) => (
+  <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center gap-3">
+        <h2 className="fx-label fx-label-bright text-sm">{title}</h2>
+        <hr className="fx-rule flex-1" />
+      </div>
+      {description && (
+        <p className="text-sm text-base-content/50">{description}</p>
+      )}
+    </div>
+    <div className="flex flex-col gap-8">{children}</div>
+  </div>
+);
+
 interface SectionProps {
   title: string;
   description?: string;
@@ -10,7 +33,7 @@ interface SectionProps {
 export const Section = ({title, description, children}: SectionProps) => (
   <section className="flex flex-col gap-4">
     <div className="flex flex-col gap-1">
-      <h2 className="text-lg font-semibold">{title}</h2>
+      <h3 className="text-lg font-semibold">{title}</h3>
       {description && (
         <p className="text-sm text-base-content/60">{description}</p>
       )}
