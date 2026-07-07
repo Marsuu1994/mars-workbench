@@ -55,7 +55,7 @@ All utilities derive colors from daisyUI tokens via `color-mix()`, so both theme
 
 | Utility | Use | Where it's applied |
 | --- | --- | --- |
-| `fx-shell-bg` | 4-corner horizon blooms + star-chart sky: four star "magnitudes" tiled at mutually-prime sizes (233×187 → 389×331 — the beat period is huge, so the scatter reads as random) plus a rare cross-glint twinkle; paint once on a non-scrolling wrapper | `AppShell`, `/design` gallery |
+| `fx-shell-bg` | The cosmic sky, three strata painted once on a non-scrolling wrapper: (1) 4-corner horizon blooms; (2) `--fx-art`, a per-theme inline-SVG nebula painting — corner wisps (blurred ellipses), filament threads, beaded bezier curves, glowing anchor stars; (3) a star chart of four star "magnitudes" tiled at mutually-prime sizes (233×187 → 389×331, so the scatter never visibly repeats) plus a rare cross-glint twinkle. ⚠ `--fx-art` colors are baked into the SVG data-URIs (not token-derived) — re-tint both URIs by hand when the palette changes | `AppShell`, `/design` gallery |
 | `fx-chrome` / `fx-chrome-glass` | Chrome slab (always solid) / chrome that may blur. The dock stays solid — it floats over a scrolling board, where backdrop blur re-filters every frame; the sidebar's backdrop is static, so glass is cheap there | dock (solid), sidebar (glass) |
 | `fx-panel` / `fx-panel-solid` | Console panel (glass / no-blur). Glass is for stationary chrome only — never in scroll containers | modals |
 | `fx-corners` | Targeting-reticle corner brackets (inset 2px to clear the radius) | task modal, gallery specimens |
@@ -87,4 +87,4 @@ One easing: `cubic-bezier(0.2, 0, 0, 1)` ("console snap"). 150ms micro (hover li
 
 ## Sync points
 
-Changing base colors requires touching, in lockstep: `src/app/globals.css` (theme blocks), `public/manifest.json` (`background_color` = dark base-300, `theme_color` = dark base-100), `src/app/layout.tsx` (`viewport.themeColor`), `design/mockup/mockup-theme.css` (`--m-*` incl. regenerating every rgba alpha ladder from the new hexes), and `design/mockup/auth/mockup-login.html` (private token block mirroring the app tokens).
+Changing base colors requires touching, in lockstep: `src/app/globals.css` (theme blocks **and the two `--fx-art` SVG data-URIs**, whose nebula/filament colors are baked in), `public/manifest.json` (`background_color` = dark base-300, `theme_color` = dark base-100), `src/app/layout.tsx` (`viewport.themeColor`), `design/mockup/mockup-theme.css` (`--m-*` incl. regenerating every rgba alpha ladder from the new hexes), and `design/mockup/auth/mockup-login.html` (private token block mirroring the app tokens).
