@@ -1,38 +1,49 @@
-import { getTranslations } from "next-intl/server";
-import { zodResponseFormat } from "openai/helpers/zod";
-import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
-import prisma from "@/lib/prisma";
-import { getPlanTemplateStats, getNonDoneAdhocTasks, type PlanTemplateStatRow } from "@/lib/db/tasks";
-import { getTaskTemplateTitlesByIds, getTaskTemplates } from "@/lib/db/taskTemplates";
-import { getPlanTemplatesByPlanId } from "@/lib/db/planTemplates";
-import { getActivePlan, getPlanByStatus, type PlanItem } from "@/lib/db/plans";
+import {getTranslations} from 'next-intl/server';
+import {zodResponseFormat} from 'openai/helpers/zod';
+import type {ChatCompletionMessageParam} from 'openai/resources/chat/completions';
+import prisma from '@/lib/prisma';
+import {
+  getPlanTemplateStats,
+  getNonDoneAdhocTasks,
+  type PlanTemplateStatRow,
+} from '@/lib/db/tasks';
+import {
+  getTaskTemplateTitlesByIds,
+  getTaskTemplates,
+} from '@/lib/db/taskTemplates';
+import {getPlanTemplatesByPlanId} from '@/lib/db/planTemplates';
+import {getActivePlan, getPlanByStatus, type PlanItem} from '@/lib/db/plans';
 import {
   createChat,
   getChatById,
   getLatestInProgressChat,
   updateChatPlanId,
   updateChatMetadata,
-} from "@/lib/db/chats";
-import { createMessage, getMessagesByChatId } from "@/lib/db/messages";
-import { MessageType, PlanMode, PlanStatus } from "@/generated/prisma/client";
-import { openai, DRAFT_PLAN_MODEL } from "@/lib/llm/openai";
-import { createPlanFromDraft } from "./planService";
-import { draftPlanResponseSchema, type DraftPlanResponse } from "@/schemas";
-import { buildDraftPlanSystemPrompt } from "../prompt/draftPlanPrompt";
-import { getTodayDate, getISOWeekKey } from "@/utils/dateUtils";
+} from '@/lib/db/chats';
+import {createMessage, getMessagesByChatId} from '@/lib/db/messages';
+import {MessageType, PlanMode, PlanStatus} from '@/generated/prisma/client';
+import {openai, DRAFT_PLAN_MODEL} from '@/lib/llm/openai';
+import {createPlanFromDraft} from './planService';
+import {draftPlanResponseSchema, type DraftPlanResponse} from '@/schemas';
+import {buildDraftPlanSystemPrompt} from '../prompt/draftPlanPrompt';
+import {
+  getTodayDate,
+  getISOWeekKey,
+  getMondayFromPeriodKey,
+} from '@/utils/dateUtils';
 import type {
   ActiveChatPayload,
   ChatMetadata,
   LastPlanStats,
   PerTemplateStat,
-} from "../types/aiChat";
+} from '../types/aiChat';
 import {
   NEW_USER_CHIP_KEYS,
   RETURNING_USER_CHIP_KEYS,
-} from "../utils/aiChatContent";
-import { rollUpOverall } from "@/utils/statsUtils";
+} from '../utils/aiChatContent';
+import {rollUpOverall} from '@/utils/statsUtils';
 
-const AI_CHAT_TITLE = "Plan Assistant";
+const AI_CHAT_TITLE = 'Plan Assistant';
 
 /**
  * Per-template performance + rolled-up overall for a finished plan. Joins
@@ -41,25 +52,28 @@ const AI_CHAT_TITLE = "Plan Assistant";
  */
 export async function getTemplateStats(
   userId: string,
-  planId: string
+  planId: string,
 ): Promise<LastPlanStats> {
-  const rows: PlanTemplateStatRow[] = await getPlanTemplateStats(userId, planId);
+  const rows: PlanTemplateStatRow[] = await getPlanTemplateStats(
+    userId,
+    planId,
+  );
   const titles = await getTaskTemplateTitlesByIds(
     userId,
-    rows.map((r) => r.templateId)
+    rows.map(r => r.templateId),
   );
   const planTemplates = await getPlanTemplatesByPlanId(planId);
   const frequencyByTemplate = new Map(
-    planTemplates.map((pt) => [pt.templateId, pt.frequency])
+    planTemplates.map(pt => [pt.templateId, pt.frequency]),
   );
 
-  const perTemplate: PerTemplateStat[] = rows.map((r) => ({
+  const perTemplate: PerTemplateStat[] = rows.map(r => ({
     ...r,
-    title: titles.get(r.templateId) ?? "Untitled task",
+    title: titles.get(r.templateId) ?? 'Untitled task',
     frequency: frequencyByTemplate.get(r.templateId) ?? 1,
   }));
 
-  return { overall: rollUpOverall(perTemplate), perTemplate };
+  return {overall: rollUpOverall(perTemplate), perTemplate};
 }
 
 /**
@@ -69,35 +83,40 @@ export async function getTemplateStats(
  */
 export async function createAiChat(
   userId: string,
-  planId?: string
-): Promise<{ chatId: string; message: string; suggestionChips: readonly string[] }> {
+  planId?: string,
+): Promise<{
+  chatId: string;
+  message: string;
+  suggestionChips: readonly string[];
+}> {
   const stats = planId ? await getTemplateStats(userId, planId) : undefined;
 
   const chat = await createChat({
     userId,
     planId,
     title: AI_CHAT_TITLE,
-    metadata: stats ? { lastPlanStats: stats } : {},
+    metadata: stats ? {lastPlanStats: stats} : {},
   });
 
-  const t = await getTranslations("AiChat");
+  const t = await getTranslations('AiChat');
   const message = stats
-    ? t("welcomeReturning", {
+    ? t('welcomeReturning', {
         completed: stats.overall.completedCount,
         total: stats.overall.totalCount,
         completionPct: Math.round(stats.overall.completionRate * 100),
         points: stats.overall.totalPoints,
         dailyPct: Math.round(stats.overall.dailyCompletionRate * 100),
       })
-    : t("welcomeNew");
-  await createMessage({ chatId: chat.id, role: "assistant", content: message });
+    : t('welcomeNew');
+  await createMessage({chatId: chat.id, role: 'assistant', content: message});
 
   return {
     chatId: chat.id,
     message,
-    suggestionChips: (stats ? RETURNING_USER_CHIP_KEYS : NEW_USER_CHIP_KEYS).map((k) =>
-      t(k)
-    ),
+    suggestionChips: (stats
+      ? RETURNING_USER_CHIP_KEYS
+      : NEW_USER_CHIP_KEYS
+    ).map(k => t(k)),
   };
 }
 
@@ -110,56 +129,58 @@ export async function createAiChat(
  */
 async function generateFromHistory(
   userId: string,
-  chatId: string
+  chatId: string,
 ): Promise<DraftPlanResponse> {
   const chat = await getChatById(userId, chatId);
-  if (!chat) throw new Error("Chat not found");
+  if (!chat) throw new Error('Chat not found');
 
   const metadata = (chat.metadata ?? {}) as unknown as ChatMetadata;
   const lastWeekStats = metadata.lastPlanStats?.perTemplate ?? null;
 
   const templates = await getTaskTemplates(userId);
-  const existingTemplates = templates.map((t) => ({
+  const existingTemplates = templates.map(t => ({
     templateId: t.id,
     title: t.title,
     description: t.description,
     size: t.size,
   }));
 
-  const system = buildDraftPlanSystemPrompt({ existingTemplates, lastWeekStats });
+  const system = buildDraftPlanSystemPrompt({existingTemplates, lastWeekStats});
 
   // DRAFT_PLAN messages already store the full JSON in `content`, so replaying
   // content verbatim shows the model its prior drafts; TEXT turns pass through.
   const messages = await getMessagesByChatId(chatId);
-  const history: ChatCompletionMessageParam[] = messages.map((m) => ({
+  const history: ChatCompletionMessageParam[] = messages.map(m => ({
     role: m.role,
     content: m.content,
   }));
 
   const completion = await openai.chat.completions.parse({
     model: DRAFT_PLAN_MODEL,
-    messages: [{ role: "system", content: system }, ...history],
-    response_format: zodResponseFormat(draftPlanResponseSchema, "draft_plan"),
+    messages: [{role: 'system', content: system}, ...history],
+    response_format: zodResponseFormat(draftPlanResponseSchema, 'draft_plan'),
   });
 
   const choice = completion.choices[0]?.message;
   if (choice?.refusal) throw new Error(`LLM refused: ${choice.refusal}`);
   const parsed = choice?.parsed;
-  if (!parsed) throw new Error("LLM returned no parsed draft plan");
+  if (!parsed) throw new Error('LLM returned no parsed draft plan');
 
   // Defensive: enforce the prompt's hard constraint server-side — a templateId
   // the model invented (not one of the user's own) is coerced to a NEW template.
-  const ownedIds = new Set(existingTemplates.map((t) => t.templateId));
+  const ownedIds = new Set(existingTemplates.map(t => t.templateId));
   const response: DraftPlanResponse = {
     ...parsed,
-    draftTemplates: parsed.draftTemplates.map((d) =>
-      d.templateId && !ownedIds.has(d.templateId) ? { ...d, templateId: null } : d
+    draftTemplates: parsed.draftTemplates.map(d =>
+      d.templateId && !ownedIds.has(d.templateId)
+        ? {...d, templateId: null}
+        : d,
     ),
   };
 
   await createMessage({
     chatId,
-    role: "assistant",
+    role: 'assistant',
     content: JSON.stringify(response),
     type: MessageType.DRAFT_PLAN,
   });
@@ -168,7 +189,10 @@ async function generateFromHistory(
   // reads it off the already-loaded chat — no extra message query).
   await updateChatMetadata(chatId, {
     ...metadata,
-    latestDraft: { description: response.description, draftTemplates: response.draftTemplates },
+    latestDraft: {
+      description: response.description,
+      draftTemplates: response.draftTemplates,
+    },
   });
 
   return response;
@@ -182,12 +206,12 @@ async function generateFromHistory(
 export async function generateDraftPlan(
   userId: string,
   chatId: string,
-  userMessage: string
+  userMessage: string,
 ): Promise<DraftPlanResponse> {
   const chat = await getChatById(userId, chatId);
-  if (!chat) throw new Error("Chat not found");
+  if (!chat) throw new Error('Chat not found');
 
-  await createMessage({ chatId, role: "user", content: userMessage });
+  await createMessage({chatId, role: 'user', content: userMessage});
 
   return generateFromHistory(userId, chatId);
 }
@@ -199,7 +223,7 @@ export async function generateDraftPlan(
  */
 export async function resumeDraftPlan(
   userId: string,
-  chatId: string
+  chatId: string,
 ): Promise<DraftPlanResponse> {
   return generateFromHistory(userId, chatId);
 }
@@ -210,8 +234,17 @@ export async function resumeDraftPlan(
  * turn is an unanswered user message (interrupted generation → auto-resume).
  * Returns null when there is no in-progress chat (e.g. right after an approval).
  */
-export async function getActiveAiChat(userId: string): Promise<ActiveChatPayload | null> {
-  const chat = await getLatestInProgressChat(userId);
+export async function getActiveAiChat(
+  userId: string,
+): Promise<ActiveChatPayload | null> {
+  // Only resume an unapproved chat from the current period. A chat left
+  // unapproved in a prior period predates the current pending plan, so its
+  // metadata has no last-period stats — resuming it would show the new-user
+  // (statless) welcome instead of the returning-user recap. Scoping to the
+  // current period drops those stale chats so a fresh, stats-bearing chat is
+  // created instead.
+  const periodStart = getMondayFromPeriodKey(getISOWeekKey(getTodayDate()));
+  const chat = await getLatestInProgressChat(userId, periodStart);
   if (!chat) return null;
 
   const messages = await getMessagesByChatId(chat.id);
@@ -220,9 +253,13 @@ export async function getActiveAiChat(userId: string): Promise<ActiveChatPayload
 
   return {
     chatId: chat.id,
-    messages: messages.map((m) => ({ role: m.role, type: m.type, content: m.content })),
+    messages: messages.map(m => ({
+      role: m.role,
+      type: m.type,
+      content: m.content,
+    })),
     hasStats: !!metadata.lastPlanStats,
-    pendingGeneration: lastMessage?.role === "user",
+    pendingGeneration: lastMessage?.role === 'user',
   };
 }
 
@@ -234,31 +271,36 @@ export async function getActiveAiChat(userId: string): Promise<ActiveChatPayload
  * plan's non-done ad-hoc tasks are carried over to the new plan. Finally links
  * the chat to the new plan.
  */
-export async function approveDraftPlan(userId: string, chatId: string): Promise<PlanItem> {
+export async function approveDraftPlan(
+  userId: string,
+  chatId: string,
+): Promise<PlanItem> {
   const chat = await getChatById(userId, chatId);
-  if (!chat) throw new Error("Chat not found");
+  if (!chat) throw new Error('Chat not found');
 
   // Approval clipboard — read straight off the already-loaded chat.
   const metadata = (chat.metadata ?? {}) as unknown as ChatMetadata;
   const draft = metadata.latestDraft;
-  if (!draft) throw new Error("No draft plan to approve");
+  if (!draft) throw new Error('No draft plan to approve');
 
   // Guards mirror createPlan: no active plan may exist; complete the pending one.
   const activePlan = await getActivePlan(userId);
-  if (activePlan) throw new Error("An active plan already exists");
+  if (activePlan) throw new Error('An active plan already exists');
   const pendingPlan = await getPlanByStatus(userId, PlanStatus.PENDING_UPDATE);
 
   // Carry the pending plan's non-done ad-hoc tasks over to the new plan.
   let adhocTaskIds: string[] = [];
   if (pendingPlan) {
     const adhoc = await getNonDoneAdhocTasks(userId);
-    adhocTaskIds = adhoc.filter((t) => t.planId === pendingPlan.id).map((t) => t.id);
+    adhocTaskIds = adhoc
+      .filter(t => t.planId === pendingPlan.id)
+      .map(t => t.id);
   }
 
   const today = getTodayDate();
   const periodKey = getISOWeekKey(today);
 
-  return prisma.$transaction(async (tx) => {
+  return prisma.$transaction(async tx => {
     const newPlan = await createPlanFromDraft(
       tx,
       userId,
@@ -270,7 +312,7 @@ export async function approveDraftPlan(userId: string, chatId: string): Promise<
         pendingPlan,
       },
       periodKey,
-      today
+      today,
     );
     await updateChatPlanId(chatId, newPlan.id, tx);
     return newPlan;

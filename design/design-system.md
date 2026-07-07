@@ -1,97 +1,90 @@
-# Design System (`src/components/ui/`)
+# Design System — Mission Control HUD
 
-Proposal for a domain-specific design-system layer on top of daisyUI. Status: **approved direction, not yet implemented** — phases are tracked in [tracker.md](./tracker.md) (Cross-cutting).
+The app-wide visual language. Source of truth for tokens, the FX utility layer, typography, and motion. Implemented in `src/app/globals.css` (daisyUI theme blocks + `fx-*` layer); mirrored for mockups in `design/mockup/mockup-theme.css`. The structural component layer proposed on top of these tokens (`src/components/ui/`) lives in [component-library.md](./component-library.md).
 
-Guiding principle: **only extract visual language that already repeats (≥2 hand-written copies); never invent new abstractions ahead of need.**
+## Concept
 
-## Why (audit evidence, 2026-07)
+Your week is a flight plan; the app is the console you fly it from. **mars-dark** is a night ops deck: near-black blue console panels over a faint telemetry dot-field, phosphor-cyan telemetry as the primary voice, mars signal-orange for targeting (drag & drop), violet for the AI channel. **mars-light** is **dawn on Mars** — deliberately not a white theme: warm sunlit-sand consoles, cool space-ink text, the identical seven signal hues driven deep so the identity survives daylight.
 
-Findings from a full sweep of `src/components/` + `src/app/`:
+Two rules carry the identity:
 
-| Pattern | Duplication found |
-| --- | --- |
-| Tinted pill (`bg-{color}/10–15` + `text-{color}` + small font + rounded) | ~30 occurrences across 15 files: instance badge (`#2`) hand-rolled 3× at 8/10/10px, "This Week" tag, BoardHeader date capsule, BETA pill, ReviewChangesModal count pills, AppSidebar active state, … |
-| Mobile bottom sheets | `MobileBacklogSheet` and `MobileTrackSheet` share only the `<dialog class="modal modal-bottom md:hidden">` + backdrop-form shell; grip, header, scroll region, and open mechanism all diverge |
-| Overlay open-state | 4 coexisting mechanisms: imperative ref (`MobileBacklogSheet`), `isOpen` prop + effect (`TaskModal`, `ReviewChangesModal`), Zustand (`AiPlanChatModal`), parent state (`TrackPopover`) |
-| Backdrop dismiss | Sheets + chat modal close on backdrop tap; `TaskModal` / `ReviewChangesModal` do not (Esc only) — implicit, not a stated decision |
-| Selectable pill group | 4 variants of "mutually exclusive buttons, selected state swaps border/bg": TaskModal size picker, TemplateItem type pills, PlanForm mode toggle, QuadrantPicker |
-| Field row | `form-control > label.label > control + hint` hand-written in TaskModal, PlanForm, QuadrantPicker; submit-button spinner swap ×3; `IconNumberField` is dead code (never imported) |
-| Risk borders | danger/warning edge-border logic duplicated in TaskCard + BacklogSheetCard |
-| Rollover tag (`↩ date`) | 3 copies, 3 font sizes |
-| Stat block (big value + small label) | ProgressDashboard ×4 + EmptyBoard ×3, two implementations |
-| Uppercase tracking section label | 18 occurrences |
-| Font sizes | 6 arbitrary values `text-[8px]`…`text-[15px]` (`text-[11px]` ×44) |
-| Radii | `rounded-[10px]` ×6, `rounded-[5px]` ×1 as magic values |
+1. **Sans for humans, mono for telemetry.** Geist Sans speaks prose and titles; Geist Mono renders everything the console *measures* — micro-labels (`fx-label`), numerals/dates/counts (`fx-num`), badges (`fx-chip`).
+2. **Color by channel, not decoration.** Cyan = action/telemetry, violet = AI, orange = targeting (drop zones) & signature accents, blue = datalink stats, green = go, amber = caution, red = abort.
 
-## What goes into `ui/` (three tiers)
+## Palette
 
-### Tier 1 — Overlay containers (highest leverage)
+Seven OKLCH hue-wheel stops (25 error · 55 accent · 85 warning · 155 success · 205 primary · 235 info · 295 secondary) with matched chroma bands. All values verified in-sRGB-gamut and WCAG-checked numerically (conversion script: OKLCH → linear sRGB → relative luminance).
 
-```text
-ui/overlay/
-├── useDialogSync.ts   # isOpen prop ↔ <dialog>.showModal()/close() effect, onClose wiring
-├── OverlayShell.tsx   # the one <dialog> + modal-box + backdrop shell
-│                      #   variant: "sheet" (modal-bottom md:hidden)
-│                      #          | "responsive" (modal-bottom md:modal-middle)
-│                      #          | "center" (modal)
-├── BottomSheet.tsx    # sheet preset: grip bar, optional header slot, scrollable body
-└── Popover.tsx        # TrackPopover generalized: positioning + arrow notch + click-away contract
-```
+### mars-dark (night ops)
 
-`BottomSheet` API sketch:
+| Token | OKLCH | ≈ Hex | Pair contrast |
+| --- | --- | --- | --- |
+| base-100 / 200 / 300 | 0.19/0.155/0.125 C≈0.03 H265 | `#0d1321` `#070c18` `#030610` | base-content ≥ 14.6:1 |
+| base-content | 0.92 0.016 210 | `#d9e8ea` | — |
+| primary (phosphor cyan) | 0.83 0.135 205 | `#2ce0f1` | 11.2 |
+| secondary (violet · AI) | 0.74 0.15 295 | `#b296ff` | 7.8 |
+| accent (signal orange) | 0.76 0.155 55 | `#fb9344` | 8.1 |
+| info (datalink blue) | 0.79 0.115 235 | `#69c6fa` | 9.7 |
+| success (go-green) | 0.8 0.165 155 | `#50dc8e` | 10.4 |
+| warning (caution amber) | 0.84 0.155 85 | `#f9c13b` | 10.5 |
+| error (abort red) | 0.72 0.17 25 | `#fd736d` | 7.3 |
+| neutral (console slab) | 0.26 0.035 265 | `#1c2435` | 11.6 |
 
-```tsx
-<BottomSheet
-  isOpen={...} onClose={...}          // prop-driven everywhere; kills the 4 mechanisms
-  header={{ icon, title, count }}     // optional; renders close button when present
-  scrollable                          // true → max-h-[80vh] flex column + overflow-y-auto body
-  dismissOnBackdrop                   // explicit decision instead of accidental divergence
->
-  {children}
-</BottomSheet>
-```
+Every signal color is **body-text grade (≥ 4.5:1)** on base-100 and base-200. All pairs AAA (≥ 7:1).
 
-Consumers: `MobileTrackSheet`, `MobileBacklogSheet` (BottomSheet); `TaskModal`, `ReviewChangesModal` (OverlayShell `responsive`); `AiPlanChatModal` (OverlayShell `center`). Safe-area, grip bar, and backdrop form live only in the shell.
+### mars-light (dawn on Mars)
 
-### Tier 2 — Domain atoms (kills drift)
+| Token | OKLCH | ≈ Hex | Pair contrast |
+| --- | --- | --- | --- |
+| base-100 / 200 / 300 (sand) | 0.955/0.925/0.885 H≈78 | `#f7efe3` `#efe5d5` `#e5d7c4` | base-content ≥ 11.6:1 |
+| base-content (space ink) | 0.24 0.032 265 | `#181f2f` | — |
+| primary | 0.5 0.085 215 | `#0e6f81` | 5.4 |
+| secondary | 0.5 0.185 295 | `#6e43bf` | 6.1 |
+| accent (rust) | 0.54 0.14 50 | `#ac5107` | 5.0 |
+| info | 0.5 0.115 240 | `#006a9e` | 5.5 |
+| success | 0.5 0.13 152 | `#05773b` | 5.3 |
+| warning (bronze) | 0.49 0.1 75 | `#815709` | 6.0 |
+| error | 0.53 0.19 25 | `#c2272d` | 5.4 |
+| neutral (mars rock) | 0.34 0.045 55 | `#4a3221` | 10.9 |
 
-| Component | Replaces |
-| --- | --- |
-| `Pill` (color × size variant axes) | the ~30 tinted-pill sites; `SizeChip` / `TaskTypeBadge` reimplemented on top and moved into `ui/` |
-| `InstanceBadge`, `RiskBadge`, `RolloverTag` | 3+ hand-rolled copies each; task-type color mapping converges to one place |
-| `riskBorderClass(level, edge)` const map | TaskCard / BacklogSheetCard border logic |
-| `StatBlock` | ProgressDashboard + EmptyBoard stat markup |
-| `ProgressBar` | 3 linear bars in ProgressDashboard |
-| `EmptyState` (icon + title + desc + CTA) | EmptyBoard both modes, BacklogSheet empty text |
-| `SectionLabel` | 18 uppercase-tracking labels |
+The light theme is intentionally sand-warm, not white — the "dawn shift" of the same console. Warning stays a deep bronze so `text-warning` (star points, at-risk labels) is **body-text grade on the sand bases** (the pre-redesign amber failed AA in three components). **Constraint to preserve:** light accent on base-200 is 4.27:1 — icon/large-text grade only; don't use `text-accent` for small body copy on base-200 surfaces.
 
-### Tier 3 — Form kit
+## FX utility layer (`fx-*`)
 
-- `FieldRow` — label + required star + control slot + hint (the canonical `form-control` row)
-- `ChoicePills` — single-select pill group, `layout: "row" | "grid"`; absorbs the 4 variants
-- `Stepper` — −/+ number stepper (from TemplateItem); delete dead `IconNumberField`
-- `SubmitButton` (spinner swap + `flex-1 md:flex-none`) and `FormErrorAlert` (form-level `alert alert-error`)
+All utilities derive colors from daisyUI tokens via `color-mix()`, so both themes restyle automatically. They live in `@layer components` — any Tailwind utility can override their properties. Loops animate opacity/transform only (composite-friendly); `prefers-reduced-motion` disables them.
 
-## Non-goals
+| Utility | Use | Where it's applied |
+| --- | --- | --- |
+| `fx-shell-bg` | The cosmic sky, three strata painted once on a non-scrolling wrapper: (1) 4-corner horizon blooms; (2) `--fx-art`, a per-theme inline-SVG nebula painting — corner wisps (blurred ellipses), filament threads, beaded bezier curves, glowing anchor stars; (3) a star chart of four star "magnitudes" tiled at mutually-prime sizes (233×187 → 389×331, so the scatter never visibly repeats) plus a rare cross-glint twinkle. ⚠ `--fx-art` colors are baked into the SVG data-URIs (not token-derived) — re-tint both URIs by hand when the palette changes | `AppShell`, `/design` gallery |
+| `fx-chrome` / `fx-chrome-glass` | Chrome slab (always solid) / chrome that may blur. The dock stays solid — it floats over a scrolling board, where backdrop blur re-filters every frame; the sidebar's backdrop is static, so glass is cheap there | dock (solid), sidebar (glass) |
+| `fx-panel` / `fx-panel-solid` | Console panel (glass / no-blur). Glass is for stationary chrome only — never in scroll containers | modals |
+| `fx-corners` | Targeting-reticle corner brackets (inset 2px to clear the radius) | task modal, gallery specimens |
+| `fx-card` / `fx-card-lift` | Card edge-light + hover lift (shadow only — risk borders always win); lift = drag state class swap | `TaskCard` |
+| `fx-target` | Drop-zone highlight, mars-orange channel; pulse = pseudo-element opacity (`@utility`, composes as `md:fx-target`) | board columns, gallery |
+| `fx-glow` / `fx-glow-accent` | Powered-up CTA halo | primary CTAs, sidebar logo |
+| `fx-chip` | Console chip from `currentColor` (border 28% / fill 10% / inset highlight) — pair with any `text-*` token | `TaskTypeBadge`, `SizeChip`, date pill, beta pill |
+| `fx-label` (+`-bright`) | 11px mono uppercase 0.14em micro-label | column headers, quadrant titles, stat labels, "Workspace" |
+| `fx-num` | Mono tabular numerals | points, counts, %, dates, `#n` |
+| `fx-led` (+`fx-led-pulse`) | Status LED dot from `currentColor` | column status, quadrant headers, AI live |
+| `fx-rule` / `fx-hairline-top` | Luminous gradient hairlines (single / multi-hue top edge) | dock top edge, AI modal header |
+| `fx-holo` | Conic holo border — the AI thinking/live state | `LoadingBubble` |
+| `fx-orbit` | Rotating conic tail behind the progress ring — continuous by deliberate product choice (transform-only on a tiny masked layer; reduced-motion disables it); the ring's halo is a static SVG under-circle, not a CSS filter | `ProgressDashboard` |
+| `fx-glow-pulse` | Breathing brand halo — pre-composited shadow on a pseudo-element, opacity-only loop | login `BrandIcon` |
+| `fx-text-gradient` | Cyan→violet headline gradient. Restraint rule: first word only | gallery title, login "Mars" |
+| `fx-boot-in` | 420ms mount animation (rise + scale + fade) | modals |
+| `fx-nav-rail` | Luminous active-nav left rail | sidebar active item |
+| `fx-quadrant` + `fx-q-{error,primary,warning,neutral}` + `fx-q-{tl,tr,bl,br}` | Per-quadrant corner bloom keyed to semantic hue | priority matrix |
+| `fx-grid-flow` | Login-only grid crawl (transform loop; host extends 64px above viewport) | login grid layer |
 
-- **No unified mega `TaskCard`.** `TaskCard` / `MatrixTaskCard` / `BacklogSheetCard` differ in layout and behavior (drag / tap / pull) for real reasons; they share the atoms (Pill, RiskBadge, riskBorderClass) and keep their own shells.
-- **No cva / styling library.** Variants are plain `const` class maps (the existing `TaskTypeBadge` `CLASS_CONFIG` style).
-- **No copy inside `ui/`.** Labels/children come from callers so i18n stays at the feature layer; enum-labelled atoms (RiskBadge, SizeChip) may read their `Enums.*` namespace directly (existing SizeChip precedent).
+## Typography
 
-## Conventions
+- Geist Sans: 400 body · 500 interactive · 600 titles (`tracking -0.01em`) · 700 page h1 / hero %.
+- Geist Mono via `fx-label` / `fx-num` / `fx-chip` — anything measured. Decorative glyphs (`·`, `↩`, `★`) stay in JSX per the i18n rule.
 
-1. **`tailwind-merge`** is the one new dependency: `ui/` components expose `className`, and unmerged class conflicts already shipped a real bug (the SizeChip double-chip incident recorded in `MatrixTaskCard.tsx`).
-2. **Type-scale tokens**: define 2–3 small sizes (e.g. `text-2xs` = 11px, `text-3xs` = 10px) in the Tailwind theme and retire the six arbitrary values; give `rounded-[10px]` a semantic radius token.
-3. **The `/design` gallery is the acceptance spec**: every `ui/` component must have a gallery entry (overlays demoed via trigger buttons). Check the gallery before writing new UI.
-4. `ui/` components are presentational only — no data fetching, no server actions.
+## Motion
 
-## Migration phases (lowest risk first, each independently mergeable)
+One easing: `cubic-bezier(0.2, 0, 0, 1)` ("console snap"). 150ms micro (hover lift, glow ramp) · 240ms structural · 420ms `fx-boot-in`. Ambient loops are rare and slow: LED pulse 2.4s, sweep 6s, orbit 5s, target pulse 1.6s. Drag lift is a class swap, never a transition. The grid/scanlines never move (except the login crawl).
 
-1. **Foundations** — `ui/` folder, `Pill`, tailwind-merge, type/radius tokens, gallery entries. Pure visual swap.
-2. **Badge family** — InstanceBadge / RiskBadge / RolloverTag / riskBorderClass across ~30 call sites; SizeChip + TaskTypeBadge move to `ui/` on Pill. Verify by gallery comparison.
-3. **Bottom sheets** — `useDialogSync` + `BottomSheet`; migrate MobileTrackSheet (simplest) then MobileBacklogSheet; unify open state to prop-driven.
-4. **Modal shells** — OverlayShell takes over TaskModal / ReviewChangesModal / AiPlanChatModal; backdrop behavior becomes explicit `dismissOnBackdrop={false}`. Touches interaction — hand-test each.
-5. **Form kit** — FieldRow / ChoicePills / Stepper / SubmitButton; refactor TaskModal + PlanForm (largest beneficiary); delete IconNumberField.
-6. **Content blocks** — StatBlock / ProgressBar / EmptyState / SectionLabel; align loading skeletons with real component structure.
+## Sync points
 
-After each phase, back-port any visual details to the source-of-truth mockups in `design/mockup/` per the standard workflow.
+Changing base colors requires touching, in lockstep: `src/app/globals.css` (theme blocks **and the two `--fx-art` SVG data-URIs**, whose nebula/filament colors are baked in), `public/manifest.json` (`background_color` = dark base-300, `theme_color` = dark base-100), `src/app/layout.tsx` (`viewport.themeColor`), `design/mockup/mockup-theme.css` (`--m-*` incl. regenerating every rgba alpha ladder from the new hexes), and `design/mockup/auth/mockup-login.html` (private token block mirroring the app tokens).

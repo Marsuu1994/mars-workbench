@@ -1,4 +1,4 @@
-import { TaskSize } from "@/generated/prisma/client";
+import {TaskSize} from '@/generated/prisma/client';
 
 export const SIZE_TO_POINTS: Record<TaskSize, number> = {
   EXTRA_SMALL: 1,

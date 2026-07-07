@@ -1,6 +1,6 @@
-import type { TaskSize } from "@/generated/prisma/client";
-import type { PerTemplateStat } from "@/types/aiChat";
-import { DRAFT_PLAN_SYSTEM_PROMPT_BODY } from "./draftPlanPromptBody";
+import type {TaskSize} from '@/generated/prisma/client';
+import type {PerTemplateStat} from '@/types/aiChat';
+import {DRAFT_PLAN_SYSTEM_PROMPT_BODY} from './draftPlanPromptBody';
 
 export type PromptExistingTemplate = {
   templateId: string;

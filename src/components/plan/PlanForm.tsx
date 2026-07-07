@@ -1,25 +1,31 @@
-"use client";
+'use client';
 
-import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { useTranslations } from "next-intl";
-import { CheckIcon, MoonIcon, BoltIcon } from "@heroicons/react/24/outline";
-import { TaskType, TaskStatus, PeriodType, PlanMode, TaskSize } from "@/utils/enums";
-import { getWeekDateRange } from "@/utils/dateUtils";
-import { SizeChip } from "@/components/shared/SizeChip";
-import type { TaskTemplateItem } from "@/lib/db/taskTemplates";
-import { sizeToPoints } from "@/utils/enums";
+import {useRef, useState} from 'react';
+import {useRouter} from 'next/navigation';
+import Link from 'next/link';
+import {useTranslations} from 'next-intl';
+import {CheckIcon, MoonIcon, BoltIcon} from '@heroicons/react/24/outline';
+import {
+  TaskType,
+  TaskStatus,
+  PeriodType,
+  PlanMode,
+  TaskSize,
+} from '@/utils/enums';
+import {getWeekDateRange} from '@/utils/dateUtils';
+import {SizeChip} from '@/components/shared/SizeChip';
+import type {TaskTemplateItem} from '@/lib/db/taskTemplates';
+import {sizeToPoints} from '@/utils/enums';
 import {
   createPlanAction,
   updatePlanAction,
   countIncompleteByTemplateAction,
-} from "@/actions/planActions";
-import TemplateItem from "./TemplateItem";
-import TaskModal from "@/components/shared/task-modal/TaskModal";
-import { ReviewChangesModal } from "./ReviewChangesModal";
-import { AiAssistantBanner } from "./ai-chat/AiAssistantBanner";
-import { AiPlanChatModal } from "./ai-chat/AiPlanChatModal";
+} from '@/actions/planActions';
+import TemplateItem from './TemplateItem';
+import TaskModal from '@/components/shared/task-modal/TaskModal';
+import {ReviewChangesModal} from './ReviewChangesModal';
+import {AiAssistantBanner} from './ai-chat/AiAssistantBanner';
+import {AiPlanChatModal} from './ai-chat/AiPlanChatModal';
 
 interface PlanTemplateConfig {
   type: TaskType;
@@ -43,7 +49,7 @@ export interface AdhocTaskItem {
 
 interface PlanFormProps {
   templates: TaskTemplateItem[];
-  mode: "create" | "edit";
+  mode: 'create' | 'edit';
   planId?: string;
   initialPlanTemplates?: InitialPlanTemplate[];
   initialDescription?: string;
@@ -61,7 +67,7 @@ export default function PlanForm({
   mode,
   planId,
   initialPlanTemplates = [],
-  initialDescription = "",
+  initialDescription = '',
   initialPlanMode = PlanMode.NORMAL,
   adhocTasks = [],
   initialAdhocTaskIds = [],
@@ -69,20 +75,20 @@ export default function PlanForm({
   periodKey,
 }: PlanFormProps) {
   const router = useRouter();
-  const t = useTranslations("Plan");
-  const tMode = useTranslations("Enums.PlanMode");
-  const tStatus = useTranslations("Enums.TaskStatus");
+  const t = useTranslations('Plan');
+  const tMode = useTranslations('Enums.PlanMode');
+  const tStatus = useTranslations('Enums.TaskStatus');
 
   // Map from templateId → {type, frequency} for selected templates
   const [selectedTemplates, setSelectedTemplates] = useState<
     Map<string, PlanTemplateConfig>
   >(
     new Map(
-      initialPlanTemplates.map((pt) => [
+      initialPlanTemplates.map(pt => [
         pt.templateId,
-        { type: pt.type, frequency: pt.frequency },
-      ])
-    )
+        {type: pt.type, frequency: pt.frequency},
+      ]),
+    ),
   );
   const [description, setDescription] = useState(initialDescription);
   const [planMode, setPlanMode] = useState<PlanMode>(initialPlanMode);
@@ -92,31 +98,31 @@ export default function PlanForm({
   const [editingTemplate, setEditingTemplate] =
     useState<TaskTemplateItem | null>(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [incompleteCounts, setIncompleteCounts] = useState<Record<string, number>>(
-    {}
-  );
+  const [incompleteCounts, setIncompleteCounts] = useState<
+    Record<string, number>
+  >({});
   const [selectedAdhocIds, setSelectedAdhocIds] = useState<Set<string>>(
-    new Set(initialAdhocTaskIds)
+    new Set(initialAdhocTaskIds),
   );
 
   // Cache configs when templates are unchecked so re-checking restores them
   const configCache = useRef(new Map<string, PlanTemplateConfig>());
 
   function toggleTemplate(id: string) {
-    setSelectedTemplates((prev) => {
+    setSelectedTemplates(prev => {
       const next = new Map(prev);
       if (next.has(id)) {
         configCache.current.set(id, next.get(id)!);
         next.delete(id);
       } else {
         const cached = configCache.current.get(id);
-        const initial = initialPlanTemplates.find((pt) => pt.templateId === id);
+        const initial = initialPlanTemplates.find(pt => pt.templateId === id);
         next.set(
           id,
           cached ??
             (initial
-              ? { type: initial.type, frequency: initial.frequency }
-              : { type: TaskType.DAILY, frequency: 1 })
+              ? {type: initial.type, frequency: initial.frequency}
+              : {type: TaskType.DAILY, frequency: 1}),
         );
       }
       return next;
@@ -124,7 +130,7 @@ export default function PlanForm({
   }
 
   function updateConfig(id: string, config: PlanTemplateConfig) {
-    setSelectedTemplates((prev) => {
+    setSelectedTemplates(prev => {
       const next = new Map(prev);
       next.set(id, config);
       return next;
@@ -132,7 +138,7 @@ export default function PlanForm({
   }
 
   function toggleAdhocTask(id: string) {
-    setSelectedAdhocIds((prev) => {
+    setSelectedAdhocIds(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -143,29 +149,31 @@ export default function PlanForm({
   // Compute diff between initial and current state (edit mode only)
   function computeDiff() {
     const initialMap = new Map(
-      initialPlanTemplates.map((pt) => [pt.templateId, pt])
+      initialPlanTemplates.map(pt => [pt.templateId, pt]),
     );
-    const templateTitleMap = new Map(templates.map((t) => [t.id, t.title]));
-    const templateSizeMap = new Map(templates.map((t) => [t.id, t.size]));
-    const templatePointsMap = new Map(templates.map((t) => [t.id, sizeToPoints(t.size)]));
+    const templateTitleMap = new Map(templates.map(t => [t.id, t.title]));
+    const templateSizeMap = new Map(templates.map(t => [t.id, t.size]));
+    const templatePointsMap = new Map(
+      templates.map(t => [t.id, sizeToPoints(t.size)]),
+    );
 
     const added = Array.from(selectedTemplates.entries())
       .filter(([id]) => !initialMap.has(id))
       .map(([id, cfg]) => ({
         templateId: id,
-        title: templateTitleMap.get(id) ?? "",
-        size: (templateSizeMap.get(id) ?? "MEDIUM") as TaskSize,
+        title: templateTitleMap.get(id) ?? '',
+        size: (templateSizeMap.get(id) ?? 'MEDIUM') as TaskSize,
         points: templatePointsMap.get(id) ?? 0,
         type: cfg.type,
         frequency: cfg.frequency,
       }));
 
     const removed = initialPlanTemplates
-      .filter((pt) => !selectedTemplates.has(pt.templateId))
-      .map((pt) => ({
+      .filter(pt => !selectedTemplates.has(pt.templateId))
+      .map(pt => ({
         templateId: pt.templateId,
-        title: templateTitleMap.get(pt.templateId) ?? "",
-        size: (templateSizeMap.get(pt.templateId) ?? "MEDIUM") as TaskSize,
+        title: templateTitleMap.get(pt.templateId) ?? '',
+        size: (templateSizeMap.get(pt.templateId) ?? 'MEDIUM') as TaskSize,
         points: templatePointsMap.get(pt.templateId) ?? 0,
         type: pt.type,
         frequency: pt.frequency,
@@ -174,13 +182,15 @@ export default function PlanForm({
     const modified = Array.from(selectedTemplates.entries())
       .filter(([id, cfg]) => {
         const init = initialMap.get(id);
-        return init && (init.type !== cfg.type || init.frequency !== cfg.frequency);
+        return (
+          init && (init.type !== cfg.type || init.frequency !== cfg.frequency)
+        );
       })
       .map(([id, cfg]) => {
         const init = initialMap.get(id)!;
         return {
           templateId: id,
-          title: templateTitleMap.get(id) ?? "",
+          title: templateTitleMap.get(id) ?? '',
           fromType: init.type,
           fromFrequency: init.frequency,
           toType: cfg.type,
@@ -191,36 +201,50 @@ export default function PlanForm({
     // Ad-hoc diff
     const initialAdhocSet = new Set(initialAdhocTaskIds);
     const addedAdhoc = adhocTasks.filter(
-      (t) => selectedAdhocIds.has(t.id) && !initialAdhocSet.has(t.id)
+      t => selectedAdhocIds.has(t.id) && !initialAdhocSet.has(t.id),
     );
     const removedAdhoc = adhocTasks.filter(
-      (t) => !selectedAdhocIds.has(t.id) && initialAdhocSet.has(t.id)
+      t => !selectedAdhocIds.has(t.id) && initialAdhocSet.has(t.id),
     );
 
     const modeChanged = planMode !== initialPlanMode;
 
-    return { added, removed, modified, addedAdhoc, removedAdhoc, modeChanged, fromMode: initialPlanMode, toMode: planMode };
+    return {
+      added,
+      removed,
+      modified,
+      addedAdhoc,
+      removedAdhoc,
+      modeChanged,
+      fromMode: initialPlanMode,
+      toMode: planMode,
+    };
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
-    if (mode === "edit") {
-      const { added, removed, modified, addedAdhoc, removedAdhoc, modeChanged } = computeDiff();
+    if (mode === 'edit') {
+      const {added, removed, modified, addedAdhoc, removedAdhoc, modeChanged} =
+        computeDiff();
       const hasChanges =
-        added.length > 0 || removed.length > 0 || modified.length > 0 ||
-        addedAdhoc.length > 0 || removedAdhoc.length > 0 || modeChanged;
+        added.length > 0 ||
+        removed.length > 0 ||
+        modified.length > 0 ||
+        addedAdhoc.length > 0 ||
+        removedAdhoc.length > 0 ||
+        modeChanged;
       if (hasChanges) {
         // Fetch incomplete task counts for removed + modified templates
         const affectedIds = [
-          ...removed.map((t) => t.templateId),
-          ...modified.map((t) => t.templateId),
+          ...removed.map(t => t.templateId),
+          ...modified.map(t => t.templateId),
         ];
         if (affectedIds.length > 0) {
           const counts = await countIncompleteByTemplateAction(
             planId!,
-            affectedIds
+            affectedIds,
           );
           setIncompleteCounts(counts);
         } else {
@@ -246,12 +270,12 @@ export default function PlanForm({
         templateId,
         type: cfg.type,
         frequency: cfg.frequency,
-      })
+      }),
     );
 
     let result;
     switch (mode) {
-      case "create":
+      case 'create':
         result = await createPlanAction({
           periodType: PeriodType.WEEKLY,
           description: description.trim() || undefined,
@@ -260,7 +284,7 @@ export default function PlanForm({
           adhocTaskIds: Array.from(selectedAdhocIds),
         });
         break;
-      case "edit":
+      case 'edit':
         result = await updatePlanAction(planId!, {
           description: description.trim() || undefined,
           mode: planMode,
@@ -273,35 +297,43 @@ export default function PlanForm({
     if (result.error) {
       const err = result.error;
       const message =
-        "formErrors" in err
-          ? err.formErrors.join(", ")
-          : JSON.stringify(err);
+        'formErrors' in err ? err.formErrors.join(', ') : JSON.stringify(err);
       setError(message);
       setIsSubmitting(false);
       setIsReviewModalOpen(false);
       return;
     }
 
-    router.push("/kanban");
+    router.push('/kanban');
   }
 
-  const diff = mode === "edit"
-    ? computeDiff()
-    : { added: [], removed: [], modified: [], addedAdhoc: [], removedAdhoc: [], modeChanged: false, fromMode: initialPlanMode, toMode: planMode };
+  const diff =
+    mode === 'edit'
+      ? computeDiff()
+      : {
+          added: [],
+          removed: [],
+          modified: [],
+          addedAdhoc: [],
+          removedAdhoc: [],
+          modeChanged: false,
+          fromMode: initialPlanMode,
+          toMode: planMode,
+        };
 
   // Heading scrolls with the form on both breakpoints; the page chrome
   // (Kanban Planner + Planning Mode badge) lives in the plans layout.
   const renderHeading = () => (
     <>
       <h2 className="text-xl md:text-2xl font-bold mb-1">
-        {mode === "create" ? t("createTitle") : t("updateTitle")}
+        {mode === 'create' ? t('createTitle') : t('updateTitle')}
       </h2>
-      {mode === "create" && (
+      {mode === 'create' && (
         <p className="text-sm md:text-base text-base-content/50 mb-5 md:mb-7">
-          {t("createSubtitle")}
+          {t('createSubtitle')}
         </p>
       )}
-      {mode === "edit" &&
+      {mode === 'edit' &&
         (periodKey ? (
           <p className="text-sm md:text-base text-base-content/50 mb-5 md:mb-7">
             {getWeekDateRange(periodKey)}
@@ -315,30 +347,35 @@ export default function PlanForm({
   return (
     <>
       {renderHeading()}
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6 pb-16 md:pb-0">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-6 pb-16 md:pb-0"
+      >
         {/* Description */}
         <div className="form-control">
           <label className="label">
             <span className="label-text text-base-content/60 text-xs font-medium">
-              {t("descriptionLabel")}
+              {t('descriptionLabel')}
             </span>
           </label>
           <input
             type="text"
             className="input input-bordered w-full"
-            placeholder={t("descriptionPlaceholder")}
+            placeholder={t('descriptionPlaceholder')}
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={e => setDescription(e.target.value)}
           />
         </div>
 
         {/* AI Assistant entry (create mode only) */}
-        {mode === "create" && <AiAssistantBanner contextPlanId={aiContextPlanId} />}
+        {mode === 'create' && (
+          <AiAssistantBanner contextPlanId={aiContextPlanId} />
+        )}
 
         {/* Plan Mode */}
         <div className="rounded-lg border border-base-content/10 bg-base-200 p-3.5">
           <span className="text-[11px] font-semibold uppercase tracking-wider text-base-content/50 block mb-2">
-            {t("planModeLabel")}
+            {t('planModeLabel')}
           </span>
           <div className="flex gap-0 rounded-lg border border-base-content/10 bg-base-100 p-[3px]">
             <button
@@ -346,16 +383,22 @@ export default function PlanForm({
               onClick={() => setPlanMode(PlanMode.NORMAL)}
               className={`flex flex-1 flex-col items-center gap-0.5 rounded-md px-3 py-2.5 cursor-pointer border transition-colors ${
                 planMode === PlanMode.NORMAL
-                  ? "border-info/50 bg-info/5"
-                  : "border-transparent"
+                  ? 'border-info/50 bg-info/5'
+                  : 'border-transparent'
               }`}
             >
-              <MoonIcon className={`size-4 ${planMode === PlanMode.NORMAL ? "text-info" : "text-base-content/30"}`} />
-              <span className={`text-[13px] font-semibold tracking-wide ${planMode === PlanMode.NORMAL ? "text-info" : "text-base-content/30"}`}>
-                {tMode("NORMAL")}
+              <MoonIcon
+                className={`size-4 ${planMode === PlanMode.NORMAL ? 'text-info' : 'text-base-content/30'}`}
+              />
+              <span
+                className={`text-[13px] font-semibold tracking-wide ${planMode === PlanMode.NORMAL ? 'text-info' : 'text-base-content/30'}`}
+              >
+                {tMode('NORMAL')}
               </span>
-              <span className={`text-[11px] ${planMode === PlanMode.NORMAL ? "text-base-content/60" : "text-base-content/30"}`}>
-                {t("normalModeShortDesc")}
+              <span
+                className={`text-[11px] ${planMode === PlanMode.NORMAL ? 'text-base-content/60' : 'text-base-content/30'}`}
+              >
+                {t('normalModeShortDesc')}
               </span>
             </button>
             <button
@@ -363,16 +406,22 @@ export default function PlanForm({
               onClick={() => setPlanMode(PlanMode.EXTREME)}
               className={`flex flex-1 flex-col items-center gap-0.5 rounded-md px-3 py-2.5 cursor-pointer border transition-colors ${
                 planMode === PlanMode.EXTREME
-                  ? "border-error/50 bg-error/5"
-                  : "border-transparent"
+                  ? 'border-error/50 bg-error/5'
+                  : 'border-transparent'
               }`}
             >
-              <BoltIcon className={`size-4 ${planMode === PlanMode.EXTREME ? "text-error" : "text-base-content/30"}`} />
-              <span className={`text-[13px] font-semibold tracking-wide ${planMode === PlanMode.EXTREME ? "text-error" : "text-base-content/30"}`}>
-                {tMode("EXTREME")}
+              <BoltIcon
+                className={`size-4 ${planMode === PlanMode.EXTREME ? 'text-error' : 'text-base-content/30'}`}
+              />
+              <span
+                className={`text-[13px] font-semibold tracking-wide ${planMode === PlanMode.EXTREME ? 'text-error' : 'text-base-content/30'}`}
+              >
+                {tMode('EXTREME')}
               </span>
-              <span className={`text-[11px] ${planMode === PlanMode.EXTREME ? "text-base-content/60" : "text-base-content/30"}`}>
-                {t("extremeModeShortDesc")}
+              <span
+                className={`text-[11px] ${planMode === PlanMode.EXTREME ? 'text-base-content/60' : 'text-base-content/30'}`}
+              >
+                {t('extremeModeShortDesc')}
               </span>
             </button>
           </div>
@@ -382,7 +431,7 @@ export default function PlanForm({
         <div>
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-medium text-base-content/60">
-              {t("taskTemplatesLabel")}
+              {t('taskTemplatesLabel')}
             </span>
             <button
               type="button"
@@ -392,19 +441,19 @@ export default function PlanForm({
                 setIsModalOpen(true);
               }}
             >
-              {t("newTemplateButton")}
+              {t('newTemplateButton')}
             </button>
           </div>
 
           <div className="flex flex-col gap-2">
-            {templates.map((t) => (
+            {templates.map(t => (
               <TemplateItem
                 key={t.id}
                 template={t}
                 isSelected={selectedTemplates.has(t.id)}
                 config={selectedTemplates.get(t.id)}
                 onToggle={() => toggleTemplate(t.id)}
-                onConfigChange={(cfg) => updateConfig(t.id, cfg)}
+                onConfigChange={cfg => updateConfig(t.id, cfg)}
                 onEdit={() => {
                   setEditingTemplate(t);
                   setIsModalOpen(true);
@@ -415,7 +464,7 @@ export default function PlanForm({
 
           {templates.length === 0 && (
             <p className="text-sm text-base-content/50 text-center py-8">
-              {t("noTemplates")}
+              {t('noTemplates')}
             </p>
           )}
         </div>
@@ -425,15 +474,15 @@ export default function PlanForm({
           <div>
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-medium text-base-content/60">
-                {t("adhocTasksLabel")}
+                {t('adhocTasksLabel')}
               </span>
               <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-warning/15 text-warning">
-                {t("taskCount", { count: adhocTasks.length })}
+                {t('taskCount', {count: adhocTasks.length})}
               </span>
             </div>
 
             <div className="flex flex-col gap-2">
-              {adhocTasks.map((task) => {
+              {adhocTasks.map(task => {
                 const isSelected = selectedAdhocIds.has(task.id);
                 return (
                   <div
@@ -441,24 +490,24 @@ export default function PlanForm({
                     role="button"
                     tabIndex={0}
                     onClick={() => toggleAdhocTask(task.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         toggleAdhocTask(task.id);
                       }
                     }}
                     className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
                       isSelected
-                        ? "border-info/50 bg-info/5"
-                        : "border-base-content/10 bg-base-200"
+                        ? 'border-info/50 bg-info/5'
+                        : 'border-base-content/10 bg-base-200'
                     }`}
                   >
                     {/* Checkbox */}
                     <div
                       className={`flex size-[18px] shrink-0 items-center justify-center rounded border-2 transition-colors ${
                         isSelected
-                          ? "border-info bg-info"
-                          : "border-base-content/30 bg-transparent"
+                          ? 'border-info bg-info'
+                          : 'border-base-content/30 bg-transparent'
                       }`}
                     >
                       {isSelected && (
@@ -469,16 +518,22 @@ export default function PlanForm({
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm">{task.title}</span>
-                        <SizeChip size={task.size as TaskSize} points={task.points} className="shrink-0" />
+                        <span className="font-medium text-sm">
+                          {task.title}
+                        </span>
+                        <SizeChip
+                          size={task.size as TaskSize}
+                          points={task.points}
+                          className="shrink-0"
+                        />
                       </div>
                     </div>
 
                     {/* Status badge */}
                     <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-base-300 text-base-content/50 uppercase tracking-wider shrink-0">
                       {task.status === TaskStatus.DOING
-                        ? tStatus("DOING")
-                        : tStatus("TODO")}
+                        ? tStatus('DOING')
+                        : tStatus('TODO')}
                     </span>
                   </div>
                 );
@@ -494,15 +549,18 @@ export default function PlanForm({
         <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4rem)] z-30 flex items-center gap-3 border-t border-base-content/10 bg-base-100 px-4 py-2.5 md:static md:inset-x-auto md:z-auto md:justify-between md:gap-2 md:bg-transparent md:px-0 md:py-0 md:pt-5">
           <div className="flex-1 text-[11px] leading-snug text-base-content/50 md:flex-none md:text-sm">
             {adhocTasks.length > 0
-              ? t("summaryWithAdhoc", {
+              ? t('summaryWithAdhoc', {
                   templateCount: selectedTemplates.size,
                   adhocCount: selectedAdhocIds.size,
                 })
-              : t("summary", { templateCount: selectedTemplates.size })}
+              : t('summary', {templateCount: selectedTemplates.size})}
           </div>
           <div className="flex gap-2 shrink-0">
-            <Link href="/kanban" className="btn btn-ghost hidden md:inline-flex">
-              {t("cancel")}
+            <Link
+              href="/kanban"
+              className="btn btn-ghost hidden md:inline-flex"
+            >
+              {t('cancel')}
             </Link>
             <button
               type="submit"
@@ -517,7 +575,7 @@ export default function PlanForm({
               ) : (
                 <CheckIcon className="size-4" />
               )}
-              {mode === "create" ? t("startWeek") : t("updatePlan")}
+              {mode === 'create' ? t('startWeek') : t('updatePlan')}
             </button>
           </div>
         </div>
@@ -544,7 +602,7 @@ export default function PlanForm({
         fromMode={diff.fromMode}
         toMode={diff.toMode}
       />
-      {mode === "create" && <AiPlanChatModal />}
+      {mode === 'create' && <AiPlanChatModal />}
     </>
   );
 }

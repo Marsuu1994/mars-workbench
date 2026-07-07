@@ -18,6 +18,8 @@ Single source of truth for open ideas and todos across the app — open items on
 ### Medium
 
 - [ ] Add AI-generated task instance flow — LLM should be able to generate task instances based on past work + task template information; need to record the quality of tasks it generated
+- [ ] Mobile adaptation for the AI plan chat modal — it stays a 640px-capped centered card on phones while sibling modals (TaskModal, ReviewChangesModal) switch to `modal-bottom` sheets; no mobile AI-chat mockup exists (design the mobile presentation first, then implement)
+- [ ] Redesign the template edit (pencil) affordance for discoverability — currently `opacity-0 group-hover:opacity-100` on TemplateItem, so it's invisible on touch and hidden-until-hover on desktop; both plan-form mockups draw it always visible. Needs a design exploration (`/design-explore`) before implementation
 
 ### Future
 
@@ -58,14 +60,17 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### Medium
 
-- [ ] Design-system layer (`src/components/ui/`) on top of daisyUI — full proposal in `design/design-system.md`; phases below merge independently
-  - Phase 1: foundations — `ui/` folder, `Pill`, tailwind-merge, type/radius tokens, gallery entries
-  - Phase 2: badge family — InstanceBadge / RiskBadge / RolloverTag / riskBorderClass (~30 call sites); SizeChip + TaskTypeBadge onto Pill
+- [ ] Component library (`src/components/ui/`) — the structural layer on top of daisyUI + `fx-*`; full proposal in `design/component-library.md`; phases below merge independently
+  - Phase 1: foundations — `ui/` folder, `Pill` (on `fx-chip`), tailwind-merge, radius/type-scale token decisions, gallery entries
+  - Phase 2: badge family — InstanceBadge / RiskBadge / RolloverTag / riskBorderClass (24 remaining sites); SizeChip + TaskTypeBadge onto Pill
   - Phase 3: bottom sheets — `useDialogSync` + `BottomSheet`; migrate MobileTrackSheet, MobileBacklogSheet
-  - Phase 4: modal shells — OverlayShell for TaskModal / ReviewChangesModal / AiPlanChatModal; explicit `dismissOnBackdrop`
+  - Phase 4: modal shells — OverlayShell for TaskModal / ReviewChangesModal / AiPlanChatModal, owning `fx-panel-solid` / `fx-boot-in` / `fx-corners`; explicit `dismissOnBackdrop`
   - Phase 5: form kit — FieldRow / ChoicePills / Stepper / SubmitButton; refactor TaskModal + PlanForm; delete dead IconNumberField
-  - Phase 6: content blocks — StatBlock / ProgressBar / EmptyState / SectionLabel; align loading skeletons
-- [ ] Refine the component gallery page (`/design`) — add remaining primitives (BoardColumn, TemplateItem, task-modal pieces), polish grouping/layout, and consider per-variant controls; gallery doubles as the design-system acceptance spec (see `design/design-system.md`)
+  - Phase 6: content blocks + micro-type sweep — StatBlock / ProgressBar / EmptyState / SectionLabel; finish `fx-label`/`fx-num` adoption; align loading skeletons
+- [ ] Scenario pages + mockup retirement — `/design/scenarios/*` routes composing real page components with fixtures replace per-feature HTML mockups as the screen-level source of truth; plan in `design/component-library.md`. Gated on component-library Phases 1–2; if adopted, supersedes the FX-back-port item below
+- [ ] Refine the component gallery page (`/design`) — add remaining primitives (BoardColumn, TemplateItem, task-modal pieces), polish grouping/layout, and consider per-variant controls; gallery doubles as the component-library acceptance spec (see `design/component-library.md`)
+- [ ] Back-port the Mission Control HUD FX language (mono `fx-label`/`fx-num` telemetry type, LED dots, corner brackets, glow states) into the mockup component classes in `design/mockup/styles.css` and per-mockup CSS — the palette swap landed in `mockup-theme.css`, but mockups don't yet render the FX layer (see `design/design-system.md`). **Hold**: superseded if the scenario-pages plan above is adopted
+- [ ] Uniform page header across pages (board, priorities, settings) — one shared header treatment on both breakpoints; plan pages keep their distinct planning-mode header. Also resolves the BoardHeader accent drift (desktop `md:text-success` green vs mobile `text-primary`; the desktop mockup shows the primary accent)
 
 ### Future
 

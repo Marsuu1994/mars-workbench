@@ -1,25 +1,21 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
-import { BoltIcon } from "@heroicons/react/24/outline";
-import type { TaskTemplateItem } from "@/lib/db/taskTemplates";
-import {
-  TaskSize,
-  sizeToPoints,
-  type PriorityQuadrant,
-} from "@/utils/enums";
+import {useEffect, useRef, useState} from 'react';
+import {useTranslations} from 'next-intl';
+import {BoltIcon} from '@heroicons/react/24/outline';
+import type {TaskTemplateItem} from '@/lib/db/taskTemplates';
+import {TaskSize, sizeToPoints, type PriorityQuadrant} from '@/utils/enums';
 import {
   createTaskTemplateAction,
   updateTaskTemplateAction,
-} from "@/actions/templateActions";
-import { createAdhocTaskAction } from "@/actions/taskActions";
-import { FALLBACK_QUADRANT } from "@/components/priorities/constants";
-import TaskModalHeader from "./TaskModalHeader";
-import TaskModalFooter from "./TaskModalFooter";
-import QuadrantPicker from "./QuadrantPicker";
+} from '@/actions/templateActions';
+import {createAdhocTaskAction} from '@/actions/taskActions';
+import {FALLBACK_QUADRANT} from '@/components/priorities/constants';
+import TaskModalHeader from './TaskModalHeader';
+import TaskModalFooter from './TaskModalFooter';
+import QuadrantPicker from './QuadrantPicker';
 
-type ModalMode = "create" | "edit" | "adhoc";
+type ModalMode = 'create' | 'edit' | 'adhoc';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -44,16 +40,19 @@ export default function TaskModal({
   template,
   quadrant,
 }: TaskModalProps) {
-  const t = useTranslations("TaskModal");
-  const tSize = useTranslations("Enums.TaskSize");
-  const tEnums = useTranslations("Enums");
+  const t = useTranslations('TaskModal');
+  const tSize = useTranslations('Enums.TaskSize');
+  const tEnums = useTranslations('Enums');
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const mode: ModalMode = modeProp ?? (template ? "edit" : "create");
+  const mode: ModalMode = modeProp ?? (template ? 'edit' : 'create');
 
-  const initialTitle = mode === "adhoc" ? "" : (template?.title ?? "");
-  const initialDescription = mode === "adhoc" ? "" : (template?.description ?? "");
+  const initialTitle = mode === 'adhoc' ? '' : (template?.title ?? '');
+  const initialDescription =
+    mode === 'adhoc' ? '' : (template?.description ?? '');
   const initialSize =
-    mode === "adhoc" ? TaskSize.EXTRA_SMALL : ((template?.size as TaskSize) ?? TaskSize.MEDIUM);
+    mode === 'adhoc'
+      ? TaskSize.EXTRA_SMALL
+      : ((template?.size as TaskSize) ?? TaskSize.MEDIUM);
 
   const [title, setTitle] = useState(initialTitle);
   const [description, setDescription] = useState(initialDescription);
@@ -66,13 +65,13 @@ export default function TaskModal({
   // Reset form when the modal opens or the target template/mode changes.
   // Done during render (not in an effect) to avoid cascading re-renders.
   // Mirrors the previous effect's [isOpen, template, mode] dependencies.
-  const [formSource, setFormSource] = useState({ isOpen, template, mode });
+  const [formSource, setFormSource] = useState({isOpen, template, mode});
   if (
     formSource.isOpen !== isOpen ||
     formSource.template !== template ||
     formSource.mode !== mode
   ) {
-    setFormSource({ isOpen, template, mode });
+    setFormSource({isOpen, template, mode});
     if (isOpen) {
       setTitle(initialTitle);
       setDescription(initialDescription);
@@ -103,17 +102,17 @@ export default function TaskModal({
     const effectiveQuadrant = quadrant ?? selectedQuadrant;
     let result;
     switch (mode) {
-      case "create":
-        result = await createTaskTemplateAction({ title, description, size });
+      case 'create':
+        result = await createTaskTemplateAction({title, description, size});
         break;
-      case "edit":
+      case 'edit':
         result = await updateTaskTemplateAction(template!.id, {
           title,
           description,
           size,
         });
         break;
-      case "adhoc":
+      case 'adhoc':
         result = await createAdhocTaskAction({
           title,
           description,
@@ -126,13 +125,13 @@ export default function TaskModal({
     if (result.error) {
       const err = result.error;
       let message: string;
-      if ("formErrors" in err) {
+      if ('formErrors' in err) {
         // Include fieldErrors so a validation failure with empty formErrors
         // (e.g. a missing required field) never renders as a blank error.
         const fieldMessages = Object.values(err.fieldErrors ?? {}).flatMap(
-          (messages) => messages ?? []
+          messages => messages ?? [],
         );
-        message = [...err.formErrors, ...fieldMessages].join(", ");
+        message = [...err.formErrors, ...fieldMessages].join(', ');
       } else {
         message = JSON.stringify(err);
       }
@@ -141,11 +140,11 @@ export default function TaskModal({
       return;
     }
 
-    onSaved(mode === "adhoc" ? effectiveQuadrant : undefined);
+    onSaved(mode === 'adhoc' ? effectiveQuadrant : undefined);
     onClose();
   }
 
-  const isAdhoc = mode === "adhoc";
+  const isAdhoc = mode === 'adhoc';
 
   return (
     <dialog
@@ -153,7 +152,7 @@ export default function TaskModal({
       className="modal modal-bottom md:modal-middle"
       onClose={onClose}
     >
-      <div className="modal-box max-w-lg pt-2 md:pt-6">
+      <div className="modal-box fx-panel-solid fx-boot-in md:fx-corners max-w-lg pt-2 md:pt-6">
         {/* Sheet grip (mobile only) */}
         <div className="md:hidden w-[38px] h-1 rounded-full bg-base-content/20 mx-auto mb-3" />
         <TaskModalHeader mode={mode} onClose={onClose} />
@@ -163,7 +162,7 @@ export default function TaskModal({
           {isAdhoc && (
             <div className="flex items-center gap-2 bg-warning/10 text-warning text-sm px-3.5 py-2.5 rounded-lg">
               <BoltIcon className="size-4.5 shrink-0" />
-              {t("adhocBanner")}
+              {t('adhocBanner')}
             </div>
           )}
 
@@ -171,15 +170,19 @@ export default function TaskModal({
           <div className="form-control">
             <label className="label">
               <span className="label-text text-xs font-medium">
-                {t("titleLabel")} <span className="text-error">*</span>
+                {t('titleLabel')} <span className="text-error">*</span>
               </span>
             </label>
             <input
               type="text"
               className="input input-bordered w-full"
-              placeholder={isAdhoc ? t("titlePlaceholderAdhoc") : t("titlePlaceholderTemplate")}
+              placeholder={
+                isAdhoc
+                  ? t('titlePlaceholderAdhoc')
+                  : t('titlePlaceholderTemplate')
+              }
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={e => setTitle(e.target.value)}
               required
             />
           </div>
@@ -188,9 +191,11 @@ export default function TaskModal({
           <div className="form-control">
             <label className="label">
               <span className="label-text text-xs font-medium">
-                {t("descriptionLabel")}{" "}
+                {t('descriptionLabel')}{' '}
                 {!isAdhoc && (
-                  <span className="text-base-content/40">{t("descriptionAiHint")}</span>
+                  <span className="text-base-content/40">
+                    {t('descriptionAiHint')}
+                  </span>
                 )}
               </span>
             </label>
@@ -199,11 +204,11 @@ export default function TaskModal({
               rows={3}
               placeholder={
                 isAdhoc
-                  ? t("descriptionPlaceholderAdhoc")
-                  : t("descriptionPlaceholderTemplate")
+                  ? t('descriptionPlaceholderAdhoc')
+                  : t('descriptionPlaceholderTemplate')
               }
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={e => setDescription(e.target.value)}
             />
           </div>
 
@@ -211,39 +216,44 @@ export default function TaskModal({
           <div className="form-control">
             <label className="label">
               <span className="label-text text-xs font-medium">
-                {t("sizeLabel")} <span className="text-error">*</span>
+                {t('sizeLabel')} <span className="text-error">*</span>
               </span>
             </label>
             <div className="flex gap-1.5 w-full">
-              {Object.values(TaskSize).map((s) => (
+              {Object.values(TaskSize).map(s => (
                 <button
                   key={s}
                   type="button"
                   onClick={() => setSize(s)}
                   className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-full border text-xs font-bold transition-colors ${
                     size === s
-                      ? "bg-secondary/10 border-secondary text-secondary"
-                      : "bg-base-200 border-base-300 text-base-content/50 hover:border-base-content/30"
+                      ? 'bg-secondary/10 border-secondary text-secondary'
+                      : 'bg-base-200 border-base-300 text-base-content/50 hover:border-base-content/30'
                   }`}
                 >
                   <span>{tSize(s)}</span>
-                  <span className={`text-[10px] font-semibold ${size === s ? "opacity-70" : "opacity-50"}`}>
+                  <span
+                    className={`text-[10px] font-semibold ${size === s ? 'opacity-70' : 'opacity-50'}`}
+                  >
                     {sizeToPoints(s)}
                   </span>
                 </button>
               ))}
             </div>
             <p className="text-xs text-secondary mt-1.5">
-              {tEnums("sizeEffort", { hours: sizeToPoints(size) })}
+              {tEnums('sizeEffort', {hours: sizeToPoints(size)})}
             </p>
             {(size === TaskSize.LARGE || size === TaskSize.EXTRA_LARGE) && (
-              <p className="text-xs text-warning mt-0.5">{t("sizeWarning")}</p>
+              <p className="text-xs text-warning mt-0.5">{t('sizeWarning')}</p>
             )}
           </div>
 
           {/* Quadrant (adhoc without a preset source quadrant) */}
           {isAdhoc && quadrant === undefined && (
-            <QuadrantPicker value={selectedQuadrant} onChange={setSelectedQuadrant} />
+            <QuadrantPicker
+              value={selectedQuadrant}
+              onChange={setSelectedQuadrant}
+            />
           )}
 
           <TaskModalFooter

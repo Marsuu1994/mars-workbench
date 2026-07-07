@@ -14,7 +14,7 @@ A Next.js application centered on a Kanban Period Planner, with AI-assisted plan
 ## Tech Stack
 
 - Framework: Next.js 16 (App Router)
-- UI: React 19, Tailwind CSS 4, daisyUI 5 (custom `mars-dark` / `mars-light` themes)
+- UI: React 19, Tailwind CSS 4, daisyUI 5 (custom `mars-dark` / `mars-light` themes + `fx-*` FX utility layer — see `design/design-system.md` "Mission Control HUD")
 - State: Zustand
 - Database: PostgreSQL (Supabase) + Prisma ORM
 - Auth: Supabase Auth (Google OAuth)
@@ -37,6 +37,8 @@ scripts/
 design/                            # Centralized design docs (see design/README.md)
 ├── README.md                      # Index of what lives where
 ├── baseline.md                    # The ONE app-wide baseline (goal, entities, schema, decisions)
+├── design-system.md               # Visual design system: OKLCH palette + contrast, fx-* layer, sync points
+├── component-library.md           # Proposal: structural ui/ component layer (tiers, phases, scenario plan)
 ├── tracker.md                     # Consolidated roadmap — open items only
 ├── reference.md                   # Lean lookup tables: server actions, services, DAL
 ├── flows/                         # Per-feature flow docs (shared, board, plan, priorities, auth)
@@ -202,6 +204,20 @@ Mockups are the source of truth for UI, but implementation may introduce details
 - Prefer async Server Components where no client interactivity is needed.
 - Add `'use client'` only when required.
 
+## Formatting (Prettier)
+
+- All code formatting is handled by Prettier using Google's style (the `gts`
+  config: single quotes, no bracket spacing, trailing commas, `arrow` parens
+  avoided, 2-space indent, 80-col, semicolons). Config lives in
+  `.prettierrc.json`; do not hand-tune spacing/quotes against it.
+- Run `npm run format` before finishing a task so every agent leaves the same
+  style. CI runs `npm run format:check` and fails on any unformatted file.
+- Prettier is scoped to code (TS/TSX/JS/JSON/CSS). Markdown docs and `design/`
+  assets are ignored (see `.prettierignore`) — the README Update Logs are
+  append-only and must not be reflowed.
+- ESLint is layered with `eslint-config-prettier`, so lint rules never fight
+  Prettier; use ESLint for correctness, Prettier for formatting.
+
 ## API Conventions
 
 - API handlers live in `app/api/[resource]/route.ts`.
@@ -245,6 +261,7 @@ Mockups are the source of truth for UI, but implementation may introduce details
 - **Local sessions (running on the user's machine): do NOT commit or push without explicit permission from the user.** The user reviews work before it is committed. Make and stage changes, summarize what changed, and wait for the user to approve before running `git commit`, `git push`, or any other outward-facing or hard-to-reverse VCS action.
 - **Remote sessions (managed cloud environments — e.g. Claude Code on the web / GitHub integration, where the repo is cloned fresh into an ephemeral container): no permission needed for commit/push/PR.** Work on a new branch (or the session's designated working branch), commit with clear messages, push with `git push -u origin <branch>`, and open a pull request directly.
 - In both modes, never commit or push directly to `main` — changes land via pull requests.
+- **Always run `npm run format` before pushing** so every commit lands in Google/Prettier style. CI runs `npm run format:check` and will fail the PR on any unformatted file — format locally first instead of relying on CI to catch it.
 
 ## Commands
 
@@ -252,6 +269,8 @@ Mockups are the source of truth for UI, but implementation may introduce details
 npm run dev      # Start dev server
 npm run build    # Production build
 npm run lint     # Lint
+npm run format       # Format all code with Prettier (Google style)
+npm run format:check # Verify formatting (used in CI)
 npx prisma studio
 npx prisma migrate dev
 npx prisma generate

@@ -1,13 +1,16 @@
-"use client";
+'use client';
 
-import { Draggable } from "@hello-pangea/dnd";
-import { useTranslations } from "next-intl";
-import { ArrowRightIcon, EllipsisVerticalIcon } from "@heroicons/react/24/outline";
-import { useBreakpoint } from "@/components/common/BreakpointProvider";
-import type { TaskItem } from "@/lib/db/tasks";
-import type { TrackTargetStatus } from "@/schemas";
-import { SizeChip } from "@/components/shared/SizeChip";
-import TrackPopover from "./TrackPopover";
+import {Draggable} from '@hello-pangea/dnd';
+import {useTranslations} from 'next-intl';
+import {
+  ArrowRightIcon,
+  EllipsisVerticalIcon,
+} from '@heroicons/react/24/outline';
+import {useBreakpoint} from '@/components/common/BreakpointProvider';
+import type {TaskItem} from '@/lib/db/tasks';
+import type {TrackTargetStatus} from '@/schemas';
+import {SizeChip} from '@/components/shared/SizeChip';
+import TrackPopover from './TrackPopover';
 
 interface MatrixTaskCardProps {
   task: TaskItem;
@@ -42,8 +45,8 @@ export default function MatrixTaskCard({
   onTrack,
   onTap,
 }: MatrixTaskCardProps) {
-  const t = useTranslations("Priorities");
-  const { isMobile } = useBreakpoint();
+  const t = useTranslations('Priorities');
+  const {isMobile} = useBreakpoint();
 
   const handleCardClick = () => {
     if (isMobile && !isTracked) onTap(task);
@@ -51,7 +54,7 @@ export default function MatrixTaskCard({
 
   const renderTrackedTag = () => (
     <span className="flex-shrink-0 text-[9px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded">
-      <span className="hidden md:inline">{t("thisWeek")}</span>
+      <span className="hidden md:inline">{t('thisWeek')}</span>
       <span className="md:hidden">★</span>
     </span>
   );
@@ -59,18 +62,18 @@ export default function MatrixTaskCard({
   const renderSendButton = () => (
     <button
       type="button"
-      aria-label={t("sendLabel")}
-      onClick={(e) => {
+      aria-label={t('sendLabel')}
+      onClick={e => {
         e.stopPropagation();
         onSendToggle(isPopoverOpen ? null : task.id);
       }}
       className={`hidden flex-shrink-0 size-[22px] rounded-[5px] items-center justify-center transition-colors ${
-        isPopoverOpen ? "md:flex" : "md:group-hover:flex"
+        isPopoverOpen ? 'md:flex' : 'md:group-hover:flex'
       } ${
         hasActivePlan
-          ? "text-base-content/50 hover:bg-primary/10 hover:text-primary cursor-pointer"
-          : "text-base-content/30 cursor-not-allowed"
-      } ${isPopoverOpen && hasActivePlan ? "bg-primary/10 text-primary" : ""}`}
+          ? 'text-base-content/50 hover:bg-primary/10 hover:text-primary cursor-pointer'
+          : 'text-base-content/30 cursor-not-allowed'
+      } ${isPopoverOpen && hasActivePlan ? 'bg-primary/10 text-primary' : ''}`}
     >
       <ArrowRightIcon className="size-3.5" />
     </button>
@@ -92,7 +95,11 @@ export default function MatrixTaskCard({
     // Dragging is disabled while this card's popover/tooltip is open — the
     // whole card is the drag handle, so anything rendered inside it (the
     // popover buttons included) would otherwise start a drag on press+move.
-    <Draggable draggableId={task.id} index={index} isDragDisabled={isPopoverOpen}>
+    <Draggable
+      draggableId={task.id}
+      index={index}
+      isDragDisabled={isPopoverOpen}
+    >
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
@@ -100,19 +107,19 @@ export default function MatrixTaskCard({
           {...provided.dragHandleProps}
           onClick={handleCardClick}
           className={`group relative flex items-center gap-2 rounded-[10px] border bg-base-100 px-3 py-2 md:py-2.5 cursor-grab transition-[border-color,box-shadow,opacity] duration-150 ${
-            isTracked ? "opacity-55" : ""
+            isTracked ? 'opacity-55' : ''
           } ${
             snapshot.isDragging
-              ? "border-primary shadow-xl cursor-grabbing z-50"
+              ? 'border-primary shadow-xl cursor-grabbing z-50'
               : isPopoverOpen
-                ? "border-primary ring-2 ring-primary/20"
-                : "border-base-content/10 hover:border-base-content/25"
+                ? 'border-primary ring-2 ring-primary/20'
+                : 'border-base-content/10 hover:border-base-content/25'
           }`}
         >
           <div className="flex-1 min-w-0 flex flex-col gap-0.5">
             <span
               className={`text-[11px] md:text-[13px] font-medium truncate ${
-                isTracked ? "text-base-content/60" : ""
+                isTracked ? 'text-base-content/60' : ''
               }`}
             >
               {task.title}
@@ -146,10 +153,10 @@ export default function MatrixTaskCard({
           {/* Click-away layer lives at the page level (outside any Draggable) */}
           {isPopoverOpen &&
             (hasActivePlan ? (
-              <TrackPopover onTrack={(status) => onTrack(task.id, status)} />
+              <TrackPopover onTrack={status => onTrack(task.id, status)} />
             ) : (
               <div className="absolute top-full right-0 mt-1.5 z-50 rounded-lg border border-base-content/10 bg-base-100 px-2.5 py-2 text-[11px] text-base-content/60 shadow-xl whitespace-nowrap">
-                {t("noPlanTooltip")}
+                {t('noPlanTooltip')}
               </div>
             ))}
         </div>

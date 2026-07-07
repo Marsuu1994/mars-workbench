@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Droppable } from "@hello-pangea/dnd";
-import { useTranslations } from "next-intl";
+import {useState} from 'react';
+import {Droppable} from '@hello-pangea/dnd';
+import {useTranslations} from 'next-intl';
 import {
   InboxStackIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ArrowLeftIcon,
-} from "@heroicons/react/24/outline";
-import type { TaskItem } from "@/lib/db/tasks";
-import { TaskStatus } from "@/utils/enums";
-import { getTaskFrequency, type RiskLevel } from "@/utils/taskUtils";
-import TaskCard from "./TaskCard";
+} from '@heroicons/react/24/outline';
+import type {TaskItem} from '@/lib/db/tasks';
+import {TaskStatus} from '@/utils/enums';
+import {getTaskFrequency, type RiskLevel} from '@/utils/taskUtils';
+import TaskCard from './TaskCard';
 
 interface BacklogDrawerProps {
   tasks: TaskItem[];
@@ -32,40 +32,42 @@ export default function BacklogDrawer({
   riskMap,
   templateFreqMap,
 }: BacklogDrawerProps) {
-  const t = useTranslations("Board.Backlog");
+  const t = useTranslations('Board.Backlog');
   const [isOpen, setIsOpen] = useState(false);
 
   const countPill = (
-    <span className="badge badge-primary badge-sm font-bold">{tasks.length}</span>
+    <span className="badge badge-primary badge-sm font-bold">
+      {tasks.length}
+    </span>
   );
 
   const renderCollapsed = () => (
     <button
       onClick={() => setIsOpen(true)}
-      className={`absolute inset-y-0 left-0 w-12 bg-base-200 flex flex-col items-center gap-3.5 pt-4 cursor-pointer transition-opacity duration-200 hover:bg-base-300 ${
-        isOpen ? "opacity-0 pointer-events-none" : "opacity-100"
+      className={`absolute inset-y-0 left-0 w-12 bg-base-200/30 flex flex-col items-center gap-3.5 pt-4 cursor-pointer transition-opacity duration-200 hover:bg-base-300 ${
+        isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
-      title={t("openLabel")}
+      title={t('openLabel')}
     >
       <ChevronLeftIcon className="size-4 text-base-content/40" />
       {countPill}
       <span className="[writing-mode:vertical-rl] rotate-180 text-sm font-semibold text-base-content/60 tracking-wide">
-        {t("title")}
+        {t('title')}
       </span>
     </button>
   );
 
   const renderHeader = () => (
-    <div className="px-4 py-3 border-b border-base-content/10 bg-base-200 flex items-center justify-between flex-shrink-0">
+    <div className="px-4 py-3 border-b border-base-content/10 bg-base-200/30 flex items-center justify-between flex-shrink-0">
       <div className="flex items-center gap-2 text-sm font-bold">
         <InboxStackIcon className="size-[18px] text-primary" />
-        {t("title")}
+        {t('title')}
         {countPill}
       </div>
       <button
         onClick={() => setIsOpen(false)}
         className="size-7 rounded-md flex items-center justify-center text-base-content/60 hover:bg-base-300 hover:text-base-content cursor-pointer"
-        title={t("closeLabel")}
+        title={t('closeLabel')}
       >
         <ChevronRightIcon className="size-4" />
       </button>
@@ -75,7 +77,7 @@ export default function BacklogDrawer({
   const renderHint = () => (
     <div className="px-4 py-2.5 border-b border-base-content/10 flex items-center gap-1.5 text-xs text-base-content/50 flex-shrink-0">
       <ArrowLeftIcon className="size-3.5 text-primary flex-shrink-0" />
-      {t("hintDragToTodo")}
+      {t('hintDragToTodo')}
     </div>
   );
 
@@ -84,7 +86,7 @@ export default function BacklogDrawer({
     // drawer's invisible panel (kept mounted for the cross-fade, overlapping
     // the Done column) wins dnd's geometric hit-test and steals Done drops.
     <Droppable droppableId={TaskStatus.BACKLOG} isDropDisabled>
-      {(provided) => (
+      {provided => (
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
@@ -92,7 +94,7 @@ export default function BacklogDrawer({
         >
           {tasks.length === 0 && (
             <p className="text-center text-xs text-base-content/40 mt-6 px-4">
-              {t("emptyState")}
+              {t('emptyState')}
             </p>
           )}
           {tasks.map((task, index) => (
@@ -102,7 +104,7 @@ export default function BacklogDrawer({
               taskType={task.type}
               index={index}
               today={today}
-              riskLevel={riskMap.get(task.id) ?? "normal"}
+              riskLevel={riskMap.get(task.id) ?? 'normal'}
               frequency={getTaskFrequency(task, templateFreqMap)}
             />
           ))}
@@ -114,16 +116,16 @@ export default function BacklogDrawer({
 
   return (
     <div
-      className={`hidden md:block relative h-full flex-shrink-0 overflow-hidden bg-base-100 border-l border-base-content/10 transition-[width] duration-200 ${
-        isOpen ? "w-[300px]" : "w-12"
+      className={`hidden md:block relative h-full flex-shrink-0 overflow-hidden bg-base-100/10 border-l border-base-content/10 transition-[width] duration-200 ${
+        isOpen ? 'w-[300px]' : 'w-12'
       }`}
     >
       {/* Both states stay mounted and cross-fade so width + content animate
           together — instant content swaps would otherwise read as a jump. */}
       {renderCollapsed()}
       <div
-        className={`absolute inset-y-0 right-0 w-[300px] flex flex-col bg-base-100 transition-opacity duration-200 ${
-          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        className={`absolute inset-y-0 right-0 w-[300px] flex flex-col bg-base-100/10 transition-opacity duration-200 ${
+          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
       >
         {renderHeader()}

@@ -9,9 +9,12 @@ import type { TaskItem } from "@/lib/db/tasks";
 import type { RiskLevel } from "@/utils/taskUtils";
 
 // ── Page copy ──────────────────────────────────────────────────────────────
-export const GALLERY_TITLE = "Component Gallery";
+/** Title halves — the accent word renders with fx-text-gradient (the
+    design system's "gradient on the first word only" restraint rule). */
+export const GALLERY_TITLE_ACCENT = "Design";
+export const GALLERY_TITLE_REST = "Console";
 export const GALLERY_SUBTITLE =
-  "Mars Workbench design-system primitives, rendered with sample data. Toggle the theme to preview both palettes.";
+  "Mars Workbench design-system primitives — Mission Control HUD. Rendered with sample data; toggle the theme to preview both palettes.";
 
 export const THEME_DARK = "mars-dark";
 export const THEME_LIGHT = "mars-light";
@@ -40,6 +43,39 @@ export const SUGGESTION_CHIPS: string[] = [
 ];
 
 export const LOADING_LABEL = "Drafting your plan…";
+
+// ── Design-system specimens ──────────────────────────────────────────────────
+/** Semantic color tokens; classes are literal so Tailwind can see them. */
+export const TOKEN_SWATCHES: { name: string; swatch: string; role: string }[] = [
+  { name: "primary", swatch: "bg-primary text-primary-content", role: "Phosphor cyan — actions, telemetry" },
+  { name: "secondary", swatch: "bg-secondary text-secondary-content", role: "Violet — the AI channel, WEEKLY" },
+  { name: "accent", swatch: "bg-accent text-accent-content", role: "Mars signal orange — drop targets" },
+  { name: "info", swatch: "bg-info text-info-content", role: "Datalink blue — DAILY, week stats" },
+  { name: "success", swatch: "bg-success text-success-content", role: "Go-green — done, sizes" },
+  { name: "warning", swatch: "bg-warning text-warning-content", role: "Caution amber — risk, ONCE, points" },
+  { name: "error", swatch: "bg-error text-error-content", role: "Abort red — urgent, destructive" },
+  { name: "neutral", swatch: "bg-neutral text-neutral-content", role: "Console slab — tooltips" },
+  { name: "base-100", swatch: "bg-base-100 text-base-content border border-base-content/10", role: "Console panel" },
+  { name: "base-200", swatch: "bg-base-200 text-base-content border border-base-content/10", role: "Deck floor" },
+  { name: "base-300", swatch: "bg-base-300 text-base-content border border-base-content/10", role: "Inset well" },
+];
+
+/** Status-LED semantic states. */
+export const LED_STATES: { label: string; className: string; pulse: boolean }[] = [
+  { label: "On track", className: "text-success", pulse: false },
+  { label: "At risk", className: "text-warning", pulse: false },
+  { label: "Overdue", className: "text-error", pulse: false },
+  { label: "AI live", className: "text-secondary", pulse: true },
+];
+
+/** Raw fx-chip specimens — generic channel names, deliberately NOT the
+    TaskType mapping (the real TaskTypeBadge has its own section below). */
+export const CHIP_SPECIMENS: { label: string; className: string }[] = [
+  { label: "DATALINK", className: "text-info" },
+  { label: "AI", className: "text-secondary" },
+  { label: "CAUTION", className: "text-warning" },
+  { label: "GO", className: "text-success" },
+];
 
 // ── Task card fixtures ───────────────────────────────────────────────────────
 const baseTask = (overrides: Partial<TaskItem>): TaskItem => ({

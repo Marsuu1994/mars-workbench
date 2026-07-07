@@ -1,18 +1,18 @@
-import { sizeToPoints } from "@/utils/enums";
-import type { DraftTemplate } from "@/types/aiChat";
-import { SizeChip } from "@/components/shared/SizeChip";
-import TaskTypeBadge from "@/components/shared/TaskTypeBadge";
+import {sizeToPoints} from '@/utils/enums';
+import type {DraftTemplate} from '@/types/aiChat';
+import {SizeChip} from '@/components/shared/SizeChip';
+import TaskTypeBadge from '@/components/shared/TaskTypeBadge';
 
 interface DraftPlanCardsProps {
   templates: DraftTemplate[];
 }
 
 /** The proposed task templates inside an assistant draft bubble. */
-export const DraftPlanCards = ({ templates }: DraftPlanCardsProps) => (
+export const DraftPlanCards = ({templates}: DraftPlanCardsProps) => (
   <div className="mt-3 flex flex-col gap-1.5">
     {templates.map((template, index) => (
       <div
-        key={`${template.templateId ?? "new"}-${index}`}
+        key={`${template.templateId ?? 'new'}-${index}`}
         className="rounded-lg border border-base-content/10 bg-base-100 px-3 py-2.5"
       >
         <div className="mb-1 flex items-center justify-between gap-2">
@@ -24,10 +24,15 @@ export const DraftPlanCards = ({ templates }: DraftPlanCardsProps) => (
                 &times;{template.frequency}
               </span>
             )}
-            <SizeChip size={template.size} points={sizeToPoints(template.size)} />
+            <SizeChip
+              size={template.size}
+              points={sizeToPoints(template.size)}
+            />
           </div>
         </div>
-        <p className="text-xs leading-snug text-base-content/60">{template.description}</p>
+        <p className="text-xs leading-snug text-base-content/60">
+          {template.description}
+        </p>
       </div>
     ))}
   </div>

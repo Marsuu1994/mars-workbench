@@ -76,8 +76,8 @@
     top: calc(100% + 6px);
     left: 50%;
     transform: translateX(-50%);
-    background: #1a1a1a;
-    color: #fff;
+    background: var(--m-text);
+    color: var(--m-page-bg);
     font-size: 12px;
     font-weight: 500;
     padding: 4px 10px;
@@ -123,8 +123,8 @@
     left: calc(100% + 8px);
     top: 50%;
     transform: translateY(-50%);
-    background: #1a1a1a;
-    color: #fff;
+    background: var(--m-text);
+    color: var(--m-page-bg);
     font-size: 12px;
     font-weight: 500;
     padding: 4px 10px;
@@ -322,7 +322,7 @@
   .ph-bar-head span:first-child { font-size: 13px; font-weight: 600; color: var(--m-text); }
   .ph-bar-head span:last-child { font-size: 12px; font-weight: 600; color: var(--m-blue); }
   .ph-bar-track { height: 6px; background: var(--m-border); border-radius: 999px; overflow: hidden; }
-  .ph-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #45aeee, #823290); width: 30%; }
+  .ph-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--m-blue), var(--m-purple)); width: 30%; }
   .ph-bar-sub { font-size: 12px; color: var(--m-text-tertiary); }
 
   /* ── Content Header ── */
@@ -335,7 +335,7 @@
   .after-header-title { font-size: 18px; font-weight: 700; }
   .after-header-title span { color: var(--m-blue); }
   .after-header-badge {
-    font-size: 12px; background: rgba(69,174,238,0.1); color: var(--m-blue);
+    font-size: 12px; background: var(--m-blue-a10); color: var(--m-blue);
     padding: 4px 10px; border-radius: 999px; font-weight: 500;
   }
   .after-header-btn {
@@ -461,9 +461,9 @@
       <div class="col-placeholder">
         <div class="col-ph-header done"><span>Done</span><span class="column-count">4</span></div>
         <div class="col-ph-body">
-          <div class="card-ph" style="opacity:0.6"><div class="card-ph-title" style="text-decoration:line-through;color:#888">Solve 3 LeetCode problems</div><div class="card-ph-meta"><span class="task-badge badge-daily">Daily</span><span class="pts"><!-- Star (Heroicons 24/solid) --><svg class="star-icon" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clip-rule="evenodd"/></svg>10 pts</span></div></div>
-          <div class="card-ph" style="opacity:0.6"><div class="card-ph-title" style="text-decoration:line-through;color:#888">Morning jog 5km</div><div class="card-ph-meta"><span class="task-badge badge-daily">Daily</span><span class="pts"><!-- Star (Heroicons 24/solid) --><svg class="star-icon" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clip-rule="evenodd"/></svg>4 pts</span></div></div>
-          <div class="card-ph" style="opacity:0.6"><div class="card-ph-title" style="text-decoration:line-through;color:#888">Go to gym – Push day</div><div class="card-ph-meta"><span class="task-badge badge-weekly">Weekly</span><span class="pts"><!-- Star (Heroicons 24/solid) --><svg class="star-icon" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clip-rule="evenodd"/></svg>6 pts</span></div></div>
+          <div class="card-ph" style="opacity:0.6"><div class="card-ph-title" style="text-decoration:line-through;color:var(--m-text-secondary)">Solve 3 LeetCode problems</div><div class="card-ph-meta"><span class="task-badge badge-daily">Daily</span><span class="pts"><!-- Star (Heroicons 24/solid) --><svg class="star-icon" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clip-rule="evenodd"/></svg>10 pts</span></div></div>
+          <div class="card-ph" style="opacity:0.6"><div class="card-ph-title" style="text-decoration:line-through;color:var(--m-text-secondary)">Morning jog 5km</div><div class="card-ph-meta"><span class="task-badge badge-daily">Daily</span><span class="pts"><!-- Star (Heroicons 24/solid) --><svg class="star-icon" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clip-rule="evenodd"/></svg>4 pts</span></div></div>
+          <div class="card-ph" style="opacity:0.6"><div class="card-ph-title" style="text-decoration:line-through;color:var(--m-text-secondary)">Go to gym – Push day</div><div class="card-ph-meta"><span class="task-badge badge-weekly">Weekly</span><span class="pts"><!-- Star (Heroicons 24/solid) --><svg class="star-icon" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clip-rule="evenodd"/></svg>6 pts</span></div></div>
         </div>
       </div>
     </div>
@@ -559,9 +559,9 @@
       <div class="col-placeholder">
         <div class="col-ph-header done"><span>Done</span><span class="column-count">4</span></div>
         <div class="col-ph-body">
-          <div class="card-ph" style="opacity:0.6"><div class="card-ph-title" style="text-decoration:line-through;color:#888">Solve 3 LeetCode problems</div><div class="card-ph-meta"><span class="task-badge badge-daily">Daily</span><span class="pts"><!-- Star (Heroicons 24/solid) --><svg class="star-icon" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clip-rule="evenodd"/></svg>10 pts</span></div></div>
-          <div class="card-ph" style="opacity:0.6"><div class="card-ph-title" style="text-decoration:line-through;color:#888">Morning jog 5km</div><div class="card-ph-meta"><span class="task-badge badge-daily">Daily</span><span class="pts"><!-- Star (Heroicons 24/solid) --><svg class="star-icon" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clip-rule="evenodd"/></svg>4 pts</span></div></div>
-          <div class="card-ph" style="opacity:0.6"><div class="card-ph-title" style="text-decoration:line-through;color:#888">Go to gym – Push day</div><div class="card-ph-meta"><span class="task-badge badge-weekly">Weekly</span><span class="pts"><!-- Star (Heroicons 24/solid) --><svg class="star-icon" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clip-rule="evenodd"/></svg>6 pts</span></div></div>
+          <div class="card-ph" style="opacity:0.6"><div class="card-ph-title" style="text-decoration:line-through;color:var(--m-text-secondary)">Solve 3 LeetCode problems</div><div class="card-ph-meta"><span class="task-badge badge-daily">Daily</span><span class="pts"><!-- Star (Heroicons 24/solid) --><svg class="star-icon" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clip-rule="evenodd"/></svg>10 pts</span></div></div>
+          <div class="card-ph" style="opacity:0.6"><div class="card-ph-title" style="text-decoration:line-through;color:var(--m-text-secondary)">Morning jog 5km</div><div class="card-ph-meta"><span class="task-badge badge-daily">Daily</span><span class="pts"><!-- Star (Heroicons 24/solid) --><svg class="star-icon" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clip-rule="evenodd"/></svg>4 pts</span></div></div>
+          <div class="card-ph" style="opacity:0.6"><div class="card-ph-title" style="text-decoration:line-through;color:var(--m-text-secondary)">Go to gym – Push day</div><div class="card-ph-meta"><span class="task-badge badge-weekly">Weekly</span><span class="pts"><!-- Star (Heroicons 24/solid) --><svg class="star-icon" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clip-rule="evenodd"/></svg>6 pts</span></div></div>
         </div>
       </div>
     </div>
