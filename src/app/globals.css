@@ -128,8 +128,17 @@ body {
    ═══════════════════════════════════════════════════════════════════ */
 
 [data-theme='mars-dark'] {
-  --fx-dot: color-mix(in oklab, var(--color-primary) 18%, transparent);
-  --fx-dot-bright: color-mix(in oklab, var(--color-primary) 34%, transparent);
+  /* Star chart: four scattered magnitudes + an occasional cross glint */
+  --fx-star-faint: color-mix(
+    in oklab,
+    var(--color-base-content) 14%,
+    transparent
+  );
+  --fx-star-a: color-mix(in oklab, var(--color-primary) 24%, transparent);
+  --fx-star-b: color-mix(in oklab, var(--color-secondary) 22%, transparent);
+  --fx-star-core: color-mix(in oklab, var(--color-primary) 50%, transparent);
+  --fx-star-halo: color-mix(in oklab, var(--color-primary) 10%, transparent);
+  --fx-glint: color-mix(in oklab, var(--color-primary) 40%, transparent);
   --fx-bloom-1: color-mix(in oklab, var(--color-primary) 14%, transparent);
   --fx-bloom-2: color-mix(in oklab, var(--color-secondary) 12%, transparent);
   --fx-bloom-3: color-mix(in oklab, var(--color-accent) 9%, transparent);
@@ -169,10 +178,18 @@ body {
 }
 
 [data-theme='mars-light'] {
-  /* Dawn mode: dots stay whisper-quiet; the warmth comes from the
-     sand bases and richer blooms, not from pattern density. */
-  --fx-dot: color-mix(in oklab, var(--color-base-content) 9%, transparent);
-  --fx-dot-bright: color-mix(in oklab, var(--color-accent) 22%, transparent);
+  /* Dawn mode: the same sky at first light — faded stars and warm
+     dust motes; the drama comes from the sand bases and blooms. */
+  --fx-star-faint: color-mix(
+    in oklab,
+    var(--color-base-content) 8%,
+    transparent
+  );
+  --fx-star-a: color-mix(in oklab, var(--color-accent) 18%, transparent);
+  --fx-star-b: color-mix(in oklab, var(--color-secondary) 13%, transparent);
+  --fx-star-core: color-mix(in oklab, var(--color-accent) 34%, transparent);
+  --fx-star-halo: color-mix(in oklab, var(--color-accent) 9%, transparent);
+  --fx-glint: color-mix(in oklab, var(--color-accent) 30%, transparent);
   --fx-bloom-1: color-mix(in oklab, var(--color-primary) 12%, transparent);
   --fx-bloom-2: color-mix(in oklab, var(--color-secondary) 10%, transparent);
   --fx-bloom-3: color-mix(in oklab, var(--color-accent) 10%, transparent);
@@ -211,9 +228,13 @@ body {
 @layer components {
   /* ── Shell background: horizon blooms + telemetry dot lattice ──
    Apply to the fixed-height app shell wrapper (children scroll, the
-   background paints once). Blooms anchor all four viewport corners;
-   the dot field replaces the earlier line grid (calmer, no moiré) —
-   a fine 24px lattice plus a sparse 96px "star" layer for depth.    */
+   background paints once). Blooms anchor all four viewport corners.
+   The sky is a star chart, not a lattice: four "magnitude" layers
+   tiled at mutually-prime sizes (their beat period is meters wide,
+   so no visible repetition or alignment) plus one rare cross-glint —
+   two crossed ellipse flares + a core — that reads as a lens twinkle
+   once or twice per screen. Sparse by design; no mobile variant
+   needed.                                                            */
   .fx-shell-bg {
     position: relative;
     isolation: isolate;
@@ -230,31 +251,57 @@ body {
       radial-gradient(55% 38% at 88% 0%, var(--fx-bloom-2), transparent 65%),
       radial-gradient(45% 30% at 8% 4%, var(--fx-bloom-3), transparent 65%),
       radial-gradient(60% 34% at 82% 104%, var(--fx-bloom-4), transparent 65%);
-    --_dots-fine: radial-gradient(
-      circle,
-      var(--fx-dot) 0 1px,
-      transparent 1.5px
-    );
-    --_dots-star: radial-gradient(
-      circle,
-      var(--fx-dot-bright) 0 1.5px,
-      transparent 2.5px
-    );
-    background-image: var(--_blooms), var(--_dots-fine), var(--_dots-star);
+    --_stars:
+      radial-gradient(
+        circle 1px at 31px 47px,
+        var(--fx-star-faint) 99%,
+        transparent
+      ),
+      radial-gradient(
+        circle 1px at 127px 89px,
+        var(--fx-star-a) 99%,
+        transparent
+      ),
+      radial-gradient(
+        circle 1.3px at 61px 173px,
+        var(--fx-star-b) 99%,
+        transparent
+      ),
+      radial-gradient(
+        circle 6px at 211px 101px,
+        var(--fx-star-core) 26%,
+        var(--fx-star-halo) 45%,
+        transparent 100%
+      );
+    --_glint:
+      radial-gradient(
+        ellipse 11px 1px at 179px 233px,
+        var(--fx-glint) 40%,
+        transparent
+      ),
+      radial-gradient(
+        ellipse 1px 11px at 179px 233px,
+        var(--fx-glint) 40%,
+        transparent
+      ),
+      radial-gradient(
+        circle 2px at 179px 233px,
+        var(--fx-glint) 99%,
+        transparent
+      );
+    background-image: var(--_blooms), var(--_stars), var(--_glint);
     background-size:
       auto,
       auto,
       auto,
       auto,
-      24px 24px,
-      96px 96px;
-    background-position:
-      0 0,
-      0 0,
-      0 0,
-      0 0,
-      12px 12px,
-      36px 60px;
+      233px 187px,
+      173px 149px,
+      307px 251px,
+      389px 331px,
+      431px 367px,
+      431px 367px,
+      431px 367px;
     -webkit-mask-image: linear-gradient(
       to bottom,
       black 0%,
@@ -267,24 +314,6 @@ body {
       black 55%,
       transparent 100%
     );
-  }
-  /* Mobile: keep only the sparse star layer (small screens stay calm) */
-  @media (max-width: 767px) {
-    .fx-shell-bg::before {
-      background-image: var(--_blooms), var(--_dots-star);
-      background-size:
-        auto,
-        auto,
-        auto,
-        auto,
-        96px 96px;
-      background-position:
-        0 0,
-        0 0,
-        0 0,
-        0 0,
-        36px 60px;
-    }
   }
 
   /* ── Console chrome & panels ──

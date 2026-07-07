@@ -55,7 +55,7 @@ All utilities derive colors from daisyUI tokens via `color-mix()`, so both theme
 
 | Utility | Use | Where it's applied |
 | --- | --- | --- |
-| `fx-shell-bg` | 4-corner horizon blooms + telemetry dot lattice (fine 24px field + sparse 96px "stars"; mobile keeps only the sparse layer); paint once on a non-scrolling wrapper | `AppShell`, `/design` gallery |
+| `fx-shell-bg` | 4-corner horizon blooms + star-chart sky: four star "magnitudes" tiled at mutually-prime sizes (233×187 → 389×331 — the beat period is huge, so the scatter reads as random) plus a rare cross-glint twinkle; paint once on a non-scrolling wrapper | `AppShell`, `/design` gallery |
 | `fx-chrome` / `fx-chrome-glass` | Chrome slab (always solid) / chrome that may blur. The dock stays solid — it floats over a scrolling board, where backdrop blur re-filters every frame; the sidebar's backdrop is static, so glass is cheap there | dock (solid), sidebar (glass) |
 | `fx-panel` / `fx-panel-solid` | Console panel (glass / no-blur). Glass is for stationary chrome only — never in scroll containers | modals |
 | `fx-corners` | Targeting-reticle corner brackets (inset 2px to clear the radius) | task modal, gallery specimens |
