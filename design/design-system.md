@@ -1,6 +1,6 @@
 # Design System — Mission Control HUD
 
-The app-wide visual language. Source of truth for tokens, the FX utility layer, typography, and motion. Implemented in `src/app/globals.css` (daisyUI theme blocks + `fx-*` layer); mirrored for mockups in `design/mockup/mockup-theme.css`. The structural component layer proposed on top of these tokens (`src/components/ui/`) lives in [component-library.md](./component-library.md).
+The app-wide visual language. Source of truth for tokens, the FX utility layer, typography, and motion. Implemented in `src/app/globals.css` (daisyUI theme blocks + `fx-*` layer); mirrored for mockups in `design/mockup/mockup-theme.css`.
 
 ## Concept
 

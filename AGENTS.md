@@ -38,7 +38,6 @@ design/                            # Centralized design docs (see design/README.
 ├── README.md                      # Index of what lives where
 ├── baseline.md                    # The ONE app-wide baseline (goal, entities, schema, decisions)
 ├── design-system.md               # Visual design system: OKLCH palette + contrast, fx-* layer, sync points
-├── component-library.md           # Proposal: structural ui/ component layer (tiers, phases, scenario plan)
 ├── tracker.md                     # Consolidated roadmap — open items only
 ├── reference.md                   # Lean lookup tables: server actions, services, DAL
 ├── flows/                         # Per-feature flow docs (shared, board, plan, priorities, auth)

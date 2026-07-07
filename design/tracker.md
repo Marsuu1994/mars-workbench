@@ -60,14 +60,15 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### Medium
 
-- [ ] Component library (`src/components/ui/`) — the structural layer on top of daisyUI + `fx-*`; full proposal in `design/component-library.md`; phases below merge independently
+- [ ] Component library (`src/components/ui/`) — the structural layer on top of daisyUI + `fx-*` (components compose existing skins, never invent new ones); phases below merge independently, each verified via the `/design` gallery
   - Phase 1: foundations — `ui/` folder, `Pill` (on `fx-chip`), tailwind-merge, radius/type-scale token decisions, gallery entries
-  - Phase 2: badge family — InstanceBadge / RiskBadge / RolloverTag / riskBorderClass (24 remaining sites); SizeChip + TaskTypeBadge onto Pill
-  - Phase 3: bottom sheets — `useDialogSync` + `BottomSheet`; migrate MobileTrackSheet, MobileBacklogSheet
+  - Phase 2: badge family — InstanceBadge / RiskBadge / RolloverTag / riskBorderClass (24 remaining hand-rolled sites); SizeChip + TaskTypeBadge onto Pill
+  - Phase 3: bottom sheets — `useDialogSync` + `BottomSheet` (grip, header slot, scrollable body, explicit backdrop-dismiss); migrate MobileTrackSheet, MobileBacklogSheet; unify open state to prop-driven
   - Phase 4: modal shells — OverlayShell for TaskModal / ReviewChangesModal / AiPlanChatModal, owning `fx-panel-solid` / `fx-boot-in` / `fx-corners`; explicit `dismissOnBackdrop`
   - Phase 5: form kit — FieldRow / ChoicePills / Stepper / SubmitButton; refactor TaskModal + PlanForm; delete dead IconNumberField
   - Phase 6: content blocks + micro-type sweep — StatBlock / ProgressBar / EmptyState / SectionLabel; finish `fx-label`/`fx-num` adoption; align loading skeletons
-- [ ] Scenario pages + mockup retirement — `/design/scenarios/*` routes composing real page components with fixtures replace per-feature HTML mockups as the screen-level source of truth; plan in `design/component-library.md`. Gated on component-library Phases 1–2; if adopted, supersedes the FX-back-port item below
+  - After the phases land: leave a lean high-level component-structure lookup for agents (reference.md-style), and keep the `/design` gallery as the human-facing source of truth
+- [ ] Scenario pages + mockup retirement — `/design/scenarios/*` routes composing real page components with fixture data become the screen-level source of truth (states that are hard to reach live: empty board, danger-heavy week, AI chat mid-flow, review modal with all change types); per-feature HTML mockups freeze as archive once adopted, `future-work/` keeps approved-but-unbuilt designs, behavioral truth stays in `flows/*.md`. Gated on component-library Phases 1–2; if adopted, supersedes the FX-back-port item below and the AGENTS.md UI Workflow + `/design-explore` + `/new-flow` skills get updated to the scenario flow
 - [ ] Refine the component gallery page (`/design`) — add remaining primitives (BoardColumn, TemplateItem, task-modal pieces), polish grouping/layout, and consider per-variant controls; gallery doubles as the component-library acceptance spec (see `design/component-library.md`)
 - [ ] Back-port the Mission Control HUD FX language (mono `fx-label`/`fx-num` telemetry type, LED dots, corner brackets, glow states) into the mockup component classes in `design/mockup/styles.css` and per-mockup CSS — the palette swap landed in `mockup-theme.css`, but mockups don't yet render the FX layer (see `design/design-system.md`). **Hold**: superseded if the scenario-pages plan above is adopted
 - [ ] Uniform page header across pages (board, priorities, settings) — one shared header treatment on both breakpoints; plan pages keep their distinct planning-mode header. Also resolves the BoardHeader accent drift (desktop `md:text-success` green vs mobile `text-primary`; the desktop mockup shows the primary accent)
