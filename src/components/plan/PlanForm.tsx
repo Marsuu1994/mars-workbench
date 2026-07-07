@@ -19,6 +19,7 @@ import {FieldRow} from '@/components/ui/form/FieldRow';
 import {ChoicePills} from '@/components/ui/form/ChoicePills';
 import {SubmitButton} from '@/components/ui/form/SubmitButton';
 import {FormErrorAlert} from '@/components/ui/form/FormErrorAlert';
+import {SectionLabel} from '@/components/ui/SectionLabel';
 import type {TaskTemplateItem} from '@/lib/db/taskTemplates';
 import {sizeToPoints} from '@/utils/enums';
 import {
@@ -377,9 +378,9 @@ export default function PlanForm({
 
         {/* Plan Mode */}
         <div className="rounded-lg border border-base-content/10 bg-base-200 p-3.5">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-base-content/50 block mb-2">
+          <SectionLabel className="block mb-2">
             {t('planModeLabel')}
-          </span>
+          </SectionLabel>
           <div className="rounded-lg border border-base-content/10 bg-base-100 p-[3px]">
             <ChoicePills
               layout="fill"

@@ -335,3 +335,24 @@ export const FORM_DEMO_STEP_INC = 'Increase';
 export const FORM_DEMO_STEP_MIN = 1;
 export const FORM_DEMO_STEP_MAX = 7;
 export const FORM_DEMO_SUBMIT = 'Save task';
+
+// ── Content-block demo fixtures ──────────────────────────────────────────────
+export const CONTENT_STATS = [
+  {value: '47 / 82', valueClass: 'text-lg text-success', label: 'Today points'},
+  {value: '18 / 30', valueClass: 'text-lg text-info', label: 'Week points'},
+  {value: '15.7', valueClass: 'text-lg text-warning', label: 'Daily avg'},
+] as const;
+export const CONTENT_BARS = [
+  {value: 72, fill: 'bg-success', label: 'Today'},
+  {value: 60, fill: 'bg-info', label: 'Week'},
+  {
+    value: 88,
+    fill: 'bg-gradient-to-r from-info to-success',
+    label: 'Projected',
+  },
+] as const;
+export const CONTENT_SECTION_LABELS = [
+  'Week progress',
+  'Track to',
+  'Plan mode',
+];

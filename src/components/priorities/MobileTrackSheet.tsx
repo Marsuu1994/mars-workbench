@@ -8,6 +8,7 @@ import {
 import type {TaskItem} from '@/lib/db/tasks';
 import type {TrackTargetStatus} from '@/schemas';
 import {BottomSheet} from '@/components/ui/overlay/BottomSheet';
+import {SectionLabel} from '@/components/ui/SectionLabel';
 import {TRACK_TARGETS} from './constants';
 
 interface MobileTrackSheetProps {
@@ -75,9 +76,7 @@ export default function MobileTrackSheet({
       bodyClassName="px-4 pb-6"
     >
       {task && renderSummary(task)}
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-base-content/50 mb-2">
-        {t('trackTitle')}
-      </p>
+      <SectionLabel className="block mb-2">{t('trackTitle')}</SectionLabel>
       {!hasActivePlan && (
         <p className="flex items-center gap-1.5 text-xs text-warning mb-2">
           <ExclamationTriangleIcon className="size-3.5 flex-shrink-0" />

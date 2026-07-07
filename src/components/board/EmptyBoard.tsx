@@ -4,6 +4,8 @@ import Link from 'next/link';
 import {useTranslations} from 'next-intl';
 import {ClockIcon, PlusIcon, Squares2X2Icon} from '@heroicons/react/24/outline';
 import type {OverallStats} from '@/types/aiChat';
+import {EmptyState} from '@/components/ui/EmptyState';
+import {StatBlock} from '@/components/ui/StatBlock';
 import {CREATE_PLAN_HREF} from './emptyBoardConstants';
 
 interface EmptyBoardProps {
@@ -11,58 +13,60 @@ interface EmptyBoardProps {
   stats?: OverallStats;
 }
 
-const renderStatChip = (value: string, label: string, accent?: boolean) => (
-  <div className="flex flex-col items-center gap-0.5">
-    <div
-      className={`fx-num text-2xl font-bold ${accent ? 'text-warning' : 'text-primary'}`}
-    >
-      {value}
-    </div>
-    <div className="fx-label">{label}</div>
-  </div>
-);
-
 export default function EmptyBoard({stats}: EmptyBoardProps) {
   const t = useTranslations('Board.Empty');
 
+  const renderCta = (label: string) => (
+    <Link href={CREATE_PLAN_HREF} className="btn btn-primary fx-glow mt-2">
+      <PlusIcon className="size-5" />
+      {label}
+    </Link>
+  );
+
   const renderNewUser = () => (
-    <>
-      <Squares2X2Icon className="size-20 text-base-content/15" />
-      <h1 className="text-2xl font-semibold">{t('newTitle')}</h1>
-      <p className="text-base-content/60 text-center max-w-md">
-        {t('newDesc')}
-      </p>
-      <Link href={CREATE_PLAN_HREF} className="btn btn-primary fx-glow mt-2">
-        <PlusIcon className="size-5" />
-        {t('newCta')}
-      </Link>
-    </>
+    <EmptyState
+      icon={<Squares2X2Icon className="size-20 text-base-content/15" />}
+      title={t('newTitle')}
+      description={t('newDesc')}
+      action={renderCta(t('newCta'))}
+    />
   );
 
   const renderReturningUser = (recap: OverallStats) => (
-    <>
-      <ClockIcon className="size-20 text-base-content/15" />
-      <h1 className="text-2xl font-semibold">{t('returningTitle')}</h1>
-      <p className="text-base-content/60 text-center max-w-md">
-        {t('returningDesc')}
-      </p>
+    <EmptyState
+      icon={<ClockIcon className="size-20 text-base-content/15" />}
+      title={t('returningTitle')}
+      description={t('returningDesc')}
+      action={
+        <>
+          <p className="text-base-content/60 text-center">
+            {t('returningPrompt')}
+          </p>
+          {renderCta(t('returningCta'))}
+        </>
+      }
+    >
       <div className="flex justify-center gap-6">
-        {renderStatChip(
-          `${Math.round(recap.completionRate * 100)}%`,
-          t('statCompleted'),
-        )}
-        {renderStatChip(
-          `${recap.completedCount}/${recap.totalCount}`,
-          t('statTasksDone'),
-        )}
-        {renderStatChip(`${recap.totalPoints}`, t('statPointsEarned'), true)}
+        <StatBlock
+          align="center"
+          value={`${Math.round(recap.completionRate * 100)}%`}
+          valueClassName="text-2xl text-primary"
+          label={t('statCompleted')}
+        />
+        <StatBlock
+          align="center"
+          value={`${recap.completedCount}/${recap.totalCount}`}
+          valueClassName="text-2xl text-primary"
+          label={t('statTasksDone')}
+        />
+        <StatBlock
+          align="center"
+          value={`${recap.totalPoints}`}
+          valueClassName="text-2xl text-warning"
+          label={t('statPointsEarned')}
+        />
       </div>
-      <p className="text-base-content/60 text-center">{t('returningPrompt')}</p>
-      <Link href={CREATE_PLAN_HREF} className="btn btn-primary fx-glow mt-2">
-        <PlusIcon className="size-5" />
-        {t('returningCta')}
-      </Link>
-    </>
+    </EmptyState>
   );
 
   return (
@@ -70,7 +74,7 @@ export default function EmptyBoard({stats}: EmptyBoardProps) {
     // the min-h-full inner wrapper keeps content centered yet reachable on
     // short viewports (no Droppables here, so an extra scroller is fine).
     <div className="h-full overflow-y-auto">
-      <div className="flex min-h-full flex-col items-center justify-center gap-4 p-10">
+      <div className="flex min-h-full flex-col items-center justify-center p-10">
         {stats ? renderReturningUser(stats) : renderNewUser()}
       </div>
     </div>

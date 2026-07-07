@@ -4,6 +4,7 @@ import {useTranslations} from 'next-intl';
 import {ArrowRightIcon} from '@heroicons/react/24/outline';
 import type {TrackTargetStatus} from '@/schemas';
 import {Popover} from '@/components/ui/overlay/Popover';
+import {SectionLabel} from '@/components/ui/SectionLabel';
 import {TRACK_TARGETS} from './constants';
 
 interface TrackPopoverProps {
@@ -20,9 +21,7 @@ export default function TrackPopover({onTrack}: TrackPopoverProps) {
 
   return (
     <Popover className="flex flex-col gap-1.5 min-w-[180px]">
-      <span className="text-[10px] font-semibold uppercase tracking-wider text-base-content/50 mb-0.5">
-        {t('trackTitle')}
-      </span>
+      <SectionLabel className="mb-0.5">{t('trackTitle')}</SectionLabel>
       {TRACK_TARGETS.map(({status, dotClass}) => (
         <button
           key={status}

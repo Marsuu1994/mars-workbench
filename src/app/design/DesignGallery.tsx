@@ -21,6 +21,9 @@ import {FieldRow} from '@/components/ui/form/FieldRow';
 import {ChoicePills} from '@/components/ui/form/ChoicePills';
 import {Stepper} from '@/components/ui/form/Stepper';
 import {SubmitButton} from '@/components/ui/form/SubmitButton';
+import {StatBlock} from '@/components/ui/StatBlock';
+import {ProgressBar} from '@/components/ui/ProgressBar';
+import {SectionLabel} from '@/components/ui/SectionLabel';
 import TaskCard from '@/components/board/TaskCard';
 import MatrixTaskCard from '@/components/priorities/MatrixTaskCard';
 import ProgressDashboard from '@/components/board/ProgressDashboard';
@@ -69,6 +72,9 @@ import {
   FORM_DEMO_STEP_MIN,
   FORM_DEMO_STEP_MAX,
   FORM_DEMO_SUBMIT,
+  CONTENT_STATS,
+  CONTENT_BARS,
+  CONTENT_SECTION_LABELS,
 } from './constants';
 
 export const DesignGallery = () => {
@@ -515,6 +521,52 @@ export const DesignGallery = () => {
     </Section>
   );
 
+  const renderContentBlocks = () => (
+    <Section
+      title="Content blocks (ui)"
+      description="StatBlock (telemetry value + micro-label), ProgressBar (linear track + fill), SectionLabel (mono uppercase header)."
+    >
+      <div className="flex flex-col gap-6">
+        <Variant label="StatBlock">
+          <Row>
+            {CONTENT_STATS.map(stat => (
+              <StatBlock
+                key={stat.label}
+                value={stat.value}
+                valueClassName={stat.valueClass}
+                label={stat.label}
+              />
+            ))}
+          </Row>
+        </Variant>
+        <Variant label="ProgressBar">
+          <div className="flex w-72 flex-col gap-3">
+            {CONTENT_BARS.map(bar => (
+              <div key={bar.label} className="flex items-center gap-2">
+                <SectionLabel className="w-20 shrink-0">
+                  {bar.label}
+                </SectionLabel>
+                <ProgressBar
+                  value={bar.value}
+                  fillClassName={bar.fill}
+                  className="flex-1"
+                />
+              </div>
+            ))}
+          </div>
+        </Variant>
+        <Variant label="SectionLabel (muted / bright)">
+          <Row>
+            {CONTENT_SECTION_LABELS.map(label => (
+              <SectionLabel key={label}>{label}</SectionLabel>
+            ))}
+            <SectionLabel bright>Bright</SectionLabel>
+          </Row>
+        </Variant>
+      </div>
+    </Section>
+  );
+
   const renderProgress = () => (
     <Section
       title="ProgressDashboard"
@@ -599,6 +651,7 @@ export const DesignGallery = () => {
         {renderOverlays()}
         {renderModalShell()}
         {renderFormKit()}
+        {renderContentBlocks()}
         {renderProgress()}
         {renderChatPrimitives()}
         {renderEmptyState()}

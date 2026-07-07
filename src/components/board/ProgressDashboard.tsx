@@ -1,6 +1,9 @@
 'use client';
 
 import {useTranslations} from 'next-intl';
+import {StatBlock} from '@/components/ui/StatBlock';
+import {ProgressBar} from '@/components/ui/ProgressBar';
+import {SectionLabel} from '@/components/ui/SectionLabel';
 
 interface ProgressDashboardProps {
   todayDoneCount: number;
@@ -50,16 +53,15 @@ export default function ProgressDashboard({
         {/* Today row */}
         <div className="flex items-center gap-2 h-5">
           <span className="fx-label w-9 shrink-0">{t('today')}</span>
-          <span className="fx-num text-[11px] font-bold text-base-content/70 w-9 shrink-0">
+          <span className="fx-num text-2xs font-bold text-base-content/70 w-9 shrink-0">
             {todayDoneCount}/{todayTotalCount}
           </span>
-          <div className="flex-1 h-2 bg-base-300 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full bg-success transition-all duration-500"
-              style={{width: `${todayPct}%`}}
-            />
-          </div>
-          <span className="text-[11px] text-base-content/50 shrink-0">
+          <ProgressBar
+            value={todayPct}
+            fillClassName="bg-success"
+            className="flex-1 h-2"
+          />
+          <span className="text-2xs text-base-content/50 shrink-0">
             <strong className="fx-num text-base-content/70 font-bold">
               {todayDonePoints}
             </strong>{' '}
@@ -69,22 +71,21 @@ export default function ProgressDashboard({
         {/* Week row */}
         <div className="flex items-center gap-2 h-5">
           <span className="fx-label w-9 shrink-0">{t('week')}</span>
-          <span className="fx-num text-[11px] font-bold text-base-content/70 w-9 shrink-0">
+          <span className="fx-num text-2xs font-bold text-base-content/70 w-9 shrink-0">
             {weekDoneCount}/{weekProjectedCount}
           </span>
-          <div className="flex-1 h-2 bg-base-300 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full bg-info transition-all duration-500"
-              style={{width: `${weekPct}%`}}
-            />
-          </div>
-          <span className="text-[11px] text-base-content/50 shrink-0">
+          <ProgressBar
+            value={weekPct}
+            fillClassName="bg-info"
+            className="flex-1 h-2"
+          />
+          <span className="text-2xs text-base-content/50 shrink-0">
             <strong className="fx-num text-base-content/70 font-bold">
               {weekDonePoints}
             </strong>{' '}
             {t('pts')}
           </span>
-          <span className="text-[11px] text-base-content/50 shrink-0">
+          <span className="text-2xs text-base-content/50 shrink-0">
             <strong className="fx-num text-warning font-bold">
               {dailyAvg}
             </strong>{' '}
@@ -139,7 +140,7 @@ export default function ProgressDashboard({
             </div>
           </div>
           <div className="flex flex-col gap-px">
-            <span className="fx-label fx-label-bright">{t('today')}</span>
+            <SectionLabel bright>{t('today')}</SectionLabel>
             <span className="text-xs text-base-content/50">
               {t('tasksOfTotal', {
                 done: todayDoneCount,
@@ -153,28 +154,25 @@ export default function ProgressDashboard({
         <div className="divider divider-horizontal mx-0" />
 
         {/* Today Points */}
-        <div className="flex flex-col gap-px">
-          <div className="fx-num text-lg font-bold text-success">
-            {todayDonePoints} / {todayTotalPoints}
-          </div>
-          <div className="fx-label">{t('todayPoints')}</div>
-        </div>
+        <StatBlock
+          value={`${todayDonePoints} / ${todayTotalPoints}`}
+          valueClassName="text-lg text-success"
+          label={t('todayPoints')}
+        />
 
         {/* Week Points */}
-        <div className="flex flex-col gap-px">
-          <div className="fx-num text-lg font-bold text-info">
-            {weekDonePoints} / {weekProjectedPoints}
-          </div>
-          <div className="fx-label">{t('weekPoints')}</div>
-        </div>
+        <StatBlock
+          value={`${weekDonePoints} / ${weekProjectedPoints}`}
+          valueClassName="text-lg text-info"
+          label={t('weekPoints')}
+        />
 
         {/* Daily Avg */}
-        <div className="flex flex-col gap-px">
-          <div className="fx-num text-lg font-bold text-warning">
-            {dailyAvg}
-          </div>
-          <div className="fx-label">{t('dailyAvg')}</div>
-        </div>
+        <StatBlock
+          value={dailyAvg}
+          valueClassName="text-lg text-warning"
+          label={t('dailyAvg')}
+        />
 
         {/* Divider */}
         <div className="divider divider-horizontal mx-0" />
@@ -182,19 +180,15 @@ export default function ProgressDashboard({
         {/* Week Progress Bar */}
         <div className="flex-1 flex flex-col gap-1 min-w-0">
           <div className="flex justify-between items-center">
-            <span className="fx-label fx-label-bright">
-              {t('weekProgress')}
-            </span>
+            <SectionLabel bright>{t('weekProgress')}</SectionLabel>
             <span className="fx-num text-xs font-semibold text-info">
               {weekPct}%
             </span>
           </div>
-          <div className="h-1.5 bg-base-300 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-info to-success transition-all duration-500"
-              style={{width: `${weekPct}%`}}
-            />
-          </div>
+          <ProgressBar
+            value={weekPct}
+            fillClassName="bg-gradient-to-r from-info to-success"
+          />
           <span className="text-xs text-base-content/50">
             {t('tasksOfTotal', {
               done: weekDoneCount,
