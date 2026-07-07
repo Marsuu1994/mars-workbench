@@ -43,8 +43,7 @@ export type BoardData = {
  * whose finished-plan stats drive the celebratory recap.
  */
 export type EmptyBoardState =
-  | {kind: 'new'}
-  | {kind: 'returning'; stats: OverallStats};
+  {kind: 'new'} | {kind: 'returning'; stats: OverallStats};
 
 /**
  * Resolve the empty-board state for a user with no ACTIVE plan. Must be called

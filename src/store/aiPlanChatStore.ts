@@ -11,11 +11,7 @@ import type {UiMessage} from '../types/aiChat';
  * - `idle`: ready for user input
  */
 export type AiChatStatus =
-  | 'idle'
-  | 'initializing'
-  | 'generating'
-  | 'approving'
-  | 'created';
+  'idle' | 'initializing' | 'generating' | 'approving' | 'created';
 
 /** A `UiMessage` before its id is assigned (the store stamps the id). */
 export type NewUiMessage = UiMessage extends infer T
