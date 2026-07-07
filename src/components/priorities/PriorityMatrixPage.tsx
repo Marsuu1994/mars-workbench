@@ -191,8 +191,15 @@ export default function PriorityMatrixPage({
     </div>
   );
 
+  // Instruction hint is desktop-only (drag/click don't apply to touch), but the
+  // no-plan warning renders on both breakpoints — its Create Plan link is
+  // mobile's only in-page path to plan creation.
   const renderHintBar = () => (
-    <div className="hidden md:flex items-center gap-2 px-4 py-2.5 bg-base-200/60 border-b border-base-content/10 text-xs flex-shrink-0">
+    <div
+      className={`${
+        activePlanId ? 'hidden md:flex' : 'flex'
+      } items-center gap-2 px-4 py-2.5 bg-base-200/60 border-b border-base-content/10 text-xs flex-shrink-0`}
+    >
       {activePlanId ? (
         <>
           <ListBulletIcon className="size-3.5 text-primary flex-shrink-0" />

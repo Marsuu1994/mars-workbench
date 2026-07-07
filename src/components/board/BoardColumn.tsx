@@ -70,7 +70,11 @@ export default function BoardColumn({
           >
             <div className="flex items-center gap-2">
               <span className={`fx-led md:hidden ${style.ledColor}`} />
-              <h2 className="fx-label fx-label-bright font-semibold">
+              <h2
+                className={`fx-label fx-label-bright font-semibold ${
+                  snapshot.isDraggingOver ? 'max-md:text-accent' : ''
+                }`}
+              >
                 {label}
               </h2>
             </div>
@@ -82,8 +86,10 @@ export default function BoardColumn({
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={`flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide md:flex-col md:p-3 md:overflow-y-auto md:overflow-x-visible md:flex-1 md:rounded-b-xl transition-colors duration-200 ${
-              snapshot.isDraggingOver ? 'max-md:bg-accent/10' : ''
+            className={`flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide md:flex-col md:p-3 md:overflow-y-auto md:overflow-x-visible md:flex-1 md:rounded-b-xl max-md:rounded-xl max-md:border-2 max-md:border-dashed transition-colors duration-200 ${
+              snapshot.isDraggingOver
+                ? 'max-md:border-accent max-md:bg-accent/10'
+                : 'max-md:border-transparent'
             }`}
           >
             {tasks.map((task, index) => (
