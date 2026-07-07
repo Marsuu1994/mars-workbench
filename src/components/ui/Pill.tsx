@@ -2,7 +2,14 @@ import type {ReactNode} from 'react';
 import {cn} from './cn';
 
 export type PillColor =
-  'primary' | 'secondary' | 'accent' | 'info' | 'success' | 'warning' | 'error';
+  | 'primary'
+  | 'secondary'
+  | 'accent'
+  | 'info'
+  | 'success'
+  | 'warning'
+  | 'error'
+  | 'muted';
 
 export type PillSize = 'xs' | 'sm' | 'md';
 
@@ -26,6 +33,7 @@ const COLOR_CLASS: Record<PillColor, string> = {
   success: 'text-success',
   warning: 'text-warning',
   error: 'text-error',
+  muted: 'text-base-content/50',
 };
 
 const SIZE_CLASS: Record<PillSize, string> = {

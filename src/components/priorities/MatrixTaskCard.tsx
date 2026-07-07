@@ -9,7 +9,8 @@ import {
 import {useBreakpoint} from '@/components/common/BreakpointProvider';
 import type {TaskItem} from '@/lib/db/tasks';
 import type {TrackTargetStatus} from '@/schemas';
-import {SizeChip} from '@/components/shared/SizeChip';
+import {SizeChip} from '@/components/ui/SizeChip';
+import {Pill} from '@/components/ui/Pill';
 import TrackPopover from './TrackPopover';
 
 interface MatrixTaskCardProps {
@@ -53,10 +54,10 @@ export default function MatrixTaskCard({
   };
 
   const renderTrackedTag = () => (
-    <span className="flex-shrink-0 text-[9px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+    <Pill color="primary" className="flex-shrink-0">
       <span className="hidden md:inline">{t('thisWeek')}</span>
       <span className="md:hidden">★</span>
-    </span>
+    </Pill>
   );
 
   const renderSendButton = () => (

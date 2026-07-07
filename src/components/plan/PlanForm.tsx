@@ -13,7 +13,8 @@ import {
   TaskSize,
 } from '@/utils/enums';
 import {getWeekDateRange} from '@/utils/dateUtils';
-import {SizeChip} from '@/components/shared/SizeChip';
+import {SizeChip} from '@/components/ui/SizeChip';
+import {Pill} from '@/components/ui/Pill';
 import type {TaskTemplateItem} from '@/lib/db/taskTemplates';
 import {sizeToPoints} from '@/utils/enums';
 import {
@@ -476,9 +477,9 @@ export default function PlanForm({
               <span className="text-xs font-medium text-base-content/60">
                 {t('adhocTasksLabel')}
               </span>
-              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-warning/15 text-warning">
+              <Pill color="warning" className="rounded-full">
                 {t('taskCount', {count: adhocTasks.length})}
-              </span>
+              </Pill>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -530,11 +531,14 @@ export default function PlanForm({
                     </div>
 
                     {/* Status badge */}
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-base-300 text-base-content/50 uppercase tracking-wider shrink-0">
+                    <Pill
+                      color="muted"
+                      className="rounded-full uppercase tracking-wider shrink-0"
+                    >
                       {task.status === TaskStatus.DOING
                         ? tStatus('DOING')
                         : tStatus('TODO')}
-                    </span>
+                    </Pill>
                   </div>
                 );
               })}

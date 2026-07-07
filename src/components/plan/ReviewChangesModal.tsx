@@ -13,7 +13,8 @@ import {
 } from '@heroicons/react/24/outline';
 import {TaskType, PlanMode} from '@/utils/enums';
 import type {TaskSize} from '@/utils/enums';
-import {SizeChip} from '@/components/shared/SizeChip';
+import {SizeChip} from '@/components/ui/SizeChip';
+import {Pill} from '@/components/ui/Pill';
 
 interface AddedTemplate {
   templateId: string;
@@ -145,9 +146,9 @@ export function ReviewChangesModal({
                   <span className="text-[11px] font-bold uppercase tracking-widest text-success">
                     {tr('addedHeading')}
                   </span>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-success/15 text-success">
+                  <Pill color="success" className="rounded-full font-bold">
                     {tr('templateCount', {count: added.length})}
-                  </span>
+                  </Pill>
                 </div>
                 <div className="flex flex-col gap-1.5">
                   {added.map(t => (
@@ -187,9 +188,9 @@ export function ReviewChangesModal({
                   <span className="text-[11px] font-bold uppercase tracking-widest text-error">
                     {tr('removedHeading')}
                   </span>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-error/15 text-error">
+                  <Pill color="error" className="rounded-full font-bold">
                     {tr('templateCount', {count: removed.length})}
-                  </span>
+                  </Pill>
                 </div>
                 <div className="flex flex-col gap-1.5">
                   {removed.map(t => (
@@ -232,9 +233,9 @@ export function ReviewChangesModal({
                   <span className="text-[11px] font-bold uppercase tracking-widest text-warning">
                     {tr('modifiedHeading')}
                   </span>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-warning/15 text-warning">
+                  <Pill color="warning" className="rounded-full font-bold">
                     {tr('templateCount', {count: modified.length})}
-                  </span>
+                  </Pill>
                 </div>
                 <div className="flex flex-col gap-1.5">
                   {modified.map(t => (
@@ -283,9 +284,9 @@ export function ReviewChangesModal({
                   <span className="text-[11px] font-bold uppercase tracking-widest text-warning">
                     {tr('adhocHeading')}
                   </span>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-warning/15 text-warning">
+                  <Pill color="warning" className="rounded-full font-bold">
                     {tr('taskCount', {count: totalAdhocChanges})}
-                  </span>
+                  </Pill>
                 </div>
 
                 {/* Added to board */}

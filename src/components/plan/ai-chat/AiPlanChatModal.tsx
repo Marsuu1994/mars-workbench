@@ -5,6 +5,7 @@ import {useTranslations} from 'next-intl';
 import {SparklesIcon, XMarkIcon} from '@heroicons/react/24/outline';
 import {useAiPlanChatStore} from '@/store/aiPlanChatStore';
 import {useAiPlanChat} from '@/hooks/useAiPlanChat';
+import {Pill} from '@/components/ui/Pill';
 import {ChatMessage} from './ChatMessage';
 import {ChatInputBar} from './ChatInputBar';
 import {CreateActionBar} from './CreateActionBar';
@@ -58,9 +59,9 @@ export const AiPlanChatModal = () => {
           <SparklesIcon className="size-3.5" />
         </span>
         <span className="text-base font-semibold">{t('modalTitle')}</span>
-        <span className="fx-chip rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase text-secondary">
+        <Pill color="secondary" className="rounded-full uppercase">
           {t('betaLabel')}
-        </span>
+        </Pill>
       </div>
       <button
         type="button"

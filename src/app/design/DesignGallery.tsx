@@ -5,8 +5,11 @@ import {DragDropContext, Droppable} from '@hello-pangea/dnd';
 import {SunIcon, MoonIcon} from '@heroicons/react/24/outline';
 
 import {Pill} from '@/components/ui/Pill';
-import {SizeChip} from '@/components/shared/SizeChip';
-import TaskTypeBadge from '@/components/shared/TaskTypeBadge';
+import {SizeChip} from '@/components/ui/SizeChip';
+import {TaskTypeBadge} from '@/components/ui/TaskTypeBadge';
+import {InstanceBadge} from '@/components/ui/InstanceBadge';
+import {RiskBadge} from '@/components/ui/RiskBadge';
+import {RolloverTag} from '@/components/ui/RolloverTag';
 import TaskCard from '@/components/board/TaskCard';
 import MatrixTaskCard from '@/components/priorities/MatrixTaskCard';
 import ProgressDashboard from '@/components/board/ProgressDashboard';
@@ -211,6 +214,32 @@ export const DesignGallery = () => {
     </Section>
   );
 
+  const renderBadgeFamily = () => (
+    <Section
+      title="Badge family (ui)"
+      description="Domain chips built on Pill: multi-instance index, risk level, rollover marker."
+    >
+      <Row>
+        <Variant label="InstanceBadge (sm / xs)">
+          <Row>
+            <InstanceBadge index={0} />
+            <InstanceBadge index={1} />
+            <InstanceBadge index={2} size="xs" />
+          </Row>
+        </Variant>
+        <Variant label="RiskBadge">
+          <Row>
+            <RiskBadge level="warning" />
+            <RiskBadge level="danger" />
+          </Row>
+        </Variant>
+        <Variant label="RolloverTag">
+          <RolloverTag date={TODAY} />
+        </Variant>
+      </Row>
+    </Section>
+  );
+
   const renderSizeChips = () => (
     <Section
       title="SizeChip"
@@ -389,6 +418,7 @@ export const DesignGallery = () => {
         {renderPalette()}
         {renderHudPrimitives()}
         {renderPills()}
+        {renderBadgeFamily()}
         {renderSizeChips()}
         {renderTypeBadges()}
         {renderTaskCards()}

@@ -2,6 +2,7 @@
 
 import {useTranslations} from 'next-intl';
 import {getWeekDateRange} from '@/utils/dateUtils';
+import {Pill} from '@/components/ui/Pill';
 
 interface BoardHeaderProps {
   periodKey: string;
@@ -20,9 +21,15 @@ export default function BoardHeader({periodKey}: BoardHeaderProps) {
           </span>
           {t('titleSuffix')}
         </h1>
-        <span className="fx-chip text-primary md:text-success text-xs px-3 py-1 rounded-full font-semibold">
+        {/* Accent drift (primary on mobile, success on desktop) is tracked
+            in the tracker's uniform-page-header item — keep as-is for now. */}
+        <Pill
+          color="primary"
+          size="md"
+          className="rounded-full md:text-success"
+        >
           {dateRange}
-        </span>
+        </Pill>
       </div>
     </div>
   );

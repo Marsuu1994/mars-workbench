@@ -10,7 +10,7 @@ import {
 import {TaskType} from '@/utils/enums';
 import type {TaskTemplateItem} from '@/lib/db/taskTemplates';
 import {sizeToPoints} from '@/utils/enums';
-import {SizeChip} from '@/components/shared/SizeChip';
+import {SizeChip} from '@/components/ui/SizeChip';
 import {FREQ_MIN, FREQ_MAX} from './constants';
 
 interface TemplateItemConfig {

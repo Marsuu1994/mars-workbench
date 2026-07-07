@@ -1,13 +1,18 @@
 'use client';
 
 import {Draggable} from '@hello-pangea/dnd';
-import {useTranslations} from 'next-intl';
 import type {TaskItem} from '@/lib/db/tasks';
 import {TaskStatus} from '@/utils/enums';
-import {SizeChip} from '@/components/shared/SizeChip';
-import {formatShortDate} from '@/utils/dateUtils';
 import {isRolloverTask, type RiskLevel} from '@/utils/taskUtils';
-import TaskTypeBadge from '@/components/shared/TaskTypeBadge';
+import {SizeChip} from '@/components/ui/SizeChip';
+import {TaskTypeBadge} from '@/components/ui/TaskTypeBadge';
+import {InstanceBadge} from '@/components/ui/InstanceBadge';
+import {RiskBadge} from '@/components/ui/RiskBadge';
+import {RolloverTag} from '@/components/ui/RolloverTag';
+import {
+  RISK_BORDER_DESKTOP_LEFT,
+  RISK_BORDER_MOBILE_TOP,
+} from '@/components/ui/riskBorder';
 
 type TaskCardProps = {
   task: TaskItem;
@@ -28,30 +33,12 @@ export default function TaskCard({
   riskLevel,
   frequency,
 }: TaskCardProps) {
-  const t = useTranslations('Board.Card');
   const isDone = task.status === TaskStatus.DONE;
 
   // instanceIndex is 0-based; only meaningful when the template has siblings
   const showInstance = frequency > 1;
 
   const isRollover = isRolloverTask(task, today);
-
-  // Desktop: left border for risk (preserve on hover). Normal cards keep the
-  // base 1px border on all sides — no override, so the left edge stays visible.
-  const desktopRiskClass =
-    riskLevel === 'danger'
-      ? 'md:border-l-4 md:border-l-error md:hover:border-l-error'
-      : riskLevel === 'warning'
-        ? 'md:border-l-4 md:border-l-warning md:hover:border-l-warning'
-        : '';
-
-  // Mobile: top border for risk, scoped to < md (preserve on hover)
-  const mobileRiskClass =
-    riskLevel === 'danger'
-      ? 'max-md:border-t-[3px] max-md:border-t-error max-md:hover:border-t-error'
-      : riskLevel === 'warning'
-        ? 'max-md:border-t-[3px] max-md:border-t-warning max-md:hover:border-t-warning'
-        : '';
 
   return (
     <Draggable draggableId={task.id} index={index} isDragDisabled={isDone}>
@@ -60,7 +47,7 @@ export default function TaskCard({
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`card fx-card bg-base-100/70 border border-base-content/10 hover:-translate-y-0.5 flex-shrink-0 w-[136px] md:w-auto ${mobileRiskClass} ${desktopRiskClass} ${
+          className={`card fx-card bg-base-100/70 border border-base-content/10 hover:-translate-y-0.5 flex-shrink-0 w-[136px] md:w-auto ${RISK_BORDER_MOBILE_TOP[riskLevel]} ${RISK_BORDER_DESKTOP_LEFT[riskLevel]} ${
             isDone ? 'opacity-50 cursor-default' : 'cursor-grab'
           } ${snapshot.isDragging ? 'fx-card-lift scale-[1.02] z-50' : ''}`}
         >
@@ -69,9 +56,7 @@ export default function TaskCard({
             <div className="md:hidden flex items-center gap-1.5">
               <TaskTypeBadge type={taskType} />
               {showInstance && (
-                <span className="fx-num text-[8px] font-bold px-1 py-0.5 rounded bg-primary/10 text-primary">
-                  #{task.instanceIndex + 1}
-                </span>
+                <InstanceBadge index={task.instanceIndex} size="xs" />
               )}
             </div>
 
@@ -93,28 +78,11 @@ export default function TaskCard({
             <div className="hidden md:flex items-center gap-2 mt-2">
               <TaskTypeBadge type={taskType} />
 
-              {showInstance && (
-                <span className="fx-num text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary">
-                  #{task.instanceIndex + 1}
-                </span>
-              )}
+              {showInstance && <InstanceBadge index={task.instanceIndex} />}
 
-              {isRollover && (
-                <span className="fx-num flex items-center gap-0.5 whitespace-nowrap text-xs text-warning font-medium">
-                  ↩ {formatShortDate(new Date(task.forDate!))}
-                </span>
-              )}
+              {isRollover && <RolloverTag date={new Date(task.forDate!)} />}
 
-              {riskLevel === 'warning' && !isDone && (
-                <span className="badge badge-warning badge-sm">
-                  ⚠ {t('atRisk')}
-                </span>
-              )}
-              {riskLevel === 'danger' && !isDone && (
-                <span className="badge badge-error badge-sm">
-                  ‼ {t('urgent')}
-                </span>
-              )}
+              {!isDone && <RiskBadge level={riskLevel} />}
 
               <SizeChip
                 size={task.size}
@@ -126,9 +94,10 @@ export default function TaskCard({
             {/* Mobile footer */}
             <div className="flex md:hidden items-center mt-auto">
               {isRollover && (
-                <span className="fx-num flex items-center gap-0.5 whitespace-nowrap text-[8px] text-warning font-medium">
-                  ↩ {formatShortDate(new Date(task.forDate!))}
-                </span>
+                <RolloverTag
+                  date={new Date(task.forDate!)}
+                  className="text-[8px]"
+                />
               )}
               <SizeChip
                 size={task.size}

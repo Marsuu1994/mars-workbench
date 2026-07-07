@@ -2,6 +2,8 @@
 
 import {useTranslations} from 'next-intl';
 import type {TaskSize} from '@/utils/enums';
+import {Pill} from './Pill';
+import {cn} from './cn';
 
 interface SizeChipProps {
   size: TaskSize;
@@ -11,6 +13,7 @@ interface SizeChipProps {
   labelOnly?: boolean;
 }
 
+/** Inline size + Fibonacci points indicator used on cards and rows. */
 export const SizeChip = ({
   size,
   points,
@@ -20,9 +23,7 @@ export const SizeChip = ({
   const t = useTranslations('Enums.TaskSize');
 
   return (
-    <span
-      className={`fx-chip inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded text-success ${className ?? ''}`}
-    >
+    <Pill color="success" className={cn('font-bold', className)}>
       <span>{t(size)}</span>
       {!labelOnly && (
         <>
@@ -30,6 +31,6 @@ export const SizeChip = ({
           <span className="fx-num font-semibold opacity-70">{points}</span>
         </>
       )}
-    </span>
+    </Pill>
   );
 };

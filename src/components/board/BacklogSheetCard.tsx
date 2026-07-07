@@ -3,10 +3,13 @@
 import {useTranslations} from 'next-intl';
 import {ArrowUpIcon} from '@heroicons/react/24/outline';
 import type {TaskItem} from '@/lib/db/tasks';
-import {SizeChip} from '@/components/shared/SizeChip';
-import TaskTypeBadge from '@/components/shared/TaskTypeBadge';
-import {formatShortDate} from '@/utils/dateUtils';
 import {isRolloverTask, type RiskLevel} from '@/utils/taskUtils';
+import {SizeChip} from '@/components/ui/SizeChip';
+import {TaskTypeBadge} from '@/components/ui/TaskTypeBadge';
+import {InstanceBadge} from '@/components/ui/InstanceBadge';
+import {RiskBadge} from '@/components/ui/RiskBadge';
+import {RolloverTag} from '@/components/ui/RolloverTag';
+import {RISK_BORDER_LEFT} from '@/components/ui/riskBorder';
 
 interface BacklogSheetCardProps {
   task: TaskItem;
@@ -30,45 +33,20 @@ export default function BacklogSheetCard({
   onPull,
 }: BacklogSheetCardProps) {
   const t = useTranslations('Board.Backlog');
-  const tCard = useTranslations('Board.Card');
   const showInstance = frequency > 1;
   const isRollover = isRolloverTask(task, today);
 
-  const riskBorder =
-    riskLevel === 'danger'
-      ? 'border-l-4 border-l-error'
-      : riskLevel === 'warning'
-        ? 'border-l-4 border-l-warning'
-        : 'border-l-4 border-l-transparent';
-
   return (
     <div
-      className={`card bg-base-100 border border-base-content/10 ${riskBorder}`}
+      className={`card bg-base-100 border border-base-content/10 ${RISK_BORDER_LEFT[riskLevel]}`}
     >
       <div className="card-body flex-row items-stretch gap-3 p-3">
         <div className="flex-1 min-w-0 flex flex-col gap-1.5">
           <div className="flex items-center gap-1.5 flex-wrap">
             <TaskTypeBadge type={task.type} />
-            {showInstance && (
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary">
-                #{task.instanceIndex + 1}
-              </span>
-            )}
-            {isRollover && (
-              <span className="flex items-center gap-0.5 text-xs text-warning font-medium">
-                ↩ {formatShortDate(new Date(task.forDate!))}
-              </span>
-            )}
-            {riskLevel === 'warning' && (
-              <span className="badge badge-warning badge-sm">
-                ⚠ {tCard('atRisk')}
-              </span>
-            )}
-            {riskLevel === 'danger' && (
-              <span className="badge badge-error badge-sm">
-                ‼ {tCard('urgent')}
-              </span>
-            )}
+            {showInstance && <InstanceBadge index={task.instanceIndex} />}
+            {isRollover && <RolloverTag date={new Date(task.forDate!)} />}
+            <RiskBadge level={riskLevel} />
           </div>
 
           <h3 className="text-sm font-semibold line-clamp-2">{task.title}</h3>
