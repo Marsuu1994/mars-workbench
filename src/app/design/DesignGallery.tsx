@@ -1,20 +1,21 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { DragDropContext, Droppable } from "@hello-pangea/dnd";
-import { SunIcon, MoonIcon } from "@heroicons/react/24/outline";
+import {useState} from 'react';
+import {DragDropContext, Droppable} from '@hello-pangea/dnd';
+import {SunIcon, MoonIcon} from '@heroicons/react/24/outline';
 
-import { SizeChip } from "@/components/shared/SizeChip";
-import TaskTypeBadge from "@/components/shared/TaskTypeBadge";
-import TaskCard from "@/components/board/TaskCard";
-import MatrixTaskCard from "@/components/priorities/MatrixTaskCard";
-import ProgressDashboard from "@/components/board/ProgressDashboard";
-import EmptyBoard from "@/components/board/EmptyBoard";
-import { BotAvatar, UserAvatar } from "@/components/plan/ai-chat/Avatars";
-import { SuggestionChips } from "@/components/plan/ai-chat/SuggestionChips";
-import { LoadingBubble } from "@/components/plan/ai-chat/LoadingBubble";
+import {Pill} from '@/components/ui/Pill';
+import {SizeChip} from '@/components/shared/SizeChip';
+import TaskTypeBadge from '@/components/shared/TaskTypeBadge';
+import TaskCard from '@/components/board/TaskCard';
+import MatrixTaskCard from '@/components/priorities/MatrixTaskCard';
+import ProgressDashboard from '@/components/board/ProgressDashboard';
+import EmptyBoard from '@/components/board/EmptyBoard';
+import {BotAvatar, UserAvatar} from '@/components/plan/ai-chat/Avatars';
+import {SuggestionChips} from '@/components/plan/ai-chat/SuggestionChips';
+import {LoadingBubble} from '@/components/plan/ai-chat/LoadingBubble';
 
-import { Section, Variant, Row } from "./GalleryParts";
+import {Section, Variant, Row} from './GalleryParts';
 import {
   GALLERY_TITLE_ACCENT,
   GALLERY_TITLE_REST,
@@ -32,7 +33,9 @@ import {
   TOKEN_SWATCHES,
   LED_STATES,
   CHIP_SPECIMENS,
-} from "./constants";
+  PILL_COLORS,
+  PILL_SIZES,
+} from './constants';
 
 export const DesignGallery = () => {
   const [theme, setTheme] = useState<string>(THEME_DARK);
@@ -42,17 +45,24 @@ export const DesignGallery = () => {
     <header className="flex items-start justify-between gap-4">
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold">
-          <span className="fx-text-gradient">{GALLERY_TITLE_ACCENT}</span> {GALLERY_TITLE_REST}
+          <span className="fx-text-gradient">{GALLERY_TITLE_ACCENT}</span>{' '}
+          {GALLERY_TITLE_REST}
         </h1>
-        <p className="max-w-2xl text-sm text-base-content/60">{GALLERY_SUBTITLE}</p>
+        <p className="max-w-2xl text-sm text-base-content/60">
+          {GALLERY_SUBTITLE}
+        </p>
       </div>
       <button
         type="button"
         onClick={() => setTheme(isDark ? THEME_LIGHT : THEME_DARK)}
         className="btn btn-sm btn-outline shrink-0"
       >
-        {isDark ? <SunIcon className="size-4" /> : <MoonIcon className="size-4" />}
-        {isDark ? "Light" : "Dark"}
+        {isDark ? (
+          <SunIcon className="size-4" />
+        ) : (
+          <MoonIcon className="size-4" />
+        )}
+        {isDark ? 'Light' : 'Dark'}
       </button>
     </header>
   );
@@ -63,7 +73,7 @@ export const DesignGallery = () => {
       description="Seven OKLCH hue-wheel stops with matched chroma bands; every pair is WCAG-verified (dark ≥ 7:1, light ≥ 4.5:1)."
     >
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-        {TOKEN_SWATCHES.map(({ name, swatch, role }) => (
+        {TOKEN_SWATCHES.map(({name, swatch, role}) => (
           <div key={name} className="flex flex-col gap-1.5">
             <div
               className={`flex h-14 items-end justify-between rounded-lg px-2.5 py-1.5 ${swatch}`}
@@ -72,7 +82,9 @@ export const DesignGallery = () => {
               <span className="fx-num text-[10px] opacity-70">4.5+</span>
             </div>
             <span className="fx-label">{name}</span>
-            <span className="text-[11px] leading-tight text-base-content/50">{role}</span>
+            <span className="text-[11px] leading-tight text-base-content/50">
+              {role}
+            </span>
           </div>
         ))}
       </div>
@@ -88,7 +100,7 @@ export const DesignGallery = () => {
         <Row>
           <Variant label="Console chips (fx-chip)">
             <div className="flex gap-2">
-              {CHIP_SPECIMENS.map(({ label, className }) => (
+              {CHIP_SPECIMENS.map(({label, className}) => (
                 <span
                   key={label}
                   className={`fx-chip rounded px-2 py-0.5 text-[10px] font-semibold ${className}`}
@@ -100,9 +112,11 @@ export const DesignGallery = () => {
           </Variant>
           <Variant label="Status LEDs (fx-led)">
             <div className="flex items-center gap-4">
-              {LED_STATES.map(({ label, className, pulse }) => (
+              {LED_STATES.map(({label, className, pulse}) => (
                 <span key={label} className="flex items-center gap-1.5">
-                  <span className={`fx-led ${pulse ? "fx-led-pulse" : ""} ${className}`} />
+                  <span
+                    className={`fx-led ${pulse ? 'fx-led-pulse' : ''} ${className}`}
+                  />
                   <span className="text-xs text-base-content/60">{label}</span>
                 </span>
               ))}
@@ -113,13 +127,22 @@ export const DesignGallery = () => {
           <Variant label="Telemetry type (fx-label / fx-num)">
             <div className="flex flex-col gap-1">
               <span className="fx-label">Week Progress</span>
-              <span className="fx-num text-lg font-bold text-primary">47 / 82</span>
+              <span className="fx-num text-lg font-bold text-primary">
+                47 / 82
+              </span>
             </div>
           </Variant>
           <Variant label="Glow actions (fx-glow)">
             <div className="flex gap-3">
-              <button type="button" className="btn btn-primary fx-glow btn-sm">Launch</button>
-              <button type="button" className="btn btn-accent fx-glow-accent btn-sm">Abort</button>
+              <button type="button" className="btn btn-primary fx-glow btn-sm">
+                Launch
+              </button>
+              <button
+                type="button"
+                className="btn btn-accent fx-glow-accent btn-sm"
+              >
+                Abort
+              </button>
             </div>
           </Variant>
           <Variant label="AI holo border (fx-holo)">
@@ -135,7 +158,9 @@ export const DesignGallery = () => {
           <Variant label="Reticle panel (fx-panel-solid + fx-corners)">
             <div className="fx-panel-solid fx-corners w-56 p-4">
               <span className="fx-label fx-label-bright">Q1 · Do First</span>
-              <p className="mt-1 text-xs text-base-content/60">Urgent and important.</p>
+              <p className="mt-1 text-xs text-base-content/60">
+                Urgent and important.
+              </p>
             </div>
           </Variant>
           <Variant label="Drop target (fx-target)">
@@ -155,13 +180,44 @@ export const DesignGallery = () => {
     </Section>
   );
 
+  const renderPills = () => (
+    <Section
+      title="Pill (ui)"
+      description="The one tinted-pill primitive: fx-chip recipe + text token + size preset. Every badge in the app composes this — never hand-roll a pill."
+    >
+      <div className="flex flex-col gap-6">
+        {PILL_SIZES.map(size => (
+          <Variant key={size} label={`size: ${size}`}>
+            <Row>
+              {PILL_COLORS.map(color => (
+                <Pill key={color} color={color} size={size}>
+                  {color}
+                </Pill>
+              ))}
+            </Row>
+          </Variant>
+        ))}
+        <Variant label="responsive (size=xs, mdSize=sm) + shape override">
+          <Row>
+            <Pill color="info" size="xs" mdSize="sm">
+              responsive
+            </Pill>
+            <Pill color="success" size="md" className="rounded-full">
+              rounded-full
+            </Pill>
+          </Row>
+        </Variant>
+      </div>
+    </Section>
+  );
+
   const renderSizeChips = () => (
     <Section
       title="SizeChip"
       description="Inline size + Fibonacci points indicator used on cards and template rows."
     >
       <Row>
-        {SIZE_FIXTURES.map(({ size, points }) => (
+        {SIZE_FIXTURES.map(({size, points}) => (
           <Variant key={size} label={size}>
             <SizeChip size={size} points={points} />
           </Variant>
@@ -171,9 +227,12 @@ export const DesignGallery = () => {
   );
 
   const renderTypeBadges = () => (
-    <Section title="TaskTypeBadge" description="Semantic badge for a task's recurrence type.">
+    <Section
+      title="TaskTypeBadge"
+      description="Semantic badge for a task's recurrence type."
+    >
       <Row>
-        {TYPE_FIXTURES.map((type) => (
+        {TYPE_FIXTURES.map(type => (
           <Variant key={type} label={type}>
             <TaskTypeBadge type={type} />
           </Variant>
@@ -189,7 +248,7 @@ export const DesignGallery = () => {
     >
       <DragDropContext onDragEnd={() => undefined}>
         <Droppable droppableId="gallery-cards">
-          {(provided) => (
+          {provided => (
             <div
               ref={provided.innerRef}
               {...provided.droppableProps}
@@ -224,7 +283,7 @@ export const DesignGallery = () => {
     >
       <DragDropContext onDragEnd={() => undefined}>
         <Droppable droppableId="gallery-matrix-cards">
-          {(provided) => (
+          {provided => (
             <div
               ref={provided.innerRef}
               {...provided.droppableProps}
@@ -283,7 +342,10 @@ export const DesignGallery = () => {
           <LoadingBubble label={LOADING_LABEL} />
         </Variant>
         <Variant label="Suggestion chips">
-          <SuggestionChips chips={SUGGESTION_CHIPS} onSelect={() => undefined} />
+          <SuggestionChips
+            chips={SUGGESTION_CHIPS}
+            onSelect={() => undefined}
+          />
         </Variant>
       </div>
     </Section>
@@ -318,11 +380,15 @@ export const DesignGallery = () => {
   );
 
   return (
-    <div data-theme={theme} className="fx-shell-bg min-h-screen text-base-content">
+    <div
+      data-theme={theme}
+      className="fx-shell-bg min-h-screen text-base-content"
+    >
       <div className="mx-auto flex max-w-5xl flex-col gap-10 p-6 md:p-10">
         {renderHeader()}
         {renderPalette()}
         {renderHudPrimitives()}
+        {renderPills()}
         {renderSizeChips()}
         {renderTypeBadges()}
         {renderTaskCards()}

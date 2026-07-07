@@ -18,8 +18,10 @@ prisma/migrations/
 
 # Markdown docs & design assets are hand-authored; Prettier is scoped to code
 # only (README Update Logs are append-only — see AGENTS.md).
+# Anchored to the repo root: an unanchored design/ also swallowed
+# src/app/design/ (the gallery), which is code and must be formatted.
 **/*.md
-design/
+/design/
 
 # Misc
 *.tsbuildinfo
