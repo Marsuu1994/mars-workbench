@@ -18,27 +18,22 @@ import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
 import {SheetCloseButton} from '@/components/ui/overlay/SheetCloseButton';
 import {SubmitButton} from '@/components/ui/form/SubmitButton';
 
-interface AddedTemplate {
+/** Shared identity for any template referenced in the review. */
+interface TemplateRef {
   templateId: string;
   title: string;
+}
+
+/** A template added to or removed from the plan — both lists share this shape. */
+interface TemplateChange extends TemplateRef {
   size: TaskSize;
   points: number;
   type: TaskType;
   frequency: number;
 }
 
-interface RemovedTemplate {
-  templateId: string;
-  title: string;
-  size: TaskSize;
-  points: number;
-  type: TaskType;
-  frequency: number;
-}
-
-interface ModifiedTemplate {
-  templateId: string;
-  title: string;
+/** A template whose type/frequency changed between plans. */
+interface ModifiedTemplate extends TemplateRef {
   fromType: TaskType;
   fromFrequency: number;
   toType: TaskType;
@@ -56,8 +51,8 @@ interface ReviewChangesModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  added: AddedTemplate[];
-  removed: RemovedTemplate[];
+  added: TemplateChange[];
+  removed: TemplateChange[];
   modified: ModifiedTemplate[];
   addedAdhoc?: AdhocTaskChange[];
   removedAdhoc?: AdhocTaskChange[];

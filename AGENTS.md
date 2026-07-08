@@ -221,6 +221,27 @@ Mockups are the source of truth for UI, but implementation may introduce details
   <ChoicePills options={MODES.map(m => ({value: m, label: renderModeOption(m)}))} />
   ```
 
+- **DRY applies to type shapes too, not just JSX.** Identical `interface`/`type` definitions must collapse to one; shapes that share a common core extend a base instead of re-listing the shared fields. Bad: `AddedTemplate` and `RemovedTemplate` declared as byte-for-byte identical interfaces, and `ModifiedTemplate` re-listing the same `templateId`/`title`. Good:
+
+  ```ts
+  interface TemplateRef {
+    templateId: string;
+    title: string;
+  }
+  // added & removed share one shape…
+  interface TemplateChange extends TemplateRef {
+    size: TaskSize;
+    points: number;
+    type: TaskType;
+    frequency: number;
+  }
+  // …and the diverging one still reuses the shared core.
+  interface ModifiedTemplate extends TemplateRef {
+    fromType: TaskType;
+    toType: TaskType;
+  }
+  ```
+
 ## Code Style
 
 - Named exports only (except Next.js `page.tsx` and `layout.tsx` defaults).
