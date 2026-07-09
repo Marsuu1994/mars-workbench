@@ -84,14 +84,19 @@ src/
 │   │   └── middleware.ts          # Session refresh + redirect logic
 │   ├── auth/                      # getCurrentUserId
 │   └── db/                        # Data access layer (all Prisma queries)
-└── components/                    # UI, grouped by page
-    ├── common/                    # App shell chrome (AppShell, AppSidebar, BottomTabBar,
-    │                              #   BreakpointProvider, ThemeProvider)
-    ├── shared/                    # Cross-page UI (SizeChip, TaskTypeBadge, BoardHeader, task-modal/)
-    ├── board/                     # /kanban — KanbanBoard, BoardColumn, TaskCard, backlog drawer, …
-    ├── plan/                      # /kanban/plans/* — PlanForm, ReviewChangesModal, TemplateItem, ai-chat/
-    ├── priorities/                # /kanban/priorities — PriorityMatrixPage, QuadrantCell, …
-    └── auth/                      # SettingsContent (/kanban/settings)
+└── components/                    # Three top-level layers (see "Component Placement")
+    ├── ui/                        # Design system — generic primitives only, zero domain imports
+    │                              #   (Pill, ProgressBar, EmptyState, SectionLabel, StatBlock,
+    │                              #   InstanceBadge, cn) + form/ + overlay/
+    ├── application/               # App-level components: shell chrome + providers, future contexts
+    │                              #   (AppShell, AppSidebar, BottomTabBar, BreakpointProvider, ThemeProvider)
+    └── domain/                    # All business components (anything that knows about the domain)
+        ├── shared/                # Cross-feature domain UI (BoardHeader, task-modal/, SizeChip,
+        │                          #   TaskTypeBadge, RiskBadge, RolloverTag, riskBorder)
+        ├── board/                 # /kanban — KanbanBoard, BoardColumn, TaskCard, backlog drawer, …
+        ├── plan/                  # /kanban/plans/* — PlanForm, ReviewChangesModal, TemplateItem, ai-chat/
+        ├── priorities/            # /kanban/priorities — PriorityMatrixPage, QuadrantCell, …
+        └── auth/                  # SettingsContent (/kanban/settings)
 ```
 
 ## Workflow
@@ -193,6 +198,56 @@ Mockups are the source of truth for UI, but implementation may introduce details
   <h1>{t("createTitle")}</h1>
   <span>{t("taskCount", { count })}</span>
   ```
+
+- **DRY repeated JSX blocks.** When the same markup repeats with only data/color differences (list rows, change sections, cards), extract ONE parameterized sub-component instead of copy-pasting the block per case. If the only difference is a semantic color, drive it from a `Record<Key, string>` of literal Tailwind classes. Bad: five near-identical `added`/`removed`/`modified` sections each hand-writing the same dot + title + meta + note row. Good:
+
+  ```tsx
+  // Literal classes only — never interpolate `bg-${accent}`, Tailwind can't see it.
+  const ACCENT: Record<Accent, {dot: string; border: string}> = {
+    success: {dot: "bg-success", border: "border-success/30"},
+    error: {dot: "bg-error", border: "border-error/30"},
+    warning: {dot: "bg-warning", border: "border-warning/30"},
+  };
+  const ChangeRow = ({accent, title, children}: ChangeRowProps) => (
+    <div className={`… border ${ACCENT[accent].border}`}>
+      <div className={`size-[7px] rounded-full ${ACCENT[accent].dot} …`} />
+      <div>
+        <div className="text-sm font-medium">{title}</div>
+        {children}
+      </div>
+    </div>
+  );
+  ```
+
+- **Don't inline long render functions as prop values.** A render-prop or option-label callback longer than a couple of lines belongs in a named function (or a `const` element list), not inlined at the call site — the call site should read as an outline. Bad: a `ChoicePills options={[{value, label: selected => (<>…12 lines…</>)}, …]}` with the whole label body inlined. Good:
+
+  ```tsx
+  const renderModeOption = (mode: PlanMode) => (selected: boolean) => ( /* … */ );
+  <ChoicePills options={MODES.map(m => ({value: m, label: renderModeOption(m)}))} />
+  ```
+
+- **DRY applies to type shapes too, not just JSX.** Identical `interface`/`type` definitions must collapse to one; shapes that share a common core extend a base instead of re-listing the shared fields. Bad: `AddedTemplate` and `RemovedTemplate` declared as byte-for-byte identical interfaces, and `ModifiedTemplate` re-listing the same `templateId`/`title`. Good:
+
+  ```ts
+  interface TemplateRef {
+    templateId: string;
+    title: string;
+  }
+  // added & removed share one shape…
+  interface TemplateChange extends TemplateRef {
+    size: TaskSize;
+    points: number;
+    type: TaskType;
+    frequency: number;
+  }
+  // …and the diverging one still reuses the shared core.
+  interface ModifiedTemplate extends TemplateRef {
+    fromType: TaskType;
+    toType: TaskType;
+  }
+  ```
+
+- **Component placement** — `src/components/` has exactly three top-level layers; place a new component by asking two questions in order. (1) Does it import a domain type/enum (`TaskType`, `TaskSize`, `RiskLevel`, a schema, a DAL row)? If yes it is a **domain** component → `domain/`; if it is reused by ≥2 features put it in `domain/shared/`, otherwise in that feature's `domain/<feature>/`. (2) If it imports no domain type: is it the app frame rendered once (shell, tab bar, sidebar) or a Provider/context? → `application/`. Everything else — a generic, domain-agnostic primitive reusable in any app — → `ui/`. The hard rule: **nothing in `ui/` may import a domain type** (that is exactly why `SizeChip`/`TaskTypeBadge`/`RiskBadge`/`RolloverTag`/`riskBorder` live in `domain/shared/`, while the pure `#n` `InstanceBadge` stays in `ui/`). Bad: a `WeeklyPointsChip` that imports `TaskType` dropped into `ui/`. Good: the same chip in `domain/shared/`, importing the generic `Pill` from `ui/`.
 
 ## Code Style
 

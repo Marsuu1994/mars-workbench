@@ -1,4 +1,5 @@
 import {getTranslations} from 'next-intl/server';
+import {Pill} from '@/components/ui/Pill';
 
 export default async function PlansLayout({
   children,
@@ -18,9 +19,9 @@ export default async function PlansLayout({
             <span className="text-success">{t('titlePrefix')}</span>
             {t('titleSuffix')}
           </h1>
-          <span className="bg-error/15 text-error text-xs font-medium px-3 py-1 rounded-full font-semibold">
+          <Pill color="error" size="md" className="rounded-full">
             {t('planningMode')}
-          </span>
+          </Pill>
         </div>
       </div>
       <div className="flex-1 overflow-y-auto p-4 md:p-8">

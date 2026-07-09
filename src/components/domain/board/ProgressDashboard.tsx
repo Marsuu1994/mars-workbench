@@ -1,0 +1,202 @@
+'use client';
+
+import {useTranslations} from 'next-intl';
+import {StatBlock} from '@/components/ui/StatBlock';
+import {ProgressBar} from '@/components/ui/ProgressBar';
+import {SectionLabel} from '@/components/ui/SectionLabel';
+
+interface ProgressDashboardProps {
+  todayDoneCount: number;
+  todayTotalCount: number;
+  todayDonePoints: number;
+  todayTotalPoints: number;
+  weekDoneCount: number;
+  weekProjectedCount: number;
+  weekDonePoints: number;
+  weekProjectedPoints: number;
+  daysElapsed: number;
+}
+
+const RADIUS = 22;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS; // ≈ 138.23
+
+export default function ProgressDashboard({
+  todayDoneCount,
+  todayTotalCount,
+  todayDonePoints,
+  todayTotalPoints,
+  weekDoneCount,
+  weekProjectedCount,
+  weekDonePoints,
+  weekProjectedPoints,
+  daysElapsed,
+}: ProgressDashboardProps) {
+  const t = useTranslations('Board.Dashboard');
+  const todayPct =
+    todayTotalCount > 0
+      ? Math.round((todayDoneCount / todayTotalCount) * 100)
+      : 0;
+  const todayOffset = CIRCUMFERENCE * (1 - todayPct / 100);
+
+  const weekPct =
+    weekProjectedCount > 0
+      ? Math.round((weekDoneCount / weekProjectedCount) * 100)
+      : 0;
+
+  const dailyAvg =
+    daysElapsed > 0 ? (weekDonePoints / daysElapsed).toFixed(1) : '0.0';
+
+  return (
+    <>
+      {/* ── Mobile layout: two compact rows with linear bars ── */}
+      <div className="flex md:hidden flex-col gap-1.5 px-4 py-2 border-b border-base-content/10 bg-base-200/50">
+        {/* Today row */}
+        <div className="flex items-center gap-2 h-5">
+          <span className="fx-label w-9 shrink-0">{t('today')}</span>
+          <span className="fx-num text-2xs font-bold text-base-content/70 w-9 shrink-0">
+            {todayDoneCount}/{todayTotalCount}
+          </span>
+          <ProgressBar
+            value={todayPct}
+            fillClassName="bg-success"
+            className="flex-1 h-2"
+          />
+          <span className="text-2xs text-base-content/50 shrink-0">
+            <strong className="fx-num text-base-content/70 font-bold">
+              {todayDonePoints}
+            </strong>{' '}
+            {t('pts')}
+          </span>
+        </div>
+        {/* Week row */}
+        <div className="flex items-center gap-2 h-5">
+          <span className="fx-label w-9 shrink-0">{t('week')}</span>
+          <span className="fx-num text-2xs font-bold text-base-content/70 w-9 shrink-0">
+            {weekDoneCount}/{weekProjectedCount}
+          </span>
+          <ProgressBar
+            value={weekPct}
+            fillClassName="bg-info"
+            className="flex-1 h-2"
+          />
+          <span className="text-2xs text-base-content/50 shrink-0">
+            <strong className="fx-num text-base-content/70 font-bold">
+              {weekDonePoints}
+            </strong>{' '}
+            {t('pts')}
+          </span>
+          <span className="text-2xs text-base-content/50 shrink-0">
+            <strong className="fx-num text-warning font-bold">
+              {dailyAvg}
+            </strong>{' '}
+            {t('avg')}
+          </span>
+        </div>
+      </div>
+
+      {/* ── Desktop layout: ring + metrics ── */}
+      <div className="hidden md:flex items-center gap-6 px-4 py-3 border-b border-base-content/10 bg-base-200/50">
+        {/* Today Ring */}
+        <div className="flex items-center gap-3">
+          <div className="fx-orbit relative w-12 h-12 shrink-0">
+            <svg
+              viewBox="0 0 52 52"
+              width={48}
+              height={48}
+              className="-rotate-90"
+            >
+              {/* Static halo — glow without a CSS filter, so the arc's
+                  stroke transition never re-runs a drop-shadow */}
+              <circle
+                cx={26}
+                cy={26}
+                r={RADIUS}
+                fill="none"
+                strokeWidth={7}
+                className="stroke-primary/15"
+              />
+              <circle
+                cx={26}
+                cy={26}
+                r={RADIUS}
+                fill="none"
+                strokeWidth={4}
+                className="stroke-base-content/20"
+              />
+              <circle
+                cx={26}
+                cy={26}
+                r={RADIUS}
+                fill="none"
+                strokeWidth={4}
+                strokeLinecap="round"
+                strokeDasharray={CIRCUMFERENCE}
+                strokeDashoffset={todayOffset}
+                className="stroke-success transition-all duration-500"
+              />
+            </svg>
+            <div className="fx-num absolute inset-0 flex items-center justify-center text-[11px] font-bold">
+              {todayPct}%
+            </div>
+          </div>
+          <div className="flex flex-col gap-px">
+            <SectionLabel bright>{t('today')}</SectionLabel>
+            <span className="text-xs text-base-content/50">
+              {t('tasksOfTotal', {
+                done: todayDoneCount,
+                total: todayTotalCount,
+              })}
+            </span>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="divider divider-horizontal mx-0" />
+
+        {/* Today Points */}
+        <StatBlock
+          value={`${todayDonePoints} / ${todayTotalPoints}`}
+          valueClassName="text-lg text-success"
+          label={t('todayPoints')}
+        />
+
+        {/* Week Points */}
+        <StatBlock
+          value={`${weekDonePoints} / ${weekProjectedPoints}`}
+          valueClassName="text-lg text-info"
+          label={t('weekPoints')}
+        />
+
+        {/* Daily Avg */}
+        <StatBlock
+          value={dailyAvg}
+          valueClassName="text-lg text-warning"
+          label={t('dailyAvg')}
+        />
+
+        {/* Divider */}
+        <div className="divider divider-horizontal mx-0" />
+
+        {/* Week Progress Bar */}
+        <div className="flex-1 flex flex-col gap-1 min-w-0">
+          <div className="flex justify-between items-center">
+            <SectionLabel bright>{t('weekProgress')}</SectionLabel>
+            <span className="fx-num text-xs font-semibold text-info">
+              {weekPct}%
+            </span>
+          </div>
+          <ProgressBar
+            value={weekPct}
+            fillClassName="bg-gradient-to-r from-info to-success"
+          />
+          <span className="text-xs text-base-content/50">
+            {t('tasksOfTotal', {
+              done: weekDoneCount,
+              total: weekProjectedCount,
+            })}
+          </span>
+        </div>
+      </div>
+    </>
+  );
+}
