@@ -4,7 +4,7 @@ import BoardHeader from '@/components/domain/shared/BoardHeader';
 import ProgressDashboard from '@/components/domain/board/ProgressDashboard';
 import KanbanBoard from '@/components/domain/board/KanbanBoard';
 import EmptyBoard from '@/components/domain/board/EmptyBoard';
-import {ScenarioFrame} from '../ScenarioFrame';
+import {ScenarioTabs, type ScenarioTab} from '../ScenarioTabs';
 import {
   MID_WEEK_TASKS,
   MID_WEEK_PROGRESS,
@@ -33,6 +33,45 @@ const BoardShell = ({
   </div>
 );
 
+const BOARD_SCENARIOS: ScenarioTab[] = [
+  {
+    label: 'New user',
+    title: 'New user — no active plan',
+    note: 'First run: the create-your-first-plan prompt.',
+    height: 460,
+    content: <EmptyBoard />,
+  },
+  {
+    label: 'Returning',
+    title: 'Returning user — last period recap',
+    note: "A finished plan's stats seed the empty state.",
+    height: 460,
+    content: (
+      <EmptyBoard
+        stats={{
+          completionRate: 0.75,
+          completedCount: 12,
+          totalCount: 16,
+          totalPoints: 47,
+          dailyCompletionRate: 0.8,
+        }}
+      />
+    ),
+  },
+  {
+    label: 'Mid-week',
+    title: 'Mid-week, on track',
+    note: 'A balanced spread across Todo / Doing / Done with backlog staged.',
+    content: <BoardShell progress={MID_WEEK_PROGRESS} tasks={MID_WEEK_TASKS} />,
+  },
+  {
+    label: 'At risk',
+    title: 'Friday, several at risk',
+    note: 'Large weekly tasks unfinished late in the period, plus an overdue rollover.',
+    content: <BoardShell progress={DANGER_PROGRESS} tasks={DANGER_TASKS} />,
+  },
+];
+
 export default function BoardScenarioPage() {
   return (
     <div className="fx-shell-bg min-h-screen text-base-content">
@@ -53,43 +92,7 @@ export default function BoardScenarioPage() {
           </p>
         </div>
 
-        <ScenarioFrame
-          title="New user — no active plan"
-          note="First run: the create-your-first-plan prompt."
-          height={460}
-        >
-          <EmptyBoard />
-        </ScenarioFrame>
-
-        <ScenarioFrame
-          title="Returning user — last period recap"
-          note="A finished plan's stats seed the empty state."
-          height={460}
-        >
-          <EmptyBoard
-            stats={{
-              completionRate: 0.75,
-              completedCount: 12,
-              totalCount: 16,
-              totalPoints: 47,
-              dailyCompletionRate: 0.8,
-            }}
-          />
-        </ScenarioFrame>
-
-        <ScenarioFrame
-          title="Mid-week, on track"
-          note="A balanced spread across Todo / Doing / Done with backlog staged."
-        >
-          <BoardShell progress={MID_WEEK_PROGRESS} tasks={MID_WEEK_TASKS} />
-        </ScenarioFrame>
-
-        <ScenarioFrame
-          title="Friday, several at risk"
-          note="Large weekly tasks unfinished late in the period, plus an overdue rollover."
-        >
-          <BoardShell progress={DANGER_PROGRESS} tasks={DANGER_TASKS} />
-        </ScenarioFrame>
+        <ScenarioTabs tabs={BOARD_SCENARIOS} />
       </div>
     </div>
   );

@@ -80,6 +80,10 @@ Open items: see [design/tracker.md](./design/tracker.md).
 
 ## Update Log
 
+### 2026-07-09
+- **Board scenarios are now tab-switched**: `/design/scenarios/board` no longer stacks its four states (new-user / returning recap / mid-week / Friday at-risk) down one long scroll — a tab bar (`ScenarioTabs`) switches between them one frame at a time, mirroring the screen navigator of the HTML mockups these scenarios replace. Only the active scenario is mounted, so inactive boards never render
+- **Scenario frames are non-interactive**: previews compose the real page components (`KanbanBoard`, `EmptyBoard`) whose handlers are wired to live server actions and navigation, so a drag or a CTA click was firing a real `updateTaskStatusAction` against fixture IDs / navigating to `/kanban/plans/new`. `ScenarioFrame` is now `inert` by default (opt back in via `interactive`), disabling interactions so a scenario stays a pure visual reference
+
 ### 2026-07-06
 - **Mobile/desktop drift spike**: audited every feature (board, priorities, plan/AI chat, app shell) for capability drift between breakpoints. Most divergences are intentional and mockup-documented; three undocumented drifts were fixed, the rest recorded
 - Priorities: the no-plan warning bar ("No active plan — Create Plan to track tasks this week") now renders on **both** breakpoints — previously it was desktop-only, leaving mobile users with no in-page path to plan creation; the instruction variant of the hint bar stays desktop-only. Mockup back-port: new no-plan phone frame in `mockup-priorities.html`
