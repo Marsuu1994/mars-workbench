@@ -14,30 +14,53 @@ Inventory of the handlers and data-access functions that already exist, so new w
 
 | Action | Purpose | Calls |
 | --- | --- | --- |
-| **`features/board/actions/boardActions.ts`** | | |
+| **`src/actions/boardActions.ts`** | | |
 | `fetchBoardAction` | Load board data + metrics for `/kanban` | `boardService.fetchBoard` |
 | `getEmptyBoardStateAction` | Resolve no-active-plan state (new user vs. finished-plan recap) | `boardService.getEmptyBoardState` |
-| **`features/board/actions/taskActions.ts`** | | |
+| **`src/actions/taskActions.ts`** | | |
 | `updateTaskStatusAction` | Move a task between board columns (drag & drop) | `db/tasks.updateTaskStatus` |
-| **`features/plan/actions/planActions.ts`** | | |
+| `createAdhocTaskAction` | Add an unassigned ad-hoc task to a quadrant | `db/tasks.createTask` |
+| **`src/actions/planActions.ts`** | | |
 | `createPlanAction` | Create a weekly plan from the plan form | `planService.createPlan` |
 | `updatePlanAction` | Update an existing plan (templates, mode, ad-hoc links) | `planService.updatePlan` |
 | `countIncompleteByTemplateAction` | Per-template removable-task counts for the review modal | `db/tasks.countIncompleteTasksByTemplateId` |
-| **`features/plan/actions/templateActions.ts`** | | |
+| **`src/actions/templateActions.ts`** | | |
 | `createTaskTemplateAction` | Create a task template | `db/taskTemplates.createTaskTemplate` |
 | `updateTaskTemplateAction` | Edit a task template | `db/taskTemplates.updateTaskTemplate` |
-| **`features/plan/actions/aiChatActions.ts`** | | |
+| **`src/actions/aiChatActions.ts`** | | |
 | `getTemplateStatsAction` | Last-plan per-template stats for the AI chat | `aiChatService.getTemplateStats` |
 | `createAiChatAction` | Start a new AI plan-creation chat | `aiChatService.createAiChat` |
 | `getActiveAiChatAction` | Load the resumable in-progress chat for rehydration | `aiChatService.getActiveAiChat` |
 | `generateDraftPlanAction` | Send a user message, generate/revise a draft plan | `aiChatService.generateDraftPlan` |
 | `resumeDraftPlanAction` | Regenerate after an interrupted LLM call (no new turn) | `aiChatService.resumeDraftPlan` |
 | `approveDraftPlanAction` | Approve the latest draft and create the plan | `aiChatService.approveDraftPlan` |
-| **`features/priorities/actions/matrixActions.ts`** | | |
+| **`src/actions/matrixActions.ts`** | | |
 | `fetchPriorityMatrixAction` | Load matrix tasks + active-plan info for `/kanban/priorities` | `matrixService.fetchPriorityMatrix` |
 | `updateTaskQuadrantAction` | Move a task between Eisenhower quadrants | `db/tasks.updateTaskQuadrant` |
 | `trackTaskAction` | Track This Week: pull a matrix task onto the board | `matrixService.trackTaskThisWeek` |
-| `createAdhocTaskAction` | Add an unassigned ad-hoc task to a quadrant | `db/tasks.createTask` |
+
+## Services (src/services)
+
+| Function | Purpose |
+| --- | --- |
+| **`boardService.ts`** | |
+| `fetchBoard` | Board data + metrics for the active plan (null = no active plan) |
+| `getEmptyBoardState` | Resolve the no-active-plan state (new user vs. finished-plan recap) |
+| **`planService.ts`** | |
+| `createPlan` | Create a plan from the plan form (templates, mode, ad-hoc links) |
+| `updatePlan` | Rebuild an existing plan's templates/mode/ad-hoc links |
+| `createPlanFromDraft` | Create a plan from an approved AI draft |
+| `createPlanInTx` | Shared transactional plan-creation core reused by `createPlan`/`createPlanFromDraft` |
+| **`matrixService.ts`** | |
+| `fetchPriorityMatrix` | Matrix tasks + active-plan info for `/kanban/priorities` |
+| `trackTaskThisWeek` | Track This Week: pull a matrix task onto the board |
+| **`aiChatService.ts`** | |
+| `getTemplateStats` | Last-plan per-template stats for the AI chat |
+| `createAiChat` | Start a new AI plan-creation chat |
+| `getActiveAiChat` | Load the resumable in-progress chat for rehydration |
+| `generateDraftPlan` | Send a user message, generate/revise a draft plan |
+| `resumeDraftPlan` | Regenerate after an interrupted LLM call (no new turn) |
+| `approveDraftPlan` | Approve the latest draft and create the plan |
 
 ## Sync Service (src/services/syncService.ts)
 
