@@ -2,7 +2,7 @@
 
 import {useTranslations} from 'next-intl';
 import type {RiskLevel} from '@/utils/taskUtils';
-import {Pill, type PillSize} from './Pill';
+import {Pill, type PillSize} from '@/components/ui/Pill';
 
 interface RiskBadgeProps {
   level: RiskLevel;

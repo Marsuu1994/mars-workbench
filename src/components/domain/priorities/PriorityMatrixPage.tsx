@@ -19,7 +19,7 @@ import {
   updateTaskQuadrantAction,
   trackTaskAction,
 } from '@/actions/matrixActions';
-import TaskModal from '@/components/shared/task-modal/TaskModal';
+import TaskModal from '@/components/domain/shared/task-modal/TaskModal';
 import QuadrantCell from './QuadrantCell';
 import MobileTrackSheet from './MobileTrackSheet';
 import {

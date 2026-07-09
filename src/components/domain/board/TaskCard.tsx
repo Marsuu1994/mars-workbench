@@ -4,15 +4,15 @@ import {Draggable} from '@hello-pangea/dnd';
 import type {TaskItem} from '@/lib/db/tasks';
 import {TaskStatus} from '@/utils/enums';
 import {isRolloverTask, type RiskLevel} from '@/utils/taskUtils';
-import {SizeChip} from '@/components/ui/SizeChip';
-import {TaskTypeBadge} from '@/components/ui/TaskTypeBadge';
+import {SizeChip} from '@/components/domain/shared/SizeChip';
+import {TaskTypeBadge} from '@/components/domain/shared/TaskTypeBadge';
 import {InstanceBadge} from '@/components/ui/InstanceBadge';
-import {RiskBadge} from '@/components/ui/RiskBadge';
-import {RolloverTag} from '@/components/ui/RolloverTag';
+import {RiskBadge} from '@/components/domain/shared/RiskBadge';
+import {RolloverTag} from '@/components/domain/shared/RolloverTag';
 import {
   RISK_BORDER_DESKTOP_LEFT,
   RISK_BORDER_MOBILE_TOP,
-} from '@/components/ui/riskBorder';
+} from '@/components/domain/shared/riskBorder';
 
 type TaskCardProps = {
   task: TaskItem;

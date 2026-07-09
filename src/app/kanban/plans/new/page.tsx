@@ -3,7 +3,7 @@ import {getPlanByStatus, getPlanWithTemplates} from '@/lib/db/plans';
 import {getNonDoneAdhocTasks} from '@/lib/db/tasks';
 import {PlanStatus} from '@/generated/prisma/client';
 import {ensureSynced} from '@/services/syncService';
-import PlanForm from '@/components/plan/PlanForm';
+import PlanForm from '@/components/domain/plan/PlanForm';
 import {getCurrentUserId} from '@/lib/auth/getCurrentUserId';
 
 export default async function NewPlanPage() {

@@ -7,7 +7,7 @@ import {ChoicePills} from '@/components/ui/form/ChoicePills';
 import {
   QUADRANT_ORDER,
   QUADRANT_CONFIG,
-} from '@/components/priorities/constants';
+} from '@/components/domain/priorities/constants';
 
 interface QuadrantPickerProps {
   value: PriorityQuadrant;

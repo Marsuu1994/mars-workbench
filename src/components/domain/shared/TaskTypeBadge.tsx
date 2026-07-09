@@ -2,7 +2,7 @@
 
 import {useTranslations} from 'next-intl';
 import {TaskType} from '@/utils/enums';
-import {Pill, type PillColor} from './Pill';
+import {Pill, type PillColor} from '@/components/ui/Pill';
 
 interface TaskTypeBadgeProps {
   type: string;

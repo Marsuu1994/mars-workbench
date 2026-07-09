@@ -1,6 +1,6 @@
 import {redirect} from 'next/navigation';
 import {createClient} from '@/lib/supabase/server';
-import {SettingsContent} from '@/components/auth/SettingsContent';
+import {SettingsContent} from '@/components/domain/auth/SettingsContent';
 
 export default async function KanbanSettingsPage() {
   const supabase = await createClient();

@@ -1,7 +1,7 @@
 import {sizeToPoints} from '@/utils/enums';
 import type {DraftTemplate} from '@/types/aiChat';
-import {SizeChip} from '@/components/ui/SizeChip';
-import {TaskTypeBadge} from '@/components/ui/TaskTypeBadge';
+import {SizeChip} from '@/components/domain/shared/SizeChip';
+import {TaskTypeBadge} from '@/components/domain/shared/TaskTypeBadge';
 
 interface DraftPlanCardsProps {
   templates: DraftTemplate[];

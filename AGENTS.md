@@ -84,14 +84,19 @@ src/
 │   │   └── middleware.ts          # Session refresh + redirect logic
 │   ├── auth/                      # getCurrentUserId
 │   └── db/                        # Data access layer (all Prisma queries)
-└── components/                    # UI, grouped by page
-    ├── common/                    # App shell chrome (AppShell, AppSidebar, BottomTabBar,
-    │                              #   BreakpointProvider, ThemeProvider)
-    ├── shared/                    # Cross-page UI (SizeChip, TaskTypeBadge, BoardHeader, task-modal/)
-    ├── board/                     # /kanban — KanbanBoard, BoardColumn, TaskCard, backlog drawer, …
-    ├── plan/                      # /kanban/plans/* — PlanForm, ReviewChangesModal, TemplateItem, ai-chat/
-    ├── priorities/                # /kanban/priorities — PriorityMatrixPage, QuadrantCell, …
-    └── auth/                      # SettingsContent (/kanban/settings)
+└── components/                    # Three top-level layers (see "Component Placement")
+    ├── ui/                        # Design system — generic primitives only, zero domain imports
+    │                              #   (Pill, ProgressBar, EmptyState, SectionLabel, StatBlock,
+    │                              #   InstanceBadge, cn) + form/ + overlay/
+    ├── application/               # App-level components: shell chrome + providers, future contexts
+    │                              #   (AppShell, AppSidebar, BottomTabBar, BreakpointProvider, ThemeProvider)
+    └── domain/                    # All business components (anything that knows about the domain)
+        ├── shared/                # Cross-feature domain UI (BoardHeader, task-modal/, SizeChip,
+        │                          #   TaskTypeBadge, RiskBadge, RolloverTag, riskBorder)
+        ├── board/                 # /kanban — KanbanBoard, BoardColumn, TaskCard, backlog drawer, …
+        ├── plan/                  # /kanban/plans/* — PlanForm, ReviewChangesModal, TemplateItem, ai-chat/
+        ├── priorities/            # /kanban/priorities — PriorityMatrixPage, QuadrantCell, …
+        └── auth/                  # SettingsContent (/kanban/settings)
 ```
 
 ## Workflow
@@ -241,6 +246,8 @@ Mockups are the source of truth for UI, but implementation may introduce details
     toType: TaskType;
   }
   ```
+
+- **Component placement** — `src/components/` has exactly three top-level layers; place a new component by asking two questions in order. (1) Does it import a domain type/enum (`TaskType`, `TaskSize`, `RiskLevel`, a schema, a DAL row)? If yes it is a **domain** component → `domain/`; if it is reused by ≥2 features put it in `domain/shared/`, otherwise in that feature's `domain/<feature>/`. (2) If it imports no domain type: is it the app frame rendered once (shell, tab bar, sidebar) or a Provider/context? → `application/`. Everything else — a generic, domain-agnostic primitive reusable in any app — → `ui/`. The hard rule: **nothing in `ui/` may import a domain type** (that is exactly why `SizeChip`/`TaskTypeBadge`/`RiskBadge`/`RolloverTag`/`riskBorder` live in `domain/shared/`, while the pure `#n` `InstanceBadge` stays in `ui/`). Bad: a `WeeklyPointsChip` that imports `TaskType` dropped into `ui/`. Good: the same chip in `domain/shared/`, importing the generic `Pill` from `ui/`.
 
 ## Code Style
 

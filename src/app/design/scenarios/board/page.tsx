@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import {ArrowLeftIcon} from '@heroicons/react/24/outline';
-import BoardHeader from '@/components/shared/BoardHeader';
-import ProgressDashboard from '@/components/board/ProgressDashboard';
-import KanbanBoard from '@/components/board/KanbanBoard';
-import EmptyBoard from '@/components/board/EmptyBoard';
+import BoardHeader from '@/components/domain/shared/BoardHeader';
+import ProgressDashboard from '@/components/domain/board/ProgressDashboard';
+import KanbanBoard from '@/components/domain/board/KanbanBoard';
+import EmptyBoard from '@/components/domain/board/EmptyBoard';
 import {ScenarioFrame} from '../ScenarioFrame';
 import {
   MID_WEEK_TASKS,

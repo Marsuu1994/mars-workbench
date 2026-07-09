@@ -1,5 +1,5 @@
 import {formatShortDate} from '@/utils/dateUtils';
-import {cn} from './cn';
+import {cn} from '@/components/ui/cn';
 
 interface RolloverTagProps {
   /** The task's original forDate */

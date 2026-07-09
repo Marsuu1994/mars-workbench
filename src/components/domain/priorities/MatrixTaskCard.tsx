@@ -6,10 +6,10 @@ import {
   ArrowRightIcon,
   EllipsisVerticalIcon,
 } from '@heroicons/react/24/outline';
-import {useBreakpoint} from '@/components/common/BreakpointProvider';
+import {useBreakpoint} from '@/components/application/BreakpointProvider';
 import type {TaskItem} from '@/lib/db/tasks';
 import type {TrackTargetStatus} from '@/schemas';
-import {SizeChip} from '@/components/ui/SizeChip';
+import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {Pill} from '@/components/ui/Pill';
 import {Popover} from '@/components/ui/overlay/Popover';
 import TrackPopover from './TrackPopover';

@@ -3,7 +3,7 @@ import {getPlanWithTemplates} from '@/lib/db/plans';
 import {getTaskTemplates} from '@/lib/db/taskTemplates';
 import {getNonDoneAdhocTasks} from '@/lib/db/tasks';
 import {ensureSynced} from '@/services/syncService';
-import PlanForm from '@/components/plan/PlanForm';
+import PlanForm from '@/components/domain/plan/PlanForm';
 import {getCurrentUserId} from '@/lib/auth/getCurrentUserId';
 
 export default async function EditPlanPage({

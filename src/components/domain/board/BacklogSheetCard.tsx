@@ -4,12 +4,12 @@ import {useTranslations} from 'next-intl';
 import {ArrowUpIcon} from '@heroicons/react/24/outline';
 import type {TaskItem} from '@/lib/db/tasks';
 import {isRolloverTask, type RiskLevel} from '@/utils/taskUtils';
-import {SizeChip} from '@/components/ui/SizeChip';
-import {TaskTypeBadge} from '@/components/ui/TaskTypeBadge';
+import {SizeChip} from '@/components/domain/shared/SizeChip';
+import {TaskTypeBadge} from '@/components/domain/shared/TaskTypeBadge';
 import {InstanceBadge} from '@/components/ui/InstanceBadge';
-import {RiskBadge} from '@/components/ui/RiskBadge';
-import {RolloverTag} from '@/components/ui/RolloverTag';
-import {RISK_BORDER_LEFT} from '@/components/ui/riskBorder';
+import {RiskBadge} from '@/components/domain/shared/RiskBadge';
+import {RolloverTag} from '@/components/domain/shared/RolloverTag';
+import {RISK_BORDER_LEFT} from '@/components/domain/shared/riskBorder';
 
 interface BacklogSheetCardProps {
   task: TaskItem;

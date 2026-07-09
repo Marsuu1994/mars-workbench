@@ -2,7 +2,7 @@
 
 import {Droppable} from '@hello-pangea/dnd';
 import {useTranslations} from 'next-intl';
-import {useBreakpoint} from '@/components/common/BreakpointProvider';
+import {useBreakpoint} from '@/components/application/BreakpointProvider';
 import type {TaskItem} from '@/lib/db/tasks';
 import {TaskStatus} from '@/utils/enums';
 import {getTaskFrequency, type RiskLevel} from '@/utils/taskUtils';

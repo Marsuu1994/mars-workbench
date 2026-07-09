@@ -13,7 +13,7 @@ import {
   updateTaskTemplateAction,
 } from '@/actions/templateActions';
 import {createAdhocTaskAction} from '@/actions/taskActions';
-import {FALLBACK_QUADRANT} from '@/components/priorities/constants';
+import {FALLBACK_QUADRANT} from '@/components/domain/priorities/constants';
 import TaskModalHeader from './TaskModalHeader';
 import TaskModalFooter from './TaskModalFooter';
 import QuadrantPicker from './QuadrantPicker';

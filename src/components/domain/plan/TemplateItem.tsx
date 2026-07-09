@@ -5,7 +5,7 @@ import {CheckIcon, PencilSquareIcon} from '@heroicons/react/24/outline';
 import {TaskType} from '@/utils/enums';
 import type {TaskTemplateItem} from '@/lib/db/taskTemplates';
 import {sizeToPoints} from '@/utils/enums';
-import {SizeChip} from '@/components/ui/SizeChip';
+import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {ChoicePills} from '@/components/ui/form/ChoicePills';
 import {Stepper} from '@/components/ui/form/Stepper';
 import {FREQ_MIN, FREQ_MAX} from './constants';

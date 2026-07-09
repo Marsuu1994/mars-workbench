@@ -2,8 +2,8 @@
 
 import {useTranslations} from 'next-intl';
 import type {TaskSize} from '@/utils/enums';
-import {Pill} from './Pill';
-import {cn} from './cn';
+import {Pill} from '@/components/ui/Pill';
+import {cn} from '@/components/ui/cn';
 
 interface SizeChipProps {
   size: TaskSize;

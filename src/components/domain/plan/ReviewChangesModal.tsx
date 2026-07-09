@@ -12,7 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 import {TaskType, PlanMode} from '@/utils/enums';
 import type {TaskSize} from '@/utils/enums';
-import {SizeChip} from '@/components/ui/SizeChip';
+import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {Pill, type PillColor} from '@/components/ui/Pill';
 import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
 import {SheetCloseButton} from '@/components/ui/overlay/SheetCloseButton';

@@ -13,7 +13,7 @@ import {
   TaskSize,
 } from '@/utils/enums';
 import {getWeekDateRange} from '@/utils/dateUtils';
-import {SizeChip} from '@/components/ui/SizeChip';
+import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {Pill} from '@/components/ui/Pill';
 import {FieldRow} from '@/components/ui/form/FieldRow';
 import {ChoicePills} from '@/components/ui/form/ChoicePills';
@@ -28,7 +28,7 @@ import {
   countIncompleteByTemplateAction,
 } from '@/actions/planActions';
 import TemplateItem from './TemplateItem';
-import TaskModal from '@/components/shared/task-modal/TaskModal';
+import TaskModal from '@/components/domain/shared/task-modal/TaskModal';
 import {ReviewChangesModal} from './ReviewChangesModal';
 import {AiAssistantBanner} from './ai-chat/AiAssistantBanner';
 import {AiPlanChatModal} from './ai-chat/AiPlanChatModal';
