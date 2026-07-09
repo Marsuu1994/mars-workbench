@@ -411,7 +411,7 @@ export const DesignGallery = () => {
   const renderOverlays = () => (
     <Section
       title="BottomSheet"
-      description="The uniform mobile sheet container: grip bar, optional pinned header + subheader, internal scroll region, explicit backdrop dismissal."
+      description="The uniform mobile sheet container: optional pinned header + subheader, internal scroll region, explicit backdrop dismissal."
     >
       <button
         type="button"
@@ -453,7 +453,7 @@ export const DesignGallery = () => {
   const renderModalShell = () => (
     <Section
       title="OverlayShell"
-      description="The one dialog shell behind every modal: responsive sheet-to-center morph, HUD panel chrome (fx-panel-solid + fx-boot-in), optional reticle corners and grip, explicit dismissOnBackdrop contract."
+      description="The one dialog shell behind every modal: responsive sheet-to-center morph, HUD panel chrome (fx-panel-solid + fx-boot-in), optional reticle corners, explicit dismissOnBackdrop contract."
     >
       <button
         type="button"
@@ -468,8 +468,7 @@ export const DesignGallery = () => {
         onClose={() => setShellOpen(false)}
         dismissOnBackdrop={false}
         corners
-        grip
-        boxClassName="max-w-lg pt-2 md:pt-6"
+        boxClassName="max-w-lg pt-4 md:pt-6"
       >
         <h3 className="text-lg font-semibold">{SHELL_DEMO_TITLE}</h3>
         <p className="py-3 text-sm text-base-content/60">{SHELL_DEMO_BODY}</p>

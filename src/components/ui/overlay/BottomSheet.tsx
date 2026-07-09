@@ -32,7 +32,7 @@ interface BottomSheetProps {
 }
 
 /**
- * The uniform mobile bottom-sheet container: grip bar, optional pinned
+ * The uniform mobile bottom-sheet container: optional pinned
  * header/subheader, optional internal scroll region. Content goes in
  * children; the shell owns the dialog/backdrop/animation chrome.
  */
@@ -49,7 +49,7 @@ export const BottomSheet = ({
   children,
 }: BottomSheetProps) => {
   const renderHeader = ({icon, title, badge}: BottomSheetHeader) => (
-    <div className="flex items-center justify-between px-4 pb-3 border-b border-base-content/10 flex-shrink-0">
+    <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-base-content/10 flex-shrink-0">
       <div className="flex items-center gap-2 text-base font-bold">
         {icon}
         {title}
@@ -69,7 +69,6 @@ export const BottomSheet = ({
       closeLabel={closeLabel}
       boxClassName={cn('p-0', scrollable && 'max-h-[80vh] flex flex-col')}
     >
-      <div className="w-[38px] h-1 rounded-full bg-base-content/20 mx-auto mt-2 mb-2.5 flex-shrink-0" />
       {header && renderHeader(header)}
       {subheader && <div className="flex-shrink-0">{subheader}</div>}
       <div

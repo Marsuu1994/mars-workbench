@@ -303,7 +303,7 @@ export const SHEET_DEMO_CLOSE = 'Close';
 export const SHEET_DEMO_HINT = 'Pinned subheader — hints live here.';
 export const SHEET_DEMO_ROWS = [
   'Row one — sheets scroll internally',
-  'Row two — grip, header and subheader stay pinned',
+  'Row two — header and subheader stay pinned',
   'Row three',
   'Row four',
   'Row five',

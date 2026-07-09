@@ -144,8 +144,7 @@ export default function TaskModal({
       onClose={onClose}
       dismissOnBackdrop={false}
       corners
-      grip
-      boxClassName="max-w-lg pt-2 md:pt-6"
+      boxClassName="max-w-lg pt-4 md:pt-6"
     >
       <TaskModalHeader mode={mode} onClose={onClose} />
 

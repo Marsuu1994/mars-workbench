@@ -418,8 +418,7 @@ export function ReviewChangesModal({
       isOpen={isOpen}
       onClose={onClose}
       closeLabel={tr('cancel')}
-      grip
-      boxClassName="max-w-lg flex flex-col overflow-hidden max-h-[85vh] pt-2 md:pt-6 md:max-h-[calc(100vh-5em)]"
+      boxClassName="max-w-lg flex flex-col overflow-hidden max-h-[85vh] pt-4 md:pt-6 md:max-h-[calc(100vh-5em)]"
     >
       {renderHeader()}
       {renderBody()}

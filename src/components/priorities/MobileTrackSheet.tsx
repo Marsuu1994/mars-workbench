@@ -73,7 +73,7 @@ export default function MobileTrackSheet({
       isOpen={task !== null}
       onClose={onClose}
       closeLabel={t('closeLabel')}
-      bodyClassName="px-4 pb-6"
+      bodyClassName="px-4 pt-4 pb-6"
     >
       {task && renderSummary(task)}
       <SectionLabel className="block mb-2">{t('trackTitle')}</SectionLabel>
