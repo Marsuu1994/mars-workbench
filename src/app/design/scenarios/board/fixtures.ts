@@ -86,57 +86,6 @@ export const MID_WEEK_PROGRESS = {
   daysElapsed: 4,
 };
 
-// ── Friday, several at risk ──────────────────────────────────────────────────
-export const DANGER_TASKS: TaskItem[] = [
-  task({
-    title: 'Ship the release build',
-    type: TaskType.WEEKLY,
-    status: TaskStatus.TODO,
-    ...sized(TaskSize.EXTRA_LARGE),
-  }),
-  task({
-    title: 'Close the launch checklist',
-    type: TaskType.WEEKLY,
-    status: TaskStatus.TODO,
-    ...sized(TaskSize.LARGE),
-  }),
-  task({
-    title: 'Overdue: rotate the API keys',
-    status: TaskStatus.TODO,
-    forDate: daysAgo(2),
-    ...sized(TaskSize.MEDIUM),
-  }),
-  task({
-    title: 'File the compliance report',
-    type: TaskType.WEEKLY,
-    status: TaskStatus.DOING,
-    ...sized(TaskSize.LARGE),
-  }),
-  task({
-    title: 'Sign off the design review',
-    status: TaskStatus.DONE,
-    doneAt: daysAgo(0),
-    ...sized(TaskSize.SMALL),
-  }),
-  task({
-    title: 'Backlog: refresh onboarding docs',
-    status: TaskStatus.BACKLOG,
-    ...sized(TaskSize.MEDIUM),
-  }),
-];
-
-export const DANGER_PROGRESS = {
-  todayDoneCount: 1,
-  todayTotalCount: 5,
-  todayDonePoints: 2,
-  todayTotalPoints: 24,
-  weekDoneCount: 6,
-  weekProjectedCount: 14,
-  weekDonePoints: 18,
-  weekProjectedPoints: 47,
-  daysElapsed: 6,
-};
-
 export const SCENARIO_PLAN_TEMPLATES: Array<{
   templateId: string;
   frequency: number;

@@ -19,6 +19,8 @@ interface BacklogDrawerProps {
   today: Date;
   riskMap: Map<string, RiskLevel>;
   templateFreqMap: Map<string, number>;
+  /** Start expanded instead of collapsed (used by design scenarios). */
+  defaultOpen?: boolean;
 }
 
 /**
@@ -31,9 +33,10 @@ export default function BacklogDrawer({
   today,
   riskMap,
   templateFreqMap,
+  defaultOpen = false,
 }: BacklogDrawerProps) {
   const t = useTranslations('Board.Backlog');
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(defaultOpen);
 
   const countPill = (
     <span className="badge badge-primary badge-sm font-bold">

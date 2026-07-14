@@ -8,17 +8,18 @@ import {ScenarioTabs, type ScenarioTab} from '../ScenarioTabs';
 import {
   MID_WEEK_TASKS,
   MID_WEEK_PROGRESS,
-  DANGER_TASKS,
-  DANGER_PROGRESS,
   SCENARIO_PLAN_TEMPLATES,
 } from './fixtures';
 
 const BoardShell = ({
   progress,
   tasks,
+  backlogOpen = false,
 }: {
   progress: React.ComponentProps<typeof ProgressDashboard>;
   tasks: React.ComponentProps<typeof KanbanBoard>['tasks'];
+  /** Render the board with the backlog ("Queued") drawer expanded. */
+  backlogOpen?: boolean;
 }) => (
   <div className="flex flex-col h-full">
     <BoardHeader periodKey="2026-W28" />
@@ -28,6 +29,7 @@ const BoardShell = ({
         tasks={tasks}
         daysElapsed={progress.daysElapsed}
         planTemplates={SCENARIO_PLAN_TEMPLATES}
+        defaultBacklogOpen={backlogOpen}
       />
     </div>
   </div>
@@ -59,16 +61,22 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
     ),
   },
   {
-    label: 'Mid-week',
-    title: 'Mid-week, on track',
-    note: 'A balanced spread across Todo / Doing / Done with backlog staged.',
+    label: 'Board',
+    title: 'Board — active plan',
+    note: 'A balanced spread across Todo / In Progress / Done, backlog collapsed.',
     content: <BoardShell progress={MID_WEEK_PROGRESS} tasks={MID_WEEK_TASKS} />,
   },
   {
-    label: 'At risk',
-    title: 'Friday, several at risk',
-    note: 'Large weekly tasks unfinished late in the period, plus an overdue rollover.',
-    content: <BoardShell progress={DANGER_PROGRESS} tasks={DANGER_TASKS} />,
+    label: 'Board — drawer open',
+    title: 'Board — backlog drawer open',
+    note: 'The "Queued" drawer expanded, staging template instances ready to pull onto the board.',
+    content: (
+      <BoardShell
+        progress={MID_WEEK_PROGRESS}
+        tasks={MID_WEEK_TASKS}
+        backlogOpen
+      />
+    ),
   },
 ];
 

@@ -20,12 +20,15 @@ interface KanbanBoardProps {
   tasks: TaskItem[];
   daysElapsed: number;
   planTemplates: Array<{templateId: string; frequency: number}>;
+  /** Start the backlog drawer expanded (used by design scenarios). */
+  defaultBacklogOpen?: boolean;
 }
 
 export default function KanbanBoard({
   tasks,
   daysElapsed,
   planTemplates,
+  defaultBacklogOpen = false,
 }: KanbanBoardProps) {
   const [localTasks, setLocalTasks] = useState<TaskItem[]>(tasks);
   const [isDragging, setIsDragging] = useState(false);
@@ -162,6 +165,7 @@ export default function KanbanBoard({
           today={today}
           riskMap={riskMap}
           templateFreqMap={templateFreqMap}
+          defaultOpen={defaultBacklogOpen}
         />
       </div>
       <MobileBacklogSheet
