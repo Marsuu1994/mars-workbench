@@ -41,6 +41,8 @@ Inventory of the handlers and data-access functions that already exist, so new w
 
 ## Services (src/services)
 
+`syncService.ts` flow-level spec: [flows/shared.md](./flows/shared.md).
+
 | Function | Purpose |
 | --- | --- |
 | **`boardService.ts`** | |
@@ -61,13 +63,6 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | `generateDraftPlan` | Send a user message, generate/revise a draft plan |
 | `resumeDraftPlan` | Regenerate after an interrupted LLM call (no new turn) |
 | `approveDraftPlan` | Approve the latest draft and create the plan |
-
-## Sync Service (src/services/syncService.ts)
-
-Flow-level spec: [flows/shared.md](./flows/shared.md).
-
-| Function | Purpose |
-| --- | --- |
 | **`syncService.ts`** | |
 | `ensureSynced` | Single sync entry point awaited by every kanban page before reading plan state; flips an ended ACTIVE plan to PENDING_UPDATE, runs the daily sync at most once per day, returns the current-week ACTIVE plan or null. Idempotent, wrapped in React `cache()`. |
 | `runDailySync` | Expire stale daily tasks + generate today's daily instances (standalone for a future cron) |
