@@ -58,7 +58,13 @@ export const ScenarioTabs = ({tabs}: ScenarioTabsProps) => {
         })}
       </div>
 
+      {/* Key by tab so switching always remounts the scenario: two tabs can
+          render the same component (e.g. the board with the backlog drawer
+          closed vs. open), and without a fresh mount React would reuse the
+          instance and ignore its new initial state (the drawer would stay as
+          the first-mounted tab left it). */}
       <ScenarioFrame
+        key={activeIndex}
         title={active.title}
         note={active.note}
         height={active.height}
