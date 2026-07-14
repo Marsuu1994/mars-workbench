@@ -83,7 +83,7 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
 export default function BoardScenarioPage() {
   return (
     <div className="fx-shell-bg min-h-screen text-base-content">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8 p-6 md:p-10">
+      <div className="mx-auto flex max-w-[1600px] flex-col gap-8 p-6 md:p-10">
         <div className="flex flex-col gap-1">
           <Link
             href="/design/scenarios"
