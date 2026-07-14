@@ -88,6 +88,15 @@ Implement approved mockups exactly (layout, spacing, text, colors, icons, states
 
 Mockups are the source of truth for UI, but implementation may introduce details not in the original mockup (e.g. cursor styles, hover states, text/icon changes). After completing a UI task, back-port any such details to the source-of-truth mockup as a final step so the mockup stays accurate.
 
+## Documentation Style
+
+Docs exist to re-orient a human later; the diff and PR description already record every detail forever. The failure mode to guard against is diff-shaped prose — exhaustive, file-by-file narration that buries what actually changed. Optimize for orientation, not completeness: omitted detail is still in git, but buried signal is gone. An Update Log entry is a headline, not a completion report — never write docs to prove work was done.
+
+- **Write at the doc's altitude, not the work's.** Every doc has a declared altitude — `tracker.md`: open items; `reference.md`: lean lookup tables; `baseline.md`: entities + decisions; `flows/`: step contracts; README Current State: product capabilities (a skimmable tour, not a spec). New content must match the altitude of the doc it lands in; implementation detail (file paths, prop/class names, exhaustive sub-change lists) stays in the diff unless lookup is the doc's explicit job.
+- **Length must not scale with diff size.** A bigger change earns a *higher-level* summary, not a longer one.
+- **Update Log budget**: lead every bullet with the user-visible outcome (shipped / changed / fixed); ≤ 2 lines per bullet, aim for ≤ 6 bullets per day. Bug fixes are one line — symptom → root cause → fix; the forensic narrative belongs in the PR description. No file inventories; never restate flows already documented in `design/`. Bad: a day entry of 20 bullets enumerating every component, i18n key, and mockup file touched. Good (a real entry): `Plan Mode (NORMAL/EXTREME): schema, services, board sync, plan form UI, review modal, mockups`.
+- **Edit living docs in place; don't append.** In `design/*` and README Current State, rewrite the sentence that is now wrong instead of adding a paragraph — an edit should normally keep the doc's size roughly flat. (The Update Log is the one append-only doc — see Anti-Patterns — but each entry stays within budget.)
+
 ## Layers
 
 - Actions (`src/actions/`): `'use server'`, thin layer (validate with Zod -> call service -> `revalidatePath`)
