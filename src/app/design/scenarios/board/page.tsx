@@ -4,12 +4,19 @@ import BoardHeader from '@/components/domain/shared/BoardHeader';
 import ProgressDashboard from '@/components/domain/board/ProgressDashboard';
 import KanbanBoard from '@/components/domain/board/KanbanBoard';
 import EmptyBoard from '@/components/domain/board/EmptyBoard';
+import {TaskStatus} from '@/utils/enums';
 import {ScenarioTabs, type ScenarioTab} from '../ScenarioTabs';
+import {BacklogSheetPanel} from './BacklogSheetPanel';
 import {
   MID_WEEK_TASKS,
   MID_WEEK_PROGRESS,
   SCENARIO_PLAN_TEMPLATES,
 } from './fixtures';
+
+const BACKLOG_TASKS = MID_WEEK_TASKS.filter(
+  task => task.status === TaskStatus.BACKLOG,
+);
+const SCENARIO_TODAY = new Date('2026-07-10T15:00:00');
 
 const BoardShell = ({
   progress,
@@ -69,7 +76,7 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
   {
     label: 'Board — drawer open',
     title: 'Board — backlog drawer open',
-    note: 'The "Queued" drawer expanded, staging template instances ready to pull onto the board.',
+    note: 'The "Queued" drawer expanded (desktop), staging template instances ready to pull onto the board.',
     content: (
       <BoardShell
         progress={MID_WEEK_PROGRESS}
@@ -77,6 +84,13 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
         backlogOpen
       />
     ),
+  },
+  {
+    label: 'Backlog (mobile)',
+    title: 'Mobile backlog sheet',
+    note: 'The mobile "Queued" bottom-sheet content — staged instances with a tap-to-pull action — shown inline (not as a top-layer modal).',
+    height: 480,
+    content: <BacklogSheetPanel tasks={BACKLOG_TASKS} today={SCENARIO_TODAY} />,
   },
 ];
 

@@ -8,9 +8,9 @@ import {
   ArrowUpIcon,
 } from '@heroicons/react/24/outline';
 import type {TaskItem} from '@/lib/db/tasks';
-import {getTaskFrequency, type RiskLevel} from '@/utils/taskUtils';
+import type {RiskLevel} from '@/utils/taskUtils';
 import {BottomSheet} from '@/components/ui/overlay/BottomSheet';
-import BacklogSheetCard from './BacklogSheetCard';
+import {BacklogSheetContent} from './BacklogSheetContent';
 
 interface MobileBacklogSheetProps {
   tasks: TaskItem[];
@@ -78,24 +78,15 @@ export default function MobileBacklogSheet({
         }}
         subheader={renderHint()}
         scrollable
-        bodyClassName="p-4 flex flex-col gap-2.5"
+        bodyClassName="p-4"
       >
-        {tasks.length === 0 ? (
-          <p className="text-center text-sm text-base-content/40 mt-10 px-6">
-            {t('emptyState')}
-          </p>
-        ) : (
-          tasks.map(task => (
-            <BacklogSheetCard
-              key={task.id}
-              task={task}
-              today={today}
-              riskLevel={riskMap.get(task.id) ?? 'normal'}
-              frequency={getTaskFrequency(task, templateFreqMap)}
-              onPull={onPull}
-            />
-          ))
-        )}
+        <BacklogSheetContent
+          tasks={tasks}
+          today={today}
+          riskMap={riskMap}
+          templateFreqMap={templateFreqMap}
+          onPull={onPull}
+        />
       </BottomSheet>
     </>
   );
