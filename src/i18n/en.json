@@ -35,11 +35,11 @@
   },
   "Board": {
     "Backlog": {
-      "title": "Queued",
+      "title": "Backlog",
       "hintDragToTodo": "Drag tasks left to Todo to start working",
       "emptyState": "You're all caught up — no staged tasks.",
-      "openLabel": "Open queued tasks",
-      "closeLabel": "Close queued tasks",
+      "openLabel": "Open backlog",
+      "closeLabel": "Close backlog",
       "hintTapToTodo": "Tap to pull a task onto the board",
       "pullToTodoLabel": "Todo"
     },

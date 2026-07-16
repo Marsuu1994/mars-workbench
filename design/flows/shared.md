@@ -39,7 +39,7 @@ Awaited by every kanban page's data fetch before reading plan state: board (`fet
 1. Set `lastSyncDate = today` first to prevent concurrent re-runs.
 2. Expire all daily tasks where `forDate` is **strictly before yesterday** (i.e., `forDate < today - 1 day`) and status is not DONE.
 3. If today is a weekend day and plan mode is NORMAL, skip daily task generation.
-4. Otherwise, generate new daily task instances for today **with `status = BACKLOG`** (staged in the backlog drawer; the user pulls them onto the board — see the "Backlog Drawer Flow" in `design/flows/board.md`).
+4. Otherwise, generate new daily task instances for today **with `status = BACKLOG`** (staged in the backlog; the user pulls them onto the board — see the "Backlog Flow" in `design/flows/board.md`).
 
 ### Rules
 
