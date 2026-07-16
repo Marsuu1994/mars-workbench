@@ -14,10 +14,28 @@ import type {RiskLevel} from '@/utils/taskUtils';
 export const GALLERY_TITLE_ACCENT = 'Design';
 export const GALLERY_TITLE_REST = 'Console';
 export const GALLERY_SUBTITLE =
-  'Mars Workbench design-system primitives — Mission Control HUD. Rendered with sample data; toggle the theme to preview both palettes.';
+  'Mars Workbench design-system primitives — Mission Control HUD, indexed by component layer. Rendered with sample data; toggle the theme to preview both palettes.';
 
 export const THEME_DARK = 'mars-dark';
 export const THEME_LIGHT = 'mars-light';
+
+/** Layer tabs — mirrors src/components/ (plus the token/FX foundation). */
+export const GALLERY_TAB_LABELS = [
+  'Tokens & FX',
+  'UI',
+  'Application',
+  'Domain',
+] as const;
+
+export const SCENARIOS_HREF = '/design/scenarios';
+export const SCENARIO_HREFS = {
+  board: '/design/scenarios/board',
+  priorities: '/design/scenarios/priorities',
+  plan: '/design/scenarios/plan',
+  aiChat: '/design/scenarios/ai-chat',
+  taskModal: '/design/scenarios/task-modal',
+  auth: '/design/scenarios/auth',
+} as const;
 
 // ── Shared fixtures ──────────────────────────────────────────────────────────
 export const TODAY = new Date();
@@ -335,6 +353,7 @@ export const FORM_DEMO_STEP_INC = 'Increase';
 export const FORM_DEMO_STEP_MIN = 1;
 export const FORM_DEMO_STEP_MAX = 7;
 export const FORM_DEMO_SUBMIT = 'Save task';
+export const FORM_DEMO_ERROR = 'Title is required';
 
 // ── Content-block demo fixtures ──────────────────────────────────────────────
 export const CONTENT_STATS = [
@@ -382,53 +401,48 @@ export const TEMPLATE_FIXTURE = {
   updatedAt: TODAY,
 };
 
-// ── ReviewChangesModal fixture (all change types) ────────────────────────────
-export const REVIEW_FIXTURE = {
-  added: [
-    {
-      templateId: 'r-add',
-      title: 'Morning workout',
-      size: TaskSize.SMALL,
-      points: SIZE_TO_POINTS[TaskSize.SMALL],
-      type: TaskType.DAILY,
-      frequency: 1,
-    },
-  ],
-  removed: [
-    {
-      templateId: 'r-rem',
-      title: 'Weekly review',
-      size: TaskSize.MEDIUM,
-      points: SIZE_TO_POINTS[TaskSize.MEDIUM],
-      type: TaskType.WEEKLY,
-      frequency: 1,
-    },
-  ],
-  modified: [
-    {
-      templateId: 'r-mod',
-      title: 'Read a chapter',
-      fromType: TaskType.DAILY,
-      fromFrequency: 1,
-      toType: TaskType.WEEKLY,
-      toFrequency: 3,
-    },
-  ],
-  addedAdhoc: [
-    {
-      id: 'r-aa',
-      title: 'Book flights',
-      size: TaskSize.SMALL,
-      points: SIZE_TO_POINTS[TaskSize.SMALL],
-    },
-  ],
-  removedAdhoc: [
-    {
-      id: 'r-ra',
-      title: 'Fix the leaky tap',
-      size: TaskSize.EXTRA_SMALL,
-      points: SIZE_TO_POINTS[TaskSize.EXTRA_SMALL],
-    },
-  ],
-  incompleteCounts: {'r-rem': 2, 'r-mod': 1},
-};
+// ── ui/ demo fixtures (EmptyState, TabBar, Popover) ──────────────────────────
+export const EMPTY_STATE_DEMO_TITLE = 'No signals yet';
+export const EMPTY_STATE_DEMO_DESC =
+  'Nothing on this channel. Run a scan to populate the console.';
+export const EMPTY_STATE_DEMO_CTA = 'Run scan';
+
+export const TABBAR_DEMO_LABELS = ['Overview', 'Telemetry', 'Logs'];
+
+export const POPOVER_DEMO_ANCHOR = 'Anchor';
+export const POPOVER_DEMO_TITLE = 'Track this week';
+export const POPOVER_DEMO_BODY =
+  'Anchored below a relative parent, arrow notch, swallows clicks.';
+
+// ── Application-layer fixtures ───────────────────────────────────────────────
+export const APP_USER = {name: 'Liang Jun', email: 'liang@example.com'};
+export const APP_PLAN_ID = 'gallery-plan';
+
+/** AppSidebar states — pathname/collapsed use the component's gallery overrides. */
+export const SIDEBAR_VARIANTS: {
+  label: string;
+  pathname: string;
+  activePlanId: string | null;
+  collapsed: boolean;
+}[] = [
+  {
+    label: 'Expanded — board active',
+    pathname: '/kanban',
+    activePlanId: APP_PLAN_ID,
+    collapsed: false,
+  },
+  {
+    label: 'Expanded — no plan (New pill)',
+    pathname: '/kanban/priorities',
+    activePlanId: null,
+    collapsed: false,
+  },
+  {
+    label: 'Collapsed',
+    pathname: '/kanban',
+    activePlanId: APP_PLAN_ID,
+    collapsed: true,
+  },
+];
+
+export const DOCK_DEMO_PATHNAME = '/kanban';

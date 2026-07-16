@@ -4,16 +4,19 @@ interface ZoneProps {
   title: string;
   /** One-line orientation for the whole group of sections */
   description?: string;
+  /** Right-aligned slot after the rule (e.g. a scenario link) */
+  action?: ReactNode;
   children: ReactNode;
 }
 
-/** A top-level layer of the system (Tokens, UI primitives, Overlays, Domain). */
-export const Zone = ({title, description, children}: ZoneProps) => (
+/** A titled group of sections (a feature area or sub-layer) within a tab. */
+export const Zone = ({title, description, action, children}: ZoneProps) => (
   <div className="flex flex-col gap-6">
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-3">
         <h2 className="fx-label fx-label-bright text-sm">{title}</h2>
         <hr className="fx-rule flex-1" />
+        {action}
       </div>
       {description && (
         <p className="text-sm text-base-content/50">{description}</p>

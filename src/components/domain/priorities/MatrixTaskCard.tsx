@@ -81,7 +81,7 @@ export default function MatrixTaskCard({
     </button>
   );
 
-  // Two overlapped 3-dot glyphs approximate the mockup's 6-dot grip
+  // Two overlapped 3-dot glyphs form the design's 6-dot drag grip
   // (no exact Heroicon exists). Decorative only — the whole card drags.
   const renderGrip = () => (
     <span

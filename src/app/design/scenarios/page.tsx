@@ -1,18 +1,60 @@
 import Link from 'next/link';
+import type {ComponentType} from 'react';
 import {
   ArrowLeftIcon,
-  Squares2X2Icon,
   ArrowRightIcon,
+  Squares2X2Icon,
+  TableCellsIcon,
+  PencilSquareIcon,
+  SparklesIcon,
+  ClipboardDocumentListIcon,
+  UserCircleIcon,
 } from '@heroicons/react/24/outline';
 
 /* Scenario index. Each entry is a page that composes real page components
-   with fixture data — the screen-level source of truth that replaces the
+   with fixture data — the screen-level source of truth that replaced the
    per-feature HTML mockups. */
-const SCENARIOS: {href: string; title: string; note: string}[] = [
+const SCENARIOS: {
+  href: string;
+  title: string;
+  note: string;
+  icon: ComponentType<{className?: string}>;
+}[] = [
   {
     href: '/design/scenarios/board',
     title: 'Board',
-    note: 'New user, returning recap, mid-week, and a Friday at-risk board.',
+    note: 'New user, returning recap, mid-week board, and the backlog on both breakpoints.',
+    icon: Squares2X2Icon,
+  },
+  {
+    href: '/design/scenarios/priorities',
+    title: 'Priorities',
+    note: 'Populated matrix, tracked cards, track popover, no-plan fallback, mobile track sheet.',
+    icon: TableCellsIcon,
+  },
+  {
+    href: '/design/scenarios/plan',
+    title: 'Plan',
+    note: 'Create and edit forms with template configs, plus the review-changes panel.',
+    icon: PencilSquareIcon,
+  },
+  {
+    href: '/design/scenarios/ai-chat',
+    title: 'AI chat',
+    note: 'The plan assistant across its lifecycle: welcome, generating, drafts, created, errors.',
+    icon: SparklesIcon,
+  },
+  {
+    href: '/design/scenarios/task-modal',
+    title: 'Task modal',
+    note: 'The shared task form: new/edit template and add-priority-task, with and without the quadrant picker.',
+    icon: ClipboardDocumentListIcon,
+  },
+  {
+    href: '/design/scenarios/auth',
+    title: 'Auth',
+    note: 'Login screen and mobile settings with the dock.',
+    icon: UserCircleIcon,
   },
 ];
 
@@ -37,20 +79,18 @@ export default function ScenariosIndexPage() {
         </div>
 
         <div className="flex flex-col gap-3">
-          {SCENARIOS.map(scenario => (
+          {SCENARIOS.map(({href, title, note, icon: Icon}) => (
             <Link
-              key={scenario.href}
-              href={scenario.href}
+              key={href}
+              href={href}
               className="fx-card group flex items-center gap-4 rounded-xl border border-base-content/10 bg-base-100 p-4"
             >
               <span className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Squares2X2Icon className="size-5" />
+                <Icon className="size-5" />
               </span>
               <div className="flex-1">
-                <div className="font-semibold">{scenario.title}</div>
-                <div className="text-sm text-base-content/50">
-                  {scenario.note}
-                </div>
+                <div className="font-semibold">{title}</div>
+                <div className="text-sm text-base-content/50">{note}</div>
               </div>
               <ArrowRightIcon className="size-4 text-base-content/30 transition-transform group-hover:translate-x-0.5" />
             </Link>

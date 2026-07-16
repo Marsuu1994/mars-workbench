@@ -78,7 +78,7 @@ export const MID_WEEK_TASKS: TaskItem[] = [
   }),
   // Backlog: two instances of one daily template (#1 fresh, #2 a rollover →
   // danger at 15:00) plus a weekly at day 4 (→ warning) — covers the instance
-  // badge and all three risk borders, mirroring the backlog mockup's spread.
+  // badge and all three risk borders.
   task({
     title: 'Draft next sprint plan',
     status: TaskStatus.BACKLOG,
