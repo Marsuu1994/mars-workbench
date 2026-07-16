@@ -20,6 +20,7 @@ Open [http://localhost:3000](http://localhost:3000)
 ### Design System
 
 - **"Mission Control HUD"** (`design/design-system.md`): two custom daisyUI themes — `mars-dark` (default, night ops deck) / `mars-light` ("dawn on Mars" — warm sand, not white) — on seven OKLCH hues with verified contrast, plus the token-derived `fx-*` utility layer (cosmic shell, console chips, status LEDs, telemetry type, glow CTAs, AI holo). Palette changes must follow the sync points listed in the design doc
+- **Open proposal**: Persona 5 "Calling Card" `mars-dark` reskin — spec `design/design-system-p5.md`, demo `design/mockup/future-work/mockup-p5-design-system.html` (see tracker, Cross-cutting → Future)
 
 ### Board
 
@@ -70,6 +71,10 @@ Open items: see [design/tracker.md](./design/tracker.md).
 - [x] Deploy app on Vercel
 
 ## Update Log
+
+### 2026-07-16
+
+- **Persona 5 "Calling Card" design exploration (proposal — not adopted)**: a complete P5-styled reskin direction for `mars-dark` — ink-black / phantom-red / paper-white, high contrast, flat "paper-cut" depth. Researched from Atlus UI-team interviews + designer breakdowns; spec in `design/design-system-p5.md` (verified OKLCH palette: signals ≥ 4.5:1 body-grade on all bases, pairs AAA except the two reds at AA — documented deviation; full `fx-*` reskin map keeping every class name and channel semantic; Anton display voice for chrome labels; zero-radius + oblique-cut shape language; compressed flat motion) with a three-screen live demo `design/mockup/future-work/mockup-p5-design-system.html` (tokens & voices / board / overlays). No `src/` changes — adoption is a separate decision; tracker item added under Cross-cutting → Future. `mars-light` deliberately out of scope
 
 ### 2026-07-14
 - **Docs pass**: `AGENTS.md` gains a **Documentation Style** section — living docs (README Current State, tracker, `design/`) are human-facing product state, not agent work records; detail's sanctioned homes are this Update Log and PR descriptions. README Current State and the tracker's Cross-cutting section compressed back to that altitude; the landed component-library record moved from the tracker into this log (below). Also: AGENTS.md dedup (Anti-Patterns, format rule), Coding Conventions regrouped under subsections, Project Structure tree slimmed to directory responsibilities

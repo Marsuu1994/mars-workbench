@@ -75,3 +75,4 @@ Single source of truth for open ideas and todos across the app — open items on
 - [ ] Phone notifications for unfinished tasks
 - [ ] LLM-generated motivational messages
 - [ ] Setup storybook and optimize workflow for UI mockup
+- [ ] Persona 5 "Calling Card" mars-dark reskin — full design-system proposal (verified black/red/white palette, fx-\* layer remap, display-voice typography, flat-depth motion) in `design/design-system-p5.md`; live demo `design/mockup/future-work/mockup-p5-design-system.html`. mars-light companion theme deliberately unresolved

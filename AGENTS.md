@@ -33,6 +33,7 @@ scripts/one-time/                  # Ad-hoc/manual scripts (see One-Time Scripts
 design/                            # Centralized design docs (see design/README.md for the index)
 ├── baseline.md                    # The ONE app-wide baseline (goal, entities, schema, decisions)
 ├── design-system.md               # Visual design system: OKLCH palette + contrast, fx-* layer
+├── design-system-p5.md            # PROPOSAL: Persona 5 "Calling Card" mars-dark reskin (not adopted)
 ├── tracker.md                     # Consolidated roadmap — open items only
 ├── reference.md                   # Lean lookup tables: server actions, services, DAL
 ├── flows/                         # Per-feature flow docs
