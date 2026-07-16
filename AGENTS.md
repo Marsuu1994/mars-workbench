@@ -24,79 +24,37 @@ A Next.js application centered on a Kanban Period Planner, with AI-assisted plan
 
 ## Project Structure
 
+Directory responsibilities only — for concrete file/component names, read the code. Keep this tree about *where things go*, not an inventory.
+
 ```text
-public/
-├── manifest.json                  # PWA web app manifest
-├── sw.js                          # Minimal service worker (PWA install criteria)
-└── icons/                         # PWA icons (192, 512, maskable, apple-touch)
-prisma/
-├── schema.prisma                  # Database schema
-└── migrations/                    # Database migrations
-scripts/
-└── one-time/                      # Ad-hoc/manual scripts (see One-Time Scripts section)
-design/                            # Centralized design docs (see design/README.md)
-├── README.md                      # Index of what lives where
+public/                            # PWA manifest, service worker, icons
+prisma/                            # schema.prisma + migrations/
+scripts/one-time/                  # Ad-hoc/manual scripts (see One-Time Scripts section)
+design/                            # Centralized design docs (see design/README.md for the index)
 ├── baseline.md                    # The ONE app-wide baseline (goal, entities, schema, decisions)
-├── design-system.md               # Visual design system: OKLCH palette + contrast, fx-* layer, sync points
+├── design-system.md               # Visual design system: OKLCH palette + contrast, fx-* layer
 ├── tracker.md                     # Consolidated roadmap — open items only
 ├── reference.md                   # Lean lookup tables: server actions, services, DAL
-├── flows/                         # Per-feature flow docs (shared, board, plan, priorities, auth)
+├── flows/                         # Per-feature flow docs
 └── mockup/                        # HTML mockups grouped by feature + shared styles.css / mockup-theme.css
-    ├── board/                     # Board + backlog drawer mockups (desktop + mobile)
-    ├── plan/                      # Plan form, AI chat, review changes
-    ├── priorities/                # Priority matrix
-    ├── auth/                      # Login, sidebar, settings
-    ├── shared/                    # Cross-feature UI (task modal)
-    └── future-work/               # Approved-but-not-implemented redesigns
 src/
 ├── proxy.ts                       # Route protection (Supabase session check)
-├── app/
-│   ├── auth/
-│   │   ├── callback/route.ts      # OAuth callback (code → session exchange)
-│   │   └── login/page.tsx         # Login page (Google OAuth sign-in)
-│   ├── kanban/                    # Kanban pages
-│   │   ├── page.tsx               # Board page
-│   │   ├── plans/                 # Plan create/edit pages ([id], new)
-│   │   ├── priorities/            # Eisenhower priority matrix page
-│   │   └── settings/              # Settings page
-│   ├── design/                    # Component gallery (dev) — chromeless /design route
-│   ├── layout.tsx                 # Root layout (providers + AppShell wrapper)
-│   └── globals.css                # Global styles
+├── app/                           # App Router: auth/, kanban/ (board, plans, priorities, settings),
+│                                  #   design/ (dev gallery), layout.tsx, globals.css
 ├── generated/prisma/              # Generated Prisma client (gitignored)
-├── actions/                       # ALL server actions ('use server'): boardActions, taskActions,
-│                                  #   planActions, templateActions, aiChatActions, matrixActions
-├── services/                      # ALL business logic: boardService, planService, aiChatService,
-│                                  #   matrixService, syncService (ensureSynced, React cache())
-├── store/                         # Zustand stores: aiPlanChatStore, sidebarStore
-├── hooks/                         # useAiPlanChat (store ↔ server-action bridge)
-├── prompt/                        # LLM prompt builders (draftPlanPrompt) — never translated
-├── types/                         # Shared domain types (aiChat.ts: stats + chat types)
-├── utils/                         # Domain helpers: enums, dateUtils, sizeUtils, taskUtils,
-│                                  #   aiChatContent, draftSummary, reconstructChat (client-safe)
-│                                  #   + statsUtils (server-only — imports the generated Prisma client)
-├── schemas.ts                     # All zod schemas (plan / template / task / matrix / AI chat)
-├── lib/                           # Infrastructure only
-│   ├── prisma.ts                  # Prisma client singleton (pooled connection)
-│   ├── llm/                       # OpenAI client singleton + model constant
-│   ├── supabase/                  # Supabase client utilities
-│   │   ├── client.ts              # Browser client ('use client' components)
-│   │   ├── server.ts              # Server client (Server Components, Actions)
-│   │   └── middleware.ts          # Session refresh + redirect logic
-│   ├── auth/                      # getCurrentUserId
-│   └── db/                        # Data access layer (all Prisma queries)
-└── components/                    # Three top-level layers (see "Component Placement")
-    ├── ui/                        # Design system — generic primitives only, zero domain imports
-    │                              #   (Pill, ProgressBar, EmptyState, SectionLabel, StatBlock,
-    │                              #   InstanceBadge, cn) + form/ + overlay/
-    ├── application/               # App-level components: shell chrome + providers, future contexts
-    │                              #   (AppShell, AppSidebar, BottomTabBar, BreakpointProvider, ThemeProvider)
-    └── domain/                    # All business components (anything that knows about the domain)
-        ├── shared/                # Cross-feature domain UI (BoardHeader, task-modal/, SizeChip,
-        │                          #   TaskTypeBadge, RiskBadge, RolloverTag, riskBorder)
-        ├── board/                 # /kanban — KanbanBoard, BoardColumn, TaskCard, backlog drawer, …
-        ├── plan/                  # /kanban/plans/* — PlanForm, ReviewChangesModal, TemplateItem, ai-chat/
-        ├── priorities/            # /kanban/priorities — PriorityMatrixPage, QuadrantCell, …
-        └── auth/                  # SettingsContent (/kanban/settings)
+├── actions/                       # ALL server actions ('use server') — thin validate → service → revalidate
+├── services/                      # ALL business logic (no 'use server'); syncService.ensureSynced entry point
+├── store/                         # Zustand stores, one per domain
+├── hooks/                         # Store ↔ server-action bridges
+├── prompt/                        # LLM prompt builders — never translated
+├── types/                         # Shared domain types
+├── utils/                         # Domain helpers (client-safe) — except statsUtils.ts (server-only)
+├── schemas.ts                     # All zod schemas
+├── lib/                           # Infrastructure only: prisma/, llm/, supabase/, auth/, db/ (DAL)
+└── components/                    # Three top-level layers (see "Component placement" in Layers)
+    ├── ui/                        # Design-system primitives only — zero domain imports
+    ├── application/               # App frame + providers (shell, tab bar, sidebar, contexts)
+    └── domain/                    # All business components — shared/ + one folder per feature
 ```
 
 ## Workflow
@@ -130,6 +88,15 @@ Implement approved mockups exactly (layout, spacing, text, colors, icons, states
 
 Mockups are the source of truth for UI, but implementation may introduce details not in the original mockup (e.g. cursor styles, hover states, text/icon changes). After completing a UI task, back-port any such details to the source-of-truth mockup as a final step so the mockup stays accurate.
 
+## Documentation Style
+
+The living docs — README **Current State**, `design/tracker.md`, and everything under `design/` — are read by the human owner to re-orient; they are **not the agent's work record**. Write them as "what the product is now / what's still open", never as "everything that was done". Completeness has two sanctioned homes — the append-only README **Update Log** and PR descriptions — so nothing is lost by keeping living docs lean: omitted detail stays recoverable in git; buried signal is gone.
+
+- **Write at the doc's altitude, not the work's.** Every doc has a declared altitude — `tracker.md`: open items, 1–2 lines each; `reference.md`: lean lookup tables; `baseline.md`: entities + decisions; `flows/`: step contracts; README Current State: product capabilities (a skimmable tour, 1–2 lines per bullet). Implementation inventory (file/component/key names, sub-change lists) lives in the code, the diff, and `reference.md` — not in living-doc prose. Bad: a tracker item kept checked `[x]` with a phase-by-phase inventory of every component that landed. Good: the finished work summarized in one Update Log entry; only the open follow-ups remain in the tracker.
+- **Length must not scale with diff size.** A bigger change earns a *higher-level* summary, not a longer one — a Current State bullet stays 1–2 lines even as the feature behind it grows.
+- **Edit living docs in place; don't append.** Rewrite the sentence that is now wrong instead of adding a paragraph; an edit keeps the doc's size roughly flat.
+- **Update Log is the pressure valve**: append-only (see Anti-Patterns) and detail-tolerated — record the day's work at whatever length it needs, just lead each bullet with the outcome rather than the operation.
+
 ## Layers
 
 - Actions (`src/actions/`): `'use server'`, thin layer (validate with Zod -> call service -> `revalidatePath`)
@@ -138,21 +105,37 @@ Mockups are the source of truth for UI, but implementation may introduce details
 - If an action requires multiple DAL calls or conditional orchestration, extract to service.
 - Server-only modules — everything in `src/services/` plus `src/utils/statsUtils.ts` (imports the generated Prisma client) — must never be imported from `'use client'` code. `src/utils/` is otherwise client-safe (`enums`, `dateUtils`, `sizeUtils`, …), as is `src/schemas.ts`.
 - Components in `src/components/` may invoke server actions directly (e.g. the shared `TaskModal` calls `templateActions` and `createAdhocTaskAction`) — server actions behave like endpoints, this is not a layering violation. Direct service/DAL imports from components remain forbidden.
+- **Component placement** — `src/components/` has three layers, decided by imports (checked in order): a component that imports a domain type/enum/schema/DAL row is **domain** → `domain/<feature>/`, or `domain/shared/` when reused by ≥2 features; the once-rendered app frame (shell, tab bar, sidebar) and providers are **application**; everything else — generic primitives reusable in any app — is **ui**. Hard rule: nothing in `ui/` may import a domain type. Bad: a `WeeklyPointsChip` importing `TaskType` dropped into `ui/`. Good: the same chip in `domain/shared/`, composing the generic `Pill` from `ui/`.
 
 ## Coding Conventions
 
-- New entries must be appended at the end of this section, never inserted in the middle. Include concrete bad/good examples.
+When adding a new convention, append it to the **end of the relevant subsection below** (not the middle), with concrete bad/good examples.
+
+### General
+
 - Keep domain helpers in `src/utils/`. Do not duplicate logic.
+- Keep file names aligned with component names when renaming.
+
+### Enums
+
 - Always use enum constants (for example `TaskType.WEEKLY`), not raw strings.
 - Prefer `switch/case/default` for enum branching.
+
+### Database queries
+
 - Prefer batch DB operations (`createMany`, `updateMany`) over per-row loops when possible.
-- Split very large JSX components into focused sub-components.
-- Use Heroicons JSX imports, not inline SVG.
-- Use `text-warning` for star/points icons.
 - Prefer one broad query + in-memory filtering for small/moderate datasets.
 - Use targeted DAL queries or DB aggregates for high-cardinality or known hotspots.
 - For ACID-critical multi-step writes, use `prisma.$transaction()` with `tx?: Prisma.TransactionClient` in DAL writes.
-- Keep file names aligned with component names when renaming.
+
+### Icons & tokens
+
+- Use Heroicons JSX imports, not inline SVG.
+- Use `text-warning` for star/points icons.
+
+### JSX & components
+
+- Split very large JSX components into focused sub-components.
 - Extract conditional/complex JSX into named render functions (e.g. `renderBoardLink()`) within the component to keep the return statement scannable. Reserve sub-components for reusable pieces; use render functions for one-off blocks that need access to component scope.
 - For modal/dialog-like components, split the structural regions (header, body, footer) into named render functions (or sub-components if reusable) so the top-level return reads as an outline. Bad: a single 120-line `return (<dialog>…</dialog>)` mixing header markup, a message loop, error markup, and footer branching. Good:
 
@@ -247,8 +230,6 @@ Mockups are the source of truth for UI, but implementation may introduce details
   }
   ```
 
-- **Component placement** — `src/components/` has exactly three top-level layers; place a new component by asking two questions in order. (1) Does it import a domain type/enum (`TaskType`, `TaskSize`, `RiskLevel`, a schema, a DAL row)? If yes it is a **domain** component → `domain/`; if it is reused by ≥2 features put it in `domain/shared/`, otherwise in that feature's `domain/<feature>/`. (2) If it imports no domain type: is it the app frame rendered once (shell, tab bar, sidebar) or a Provider/context? → `application/`. Everything else — a generic, domain-agnostic primitive reusable in any app — → `ui/`. The hard rule: **nothing in `ui/` may import a domain type** (that is exactly why `SizeChip`/`TaskTypeBadge`/`RiskBadge`/`RolloverTag`/`riskBorder` live in `domain/shared/`, while the pure `#n` `InstanceBadge` stays in `ui/`). Bad: a `WeeklyPointsChip` that imports `TaskType` dropped into `ui/`. Good: the same chip in `domain/shared/`, importing the generic `Pill` from `ui/`.
-
 ## Code Style
 
 - Named exports only (except Next.js `page.tsx` and `layout.tsx` defaults).
@@ -301,13 +282,12 @@ Mockups are the source of truth for UI, but implementation may introduce details
 
 ## Anti-Patterns to Avoid
 
+Only patterns not already covered above. DRY, enum constants, and the component→service/DAL boundary live in **Coding Conventions** / **Layers** — they are not repeated here.
+
 - No inline styles; use Tailwind utility classes.
 - No hardcoded color tokens like `text-yellow-400`; prefer semantic daisyUI tokens.
 - No leftover `console.log` in committed code.
-- No duplicated logic.
-- No raw string enum values.
 - No redundant actions/routes when existing handlers can be extended.
-- No direct service/DAL calls from UI components.
 - Never modify past Update Log entries in README files. Update logs are append-only history.
 
 ## Version Control
@@ -315,7 +295,7 @@ Mockups are the source of truth for UI, but implementation may introduce details
 - **Local sessions (running on the user's machine): do NOT commit or push without explicit permission from the user.** The user reviews work before it is committed. Make and stage changes, summarize what changed, and wait for the user to approve before running `git commit`, `git push`, or any other outward-facing or hard-to-reverse VCS action.
 - **Remote sessions (managed cloud environments — e.g. Claude Code on the web / GitHub integration, where the repo is cloned fresh into an ephemeral container): no permission needed for commit/push/PR.** Work on a new branch (or the session's designated working branch), commit with clear messages, push with `git push -u origin <branch>`, and open a pull request directly.
 - In both modes, never commit or push directly to `main` — changes land via pull requests.
-- **Always run `npm run format` before pushing** so every commit lands in Google/Prettier style. CI runs `npm run format:check` and will fail the PR on any unformatted file — format locally first instead of relying on CI to catch it.
+- Run `npm run format` before pushing (see **Formatting** — CI's `format:check` fails the PR otherwise).
 
 ## Commands
 

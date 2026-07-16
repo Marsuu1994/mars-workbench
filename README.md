@@ -19,41 +19,32 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ### Design System
 
-- **"Mission Control HUD"** (`design/design-system.md`): app-wide visual language on two custom daisyUI themes — `mars-dark` (default, night ops deck) / `mars-light` ("dawn on Mars" — warm sand, not white) — built on seven OKLCH hue-wheel stops with numerically verified contrast (dark AAA, light ≥ 4.9:1), plus a token-derived `fx-*` utility layer in `globals.css` (cosmic-sky shell (blooms + SVG nebula art + star chart), console chips, status LEDs, mono telemetry type, glow CTAs, AI holo border, quadrant blooms). Color channels: cyan = action/telemetry, violet = AI, orange = drop-targets/signature, blue = datalink stats, green = go, amber/bronze = caution, red = abort. Palette changes must follow the sync points listed in the design doc (globals ↔ manifest ↔ viewport ↔ mockup-theme ↔ login mockup)
+- **"Mission Control HUD"** (`design/design-system.md`): two custom daisyUI themes — `mars-dark` (default, night ops deck) / `mars-light` ("dawn on Mars" — warm sand, not white) — on seven OKLCH hues with verified contrast, plus the token-derived `fx-*` utility layer (cosmic shell, console chips, status LEDs, telemetry type, glow CTAs, AI holo). Palette changes must follow the sync points listed in the design doc
 
 ### Board
 
-- **Board**: 3-column kanban (Todo / In Progress / Done) with drag-and-drop, optimistic UI, risk badges, rollover indicators. Done cards are drop targets but cannot be dragged out; during a drag all droppable columns get a faint dashed outline and the hovered one a solid dashed highlight (on mobile the hovered row's card strip gets a dashed border + tint and its row title highlights). Per-column accent colors (Todo=info, In Progress=warning, Done=success) and per-card left borders render correctly (risk cards override the left edge with their color).
-- **Backlog drawer ("Queued")**: stages template-generated instances (`status = BACKLOG`) and pulls them onto the board (`BACKLOG → TODO`). Desktop is a right-edge panel (drag to pull); mobile is a bottom sheet (`modal-bottom`) opened from a peeking "Queued" pill above the tab bar (tap `↑ Todo` to pull). Reuses the board's badge/instance/rollover/risk language with a `#n` instance badge (when template `frequency > 1`); cards group by template and order by instance index (e.g. leetcode #1, #2, workout #1, #2). Desktop open/collapse cross-fades smoothly while the width animates. Excluded from Today totals, included in Week projection.
-- **Task sizing**: `TaskSize` enum (XS=1, S=2, M=3, L=5, XL=8) with fibonacci points; shared `SizeChip` display + pill toggle selector (`src/components/shared/`)
-- **Progress dashboard**: Today ring, stat metrics (points/counts), Week Progress bar using two-query strategy (UI tasks + raw SQL aggregate)
-- **One-off tasks on the board**: board cards show one-off (`AD_HOC`) tasks with an amber "ONCE" type badge (the internal type stays `AD_HOC`; all user-facing "ad-hoc" copy reads "one-off"). Created from the priority matrix only (board-side creation removed) and reach the board via Track This Week; risk levels based on days since creation apply to board cards only (see Priorities below)
-- **Sync lifecycle (`syncService.ensureSynced`)**: single entry point (`src/services/syncService.ts`) awaited by every kanban page (board / priorities / plan create / plan edit) before reading plan state — daily sync (auto-expire stale tasks, generate today's dailies, 1-day rollover buffer, idempotent via `lastSyncDate`) plus end-of-period sync (auto-detect new week, expire undone tasks, transition plan to `PENDING_UPDATE`). React `cache()`-deduped per request; page-visit order never matters
-- **Empty board states**: new-user ("No active plan") vs returning-user ("Plan period ended") recap showing last period's completion %, tasks done, and points earned; both link to plan creation
-- **PWA**: Manifest, service worker, mobile installability, safe-area insets
-- **Mobile mockups**: board drag-and-drop flow (375x812) and backlog bottom-sheet drawer + placement-options comparison in [design/mockup/board/](./design/mockup/board/), shared `mockup-theme.css` with light/dark toggle
+- 3-column kanban (Todo / In Progress / Done): drag-and-drop with optimistic UI, risk badges, rollover tags, fibonacci task sizing (XS–XL), per-column accents
+- **"Queued" backlog drawer** stages template-generated instances and pulls them onto the board — right-edge drag panel on desktop, bottom sheet on mobile; queued tasks count toward the week projection, not Today
+- **Progress dashboard**: Today ring, stat metrics, Week Progress bar
+- One-off (`AD_HOC`) tasks show an amber "ONCE" badge; created only from the priority matrix, they reach the board via Track This Week
+- **Sync** (`syncService.ensureSynced`): daily + end-of-period sync awaited by every kanban page — idempotent, page-visit order never matters
+- Empty board states for new users ("No active plan") vs returning users (last-period recap with stats); installable PWA
 
 ### Plan
 
-- **Plan management**: create/edit plans (`/kanban/plans/new`, `/kanban/plans/[id]`) with inline type/frequency config per template (frequency via a −/+ stepper bounded 1–10), Plan Mode toggle (NORMAL/EXTREME), and a `ReviewChangesModal` diff before committing edits
-- **Mobile plan form**: single-column layout under the Plan dock tab — the desktop app header (Kanban Planner + Planning Mode badge) is reused as-is and the page heading (with the edit plan's week range on mobile) scrolls away with the form; the AI banner compacts to a tappable row, and the summary + submit footer docks as a fixed bar above the tab bar (Cancel is desktop-only). The template modal and `ReviewChangesModal` render as bottom sheets (`modal-bottom md:modal-middle`); the review sheet scrolls its change summary between a pinned header and footer. Mockups in [design/mockup/plan/](./design/mockup/plan/) (`mockup-plan-form-mobile.html`)
-- **Templates**: reusable task templates managed inline from the plan form (`templateActions`), preselected from the previous plan; template instances generate as `BACKLOG` for the board's "Queued" drawer
-- **AI-assisted plan creation**: complete (backend + UI), backed by the shared `Chat`/`Message` tables. Server actions verified end-to-end: `getTemplateStatsAction` (per-template stats), `createAiChatAction` (static no-LLM welcome + suggestion chips, snapshots last-period stats into `Chat.metadata`), `generateDraftPlanAction` (OpenAI `gpt-5-nano` structured draft — reuses templates, calibrates from stats, replays prior drafts as history), and `approveDraftPlanAction` (atomically creates the plan, completes the prior `PENDING_UPDATE` plan, carries over ad-hoc tasks). `Chat.metadata` holds the stats snapshot + a `latestDraft` approval clipboard
-- **AI chat UI**: Zustand-backed modal (`store/aiPlanChatStore` state + `hooks/useAiPlanChat` action bridge) opened from the plan form's AI assistant banner (create mode only), with suggestion chips, draft-plan cards, a refine→approve flow, and a success banner (`components/ai-chat/`). The composer sends on Enter (Shift+Enter for newline) and is IME-safe — an Enter that commits an input-method composition does not send
-- **Durable chat**: the DB chat row is the source of truth — on open it resumes the user's most recent unapproved chat (`getActiveAiChatAction` → rehydrate) across modal close, reload, and restart, and auto-resumes a generation interrupted mid-run (`resumeDraftPlanAction`); approval sets `Chat.planId`, so the next open starts fresh. Resume is scoped to the current period, so a chat left unapproved in a prior period (which predates the current pending plan and has no stats snapshot) can't shadow the returning-user welcome — a fresh, stats-bearing chat is created instead
+- Create/edit plans with inline per-template type/frequency config, Plan Mode (NORMAL/EXTREME), and a review-changes diff before committing edits; templates are reusable and preselected from the previous plan
+- **AI-assisted plan creation**: a chat modal drafts a structured plan via OpenAI (`gpt-5-nano`) calibrated from last period's per-template stats; refine → approve creates the plan atomically (completes the prior plan, carries over one-off tasks). Chats are durable — they resume across close/reload/restart (scoped to the current period) and auto-resume an interrupted generation; the composer is IME-safe
+- Fully mobile-adapted: bottom-sheet modals, compact AI banner, docked summary/submit footer
 
 ### Priorities
 
-- **Matrix page**: full-page 2×2 Eisenhower matrix at `/kanban/priorities` (sidebar item + mobile dock tab) organizing all non-DONE AD_HOC tasks by `quadrant` (`PriorityQuadrant` enum: `DO_FIRST / SCHEDULE / SQUEEZE_IN / MAYBE_LATER`, backfilled to `SCHEDULE`); null-quadrant cards defensively group into `SCHEDULE`
-- **Reprioritize**: drag between quadrants (tracked cards too — only `quadrant` changes) with optimistic update + rollback and full drag visuals (dimmed quadrants, drop-target outline, per-quadrant drop-hint banner)
-- **Track This Week**: hover send `→` → popover (desktop) or tap card → bottom sheet (mobile) pulls a matrix task onto the board into Todo/In Progress (`BACKLOG → TODO/DOING` + plan link, one write); tracked cards render dimmed with a "This Week" tag (★ on mobile)
-- **Add Priority Task**: quadrant "Add" buttons (desktop) open the shared task modal with the quadrant preset; on mobile a round "+" appended to the My Priorities title bar opens it as a bottom sheet with a 2×2 quadrant picker (defaults to Schedule) and confirms with an "Added to {quadrant}" toast. Both create unassigned matrix tasks (`planId = null`, `BACKLOG`); the matrix is the only one-off entry point (board-side creation removed). Deselecting a one-off task from a plan returns it to the matrix pool, while DONE tasks stay on their plan to preserve point history. Mobile mockup: [design/mockup/priorities/](./design/mockup/priorities/) (`mockup-priorities-new-task-mobile.html`)
-- **"ONCE" badge / one-off copy**: AD_HOC tasks display an amber "ONCE" type badge (board cards included; all-caps to match `DAILY`/`WEEKLY`), and all user-facing "ad-hoc" copy reads "one-off" — the internal `AD_HOC` enum and `adhoc*` i18n keys are unchanged. Matrix risk treatment is an open design item
-- **No-plan guard**: no active plan (incl. the stale-ACTIVE-plan window after ISO week rollover, guarded server-side in `matrixService`) → warn hint bar with a Create Plan link (rendered on both breakpoints — the only case where mobile shows the hint bar) + disabled send/sheet buttons
+- Full-page 2×2 Eisenhower matrix (`/kanban/priorities`) organizing all non-done one-off tasks by quadrant; drag between quadrants to reprioritize (optimistic + rollback)
+- **Track This Week** pulls a matrix task onto the board (desktop popover / mobile bottom sheet); **Add Priority Task** creates unassigned matrix tasks — the matrix is the only one-off entry point. Deselected one-offs return to the pool; DONE tasks keep their plan attribution
+- No active plan (incl. the stale-plan window after week rollover) → warning bar with a Create Plan link; tracking disabled
 
 ### Auth
 
-Supabase Auth with Google OAuth, route protection, themed login page, and collapsible app sidebar with workspace navigation (Board/Priorities/Plan) and sign-out. Nav links are always enabled — no pre-plan disabled state (the board shows its empty state instead); the Plan link keeps its "New" nudge badge when no plan exists. Settings is reachable from the mobile dock only (see `design/flows/auth.md`). All mockups support light/dark theme toggle via shared `mockup-theme.css`. Deployed on Vercel.
+- Supabase Auth (Google OAuth) with route protection, themed login page, collapsible workspace sidebar (Board / Priorities / Plan) and 4-tab mobile dock (Settings via dock only — see `design/flows/auth.md`). Deployed on Vercel
 
 Open items: see [design/tracker.md](./design/tracker.md).
 
@@ -79,6 +70,12 @@ Open items: see [design/tracker.md](./design/tracker.md).
 - [x] Deploy app on Vercel
 
 ## Update Log
+
+### 2026-07-14
+- **Docs pass**: `AGENTS.md` gains a **Documentation Style** section — living docs (README Current State, tracker, `design/`) are human-facing product state, not agent work records; detail's sanctioned homes are this Update Log and PR descriptions. README Current State and the tracker's Cross-cutting section compressed back to that altitude; the landed component-library record moved from the tracker into this log (below). Also: AGENTS.md dedup (Anti-Patterns, format rule), Coding Conventions regrouped under subsections, Project Structure tree slimmed to directory responsibilities
+
+### 2026-07-08
+- **Component library** (`src/components/ui/`) + scenario-pages pilot (PR #19): a structural layer on top of daisyUI + `fx-*` — shared primitives (Pill, badges, chips), prop-driven overlays (`useDialogSync`/OverlayShell/BottomSheet/Popover), a form kit (FieldRow/ChoicePills/Stepper/SubmitButton), and stat blocks — adopted across board/plan/priorities and verified via the reorganized `/design` gallery; `/design/scenarios/board` composes real page components with fixture data as the screen-level source of truth (new-user / returning recap / mid-week / Friday at-risk)
 
 ### 2026-07-06
 - **Mobile/desktop drift spike**: audited every feature (board, priorities, plan/AI chat, app shell) for capability drift between breakpoints. Most divergences are intentional and mockup-documented; three undocumented drifts were fixed, the rest recorded
