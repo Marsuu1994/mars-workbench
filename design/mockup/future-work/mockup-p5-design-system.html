@@ -22,6 +22,8 @@
   --red:     #ff0c0b;   /* primary — phantom red (signal) */
   --red-field: #c51d24; /* surface-only field red */
   --red-blood: #721216; /* surface-only depth layer */
+  --violet-blood: #2c2151; /* AI-channel depth layer */
+  --ink-card: #191313;  /* raised task-card surface */
   --violet:  #b296ff;   /* secondary — AI / WEEKLY */
   --orange:  #fa8927;   /* accent — targeting (drag & drop) */
   --blue:    #61c3f9;   /* info — DAILY / datalink */
@@ -306,9 +308,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .ring-label-sub { font-size: 12px; color: rgba(245,240,240,0.55); }
 .stat-item { display: flex; flex-direction: column; gap: 2px; position: relative; z-index: 1; }
 .stat-value { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 20px; font-weight: 700; }
-.stat-value.red { color: var(--red); }
+.stat-value.green { color: var(--green); }
 .stat-value.gold { color: var(--gold); }
-.stat-value.violet { color: var(--violet); }
+.stat-value.blue { color: var(--blue); }
 .week-bar-group { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; position: relative; z-index: 1; }
 .week-bar-header { display: flex; justify-content: space-between; align-items: baseline; }
 .week-bar-title { font-family: var(--font-display); font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; transform: skewX(-6deg); }
@@ -342,8 +344,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .column-title { display: flex; align-items: center; gap: 9px; font-family: var(--font-display); font-size: 16px; text-transform: uppercase; letter-spacing: 0.04em; transform: skewX(-6deg) rotate(-1deg); }
 .column-count { font-family: var(--font-mono); font-size: 11px; font-weight: 700; padding: 2px 9px; border: 1.5px solid rgba(245,240,240,0.3); transform: skewX(-10deg); }
 .col-todo .column-title { color: var(--blue); }
-.col-doing .column-title { color: var(--orange); }
-.col-done .column-title { color: var(--violet); }
+.col-doing .column-title { color: var(--gold); }
+.col-done .column-title { color: var(--green); }
 .column-body { flex: 1; padding: 14px 12px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
 
 /* fx-target → hazard target (accent/orange channel, flat stripes).
@@ -374,7 +376,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 
 /* ── fx-card → sticker card ── */
 .task-card {
-  background: #1c1616;
+  background: var(--ink-card);
   border: 1.5px solid rgba(245,240,240,0.14);
   padding: 13px 14px;
   cursor: grab;
@@ -525,7 +527,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .quad-btn .p5-led { outline: none; }
 
 /* ── AI chat (violet channel) ── */
-.ai-panel-wrap { filter: drop-shadow(8px 8px 0 #2c2151); animation: p5-boot 0.24s var(--snap) both; }
+.ai-panel-wrap { filter: drop-shadow(8px 8px 0 var(--violet-blood)); animation: p5-boot 0.24s var(--snap) both; }
 .ai-panel {
   background: var(--ink-100);
   border: 2px solid var(--violet);
@@ -725,7 +727,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
         <div class="swatch"><div class="swatch-color" style="background:#f6c835"><span class="cx" style="color:#231900">Aa</span></div><div class="swatch-info"><div class="swatch-name" style="color:#f6c835">warning · star gold</div><div class="swatch-hex">#f6c835 · 0.85 0.16 90</div><div class="swatch-contrast">11.8:1 on base AAA</div></div></div>
         <div class="swatch"><div class="swatch-color" style="background:#ef3565"><span class="cx" style="color:#130406">Aa</span></div><div class="swatch-info"><div class="swatch-name" style="color:#ef3565">error · crimson rose</div><div class="swatch-hex">#ef3565 · 0.63 0.22 12</div><div class="swatch-contrast">4.8:1 on base ★AA</div></div></div>
         <div class="swatch"><div class="swatch-color" style="background:#271f1f"><span class="cx" style="color:#f2eded">Aa</span></div><div class="swatch-info"><div class="swatch-name">neutral · ink slab</div><div class="swatch-hex">#271f1f · 0.25 0.012 20</div><div class="swatch-contrast">13.9:1 pair AAA</div></div></div>
-        <div class="swatch"><div class="swatch-color" style="background:#c51d24"><span class="cx" style="color:#f5f0f0">Aa</span></div><div class="swatch-info"><div class="swatch-name" style="color:#f5f0f0">--fx-field-red</div><div class="swatch-hex">#c51d24 · surface only</div><div class="swatch-contrast">paper on it 5.8:1</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#c51d24"><span class="cx" style="color:#f5f0f0">Aa</span></div><div class="swatch-info"><div class="swatch-name" style="color:#f5f0f0">--fx-field-red</div><div class="swatch-hex">#c51d24 · surface only</div><div class="swatch-contrast">paper on it 5.2:1</div></div></div>
         <div class="swatch"><div class="swatch-color" style="background:#721216"></div><div class="swatch-info"><div class="swatch-name">--fx-blood-red</div><div class="swatch-hex">#721216 · depth layer</div><div class="swatch-contrast">decoration only</div></div></div>
         <div class="swatch"><div class="swatch-color" style="background:#161111;border-bottom-color:rgba(245,240,240,0.2)"><span class="cx" style="color:#f5f0f0">Aa</span></div><div class="swatch-info"><div class="swatch-name">base-100/200/300</div><div class="swatch-hex">#161111 #0e0a0a #060505</div><div class="swatch-contrast">paper ≥16.6:1 AAA</div></div></div>
         <div class="swatch"><div class="swatch-color" style="background:#f5f0f0"><span class="cx" style="color:#060505">Aa</span></div><div class="swatch-info"><div class="swatch-name">base-content · paper</div><div class="swatch-hex">#f5f0f0 · 0.96 0.005 20</div><div class="swatch-contrast">the payload voice</div></div></div>
@@ -855,7 +857,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
         </div>
       </div>
       <div class="stat-item">
-        <span class="stat-value red">10</span>
+        <span class="stat-value green">10</span>
         <span class="p5-label">Done</span>
       </div>
       <div class="stat-item">
@@ -863,7 +865,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
         <span class="p5-label">Points</span>
       </div>
       <div class="stat-item">
-        <span class="stat-value violet">3/7</span>
+        <span class="stat-value blue">3/7</span>
         <span class="p5-label">Day</span>
       </div>
       <div class="week-bar-group">
@@ -947,7 +949,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
       <!-- Doing — shown as active drop target (fx-target, accent channel) -->
       <div class="column col-doing drop-target">
         <div class="column-header">
-          <span class="column-title"><span class="p5-led" style="color:#fa8927"></span>In Progress</span>
+          <span class="column-title"><span class="p5-led" style="color:#f6c835"></span>In Progress</span>
           <span class="column-count">3</span>
         </div>
         <div class="column-body">
@@ -981,7 +983,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
       <!-- Done -->
       <div class="column col-done">
         <div class="column-header">
-          <span class="column-title"><span class="p5-led" style="color:#b296ff"></span>Done</span>
+          <span class="column-title"><span class="p5-led" style="color:#5edb81"></span>Done</span>
           <span class="column-count">4</span>
         </div>
         <div class="column-body">
