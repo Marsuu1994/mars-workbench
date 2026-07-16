@@ -42,6 +42,10 @@ Open [http://localhost:3000](http://localhost:3000)
 - **Track This Week** pulls a matrix task onto the board (desktop popover / mobile bottom sheet); **Add Priority Task** creates unassigned matrix tasks — the matrix is the only one-off entry point. Deselected one-offs return to the pool; DONE tasks keep their plan attribution
 - No active plan (incl. the stale-plan window after week rollover) → warning bar with a Create Plan link; tracking disabled
 
+### Journal
+
+- **Designed, pending approval — nothing implemented yet**: friction-free quick capture (`/kanban/journal`) with background LLM categorization and a day-grouped infinite-scroll feed; design in `design/flows/journal.md`, mockup in `design/mockup/journal/`
+
 ### Auth
 
 - Supabase Auth (Google OAuth) with route protection, themed login page, collapsible workspace sidebar (Board / Priorities / Plan) and 4-tab mobile dock (Settings via dock only — see `design/flows/auth.md`). Deployed on Vercel
@@ -72,6 +76,7 @@ Open items: see [design/tracker.md](./design/tracker.md).
 ## Update Log
 
 ### 2026-07-16
+- **Journal feature designed (pending approval)** — full design for a `/kanban/journal` quick-capture page: zero-decision plain-text capture (composer-first page, Journal becomes the 5th dock tab), background LLM categorization on the existing structured-output stack (post-capture `after()` call + idempotent on-visit catch-up sweep; ✦ marks AI-sorted chips), manual recategorize (desktop popover / mobile bottom sheet), user- and LLM-created categories (12-per-user cap, fixed 8-color palette, prompts reference categories by index), and a day-grouped infinite-scroll feed with server-side category filters. Deliverables: `design/mockup/journal/mockup-journal.html` (Journal / Recategorize / Empty / Mobile screens, both themes, verified via headless-Chromium screenshots), `design/flows/journal.md` (5 flows), JournalEntry/JournalCategory entities + schema in `baseline.md`, new tracker section. No implementation — after approval the mockup converts to a `/design/scenarios` fixture per the mockup-retirement convention
 - **One name for the staging area: "backlog"** — the feature was referred to as three different things ("Queued" in UI copy, "drawer" in docs/labels, "backlog" in code). Unified repo-wide to **backlog**: UI copy (`Board.Backlog.title/openLabel/closeLabel` — the pill, panel header, and collapsed strip now read "Backlog"), components (`BacklogDrawer` → `DesktopBacklog`, `MobileBacklogSheet` → `MobileBacklog`, `BacklogSheetCard/Content` → `MobileBacklogCard/Content`), docs (`baseline.md`, `flows/*` — "Backlog Drawer Flow" is now "Backlog Flow", tracker, AGENTS structure comments), and mockups (visible "Queued"/"Drawer" labels + the three board-backlog mockup files renamed to drop `-drawer`). Historical Update Log entries keep the old names (append-only)
 - Board scenarios: the desktop tab is now **Board — backlog open (desktop)** and the mobile tab **Backlog (mobile)**, matching the unified naming
 - **Backlog scenario now shows the full card language**: the backlog fixtures were two plain daily tasks with an empty risk/frequency lookup, so the mobile backlog scenario rendered no risk borders, no risk badges, and no `#n` instance badges (normal-risk cards have a transparent left edge by design — the state spread was just too thin). Fixtures now stage two instances of one daily template (#1 fresh · #2 a rollover → red/urgent) plus a mid-week weekly (→ amber/at-risk), with risk computed by the real `computeRiskLevel` against the scenario's frozen clock — the mobile panel and the desktop backlog both demonstrate normal/warning/danger borders, risk badges, rollover tag, and instance badges, mirroring the mockup's canonical spread

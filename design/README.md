@@ -10,8 +10,8 @@ Centralized design documentation for Mars Workbench. Code is organized layer-fir
 | [design-system.md](./design-system.md) | The visual design system ("Mission Control HUD"): OKLCH palette + contrast report, `fx-*` utility layer, typography, motion, palette sync points. |
 | [tracker.md](./tracker.md) | Consolidated roadmap — open items and ideas only (closed work moves to feature Update Logs). |
 | [reference.md](./reference.md) | Lean lookup tables for server actions, services, and DAL functions. |
-| [flows/](./flows/) | Per-page flow docs: `shared.md`, `board.md`, `plan.md`, `priorities.md`, `auth.md`. |
-| [mockup/](./mockup/) | HTML mockups grouped by page: `board/`, `plan/`, `priorities/`, `auth/`, `shared/`, `future-work/`, plus shared `styles.css` and `mockup-theme.css`. |
+| [flows/](./flows/) | Per-page flow docs: `shared.md`, `board.md`, `plan.md`, `priorities.md`, `journal.md`, `auth.md`. |
+| [mockup/](./mockup/) | HTML mockups grouped by page: `board/`, `plan/`, `priorities/`, `journal/`, `auth/`, `shared/`, `future-work/`, plus shared `styles.css` and `mockup-theme.css`. |
 
 ## Mockup Workflow
 

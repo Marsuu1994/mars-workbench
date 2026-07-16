@@ -34,6 +34,10 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 - Route protection — unauthenticated users are redirected to login; authenticated users are redirected away from `/auth/login`.
 - Collapsible app sidebar with sign-out flow (mockup: `./mockup/auth/mockup-sidebar.html`).
 
+### Designed — pending implementation
+
+1. **Journal** — friction-free capture of whatever is in your head (`/kanban/journal`, sidebar item + 5th dock tab): plain-text entries save in one action with zero decisions, an LLM sorts them into categories in the background (and can mint new categories), the user can re-sort manually, and a day-grouped infinite-scroll feed with category filters is the reading view. See the **Journal** flows in `./flows/journal.md` and `./mockup/journal/mockup-journal.html`.
+
 Roadmap and open ideas live in [tracker.md](./tracker.md).
 
 ## Entities
@@ -54,6 +58,8 @@ Roadmap and open ideas live in [tracker.md](./tracker.md).
   - Ad hoc task: can be generated anytime as needed, does not expire with time, does not associate with any task template, optional for associated with a plan. Lives on the priority matrix (`quadrant`, `planId = null`) until tracked onto the board
 - **Chat** — A conversation session between the user and LLM for AI-assisted plan creation (and future edit). Each chat belongs to one plan. A plan can have multiple chats over its lifecycle. `Chat.metadata` stores the last plan stats snapshot (captured at creation) and `latestDraft` — the single-slot approval clipboard, overwritten on each generation. Every draft is also persisted as a `DRAFT_PLAN` message for history/rendering.
 - **Message** — A single message from either the LLM or the user. Each message has a `type` field: `TEXT` for plain text (welcome messages, user input) or `DRAFT_PLAN` for structured draft responses (content is JSON with `{ message, description, draftTemplates, followUp }`). `DRAFT_PLAN` messages are rendered in the chat and replayed to the LLM as conversation history; the latest draft is also mirrored to `Chat.metadata.latestDraft` for approval.
+- **JournalEntry** *(designed — V1 pending)* — One captured plain-text note (a thought, a worry, a diary entry). Belongs to at most one category (`categoryId` null = Unsorted). Tracks how it was classified: `classifyState` (`PENDING` → `DONE`), `classifiedBy` (`LLM` | `USER`), and `classifyAttempts` for the background retry cap. Append-only in V1 (recategorize is the only mutation).
+- **JournalCategory** *(designed — V1 pending)* — A per-user label the LLM sorts entries into (e.g. Ideas, Mood, Work). Created by the user (from the recategorize picker) or minted by the LLM when nothing fits; capped at 12 per user. Carries a one-line `description` (fed back into classification prompts) and a `colorKey` auto-assigned from the fixed 8-color palette.
 
 ## Schema
 
@@ -320,9 +326,71 @@ When `type = DRAFT_PLAN`, content shape:
 
 UI rendering: the latest `DRAFT_PLAN` message renders expanded with template cards. All prior `DRAFT_PLAN` messages render collapsed with an expand toggle.
 
+### JournalEntry & JournalCategory (designed — migration pending)
+
+```prisma
+model JournalCategory {
+  id          String         @id @default(uuid())
+  userId      String
+  name        String         // ≤ 24 chars, Title Case, unique per user (case-insensitive, service-enforced)
+  description String         // One-line meaning, written by whoever created it; fed to classification prompts
+  colorKey    CategoryColor  // Auto-assigned: least-used key in the fixed palette (ties → palette order)
+  createdBy   ClassifierKind // USER or LLM
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  entries JournalEntry[]
+}
+
+model JournalEntry {
+  id               String          @id @default(uuid())
+  userId           String
+  content          String          // Plain text, ≤ 10,000 chars
+  categoryId       String?         // null = Unsorted
+  classifyState    ClassifyState   @default(PENDING)
+  classifiedBy     ClassifierKind? // null until classified
+  classifyAttempts Int             @default(0) // Background retry counter (cap: 3)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  category JournalCategory? @relation(fields: [categoryId], references: [id])
+}
+
+enum ClassifyState {
+  PENDING // Awaiting background classification (renders "Classifying…" when fresh, "Unsorted" when stale)
+  DONE    // Terminal: classified by LLM or user (a manual "Unsorted" is also DONE)
+}
+
+enum ClassifierKind {
+  LLM
+  USER
+}
+
+enum CategoryColor {
+  BLUE
+  TEAL
+  ORANGE
+  PINK
+  OLIVE
+  GREEN
+  RED
+  PURPLE
+}
+
+// Constraints:
+// - userId references auth.users (Supabase Auth) on both models
+// - INDEX(userId, createdAt DESC) on JournalEntry — feed pagination (cursor = createdAt, id)
+// - INDEX(userId, classifyState) on JournalEntry — catch-up sweep lookup
+// - classifyState = DONE ⇒ classifiedBy is set; PENDING ⇒ categoryId is null and classifiedBy is null
+// - classifiedBy = USER is terminal for automation: the LLM sweep never touches those rows
+// - ≤ 12 categories per user (service-enforced, mirrored in the LLM output schema)
+// - No entry edit/delete and no category rename/merge/delete in V1
+```
+
 ## Architecture Decision
 
 * Uses **Server Actions** for mutations and **direct DAL calls from Server Components** for data fetching. No REST API routes. Inputs are validated at the boundary with **Zod** schemas.
 * Ad-hoc tasks are not associated with any TaskTemplate.  They are optionally associated with a plan (planId = null means unassigned backlog).
 * **Size system** — `TaskSize` enum (EXTRA_SMALL → EXTRA_LARGE) replaces free-form integer points. Points are derived from size via `SIZE_TO_POINTS` constant and denormalized on the Task record at creation time. This keeps the raw SQL `SUM(points)` aggregation unchanged while the user-facing input is now a constrained enum. `TaskTemplate` stores only `size` (no `points` column); `Task` stores both `size` and `points`.
 * **Size UI** — Task cards and template items display a shared `SizeChip` component (green chip: `M·3`). Template and ad-hoc creation modals use a full-width pill toggle selector with effort description text ("~3 hours of effort") and a warning hint for L/XL sizes. Client-safe enums (`TaskSize`, `SIZE_TO_POINTS`, `SIZE_LABELS`, `SIZE_EFFORT`) live in `src/utils/enums.ts` for use in `"use client"` components; server-side code uses `src/utils/sizeUtils.ts`.
+* **Journal background classification** *(designed)* — capture never waits on the LLM: the server action persists the entry and schedules classification via Next.js `after()` (post-response), and the journal page load runs an idempotent catch-up sweep for stale `PENDING` entries (same on-visit pattern as `ensureSynced`; a future cron can absorb both). Classification uses the existing non-streaming structured-output stack (`gpt-5-nano` + `zodResponseFormat`); prompts reference categories **by index**, never raw UUIDs, and at the 12-category cap the new-category option is removed from the output schema so the model must pick an existing one.

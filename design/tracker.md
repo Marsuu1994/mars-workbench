@@ -44,6 +44,21 @@ Single source of truth for open ideas and todos across the app — open items on
 
 - [ ] Track popover on a bottom card of a scrollable quadrant needs scrolling into view (absolute positioning inside the scroll container) — revisit with a portal/fixed positioning approach
 
+## Journal
+
+### High
+
+- [ ] Implement Journal V1 (**pending design approval**) — quick capture + LLM auto-categorization + day-grouped infinite feed at `/kanban/journal`; design in `design/flows/journal.md` + `design/baseline.md`, mockup `design/mockup/journal/mockup-journal.html`
+
+### Future
+
+- [ ] Entry edit + delete (V1 is append-only; recategorize is the only mutation)
+- [ ] Category management — rename / merge / archive, custom colors
+- [ ] Full-text search across entries
+- [ ] Journal scenario page (`/design/scenarios/journal`) + retire the journal mockup once it lands (per the Cross-cutting mockup-retirement item)
+- [ ] PWA "New entry" shortcut / share-target for one-tap capture from the home screen
+- [ ] Periodic LLM digest — weekly summary of what accumulated per category
+
 ## Auth
 
 ### High
