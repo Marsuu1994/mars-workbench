@@ -25,8 +25,8 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 1. **Mobile Kanban + PWA app** — PWA manifest, service worker, mobile board mockups, bottom tab bar dock, safe-area insets for iOS/Android standalone mode.
 2. **Workspace sidebar** — Sidebar redesigned from feature-level nav (Chat/Kanban) to kanban workspace nav (Board/Plan). Board disabled with tooltip when no active plan; Plan shows "New" nudge badge. Edit Plan button removed from board header (Plan entry in sidebar).
 3. **LLM-assisted plan creation** — AI drafts a plan via non-streaming structured JSON output. User approves the batch (commit-as-is, the latest `DRAFT_PLAN` message is the approval source of truth) or rejects with text feedback to re-generate; no per-card editing. Static no-LLM welcome + suggestion chips. The chat is durable (DB-backed): it resumes the most recent unapproved chat across modal close / reload / restart and auto-resumes a generation interrupted mid-run. Approval atomically creates new TaskTemplates + the plan, completes the prior `PENDING_UPDATE` plan, and carries over ad-hoc tasks. See **AI Assisted Plan Creation Flow** in `./flows/plan.md`.
-4. **Backlog drawer** — Collapsible right-edge panel (desktop) for staging template-generated task instances (`status = BACKLOG`) before pulling them onto the board via drag-and-drop (`BACKLOG → TODO`). Reduces visual clutter from duplicate (`frequency > 1`) cards. Reuses the board `TaskCard` (risk + rollover + `#n` instance badge stay in sync). Today ring/points count board tasks only; Week projection includes backlog. Mobile drawer is a follow-up. See the **Backlog Drawer Flow** in `./flows/board.md` and the mockup at `./mockup/board/mockup-board-backlog-drawer.html`.
-5. **Priorities page (Eisenhower matrix)** — Full-page 2×2 priority matrix at `/kanban/priorities` (sidebar item + mobile dock tab) for organizing one-off `AD_HOC` tasks by urgency/importance (`Task.quadrant`, unassigned tasks are `BACKLOG` with `planId = null`). Cards drag freely between quadrants (reprioritize); "Track This Week" attaches a task to the current ACTIVE plan (`BACKLOG → TODO/DOING`) via a desktop send-button popover or a mobile bottom sheet; quadrant "Add" buttons reuse the ad-hoc task modal to create matrix tasks. Board-side ad-hoc creation is removed; deselecting an ad-hoc task from a plan returns it to the matrix (DONE tasks stay linked to preserve point history). Renames shipped alongside: the AD_HOC type badge displays as "Todo" (blue) and the backlog drawer as "Queued". See the **Priorities** flows in `./flows/priorities.md` and `./mockup/priorities/mockup-priorities.html`.
+4. **Backlog** — Collapsible right-edge panel (desktop) for staging template-generated task instances (`status = BACKLOG`) before pulling them onto the board via drag-and-drop (`BACKLOG → TODO`); on mobile, a bottom sheet opened from a peeking "Backlog" pill (tap `↑ Todo` to pull). Reduces visual clutter from duplicate (`frequency > 1`) cards. Reuses the board `TaskCard` (risk + rollover + `#n` instance badge stay in sync). Today ring/points count board tasks only; Week projection includes backlog. See the **Backlog Flow** in `./flows/board.md` and the mockup at `./mockup/board/mockup-board-backlog.html`.
+5. **Priorities page (Eisenhower matrix)** — Full-page 2×2 priority matrix at `/kanban/priorities` (sidebar item + mobile dock tab) for organizing one-off `AD_HOC` tasks by urgency/importance (`Task.quadrant`, unassigned tasks are `BACKLOG` with `planId = null`). Cards drag freely between quadrants (reprioritize); "Track This Week" attaches a task to the current ACTIVE plan (`BACKLOG → TODO/DOING`) via a desktop send-button popover or a mobile bottom sheet; quadrant "Add" buttons reuse the ad-hoc task modal to create matrix tasks. Board-side ad-hoc creation is removed; deselecting an ad-hoc task from a plan returns it to the matrix (DONE tasks stay linked to preserve point history). Renames shipped alongside: the AD_HOC type badge displays as "Todo" (blue). See the **Priorities** flows in `./flows/priorities.md` and `./mockup/priorities/mockup-priorities.html`.
 
 ### Auth
 
@@ -178,7 +178,7 @@ model Task {
 }
 
 enum TaskStatus {
-  BACKLOG   // Not yet on the board: template instances staged in the backlog drawer, AD_HOC tasks on the priority matrix
+  BACKLOG   // Not yet on the board: template instances staged in the backlog, AD_HOC tasks on the priority matrix
   TODO
   DOING
   DONE
@@ -203,7 +203,7 @@ enum PriorityQuadrant {
 // - quadrant is set for AD_HOC tasks only (null for DAILY/WEEKLY)
 // - Exactly one of forDate or periodKey must be set for DAILY and WEEKLY tasks
 // - BACKLOG means "not yet on the board" for every type. Template-generated instances (DAILY, WEEKLY)
-//   are created as BACKLOG in the plan's backlog drawer and move to TODO when pulled onto the board.
+//   are created as BACKLOG in the plan's backlog and move to TODO when pulled onto the board.
 //   AD_HOC tasks are created as BACKLOG on the priority matrix (planId = null) and move to TODO/DOING
 //   when tracked ("Track This Week"); detaching from a plan resets them to BACKLOG. Status changes only
 //   when a task crosses the BACKLOG↔board boundary — carry-over between plans re-points planId only.

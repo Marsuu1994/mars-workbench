@@ -10,9 +10,9 @@ import {
 import type {TaskItem} from '@/lib/db/tasks';
 import type {RiskLevel} from '@/utils/taskUtils';
 import {BottomSheet} from '@/components/ui/overlay/BottomSheet';
-import {BacklogSheetContent} from './BacklogSheetContent';
+import {MobileBacklogContent} from './MobileBacklogContent';
 
-interface MobileBacklogSheetProps {
+interface MobileBacklogProps {
   tasks: TaskItem[];
   today: Date;
   riskMap: Map<string, RiskLevel>;
@@ -24,15 +24,15 @@ interface MobileBacklogSheetProps {
  * Mobile-only backlog entry: a peeking pill docked above the bottom tab bar
  * that opens the backlog bottom sheet. The sheet stages BACKLOG tasks; tapping
  * a card's "↑ Todo" button pulls it onto the board (BACKLOG → TODO). The
- * desktop equivalent is BacklogDrawer (drag-based). Hidden at `md` and above.
+ * desktop equivalent is DesktopBacklog (drag-based). Hidden at `md` and above.
  */
-export default function MobileBacklogSheet({
+export default function MobileBacklog({
   tasks,
   today,
   riskMap,
   templateFreqMap,
   onPull,
-}: MobileBacklogSheetProps) {
+}: MobileBacklogProps) {
   const t = useTranslations('Board.Backlog');
   const [isOpen, setIsOpen] = useState(false);
 
@@ -80,7 +80,7 @@ export default function MobileBacklogSheet({
         scrollable
         bodyClassName="p-4"
       >
-        <BacklogSheetContent
+        <MobileBacklogContent
           tasks={tasks}
           today={today}
           riskMap={riskMap}

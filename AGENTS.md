@@ -42,7 +42,7 @@ design/                            # Centralized design docs (see design/README.
 ├── reference.md                   # Lean lookup tables: server actions, services, DAL
 ├── flows/                         # Per-feature flow docs (shared, board, plan, priorities, auth)
 └── mockup/                        # HTML mockups grouped by feature + shared styles.css / mockup-theme.css
-    ├── board/                     # Board + backlog drawer mockups (desktop + mobile)
+    ├── board/                     # Board + backlog mockups (desktop + mobile)
     ├── plan/                      # Plan form, AI chat, review changes
     ├── priorities/                # Priority matrix
     ├── auth/                      # Login, sidebar, settings
@@ -93,7 +93,7 @@ src/
     └── domain/                    # All business components (anything that knows about the domain)
         ├── shared/                # Cross-feature domain UI (BoardHeader, task-modal/, SizeChip,
         │                          #   TaskTypeBadge, RiskBadge, RolloverTag, riskBorder)
-        ├── board/                 # /kanban — KanbanBoard, BoardColumn, TaskCard, backlog drawer, …
+        ├── board/                 # /kanban — KanbanBoard, BoardColumn, TaskCard, backlog, …
         ├── plan/                  # /kanban/plans/* — PlanForm, ReviewChangesModal, TemplateItem, ai-chat/
         ├── priorities/            # /kanban/priorities — PriorityMatrixPage, QuadrantCell, …
         └── auth/                  # SettingsContent (/kanban/settings)

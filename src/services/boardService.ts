@@ -84,7 +84,7 @@ export async function fetchBoard(userId: string): Promise<BoardData | null> {
   ]);
 
   // — Today metrics —
-  // Backlog tasks are staged off-board (drawer), so they are excluded from the
+  // Backlog tasks are staged off-board (backlog), so they are excluded from the
   // Today ring/points. Week projection (from the DB aggregate) still counts them.
   const onBoardTasks = boardTasks.filter(t => t.status !== TaskStatus.BACKLOG);
   const todayDoneCount = boardMetrics.todayDoneCount;

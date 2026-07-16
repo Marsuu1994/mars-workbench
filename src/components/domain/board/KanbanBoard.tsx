@@ -13,14 +13,14 @@ import {
 import {getTodayDate} from '@/utils/dateUtils';
 import {updateTaskStatusAction} from '@/actions/taskActions';
 import BoardColumn from './BoardColumn';
-import BacklogDrawer from './BacklogDrawer';
-import MobileBacklogSheet from './MobileBacklogSheet';
+import DesktopBacklog from './DesktopBacklog';
+import MobileBacklog from './MobileBacklog';
 
 interface KanbanBoardProps {
   tasks: TaskItem[];
   daysElapsed: number;
   planTemplates: Array<{templateId: string; frequency: number}>;
-  /** Start the backlog drawer expanded (used by design scenarios). */
+  /** Start the backlog expanded (used by design scenarios). */
   defaultBacklogOpen?: boolean;
 }
 
@@ -83,7 +83,7 @@ export default function KanbanBoard({
     if (!destination) return;
     if (destination.droppableId === source.droppableId) return;
 
-    // Backlog is a drag source only — no un-pull back into the drawer.
+    // Backlog is a drag source only — no un-pull back into the backlog.
     if (destination.droppableId === TaskStatus.BACKLOG) return;
 
     const newStatus = destination.droppableId as TaskStatus;
@@ -160,7 +160,7 @@ export default function KanbanBoard({
             isDragActive={isDragging}
           />
         </div>
-        <BacklogDrawer
+        <DesktopBacklog
           tasks={columns[TaskStatus.BACKLOG]}
           today={today}
           riskMap={riskMap}
@@ -168,7 +168,7 @@ export default function KanbanBoard({
           defaultOpen={defaultBacklogOpen}
         />
       </div>
-      <MobileBacklogSheet
+      <MobileBacklog
         tasks={columns[TaskStatus.BACKLOG]}
         today={today}
         riskMap={riskMap}

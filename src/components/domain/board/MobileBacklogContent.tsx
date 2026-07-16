@@ -3,9 +3,9 @@
 import {useTranslations} from 'next-intl';
 import type {TaskItem} from '@/lib/db/tasks';
 import {getTaskFrequency, type RiskLevel} from '@/utils/taskUtils';
-import BacklogSheetCard from './BacklogSheetCard';
+import MobileBacklogCard from './MobileBacklogCard';
 
-interface BacklogSheetContentProps {
+interface MobileBacklogContentProps {
   tasks: TaskItem[];
   today: Date;
   riskMap: Map<string, RiskLevel>;
@@ -14,18 +14,18 @@ interface BacklogSheetContentProps {
 }
 
 /**
- * The scrollable body of the mobile backlog sheet: the staged BACKLOG cards
- * (or an empty state). Extracted from MobileBacklogSheet so the live bottom
- * sheet and the design scenario render the identical list — the scenario shows
- * this inline (no dialog), avoiding the top-layer modal's frame/backdrop issues.
+ * The scrollable body of the mobile backlog: the staged BACKLOG cards (or an
+ * empty state). Extracted from MobileBacklog so the live bottom sheet and the
+ * design scenario render the identical list — the scenario shows this inline
+ * (no dialog), avoiding the top-layer modal's frame/backdrop issues.
  */
-export const BacklogSheetContent = ({
+export const MobileBacklogContent = ({
   tasks,
   today,
   riskMap,
   templateFreqMap,
   onPull,
-}: BacklogSheetContentProps) => {
+}: MobileBacklogContentProps) => {
   const t = useTranslations('Board.Backlog');
 
   if (tasks.length === 0) {
@@ -39,7 +39,7 @@ export const BacklogSheetContent = ({
   return (
     <div className="flex flex-col gap-2.5">
       {tasks.map(task => (
-        <BacklogSheetCard
+        <MobileBacklogCard
           key={task.id}
           task={task}
           today={today}

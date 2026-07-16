@@ -57,7 +57,7 @@ User clicks "Create Plan" on empty board → navigates to `/kanban/plans/new`.
 5. User submits.
 6. Create plan and link selected templates and Ad-hoc tasks (carried-over Ad-hoc tasks keep their status — only planId is re-pointed to the new plan).
 7. For Ad-hoc tasks from PENDING_UPDATE plan that were not selected: set planId = null and status back to BACKLOG (return to the priority matrix). DONE Ad-hoc tasks stay linked so completed points keep their historical attribution.
-8. Generate task instances **with `status = BACKLOG`** (staged in the backlog drawer): weekly tasks immediately, daily tasks for today only (respecting plan mode for weekend skipping).
+8. Generate task instances **with `status = BACKLOG`** (staged in the backlog): weekly tasks immediately, daily tasks for today only (respecting plan mode for weekend skipping).
 9. Set `lastSyncDate = today`.
 10. Archive any existing `PENDING_UPDATE` plan → `COMPLETED`.
 11. Revalidate `/kanban` to render board.

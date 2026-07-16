@@ -4,26 +4,30 @@ import {useTranslations} from 'next-intl';
 import {InboxStackIcon, ArrowUpIcon} from '@heroicons/react/24/outline';
 import type {TaskItem} from '@/lib/db/tasks';
 import type {RiskLevel} from '@/utils/taskUtils';
-import {BacklogSheetContent} from '@/components/domain/board/BacklogSheetContent';
+import {MobileBacklogContent} from '@/components/domain/board/MobileBacklogContent';
 
-interface BacklogSheetPanelProps {
+interface MobileBacklogPanelProps {
   tasks: TaskItem[];
   today: Date;
+  /** Precomputed per-task risk (the live board computes this internally). */
+  riskMap: Map<string, RiskLevel>;
+  templateFreqMap: Map<string, number>;
 }
 
-// Scenario data is static: no risk overlay and no multi-instance badges, so
-// empty lookup maps stand in (BacklogSheetContent falls back to 'normal'/freq 1).
-const EMPTY_RISK_MAP = new Map<string, RiskLevel>();
-const EMPTY_FREQ_MAP = new Map<string, number>();
 const NOOP = () => {};
 
 /**
- * The mobile backlog "Queued" sheet's content, rendered inline as a
- * phone-width bottom sheet inside a scenario frame. Mirrors the live
- * MobileBacklogSheet (same header / hint / BacklogSheetContent) but without the
- * top-layer <dialog>, so it stays inside the frame and inherits its inertness.
+ * The mobile backlog's content, rendered inline as a phone-width bottom sheet
+ * inside a scenario frame. Mirrors the live MobileBacklog (same header / hint /
+ * MobileBacklogContent) but without the top-layer <dialog>, so it stays inside
+ * the frame and inherits its inertness.
  */
-export const BacklogSheetPanel = ({tasks, today}: BacklogSheetPanelProps) => {
+export const MobileBacklogPanel = ({
+  tasks,
+  today,
+  riskMap,
+  templateFreqMap,
+}: MobileBacklogPanelProps) => {
   const t = useTranslations('Board.Backlog');
 
   return (
@@ -41,11 +45,11 @@ export const BacklogSheetPanel = ({tasks, today}: BacklogSheetPanelProps) => {
           {t('hintTapToTodo')}
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
-          <BacklogSheetContent
+          <MobileBacklogContent
             tasks={tasks}
             today={today}
-            riskMap={EMPTY_RISK_MAP}
-            templateFreqMap={EMPTY_FREQ_MAP}
+            riskMap={riskMap}
+            templateFreqMap={templateFreqMap}
             onPull={NOOP}
           />
         </div>

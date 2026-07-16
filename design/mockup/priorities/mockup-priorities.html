@@ -12,14 +12,14 @@
   .screen.active { display: flex; }
 
   /* ════════════════════════════════════════════
-     Board screen — region holds board + right drawer
+     Board screen — region holds board + right backlog panel
      ════════════════════════════════════════════ */
   .board-region { flex: 1; display: flex; min-height: 0; }
 
   /* AD_HOC type badge — displays as "ONCE" (olive) */
   .badge-adhoc { background: var(--m-olive-bg); color: var(--m-olive); }
 
-  /* ── Queued (backlog) collapsed strip — right edge ── */
+  /* ── Backlog collapsed strip — right edge ── */
   .backlog-rstrip {
     width: 46px; flex-shrink: 0; background: var(--m-surface);
     border-left: 1px solid var(--m-border);
@@ -634,7 +634,7 @@
 </div>
 
 <!-- ════════════════════════════════════════════════════════════════
-     Board — board with right-edge "Queued" strip + Todo badges
+     Board — board with right-edge backlog strip + Todo badges
      ════════════════════════════════════════════════════════════════ -->
 <div class="screen app" id="screen-board" data-nav="board">
   <div data-sidebar></div>
@@ -743,11 +743,11 @@
         </div>
       </div>
 
-      <!-- Queued (backlog) collapsed strip on the right edge -->
+      <!-- Backlog collapsed strip on the right edge -->
       <div class="backlog-rstrip">
         <svg class="backlog-rstrip-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span class="backlog-count-pill">5</span>
-        <span class="backlog-rstrip-label">Queued</span>
+        <span class="backlog-rstrip-label">Backlog</span>
       </div>
     </div>
   </div>

@@ -37,7 +37,7 @@ export const ScenarioFrame = ({
     <div
       // `contain: layout` makes the frame a containing block for `position:
       // fixed` descendants, so viewport-anchored bits of the real components
-      // (e.g. the mobile "Queued" pill in MobileBacklogSheet) dock inside the
+      // (e.g. the mobile backlog pill in MobileBacklog) dock inside the
       // frame instead of floating over the whole page. `overflow-hidden` then
       // clips them to the frame — a self-contained device-viewport sandbox.
       className="overflow-hidden rounded-xl border border-base-content/15 [contain:layout]"

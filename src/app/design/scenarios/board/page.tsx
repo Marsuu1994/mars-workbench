@@ -4,19 +4,17 @@ import BoardHeader from '@/components/domain/shared/BoardHeader';
 import ProgressDashboard from '@/components/domain/board/ProgressDashboard';
 import KanbanBoard from '@/components/domain/board/KanbanBoard';
 import EmptyBoard from '@/components/domain/board/EmptyBoard';
-import {TaskStatus} from '@/utils/enums';
 import {ScenarioTabs, type ScenarioTab} from '../ScenarioTabs';
-import {BacklogSheetPanel} from './BacklogSheetPanel';
+import {MobileBacklogPanel} from './MobileBacklogPanel';
 import {
   MID_WEEK_TASKS,
   MID_WEEK_PROGRESS,
   SCENARIO_PLAN_TEMPLATES,
+  SCENARIO_TODAY,
+  BACKLOG_TASKS,
+  BACKLOG_RISK_MAP,
+  SCENARIO_TEMPLATE_FREQ_MAP,
 } from './fixtures';
-
-const BACKLOG_TASKS = MID_WEEK_TASKS.filter(
-  task => task.status === TaskStatus.BACKLOG,
-);
-const SCENARIO_TODAY = new Date('2026-07-10T15:00:00');
 
 const BoardShell = ({
   progress,
@@ -25,7 +23,7 @@ const BoardShell = ({
 }: {
   progress: React.ComponentProps<typeof ProgressDashboard>;
   tasks: React.ComponentProps<typeof KanbanBoard>['tasks'];
-  /** Render the board with the backlog ("Queued") drawer expanded. */
+  /** Render the board with the backlog expanded (desktop). */
   backlogOpen?: boolean;
 }) => (
   <div className="flex flex-col h-full">
@@ -74,9 +72,9 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
     content: <BoardShell progress={MID_WEEK_PROGRESS} tasks={MID_WEEK_TASKS} />,
   },
   {
-    label: 'Board — drawer open',
-    title: 'Board — backlog drawer open',
-    note: 'The "Queued" drawer expanded (desktop), staging template instances ready to pull onto the board.',
+    label: 'Board — backlog open (desktop)',
+    title: 'Board — backlog open (desktop)',
+    note: 'The backlog expanded, staging template instances ready to pull onto the board.',
     content: (
       <BoardShell
         progress={MID_WEEK_PROGRESS}
@@ -87,10 +85,17 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
   },
   {
     label: 'Backlog (mobile)',
-    title: 'Mobile backlog sheet',
-    note: 'The mobile "Queued" bottom-sheet content — staged instances with a tap-to-pull action — shown inline (not as a top-layer modal).',
+    title: 'Backlog (mobile)',
+    note: 'The mobile backlog bottom sheet — staged instances with a tap-to-pull action — shown inline (not as a top-layer modal).',
     height: 480,
-    content: <BacklogSheetPanel tasks={BACKLOG_TASKS} today={SCENARIO_TODAY} />,
+    content: (
+      <MobileBacklogPanel
+        tasks={BACKLOG_TASKS}
+        today={SCENARIO_TODAY}
+        riskMap={BACKLOG_RISK_MAP}
+        templateFreqMap={SCENARIO_TEMPLATE_FREQ_MAP}
+      />
+    ),
   },
 ];
 
