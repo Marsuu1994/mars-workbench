@@ -11,7 +11,7 @@ import {RiskBadge} from '@/components/domain/shared/RiskBadge';
 import {RolloverTag} from '@/components/domain/shared/RolloverTag';
 import {RISK_BORDER_LEFT} from '@/components/domain/shared/riskBorder';
 
-interface BacklogSheetCardProps {
+interface MobileBacklogCardProps {
   task: TaskItem;
   today: Date;
   riskLevel: RiskLevel;
@@ -21,17 +21,17 @@ interface BacklogSheetCardProps {
 }
 
 /**
- * Full-width row card rendered inside the mobile backlog bottom sheet. Mirrors
- * the board TaskCard's badge / instance / rollover / risk language, but is a
- * plain (non-draggable) presentational card with a tap "↑ Todo" pull action.
+ * Full-width row card rendered inside the mobile backlog. Mirrors the board
+ * TaskCard's badge / instance / rollover / risk language, but is a plain
+ * (non-draggable) presentational card with a tap "↑ Todo" pull action.
  */
-export default function BacklogSheetCard({
+export default function MobileBacklogCard({
   task,
   today,
   riskLevel,
   frequency,
   onPull,
-}: BacklogSheetCardProps) {
+}: MobileBacklogCardProps) {
   const t = useTranslations('Board.Backlog');
   const showInstance = frequency > 1;
   const isRollover = isRolloverTask(task, today);

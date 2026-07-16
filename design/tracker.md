@@ -63,7 +63,6 @@ Single source of truth for open ideas and todos across the app — open items on
 - [ ] `ui/` component-structure lookup in `reference.md` — a lean high-level map for agents (humans use the `/design` gallery); follow-up to the landed component library
 - [ ] Scenario pages for priorities and plan — extend the board pilot (`/design/scenarios`: real page components + fixture data as screen-level source of truth): `scenarios/priorities` (full matrix + tracked + popover), `scenarios/plan` (form, review-modal change types, AI chat mid-flow)
 - [ ] Gallery tabbed navigation — split `/design`'s single long scroll into tabs mirroring the component layers (`ui/` · `application/` · `domain/`)
-- [ ] Scenario tabbed navigation — tab-switch between flows/states inside `/design/scenarios` (like the old mockup navigator) instead of separate routes
 - [ ] Per-feature mockup retirement — retire `design/mockup/<feature>/` only once that feature has a scenario (one screen-level source of truth each; `future-work/` and `flows/*.md` stay). Board qualifies but is held to retire as a set; on each retirement update AGENTS.md UI Workflow + the `/design-explore` and `/new-flow` skills
 - [ ] Back-port the HUD FX layer (see `design/design-system.md`) into mockup CSS — **on hold**: superseded per-feature as scenarios retire mockups; the palette swap already landed in `mockup-theme.css`
 - [ ] Uniform page header across board/priorities/settings on both breakpoints (plan keeps its planning-mode header); also resolves the BoardHeader green-vs-primary accent drift

@@ -14,26 +14,29 @@ import {TaskStatus} from '@/utils/enums';
 import {getTaskFrequency, type RiskLevel} from '@/utils/taskUtils';
 import TaskCard from './TaskCard';
 
-interface BacklogDrawerProps {
+interface DesktopBacklogProps {
   tasks: TaskItem[];
   today: Date;
   riskMap: Map<string, RiskLevel>;
   templateFreqMap: Map<string, number>;
+  /** Start expanded instead of collapsed (used by design scenarios). */
+  defaultOpen?: boolean;
 }
 
 /**
- * Desktop-only right-edge drawer that stages BACKLOG tasks. The user drags a
- * card onto the Todo column to pull it onto the board (BACKLOG → TODO).
- * Rendered inside KanbanBoard's DragDropContext.
+ * Desktop-only collapsible right-edge backlog that stages BACKLOG tasks. The
+ * user drags a card onto the Todo column to pull it onto the board
+ * (BACKLOG → TODO). Rendered inside KanbanBoard's DragDropContext.
  */
-export default function BacklogDrawer({
+export default function DesktopBacklog({
   tasks,
   today,
   riskMap,
   templateFreqMap,
-}: BacklogDrawerProps) {
+  defaultOpen = false,
+}: DesktopBacklogProps) {
   const t = useTranslations('Board.Backlog');
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(defaultOpen);
 
   const countPill = (
     <span className="badge badge-primary badge-sm font-bold">
@@ -83,7 +86,7 @@ export default function BacklogDrawer({
 
   const renderBody = () => (
     // isDropDisabled: cards only leave the backlog. Without it, the collapsed
-    // drawer's invisible panel (kept mounted for the cross-fade, overlapping
+    // backlog's invisible panel (kept mounted for the cross-fade, overlapping
     // the Done column) wins dnd's geometric hit-test and steals Done drops.
     <Droppable droppableId={TaskStatus.BACKLOG} isDropDisabled>
       {provided => (

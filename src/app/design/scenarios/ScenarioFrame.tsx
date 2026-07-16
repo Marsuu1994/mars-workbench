@@ -6,6 +6,14 @@ interface ScenarioFrameProps {
   note?: string;
   /** Fixed frame height standing in for a device viewport */
   height?: number;
+  /**
+   * Scenarios are visual references composed from the real page components fed
+   * fixture data. Their handlers are wired to live server actions and
+   * navigation, so the frame is `inert` by default — interactions are disabled
+   * so a drag or a CTA click can't fire a real action against fixture IDs.
+   * Opt back in only for a scenario that intentionally demos live interaction.
+   */
+  interactive?: boolean;
   children: ReactNode;
 }
 
@@ -18,6 +26,7 @@ export const ScenarioFrame = ({
   title,
   note,
   height = 620,
+  interactive = false,
   children,
 }: ScenarioFrameProps) => (
   <div className="flex flex-col gap-2">
@@ -26,8 +35,14 @@ export const ScenarioFrame = ({
       {note && <p className="text-sm text-base-content/50">{note}</p>}
     </div>
     <div
-      className="overflow-hidden rounded-xl border border-base-content/15"
+      // `contain: layout` makes the frame a containing block for `position:
+      // fixed` descendants, so viewport-anchored bits of the real components
+      // (e.g. the mobile backlog pill in MobileBacklog) dock inside the
+      // frame instead of floating over the whole page. `overflow-hidden` then
+      // clips them to the frame — a self-contained device-viewport sandbox.
+      className="overflow-hidden rounded-xl border border-base-content/15 [contain:layout]"
       style={{height}}
+      inert={!interactive}
     >
       {children}
     </div>

@@ -1,6 +1,6 @@
 # Board Flows
 
-Flows for the kanban board page (`/kanban`) — landing, drag and drop, progress tracking, risk visuals, and the backlog drawer. Sibling docs: `design/flows/shared.md` (sync lifecycle), `design/flows/plan.md`, `design/flows/priorities.md`, `design/flows/auth.md`.
+Flows for the kanban board page (`/kanban`) — landing, drag and drop, progress tracking, risk visuals, and the backlog. Sibling docs: `design/flows/shared.md` (sync lifecycle), `design/flows/plan.md`, `design/flows/priorities.md`, `design/flows/auth.md`.
 
 > **Doc convention:** One flow per `##` heading, separated by `---`. Every flow has two required `###` sections — `Trigger / Entry Point` and `Steps` — plus an optional `### Rules` section for constraints and invariants. Extra `###` sections (e.g. `Metrics`) are allowed only for reference material that fits neither Steps nor Rules.
 
@@ -37,7 +37,7 @@ User drags a task card to a different column.
 
 ### Rules
 
-- Allowed transitions: BACKLOG → TODO → DOING → DONE only (no backwards movement). `BACKLOG → TODO` is the backlog drawer pull (drop onto the Todo column); see "Backlog Drawer Flow".
+- Allowed transitions: BACKLOG → TODO → DOING → DONE only (no backwards movement). `BACKLOG → TODO` is the backlog pull (drop onto the Todo column); see "Backlog Flow".
 - Exception: the Priorities "Track This Week Flow" (see `design/flows/priorities.md`) may attach a matrix task directly as `BACKLOG → DOING` (tracked into the In Progress column).
 
 ---
@@ -149,14 +149,14 @@ Computed client-side on every board render, based on `forDate`, `createdAt`, tas
 
 ---
 
-## Backlog Drawer Flow
+## Backlog Flow
 
 ### Trigger / Entry Point
 
-- **Desktop (`md+`):** A collapsed backlog strip sits on the right edge of the board. The user clicks it to expand the drawer.
+- **Desktop (`md+`):** A collapsed backlog strip sits on the right edge of the board. The user clicks it to expand the backlog panel.
 - **Mobile (`< md`):** A peeking "Backlog" pill sits above the bottom tab bar. The user taps it to open a bottom sheet.
 
-The drawer/sheet holds the plan's template-generated task instances with `status === BACKLOG` — the staging area they land in before reaching the board. Ad-hoc tasks never appear in the drawer: while off the board they are also `BACKLOG`, but they live on the priority matrix (`planId = null`), outside the plan-scoped drawer query.
+The backlog (desktop panel / mobile sheet) holds the plan's template-generated task instances with `status === BACKLOG` — the staging area they land in before reaching the board. Ad-hoc tasks never appear in the backlog UI: while off the board they are also `BACKLOG`, but they live on the priority matrix (`planId = null`), outside the plan-scoped backlog query.
 
 ### Steps
 
@@ -178,5 +178,5 @@ The drawer/sheet holds the plan's template-generated task instances with `status
 
 - Desktop reuses the board `TaskCard`; mobile uses `BacklogSheetCard` (full-width, non-draggable) with the same badge/instance/rollover/risk language. Risk computation treats `BACKLOG` as `TODO` so visuals match the board (see "Task Risky Level Visual Effect Flow").
 - The `#{instanceIndex}` badge renders only when the template's `frequency > 1` (frequency-1 and ad-hoc tasks, always `instanceIndex = 1`, show none). The card reads `frequency` from `plan.planTemplates`.
-- The drawer/sheet open state is local UI state, default closed.
+- The backlog open state (panel or sheet) is local UI state, default closed.
 - Empty backlog: desktop strip still shows (count `0`) with an empty-state body; the mobile pill is hidden (the sheet's empty state only appears if the last task is pulled while it is open).

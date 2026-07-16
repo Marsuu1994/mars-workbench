@@ -112,7 +112,7 @@ export function computeRiskLevel(
 
 /**
  * A daily task is "rollover" when it was scheduled for a past day and is not yet
- * done. Shared by the board card and the mobile backlog sheet card so the ↩ tag
+ * done. Shared by the board card and the mobile backlog card so the ↩ tag
  * renders identically in both.
  */
 export function isRolloverTask(task: TaskItem, today: Date): boolean {
@@ -201,7 +201,7 @@ export function sortTasks(tasks: TaskItem[], today: Date): TaskItem[] {
 
 /**
  * Statuses rendered in the UI (excludes EXPIRED). BACKLOG is shown in the
- * backlog drawer; TODO/DOING/DONE are the board columns.
+ * backlog; TODO/DOING/DONE are the board columns.
  */
 type BoardStatus =
   | typeof TaskStatus.BACKLOG

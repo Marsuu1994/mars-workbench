@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Kanban — Queued Drawer</title>
+<title>Kanban — Backlog</title>
 <link rel="stylesheet" href="../mockup-theme.css" />
 <link rel="stylesheet" href="../styles.css" />
 <style>
@@ -11,10 +11,10 @@
   .screen { display: none; }
   .screen.active { display: flex; }
 
-  /* The board area shrinks to make room for the drawer */
+  /* The board area shrinks to make room for the backlog panel */
   .board-region { flex: 1; display: flex; min-height: 0; }
 
-  /* Drawer reuses the board .task-card (risk + rollover + instance badge stay in sync) */
+  /* The backlog reuses the board .task-card (risk + rollover + instance badge stay in sync) */
 
   /* shared bits */
   .backlog-count-pill {
@@ -220,7 +220,7 @@
   </div>
 </template>
 
-<!-- Board, Todo as drop target (drawer open) -->
+<!-- Board, Todo as drop target (backlog open) -->
 <template id="tpl-board-drop">
   <div class="board">
     <div class="column col-todo drop-target">
@@ -334,7 +334,7 @@
 </template>
 
 <!-- ════════════════════════════════════════════════════════════════
-     Drawer Closed — collapsed strip on the right edge
+     Backlog Closed — collapsed strip on the right edge
      ════════════════════════════════════════════════════════════════ -->
 <div class="screen app active" id="screen-closed">
   <div data-sidebar></div>
@@ -345,14 +345,14 @@
       <div class="backlog-rstrip" onclick="showScreen('screen-open')">
         <svg class="backlog-rstrip-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span class="backlog-count-pill">5</span>
-        <span class="backlog-rstrip-label">Queued</span>
+        <span class="backlog-rstrip-label">Backlog</span>
       </div>
     </div>
   </div>
 </div>
 
 <!-- ════════════════════════════════════════════════════════════════
-     Drawer Open — expanded panel on the right edge
+     Backlog Open — expanded panel on the right edge
      ════════════════════════════════════════════════════════════════ -->
 <div class="screen app" id="screen-open">
   <div data-sidebar></div>
@@ -364,7 +364,7 @@
         <div class="backlog-right-header">
           <div class="backlog-title-row">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:var(--m-blue)"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Queued
+            Backlog
             <span class="backlog-count-pill">5</span>
           </div>
           <button class="backlog-close-btn" onclick="showScreen('screen-closed')">
@@ -385,8 +385,8 @@
 
 <!-- ── Screen nav ── -->
 <nav class="screen-nav">
-  <button class="screen-btn active" data-target="screen-closed" onclick="showScreen('screen-closed')">Drawer Closed</button>
-  <button class="screen-btn" data-target="screen-open" onclick="showScreen('screen-open')">Drawer Open</button>
+  <button class="screen-btn active" data-target="screen-closed" onclick="showScreen('screen-closed')">Backlog Closed</button>
+  <button class="screen-btn" data-target="screen-open" onclick="showScreen('screen-open')">Backlog Open</button>
 </nav>
 
 <script>
