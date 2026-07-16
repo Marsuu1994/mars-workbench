@@ -51,7 +51,7 @@ src/
 ├── utils/                         # Domain helpers (client-safe) — except statsUtils.ts (server-only)
 ├── schemas.ts                     # All zod schemas
 ├── lib/                           # Infrastructure only: prisma/, llm/, supabase/, auth/, db/ (DAL)
-└── components/                    # Three top-level layers (see "Component Placement")
+└── components/                    # Three top-level layers (see "Component placement" in Layers)
     ├── ui/                        # Design-system primitives only — zero domain imports
     ├── application/               # App frame + providers (shell, tab bar, sidebar, contexts)
     └── domain/                    # All business components — shared/ + one folder per feature
@@ -105,6 +105,7 @@ The living docs — README **Current State**, `design/tracker.md`, and everythin
 - If an action requires multiple DAL calls or conditional orchestration, extract to service.
 - Server-only modules — everything in `src/services/` plus `src/utils/statsUtils.ts` (imports the generated Prisma client) — must never be imported from `'use client'` code. `src/utils/` is otherwise client-safe (`enums`, `dateUtils`, `sizeUtils`, …), as is `src/schemas.ts`.
 - Components in `src/components/` may invoke server actions directly (e.g. the shared `TaskModal` calls `templateActions` and `createAdhocTaskAction`) — server actions behave like endpoints, this is not a layering violation. Direct service/DAL imports from components remain forbidden.
+- **Component placement** — `src/components/` has three layers, decided by imports (checked in order): a component that imports a domain type/enum/schema/DAL row is **domain** → `domain/<feature>/`, or `domain/shared/` when reused by ≥2 features; the once-rendered app frame (shell, tab bar, sidebar) and providers are **application**; everything else — generic primitives reusable in any app — is **ui**. Hard rule: nothing in `ui/` may import a domain type. Bad: a `WeeklyPointsChip` importing `TaskType` dropped into `ui/`. Good: the same chip in `domain/shared/`, composing the generic `Pill` from `ui/`.
 
 ## Coding Conventions
 
@@ -228,8 +229,6 @@ When adding a new convention, append it to the **end of the relevant subsection 
     toType: TaskType;
   }
   ```
-
-- **Component placement** — `src/components/` has exactly three top-level layers; place a new component by asking two questions in order. (1) Does it import a domain type/enum (`TaskType`, `TaskSize`, `RiskLevel`, a schema, a DAL row)? If yes it is a **domain** component → `domain/`; if it is reused by ≥2 features put it in `domain/shared/`, otherwise in that feature's `domain/<feature>/`. (2) If it imports no domain type: is it the app frame rendered once (shell, tab bar, sidebar) or a Provider/context? → `application/`. Everything else — a generic, domain-agnostic primitive reusable in any app — → `ui/`. The hard rule: **nothing in `ui/` may import a domain type** (that is exactly why `SizeChip`/`TaskTypeBadge`/`RiskBadge`/`RolloverTag`/`riskBorder` live in `domain/shared/`, while the pure `#n` `InstanceBadge` stays in `ui/`). Bad: a `WeeklyPointsChip` that imports `TaskType` dropped into `ui/`. Good: the same chip in `domain/shared/`, importing the generic `Pill` from `ui/`.
 
 ## Code Style
 
