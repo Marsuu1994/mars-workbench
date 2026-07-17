@@ -8,14 +8,25 @@ import {
   PencilSquareIcon,
   Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
+import {cn} from '@/components/ui/cn';
 
 interface BottomTabBarProps {
   user: {name: string; email: string} | null;
   activePlanId: string | null;
+  /** Design gallery/scenario override — defaults to the live route. */
+  pathname?: string;
+  /** Extra classes on the dock (AppShell passes md:hidden). */
+  className?: string;
 }
 
-export const BottomTabBar = ({user, activePlanId}: BottomTabBarProps) => {
-  const pathname = usePathname();
+export const BottomTabBar = ({
+  user,
+  activePlanId,
+  pathname: pathnameProp,
+  className,
+}: BottomTabBarProps) => {
+  const livePathname = usePathname();
+  const pathname = pathnameProp ?? livePathname;
 
   if (!user || !pathname.startsWith('/kanban')) {
     return null;
@@ -27,7 +38,7 @@ export const BottomTabBar = ({user, activePlanId}: BottomTabBarProps) => {
   const isSettings = pathname.startsWith('/kanban/settings');
 
   return (
-    <div className="dock fx-chrome fx-hairline-top md:hidden">
+    <div className={cn('dock fx-chrome fx-hairline-top', className)}>
       <Link href="/kanban" className={isBoard ? 'dock-active' : ''}>
         <Squares2X2Icon className="size-5" />
         <span className="dock-label">Board</span>

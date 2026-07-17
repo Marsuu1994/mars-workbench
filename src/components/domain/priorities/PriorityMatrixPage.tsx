@@ -32,17 +32,20 @@ import {
 interface PriorityMatrixPageProps {
   tasks: TaskItem[];
   activePlan: MatrixActivePlan | null;
+  /** Design scenario override — pins a card's track popover open on mount. */
+  initialOpenPopoverTaskId?: string;
 }
 
 export default function PriorityMatrixPage({
   tasks,
   activePlan,
+  initialOpenPopoverTaskId,
 }: PriorityMatrixPageProps) {
   const t = useTranslations('Priorities');
   const tQuadrant = useTranslations('Enums.PriorityQuadrant');
   const [localTasks, setLocalTasks] = useState<TaskItem[]>(tasks);
   const [openPopoverTaskId, setOpenPopoverTaskId] = useState<string | null>(
-    null,
+    initialOpenPopoverTaskId ?? null,
   );
   const [sheetTask, setSheetTask] = useState<TaskItem | null>(null);
   // null = closed; quadrant undefined = mobile global add (modal shows its picker)

@@ -37,7 +37,7 @@ Then register the feature in the centralized design docs:
 
 - Add a `$0` section to `design/baseline.md` (entities/schema — see Step 3)
 - Create `design/flows/$0.md` from the flows template below
-- Create the `design/mockup/$0/` directory (mockups link the shared `../styles.css` and `../mockup-theme.css`)
+- UI designs are explored per-flow as self-contained mockups in `design/mockup/future-work/` (see `/new-flow` Step 4); once flows are implemented, the feature gets a scenario page at `src/app/design/scenarios/$0/`
 
 ### Root README registration
 

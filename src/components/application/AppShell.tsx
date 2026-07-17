@@ -52,7 +52,11 @@ export const AppShell = ({user, activePlanId, children}: AppShellProps) => {
       >
         {children}
       </main>
-      <BottomTabBar user={user} activePlanId={activePlanId} />
+      <BottomTabBar
+        user={user}
+        activePlanId={activePlanId}
+        className="md:hidden"
+      />
     </div>
   );
 };

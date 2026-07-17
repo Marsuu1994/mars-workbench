@@ -13,11 +13,16 @@ import {CreateActionBar} from './CreateActionBar';
 import {CreatedBanner} from './CreatedBanner';
 import {LoadingBubble} from './LoadingBubble';
 
-export const AiPlanChatModal = () => {
+/**
+ * The chat modal's header + conversation + footer, sans dialog shell. Reads
+ * the conversation from aiPlanChatStore. The live modal wraps it in
+ * OverlayShell; design scenarios seed the store and mount it inline so each
+ * chat state renders inside a frame instead of the browser top layer.
+ */
+export const AiChatModalContent = () => {
   const t = useTranslations('AiChat');
   const bodyRef = useRef<HTMLDivElement>(null);
 
-  const isOpen = useAiPlanChatStore(state => state.isOpen);
   const messages = useAiPlanChatStore(state => state.messages);
   const status = useAiPlanChatStore(state => state.status);
   const error = useAiPlanChatStore(state => state.error);
@@ -104,6 +109,20 @@ export const AiPlanChatModal = () => {
   };
 
   return (
+    <>
+      {renderHeader()}
+      {renderBody()}
+      {renderFooter()}
+    </>
+  );
+};
+
+export const AiPlanChatModal = () => {
+  const t = useTranslations('AiChat');
+  const isOpen = useAiPlanChatStore(state => state.isOpen);
+  const close = useAiPlanChatStore(state => state.close);
+
+  return (
     <OverlayShell
       variant="center"
       isOpen={isOpen}
@@ -111,9 +130,7 @@ export const AiPlanChatModal = () => {
       closeLabel={t('closeBackdrop')}
       boxClassName="flex h-[700px] max-h-[80vh] w-[640px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden p-0"
     >
-      {renderHeader()}
-      {renderBody()}
-      {renderFooter()}
+      <AiChatModalContent />
     </OverlayShell>
   );
 };

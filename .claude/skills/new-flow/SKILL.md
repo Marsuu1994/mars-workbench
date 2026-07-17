@@ -45,10 +45,9 @@ Present the updated flow for approval. Once approved, append it to `design/flows
 
 Skip this step if the flow is purely backend (no new UI).
 
-1. Use the `/frontend-design` skill to create an HTML mockup at `design/mockup/$0/mockup-$1.html`
-2. Link to the shared `../styles.css` and `../mockup-theme.css` (one level up, at `design/mockup/`)
-3. Show only the screens relevant to this flow
-4. Present for user review and iterate until approved
+1. Use the `/frontend-design` skill to create a **self-contained** HTML mockup (inline styles, no shared stylesheets) at `design/mockup/future-work/mockup-$1.html`
+2. Show only the screens relevant to this flow
+3. Present for user review and iterate until approved
 
 ## Step 5 — Plan + Actions
 
@@ -77,3 +76,5 @@ Implement based on the approved plan. Follow all coding conventions from AGENTS.
 - No raw string enums — use named constants
 - Components > 100 lines of JSX → break into sub-components
 - Match mockup exactly — raise blockers before deviating
+
+After the flow lands: add or extend the feature's scenario page (`src/app/design/scenarios/$0/`) with the new screen states, then delete the future-work mockup — the scenario page takes over as the screen-level source of truth.

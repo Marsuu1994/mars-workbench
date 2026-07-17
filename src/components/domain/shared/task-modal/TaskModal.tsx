@@ -20,33 +20,41 @@ import QuadrantPicker from './QuadrantPicker';
 
 type ModalMode = 'create' | 'edit' | 'adhoc';
 
-interface TaskModalProps {
-  isOpen: boolean;
+interface TaskModalPanelProps {
   onClose: () => void;
   /** For adhoc mode, receives the quadrant the created task landed in. */
   onSaved: (quadrant?: PriorityQuadrant) => void;
-  mode?: ModalMode;
+  mode: ModalMode;
   template?: TaskTemplateItem | null;
   /**
    * Source quadrant for adhoc mode — the created matrix task lands there.
-   * When omitted in adhoc mode (mobile top-bar "+" entry), the modal shows
+   * When omitted in adhoc mode (mobile top-bar "+" entry), the panel shows
    * a quadrant picker instead.
    */
   quadrant?: PriorityQuadrant;
 }
 
-export default function TaskModal({
-  isOpen,
+interface TaskModalProps extends Omit<TaskModalPanelProps, 'mode'> {
+  isOpen: boolean;
+  mode?: ModalMode;
+}
+
+/**
+ * The task form itself — header, fields, footer — sans dialog shell. The
+ * live modal wraps it in OverlayShell (mounted fresh on each open, so the
+ * form always starts from the current template/mode); design scenarios
+ * mount it inline so it renders inside a frame instead of the top layer.
+ */
+export function TaskModalPanel({
   onClose,
   onSaved,
-  mode: modeProp,
+  mode,
   template,
   quadrant,
-}: TaskModalProps) {
+}: TaskModalPanelProps) {
   const t = useTranslations('TaskModal');
   const tSize = useTranslations('Enums.TaskSize');
   const tEnums = useTranslations('Enums');
-  const mode: ModalMode = modeProp ?? (template ? 'edit' : 'create');
 
   const initialTitle = mode === 'adhoc' ? '' : (template?.title ?? '');
   const initialDescription =
@@ -64,24 +72,17 @@ export default function TaskModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Reset form when the modal opens or the target template/mode changes.
-  // Done during render (not in an effect) to avoid cascading re-renders.
-  // Mirrors the previous effect's [isOpen, template, mode] dependencies.
-  const [formSource, setFormSource] = useState({isOpen, template, mode});
-  if (
-    formSource.isOpen !== isOpen ||
-    formSource.template !== template ||
-    formSource.mode !== mode
-  ) {
-    setFormSource({isOpen, template, mode});
-    if (isOpen) {
-      setTitle(initialTitle);
-      setDescription(initialDescription);
-      setSize(initialSize);
-      setSelectedQuadrant(FALLBACK_QUADRANT);
-      setError(null);
-      setIsSubmitting(false);
-    }
+  // Reset form when the target template/mode changes while mounted. Done
+  // during render (not in an effect) to avoid cascading re-renders.
+  const [formSource, setFormSource] = useState({template, mode});
+  if (formSource.template !== template || formSource.mode !== mode) {
+    setFormSource({template, mode});
+    setTitle(initialTitle);
+    setDescription(initialDescription);
+    setSize(initialSize);
+    setSelectedQuadrant(FALLBACK_QUADRANT);
+    setError(null);
+    setIsSubmitting(false);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -137,15 +138,7 @@ export default function TaskModal({
   const isAdhoc = mode === 'adhoc';
 
   return (
-    // Backdrop-dismiss stays off: a stray tap must not discard form input
-    <OverlayShell
-      variant="responsive"
-      isOpen={isOpen}
-      onClose={onClose}
-      dismissOnBackdrop={false}
-      corners
-      boxClassName="max-w-lg pt-4 md:pt-6"
-    >
+    <>
       <TaskModalHeader mode={mode} onClose={onClose} />
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -237,6 +230,41 @@ export default function TaskModal({
           onClose={onClose}
         />
       </form>
+    </>
+  );
+}
+
+export default function TaskModal({
+  isOpen,
+  onClose,
+  onSaved,
+  mode: modeProp,
+  template,
+  quadrant,
+}: TaskModalProps) {
+  const mode: ModalMode = modeProp ?? (template ? 'edit' : 'create');
+
+  return (
+    // Backdrop-dismiss stays off: a stray tap must not discard form input
+    <OverlayShell
+      variant="responsive"
+      isOpen={isOpen}
+      onClose={onClose}
+      dismissOnBackdrop={false}
+      corners
+      boxClassName="max-w-lg pt-4 md:pt-6"
+    >
+      {/* Mounted only while open, so every open starts a fresh form (the
+          panel's initial state is the reset the old isOpen effect did). */}
+      {isOpen && (
+        <TaskModalPanel
+          onClose={onClose}
+          onSaved={onSaved}
+          mode={mode}
+          template={template}
+          quadrant={quadrant}
+        />
+      )}
     </OverlayShell>
   );
 }

@@ -11,13 +11,13 @@ Centralized design documentation for Mars Workbench. Code is organized layer-fir
 | [tracker.md](./tracker.md) | Consolidated roadmap — open items and ideas only (closed work moves to feature Update Logs). |
 | [reference.md](./reference.md) | Lean lookup tables for server actions, services, and DAL functions. |
 | [flows/](./flows/) | Per-page flow docs: `shared.md`, `board.md`, `plan.md`, `priorities.md`, `journal.md`, `auth.md`. |
-| [mockup/](./mockup/) | HTML mockups grouped by page: `board/`, `plan/`, `priorities/`, `journal/`, `auth/`, `shared/`, `future-work/`, plus shared `styles.css` and `mockup-theme.css`. |
+| [mockup/future-work/](./mockup/future-work/) | Self-contained HTML explorations of **unbuilt** designs only. Implemented UI is documented by the live scenario pages instead. |
+| `/design` (in-app) | The Design Console (`src/app/design/`): component gallery tabbed by layer, plus per-feature **scenario pages** (`/design/scenarios`) — real page components + fixture data, the screen-level source of truth. |
 
-## Mockup Workflow
+## UI Design Workflow
 
-- Mockups are the source of truth for UI — implement approved mockups exactly; if something can't be built as-is, raise the blocker and update the mockup first.
-- To modify existing UI, create a temporary before/after mockup for review; after approval, promote it to source of truth (keep only the approved screens, strip before/after labels and navigator entries).
-- After completing a UI task, back-port any implementation details (hover states, cursor styles, copy changes) to the source-of-truth mockup so it stays accurate.
+- Scenario pages are the source of truth for implemented UI — each feature's screens render the real components with pinned fixture states. After a UI change, update the affected scenario/gallery fixtures so the pinned states stay accurate.
+- Future or unapproved designs are explored as self-contained HTML mockups in `mockup/future-work/` (see `/design-explore`). Once a design ships, extend the feature's scenario page and delete the exploration mockup.
 
 ## App README
 

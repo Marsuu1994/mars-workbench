@@ -17,10 +17,20 @@ import {createClient} from '@/lib/supabase/client';
 interface AppSidebarProps {
   user: {name: string; email: string} | null;
   activePlanId: string | null;
+  /** Design gallery/scenario override — defaults to the live route. */
+  pathname?: string;
+  /** Design gallery/scenario override — defaults to the shared sidebar store. */
+  collapsed?: boolean;
 }
 
-export const AppSidebar = ({user, activePlanId}: AppSidebarProps) => {
-  const pathname = usePathname();
+export const AppSidebar = ({
+  user,
+  activePlanId,
+  pathname: pathnameProp,
+  collapsed: collapsedProp,
+}: AppSidebarProps) => {
+  const livePathname = usePathname();
+  const pathname = pathnameProp ?? livePathname;
   const router = useRouter();
   const {isCollapsed, toggleSidebar} = useSidebarStore();
   const [isLogoHovered, setIsLogoHovered] = useState(false);
@@ -42,7 +52,7 @@ export const AppSidebar = ({user, activePlanId}: AppSidebarProps) => {
     .toUpperCase()
     .slice(0, 2);
 
-  const collapsed = isCollapsed;
+  const collapsed = collapsedProp ?? isCollapsed;
   const hasPlan = !!activePlanId;
 
   // Shared: text fades so it's invisible before overflow-hidden clips it
