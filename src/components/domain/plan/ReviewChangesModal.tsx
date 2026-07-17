@@ -25,7 +25,7 @@ interface TemplateRef {
 }
 
 /** A template added to or removed from the plan — both lists share this shape. */
-interface TemplateChange extends TemplateRef {
+export interface TemplateChange extends TemplateRef {
   size: TaskSize;
   points: number;
   type: TaskType;
@@ -33,7 +33,7 @@ interface TemplateChange extends TemplateRef {
 }
 
 /** A template whose type/frequency changed between plans. */
-interface ModifiedTemplate extends TemplateRef {
+export interface ModifiedTemplate extends TemplateRef {
   fromType: TaskType;
   fromFrequency: number;
   toType: TaskType;
@@ -47,8 +47,7 @@ export interface AdhocTaskChange {
   points: number;
 }
 
-interface ReviewChangesModalProps {
-  isOpen: boolean;
+interface ReviewChangesPanelProps {
   onClose: () => void;
   onConfirm: () => void;
   added: TemplateChange[];
@@ -61,6 +60,10 @@ interface ReviewChangesModalProps {
   modeChanged?: boolean;
   fromMode?: PlanMode;
   toMode?: PlanMode;
+}
+
+interface ReviewChangesModalProps extends ReviewChangesPanelProps {
+  isOpen: boolean;
 }
 
 /* One accent drives a whole change section — dot, border, heading and
@@ -141,8 +144,12 @@ const ChangeRow = ({
   </div>
 );
 
-export function ReviewChangesModal({
-  isOpen,
+/**
+ * The review's header + change sections + footer, sans dialog shell. The
+ * live modal wraps it in OverlayShell; design scenarios mount it inline so
+ * the review renders inside a frame instead of the browser top layer.
+ */
+export function ReviewChangesPanel({
   onClose,
   onConfirm,
   added,
@@ -155,7 +162,7 @@ export function ReviewChangesModal({
   modeChanged = false,
   fromMode,
   toMode,
-}: ReviewChangesModalProps) {
+}: ReviewChangesPanelProps) {
   const tr = useTranslations('Review');
   const tMode = useTranslations('Enums.PlanMode');
 
@@ -411,18 +418,31 @@ export function ReviewChangesModal({
   );
 
   return (
+    <>
+      {renderHeader()}
+      {renderBody()}
+      {renderFooter()}
+    </>
+  );
+}
+
+export function ReviewChangesModal({
+  isOpen,
+  ...panelProps
+}: ReviewChangesModalProps) {
+  const tr = useTranslations('Review');
+
+  return (
     // Tall sheet on mobile: header + footer pinned, sections scroll between.
     // A read-only review (no text input) → backdrop tap dismisses = Cancel.
     <OverlayShell
       variant="responsive"
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={panelProps.onClose}
       closeLabel={tr('cancel')}
       boxClassName="max-w-lg flex flex-col overflow-hidden max-h-[85vh] pt-4 md:pt-6 md:max-h-[calc(100vh-5em)]"
     >
-      {renderHeader()}
-      {renderBody()}
-      {renderFooter()}
+      <ReviewChangesPanel {...panelProps} />
     </OverlayShell>
   );
 }

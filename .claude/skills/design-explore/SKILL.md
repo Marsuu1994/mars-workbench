@@ -30,7 +30,7 @@ Read the existing state to understand what's there today:
 
 - `design/baseline.md` — entities, schema, current features
 - `design/flows/$0.md` — flows that touch the area being redesigned
-- `design/mockup/$0/mockup-$1.html` — current mockup (if it exists)
+- `src/app/design/scenarios/$0/` — the feature's scenario page (current screen states), plus the affected components under `src/components/`
 
 After reading, present a short **design proposal** to the user:
 
@@ -44,14 +44,15 @@ After reading, present a short **design proposal** to the user:
 
 Use the `/frontend-design` skill to create a **temporary** Before / After HTML mockup.
 
-- Place it at `design/mockup/$0/temp-$1-v2.html`
+- Place it at `design/mockup/future-work/temp-$1-v2.html`
+- Make it **self-contained** (inline styles, no shared stylesheets) — match the existing `future-work/` mockups
 - Show the current state (Before) alongside the proposed redesign (After)
 
 **STOP — Present the mockup to the user. Iterate with feedback until they explicitly approve it.** Only proceed to archiving after approval.
 
 ## Step 4 — Archive to Future Work
 
-Move the approved mockup to the `future-work/` directory:
+Rename the approved mockup to its final name:
 
 ```
 design/mockup/future-work/mockup-$1-v2.html
@@ -60,17 +61,12 @@ design/mockup/future-work/mockup-$1-v2.html
 **Cascade check:** If the redesign introduces new entity fields, UI patterns, or layout changes that affect other flows, generate updated mockups for those flows too and place them alongside:
 
 ```
-design/mockup/
-├── styles.css
-├── mockup-theme.css
-├── board/
-│   └── mockup-board.html          # existing (active mockups, per feature)
-├── plan/
-│   └── mockup-plan-form.html      # existing
-└── future-work/
-    ├── mockup-$1-v2.html          # primary redesign
-    └── mockup-[other-flow]-v2.html # cascading updates
+design/mockup/future-work/
+├── mockup-$1-v2.html            # primary redesign
+└── mockup-[other-flow]-v2.html  # cascading updates
 ```
+
+(When a redesign is later implemented, the feature's scenario page takes over as source of truth and the future-work mockup is deleted.)
 
 ## Step 5 — Update Tracker
 

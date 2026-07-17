@@ -3,9 +3,7 @@ import {
   getEmptyBoardStateAction,
 } from '@/actions/boardActions';
 import EmptyBoard from '@/components/domain/board/EmptyBoard';
-import KanbanBoard from '@/components/domain/board/KanbanBoard';
-import BoardHeader from '@/components/domain/shared/BoardHeader';
-import ProgressDashboard from '@/components/domain/board/ProgressDashboard';
+import {BoardScreen} from '@/components/domain/board/BoardScreen';
 
 export default async function KanbanPage() {
   const board = await fetchBoardAction();
@@ -20,26 +18,21 @@ export default async function KanbanPage() {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <BoardHeader periodKey={board.plan.periodKey} />
-      <ProgressDashboard
-        todayDoneCount={board.todayDoneCount}
-        todayTotalCount={board.todayTotalCount}
-        todayDonePoints={board.todayDonePoints}
-        todayTotalPoints={board.todayTotalPoints}
-        weekDoneCount={board.weekDoneCount}
-        weekProjectedCount={board.weekProjectedCount}
-        weekDonePoints={board.weekDonePoints}
-        weekProjectedPoints={board.weekProjectedPoints}
-        daysElapsed={board.daysElapsed}
-      />
-      <div className="flex-1 min-h-0">
-        <KanbanBoard
-          tasks={board.tasks}
-          daysElapsed={board.daysElapsed}
-          planTemplates={board.plan.planTemplates}
-        />
-      </div>
-    </div>
+    <BoardScreen
+      periodKey={board.plan.periodKey}
+      progress={{
+        todayDoneCount: board.todayDoneCount,
+        todayTotalCount: board.todayTotalCount,
+        todayDonePoints: board.todayDonePoints,
+        todayTotalPoints: board.todayTotalPoints,
+        weekDoneCount: board.weekDoneCount,
+        weekProjectedCount: board.weekProjectedCount,
+        weekDonePoints: board.weekDonePoints,
+        weekProjectedPoints: board.weekProjectedPoints,
+        daysElapsed: board.daysElapsed,
+      }}
+      tasks={board.tasks}
+      planTemplates={board.plan.planTemplates}
+    />
   );
 }

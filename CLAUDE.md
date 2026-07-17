@@ -26,4 +26,4 @@ Use Claude slash-skills where applicable:
 ## Claude-Specific Notes
 
 - Keep skills usage explicit in prompts when a task matches one of the above domains.
-- Keep source-of-truth active mockups in `design/mockup/[feature]/`.
+- Implemented UI is documented by the scenario pages (`src/app/design/scenarios/`); keep exploration mockups for unbuilt designs in `design/mockup/future-work/`.

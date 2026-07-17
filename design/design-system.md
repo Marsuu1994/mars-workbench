@@ -1,6 +1,6 @@
 # Design System — Mission Control HUD
 
-The app-wide visual language. Source of truth for tokens, the FX utility layer, typography, and motion. Implemented in `src/app/globals.css` (daisyUI theme blocks + `fx-*` layer); mirrored for mockups in `design/mockup/mockup-theme.css`.
+The app-wide visual language. Source of truth for tokens, the FX utility layer, typography, and motion. Implemented in `src/app/globals.css` (daisyUI theme blocks + `fx-*` layer).
 
 ## Concept
 
@@ -87,4 +87,4 @@ One easing: `cubic-bezier(0.2, 0, 0, 1)` ("console snap"). 150ms micro (hover li
 
 ## Sync points
 
-Changing base colors requires touching, in lockstep: `src/app/globals.css` (theme blocks **and the two `--fx-art` SVG data-URIs**, whose nebula/filament colors are baked in), `public/manifest.json` (`background_color` = dark base-300, `theme_color` = dark base-100), `src/app/layout.tsx` (`viewport.themeColor`), `design/mockup/mockup-theme.css` (`--m-*` incl. regenerating every rgba alpha ladder from the new hexes), and `design/mockup/auth/mockup-login.html` (private token block mirroring the app tokens).
+Changing base colors requires touching, in lockstep: `src/app/globals.css` (theme blocks **and the two `--fx-art` SVG data-URIs**, whose nebula/filament colors are baked in), `public/manifest.json` (`background_color` = dark base-300, `theme_color` = dark base-100), and `src/app/layout.tsx` (`viewport.themeColor`).
