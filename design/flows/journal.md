@@ -2,7 +2,7 @@
 
 Flows for the journal page (`/kanban/journal`) — friction-free capture of whatever is in your head (thoughts, worries, diary entries), auto-categorized by an LLM in the background. Sibling docs: `design/flows/board.md`, `design/flows/plan.md`, `design/flows/priorities.md`, `design/flows/shared.md`, `design/flows/auth.md`.
 
-> **Status: designed, pending implementation.** Mockup: `design/mockup/journal/mockup-journal.html`. Proposed schema lives in `design/baseline.md` (JournalEntry / JournalCategory, marked "designed").
+> **Status: designed, pending implementation.** Exploration mockup (self-contained, per the scenario-first workflow): `design/mockup/future-work/mockup-journal.html`. Proposed schema lives in `design/baseline.md` (JournalEntry / JournalCategory, marked "designed"). When V1 lands it gets a scenario page at `/design/scenarios/journal` and the exploration mockup is deleted.
 
 > **Doc convention:** One flow per `##` heading, separated by `---`. Every flow has two required `###` sections — `Trigger / Entry Point` and `Steps` — plus an optional `### Rules` section for constraints and invariants. Extra `###` sections are allowed only for reference material that fits neither Steps nor Rules.
 

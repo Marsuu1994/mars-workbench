@@ -4,8 +4,250 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Kanban — Journal (Quick Capture + Feed)</title>
-<link rel="stylesheet" href="../mockup-theme.css" />
-<link rel="stylesheet" href="../styles.css" />
+<style>
+  /*
+   * Self-contained (future-work convention): the shared mockup stylesheets were
+   * retired with the scenario-first workflow, so the theme tokens and the used
+   * subset of the old shared styles are inlined below.
+   */
+
+  /* ══ Theme tokens — Mars Dark / Mars Light (from the retired mockup-theme.css) ══ */
+
+  /* ── Light theme (default) ── */
+  :root, [data-mockup-theme="light"] {
+    --m-page-bg: #f7efe3;
+    --m-surface: #efe5d5;
+    --m-surface-raised: #faf6ee;
+    --m-surface-inset: #f2eadd;
+
+    --m-text: #181f2f;
+    --m-text-secondary: #454d5e;
+    --m-text-tertiary: #626978;
+    --m-text-muted: #9f978b;
+    --m-text-hover: #2f3648;
+
+    --m-border: #dfd2c0;
+    --m-border-hover: #c8b8a2;
+
+    --m-hover-bg: #eae0d0;
+
+    --m-blue: #006a9e;
+    --m-blue-light: #3b93c4;
+    --m-purple: #6e43bf;
+    --m-orange: #ac5107;
+    --m-red: #c2272d;
+    --m-pink: #c13a86;
+    --m-teal: #0e6f81;
+    --m-olive: #815709;
+    --m-green: #05773b;
+
+    --m-blue-a06: rgba(0,106,158,0.06);
+    --m-blue-a10: rgba(0,106,158,0.1);
+    --m-blue-a12: rgba(0,106,158,0.12);
+    --m-blue-a20: rgba(0,106,158,0.2);
+    --m-blue-a25: rgba(0,106,158,0.25);
+    --m-teal-bg: rgba(14,111,129,0.12);
+    --m-pink-bg: rgba(193,58,134,0.12);
+    --m-olive-bg: rgba(129,87,9,0.15);
+    --m-orange-bg: rgba(172,81,7,0.12);
+    --m-red-bg: rgba(194,39,45,0.12);
+    --m-purple-bg: rgba(110,67,191,0.1);
+    --m-red-a10: rgba(194,39,45,0.1);
+
+    --m-disabled-bg: #ece2d0;
+
+    --m-shadow: rgba(74,50,33,0.12);
+    --m-shadow-heavy: rgba(74,50,33,0.18);
+    --m-overlay: rgba(42,28,14,0.38);
+  }
+
+  /* ── Dark theme ── */
+  [data-mockup-theme="dark"] {
+    --m-page-bg: #070c18;
+    --m-surface: #0d1321;
+    --m-surface-raised: #131b2d;
+    --m-surface-inset: #0a0f1b;
+
+    --m-text: #d9e8ea;
+    --m-text-secondary: #b3c2c9;
+    --m-text-tertiary: #7e8ea0;
+    --m-text-muted: #57657a;
+    --m-text-hover: #d9e8ea;
+
+    --m-border: #1f2a3f;
+    --m-border-hover: #31405c;
+
+    --m-hover-bg: #1a2436;
+
+    --m-blue: #69c6fa;
+    --m-blue-light: #8fd5fc;
+    --m-purple: #b296ff;
+    --m-orange: #fb9344;
+    --m-red: #fd736d;
+    --m-pink: #f27ab8;
+    --m-teal: #2ce0f1;
+    --m-olive: #f9c13b;
+    --m-green: #50dc8e;
+
+    --m-blue-a06: rgba(105,198,250,0.08);
+    --m-blue-a10: rgba(105,198,250,0.15);
+    --m-blue-a12: rgba(105,198,250,0.18);
+    --m-blue-a20: rgba(105,198,250,0.25);
+    --m-blue-a25: rgba(105,198,250,0.3);
+    --m-teal-bg: rgba(44,224,241,0.15);
+    --m-pink-bg: rgba(242,122,184,0.15);
+    --m-olive-bg: rgba(249,193,59,0.18);
+    --m-orange-bg: rgba(251,147,68,0.15);
+    --m-red-bg: rgba(253,115,109,0.15);
+    --m-purple-bg: rgba(178,150,255,0.18);
+    --m-red-a10: rgba(253,115,109,0.15);
+
+    --m-disabled-bg: #1a2436;
+
+    --m-shadow: rgba(2,6,16,0.5);
+    --m-shadow-heavy: rgba(2,6,16,0.65);
+    --m-overlay: rgba(2,6,16,0.6);
+  }
+
+  /* ── Theme toggle button ── */
+  .mockup-theme-toggle {
+    position: fixed; top: 16px; right: 16px; z-index: 9999;
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 1px solid var(--m-border);
+    background: var(--m-surface-raised);
+    color: var(--m-text-secondary);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px var(--m-shadow);
+    transition: background 0.2s, color 0.2s;
+  }
+  .mockup-theme-toggle:hover {
+    background: var(--m-hover-bg);
+    color: var(--m-text);
+  }
+  .mockup-theme-toggle svg { width: 20px; height: 20px; }
+
+  /* ══ Shared chrome — used subset of the retired styles.css ══ */
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--m-page-bg);
+    color: var(--m-text);
+    min-height: 100vh;
+  }
+
+  .app { display: flex; height: 100vh; }
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 240px; background: var(--m-surface); border-right: 1px solid var(--m-border);
+    display: flex; flex-direction: column;
+  }
+  .sidebar-header {
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--m-border); min-height: 56px;
+    padding: 14px 14px 14px 19px;
+  }
+  .sidebar-logo {
+    width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--m-blue), var(--m-blue-light));
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 1px 3px var(--m-blue-a25);
+  }
+  .sidebar-logo svg { width: 16px; height: 16px; }
+  .sidebar-brand { font-size: 14px; font-weight: 700; color: var(--m-text); letter-spacing: -0.01em; }
+  .sidebar-collapse {
+    margin-left: auto; width: 24px; height: 24px; border-radius: 6px;
+    border: none; background: transparent; color: var(--m-text-muted); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .sidebar-collapse:hover { background: var(--m-hover-bg); color: var(--m-text-secondary); }
+  .sidebar-collapse svg { width: 16px; height: 16px; }
+  .sidebar-nav { padding: 12px 12px 4px; overflow: hidden; }
+  .sidebar-nav-label {
+    padding: 0 8px; font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--m-text-muted); margin-bottom: 6px;
+  }
+  .sidebar-item {
+    padding: 8px 12px; border-radius: 8px; font-size: 13px; cursor: pointer;
+    display: flex; align-items: center; gap: 10px; transition: background 0.15s;
+    text-decoration: none; color: var(--m-text-secondary);
+  }
+  .sidebar-item:hover { background: var(--m-hover-bg); color: var(--m-text-hover); }
+  .sidebar-item.active { background: var(--m-blue-a10); color: var(--m-blue); font-weight: 600; }
+  .sidebar-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .sidebar-user {
+    margin-top: auto; border-top: 1px solid var(--m-border);
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 12px 12px 17px; overflow: hidden;
+  }
+  .sidebar-avatar {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--m-orange), var(--m-red));
+    display: flex; align-items: center; justify-content: center;
+    color: #ffffff; font-size: 12px; font-weight: 700;
+  }
+  .sidebar-user-info { flex: 1; min-width: 0; }
+  .sidebar-user-name { font-size: 13px; font-weight: 600; color: var(--m-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sidebar-user-email { font-size: 11px; color: var(--m-text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sidebar-signout {
+    width: 28px; height: 28px; border-radius: 6px; border: none;
+    background: transparent; color: var(--m-text-muted); cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .sidebar-signout:hover { background: var(--m-red-a10); color: var(--m-red); }
+  .sidebar-signout svg { width: 18px; height: 18px; }
+
+  /* ── Header ── */
+  .header {
+    padding: 12px 16px; border-bottom: 1px solid var(--m-border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--m-surface-raised); flex-shrink: 0;
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .header-title { font-size: 18px; font-weight: 700; }
+  .header-title span { color: var(--m-blue); }
+  .header-badge {
+    font-size: 12px; background: var(--m-blue-a10); color: var(--m-blue);
+    padding: 4px 10px; border-radius: 999px; font-weight: 500;
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500;
+    border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--m-blue), var(--m-blue-light)); color: #fff;
+    box-shadow: 0 0 20px var(--m-blue-a20);
+  }
+  .btn svg { width: 16px; height: 16px; }
+
+  /* ── Empty state ── */
+  .empty-state {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 16px; padding: 40px;
+  }
+  .empty-icon { width: 80px; height: 80px; color: var(--m-border); }
+  .empty-title { font-size: 22px; font-weight: 600; color: var(--m-text); }
+  .empty-desc { color: var(--m-text-secondary); text-align: center; max-width: 360px; line-height: 1.5; }
+
+  /* ── Screen nav (multi-screen files) ── */
+  .screen-nav {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; background: var(--m-surface-raised); padding: 8px 12px;
+    border-radius: 12px; border: 1px solid var(--m-border); z-index: 200;
+    box-shadow: 0 8px 32px var(--m-shadow);
+  }
+  .screen-btn {
+    padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    border: 1px solid var(--m-border); background: transparent; color: var(--m-text-tertiary); cursor: pointer;
+  }
+  .screen-btn:hover { background: var(--m-surface); }
+  .screen-btn.active { background: var(--m-blue-a10); color: var(--m-blue); border-color: var(--m-blue); }
+</style>
 <style>
   /* ── Screen switching ── */
   .screen { display: none; }

@@ -36,7 +36,7 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 
 ### Designed — pending implementation
 
-1. **Journal** — friction-free capture of whatever is in your head (`/kanban/journal`, sidebar item + 5th dock tab): plain-text entries save in one action with zero decisions, an LLM sorts them into categories in the background (and can mint new categories), the user can re-sort manually, and a day-grouped infinite-scroll feed with category filters is the reading view. See the **Journal** flows in `./flows/journal.md` and `./mockup/journal/mockup-journal.html`.
+1. **Journal** — friction-free capture of whatever is in your head (`/kanban/journal`, sidebar item + 5th dock tab): plain-text entries save in one action with zero decisions, an LLM sorts them into categories in the background (and can mint new categories), the user can re-sort manually, and a day-grouped infinite-scroll feed with category filters is the reading view. See the **Journal** flows in `./flows/journal.md` and the exploration mockup at `./mockup/future-work/mockup-journal.html`.
 
 Roadmap and open ideas live in [tracker.md](./tracker.md).
 
