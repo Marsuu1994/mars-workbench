@@ -33,6 +33,7 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 - Sign-up / login via Google OAuth (Supabase Auth), migrated from local PostgreSQL to Supabase and deployed on Vercel.
 - Route protection — unauthenticated users are redirected to login; authenticated users are redirected away from `/auth/login`.
 - Collapsible app sidebar with sign-out flow (states in the `/design` gallery's Application tab; login + settings in `/design/scenarios/auth`).
+- Theme preference *(approved exploration, implementation pending)* — the user picks one of three themes in the Settings overlay: `mars-light` ("Sora light"), `mars-dark` ("Sora dark", default for new users), `p5-dark` ("P5 dark", per the Calling Card proposal). Persisted in an SSR-readable cookie (no DB schema change; the root layout stamps `data-theme` server-side so there is no theme flash). Explicit choice only — no time- or system-preference auto-switching. Side-effect flow in `./flows/auth.md`.
 
 Roadmap and open ideas live in [tracker.md](./tracker.md).
 
