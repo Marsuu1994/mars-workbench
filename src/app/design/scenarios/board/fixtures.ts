@@ -17,6 +17,8 @@ const daysAgo = (n: number) => new Date(NOW.getTime() - n * 86_400_000);
 export const SCENARIO_TODAY = new Date('2026-07-10T00:00:00');
 const SCENARIO_HOUR = 15;
 
+export const SCENARIO_PERIOD_KEY = '2026-W28';
+
 let seq = 0;
 const task = (overrides: Partial<TaskItem>): TaskItem => ({
   id: `scn-${seq++}`,
@@ -29,7 +31,7 @@ const task = (overrides: Partial<TaskItem>): TaskItem => ({
   points: SIZE_TO_POINTS[TaskSize.MEDIUM],
   status: TaskStatus.TODO,
   forDate: null,
-  periodKey: '2026-W28',
+  periodKey: SCENARIO_PERIOD_KEY,
   quadrant: null,
   instanceIndex: 0,
   createdAt: daysAgo(4),
@@ -78,7 +80,7 @@ export const MID_WEEK_TASKS: TaskItem[] = [
   }),
   // Backlog: two instances of one daily template (#1 fresh, #2 a rollover →
   // danger at 15:00) plus a weekly at day 4 (→ warning) — covers the instance
-  // badge and all three risk borders, mirroring the backlog mockup's spread.
+  // badge and all three risk borders.
   task({
     title: 'Draft next sprint plan',
     status: TaskStatus.BACKLOG,

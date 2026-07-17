@@ -48,7 +48,7 @@ Awaited by every kanban page's data fetch before reading plan state: board (`fet
 - **1-day rollover buffer:** tasks from yesterday are NOT expired on today's sync — they carry over and remain on the board for one extra day. They expire on the following day's sync.
 - A task is considered **rolled over** when `task.type === DAILY && task.forDate < today`. This is computed in-memory; no schema change required.
 - Rolled-over tasks are sorted after today's fresh daily tasks (but before weekly tasks) within each column.
-- Rolled-over tasks display a distinct visual treatment on the task card to signal they are from a previous day (see `design/mockup/board/mockup-board.html`).
+- Rolled-over tasks display a distinct visual treatment on the task card to signal they are from a previous day (see the TaskCard states in the `/design` gallery and `/design/scenarios/board`).
 - During weekends, daily task generation is skipped unless plan mode is EXTREME.
 - Week projection formula adjusts for mode: NORMAL counts only remaining weekdays, EXTREME counts all remaining calendar days.
 

@@ -36,11 +36,12 @@ design/                            # Centralized design docs (see design/README.
 ├── tracker.md                     # Consolidated roadmap — open items only
 ├── reference.md                   # Lean lookup tables: server actions, services, DAL
 ├── flows/                         # Per-feature flow docs
-└── mockup/                        # HTML mockups grouped by feature + shared styles.css / mockup-theme.css
+└── mockup/future-work/            # Self-contained HTML explorations of unbuilt designs only
 src/
 ├── proxy.ts                       # Route protection (Supabase session check)
 ├── app/                           # App Router: auth/, kanban/ (board, plans, priorities, settings),
-│                                  #   design/ (dev gallery), layout.tsx, globals.css
+│                                  #   design/ (Design Console: layer-tabbed gallery + scenarios/),
+│                                  #   layout.tsx, globals.css
 ├── generated/prisma/              # Generated Prisma client (gitignored)
 ├── actions/                       # ALL server actions ('use server') — thin validate → service → revalidate
 ├── services/                      # ALL business logic (no 'use server'); syncService.ensureSynced entry point
@@ -66,27 +67,30 @@ Read design docs (repo-root `design/`) only when the task involves logic, data, 
 - `design/baseline.md`: schema or entity changes
 - `design/flows/<feature>.md`: flow changes or additions
 - `design/reference.md`: REST/server action/DAL changes
-- `design/mockup/<feature>/mockup-[flow].html`: flow-specific UI mockups
+- `src/app/design/scenarios/<feature>/`: flow-specific screen states (real components + fixtures)
 
 ## UI Workflow
 
-### Initial Design for a Complex Feature
+### Source of Truth
 
-When creating mockups for a new feature with multiple flows/pages, split into separate files in `design/mockup/[feature]/`. The shared `styles.css` and `mockup-theme.css` live one level up at `design/mockup/`.
+Implemented UI is documented in-app by the Design Console (`/design`): a component gallery tabbed by layer (`ui/` · `application/` · `domain/`) and per-feature **scenario pages** (`/design/scenarios/<feature>/`) rendering the real components with pinned fixture states.
 
-### Modify Existing UI Mockup
+- **Screen components, not copied chrome**: each page's presentational layout is a screen-layer component in `domain/<feature>/` (`BoardScreen`, `PrioritiesScreen`, `PlanChrome`); the route renders it after data fetching, its scenario renders it with fixtures — pages and scenarios cannot drift. New pages follow this split.
+- **Frame modes**: `fill` (default) is for screen-level tabs only — a 1:1 viewport-bounded stand-in for the page inside AppShell's `<main>`. Everything standalone (empty states, sheets, inline modal panels) is `fit` — content height + padding — and/or `overlay` for a dimmed modal backdrop.
+- **Live-feel, no side effects**: frames wrap content in an `InteractionShield` — hover and scroll stay live; clicks/submits/drag-starts are swallowed so wired handlers can never fire against fixture ids.
+- **Modals render inline** via their extracted `*Panel`/`*Content` components (the live `OverlayShell` top-layer dialog would escape the frame's clipping).
 
-1. Create a temporary before/after HTML mockup for review. The "before" section exists only for side-by-side comparison to help the user decide.
-2. Get user approval before code changes.
-3. After approval, convert to source-of-truth: remove the "before" section (keep only the approved screens), strip before/after labels and navigator entries, and make the primary screen the default active view. Remove the temporary file if it was separate.
+### Designing New UI
 
-### Implementing UI Components
+Future or unapproved designs are explored as **self-contained** HTML mockups (no shared CSS) in `design/mockup/future-work/` — see `/design-explore`. Get user approval on the exploration before code changes.
 
-Implement approved mockups exactly (layout, spacing, text, colors, icons, states). If any part cannot be implemented as-is, raise blockers and update mockup first.
+### Implementing UI
 
-### Keeping Mockups in Sync
+Implement the approved exploration exactly (layout, spacing, text, colors, icons, states); raise blockers and update the exploration first if something can't be built as-is. After the UI lands: add or extend the feature's scenario page (and gallery entries for new reusable components), then delete the exploration mockup — the scenario page takes over as source of truth.
 
-Mockups are the source of truth for UI, but implementation may introduce details not in the original mockup (e.g. cursor styles, hover states, text/icon changes). After completing a UI task, back-port any such details to the source-of-truth mockup as a final step so the mockup stays accurate.
+### Keeping Scenarios in Sync
+
+After completing a UI task, update the affected scenario/gallery fixtures so the pinned states match the shipped UI (new states, changed copy, new badges). A scenario that no longer matches production is a bug.
 
 ## Documentation Style
 

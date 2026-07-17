@@ -18,8 +18,8 @@ Single source of truth for open ideas and todos across the app — open items on
 ### Medium
 
 - [ ] Add AI-generated task instance flow — LLM should be able to generate task instances based on past work + task template information; need to record the quality of tasks it generated
-- [ ] Mobile adaptation for the AI plan chat modal — it stays a 640px-capped centered card on phones while sibling modals (TaskModal, ReviewChangesModal) switch to `modal-bottom` sheets; no mobile AI-chat mockup exists (design the mobile presentation first, then implement)
-- [ ] Redesign the template edit (pencil) affordance for discoverability — currently `opacity-0 group-hover:opacity-100` on TemplateItem, so it's invisible on touch and hidden-until-hover on desktop; both plan-form mockups draw it always visible. Needs a design exploration (`/design-explore`) before implementation
+- [ ] Mobile adaptation for the AI plan chat modal — it stays a 640px-capped centered card on phones while sibling modals (TaskModal, ReviewChangesModal) switch to `modal-bottom` sheets; no mobile presentation exists yet (design it first via `/design-explore`, then implement)
+- [ ] Redesign the template edit (pencil) affordance for discoverability — currently `opacity-0 group-hover:opacity-100` on TemplateItem, so it's invisible on touch and hidden-until-hover on desktop. Needs a design exploration (`/design-explore`) before implementation
 
 ### Future
 
@@ -58,14 +58,21 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ## Cross-cutting
 
+### Design error states
+
+Error presentation is unstyled or ad-hoc across the app (the AI chat's red alert strip prompted this); design one error language (tone, copy, placement, visual treatment) and apply it per flow:
+
+- [ ] AI plan chat — initialization/generation failures (currently a bare red alert strip above the input)
+- [ ] Plan form — create/update submit failures (`FormErrorAlert` banner above the actions)
+- [ ] Task modal — template create/edit and priority-task add failures (footer `FormErrorAlert`)
+- [ ] Board — drag/status-update failures (currently silent optimistic rollback + `console.error`)
+- [ ] Priorities — reprioritize/track failures (currently silent optimistic rollback + `console.error`)
+- [ ] Auth — OAuth sign-in failure surface (none today; login just returns to the button)
+
 ### Medium
 
 - [ ] `ui/` component-structure lookup in `reference.md` — a lean high-level map for agents (humans use the `/design` gallery); follow-up to the landed component library
-- [ ] Scenario pages for priorities and plan — extend the board pilot (`/design/scenarios`: real page components + fixture data as screen-level source of truth): `scenarios/priorities` (full matrix + tracked + popover), `scenarios/plan` (form, review-modal change types, AI chat mid-flow)
-- [ ] Gallery tabbed navigation — split `/design`'s single long scroll into tabs mirroring the component layers (`ui/` · `application/` · `domain/`)
-- [ ] Per-feature mockup retirement — retire `design/mockup/<feature>/` only once that feature has a scenario (one screen-level source of truth each; `future-work/` and `flows/*.md` stay). Board qualifies but is held to retire as a set; on each retirement update AGENTS.md UI Workflow + the `/design-explore` and `/new-flow` skills
-- [ ] Back-port the HUD FX layer (see `design/design-system.md`) into mockup CSS — **on hold**: superseded per-feature as scenarios retire mockups; the palette swap already landed in `mockup-theme.css`
-- [ ] Uniform page header across board/priorities/settings on both breakpoints (plan keeps its planning-mode header); also resolves the BoardHeader green-vs-primary accent drift
+- [ ] Uniform page header across board/priorities/settings on both breakpoints (plan keeps its planning-mode header); also resolves the BoardHeader green-vs-primary accent drift and revisits the mobile header type scale (current mobile header font size reads too large)
 
 ### Future
 
@@ -73,4 +80,4 @@ Single source of truth for open ideas and todos across the app — open items on
 - [ ] User-configurable timezone — Date utils are currently anchored to `America/Los_Angeles` via `KANBAN_TZ` constant. Consider making this a user setting stored in the database for multi-user support or if the user relocates (traveling users)
 - [ ] Phone notifications for unfinished tasks
 - [ ] LLM-generated motivational messages
-- [ ] Setup storybook and optimize workflow for UI mockup
+- [ ] Evaluate Storybook vs. the in-app `/design` gallery + scenarios as the long-term UI workbench
