@@ -235,6 +235,8 @@ When adding a new convention, append it to the **end of the relevant subsection 
   }
   ```
 
+- **User-facing copy is sentence case** — capitalize only the first word (plus proper nouns/acronyms); Title Case is reserved for headers (page/section titles, nav labels). Applies to buttons, row actions, chips, hints, empty states — the same action must not flip casing between states. Bad: a rest-state button "Sign Out" whose confirm state reads "Sign out?". Good: "Sign out" / "Sign out?" / "Create task" / "Add task", with headers like "Settings" or "Kanban Planner" keeping their casing.
+
 ## Code Style
 
 - Named exports only (except Next.js `page.tsx` and `layout.tsx` defaults).

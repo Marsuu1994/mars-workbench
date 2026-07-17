@@ -9,7 +9,7 @@
   Before: settings as a mobile-only standalone page (dock routes to it; no desktop entry).
   After:  settings as ONE responsive overlay — mobile bottom sheet (dock tab = trigger),
           desktop centered modal (sidebar user row = trigger). Adds the theme picker
-          (Sora Light / Sora Dark / P5 Dark) and folds sign-out (with confirm step) in.
+          (Sora light / Sora dark / P5 dark) and folds sign-out (with confirm step) in.
   Self-contained on purpose (review file travels alone); promotion to source of truth
   will re-seat it on ../mockup-theme.css + ../styles.css.
 -->
@@ -205,7 +205,7 @@ body {
       <div class="signout-section">
         <button class="signout-btn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke-linecap="round"/><polyline points="16 17 21 12 16 7" stroke-linecap="round" stroke-linejoin="round"/><line x1="21" y1="12" x2="9" y2="12" stroke-linecap="round"/></svg>
-          Sign Out
+          Sign out
         </button>
         <div class="app-version">Mars Workbench v0.1.0</div>
       </div>
@@ -224,7 +224,7 @@ body {
 <div class="screen" id="s1">
   <span class="tag after">After</span>
   <div class="page-title">Mobile: same dock slot, now opens a sheet</div>
-  <div class="page-subtitle">The 4th tab keeps its position &amp; icon but becomes a trigger — the board stays underneath. Sheet = identity + theme picker + sign-out. Sign Out rests as a plain row — first tap arms an inline confirm (Cancel / Sign Out), second tap signs out. Tab shows a pressed tint only while the sheet is open (it's an action, not a location). Interactive: click the row.</div>
+  <div class="page-subtitle">The 4th tab keeps its position &amp; icon but becomes a trigger — the board stays underneath. Sheet = identity + theme picker + sign-out. Sign out rests as a plain row — first tap arms an inline confirm (Cancel / Sign out), second tap signs out. Tab shows a pressed tint only while the sheet is open (it's an action, not a location). Interactive: click the row.</div>
   <div class="phone">
     <div class="status-bar"><span class="status-time">9:41</span></div>
     <div class="mobile-header"><div class="mobile-header-title"><span>Kanban</span> Planner</div></div>
@@ -251,17 +251,17 @@ body {
         <div class="theme-grid">
           <div class="theme-card">
             <div class="theme-swatch sw-sora-light"><span class="dots"><i style="background:#0e6f81"></i><i style="background:#6e43bf"></i><i style="background:#ac5107"></i><i style="background:#815709"></i></span></div>
-            <div class="theme-name">Sora Light</div><div class="theme-sub">Dawn on Mars</div>
+            <div class="theme-name">Sora light</div><div class="theme-sub">Dawn on Mars</div>
             <span class="theme-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
           </div>
           <div class="theme-card selected">
             <div class="theme-swatch sw-sora-dark"><span class="dots"><i style="background:#2ce0f1"></i><i style="background:#b296ff"></i><i style="background:#fb9344"></i><i style="background:#f9c13b"></i></span></div>
-            <div class="theme-name">Sora Dark</div><div class="theme-sub">Night ops deck</div>
+            <div class="theme-name">Sora dark</div><div class="theme-sub">Night ops deck</div>
             <span class="theme-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
           </div>
           <div class="theme-card">
             <div class="theme-swatch sw-p5-dark"><span class="dots"><i style="background:#ff0c0b"></i><i style="background:#b296ff"></i><i style="background:#f6c835"></i><i style="background:#f5f0f0"></i></span></div>
-            <div class="theme-name">P5 Dark</div><div class="theme-sub">Calling card</div>
+            <div class="theme-name">P5 dark</div><div class="theme-sub">Calling card</div>
             <span class="theme-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
           </div>
         </div>
@@ -269,14 +269,14 @@ body {
       <div>
         <button class="set-signout-row rest" onclick="armSignout(this)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke-linecap="round"/><polyline points="16 17 21 12 16 7" stroke-linecap="round" stroke-linejoin="round"/><line x1="21" y1="12" x2="9" y2="12" stroke-linecap="round"/></svg>
-          Sign Out
+          Sign out
         </button>
         <div class="set-signout-row confirm" style="display:none">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke-linecap="round"/><polyline points="16 17 21 12 16 7" stroke-linecap="round" stroke-linejoin="round"/><line x1="21" y1="12" x2="9" y2="12" stroke-linecap="round"/></svg>
           Sign out?
           <span class="confirm-actions">
             <button class="mini-btn" onclick="disarmSignout(this)">Cancel</button>
-            <button class="mini-btn danger">Sign Out</button>
+            <button class="mini-btn danger">Sign out</button>
           </span>
         </div>
       </div>
@@ -335,17 +335,17 @@ body {
             <div class="theme-grid">
               <div class="theme-card">
                 <div class="theme-swatch sw-sora-light"><span class="dots"><i style="background:#0e6f81"></i><i style="background:#6e43bf"></i><i style="background:#ac5107"></i><i style="background:#815709"></i></span></div>
-                <div class="theme-name">Sora Light</div><div class="theme-sub">Dawn on Mars</div>
+                <div class="theme-name">Sora light</div><div class="theme-sub">Dawn on Mars</div>
                 <span class="theme-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
               </div>
               <div class="theme-card selected">
                 <div class="theme-swatch sw-sora-dark"><span class="dots"><i style="background:#2ce0f1"></i><i style="background:#b296ff"></i><i style="background:#fb9344"></i><i style="background:#f9c13b"></i></span></div>
-                <div class="theme-name">Sora Dark</div><div class="theme-sub">Night ops deck</div>
+                <div class="theme-name">Sora dark</div><div class="theme-sub">Night ops deck</div>
                 <span class="theme-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
               </div>
               <div class="theme-card">
                 <div class="theme-swatch sw-p5-dark"><span class="dots"><i style="background:#ff0c0b"></i><i style="background:#b296ff"></i><i style="background:#f6c835"></i><i style="background:#f5f0f0"></i></span></div>
-                <div class="theme-name">P5 Dark</div><div class="theme-sub">Calling card</div>
+                <div class="theme-name">P5 dark</div><div class="theme-sub">Calling card</div>
                 <span class="theme-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
               </div>
             </div>
@@ -353,14 +353,14 @@ body {
           <div>
             <button class="set-signout-row rest" onclick="armSignout(this)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke-linecap="round"/><polyline points="16 17 21 12 16 7" stroke-linecap="round" stroke-linejoin="round"/><line x1="21" y1="12" x2="9" y2="12" stroke-linecap="round"/></svg>
-              Sign Out
+              Sign out
             </button>
             <div class="set-signout-row confirm" style="display:none">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke-linecap="round"/><polyline points="16 17 21 12 16 7" stroke-linecap="round" stroke-linejoin="round"/><line x1="21" y1="12" x2="9" y2="12" stroke-linecap="round"/></svg>
               Sign out?
               <span class="confirm-actions">
                 <button class="mini-btn" onclick="disarmSignout(this)">Cancel</button>
-                <button class="mini-btn danger">Sign Out</button>
+                <button class="mini-btn danger">Sign out</button>
               </span>
             </div>
           </div>
