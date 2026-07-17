@@ -38,6 +38,8 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | `fetchPriorityMatrixAction` | Load matrix tasks + active-plan info for `/kanban/priorities` | `matrixService.fetchPriorityMatrix` |
 | `updateTaskQuadrantAction` | Move a task between Eisenhower quadrants | `db/tasks.updateTaskQuadrant` |
 | `trackTaskAction` | Track This Week: pull a matrix task onto the board | `matrixService.trackTaskThisWeek` |
+| **`src/actions/settingsActions.ts`** *(pending — settings exploration)* | | |
+| `updateThemeAction` | Persist the theme choice from the Settings overlay | SSR-readable cookie via `next/headers` (no service/DAL) |
 
 ## Services (src/services)
 

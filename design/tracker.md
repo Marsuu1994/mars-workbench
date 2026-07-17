@@ -81,3 +81,4 @@ Error presentation is unstyled or ad-hoc across the app (the AI chat's red alert
 - [ ] Phone notifications for unfinished tasks
 - [ ] LLM-generated motivational messages
 - [ ] Evaluate Storybook vs. the in-app `/design` gallery + scenarios as the long-term UI workbench
+- [ ] Persona 5 "Calling Card" `p5-dark` third theme — full spec (verified black/red/white palette, fx-\* skin map, display-voice typography, flat-depth motion) in `design/design-language/p5-dark.md`; live demo `design/mockup/future-work/mockup-p5-design-system.html`. Ships with the settings/theme-switch work

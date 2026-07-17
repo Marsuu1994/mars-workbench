@@ -14,7 +14,7 @@ A Next.js application centered on a Kanban Period Planner, with AI-assisted plan
 ## Tech Stack
 
 - Framework: Next.js 16 (App Router)
-- UI: React 19, Tailwind CSS 4, daisyUI 5 (custom `mars-dark` / `mars-light` themes + `fx-*` FX utility layer — see `design/design-system.md` "Mission Control HUD")
+- UI: React 19, Tailwind CSS 4, daisyUI 5 (custom themes + `fx-*` FX utility layer — see `design/design-language/`: `mars-dark` / `mars-light` shipped, `p5-dark` pending)
 - State: Zustand
 - Database: PostgreSQL (Supabase) + Prisma ORM
 - Auth: Supabase Auth (Google OAuth)
@@ -32,7 +32,7 @@ prisma/                            # schema.prisma + migrations/
 scripts/one-time/                  # Ad-hoc/manual scripts (see One-Time Scripts section)
 design/                            # Centralized design docs (see design/README.md for the index)
 ├── baseline.md                    # The ONE app-wide baseline (goal, entities, schema, decisions)
-├── design-system.md               # Visual design system: OKLCH palette + contrast, fx-* layer
+├── design-language/               # Per-theme visual specs (mars-dark, mars-light, p5-dark) + shared fx-* skeleton (README)
 ├── tracker.md                     # Consolidated roadmap — open items only
 ├── reference.md                   # Lean lookup tables: server actions, services, DAL
 ├── flows/                         # Per-feature flow docs
@@ -233,6 +233,8 @@ When adding a new convention, append it to the **end of the relevant subsection 
     toType: TaskType;
   }
   ```
+
+- **User-facing copy is sentence case** — capitalize only the first word (plus proper nouns/acronyms); Title Case is reserved for headers (page/section titles, nav labels). Applies to buttons, row actions, chips, hints, empty states — the same action must not flip casing between states. Bad: a rest-state button "Sign Out" whose confirm state reads "Sign out?". Good: "Sign out" / "Sign out?" / "Create task" / "Add task", with headers like "Settings" or "Kanban Planner" keeping their casing.
 
 ## Code Style
 
