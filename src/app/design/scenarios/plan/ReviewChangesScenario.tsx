@@ -22,20 +22,19 @@ interface ReviewChangesScenarioProps {
 /**
  * The real ReviewChangesPanel rendered inline (the live modal's OverlayShell
  * is a top-layer <dialog> that would escape the scenario frame), inside a
- * hand-rolled stand-in for the modal box, over a dimmed backdrop.
+ * hand-rolled stand-in for the modal box mirroring the live box's max-height
+ * caps. The dimmed backdrop and centering come from the frame's overlay mode.
  */
 export const ReviewChangesScenario = (props: ReviewChangesScenarioProps) => (
-  <div className="flex h-full items-center justify-center bg-base-300/60 p-4 md:p-6">
-    <div className="fx-panel-solid rounded-box flex max-h-full w-full max-w-lg flex-col overflow-hidden p-6 pt-4 md:pt-6">
-      <ReviewChangesPanel
-        {...props}
-        onClose={NOOP}
-        onConfirm={NOOP}
-        isSubmitting={false}
-        modeChanged
-        fromMode={PlanMode.NORMAL}
-        toMode={PlanMode.EXTREME}
-      />
-    </div>
+  <div className="fx-panel-solid rounded-box flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden p-6 pt-4 md:max-h-[calc(100vh-5em)] md:pt-6">
+    <ReviewChangesPanel
+      {...props}
+      onClose={NOOP}
+      onConfirm={NOOP}
+      isSubmitting={false}
+      modeChanged
+      fromMode={PlanMode.NORMAL}
+      toMode={PlanMode.EXTREME}
+    />
   </div>
 );

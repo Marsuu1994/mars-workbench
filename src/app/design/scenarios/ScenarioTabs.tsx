@@ -2,7 +2,7 @@
 
 import {useState, type ReactNode} from 'react';
 import {TabBar} from '@/components/ui/TabBar';
-import {ScenarioFrame} from './ScenarioFrame';
+import {ScenarioFrame, type ScenarioDisplay} from './ScenarioFrame';
 
 export interface ScenarioTab {
   /** Short label shown in the tab bar */
@@ -11,6 +11,10 @@ export interface ScenarioTab {
   title: string;
   /** What state this scenario captures — the reason it's worth pinning */
   note?: string;
+  /** Frame sizing — see ScenarioFrame. fill (default) or fit. */
+  display?: ScenarioDisplay;
+  /** Dim the frame interior like a modal backdrop and center the panel. */
+  overlay?: boolean;
   /** The scenario screen, composed from real page components + fixtures */
   content: ReactNode;
 }
@@ -42,7 +46,13 @@ export const ScenarioTabs = ({tabs}: ScenarioTabsProps) => {
           vs. open), and without a fresh mount React would reuse the instance
           and ignore its new initial state (the backlog would stay as the
           first-mounted tab left it). */}
-      <ScenarioFrame key={activeIndex} title={active.title} note={active.note}>
+      <ScenarioFrame
+        key={activeIndex}
+        title={active.title}
+        note={active.note}
+        display={active.display}
+        overlay={active.overlay}
+      >
         {active.content}
       </ScenarioFrame>
     </div>

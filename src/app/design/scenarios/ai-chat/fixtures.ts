@@ -99,9 +99,10 @@ const DRAFT_V1: DraftPlanResponse = {
     "That's about 25 points per day. Want me to adjust the load or swap anything?",
 };
 
-/** Revised draft — 3 templates, 2 new + 1 existing. Deliberately short so
-    the rejected + revised frame shows the collapsed previous draft, the
-    feedback and the full revision without scrolling. */
+/** Revised draft — 2 templates, both new. Deliberately short so the
+    rejected + revised frame (a 700px modal box, chat auto-scrolled to the
+    bottom) still shows the collapsed previous draft, the feedback and the
+    full revision without scrolling. */
 const DRAFT_V2: DraftPlanResponse = {
   message: 'Slimmed down, with system design as a weekly deep-dive:',
   description: 'FAANG interview prep',
@@ -122,16 +123,8 @@ const DRAFT_V2: DraftPlanResponse = {
       frequency: 2,
       size: TaskSize.LARGE,
     },
-    {
-      templateId: 'tpl-read',
-      title: 'Read 30 pages',
-      description: 'Current book club pick',
-      type: TaskType.DAILY,
-      frequency: 1,
-      size: TaskSize.SMALL,
-    },
   ],
-  followUp: 'Daily load is now ~5 points. Ready to create it?',
+  followUp: 'Daily load is now ~3 points. Ready to create it?',
 };
 
 const draftMessage = (

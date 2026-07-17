@@ -1,6 +1,5 @@
 import {fetchPriorityMatrixAction} from '@/actions/matrixActions';
-import BoardHeader from '@/components/domain/shared/BoardHeader';
-import PriorityMatrixPage from '@/components/domain/priorities/PriorityMatrixPage';
+import {PrioritiesScreen} from '@/components/domain/priorities/PrioritiesScreen';
 import {getISOWeekKey, getTodayDate} from '@/utils/dateUtils';
 
 export default async function PrioritiesPage() {
@@ -10,10 +9,10 @@ export default async function PrioritiesPage() {
     matrix.activePlan?.periodKey ?? getISOWeekKey(getTodayDate());
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Same app header on both breakpoints, like the board page */}
-      <BoardHeader periodKey={periodKey} />
-      <PriorityMatrixPage tasks={matrix.tasks} activePlan={matrix.activePlan} />
-    </div>
+    <PrioritiesScreen
+      periodKey={periodKey}
+      tasks={matrix.tasks}
+      activePlan={matrix.activePlan}
+    />
   );
 }

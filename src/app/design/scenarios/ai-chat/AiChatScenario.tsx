@@ -40,10 +40,11 @@ export const AiChatScenario = ({seed}: {seed: AiChatSeed}) => {
   }, [seed]);
 
   return (
-    <div className="flex h-full items-center justify-center bg-base-300/60 p-4 md:p-6">
-      <div className="fx-panel-solid rounded-box flex h-full w-full max-w-[640px] flex-col overflow-hidden p-0">
-        {isSeeded && <AiChatModalContent />}
-      </div>
+    // Mirrors the live OverlayShell box (h-[700px] max-h-[80vh] w-[640px]);
+    // max-h-full clamps to the frame's padded interior. The dimmed backdrop
+    // and centering come from the frame's overlay mode.
+    <div className="fx-panel-solid rounded-box flex h-[700px] max-h-full w-full max-w-[640px] flex-col overflow-hidden p-0">
+      {isSeeded && <AiChatModalContent />}
     </div>
   );
 };

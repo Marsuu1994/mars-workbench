@@ -8,6 +8,7 @@ const AI_CHAT_SCENARIOS: ScenarioTab[] = AI_CHAT_SEEDS.map(
     label,
     title,
     note,
+    overlay: true,
     content: <AiChatScenario seed={seed} />,
   }),
 );

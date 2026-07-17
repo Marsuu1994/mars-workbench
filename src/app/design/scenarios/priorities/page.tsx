@@ -1,6 +1,5 @@
 import {PriorityQuadrant} from '@/utils/enums';
-import BoardHeader from '@/components/domain/shared/BoardHeader';
-import PriorityMatrixPage from '@/components/domain/priorities/PriorityMatrixPage';
+import {PrioritiesScreen} from '@/components/domain/priorities/PrioritiesScreen';
 import {ScenarioTabs, type ScenarioTab} from '../ScenarioTabs';
 import {ScenarioPage} from '../ScenarioPage';
 import {TaskModalScenario} from '../TaskModalScenario';
@@ -12,36 +11,27 @@ import {
   SHEET_TASK,
 } from './fixtures';
 
-const MatrixShell = ({
-  activePlan,
-  initialOpenPopoverTaskId,
-}: {
-  activePlan: typeof SCENARIO_ACTIVE_PLAN | null;
-  initialOpenPopoverTaskId?: string;
-}) => (
-  <div className="flex flex-col h-full">
-    <BoardHeader periodKey={SCENARIO_ACTIVE_PLAN.periodKey} />
-    <PriorityMatrixPage
-      tasks={MATRIX_TASKS}
-      activePlan={activePlan}
-      initialOpenPopoverTaskId={initialOpenPopoverTaskId}
-    />
-  </div>
-);
-
 const PRIORITIES_SCENARIOS: ScenarioTab[] = [
   {
     label: 'Matrix',
     title: 'Priority matrix — populated',
     note: 'All four quadrants filled; tracked tasks render dimmed with the This Week tag.',
-    content: <MatrixShell activePlan={SCENARIO_ACTIVE_PLAN} />,
+    content: (
+      <PrioritiesScreen
+        periodKey={SCENARIO_ACTIVE_PLAN.periodKey}
+        tasks={MATRIX_TASKS}
+        activePlan={SCENARIO_ACTIVE_PLAN}
+      />
+    ),
   },
   {
     label: 'Track popover',
     title: 'Track this week — popover open',
     note: 'The send button popover pinned open on an untracked card: Todo / In Progress targets.',
     content: (
-      <MatrixShell
+      <PrioritiesScreen
+        periodKey={SCENARIO_ACTIVE_PLAN.periodKey}
+        tasks={MATRIX_TASKS}
         activePlan={SCENARIO_ACTIVE_PLAN}
         initialOpenPopoverTaskId={POPOVER_TASK_ID}
       />
@@ -51,7 +41,13 @@ const PRIORITIES_SCENARIOS: ScenarioTab[] = [
     label: 'No plan',
     title: 'No active plan',
     note: 'Tracking disabled: warning hint bar with the Create Plan link, send buttons in their disabled treatment.',
-    content: <MatrixShell activePlan={null} />,
+    content: (
+      <PrioritiesScreen
+        periodKey={SCENARIO_ACTIVE_PLAN.periodKey}
+        tasks={MATRIX_TASKS}
+        activePlan={null}
+      />
+    ),
   },
   {
     label: 'Track sheet (mobile)',
@@ -69,6 +65,8 @@ const PRIORITIES_SCENARIOS: ScenarioTab[] = [
     label: 'Add priority task',
     title: 'Add priority task — quadrant preset',
     note: 'Desktop per-quadrant entry: one-off info banner, XS default size, the task lands in the quadrant whose + was clicked (no picker).',
+    display: 'fit',
+    overlay: true,
     content: (
       <TaskModalScenario mode="adhoc" quadrant={PriorityQuadrant.DO_FIRST} />
     ),
@@ -77,6 +75,8 @@ const PRIORITIES_SCENARIOS: ScenarioTab[] = [
     label: 'Add priority task — picker',
     title: 'Add priority task — quadrant picker',
     note: 'Mobile global-add entry: no source quadrant, so the 2×2 picker shows with Schedule preselected.',
+    display: 'fit',
+    overlay: true,
     content: <TaskModalScenario mode="adhoc" />,
   },
 ];

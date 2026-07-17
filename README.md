@@ -20,7 +20,7 @@ Open [http://localhost:3000](http://localhost:3000)
 ### Design System
 
 - **"Mission Control HUD"** (`design/design-system.md`): two custom daisyUI themes — `mars-dark` (default, night ops deck) / `mars-light` ("dawn on Mars" — warm sand, not white) — on seven OKLCH hues with verified contrast, plus the token-derived `fx-*` utility layer (cosmic shell, console chips, status LEDs, telemetry type, glow CTAs, AI holo). Palette changes must follow the sync points listed in the design doc
-- **Design Console** (`/design`): component gallery tabbed by layer (Tokens & FX · UI · Application · Domain) plus per-feature scenario pages (`/design/scenarios`: board, priorities, plan, AI-assisted plan creation, auth) rendering the real components with pinned fixture states — the source of truth for implemented UI; unbuilt designs are explored in `design/mockup/future-work/`
+- **Design Console** (`/design`): component gallery tabbed by layer (Tokens & FX · UI · Application · Domain) plus per-feature scenario pages (`/design/scenarios`: board, priorities, plan, AI-assisted plan creation, auth) rendering the same screen components as the live pages with pinned fixture states — the source of truth for implemented UI, structurally unable to drift from production; unbuilt designs are explored in `design/mockup/future-work/`
 
 ### Board
 
@@ -71,6 +71,11 @@ Open items: see [design/tracker.md](./design/tracker.md).
 - [x] Deploy app on Vercel
 
 ## Update Log
+
+### 2026-07-17
+- **Scenario frames now have a real height model** — the `/design` layout previously sat on an indefinite `min-h-dvh`, so every `h-full` inside a frame collapsed: board columns rendered short, the desktop backlog disappeared entirely, and modal backdrops dimmed only half the frame. The shell is rebuilt like AppShell (definite `h-dvh` background layer + an inner scroller that resets on navigation), and frames split into two display types: **fill** (default — the frame is a 1:1 viewport-bounded stand-in for the app page: columns stretch, backlog rail/panel shows, matrix fills) and **fit** (partial displays like the empty board: content height + generous padding). Overlay scenarios (task modal, review changes, AI chat) paint the dim on the frame itself so it always covers the whole box; the AI-chat panel now mirrors the live modal's 700px box
+- **Real page layouts extracted into shared screen components** — `BoardScreen`, `PrioritiesScreen`, and `PlanChrome` are now rendered by both the live pages (`/kanban`, `/kanban/priorities`, the plans layout) and their scenario tabs, replacing the scenarios' hand-copied chrome — a page-layout change now shows up in its scenario by construction. Plan create/edit scenarios scroll inside the chrome exactly like production
+- The AI-chat rejected + revised fixture is trimmed to a two-template revision so the collapsed previous-draft row, the feedback, and the full revision fit the modal without scrolling
 
 ### 2026-07-16
 - **Design Console indexed by layer tabs** — `/design` is no longer one long scroll: a tab bar (Tokens & FX · UI · Application · Domain) switches between the component layers, powered by a new generic `ui/TabBar` shared with the scenario pages. The UI tab fills the primitive gaps (EmptyState, Popover, SheetCloseButton, FormErrorAlert, InstanceBadge, TabBar itself); a new Application tab pins AppSidebar (expanded / collapsed / no-plan) and BottomTabBar as inert specimens via gallery-override props (`pathname`/`collapsed`), plus shell/provider notes; the Domain tab groups specimens by feature with links to each scenario page. Screen-level sections (EmptyBoard, ReviewChangesModal) moved out of the gallery — scenarios own them now
