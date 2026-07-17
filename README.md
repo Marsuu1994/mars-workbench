@@ -12,7 +12,13 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## Docs
 
-- [design/](./design/README.md) — centralized design docs: [baseline](./design/baseline.md) (goal, entities, schema, decisions), [tracker](./design/tracker.md) (open ideas/todos), [reference](./design/reference.md) (actions/services/DAL inventory), [flows/](./design/flows) (per-page flow docs), [mockup/future-work/](./design/mockup/future-work) (explorations of unbuilt designs). Implemented UI is documented in-app at `/design` (layer-tabbed component gallery + per-feature scenario pages)
+- [design/](./design/README.md) — centralized design docs:
+  - [baseline](./design/baseline.md) — goal, entities, schema, decisions
+  - [tracker](./design/tracker.md) — open ideas/todos
+  - [reference](./design/reference.md) — actions/services/DAL inventory
+  - [flows/](./design/flows) — per-page flow docs
+  - [mockup/future-work/](./design/mockup/future-work) — explorations of unbuilt designs
+- Implemented UI is documented in-app at `/design` — layer-tabbed component gallery + per-feature scenario pages
 - This README holds the app-wide **Current State** and the append-only **Update Log**
 
 ## Current State
@@ -73,7 +79,7 @@ Open items: see [design/tracker.md](./design/tracker.md).
 ## Update Log
 
 ### 2026-07-17
-- **Scenario frames now have a real height model** — the `/design` layout previously sat on an indefinite `min-h-dvh`, so every `h-full` inside a frame collapsed: board columns rendered short, the desktop backlog disappeared entirely, and modal backdrops dimmed only half the frame. The shell is rebuilt like AppShell (definite `h-dvh` background layer + an inner scroller that resets on navigation), and frames split into two display types: **fill** (default — the frame is a 1:1 viewport-bounded stand-in for the app page: columns stretch, backlog rail/panel shows, matrix fills) and **fit** (partial displays like the empty board: content height + generous padding). Overlay scenarios (task modal, review changes, AI chat) paint the dim on the frame itself so it always covers the whole box; the AI-chat panel now mirrors the live modal's 700px box
+- **Scenario frames now have a real height model** — the `/design` layout previously sat on an indefinite `min-h-dvh`, so every `h-full` inside a frame collapsed: board columns rendered short, the desktop backlog disappeared entirely, and modal backdrops dimmed only half the frame. The shell is rebuilt like AppShell (definite `h-dvh` background layer + an inner scroller that resets on navigation), and frames split into two display types: **fill** (screen-level tabs only — a 1:1 viewport-bounded stand-in for the app page: columns stretch, backlog rail/panel shows, matrix fills) and **fit** (everything standalone — empty states, mobile sheets, inline modal panels: content height + generous padding). Overlay scenarios (task modal, review changes, AI chat) paint the dim on the frame itself so it always covers the whole box; the AI-chat panel now mirrors the live modal's 700px box
 - **Real page layouts extracted into shared screen components** — `BoardScreen`, `PrioritiesScreen`, and `PlanChrome` are now rendered by both the live pages (`/kanban`, `/kanban/priorities`, the plans layout) and their scenario tabs, replacing the scenarios' hand-copied chrome — a page-layout change now shows up in its scenario by construction. Plan create/edit scenarios scroll inside the chrome exactly like production
 - The AI-chat rejected + revised fixture is trimmed to a two-template revision so the collapsed previous-draft row, the feedback, and the full revision fit the modal without scrolling
 

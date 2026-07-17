@@ -53,12 +53,14 @@ const PRIORITIES_SCENARIOS: ScenarioTab[] = [
     label: 'Track sheet (mobile)',
     title: 'Track sheet (mobile)',
     note: 'The tap-a-card bottom sheet — summary line plus the two board targets — shown inline (not as a top-layer modal).',
+    display: 'fit',
     content: <MobileTrackPanel task={SHEET_TASK} hasActivePlan />,
   },
   {
     label: 'Track sheet — no plan (mobile)',
     title: 'Track sheet — no plan (mobile)',
     note: 'Same sheet without an active plan: warning note and disabled targets.',
+    display: 'fit',
     content: <MobileTrackPanel task={SHEET_TASK} hasActivePlan={false} />,
   },
   {

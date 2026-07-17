@@ -10,11 +10,13 @@ interface ScenarioFrameProps {
   /** What state this scenario captures — the reason it's worth pinning */
   note?: string;
   /**
-   * fill (default): the frame fills the remaining viewport — a 1:1 stand-in
-   * for an app page inside AppShell's definite-height <main>, so h-full
-   * chains (board columns, backlog) resolve exactly like production.
-   * fit: partial display — the frame wraps its content with generous
-   * vertical padding; tall content scrolls with the page.
+   * fill (default): screen-level tabs ONLY — the frame fills the remaining
+   * viewport as a 1:1 stand-in for an app page inside AppShell's
+   * definite-height <main>, so h-full chains (board columns, backlog)
+   * resolve exactly like production.
+   * fit: everything standalone (empty states, sheets, inline modal panels)
+   * — the frame wraps its content with generous vertical padding; tall
+   * content scrolls with the page. Combine with `overlay` for modal panels.
    */
   display?: ScenarioDisplay;
   /** Dim the frame interior like a modal backdrop and center the panel. */

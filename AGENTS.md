@@ -73,7 +73,12 @@ Read design docs (repo-root `design/`) only when the task involves logic, data, 
 
 ### Source of Truth
 
-Implemented UI is documented in-app by the Design Console (`/design`): a component gallery tabbed by layer (`ui/` · `application/` · `domain/`) and per-feature **scenario pages** (`/design/scenarios/<feature>/`) that render the real page components with pinned fixture states. Scenario pages must reuse the real pages' screen-layer components (`BoardScreen`, `PrioritiesScreen`, `PlanChrome`) rather than hand-copying page chrome, so a page change is a scenario change by construction. Scenario frames have two display modes — `fill` (default: a 1:1 viewport-bounded stand-in for an app page inside AppShell's `<main>`) and `fit` (partial display: content height + padding), plus an `overlay` backdrop for inline modal panels — and wrap their content in an `InteractionShield`: hover and scroll stay live, but clicks/submits/drag-starts are swallowed so wired handlers can never fire against fixture ids; modals render inline via their extracted `*Panel`/`*Content` components (the live `OverlayShell` dialog escapes the frame's clipping).
+Implemented UI is documented in-app by the Design Console (`/design`): a component gallery tabbed by layer (`ui/` · `application/` · `domain/`) and per-feature **scenario pages** (`/design/scenarios/<feature>/`) rendering the real components with pinned fixture states.
+
+- **Screen components, not copied chrome**: each page's presentational layout is a screen-layer component in `domain/<feature>/` (`BoardScreen`, `PrioritiesScreen`, `PlanChrome`); the route renders it after data fetching, its scenario renders it with fixtures — pages and scenarios cannot drift. New pages follow this split.
+- **Frame modes**: `fill` (default) is for screen-level tabs only — a 1:1 viewport-bounded stand-in for the page inside AppShell's `<main>`. Everything standalone (empty states, sheets, inline modal panels) is `fit` — content height + padding — and/or `overlay` for a dimmed modal backdrop.
+- **Live-feel, no side effects**: frames wrap content in an `InteractionShield` — hover and scroll stay live; clicks/submits/drag-starts are swallowed so wired handlers can never fire against fixture ids.
+- **Modals render inline** via their extracted `*Panel`/`*Content` components (the live `OverlayShell` top-layer dialog would escape the frame's clipping).
 
 ### Designing New UI
 

@@ -70,6 +70,7 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
     label: 'Backlog (mobile)',
     title: 'Backlog (mobile)',
     note: 'The mobile backlog bottom sheet — staged instances with a tap-to-pull action — shown inline (not as a top-layer modal).',
+    display: 'fit',
     content: (
       <MobileBacklogPanel
         tasks={BACKLOG_TASKS}
