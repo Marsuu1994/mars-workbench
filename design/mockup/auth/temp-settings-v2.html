@@ -128,7 +128,7 @@ body {
   color:var(--m-red); font-size:14px; font-weight:600; cursor:pointer; font-family:inherit;
 }
 .set-signout-row svg { width:18px; height:18px; }
-.set-signout-row .confirm-hint { margin-left:auto; font-size:12px; font-weight:500; color:var(--m-text-tertiary); }
+.set-signout-row.rest:hover { background:var(--m-red-a10); border-color:var(--m-red); }
 .set-signout-row.confirm { background:var(--m-red-a10); border-color:var(--m-red); }
 .set-signout-row.confirm .confirm-actions { margin-left:auto; display:flex; gap:8px; }
 .mini-btn { padding:5px 12px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; border:1px solid var(--m-border); background:transparent; color:var(--m-text-secondary); font-family:inherit; }
@@ -224,7 +224,7 @@ body {
 <div class="screen" id="s1">
   <span class="tag after">After</span>
   <div class="page-title">Mobile: same dock slot, now opens a sheet</div>
-  <div class="page-subtitle">The 4th tab keeps its position &amp; icon but becomes a trigger — the board stays underneath. Sheet = identity + theme picker + sign-out. Tab shows a pressed tint only while the sheet is open (it's an action, not a location).</div>
+  <div class="page-subtitle">The 4th tab keeps its position &amp; icon but becomes a trigger — the board stays underneath. Sheet = identity + theme picker + sign-out. Sign Out rests as a plain row — first tap arms an inline confirm (Cancel / Sign Out), second tap signs out. Tab shows a pressed tint only while the sheet is open (it's an action, not a location). Interactive: click the row.</div>
   <div class="phone">
     <div class="status-bar"><span class="status-time">9:41</span></div>
     <div class="mobile-header"><div class="mobile-header-title"><span>Kanban</span> Planner</div></div>
@@ -266,11 +266,20 @@ body {
           </div>
         </div>
       </div>
-      <button class="set-signout-row">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke-linecap="round"/><polyline points="16 17 21 12 16 7" stroke-linecap="round" stroke-linejoin="round"/><line x1="21" y1="12" x2="9" y2="12" stroke-linecap="round"/></svg>
-        Sign Out
-        <span class="confirm-hint">tap again to confirm</span>
-      </button>
+      <div>
+        <button class="set-signout-row rest" onclick="armSignout(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke-linecap="round"/><polyline points="16 17 21 12 16 7" stroke-linecap="round" stroke-linejoin="round"/><line x1="21" y1="12" x2="9" y2="12" stroke-linecap="round"/></svg>
+          Sign Out
+        </button>
+        <div class="set-signout-row confirm" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke-linecap="round"/><polyline points="16 17 21 12 16 7" stroke-linecap="round" stroke-linejoin="round"/><line x1="21" y1="12" x2="9" y2="12" stroke-linecap="round"/></svg>
+          Sign out?
+          <span class="confirm-actions">
+            <button class="mini-btn" onclick="disarmSignout(this)">Cancel</button>
+            <button class="mini-btn danger">Sign Out</button>
+          </span>
+        </div>
+      </div>
       <div class="set-version">Mars Workbench v0.1.0</div>
     </div>
 
@@ -288,7 +297,7 @@ body {
 <div class="screen" id="s2">
   <span class="tag after">After</span>
   <div class="page-title">Desktop: sidebar user row opens the same panel</div>
-  <div class="page-subtitle">The whole identity row becomes the trigger (chevron affordance added; bare sign-out icon removed — sign-out now lives inside with a confirm step, shown here mid-confirm). Same SettingsSheet component, centered-modal presentation.</div>
+  <div class="page-subtitle">The whole identity row becomes the trigger (chevron affordance added; bare sign-out icon removed — sign-out lives inside with the same two-step confirm; click the row to arm it). Same SettingsSheet component, centered-modal presentation.</div>
   <div class="desktop">
     <aside class="sidebar">
       <div class="sidebar-header">
@@ -341,13 +350,19 @@ body {
               </div>
             </div>
           </div>
-          <div class="set-signout-row confirm">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke-linecap="round"/><polyline points="16 17 21 12 16 7" stroke-linecap="round" stroke-linejoin="round"/><line x1="21" y1="12" x2="9" y2="12" stroke-linecap="round"/></svg>
-            Sign out of Mars Workbench?
-            <span class="confirm-actions">
-              <button class="mini-btn">Cancel</button>
-              <button class="mini-btn danger">Sign Out</button>
-            </span>
+          <div>
+            <button class="set-signout-row rest" onclick="armSignout(this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke-linecap="round"/><polyline points="16 17 21 12 16 7" stroke-linecap="round" stroke-linejoin="round"/><line x1="21" y1="12" x2="9" y2="12" stroke-linecap="round"/></svg>
+              Sign Out
+            </button>
+            <div class="set-signout-row confirm" style="display:none">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke-linecap="round"/><polyline points="16 17 21 12 16 7" stroke-linecap="round" stroke-linejoin="round"/><line x1="21" y1="12" x2="9" y2="12" stroke-linecap="round"/></svg>
+              Sign out?
+              <span class="confirm-actions">
+                <button class="mini-btn" onclick="disarmSignout(this)">Cancel</button>
+                <button class="mini-btn danger">Sign Out</button>
+              </span>
+            </div>
           </div>
           <div class="set-version">Mars Workbench v0.1.0</div>
         </div>
@@ -357,6 +372,15 @@ body {
 </div>
 
 <script>
+function armSignout(el) {
+  el.style.display = 'none';
+  el.nextElementSibling.style.display = 'flex';
+}
+function disarmSignout(el) {
+  var c = el.closest('.confirm');
+  c.style.display = 'none';
+  c.previousElementSibling.style.display = 'flex';
+}
 function show(i) {
   document.querySelectorAll('.screen').forEach(function (s, j) { s.classList.toggle('on', i === j); });
   document.querySelectorAll('.screen-btn').forEach(function (b, j) { b.classList.toggle('active', i === j); });
