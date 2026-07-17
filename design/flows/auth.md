@@ -25,26 +25,14 @@ Flows for authentication (`/auth/*`) — route protection, Google OAuth sign-in/
 
 Same as login — Supabase auto-creates a user record on first Google sign-in.
 
-## Settings Overlay Flow
-
-> **Status: approved exploration, implementation pending** — see
-> `design/mockup/future-work/temp-settings-v2.html`. Until it lands, today's
-> behavior is: mobile dock routes to a `/kanban/settings` page; desktop has no
-> settings entry (sign-out is a bare icon in the sidebar user row).
-
-**Trigger:** Mobile — tapping the dock's Settings tab (4th slot becomes a trigger, not a route). Desktop — clicking the sidebar user row (whole row, chevron affordance; the bare sign-out icon is removed).
-
-**Steps:**
-
-1. The shared `SettingsSheet` opens via `OverlayShell` `responsive` (mobile `modal-bottom` sheet / desktop centered modal). The page stays mounted underneath; the dock tab shows a pressed tint only while open — no persistent active state (action, not location).
-2. Panel content, identical on both breakpoints: identity card (avatar/name/email) → theme picker → sign-out row → app version.
-3. Dismiss via backdrop, close chevron, or Esc.
-
-`/kanban/settings` is deleted with this change — settings stops being a page on any breakpoint (decision rule: it stays an overlay until it outgrows one screen, then becomes a page on **both** breakpoints).
-
 ## Theme Change Flow
 
-> **Status: approved exploration, implementation pending** (same exploration as above).
+> **Status: approved exploration, implementation pending.** The Settings overlay
+> itself (entry points, sheet/modal presentation, panel layout) is UI, not a flow —
+> it's documented by `design/mockup/future-work/temp-settings-v2.html` (the auth
+> scenario takes over once implemented). Flows below cover only its side-effecting
+> actions. Landing this deletes the `/kanban/settings` route — settings becomes
+> overlay-only on both breakpoints.
 
 **Trigger:** User selects a theme card in the Settings overlay — Sora light (`mars-light`) / Sora dark (`mars-dark`) / P5 dark (`p5-dark`, per the Calling Card proposal)
 
@@ -58,10 +46,9 @@ Rules: default with no cookie is `mars-dark` (first-time users); theme is an exp
 
 ## Sign-Out Flow
 
-**Trigger:** User taps the sign-out row in the Settings overlay *(pending — today: the mobile settings page button / desktop sidebar icon)*
+**Trigger:** User confirms the two-step sign-out row in the Settings overlay — the arm/confirm interaction itself is UI, see the exploration mockup *(pending — today: the mobile settings page button / desktop sidebar icon, single tap)*
 
 **Steps:**
 
-1. First tap arms an inline confirm — the row swaps to "Sign out?" with Cancel / Sign out actions; Cancel (or dismissing the overlay) disarms
-2. Confirming calls `supabase.auth.signOut()` to end the session
-3. Redirect to `/auth/login`
+1. Call `supabase.auth.signOut()` to end the session
+2. Redirect to `/auth/login`
