@@ -46,7 +46,7 @@ const USER_FEEDBACK: UiMessage = {
   id: 'scn-m4',
   role: 'user',
   type: 'user',
-  text: 'Too many daily tasks. Drop the gym and make system design a weekly deep-dive with 2 sessions.',
+  text: 'Too many daily tasks — drop the gym.',
 };
 
 /** First draft — 5 templates, 4 new + 1 existing (drives the summary math). */
@@ -99,10 +99,11 @@ const DRAFT_V1: DraftPlanResponse = {
     "That's about 25 points per day. Want me to adjust the load or swap anything?",
 };
 
-/** Revised draft — 4 templates, 2 new + 2 existing. */
+/** Revised draft — 3 templates, 2 new + 1 existing. Deliberately short so
+    the rejected + revised frame shows the collapsed previous draft, the
+    feedback and the full revision without scrolling. */
 const DRAFT_V2: DraftPlanResponse = {
-  message:
-    'Slimmed down to four templates with system design as a weekly deep-dive:',
+  message: 'Slimmed down, with system design as a weekly deep-dive:',
   description: 'FAANG interview prep',
   draftTemplates: [
     {
@@ -120,14 +121,6 @@ const DRAFT_V2: DraftPlanResponse = {
       type: TaskType.WEEKLY,
       frequency: 2,
       size: TaskSize.LARGE,
-    },
-    {
-      templateId: 'tpl-mock',
-      title: 'Mock behavioral interview',
-      description: 'One full loop with written feedback',
-      type: TaskType.WEEKLY,
-      frequency: 1,
-      size: TaskSize.MEDIUM,
     },
     {
       templateId: 'tpl-read',
@@ -188,14 +181,15 @@ export const AI_CHAT_SEEDS: {
       latestDraft: DRAFT_V1,
     },
   },
+  // The rejected/created conversations start at the superseded draft (no
+  // welcome/goals turns) so the collapsed previous-draft row stays in view
+  // without scrolling.
   {
     label: 'Rejected + revised',
     title: 'Rejected + revised draft',
     note: 'The superseded draft collapses to an expandable one-liner; the revision becomes the approvable draft.',
     seed: {
       messages: [
-        WELCOME_NEW,
-        USER_GOALS,
         draftMessage('scn-m3', DRAFT_V1),
         USER_FEEDBACK,
         draftMessage('scn-m5', DRAFT_V2),
@@ -210,8 +204,6 @@ export const AI_CHAT_SEEDS: {
     note: 'Approved draft gets the Created badge; the input is replaced by the success banner.',
     seed: {
       messages: [
-        WELCOME_NEW,
-        USER_GOALS,
         draftMessage('scn-m3', DRAFT_V1),
         USER_FEEDBACK,
         draftMessage('scn-m5', DRAFT_V2, true),

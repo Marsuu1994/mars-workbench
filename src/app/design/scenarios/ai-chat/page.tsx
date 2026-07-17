@@ -8,7 +8,6 @@ const AI_CHAT_SCENARIOS: ScenarioTab[] = AI_CHAT_SEEDS.map(
     label,
     title,
     note,
-    height: 700,
     content: <AiChatScenario seed={seed} />,
   }),
 );
@@ -16,7 +15,7 @@ const AI_CHAT_SCENARIOS: ScenarioTab[] = AI_CHAT_SEEDS.map(
 export default function AiChatScenarioPage() {
   return (
     <ScenarioPage
-      title="AI chat scenarios"
+      title="Plan — AI assist plan creation"
       description="The real AI Plan Assistant modal content across its lifecycle —
         welcome, generation, drafts, approval, and failure — rendered inline by
         seeding the chat store with fixture conversations."

@@ -58,10 +58,21 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ## Cross-cutting
 
+### Design error states
+
+Error presentation is unstyled or ad-hoc across the app (the AI chat's red alert strip prompted this); design one error language (tone, copy, placement, visual treatment) and apply it per flow:
+
+- [ ] AI plan chat — initialization/generation failures (currently a bare red alert strip above the input)
+- [ ] Plan form — create/update submit failures (`FormErrorAlert` banner above the actions)
+- [ ] Task modal — template create/edit and priority-task add failures (footer `FormErrorAlert`)
+- [ ] Board — drag/status-update failures (currently silent optimistic rollback + `console.error`)
+- [ ] Priorities — reprioritize/track failures (currently silent optimistic rollback + `console.error`)
+- [ ] Auth — OAuth sign-in failure surface (none today; login just returns to the button)
+
 ### Medium
 
 - [ ] `ui/` component-structure lookup in `reference.md` — a lean high-level map for agents (humans use the `/design` gallery); follow-up to the landed component library
-- [ ] Uniform page header across board/priorities/settings on both breakpoints (plan keeps its planning-mode header); also resolves the BoardHeader green-vs-primary accent drift
+- [ ] Uniform page header across board/priorities/settings on both breakpoints (plan keeps its planning-mode header); also resolves the BoardHeader green-vs-primary accent drift and revisits the mobile header type scale (current mobile header font size reads too large)
 
 ### Future
 

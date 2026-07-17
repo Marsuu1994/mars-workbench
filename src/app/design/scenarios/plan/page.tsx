@@ -4,6 +4,7 @@ import {Pill} from '@/components/ui/Pill';
 import PlanForm from '@/components/domain/plan/PlanForm';
 import {ScenarioTabs, type ScenarioTab} from '../ScenarioTabs';
 import {ScenarioPage} from '../ScenarioPage';
+import {TaskModalScenario} from '../TaskModalScenario';
 import {ReviewChangesScenario} from './ReviewChangesScenario';
 import {
   PLAN_TEMPLATES,
@@ -13,6 +14,7 @@ import {
   PLAN_EDIT_DESCRIPTION,
   PLAN_EDIT_MODE,
   SCENARIO_PERIOD_KEY,
+  EDIT_TEMPLATE,
   REVIEW_ADDED,
   REVIEW_REMOVED,
   REVIEW_MODIFIED,
@@ -39,7 +41,7 @@ export default async function PlanScenarioPage() {
           </Pill>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto p-4 md:p-8">
+      <div className="flex-1 p-4 md:p-8">
         <div className="mx-auto max-w-xl">{children}</div>
       </div>
     </div>
@@ -50,7 +52,6 @@ export default async function PlanScenarioPage() {
       label: 'Create',
       title: 'Create Weekly Plan',
       note: 'First-plan form: AI assistant entry, plan-mode toggle, selected templates with their config strips, and the one-off task checklist.',
-      height: 680,
       content: planChrome(
         <PlanForm
           mode="create"
@@ -66,7 +67,6 @@ export default async function PlanScenarioPage() {
       label: 'Edit',
       title: 'Update Weekly Plan',
       note: 'Mid-week edit: description prefilled, Extreme mode active, existing template configs and one-off selections loaded.',
-      height: 680,
       content: planChrome(
         <PlanForm
           mode="edit"
@@ -85,7 +85,6 @@ export default async function PlanScenarioPage() {
       label: 'Review changes',
       title: 'Review Plan Changes',
       note: 'Every change section at once: added / removed / modified templates with incomplete-task impact notes, one-off board changes, and a mode switch.',
-      height: 660,
       content: (
         <ReviewChangesScenario
           added={REVIEW_ADDED}
@@ -97,15 +96,27 @@ export default async function PlanScenarioPage() {
         />
       ),
     },
+    {
+      label: 'New template',
+      title: 'Create task template',
+      note: 'Blank template form (opened from the plan form): AI-hinted description, size pills defaulting to M.',
+      content: <TaskModalScenario mode="create" />,
+    },
+    {
+      label: 'Edit template',
+      title: 'Edit task template',
+      note: 'Prefilled from the template; XL size surfaces the split-it-up warning.',
+      content: <TaskModalScenario mode="edit" template={EDIT_TEMPLATE} />,
+    },
   ];
 
   return (
     <ScenarioPage
       title="Plan scenarios"
-      description="The real plan form (create + edit) inside the plans-layout chrome, and
-        the review-changes panel with every change type. Screens are responsive —
-        narrow the window for the mobile presentation (sticky action bar, sheet
-        layouts)."
+      description="The real plan form (create + edit) inside the plans-layout chrome, the
+        review-changes panel with every change type, and the shared task modal
+        in its template modes. Screens are responsive — narrow the window for
+        the mobile presentation (sticky action bar, sheet layouts)."
       maxWidthClass="max-w-4xl"
     >
       <ScenarioTabs tabs={PLAN_SCENARIOS} />

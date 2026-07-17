@@ -44,14 +44,12 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
     label: 'New user',
     title: 'New user — no active plan',
     note: 'First run: the create-your-first-plan prompt.',
-    height: 460,
     content: <EmptyBoard />,
   },
   {
     label: 'Returning',
     title: 'Returning user — last period recap',
     note: "A finished plan's stats seed the empty state.",
-    height: 460,
     content: (
       <EmptyBoard
         stats={{
@@ -86,7 +84,6 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
     label: 'Backlog (mobile)',
     title: 'Backlog (mobile)',
     note: 'The mobile backlog bottom sheet — staged instances with a tap-to-pull action — shown inline (not as a top-layer modal).',
-    height: 480,
     content: (
       <MobileBacklogPanel
         tasks={BACKLOG_TASKS}

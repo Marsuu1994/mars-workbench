@@ -1,7 +1,9 @@
+import {PriorityQuadrant} from '@/utils/enums';
 import BoardHeader from '@/components/domain/shared/BoardHeader';
 import PriorityMatrixPage from '@/components/domain/priorities/PriorityMatrixPage';
 import {ScenarioTabs, type ScenarioTab} from '../ScenarioTabs';
 import {ScenarioPage} from '../ScenarioPage';
+import {TaskModalScenario} from '../TaskModalScenario';
 import {MobileTrackPanel} from './MobileTrackPanel';
 import {
   MATRIX_TASKS,
@@ -55,15 +57,27 @@ const PRIORITIES_SCENARIOS: ScenarioTab[] = [
     label: 'Track sheet (mobile)',
     title: 'Track sheet (mobile)',
     note: 'The tap-a-card bottom sheet — summary line plus the two board targets — shown inline (not as a top-layer modal).',
-    height: 420,
     content: <MobileTrackPanel task={SHEET_TASK} hasActivePlan />,
   },
   {
     label: 'Track sheet — no plan (mobile)',
     title: 'Track sheet — no plan (mobile)',
     note: 'Same sheet without an active plan: warning note and disabled targets.',
-    height: 420,
     content: <MobileTrackPanel task={SHEET_TASK} hasActivePlan={false} />,
+  },
+  {
+    label: 'Add priority task',
+    title: 'Add priority task — quadrant preset',
+    note: 'Desktop per-quadrant entry: one-off info banner, XS default size, the task lands in the quadrant whose + was clicked (no picker).',
+    content: (
+      <TaskModalScenario mode="adhoc" quadrant={PriorityQuadrant.DO_FIRST} />
+    ),
+  },
+  {
+    label: 'Add priority task — picker',
+    title: 'Add priority task — quadrant picker',
+    note: 'Mobile global-add entry: no source quadrant, so the 2×2 picker shows with Schedule preselected.',
+    content: <TaskModalScenario mode="adhoc" />,
   },
 ];
 
@@ -72,9 +86,9 @@ export default function PrioritiesScenarioPage() {
     <ScenarioPage
       title="Priorities scenarios"
       description="The real priorities page (BoardHeader + PriorityMatrixPage) fed a
-        fixture matrix — tracked states, the track popover, and the no-plan
-        fallback. The board with tracked one-off cards lives in the Board
-        scenarios; the add-task modal lives in the Task modal scenarios."
+        fixture matrix — tracked states, the track popover, the no-plan
+        fallback, and the add-task modal in both entry modes. The board with
+        tracked one-off cards lives in the Board scenarios."
     >
       <ScenarioTabs tabs={PRIORITIES_SCENARIOS} />
     </ScenarioPage>

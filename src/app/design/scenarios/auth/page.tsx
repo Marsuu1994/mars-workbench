@@ -16,7 +16,6 @@ const AUTH_SCENARIOS: ScenarioTab[] = [
     label: 'Settings (mobile)',
     title: 'Settings (mobile)',
     note: 'Profile card with bottom-anchored sign-out and version line, above the mobile dock (Settings active).',
-    height: 560,
     content: (
       <div className="flex h-full flex-col bg-base-200/20 p-3">
         {/* [contain:layout] pins the fixed dock to this phone column. */}

@@ -33,7 +33,6 @@ export const SCENARIO_HREFS = {
   priorities: '/design/scenarios/priorities',
   plan: '/design/scenarios/plan',
   aiChat: '/design/scenarios/ai-chat',
-  taskModal: '/design/scenarios/task-modal',
   auth: '/design/scenarios/auth',
 } as const;
 

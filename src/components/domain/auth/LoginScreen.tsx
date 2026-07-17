@@ -100,7 +100,7 @@ export const LoginScreen = ({onGoogleSignIn}: LoginScreenProps) => (
         {/* Google button */}
         <button
           onClick={onGoogleSignIn}
-          className="login-google-btn group relative flex w-full cursor-pointer items-center justify-center gap-3 overflow-hidden rounded-xl border border-base-content/10 bg-neutral px-6 py-3.5 text-[15px] font-medium text-base-content transition-all duration-200 hover:-translate-y-px hover:border-primary/25 active:translate-y-0"
+          className="login-google-btn group relative flex w-full cursor-pointer items-center justify-center gap-3 overflow-hidden rounded-xl border border-base-content/10 bg-neutral px-6 py-3.5 text-[15px] font-medium text-white transition-all duration-200 hover:-translate-y-px hover:border-primary/25 active:translate-y-0"
         >
           <div className="absolute inset-0 rounded-xl bg-linear-to-br from-primary/5 to-secondary/5 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
           <span className="relative z-10">

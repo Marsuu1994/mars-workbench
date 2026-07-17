@@ -11,8 +11,6 @@ export interface ScenarioTab {
   title: string;
   /** What state this scenario captures — the reason it's worth pinning */
   note?: string;
-  /** Fixed frame height standing in for a device viewport */
-  height?: number;
   /** The scenario screen, composed from real page components + fixtures */
   content: ReactNode;
 }
@@ -31,7 +29,7 @@ export const ScenarioTabs = ({tabs}: ScenarioTabsProps) => {
   const active = tabs[activeIndex];
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-1 flex-col gap-4">
       <TabBar
         ariaLabel="Scenarios"
         labels={tabs.map(tab => tab.label)}
@@ -44,12 +42,7 @@ export const ScenarioTabs = ({tabs}: ScenarioTabsProps) => {
           vs. open), and without a fresh mount React would reuse the instance
           and ignore its new initial state (the backlog would stay as the
           first-mounted tab left it). */}
-      <ScenarioFrame
-        key={activeIndex}
-        title={active.title}
-        note={active.note}
-        height={active.height}
-      >
+      <ScenarioFrame key={activeIndex} title={active.title} note={active.note}>
         {active.content}
       </ScenarioFrame>
     </div>

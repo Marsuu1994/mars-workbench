@@ -93,6 +93,14 @@ export const PLAN_EDIT_DESCRIPTION = 'Interview prep + system design';
 export const PLAN_EDIT_MODE = PlanMode.EXTREME;
 export const SCENARIO_PERIOD_KEY = '2026-W28';
 
+/** Task-modal edit fixture — XL so the split-it-up size warning shows. */
+export const EDIT_TEMPLATE: TaskTemplateItem = template(
+  'scn-tpl-gym',
+  'Go to gym',
+  '30 min workout focusing on compound lifts',
+  TaskSize.EXTRA_LARGE,
+);
+
 // ── Review-changes fixture — one entry per change section ────────────────────
 const change = (
   templateId: string,

@@ -73,7 +73,7 @@ Read design docs (repo-root `design/`) only when the task involves logic, data, 
 
 ### Source of Truth
 
-Implemented UI is documented in-app by the Design Console (`/design`): a component gallery tabbed by layer (`ui/` · `application/` · `domain/`) and per-feature **scenario pages** (`/design/scenarios/<feature>/`) that render the real page components with pinned fixture states. Scenario frames are inert by default so wired handlers can never fire against fixture ids; modals render inline via their extracted `*Panel`/`*Content` components (the live `OverlayShell` dialog escapes the frame's clipping).
+Implemented UI is documented in-app by the Design Console (`/design`): a component gallery tabbed by layer (`ui/` · `application/` · `domain/`) and per-feature **scenario pages** (`/design/scenarios/<feature>/`) that render the real page components with pinned fixture states. Scenario frames wrap their content in an `InteractionShield` — hover and scroll stay live, but clicks/submits/drag-starts are swallowed so wired handlers can never fire against fixture ids; modals render inline via their extracted `*Panel`/`*Content` components (the live `OverlayShell` dialog escapes the frame's clipping).
 
 ### Designing New UI
 

@@ -277,13 +277,7 @@ export const DomainTab = () => {
 
       <Zone
         title="Shared"
-        description="domain/shared/ — chips and headers reused across features. The shared TaskModal has its own scenario page."
-        action={
-          <ScenarioLink
-            href={SCENARIO_HREFS.taskModal}
-            label="Task modal scenarios"
-          />
-        }
+        description="domain/shared/ — chips and headers reused across features. The shared TaskModal's states live as tabs in the Plan (templates) and Priorities (add-task) scenarios."
       >
         {renderBoardHeader()}
         {renderSizeChips()}
@@ -318,13 +312,13 @@ export const DomainTab = () => {
 
       <Zone
         title="Plan"
-        description="The create/edit forms and review panel live in the Plan scenarios; the assistant's full lifecycle in the AI chat scenarios."
+        description="The create/edit forms, review panel and template modal live in the Plan scenarios; the assistant's full lifecycle in the AI plan creation scenarios."
         action={
           <span className="flex items-center gap-3">
             <ScenarioLink href={SCENARIO_HREFS.plan} label="Plan scenarios" />
             <ScenarioLink
               href={SCENARIO_HREFS.aiChat}
-              label="AI chat scenarios"
+              label="AI plan creation scenarios"
             />
           </span>
         }

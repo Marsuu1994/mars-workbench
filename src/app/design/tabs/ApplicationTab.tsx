@@ -2,6 +2,7 @@
 
 import {AppSidebar} from '@/components/application/AppSidebar';
 import {BottomTabBar} from '@/components/application/BottomTabBar';
+import {InteractionShield} from '../InteractionShield';
 import {Section, Variant, Row} from '../GalleryParts';
 import {
   APP_USER,
@@ -40,17 +41,14 @@ export const ApplicationTab = () => {
       <Row>
         {SIDEBAR_VARIANTS.map(({label, pathname, activePlanId, collapsed}) => (
           <Variant key={label} label={label}>
-            <div
-              inert
-              className="flex h-[440px] overflow-hidden rounded-lg border border-base-content/10"
-            >
+            <InteractionShield className="flex h-[440px] overflow-hidden rounded-lg border border-base-content/10">
               <AppSidebar
                 user={APP_USER}
                 activePlanId={activePlanId}
                 pathname={pathname}
                 collapsed={collapsed}
               />
-            </div>
+            </InteractionShield>
           </Variant>
         ))}
       </Row>
@@ -63,16 +61,13 @@ export const ApplicationTab = () => {
       description="Mobile dock with the four workspace tabs; the active tab follows the route (pinned here via the pathname override)."
     >
       <Variant label="Board active">
-        <div
-          inert
-          className="relative h-20 w-full max-w-[430px] overflow-hidden rounded-lg border border-base-content/10 bg-base-100 [contain:layout]"
-        >
+        <InteractionShield className="relative h-20 w-full max-w-[430px] overflow-hidden rounded-lg border border-base-content/10 bg-base-100 [contain:layout]">
           <BottomTabBar
             user={APP_USER}
             activePlanId={APP_PLAN_ID}
             pathname={DOCK_DEMO_PATHNAME}
           />
-        </div>
+        </InteractionShield>
       </Variant>
     </Section>
   );
