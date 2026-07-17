@@ -26,11 +26,8 @@ Open [http://localhost:3000](http://localhost:3000)
 ### Design System
 
 - **"Mission Control HUD"** (`design/design-language/` — `mars-dark.md` / `mars-light.md` + shared skeleton in its README): two custom daisyUI themes — `mars-dark` (default, night ops deck) / `mars-light` ("dawn on Mars" — warm sand, not white) — on seven OKLCH hues with verified contrast, plus the token-derived `fx-*` utility layer (cosmic shell, console chips, status LEDs, telemetry type, glow CTAs, AI holo). Palette changes must follow the sync points listed in the design doc
-<<<<<<< HEAD
-- **Open proposal**: Persona 5 "Calling Card" third theme — spec `design/design-language/p5-dark.md`, demo `design/mockup/future-work/mockup-p5-design-system.html` (see tracker, Cross-cutting → Future)
-=======
 - **Design Console** (`/design`): component gallery tabbed by layer (Tokens & FX · UI · Application · Domain) plus per-feature scenario pages (`/design/scenarios`: board, priorities, plan, AI-assisted plan creation, auth) rendering the same screen components as the live pages with pinned fixture states — the source of truth for implemented UI, structurally unable to drift from production; unbuilt designs are explored in `design/mockup/future-work/`
->>>>>>> origin/main
+- **Open proposal**: Persona 5 "Calling Card" third theme — spec `design/design-language/p5-dark.md`, demo `design/mockup/future-work/mockup-p5-design-system.html` (see tracker, Cross-cutting → Future)
 
 ### Board
 
