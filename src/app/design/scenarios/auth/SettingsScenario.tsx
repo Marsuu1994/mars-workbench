@@ -1,7 +1,7 @@
 'use client';
 
 import {useState} from 'react';
-import {SettingsPanel} from '@/components/domain/auth/SettingsSheet';
+import {SettingsPanel} from '@/components/domain/auth/SettingsPanel';
 import type {ThemeName} from '@/utils/theme';
 import {SCENARIO_USER} from './fixtures';
 
