@@ -14,11 +14,20 @@ import {
 } from '@/actions/templateActions';
 import {createAdhocTaskAction} from '@/actions/taskActions';
 import {FALLBACK_QUADRANT} from '@/components/domain/priorities/constants';
-import TaskModalHeader from './TaskModalHeader';
+import {OverlayHeader} from '@/components/ui/overlay/OverlayHeader';
 import TaskModalFooter from './TaskModalFooter';
 import QuadrantPicker from './QuadrantPicker';
 
 type ModalMode = 'create' | 'edit' | 'adhoc';
+
+const HEADER_KEY: Record<
+  ModalMode,
+  'header.create' | 'header.edit' | 'header.adhoc'
+> = {
+  create: 'header.create',
+  edit: 'header.edit',
+  adhoc: 'header.adhoc',
+};
 
 interface TaskModalPanelProps {
   onClose: () => void;
@@ -139,9 +148,17 @@ export function TaskModalPanel({
 
   return (
     <>
-      <TaskModalHeader mode={mode} onClose={onClose} />
+      <OverlayHeader
+        title={t(HEADER_KEY[mode])}
+        onClose={onClose}
+        closeLabel={t('cancel')}
+        className="px-6"
+      />
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-4 px-6 pt-4 pb-6"
+      >
         {/* Ad-hoc info banner */}
         {isAdhoc && (
           <div className="flex items-center gap-2 bg-warning/10 text-warning text-sm px-3.5 py-2.5 rounded-lg">
@@ -252,7 +269,7 @@ export default function TaskModal({
       onClose={onClose}
       dismissOnBackdrop={false}
       corners
-      boxClassName="max-w-lg pt-4 md:pt-6"
+      boxClassName="max-w-lg p-0"
     >
       {/* Mounted only while open, so every open starts a fresh form (the
           panel's initial state is the reset the old isOpen effect did). */}

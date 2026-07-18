@@ -20,7 +20,7 @@ const AUTH_SCENARIOS: ScenarioTab[] = [
       <div className="flex h-full flex-col bg-base-200/20 p-3">
         {/* [contain:layout] pins the fixed dock to this phone column. */}
         <div className="relative mx-auto flex min-h-0 w-full max-w-[430px] flex-1 flex-col overflow-hidden rounded-2xl border border-base-content/10 bg-base-100 shadow-lg [contain:layout]">
-          <div className="min-h-0 flex-1 overflow-y-auto p-4 pb-16">
+          <div className="min-h-0 flex-1 overflow-y-auto pb-16">
             <SettingsScenario />
           </div>
           <BottomTabBar

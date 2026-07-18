@@ -39,7 +39,7 @@ export const ChatInputBar = ({combined}: ChatInputBarProps) => {
 
   return (
     <div
-      className={`flex-shrink-0 border-t border-base-content/10 px-5 ${
+      className={`flex-shrink-0 border-t border-base-content/10 px-6 ${
         combined ? 'pb-2.5 pt-3.5' : 'py-3.5'
       }`}
     >

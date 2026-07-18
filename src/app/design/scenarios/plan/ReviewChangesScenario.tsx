@@ -26,7 +26,7 @@ interface ReviewChangesScenarioProps {
  * caps. The dimmed backdrop and centering come from the frame's overlay mode.
  */
 export const ReviewChangesScenario = (props: ReviewChangesScenarioProps) => (
-  <div className="fx-panel-solid rounded-box flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden p-6 pt-4 md:max-h-[calc(100vh-5em)] md:pt-6">
+  <div className="fx-panel-solid rounded-box flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden p-0 md:max-h-[calc(100vh-5em)]">
     <ReviewChangesPanel
       {...props}
       onClose={NOOP}

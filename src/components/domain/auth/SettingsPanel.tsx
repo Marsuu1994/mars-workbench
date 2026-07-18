@@ -2,7 +2,7 @@
 
 import {useTranslations} from 'next-intl';
 import {ArrowRightStartOnRectangleIcon} from '@heroicons/react/24/outline';
-import {OverlayCloseButton} from '@/components/ui/overlay/OverlayCloseButton';
+import {OverlayHeader} from '@/components/ui/overlay/OverlayHeader';
 import {SectionLabel} from '@/components/ui/SectionLabel';
 import {ConfirmButton} from '@/components/ui/ConfirmButton';
 import type {ThemeName} from '@/utils/theme';
@@ -37,10 +37,12 @@ export const SettingsPanel = ({
     .slice(0, 2);
 
   const renderHeader = () => (
-    <div className="flex items-center justify-between">
-      <h2 className="text-base font-bold">{t('title')}</h2>
-      <OverlayCloseButton onClick={onClose} label={t('closeAria')} />
-    </div>
+    <OverlayHeader
+      title={t('title')}
+      onClose={onClose}
+      closeLabel={t('closeAria')}
+      className="px-6"
+    />
   );
 
   const renderIdentity = () => (
@@ -78,14 +80,16 @@ export const SettingsPanel = ({
   );
 
   return (
-    <div className="flex flex-col gap-4">
+    <>
       {renderHeader()}
-      {renderIdentity()}
-      {renderThemeSection()}
-      {renderSignOut()}
-      <div className="text-center text-[11px] text-base-content/30">
-        {t('version')}
+      <div className="flex flex-col gap-4 px-6 pt-4 pb-6">
+        {renderIdentity()}
+        {renderThemeSection()}
+        {renderSignOut()}
+        <div className="text-center text-[11px] text-base-content/30">
+          {t('version')}
+        </div>
       </div>
-    </div>
+    </>
   );
 };

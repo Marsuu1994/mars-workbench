@@ -23,7 +23,7 @@ export const CreatedBanner = () => {
   };
 
   return (
-    <div className="flex flex-shrink-0 items-center justify-between border-t border-base-content/10 bg-success/10 px-5 py-4">
+    <div className="flex flex-shrink-0 items-center justify-between border-t border-base-content/10 bg-success/10 px-6 py-4">
       <div className="flex items-center gap-2.5">
         <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-success text-success-content">
           <CheckIcon className="size-4 stroke-2" />

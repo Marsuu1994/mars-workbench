@@ -23,7 +23,7 @@ export const CreateActionBar = ({onApprove}: CreateActionBarProps) => {
   const isApproving = status === 'approving';
 
   return (
-    <div className="flex flex-shrink-0 items-center justify-between border-t border-dashed border-base-content/15 bg-base-200 px-5 py-3.5">
+    <div className="flex flex-shrink-0 items-center justify-between border-t border-dashed border-base-content/15 bg-base-200 px-6 py-3.5">
       <div className="text-[13px] text-base-content/60">
         {t.rich('templateSummary', {
           total,

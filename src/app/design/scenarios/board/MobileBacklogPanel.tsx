@@ -4,6 +4,7 @@ import {useTranslations} from 'next-intl';
 import {InboxStackIcon, ArrowUpIcon} from '@heroicons/react/24/outline';
 import type {TaskItem} from '@/lib/db/tasks';
 import type {RiskLevel} from '@/utils/taskUtils';
+import {OverlayHeader} from '@/components/ui/overlay/OverlayHeader';
 import {MobileBacklogContent} from '@/components/domain/board/MobileBacklogContent';
 
 interface MobileBacklogPanelProps {
@@ -33,13 +34,18 @@ export const MobileBacklogPanel = ({
   return (
     <div className="flex h-full flex-col bg-base-200/20 p-3">
       <div className="mx-auto flex min-h-0 w-full max-w-[430px] flex-1 flex-col overflow-hidden rounded-2xl border border-base-content/10 bg-base-100 shadow-lg">
-        <div className="flex flex-shrink-0 items-center gap-2 border-b border-base-content/10 px-4 pt-4 pb-3 text-base font-bold">
-          <InboxStackIcon className="size-5 text-primary" />
-          {t('title')}
-          <span className="badge badge-primary badge-sm font-bold">
-            {tasks.length}
-          </span>
-        </div>
+        <OverlayHeader
+          icon={<InboxStackIcon className="size-5 text-primary" />}
+          title={t('title')}
+          badge={
+            <span className="badge badge-primary badge-sm font-bold">
+              {tasks.length}
+            </span>
+          }
+          onClose={NOOP}
+          closeLabel={t('closeLabel')}
+          className="px-4"
+        />
         <div className="flex flex-shrink-0 items-center gap-1.5 border-b border-base-content/10 px-4 py-2.5 text-xs text-base-content/50">
           <ArrowUpIcon className="size-3.5 flex-shrink-0 text-primary" />
           {t('hintTapToTodo')}
