@@ -47,14 +47,14 @@ export const BottomTabBar = ({
     <div className={cn('dock fx-chrome fx-hairline-top', className)}>
       <Link href="/kanban" className={isBoard ? 'dock-active' : ''}>
         <Squares2X2Icon className="size-5" />
-        <span className="dock-label">Board</span>
+        <span className="dock-label fx-display">Board</span>
       </Link>
       <Link
         href="/kanban/priorities"
         className={isPriorities ? 'dock-active' : ''}
       >
         <TableCellsIcon className="size-5" />
-        <span className="dock-label">Priorities</span>
+        <span className="dock-label fx-display">Priorities</span>
       </Link>
       <Link
         href={
@@ -63,7 +63,7 @@ export const BottomTabBar = ({
         className={isPlan ? 'dock-active' : ''}
       >
         <PencilSquareIcon className="size-5" />
-        <span className="dock-label">Plan</span>
+        <span className="dock-label fx-display">Plan</span>
       </Link>
       {/* Trigger, not a route: pressed tint only while the sheet is open
           (an action, not a location — never dock-active). */}
@@ -74,7 +74,7 @@ export const BottomTabBar = ({
         className={cn(settingsOpen && 'text-base-content')}
       >
         <Cog6ToothIcon className="size-5" />
-        <span className="dock-label">Settings</span>
+        <span className="dock-label fx-display">Settings</span>
       </button>
     </div>
   );

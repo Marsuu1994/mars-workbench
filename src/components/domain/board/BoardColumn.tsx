@@ -71,7 +71,7 @@ export default function BoardColumn({
             <div className="flex items-center gap-2">
               <span className={`fx-led md:hidden ${style.ledColor}`} />
               <h2
-                className={`fx-label fx-label-bright font-semibold ${
+                className={`fx-label fx-label-bright fx-display font-semibold ${
                   snapshot.isDraggingOver ? 'max-md:text-accent' : ''
                 }`}
               >

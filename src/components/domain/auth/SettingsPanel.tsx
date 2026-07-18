@@ -41,7 +41,7 @@ export const SettingsPanel = ({
 
   const renderHeader = () => (
     <div className="flex items-center justify-between">
-      <h2 className="text-base font-bold">{t('title')}</h2>
+      <h2 className="fx-display text-base font-bold">{t('title')}</h2>
       <SheetCloseButton onClick={onClose} label={t('closeAria')} />
     </div>
   );

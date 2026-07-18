@@ -55,7 +55,9 @@ export const AiChatModalContent = () => {
         <span className="flex size-7 items-center justify-center rounded-lg border border-secondary/20 bg-secondary/10 text-secondary">
           <SparklesIcon className="size-3.5" />
         </span>
-        <span className="text-base font-semibold">{t('modalTitle')}</span>
+        <span className="fx-display text-base font-semibold">
+          {t('modalTitle')}
+        </span>
         <Pill color="secondary" className="rounded-full uppercase">
           {t('betaLabel')}
         </Pill>

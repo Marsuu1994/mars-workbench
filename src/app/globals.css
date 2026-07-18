@@ -108,13 +108,13 @@
   --noise: 0;
 }
 
-/* ── P5 Dark — "Calling Card" (palette-level ship) ─────────────────
+/* ── P5 Dark — "Calling Card" ──────────────────────────────────────
    Third theme, user-selected from the Settings overlay. Spec:
    design/design-language/p5-dark.md — ink-black / phantom-red /
-   paper-white. Palette + zero radius only for now; the full Calling
-   Card fx skin (oblique cuts, hard offsets, Anton) is a tracked
-   follow-up. The two reds pair at AA (5.09/5.12) by documented
-   deviation; every signal is body-text grade on all three bases.    */
+   paper-white, flat depth, oblique discipline. Tokens here; the
+   geometry fork lives in the gated P5 DARK section further down.
+   The two reds pair at AA (5.09/5.12) by documented deviation;
+   every signal is body-text grade on all three bases.               */
 @plugin "daisyui/theme" {
   name: 'p5-dark';
   color-scheme: dark;
@@ -339,18 +339,18 @@ body {
   );
   --fx-shadow-ambient: 0 8px 24px oklch(0.05 0.01 20 / 0.5);
   --fx-shadow-hover: 0 6px 18px oklch(0.05 0.01 20 / 0.55);
-  --fx-glow-primary:
-    0 0 0 1px color-mix(in oklab, var(--color-primary) 40%, transparent),
-    0 0 14px color-mix(in oklab, var(--color-primary) 32%, transparent),
-    0 0 42px color-mix(in oklab, var(--color-primary) 12%, transparent);
-  --fx-glow-primary-hi:
-    0 0 0 1px color-mix(in oklab, var(--color-primary) 60%, transparent),
-    0 0 20px color-mix(in oklab, var(--color-primary) 45%, transparent),
-    0 0 56px color-mix(in oklab, var(--color-primary) 18%, transparent);
-  --fx-glow-accent:
-    0 0 0 1px color-mix(in oklab, var(--color-accent) 40%, transparent),
-    0 0 14px color-mix(in oklab, var(--color-accent) 30%, transparent),
-    0 0 42px color-mix(in oklab, var(--color-accent) 12%, transparent);
+  /* Surface-only vars (never text) — the Calling Card depth system:
+     flat second layers instead of glows. See design-language/p5-dark.md */
+  --fx-field-red: oklch(0.53 0.2 26); /* large red fields   #c51d24 */
+  --fx-blood-red: oklch(0.36 0.13 25); /* depth layer       #721216 */
+  --fx-blood-violet: oklch(0.29 0.09 290); /* AI depth layer #2c2151 */
+  --fx-card-bg: oklch(0.17 0.008 20); /* raised card        #191313 */
+  /* Glows become hard 0-blur pop shadows (fx-glow / fx-card-lift read
+     these) — depth stays ink/blood so it never vanishes under a
+     same-channel fill */
+  --fx-glow-primary: 4px 4px 0 var(--color-base-300);
+  --fx-glow-primary-hi: 5px 5px 0 var(--fx-blood-red);
+  --fx-glow-accent: 4px 4px 0 var(--color-base-300);
 }
 
 /* All fx-* classes live in the components layer so any Tailwind
@@ -825,6 +825,363 @@ body {
     animation: fx-breathe 4s ease-in-out infinite alternate;
   }
 } /* end @layer components */
+
+/* ═══════════════════════════════════════════════════════════════════
+   P5 DARK — "Calling Card" geometry fork
+   Gated skin per design/design-language/p5-dark.md: flat depth (hard
+   0-blur offsets), oblique discipline, halftone ground, display voice.
+   Unlayered on purpose — these must beat the fx component layer AND
+   Tailwind utility classes carried in markup. The mars themes never
+   match any selector below.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Shell: Metaverse ground — halftone screentone + speed lines +
+   one flat red corner band. No stars, no nebula, no blooms. ── */
+[data-theme='p5-dark'] .fx-shell-bg::before {
+  background-image:
+    linear-gradient(
+      107deg,
+      color-mix(in oklab, var(--fx-field-red) 14%, transparent) 0 210px,
+      transparent 210px
+    ),
+    radial-gradient(
+      circle at center,
+      color-mix(in oklab, var(--color-base-content) 5%, transparent) 1px,
+      transparent 1.5px
+    ),
+    radial-gradient(
+      circle at center,
+      color-mix(in oklab, var(--color-base-content) 3%, transparent) 1px,
+      transparent 1.5px
+    ),
+    repeating-linear-gradient(
+      115deg,
+      color-mix(in oklab, var(--color-base-content) 1.5%, transparent) 0 1px,
+      transparent 1px 84px
+    );
+  background-size:
+    auto,
+    16px 16px,
+    16px 16px,
+    auto;
+  background-position:
+    0 0,
+    0 0,
+    8px 8px,
+    0 0;
+  background-repeat: no-repeat, repeat, repeat, no-repeat;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* ── Chrome & panels: opaque paper — no glass anywhere ── */
+[data-theme='p5-dark'] :is(.fx-chrome-glass, .fx-panel) {
+  background: var(--fx-panel-bg-solid);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+[data-theme='p5-dark'] :is(.fx-panel, .fx-panel-solid) {
+  border: 2px solid
+    color-mix(in oklab, var(--color-base-content) 85%, transparent);
+  box-shadow: 8px 8px 0 var(--fx-blood-red);
+}
+
+/* ── Crop marks: heavier red brackets ── */
+[data-theme='p5-dark'] .fx-corners::after {
+  --_l: var(--fx-bracket-len, 14px);
+  --_g: linear-gradient(var(--color-primary), var(--color-primary));
+  background:
+    var(--_g) 0 0 / var(--_l) 2px,
+    var(--_g) 0 0 / 2px var(--_l),
+    var(--_g) 100% 0 / var(--_l) 2px,
+    var(--_g) 100% 0 / 2px var(--_l),
+    var(--_g) 0 100% / var(--_l) 2px,
+    var(--_g) 0 100% / 2px var(--_l),
+    var(--_g) 100% 100% / var(--_l) 2px,
+    var(--_g) 100% 100% / 2px var(--_l);
+  background-repeat: no-repeat;
+}
+
+/* ── Sticker cards: flat offsets, hover pop, drag blood-lift ── */
+[data-theme='p5-dark'] .fx-card {
+  background: var(--fx-card-bg);
+  border: 1.5px solid
+    color-mix(in oklab, var(--color-base-content) 14%, transparent);
+  box-shadow: 3px 3px 0 var(--color-base-300);
+  transition:
+    box-shadow 0.12s cubic-bezier(0.2, 0, 0, 1),
+    transform 0.12s cubic-bezier(0.2, 0, 0, 1);
+}
+[data-theme='p5-dark'] .fx-card:hover {
+  box-shadow: 4px 4px 0 var(--color-primary);
+  transform: translate(-1px, -1px);
+}
+[data-theme='p5-dark'] .fx-card-lift {
+  box-shadow: 7px 7px 0 var(--fx-blood-red);
+  transform: rotate(-1.2deg) translate(-2px, -2px);
+}
+
+/* ── Hazard target: flat diagonal stripes, dashed edge ── */
+[data-theme='p5-dark'] .fx-target {
+  border-radius: 0;
+  outline: 2px dashed color-mix(in oklab, var(--color-accent) 80%, transparent);
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in oklab, var(--color-accent) 7%, transparent) 0 12px,
+    transparent 12px 24px
+  );
+}
+[data-theme='p5-dark'] .fx-target::before {
+  border-radius: 0;
+  box-shadow: inset 0 0 0 4px
+    color-mix(in oklab, var(--color-accent) 28%, transparent);
+}
+
+/* ── Chips: currentColor parallelograms (labels ride oblique) ── */
+[data-theme='p5-dark'] .fx-chip {
+  border: 1.5px solid currentColor;
+  background: color-mix(in oklab, currentColor 12%, transparent);
+  box-shadow: none;
+  border-radius: 0;
+  transform: skewX(-10deg);
+}
+
+/* ── LEDs: flat diamond studs, no glow ── */
+[data-theme='p5-dark'] .fx-led {
+  border-radius: 0;
+  transform: rotate(45deg);
+  box-shadow: none;
+  outline: 1px solid var(--color-base-300);
+}
+
+/* ── Rules: flat red slash strips — no gradients ── */
+[data-theme='p5-dark'] .fx-rule {
+  height: 2px;
+  background: var(--fx-field-red);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 4px 100%);
+}
+[data-theme='p5-dark'] .fx-hairline-top::before {
+  height: 2px;
+  background: var(--fx-field-red);
+}
+
+/* ── AI spray border: dashed violet + stop-motion wiggle (the one
+   sanctioned clip-path loop — a single small focal element) ── */
+[data-theme='p5-dark'] .fx-holo {
+  background: var(--fx-panel-bg-solid);
+  border: 2px dashed var(--color-secondary);
+  border-radius: 0;
+  animation: fx-p5-wiggle 1s linear infinite;
+}
+
+/* ── Comet tick: flat red arc (hard stops), still transform-only ── */
+[data-theme='p5-dark'] .fx-orbit::before {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0 82%,
+    var(--color-primary) 82% 96%,
+    transparent 96%
+  );
+}
+
+/* ── Login brand: breathing double hard offset ── */
+[data-theme='p5-dark'] .fx-glow-pulse::after {
+  box-shadow:
+    6px 6px 0 var(--fx-blood-red),
+    12px 12px 0 color-mix(in oklab, var(--fx-blood-red) 40%, transparent);
+}
+
+/* ── Gradient headline → flat phantom red (gradients are banned;
+   opt into fx-tile for the ransom treatment) ── */
+[data-theme='p5-dark'] .fx-text-gradient {
+  background: none;
+  color: var(--color-primary);
+}
+
+/* ── Snap-in: faster entrance with overshoot settle ── */
+[data-theme='p5-dark'] .fx-boot-in {
+  animation: fx-p5-boot-in 0.24s cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+/* ── Active nav: the white flip — selected items invert ── */
+[data-theme='p5-dark'] .fx-nav-rail {
+  background: var(--color-base-content);
+  color: var(--color-base-300);
+  border-radius: 0;
+  transform: skewX(-4deg);
+  box-shadow: 3px 3px 0 var(--color-primary);
+}
+[data-theme='p5-dark'] .fx-nav-rail::before {
+  display: none;
+}
+
+/* ── Quadrant blooms → flat corner wedges (hard-stop fills) ── */
+[data-theme='p5-dark'] .fx-quadrant::before {
+  background: radial-gradient(
+    55% 45% at var(--fx-q-x, 0%) var(--fx-q-y, 0%),
+    color-mix(in oklab, var(--fx-q, var(--color-primary)) 9%, transparent) 0
+      100%,
+    transparent 100%
+  );
+}
+
+/* ── Buttons: red field CTA with pop shadow; hover = the P5
+   selection flip (paper bg / ink text). Oblique like all chrome. ── */
+[data-theme='p5-dark'] .btn-primary {
+  background: var(--fx-field-red);
+  border-color: var(--fx-field-red);
+  color: var(--color-base-content);
+  box-shadow: 4px 4px 0 var(--color-base-300);
+  transform: skewX(-8deg);
+  transition:
+    background 0.12s cubic-bezier(0.2, 0, 0, 1),
+    color 0.12s cubic-bezier(0.2, 0, 0, 1),
+    box-shadow 0.12s cubic-bezier(0.2, 0, 0, 1);
+}
+[data-theme='p5-dark'] .btn-primary:hover {
+  background: var(--color-base-content);
+  border-color: var(--color-base-content);
+  color: var(--color-base-300);
+  box-shadow: 5px 5px 0 var(--fx-blood-red);
+}
+
+/* ── New utilities — opt-in markup, inert outside this theme ── */
+
+/* The display voice: Anton, uppercase, −6° — fixed chrome labels only */
+[data-theme='p5-dark'] .fx-display {
+  font-family:
+    var(--font-anton), 'Arial Narrow', var(--font-geist-sans), sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  transform: skewX(-6deg);
+  display: inline-block;
+}
+
+/* Inverted ransom tile — one word per heading, max */
+[data-theme='p5-dark'] .fx-tile {
+  background: var(--color-base-content);
+  color: var(--color-base-300);
+  padding: 0 0.14em;
+  display: inline-block;
+  transform: rotate(-2.5deg);
+}
+[data-theme='p5-dark'] .fx-tile-red {
+  background: var(--fx-field-red);
+  color: var(--color-base-content);
+}
+
+/* Oblique corner cuts (scissor-cut paper). ⚠ box-shadow is clipped
+   away on cut elements — pair with a parent filter drop-shadow. */
+[data-theme='p5-dark'] .fx-cut {
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - 14px),
+    calc(100% - 16px) 100%,
+    0 100%
+  );
+}
+[data-theme='p5-dark'] .fx-cut-sm {
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - 8px),
+    calc(100% - 10px) 100%,
+    0 100%
+  );
+}
+[data-theme='p5-dark'] .fx-cut-lg {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 22px) 0,
+    100% 18px,
+    100% 100%,
+    14px 100%,
+    0 calc(100% - 12px)
+  );
+}
+
+/* Flat skewed red underline for display headings */
+[data-theme='p5-dark'] .fx-slash {
+  display: block;
+  height: 4px;
+  width: 64px;
+  margin-top: 6px;
+  background: var(--fx-field-red);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 4px 100%);
+}
+
+/* Decorative star-burst (flat fill) — max one per view */
+[data-theme='p5-dark'] .fx-burst {
+  background: var(--fx-field-red);
+  clip-path: polygon(
+    100% 50%,
+    78.98% 57.76%,
+    93.3% 75%,
+    71.21% 71.21%,
+    75% 93.3%,
+    57.76% 78.98%,
+    50% 100%,
+    42.24% 78.98%,
+    25% 93.3%,
+    28.79% 71.21%,
+    6.7% 75%,
+    21.02% 57.76%,
+    0% 50%,
+    21.02% 42.24%,
+    6.7% 25%,
+    28.79% 28.79%,
+    25% 6.7%,
+    42.24% 21.02%,
+    50% 0%,
+    57.76% 21.02%,
+    75% 6.7%,
+    71.21% 28.79%,
+    93.3% 25%,
+    78.98% 42.24%
+  );
+}
+
+@keyframes fx-p5-boot-in {
+  from {
+    opacity: 0;
+    transform: translate(-14px, 8px) rotate(-2.5deg) scale(0.96);
+  }
+  60% {
+    opacity: 1;
+    transform: translate(2px, -1px) rotate(0.4deg) scale(1.005);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0) scale(1);
+  }
+}
+@keyframes fx-p5-wiggle {
+  0%,
+  100% {
+    clip-path: polygon(0 2%, 99% 0, 100% 98%, 1% 100%);
+  }
+  25% {
+    clip-path: polygon(1% 0, 100% 3%, 98% 100%, 0 97%);
+  }
+  50% {
+    clip-path: polygon(0 4%, 98% 1%, 100% 96%, 2% 99%);
+  }
+  75% {
+    clip-path: polygon(2% 1%, 100% 0, 99% 99%, 0 96%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-theme='p5-dark'] .fx-holo {
+    animation: none;
+  }
+  [data-theme='p5-dark'] .btn-primary,
+  [data-theme='p5-dark'] .fx-card {
+    transition: none;
+  }
+}
 
 /* ── Focus: single app-wide reticle ring in signal cyan ── */
 :is([data-theme='mars-dark'], [data-theme='mars-light'])

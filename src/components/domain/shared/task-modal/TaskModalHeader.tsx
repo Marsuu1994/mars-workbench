@@ -22,7 +22,7 @@ export default function TaskModalHeader({mode, onClose}: TaskModalHeaderProps) {
 
   return (
     <div className="flex items-center justify-between -mx-6 px-6 pb-4 mb-4 border-b border-base-content/10">
-      <h3 className="font-bold text-lg">{t(HEADER_KEY[mode])}</h3>
+      <h3 className="fx-display font-bold text-lg">{t(HEADER_KEY[mode])}</h3>
       <SheetCloseButton onClick={onClose} label={t('cancel')} />
     </div>
   );

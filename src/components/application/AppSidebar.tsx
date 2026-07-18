@@ -72,7 +72,7 @@ export const AppSidebar = ({
       className={isBoardActive ? navItemActive : navItemInactive}
     >
       <Squares2X2Icon className="h-[18px] w-[18px] flex-shrink-0" />
-      <span className={`text-[13px] ${textOpacity}`}>Board</span>
+      <span className={`fx-display text-[13px] ${textOpacity}`}>Board</span>
     </Link>
   );
 
@@ -82,7 +82,9 @@ export const AppSidebar = ({
       className={isPrioritiesActive ? navItemActive : navItemInactive}
     >
       <TableCellsIcon className="h-[18px] w-[18px] flex-shrink-0" />
-      <span className={`text-[13px] ${textOpacity}`}>Priorities</span>
+      <span className={`fx-display text-[13px] ${textOpacity}`}>
+        Priorities
+      </span>
     </Link>
   );
 
@@ -92,7 +94,7 @@ export const AppSidebar = ({
       className={isPlanActive ? navItemActive : navItemInactive}
     >
       <PencilSquareIcon className="h-[18px] w-[18px] flex-shrink-0" />
-      <span className={`text-[13px] ${textOpacity}`}>Plan</span>
+      <span className={`fx-display text-[13px] ${textOpacity}`}>Plan</span>
       {!hasPlan && !collapsed && (
         <span className="ml-auto text-[9px] font-bold uppercase tracking-wide bg-gradient-to-r from-primary to-info text-white px-1.5 py-0.5 rounded-full">
           New
@@ -143,7 +145,7 @@ export const AppSidebar = ({
 
         {/* Brand text — fades out, never unmounted */}
         <span
-          className={`text-sm font-bold tracking-tight text-base-content whitespace-nowrap ${textOpacity}`}
+          className={`fx-display text-sm font-bold tracking-tight text-base-content whitespace-nowrap ${textOpacity}`}
         >
           Mars Workbench
         </span>
