@@ -14,6 +14,12 @@ export const useDialogSync = (
     if (!dialog) return;
     if (isOpen && !dialog.open) {
       dialog.showModal();
+      // showModal() focuses the first focusable element — usually a header
+      // close button, which then paints the app-wide :focus-visible ring on
+      // every open. Park initial focus on the dialog container instead
+      // (WAI-ARIA APG dialog pattern); Tab still reaches the controls with
+      // their ring intact.
+      dialog.focus();
     } else if (!isOpen && dialog.open) {
       dialog.close();
     }
