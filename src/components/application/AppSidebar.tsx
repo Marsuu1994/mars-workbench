@@ -1,7 +1,7 @@
 'use client';
 
 import {useState} from 'react';
-import {usePathname, useRouter} from 'next/navigation';
+import {usePathname} from 'next/navigation';
 import Link from 'next/link';
 import {
   ChevronLeftIcon,
@@ -9,10 +9,9 @@ import {
   Squares2X2Icon,
   TableCellsIcon,
   PencilSquareIcon,
-  ArrowRightStartOnRectangleIcon,
 } from '@heroicons/react/24/outline';
 import {useSidebarStore} from '@/store/sidebarStore';
-import {createClient} from '@/lib/supabase/client';
+import {useSettingsStore} from '@/store/settingsStore';
 
 interface AppSidebarProps {
   user: {name: string; email: string} | null;
@@ -31,19 +30,13 @@ export const AppSidebar = ({
 }: AppSidebarProps) => {
   const livePathname = usePathname();
   const pathname = pathnameProp ?? livePathname;
-  const router = useRouter();
   const {isCollapsed, toggleSidebar} = useSidebarStore();
+  const openSettings = useSettingsStore(s => s.open);
   const [isLogoHovered, setIsLogoHovered] = useState(false);
 
   if (!user || pathname.startsWith('/auth')) {
     return null;
   }
-
-  const handleSignOut = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push('/auth/login');
-  };
 
   const initials = user.name
     .split(' ')
@@ -186,9 +179,15 @@ export const AppSidebar = ({
         </nav>
       </div>
 
-      {/* User section — consistent layout, info fades */}
+      {/* User section — the whole row opens the Settings overlay
+          (sign-out lives inside, behind a two-step confirm). */}
       {/* User — pl-[17px] centers 32px avatar with nav icons (center = 33px) */}
-      <div className="mt-auto border-t border-base-content/10 flex items-center gap-2.5 pl-[17px] pr-3 py-3 overflow-hidden">
+      <button
+        type="button"
+        aria-haspopup="dialog"
+        onClick={openSettings}
+        className="mt-auto border-t border-base-content/10 flex items-center gap-2.5 pl-[17px] pr-3 py-3 overflow-hidden text-left transition-colors hover:bg-base-200 cursor-pointer"
+      >
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-warning to-error text-white text-xs font-bold flex-shrink-0">
           {initials}
         </div>
@@ -201,13 +200,10 @@ export const AppSidebar = ({
             {user.email}
           </div>
         </div>
-        <button
-          onClick={handleSignOut}
-          className={`flex h-7 w-7 items-center justify-center rounded-md text-base-content/40 transition-colors hover:bg-error/10 hover:text-error cursor-pointer flex-shrink-0 ${textOpacity}`}
-        >
-          <ArrowRightStartOnRectangleIcon className="h-[18px] w-[18px]" />
-        </button>
-      </div>
+        <ChevronRightIcon
+          className={`h-4 w-4 text-base-content/40 flex-shrink-0 ${textOpacity}`}
+        />
+      </button>
     </aside>
   );
 };

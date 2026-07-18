@@ -54,7 +54,11 @@ export const OverlayShell = ({
   return (
     <dialog
       ref={dialogRef}
-      className={cn(VARIANT_CLASS[variant], mobileOnly && 'md:hidden')}
+      className={cn(
+        VARIANT_CLASS[variant],
+        'outline-none',
+        mobileOnly && 'md:hidden',
+      )}
       onClose={onClose}
     >
       <div

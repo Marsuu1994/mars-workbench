@@ -133,7 +133,22 @@
   },
   "Settings": {
     "title": "Settings",
-    "signOut": "Sign Out",
+    "themeSection": "Theme",
+    "themeNames": {
+      "mars-light": "Sora light",
+      "mars-dark": "Sora dark",
+      "p5-dark": "P5 dark"
+    },
+    "themeTaglines": {
+      "mars-light": "Dawn on Mars",
+      "mars-dark": "Night ops deck",
+      "p5-dark": "Calling card"
+    },
+    "signOut": "Sign out",
+    "signOutConfirm": "Sign out?",
+    "cancel": "Cancel",
+    "closeAria": "Close settings",
+    "closeBackdrop": "Close",
     "version": "Mars Workbench v0.1.0"
   },
   "AiChat": {
