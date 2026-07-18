@@ -79,6 +79,7 @@ Implemented UI is documented in-app by the Design Console (`/design`): a compone
 - **Frame modes**: `fill` (default) is for screen-level tabs only — a 1:1 viewport-bounded stand-in for the page inside AppShell's `<main>`. Everything standalone (empty states, sheets, inline modal panels) is `fit` — content height + padding — and/or `overlay` for a dimmed modal backdrop.
 - **Live-feel, no side effects**: frames wrap content in an `InteractionShield` — hover and scroll stay live; clicks/submits/drag-starts are swallowed so wired handlers can never fire against fixture ids.
 - **Modals render inline** via their extracted `*Panel`/`*Content` components (the live `OverlayShell` top-layer dialog would escape the frame's clipping).
+- **One tab, one state**: each scenario tab pins exactly one fixture/state. Never compose multiple presentations or states into a single tab — sibling presentations of the same component (e.g. the settings overlay's mobile sheet vs desktop modal) get sibling tabs.
 
 ### Designing New UI
 

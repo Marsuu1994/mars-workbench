@@ -13,14 +13,13 @@ const AUTH_SCENARIOS: ScenarioTab[] = [
     content: <LoginScenario />,
   },
   {
-    label: 'Settings overlay',
-    title: 'Settings overlay — both presentations',
-    note: 'One OverlayShell responsive overlay, two breakpoint presentations: the mobile bottom sheet (rest state, dock trigger pressed) and the desktop centered modal (sign-out pinned in its confirm state).',
+    label: 'Settings sheet (mobile)',
+    title: 'Settings sheet (mobile) — rest',
+    note: 'The mobile presentation of the one OverlayShell responsive overlay: bottom sheet at rest above the dock with its Settings trigger pressed.',
     display: 'fit',
     content: (
-      <div className="flex flex-wrap items-start justify-center gap-8 p-4">
-        {/* Mobile: bottom-sheet presentation above the pressed dock trigger.
-            [contain:layout] pins the fixed dock to this phone column. */}
+      <div className="flex justify-center p-4">
+        {/* [contain:layout] pins the fixed dock to this phone column. */}
         <div className="relative flex h-[560px] w-full max-w-[390px] flex-col overflow-hidden rounded-2xl border border-base-content/10 bg-base-100 shadow-lg [contain:layout]">
           <div className="min-h-0 flex-1 overflow-y-auto p-4 pb-16">
             <SettingsScenario />
@@ -32,7 +31,16 @@ const AUTH_SCENARIOS: ScenarioTab[] = [
             settingsOpen
           />
         </div>
-        {/* Desktop: centered-modal presentation, sign-out confirm pinned. */}
+      </div>
+    ),
+  },
+  {
+    label: 'Settings modal (desktop)',
+    title: 'Settings modal (desktop) — sign-out confirm',
+    note: 'The desktop presentation of the same overlay: centered modal with the sign-out row pinned in its confirm state.',
+    display: 'fit',
+    content: (
+      <div className="flex justify-center p-4">
         <div className="fx-panel-solid w-full max-w-[430px] rounded-box p-6">
           <SettingsScenario signOutTriggered />
         </div>
