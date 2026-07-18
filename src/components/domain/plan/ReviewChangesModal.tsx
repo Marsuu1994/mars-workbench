@@ -15,7 +15,7 @@ import type {TaskSize} from '@/utils/enums';
 import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {Pill, type PillColor} from '@/components/ui/Pill';
 import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
-import {SheetCloseButton} from '@/components/ui/overlay/SheetCloseButton';
+import {OverlayCloseButton} from '@/components/ui/overlay/OverlayCloseButton';
 import {SubmitButton} from '@/components/ui/form/SubmitButton';
 
 /** Shared identity for any template referenced in the review. */
@@ -229,7 +229,7 @@ export function ReviewChangesPanel({
   const renderHeader = () => (
     <div className="shrink-0 flex items-center justify-between -mx-6 px-6 pb-4 mb-4 border-b border-base-content/10">
       <h3 className="text-lg font-semibold">{tr('title')}</h3>
-      <SheetCloseButton onClick={onClose} label={tr('cancel')} />
+      <OverlayCloseButton onClick={onClose} label={tr('cancel')} />
     </div>
   );
 

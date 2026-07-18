@@ -2,7 +2,7 @@
 
 import {useTranslations} from 'next-intl';
 import {ArrowRightStartOnRectangleIcon} from '@heroicons/react/24/outline';
-import {SheetCloseButton} from '@/components/ui/overlay/SheetCloseButton';
+import {OverlayCloseButton} from '@/components/ui/overlay/OverlayCloseButton';
 import {SectionLabel} from '@/components/ui/SectionLabel';
 import {ConfirmButton} from '@/components/ui/ConfirmButton';
 import type {ThemeName} from '@/utils/theme';
@@ -39,7 +39,7 @@ export const SettingsPanel = ({
   const renderHeader = () => (
     <div className="flex items-center justify-between">
       <h2 className="text-base font-bold">{t('title')}</h2>
-      <SheetCloseButton onClick={onClose} label={t('closeAria')} />
+      <OverlayCloseButton onClick={onClose} label={t('closeAria')} />
     </div>
   );
 

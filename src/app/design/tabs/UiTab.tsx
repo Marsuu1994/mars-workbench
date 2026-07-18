@@ -22,7 +22,7 @@ import {FormErrorAlert} from '@/components/ui/form/FormErrorAlert';
 import {BottomSheet} from '@/components/ui/overlay/BottomSheet';
 import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
 import {Popover} from '@/components/ui/overlay/Popover';
-import {SheetCloseButton} from '@/components/ui/overlay/SheetCloseButton';
+import {OverlayCloseButton} from '@/components/ui/overlay/OverlayCloseButton';
 
 import {Zone, Section, Variant, Row} from '../GalleryParts';
 import {
@@ -361,12 +361,12 @@ export const UiTab = () => {
     </Section>
   );
 
-  const renderSheetCloseButton = () => (
+  const renderOverlayCloseButton = () => (
     <Section
-      title="SheetCloseButton"
-      description="The standard overlay close affordance — a down-chevron in sheet/modal headers app-wide."
+      title="OverlayCloseButton"
+      description="The standard overlay close affordance in sheet/modal headers app-wide — a down-chevron on mobile, an ✕ from md up."
     >
-      <SheetCloseButton onClick={() => undefined} label="Close" />
+      <OverlayCloseButton onClick={() => undefined} label="Close" />
     </Section>
   );
 
@@ -394,7 +394,7 @@ export const UiTab = () => {
         {renderBottomSheet()}
         {renderModalShell()}
         {renderPopover()}
-        {renderSheetCloseButton()}
+        {renderOverlayCloseButton()}
       </Zone>
     </div>
   );

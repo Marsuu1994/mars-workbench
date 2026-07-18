@@ -84,6 +84,7 @@ Open items: see [design/tracker.md](./design/tracker.md).
 - **Settings overlay + user theme switching shipped** (desktop + mobile): the mobile-only `/kanban/settings` page is gone — the dock's 4th tab and the desktop sidebar user row now open one responsive `SettingsSheet` (mobile bottom sheet / desktop centered modal) with identity card, three-theme picker, two-step confirm sign-out (new generic `ui/ConfirmButton`), and version line. Theme choice applies instantly (`data-theme` stamp) and persists via SSR-readable cookie (`updateThemeAction`) — no flash on reload; default for new users is `mars-dark`; the old clock-based auto-switcher (`ThemeProvider`, 18:00–06:00) is removed (`ServiceWorkerRegistrar` keeps the PWA registration)
 - **`p5-dark` theme shipped palette-level**: third daisyUI theme block (Calling Card palette, zero radius incl. the relocated `--radius-card` token, paper-white focus ring, its own fx/login var blocks); the full P5 fx-geometry skin stays a tracked follow-up
 - Auth scenario updated minimally (settings sheet content inline + pressed dock trigger); full scenario/gallery pass is the next step
+- **Unified overlay close affordance**: every sheet/modal header now shares one `OverlayCloseButton` (renamed from `SheetCloseButton`) — down-chevron on mobile (bottom-sheet dismissal language), ✕ from `md` up (centered-modal language); the AI chat modal drops its hand-rolled ✕ button for the shared one
 
 
 ### 2026-07-17

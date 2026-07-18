@@ -3,7 +3,7 @@
 import type {ReactNode} from 'react';
 import {cn} from '../cn';
 import {OverlayShell} from './OverlayShell';
-import {SheetCloseButton} from './SheetCloseButton';
+import {OverlayCloseButton} from './OverlayCloseButton';
 
 interface BottomSheetHeader {
   icon?: ReactNode;
@@ -17,7 +17,7 @@ interface BottomSheetProps {
   onClose: () => void;
   /** Close/backdrop label — copy comes from the caller's namespace */
   closeLabel: string;
-  /** Optional pinned title bar with a chevron-down close button */
+  /** Optional pinned title bar with the standard overlay close button */
   header?: BottomSheetHeader;
   /** Optional pinned strip under the header (hints, filters, …) */
   subheader?: ReactNode;
@@ -55,7 +55,7 @@ export const BottomSheet = ({
         {title}
         {badge}
       </div>
-      <SheetCloseButton onClick={onClose} label={closeLabel} />
+      <OverlayCloseButton onClick={onClose} label={closeLabel} />
     </div>
   );
 

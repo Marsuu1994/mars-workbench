@@ -2,11 +2,12 @@
 
 import {useEffect, useRef} from 'react';
 import {useTranslations} from 'next-intl';
-import {SparklesIcon, XMarkIcon} from '@heroicons/react/24/outline';
+import {SparklesIcon} from '@heroicons/react/24/outline';
 import {useAiPlanChatStore} from '@/store/aiPlanChatStore';
 import {useAiPlanChat} from '@/hooks/useAiPlanChat';
 import {Pill} from '@/components/ui/Pill';
 import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
+import {OverlayCloseButton} from '@/components/ui/overlay/OverlayCloseButton';
 import {ChatMessage} from './ChatMessage';
 import {ChatInputBar} from './ChatInputBar';
 import {CreateActionBar} from './CreateActionBar';
@@ -60,14 +61,7 @@ export const AiChatModalContent = () => {
           {t('betaLabel')}
         </Pill>
       </div>
-      <button
-        type="button"
-        onClick={close}
-        aria-label={t('closeAria')}
-        className="btn btn-ghost btn-sm btn-square"
-      >
-        <XMarkIcon className="size-5" />
-      </button>
+      <OverlayCloseButton onClick={close} label={t('closeAria')} />
     </div>
   );
 

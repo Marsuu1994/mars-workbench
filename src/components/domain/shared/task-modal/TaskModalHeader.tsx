@@ -1,7 +1,7 @@
 'use client';
 
 import {useTranslations} from 'next-intl';
-import {SheetCloseButton} from '@/components/ui/overlay/SheetCloseButton';
+import {OverlayCloseButton} from '@/components/ui/overlay/OverlayCloseButton';
 
 interface TaskModalHeaderProps {
   mode: 'create' | 'edit' | 'adhoc';
@@ -23,7 +23,7 @@ export default function TaskModalHeader({mode, onClose}: TaskModalHeaderProps) {
   return (
     <div className="flex items-center justify-between -mx-6 px-6 pb-4 mb-4 border-b border-base-content/10">
       <h3 className="font-bold text-lg">{t(HEADER_KEY[mode])}</h3>
-      <SheetCloseButton onClick={onClose} label={t('cancel')} />
+      <OverlayCloseButton onClick={onClose} label={t('cancel')} />
     </div>
   );
 }
