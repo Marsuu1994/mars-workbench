@@ -1,12 +1,16 @@
 'use client';
 
 import {usePathname} from 'next/navigation';
+import {SettingsSheet} from '@/components/domain/auth/SettingsSheet';
+import type {ThemeName} from '@/utils/theme';
 import {AppSidebar} from './AppSidebar';
 import {BottomTabBar} from './BottomTabBar';
 
 interface AppShellProps {
   user: {name: string; email: string} | null;
   activePlanId: string | null;
+  /** Server-resolved theme cookie (feeds the settings theme picker). */
+  theme: ThemeName;
   children: React.ReactNode;
 }
 
@@ -27,7 +31,12 @@ const SELF_SCROLLING_PREFIXES = ['/kanban/plans'];
  * Wraps page content in the app shell (sidebar + bottom tab bar), except on
  * routes listed in CHROMELESS_PREFIXES, which render standalone.
  */
-export const AppShell = ({user, activePlanId, children}: AppShellProps) => {
+export const AppShell = ({
+  user,
+  activePlanId,
+  theme,
+  children,
+}: AppShellProps) => {
   const pathname = usePathname();
   const isChromeless = CHROMELESS_PREFIXES.some(prefix =>
     pathname.startsWith(prefix),
@@ -57,6 +66,7 @@ export const AppShell = ({user, activePlanId, children}: AppShellProps) => {
         activePlanId={activePlanId}
         className="md:hidden"
       />
+      <SettingsSheet user={user} initialTheme={theme} />
     </div>
   );
 };

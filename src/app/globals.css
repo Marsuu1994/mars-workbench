@@ -108,6 +108,50 @@
   --noise: 0;
 }
 
+/* ── P5 Dark — "Calling Card" (palette-level ship) ─────────────────
+   Third theme, user-selected from the Settings overlay. Spec:
+   design/design-language/p5-dark.md — ink-black / phantom-red /
+   paper-white. Palette + zero radius only for now; the full Calling
+   Card fx skin (oblique cuts, hard offsets, Anton) is a tracked
+   follow-up. The two reds pair at AA (5.09/5.12) by documented
+   deviation; every signal is body-text grade on all three bases.    */
+@plugin "daisyui/theme" {
+  name: 'p5-dark';
+  color-scheme: dark;
+
+  --color-base-100: oklch(0.185 0.008 20); /* ink panel   #161111 */
+  --color-base-200: oklch(0.15 0.006 20); /* ink floor    #0e0a0a */
+  --color-base-300: oklch(0.115 0.004 20); /* ink well    #060505 */
+  --color-base-content: oklch(0.96 0.005 20); /* paper white */
+
+  --color-primary: oklch(0.63 0.255 29); /* phantom red  #ff0c0b */
+  --color-primary-content: oklch(0.13 0.02 20); /* near-ink #0e0505 */
+  --color-secondary: oklch(0.74 0.15 295); /* metaverse violet — AI */
+  --color-secondary-content: oklch(0.18 0.045 295);
+  --color-accent: oklch(0.74 0.17 55); /* heist orange — targeting */
+  --color-accent-content: oklch(0.2 0.045 55);
+
+  --color-neutral: oklch(0.25 0.012 20); /* ink slab */
+  --color-neutral-content: oklch(0.95 0.005 20);
+
+  --color-info: oklch(0.78 0.12 235); /* royal blue */
+  --color-info-content: oklch(0.19 0.045 240);
+  --color-success: oklch(0.8 0.17 150); /* all-clear green */
+  --color-success-content: oklch(0.19 0.045 155);
+  --color-warning: oklch(0.85 0.16 90); /* star gold */
+  --color-warning-content: oklch(0.22 0.045 90);
+  --color-error: oklch(0.63 0.22 12); /* crimson rose */
+  --color-error-content: oklch(0.14 0.03 12);
+
+  /* P5 has no rounded corners */
+  --radius-selector: 0;
+  --radius-field: 0;
+  --radius-box: 0;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -119,10 +163,22 @@
      ui/Pill's size presets. */
   --text-2xs: 0.6875rem; /* 11px */
   --text-3xs: 0.625rem; /* 10px */
+}
 
-  /* Card-surface radius — the rounded-[10px] family (matrix cards,
-     track popover, sheet action rows) collapses onto this token. */
+/* Card-surface radius — the rounded-[10px] family (matrix cards, track
+   popover, sheet action rows) collapses onto this token. Lives in a
+   non-inline @theme block ON PURPOSE: inline would bake the raw value
+   into the generated utilities, and the per-theme override below
+   ([data-theme='p5-dark'] → 0) would silently never apply.            */
+@theme {
   --radius-card: 0.625rem; /* 10px */
+}
+
+/* p5-dark zeroes the shared card radius (its own daisyUI block already
+   zeroes selector/field/box). Un-layered rule so it beats the @theme
+   emission on :root.                                                  */
+[data-theme='p5-dark'] {
+  --radius-card: 0;
 }
 
 body {
@@ -237,6 +293,64 @@ body {
   --fx-glow-accent:
     0 0 0 1px color-mix(in oklab, var(--color-accent) 50%, transparent),
     0 2px 12px color-mix(in oklab, var(--color-accent) 22%, transparent);
+}
+
+/* p5-dark fx vars — REQUIRED even at palette level: fx utilities read
+   per-theme vars, and an undefined var() inside .fx-shell-bg's layered
+   background-image invalidates the whole declaration (blank shell).
+   Recipes mirror mars-dark's token-derived color-mix() set, so they
+   auto-recolor to red/ink; the one real difference is --fx-art — this
+   theme has no baked nebula SVG (a transparent gradient keeps the
+   layer slot valid). The Calling Card geometry fork replaces this
+   block's *consumers* later; the vars stay.                          */
+[data-theme='p5-dark'] {
+  --fx-star-faint: color-mix(
+    in oklab,
+    var(--color-base-content) 14%,
+    transparent
+  );
+  --fx-star-a: color-mix(in oklab, var(--color-primary) 24%, transparent);
+  --fx-star-b: color-mix(in oklab, var(--color-secondary) 22%, transparent);
+  --fx-star-core: color-mix(in oklab, var(--color-primary) 50%, transparent);
+  --fx-star-halo: color-mix(in oklab, var(--color-primary) 10%, transparent);
+  --fx-glint: color-mix(in oklab, var(--color-primary) 40%, transparent);
+  --fx-art: linear-gradient(transparent, transparent);
+  --fx-bloom-1: color-mix(in oklab, var(--color-primary) 14%, transparent);
+  --fx-bloom-2: color-mix(in oklab, var(--color-secondary) 12%, transparent);
+  --fx-bloom-3: color-mix(in oklab, var(--color-accent) 9%, transparent);
+  --fx-bloom-4: color-mix(in oklab, var(--color-info) 8%, transparent);
+  --fx-bracket: color-mix(in oklab, var(--color-primary) 60%, transparent);
+  --fx-panel-bg: color-mix(in oklab, var(--color-base-100) 74%, transparent);
+  --fx-panel-bg-solid: color-mix(
+    in oklab,
+    var(--color-base-100) 94%,
+    var(--color-base-300)
+  );
+  --fx-panel-border: color-mix(in oklab, var(--color-primary) 16%, transparent);
+  --fx-edge-light: color-mix(
+    in oklab,
+    var(--color-base-content) 12%,
+    transparent
+  );
+  --fx-card-border: color-mix(
+    in oklab,
+    var(--color-base-content) 10%,
+    transparent
+  );
+  --fx-shadow-ambient: 0 8px 24px oklch(0.05 0.01 20 / 0.5);
+  --fx-shadow-hover: 0 6px 18px oklch(0.05 0.01 20 / 0.55);
+  --fx-glow-primary:
+    0 0 0 1px color-mix(in oklab, var(--color-primary) 40%, transparent),
+    0 0 14px color-mix(in oklab, var(--color-primary) 32%, transparent),
+    0 0 42px color-mix(in oklab, var(--color-primary) 12%, transparent);
+  --fx-glow-primary-hi:
+    0 0 0 1px color-mix(in oklab, var(--color-primary) 60%, transparent),
+    0 0 20px color-mix(in oklab, var(--color-primary) 45%, transparent),
+    0 0 56px color-mix(in oklab, var(--color-primary) 18%, transparent);
+  --fx-glow-accent:
+    0 0 0 1px color-mix(in oklab, var(--color-accent) 40%, transparent),
+    0 0 14px color-mix(in oklab, var(--color-accent) 30%, transparent),
+    0 0 42px color-mix(in oklab, var(--color-accent) 12%, transparent);
 }
 
 /* All fx-* classes live in the components layer so any Tailwind
@@ -718,6 +832,13 @@ body {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
+/* p5-dark: paper-white ring — a primary(red) ring would vanish on the
+   theme's red fills; base-content reads on every surface (≥ 3:1).     */
+[data-theme='p5-dark']
+  :is(a, button, input, select, textarea, [role='button']):focus-visible {
+  outline: 2px solid var(--color-base-content);
+  outline-offset: 2px;
+}
 
 /* ── Keyframes (transform/opacity only — composite-friendly) ── */
 @keyframes fx-pulse-opacity {
@@ -809,6 +930,24 @@ body {
   );
   --login-glow-rose: color-mix(in oklab, var(--color-accent) 5%, transparent);
   --login-btn-hover-shadow: 0 4px 16px oklch(0.35 0.04 265 / 0.12);
+}
+
+/* p5-dark: the login page renders with the device's chosen theme too
+   (cookie is a device preference) — mars-dark recipes, auto-recolored. */
+[data-theme='p5-dark'] {
+  --login-grid-color: color-mix(
+    in oklab,
+    var(--color-base-content) 2%,
+    transparent
+  );
+  --login-glow-cyan: color-mix(in oklab, var(--color-primary) 7%, transparent);
+  --login-glow-purple: color-mix(
+    in oklab,
+    var(--color-secondary) 5%,
+    transparent
+  );
+  --login-glow-rose: color-mix(in oklab, var(--color-accent) 4%, transparent);
+  --login-btn-hover-shadow: 0 4px 24px oklch(0.05 0.01 20 / 0.4);
 }
 
 .login-google-btn:hover {

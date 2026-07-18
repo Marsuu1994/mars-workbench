@@ -27,7 +27,7 @@ Open [http://localhost:3000](http://localhost:3000)
 
 - **"Mission Control HUD"** (`design/design-language/` — `mars-dark.md` / `mars-light.md` + shared skeleton in its README): two custom daisyUI themes — `mars-dark` (default, night ops deck) / `mars-light` ("dawn on Mars" — warm sand, not white) — on seven OKLCH hues with verified contrast, plus the token-derived `fx-*` utility layer (cosmic shell, console chips, status LEDs, telemetry type, glow CTAs, AI holo). Palette changes must follow the sync points listed in the design doc
 - **Design Console** (`/design`): component gallery tabbed by layer (Tokens & FX · UI · Application · Domain) plus per-feature scenario pages (`/design/scenarios`: board, priorities, plan, AI-assisted plan creation, auth) rendering the same screen components as the live pages with pinned fixture states — the source of truth for implemented UI, structurally unable to drift from production; unbuilt designs are explored in `design/mockup/future-work/`
-- **Open proposal**: Persona 5 "Calling Card" third theme — spec `design/design-language/p5-dark.md`, demo `design/mockup/future-work/mockup-p5-design-system.html` (see tracker, Cross-cutting → Future)
+- **`p5-dark` ("P5 dark")**: third theme, shipped **palette-level** — full token set, zero radius, paper focus ring (spec `design/design-language/p5-dark.md`); the full Calling Card fx skin (oblique cuts, hard offsets, Anton) is a tracked follow-up with demo `design/mockup/future-work/mockup-p5-design-system.html`
 
 ### Board
 
@@ -52,7 +52,7 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ### Auth
 
-- Supabase Auth (Google OAuth) with route protection, themed login page, collapsible workspace sidebar (Board / Priorities / Plan) and 4-tab mobile dock (Settings via dock only — see `design/flows/auth.md`). Deployed on Vercel
+- Supabase Auth (Google OAuth) with route protection, themed login page, collapsible workspace sidebar (Board / Priorities / Plan) and 4-tab mobile dock. **Settings is a responsive overlay** (dock tab / sidebar user row → same sheet): theme picker (Sora light / Sora dark / P5 dark, cookie-persisted, explicit choice — no time-based auto-switch) + two-step confirm sign-out. Deployed on Vercel
 
 Open items: see [design/tracker.md](./design/tracker.md).
 
@@ -78,6 +78,13 @@ Open items: see [design/tracker.md](./design/tracker.md).
 - [x] Deploy app on Vercel
 
 ## Update Log
+
+### 2026-07-18
+
+- **Settings overlay + user theme switching shipped** (desktop + mobile): the mobile-only `/kanban/settings` page is gone — the dock's 4th tab and the desktop sidebar user row now open one responsive `SettingsSheet` (mobile bottom sheet / desktop centered modal) with identity card, three-theme picker, two-step confirm sign-out (new generic `ui/ConfirmButton`), and version line. Theme choice applies instantly (`data-theme` stamp) and persists via SSR-readable cookie (`updateThemeAction`) — no flash on reload; default for new users is `mars-dark`; the old clock-based auto-switcher (`ThemeProvider`, 18:00–06:00) is removed (`ServiceWorkerRegistrar` keeps the PWA registration)
+- **`p5-dark` theme shipped palette-level**: third daisyUI theme block (Calling Card palette, zero radius incl. the relocated `--radius-card` token, paper-white focus ring, its own fx/login var blocks); the full P5 fx-geometry skin stays a tracked follow-up
+- Auth scenario updated minimally (settings sheet content inline + pressed dock trigger); full scenario/gallery pass is the next step
+
 
 ### 2026-07-17
 - **Scenario frames now have a real height model** — the `/design` layout previously sat on an indefinite `min-h-dvh`, so every `h-full` inside a frame collapsed: board columns rendered short, the desktop backlog disappeared entirely, and modal backdrops dimmed only half the frame. The shell is rebuilt like AppShell (definite `h-dvh` background layer + an inner scroller that resets on navigation), and frames split into two display types: **fill** (screen-level tabs only — a 1:1 viewport-bounded stand-in for the app page: columns stretch, backlog rail/panel shows, matrix fills) and **fit** (everything standalone — empty states, mobile sheets, inline modal panels: content height + generous padding). Overlay scenarios (task modal, review changes, AI chat) paint the dim on the frame itself so it always covers the whole box; the AI-chat panel now mirrors the live modal's 700px box

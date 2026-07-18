@@ -9,12 +9,15 @@ import {
   Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
 import {cn} from '@/components/ui/cn';
+import {useSettingsStore} from '@/store/settingsStore';
 
 interface BottomTabBarProps {
   user: {name: string; email: string} | null;
   activePlanId: string | null;
   /** Design gallery/scenario override — defaults to the live route. */
   pathname?: string;
+  /** Design gallery/scenario override — defaults to the settings store. */
+  settingsOpen?: boolean;
   /** Extra classes on the dock (AppShell passes md:hidden). */
   className?: string;
 }
@@ -23,10 +26,14 @@ export const BottomTabBar = ({
   user,
   activePlanId,
   pathname: pathnameProp,
+  settingsOpen: settingsOpenProp,
   className,
 }: BottomTabBarProps) => {
   const livePathname = usePathname();
   const pathname = pathnameProp ?? livePathname;
+  const openSettings = useSettingsStore(s => s.open);
+  const storeSettingsOpen = useSettingsStore(s => s.isOpen);
+  const settingsOpen = settingsOpenProp ?? storeSettingsOpen;
 
   if (!user || !pathname.startsWith('/kanban')) {
     return null;
@@ -35,7 +42,6 @@ export const BottomTabBar = ({
   const isBoard = pathname === '/kanban';
   const isPriorities = pathname.startsWith('/kanban/priorities');
   const isPlan = pathname.startsWith('/kanban/plans');
-  const isSettings = pathname.startsWith('/kanban/settings');
 
   return (
     <div className={cn('dock fx-chrome fx-hairline-top', className)}>
@@ -59,10 +65,17 @@ export const BottomTabBar = ({
         <PencilSquareIcon className="size-5" />
         <span className="dock-label">Plan</span>
       </Link>
-      <Link href="/kanban/settings" className={isSettings ? 'dock-active' : ''}>
+      {/* Trigger, not a route: pressed tint only while the sheet is open
+          (an action, not a location — never dock-active). */}
+      <button
+        type="button"
+        aria-haspopup="dialog"
+        onClick={openSettings}
+        className={cn(settingsOpen && 'text-base-content')}
+      >
         <Cog6ToothIcon className="size-5" />
         <span className="dock-label">Settings</span>
-      </Link>
+      </button>
     </div>
   );
 };

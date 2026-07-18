@@ -27,12 +27,10 @@ Same as login — Supabase auto-creates a user record on first Google sign-in.
 
 ## Theme Change Flow
 
-> **Status: approved exploration, implementation pending.** The Settings overlay
-> itself (entry points, sheet/modal presentation, panel layout) is UI, not a flow —
-> it's documented by `design/mockup/future-work/temp-settings-v2.html` (the auth
-> scenario takes over once implemented). Flows below cover only its side-effecting
-> actions. Landing this deletes the `/kanban/settings` route — settings becomes
-> overlay-only on both breakpoints.
+> The Settings overlay itself (entry points, sheet/modal presentation, panel
+> layout) is UI, not a flow — see the auth scenario (`/design/scenarios/auth`).
+> Flows below cover only its side-effecting actions. `/kanban/settings` no longer
+> exists — settings is overlay-only on both breakpoints.
 
 **Trigger:** User selects a theme card in the Settings overlay — Sora light (`mars-light`) / Sora dark (`mars-dark`) / P5 dark (`p5-dark`, per the Calling Card proposal)
 
@@ -46,7 +44,7 @@ Rules: default with no cookie is `mars-dark` (first-time users); theme is an exp
 
 ## Sign-Out Flow
 
-**Trigger:** User confirms the two-step sign-out row in the Settings overlay — the arm/confirm interaction itself is UI, see the exploration mockup *(pending — today: the mobile settings page button / desktop sidebar icon, single tap)*
+**Trigger:** User confirms the two-step sign-out row in the Settings overlay (the arm/confirm interaction itself is UI — see the auth scenario)
 
 **Steps:**
 
