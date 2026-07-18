@@ -2,13 +2,23 @@
 
 import {useEffect, useRef, useState, type ReactNode} from 'react';
 import {usePathname} from 'next/navigation';
-import {SunIcon, MoonIcon} from '@heroicons/react/24/outline';
-import {THEME_DARK, THEME_LIGHT} from './constants';
+import {SunIcon, MoonIcon, EyeIcon} from '@heroicons/react/24/outline';
+import type {ThemeName} from '@/utils/theme';
+import {THEME_CYCLE, THEME_CYCLE_LABELS} from './constants';
+
+/** Per-theme toggle icon (shown for the theme the next click applies). */
+const THEME_ICONS: Record<ThemeName, typeof SunIcon> = {
+  'mars-dark': MoonIcon,
+  'mars-light': SunIcon,
+  'p5-dark': EyeIcon,
+};
 
 /**
  * Theme scope for every /design page: owns the previewed theme (independent
- * of the app's clock-driven ThemeProvider) and floats the toggle bottom-right
- * so it stays reachable from the gallery and every scenario page alike.
+ * of the app's cookie-driven theme) and floats the cycle button bottom-right
+ * so it stays reachable from the gallery and every scenario page alike. One
+ * click advances to the next theme (mars-dark → mars-light → p5-dark → …);
+ * the button previews what the click applies.
  *
  * Two layers, like AppShell: the outer div is a definite-height (h-dvh)
  * non-scrolling box — fx-shell-bg paints on a ::before with inset:0, which
@@ -17,8 +27,10 @@ import {THEME_DARK, THEME_LIGHT} from './constants';
  * frames resolve their flex-1/h-full chains exactly like a real app page.
  */
 export const DesignShell = ({children}: {children: ReactNode}) => {
-  const [theme, setTheme] = useState<string>(THEME_DARK);
-  const isDark = theme === THEME_DARK;
+  const [themeIndex, setThemeIndex] = useState(0);
+  const theme = THEME_CYCLE[themeIndex];
+  const nextTheme = THEME_CYCLE[(themeIndex + 1) % THEME_CYCLE.length];
+  const NextIcon = THEME_ICONS[nextTheme];
   const scrollerRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
@@ -35,15 +47,11 @@ export const DesignShell = ({children}: {children: ReactNode}) => {
     >
       <button
         type="button"
-        onClick={() => setTheme(isDark ? THEME_LIGHT : THEME_DARK)}
+        onClick={() => setThemeIndex(i => (i + 1) % THEME_CYCLE.length)}
         className="btn btn-sm btn-outline fixed right-4 bottom-4 z-50 bg-base-100/80 backdrop-blur"
       >
-        {isDark ? (
-          <SunIcon className="size-4" />
-        ) : (
-          <MoonIcon className="size-4" />
-        )}
-        {isDark ? 'Light' : 'Dark'}
+        <NextIcon className="size-4" />
+        {THEME_CYCLE_LABELS[nextTheme]}
       </button>
       <div
         ref={scrollerRef}

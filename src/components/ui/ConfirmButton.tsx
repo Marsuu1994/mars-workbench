@@ -8,22 +8,22 @@ interface ConfirmButtonProps {
   icon?: ReactNode;
   /** Rest-state row text (e.g. "Sign out") */
   label: ReactNode;
-  /** Armed-state prompt text (e.g. "Sign out?") */
+  /** Triggered-state prompt text (e.g. "Sign out?") */
   confirmPrompt: ReactNode;
-  /** Armed-state confirm button text */
+  /** Triggered-state confirm button text */
   confirmLabel: ReactNode;
-  /** Armed-state cancel button text */
+  /** Triggered-state cancel button text */
   cancelLabel: ReactNode;
   onConfirm: () => void | Promise<void>;
-  /** Design gallery/scenario override — defaults to internal armed state. */
-  armed?: boolean;
+  /** Design gallery/scenario override — defaults to internal triggered state. */
+  triggered?: boolean;
   className?: string;
 }
 
 /**
  * Two-step destructive action row: a plain button at rest; the first click
- * arms an inline confirm (cancel / confirm), the second executes. Parents
- * reset a stale armed state by remounting (key). Styled on the error
+ * triggers an inline confirm (cancel / confirm), the second executes. Parents
+ * reset a stale triggered state by remounting (key). Styled on the error
  * channel; theme-agnostic and reusable for any confirm-before-doing action.
  */
 export const ConfirmButton = ({
@@ -33,12 +33,12 @@ export const ConfirmButton = ({
   confirmLabel,
   cancelLabel,
   onConfirm,
-  armed: armedProp,
+  triggered: triggeredProp,
   className,
 }: ConfirmButtonProps) => {
-  const [isArmed, setIsArmed] = useState(false);
+  const [isTriggered, setIsTriggered] = useState(false);
   const [isPending, setIsPending] = useState(false);
-  const armed = armedProp ?? isArmed;
+  const triggered = triggeredProp ?? isTriggered;
 
   const handleConfirm = async () => {
     setIsPending(true);
@@ -52,11 +52,11 @@ export const ConfirmButton = ({
   const rowBase =
     'flex w-full items-center gap-2.5 rounded-card border px-3.5 py-3 text-sm font-semibold text-error transition-colors';
 
-  if (!armed) {
+  if (!triggered) {
     return (
       <button
         type="button"
-        onClick={() => setIsArmed(true)}
+        onClick={() => setIsTriggered(true)}
         className={cn(
           rowBase,
           'cursor-pointer justify-center bg-error/5 border-error/25 hover:bg-error/10 hover:border-error',
@@ -76,7 +76,7 @@ export const ConfirmButton = ({
       <span className="ml-auto flex items-center gap-2">
         <button
           type="button"
-          onClick={() => setIsArmed(false)}
+          onClick={() => setIsTriggered(false)}
           disabled={isPending}
           className="cursor-pointer rounded-card border border-base-content/15 px-3 py-1 text-xs font-semibold text-base-content/70 transition-colors hover:border-base-content/40 disabled:opacity-40"
         >

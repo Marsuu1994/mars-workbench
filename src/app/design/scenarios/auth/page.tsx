@@ -13,13 +13,15 @@ const AUTH_SCENARIOS: ScenarioTab[] = [
     content: <LoginScenario />,
   },
   {
-    label: 'Settings sheet (mobile)',
-    title: 'Settings sheet (mobile)',
-    note: 'The settings overlay content (identity, theme picker, two-step sign-out) as the mobile sheet presents it, above the dock with its Settings trigger pressed.',
+    label: 'Settings overlay',
+    title: 'Settings overlay — both presentations',
+    note: 'One OverlayShell responsive overlay, two breakpoint presentations: the mobile bottom sheet (rest state, dock trigger pressed) and the desktop centered modal (sign-out pinned in its confirm state).',
+    display: 'fit',
     content: (
-      <div className="flex h-full flex-col bg-base-200/20 p-3">
-        {/* [contain:layout] pins the fixed dock to this phone column. */}
-        <div className="relative mx-auto flex min-h-0 w-full max-w-[430px] flex-1 flex-col overflow-hidden rounded-2xl border border-base-content/10 bg-base-100 shadow-lg [contain:layout]">
+      <div className="flex flex-wrap items-start justify-center gap-8 p-4">
+        {/* Mobile: bottom-sheet presentation above the pressed dock trigger.
+            [contain:layout] pins the fixed dock to this phone column. */}
+        <div className="relative flex h-[560px] w-full max-w-[390px] flex-col overflow-hidden rounded-2xl border border-base-content/10 bg-base-100 shadow-lg [contain:layout]">
           <div className="min-h-0 flex-1 overflow-y-auto p-4 pb-16">
             <SettingsScenario />
           </div>
@@ -29,6 +31,10 @@ const AUTH_SCENARIOS: ScenarioTab[] = [
             pathname="/kanban"
             settingsOpen
           />
+        </div>
+        {/* Desktop: centered-modal presentation, sign-out confirm pinned. */}
+        <div className="fx-panel-solid w-full max-w-[430px] rounded-box p-6">
+          <SettingsScenario signOutTriggered />
         </div>
       </div>
     ),
