@@ -80,4 +80,3 @@ Error presentation is unstyled or ad-hoc across the app (the AI chat's red alert
 - [ ] Phone notifications for unfinished tasks
 - [ ] LLM-generated motivational messages
 - [ ] Evaluate Storybook vs. the in-app `/design` gallery + scenarios as the long-term UI workbench
-- [ ] `p5-dark` full Calling Card skin — the theme shipped palette-level (tokens, zero radius, focus ring); remaining: the fx-\* geometry fork (oblique cuts, hard offsets, halftone shell), Anton display voice + new fx utilities, chrome markup pass. Spec `design/design-language/p5-dark.md`; demo `design/mockup/future-work/mockup-p5-design-system.html`
