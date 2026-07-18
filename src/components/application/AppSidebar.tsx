@@ -6,6 +6,7 @@ import Link from 'next/link';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
+  Cog6ToothIcon,
   Squares2X2Icon,
   TableCellsIcon,
   PencilSquareIcon,
@@ -200,7 +201,7 @@ export const AppSidebar = ({
             {user.email}
           </div>
         </div>
-        <ChevronRightIcon
+        <Cog6ToothIcon
           className={`h-4 w-4 text-base-content/40 flex-shrink-0 ${textOpacity}`}
         />
       </button>

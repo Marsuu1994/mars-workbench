@@ -79,6 +79,7 @@ Implemented UI is documented in-app by the Design Console (`/design`): a compone
 - **Frame modes**: `fill` (default) is for screen-level tabs only — a 1:1 viewport-bounded stand-in for the page inside AppShell's `<main>`. Everything standalone (empty states, sheets, inline modal panels) is `fit` — content height + padding — and/or `overlay` for a dimmed modal backdrop.
 - **Live-feel, no side effects**: frames wrap content in an `InteractionShield` — hover and scroll stay live; clicks/submits/drag-starts are swallowed so wired handlers can never fire against fixture ids.
 - **Modals render inline** via their extracted `*Panel`/`*Content` components (the live `OverlayShell` top-layer dialog would escape the frame's clipping).
+- **One tab, one state**: each scenario tab pins exactly one fixture/state of the rendered component (e.g. the settings overlay at rest vs with its sign-out confirm triggered) — never compose multiple states into one tab. Breakpoint presentations are not states: mobile and desktop render the same component, so they share a tab rather than getting siblings.
 
 ### Designing New UI
 
