@@ -56,7 +56,7 @@ export const SettingsSheet = ({user, initialTheme}: SettingsSheetProps) => {
       onClose={close}
       dismissOnBackdrop
       closeLabel={t('closeBackdrop')}
-      boxClassName="md:max-w-[430px]"
+      boxClassName="p-0 md:max-w-[430px]"
     >
       {/* key remount resets the armed sign-out state on every open */}
       <SettingsPanel

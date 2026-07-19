@@ -2,11 +2,12 @@
 
 import {useEffect, useRef} from 'react';
 import {useTranslations} from 'next-intl';
-import {SparklesIcon, XMarkIcon} from '@heroicons/react/24/outline';
+import {SparklesIcon} from '@heroicons/react/24/outline';
 import {useAiPlanChatStore} from '@/store/aiPlanChatStore';
 import {useAiPlanChat} from '@/hooks/useAiPlanChat';
 import {Pill} from '@/components/ui/Pill';
 import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
+import {OverlayHeader} from '@/components/ui/overlay/OverlayHeader';
 import {ChatMessage} from './ChatMessage';
 import {ChatInputBar} from './ChatInputBar';
 import {CreateActionBar} from './CreateActionBar';
@@ -50,33 +51,28 @@ export const AiChatModalContent = () => {
   const showCreateBar = latestDraft !== null && !isCreated;
 
   const renderHeader = () => (
-    <div className="fx-hairline-top flex flex-shrink-0 items-center justify-between border-b border-base-content/10 px-5 py-4">
-      <div className="flex items-center gap-2.5">
+    <OverlayHeader
+      icon={
         <span className="flex size-7 items-center justify-center rounded-lg border border-secondary/20 bg-secondary/10 text-secondary">
           <SparklesIcon className="size-3.5" />
         </span>
-        <span className="fx-display text-base font-semibold">
-          {t('modalTitle')}
-        </span>
+      }
+      title={t('modalTitle')}
+      badge={
         <Pill color="secondary" className="rounded-full uppercase">
           {t('betaLabel')}
         </Pill>
-      </div>
-      <button
-        type="button"
-        onClick={close}
-        aria-label={t('closeAria')}
-        className="btn btn-ghost btn-sm btn-square"
-      >
-        <XMarkIcon className="size-5" />
-      </button>
-    </div>
+      }
+      onClose={close}
+      closeLabel={t('closeAria')}
+      className="fx-hairline-top px-6"
+    />
   );
 
   const renderBody = () => (
     <div
       ref={bodyRef}
-      className="flex flex-1 flex-col gap-4 overflow-y-auto p-5"
+      className="flex flex-1 flex-col gap-4 overflow-y-auto px-6 py-5"
     >
       {messages.map((message, index) => (
         <ChatMessage
@@ -100,7 +96,7 @@ export const AiChatModalContent = () => {
     return (
       <>
         {error && (
-          <div className="flex-shrink-0 border-t border-base-content/10 px-5 pt-3">
+          <div className="flex-shrink-0 border-t border-base-content/10 px-6 pt-3">
             <div className="alert alert-error py-2 text-xs">{error}</div>
           </div>
         )}

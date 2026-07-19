@@ -36,6 +36,7 @@ design/                            # Centralized design docs (see design/README.
 ├── tracker.md                     # Consolidated roadmap — open items only
 ├── reference.md                   # Lean lookup tables: server actions, services, DAL
 ├── flows/                         # Per-feature flow docs
+├── spike/                         # Point-in-time spike docs for open questions (see Documentation Style)
 └── mockup/future-work/            # Self-contained HTML explorations of unbuilt designs only
 src/
 ├── proxy.ts                       # Route protection (Supabase session check)
@@ -101,6 +102,7 @@ The living docs — README **Current State**, `design/tracker.md`, and everythin
 - **Length must not scale with diff size.** A bigger change earns a *higher-level* summary, not a longer one — a Current State bullet stays 1–2 lines even as the feature behind it grows.
 - **Edit living docs in place; don't append.** Rewrite the sentence that is now wrong instead of adding a paragraph; an edit keeps the doc's size roughly flat.
 - **Update Log is the pressure valve**: append-only (see Anti-Patterns) and detail-tolerated — record the day's work at whatever length it needs, just lead each bullet with the outcome rather than the operation.
+- **Open questions get a spike doc, not a chat log or a premature refactor.** When a design/tooling question has real tradeoffs and no owner decision yet, write a self-contained doc in `design/spike/` — trigger, options with honest pros/cons, and a concrete implementation plan per option — headed `Status: awaiting owner review` and linked from the tracker item it answers. Spikes are point-in-time proposals, not living docs: they are not updated after the decision; the decision lands in the tracker/Update Log instead.
 
 ## Layers
 

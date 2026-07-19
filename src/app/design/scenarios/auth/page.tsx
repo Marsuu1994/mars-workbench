@@ -17,7 +17,7 @@ const AUTH_SCENARIOS: ScenarioTab[] = [
     display: 'fit',
     content: (
       <div className="flex justify-center p-4">
-        <div className="fx-panel-solid w-full max-w-[430px] rounded-box p-6">
+        <div className="fx-panel-solid w-full max-w-[430px] rounded-box p-0">
           <SettingsScenario />
         </div>
       </div>
@@ -30,7 +30,7 @@ const AUTH_SCENARIOS: ScenarioTab[] = [
     display: 'fit',
     content: (
       <div className="flex justify-center p-4">
-        <div className="fx-panel-solid w-full max-w-[430px] rounded-box p-6">
+        <div className="fx-panel-solid w-full max-w-[430px] rounded-box p-0">
           <SettingsScenario signOutTriggered />
         </div>
       </div>

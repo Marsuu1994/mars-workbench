@@ -23,7 +23,7 @@ export const TaskModalScenario = ({
   template,
   quadrant,
 }: TaskModalScenarioProps) => (
-  <div className="fx-panel-solid rounded-box md:fx-corners w-full max-w-lg p-6 pt-4 md:pt-6">
+  <div className="fx-panel-solid rounded-box md:fx-corners w-full max-w-lg p-0">
     <TaskModalPanel
       mode={mode}
       template={template}

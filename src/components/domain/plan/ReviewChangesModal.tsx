@@ -15,7 +15,7 @@ import type {TaskSize} from '@/utils/enums';
 import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {Pill, type PillColor} from '@/components/ui/Pill';
 import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
-import {SheetCloseButton} from '@/components/ui/overlay/SheetCloseButton';
+import {OverlayHeader} from '@/components/ui/overlay/OverlayHeader';
 import {SubmitButton} from '@/components/ui/form/SubmitButton';
 
 /** Shared identity for any template referenced in the review. */
@@ -227,10 +227,12 @@ export function ReviewChangesPanel({
   );
 
   const renderHeader = () => (
-    <div className="shrink-0 flex items-center justify-between -mx-6 px-6 pb-4 mb-4 border-b border-base-content/10">
-      <h3 className="text-lg font-semibold">{tr('title')}</h3>
-      <SheetCloseButton onClick={onClose} label={tr('cancel')} />
-    </div>
+    <OverlayHeader
+      title={tr('title')}
+      onClose={onClose}
+      closeLabel={tr('cancel')}
+      className="px-6"
+    />
   );
 
   const renderAdhocGroup = (
@@ -260,7 +262,7 @@ export function ReviewChangesPanel({
   );
 
   const renderBody = () => (
-    <div className="flex-1 overflow-y-auto -mx-6 px-6">
+    <div className="flex-1 overflow-y-auto px-6 pt-4">
       <div className="flex flex-col gap-4">
         {added.length > 0 && (
           <ChangeSection
@@ -396,7 +398,7 @@ export function ReviewChangesPanel({
   );
 
   const renderFooter = () => (
-    <div className="modal-action shrink-0 -mx-6 mt-0 border-t border-base-content/10 px-6 pt-4">
+    <div className="modal-action shrink-0 mt-0 border-t border-base-content/10 px-6 pt-4 pb-6">
       <button
         type="button"
         className="btn btn-ghost flex-1 md:flex-none"
@@ -440,7 +442,7 @@ export function ReviewChangesModal({
       isOpen={isOpen}
       onClose={panelProps.onClose}
       closeLabel={tr('cancel')}
-      boxClassName="max-w-lg flex flex-col overflow-hidden max-h-[85vh] pt-4 md:pt-6 md:max-h-[calc(100vh-5em)]"
+      boxClassName="max-w-lg flex flex-col overflow-hidden max-h-[85vh] p-0 md:max-h-[calc(100vh-5em)]"
     >
       <ReviewChangesPanel {...panelProps} />
     </OverlayShell>
