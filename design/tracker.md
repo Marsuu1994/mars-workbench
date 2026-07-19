@@ -45,19 +45,18 @@ Single source of truth for open ideas and todos across the app — open items on
 
 - [ ] Track popover on a bottom card of a scrollable quadrant needs scrolling into view (absolute positioning inside the scroll container) — revisit with a portal/fixed positioning approach
 
-## Journal
+## Dump
 
 ### High
 
-- [ ] Implement Journal V1 (**pending design approval**) — quick capture + LLM auto-categorization + day-grouped infinite feed at `/kanban/journal`; design in `design/flows/journal.md` + `design/baseline.md`, exploration mockup `design/mockup/future-work/mockup-journal.html`. Landing V1 adds `/design/scenarios/journal` and deletes the exploration (per `/new-flow`)
+- [ ] Implement Dump V1 (**pending design approval**) — quick capture + day-grouped infinite feed at `/kanban/dump`, storage-only; design in `design/flows/dump.md` + `design/baseline.md`, exploration mockup `design/mockup/future-work/mockup-dump.html`. Landing V1 adds `/design/scenarios/dump` and deletes the exploration (per `/new-flow`)
 
 ### Future
 
-- [ ] Entry edit + delete (V1 is append-only; recategorize is the only mutation)
-- [ ] Category management — rename / merge / archive, custom colors
+- [ ] LLM batch processing of dumped entries — what it does is TBD (classify / summarize / extract tasks); walks `isProcessed = false` entries and marks them handled
+- [ ] Entry edit + delete (V1 is append-only)
 - [ ] Full-text search across entries
 - [ ] PWA "New entry" shortcut / share-target for one-tap capture from the home screen
-- [ ] Periodic LLM digest — weekly summary of what accumulated per category
 
 ## Auth
 

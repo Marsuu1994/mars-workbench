@@ -3,15 +3,14 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Kanban — Journal (Quick Capture + Feed)</title>
+<title>Kanban — Dump (Quick Capture + Feed)</title>
 <style>
   /*
-   * Self-contained (future-work convention): the shared mockup stylesheets were
-   * retired with the scenario-first workflow, so the theme tokens and the used
-   * subset of the old shared styles are inlined below.
+   * Self-contained (future-work convention): theme tokens and the used subset
+   * of the retired shared mockup styles are inlined below.
    */
 
-  /* ══ Theme tokens — Mars Dark / Mars Light (from the retired mockup-theme.css) ══ */
+  /* ══ Theme tokens — Mars Dark / Mars Light ══ */
 
   /* ── Light theme (default) ── */
   :root, [data-mockup-theme="light"] {
@@ -33,32 +32,20 @@
 
     --m-blue: #006a9e;
     --m-blue-light: #3b93c4;
-    --m-purple: #6e43bf;
     --m-orange: #ac5107;
     --m-red: #c2272d;
-    --m-pink: #c13a86;
     --m-teal: #0e6f81;
-    --m-olive: #815709;
-    --m-green: #05773b;
 
-    --m-blue-a06: rgba(0,106,158,0.06);
     --m-blue-a10: rgba(0,106,158,0.1);
-    --m-blue-a12: rgba(0,106,158,0.12);
     --m-blue-a20: rgba(0,106,158,0.2);
     --m-blue-a25: rgba(0,106,158,0.25);
     --m-teal-bg: rgba(14,111,129,0.12);
-    --m-pink-bg: rgba(193,58,134,0.12);
-    --m-olive-bg: rgba(129,87,9,0.15);
-    --m-orange-bg: rgba(172,81,7,0.12);
-    --m-red-bg: rgba(194,39,45,0.12);
-    --m-purple-bg: rgba(110,67,191,0.1);
     --m-red-a10: rgba(194,39,45,0.1);
 
     --m-disabled-bg: #ece2d0;
 
     --m-shadow: rgba(74,50,33,0.12);
     --m-shadow-heavy: rgba(74,50,33,0.18);
-    --m-overlay: rgba(42,28,14,0.38);
   }
 
   /* ── Dark theme ── */
@@ -81,32 +68,20 @@
 
     --m-blue: #69c6fa;
     --m-blue-light: #8fd5fc;
-    --m-purple: #b296ff;
     --m-orange: #fb9344;
     --m-red: #fd736d;
-    --m-pink: #f27ab8;
     --m-teal: #2ce0f1;
-    --m-olive: #f9c13b;
-    --m-green: #50dc8e;
 
-    --m-blue-a06: rgba(105,198,250,0.08);
     --m-blue-a10: rgba(105,198,250,0.15);
-    --m-blue-a12: rgba(105,198,250,0.18);
     --m-blue-a20: rgba(105,198,250,0.25);
     --m-blue-a25: rgba(105,198,250,0.3);
     --m-teal-bg: rgba(44,224,241,0.15);
-    --m-pink-bg: rgba(242,122,184,0.15);
-    --m-olive-bg: rgba(249,193,59,0.18);
-    --m-orange-bg: rgba(251,147,68,0.15);
-    --m-red-bg: rgba(253,115,109,0.15);
-    --m-purple-bg: rgba(178,150,255,0.18);
     --m-red-a10: rgba(253,115,109,0.15);
 
     --m-disabled-bg: #1a2436;
 
     --m-shadow: rgba(2,6,16,0.5);
     --m-shadow-heavy: rgba(2,6,16,0.65);
-    --m-overlay: rgba(2,6,16,0.6);
   }
 
   /* ── Theme toggle button ── */
@@ -127,7 +102,7 @@
   }
   .mockup-theme-toggle svg { width: 20px; height: 20px; }
 
-  /* ══ Shared chrome — used subset of the retired styles.css ══ */
+  /* ══ Shared chrome — used subset of the retired shared styles ══ */
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -254,9 +229,9 @@
   .screen.active { display: flex; }
 
   /* ════════════════════════════════════════════
-     Journal page — capture console + categorized feed
+     Dump page — capture console + plain feed
      ════════════════════════════════════════════ */
-  .journal-page { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .dump-page { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
   /* ── Page identity bar (same pattern as Priorities) ── */
   .page-title-bar {
@@ -277,13 +252,13 @@
   .page-title-count-num { font-size: 13px; font-weight: 700; color: var(--m-text); }
 
   /* ── Scrolling column ── */
-  .journal-scroll { flex: 1; overflow-y: auto; min-height: 0; }
-  .journal-col {
+  .dump-scroll { flex: 1; overflow-y: auto; min-height: 0; }
+  .dump-col {
     max-width: 720px; margin: 0 auto; padding: 20px 24px 48px;
     display: flex; flex-direction: column; gap: 16px;
   }
 
-  /* ── Composer (the capture console) ── */
+  /* ── Composer (the dump console) ── */
   .composer {
     background: var(--m-surface-raised); border: 1px solid var(--m-border);
     border-radius: 14px; padding: 14px 14px 10px;
@@ -304,24 +279,6 @@
   }
   .composer-foot .btn { margin-left: auto; padding: 8px 18px; }
 
-  /* ── Category filter row ── */
-  .filter-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-  .filter-chip {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 5px 11px; border-radius: 999px; cursor: pointer;
-    border: 1px solid var(--m-border); background: var(--m-surface);
-    font-size: 12px; font-weight: 500; color: var(--m-text-secondary);
-    transition: border-color 0.15s, background 0.15s;
-  }
-  .filter-chip:hover { border-color: var(--m-border-hover); }
-  .filter-chip.active { background: var(--m-blue-a10); border-color: var(--m-blue); color: var(--m-blue); font-weight: 600; }
-  .filter-chip .f-count {
-    font-size: 10px; font-weight: 600; color: var(--m-text-muted);
-    font-family: ui-monospace, "Geist Mono", monospace;
-  }
-  .filter-chip.active .f-count { color: var(--m-blue); opacity: 0.75; }
-  .f-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-
   /* ── Feed ── */
   .feed { display: flex; flex-direction: column; gap: 10px; }
   .day-head {
@@ -336,12 +293,11 @@
 
   .entry-card {
     background: var(--m-surface-raised); border: 1px solid var(--m-border);
-    border-radius: 10px; padding: 12px 14px; position: relative;
+    border-radius: 10px; padding: 12px 14px;
     display: flex; flex-direction: column; gap: 6px;
     transition: border-color 0.15s;
   }
   .entry-card:hover { border-color: var(--m-border-hover); }
-  .entry-top { display: flex; align-items: center; gap: 8px; }
   .entry-time {
     font-family: ui-monospace, "Geist Mono", monospace;
     font-size: 11px; font-weight: 500; color: var(--m-text-muted); letter-spacing: 0.04em;
@@ -356,79 +312,6 @@
   }
   .show-more:hover { text-decoration: underline; }
 
-  /* ── Category chips (on cards + picker) ── */
-  .cat-chip {
-    display: inline-flex; align-items: center; gap: 5px; margin-left: auto;
-    height: 20px; padding: 0 9px; border-radius: 999px; cursor: pointer; border: 1px solid transparent;
-    font-family: ui-monospace, "Geist Mono", monospace;
-    font-size: 10px; font-weight: 600; letter-spacing: 0.06em;
-    transition: filter 0.15s, border-color 0.15s;
-  }
-  .cat-chip:hover { border-color: currentColor; }
-  .cat-chip .ai-mark { font-size: 9px; opacity: 0.75; } /* ✦ = sorted by AI; manual chips render plain */
-  .cat-ideas   { background: var(--m-blue-a12);  color: var(--m-blue); }
-  .cat-journal { background: var(--m-teal-bg);   color: var(--m-teal); }
-  .cat-work    { background: var(--m-orange-bg); color: var(--m-orange); }
-  .cat-mood    { background: var(--m-pink-bg);   color: var(--m-pink); }
-  .cat-reading { background: var(--m-olive-bg);  color: var(--m-olive); }
-  .cat-unsorted { background: var(--m-hover-bg); color: var(--m-text-tertiary); }
-
-  /* Classifying — the violet AI channel, pulsing while the background call runs */
-  .cat-classifying { background: var(--m-purple-bg); color: var(--m-purple); cursor: default; }
-  .cat-classifying:hover { border-color: transparent; }
-  .cat-classifying .pulse-dot {
-    width: 6px; height: 6px; border-radius: 50%; background: var(--m-purple);
-    animation: jr-pulse 1.6s ease-in-out infinite;
-  }
-  @keyframes jr-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
-
-  /* ── Recategorize popover (desktop) ── */
-  .entry-card.active-pop { border-color: var(--m-blue); box-shadow: 0 0 0 2px var(--m-blue-a20); z-index: 60; }
-  .cat-pop {
-    position: absolute; top: 36px; right: 12px; z-index: 70;
-    background: var(--m-surface-raised); border: 1px solid var(--m-border);
-    border-radius: 10px; padding: 10px 12px; min-width: 210px;
-    box-shadow: 0 8px 24px var(--m-shadow-heavy);
-    display: flex; flex-direction: column; gap: 4px;
-  }
-  .cat-pop::before {
-    content: ''; position: absolute; top: -6px; right: 22px; width: 10px; height: 10px;
-    background: var(--m-surface-raised); border-left: 1px solid var(--m-border);
-    border-top: 1px solid var(--m-border); rotate: 45deg;
-  }
-  .cat-pop-title {
-    font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
-    color: var(--m-text-tertiary); margin-bottom: 2px;
-  }
-  .cat-pop-item {
-    display: flex; align-items: center; gap: 8px; padding: 7px 9px; border-radius: 6px;
-    border: 1px solid var(--m-border); background: var(--m-surface-raised);
-    cursor: pointer; font-size: 12px; font-weight: 500; color: var(--m-text); transition: all 0.15s;
-  }
-  .cat-pop-item:hover { border-color: var(--m-blue); background: var(--m-blue-a06); }
-  .cat-pop-item.current { border-color: var(--m-blue); background: var(--m-blue-a06); }
-  .cat-pop-item .p-count {
-    margin-left: auto; font-size: 10px; color: var(--m-text-muted);
-    font-family: ui-monospace, "Geist Mono", monospace;
-  }
-  .cat-pop-item .p-check { width: 14px; height: 14px; color: var(--m-blue); flex-shrink: 0; }
-  .cat-pop-divider { height: 1px; background: var(--m-border); margin: 4px 0; }
-  .cat-pop-new { display: flex; gap: 6px; }
-  .cat-pop-new input {
-    flex: 1; min-width: 0; padding: 7px 9px; border-radius: 6px; outline: none;
-    border: 1px solid var(--m-border); background: var(--m-surface);
-    color: var(--m-text); font-size: 12px;
-  }
-  .cat-pop-new input::placeholder { color: var(--m-text-muted); }
-  .cat-pop-new input:focus { border-color: var(--m-blue); }
-  .cat-pop-new button {
-    width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--m-border);
-    background: var(--m-surface-raised); color: var(--m-text-secondary); cursor: pointer;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  }
-  .cat-pop-new button:hover { border-color: var(--m-blue); color: var(--m-blue); }
-  .cat-pop-new button svg { width: 14px; height: 14px; }
-
   /* ── Infinite scroll: skeletons + sentinel ── */
   .skel-card {
     background: var(--m-surface-raised); border: 1px solid var(--m-border);
@@ -437,10 +320,10 @@
   .skel-line {
     height: 10px; border-radius: 5px;
     background: linear-gradient(90deg, var(--m-border) 25%, var(--m-hover-bg) 45%, var(--m-border) 65%);
-    background-size: 200% 100%; animation: jr-shimmer 1.4s linear infinite;
+    background-size: 200% 100%; animation: dp-shimmer 1.4s linear infinite;
   }
   .skel-line.w30 { width: 30%; } .skel-line.w70 { width: 70%; } .skel-line.w90 { width: 90%; }
-  @keyframes jr-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  @keyframes dp-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
   .feed-loading {
     display: flex; align-items: center; justify-content: center; gap: 8px; padding: 4px 0 8px;
     font-size: 12px; color: var(--m-text-muted);
@@ -448,9 +331,9 @@
   .feed-loading .spin {
     width: 14px; height: 14px; border-radius: 50%;
     border: 2px solid var(--m-border); border-top-color: var(--m-blue);
-    animation: jr-spin 0.9s linear infinite;
+    animation: dp-spin 0.9s linear infinite;
   }
-  @keyframes jr-spin { to { transform: rotate(360deg); } }
+  @keyframes dp-spin { to { transform: rotate(360deg); } }
 
   /* ════════════════════════════════════════════
      Mobile design — phone frames
@@ -495,49 +378,42 @@
   .m-title-bar-summary strong { font-size: 12px; color: var(--m-text); }
 
   /* Mobile composer — pinned right under the title bar; send is one thumb-tap away */
-  .mj-composer {
+  .mdump-composer {
     display: flex; align-items: flex-end; gap: 8px; padding: 10px 16px;
     border-bottom: 1px solid var(--m-border); background: var(--m-surface-raised); flex-shrink: 0;
   }
-  .mj-input {
+  .mdump-input {
     flex: 1; min-height: 40px; padding: 10px 12px; border-radius: 12px;
     border: 1px solid var(--m-border); background: var(--m-surface);
     font-size: 13px; line-height: 1.5; color: var(--m-text);
   }
-  .mj-input .ph { color: var(--m-text-muted); }
-  .mj-composer.focused .mj-input { border-color: var(--m-blue); min-height: 96px; }
-  .mj-send {
+  .mdump-input .ph { color: var(--m-text-muted); }
+  .mdump-composer.focused .mdump-input { border-color: var(--m-blue); min-height: 96px; }
+  .mdump-send {
     width: 38px; height: 38px; border-radius: 50%; border: none; cursor: pointer; flex-shrink: 0;
     background: linear-gradient(135deg, var(--m-blue), var(--m-blue-light)); color: #fff;
     display: flex; align-items: center; justify-content: center;
     box-shadow: 0 0 14px var(--m-blue-a25);
   }
-  .mj-send svg { width: 17px; height: 17px; }
-  .mj-send.idle { background: var(--m-disabled-bg); color: var(--m-text-muted); box-shadow: none; }
-  .caret { display: inline-block; width: 1.5px; height: 14px; background: var(--m-blue); vertical-align: -2px; animation: jr-pulse 1s steps(1) infinite; }
-
-  /* Mobile filter chips — one horizontally scrolling row */
-  .mj-filter {
-    display: flex; gap: 6px; padding: 10px 16px 8px; overflow-x: auto; flex-shrink: 0;
-    scrollbar-width: none;
-  }
-  .mj-filter::-webkit-scrollbar { display: none; }
-  .mj-filter .filter-chip { flex-shrink: 0; padding: 4px 10px; font-size: 11px; }
+  .mdump-send svg { width: 17px; height: 17px; }
+  .mdump-send.idle { background: var(--m-disabled-bg); color: var(--m-text-muted); box-shadow: none; }
+  .caret { display: inline-block; width: 1.5px; height: 14px; background: var(--m-blue); vertical-align: -2px; animation: dp-blink 1s steps(1) infinite; }
+  @keyframes dp-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
 
   /* Mobile feed */
-  .mj-feed { flex: 1; overflow-y: auto; padding: 2px 16px 16px; display: flex; flex-direction: column; gap: 8px; }
-  .mj-feed .day-head { font-size: 9px; margin-top: 8px; }
-  .mj-card {
+  .mdump-feed { flex: 1; overflow-y: auto; padding: 10px 16px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .mdump-feed .day-head { font-size: 9px; margin-top: 8px; }
+  .mdump-feed .day-head:first-child { margin-top: 0; }
+  .mdump-card {
     background: var(--m-surface-raised); border: 1px solid var(--m-border);
     border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px;
   }
-  .mj-card .entry-time { font-size: 10px; }
-  .mj-card .cat-chip { height: 18px; padding: 0 8px; font-size: 9px; }
-  .mj-text { font-size: 12px; line-height: 1.5; color: var(--m-text); }
-  .mj-text.clamp3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  .mj-feed.dimmed { opacity: 0.35; }
+  .mdump-card .entry-time { font-size: 10px; }
+  .mdump-text { font-size: 12px; line-height: 1.5; color: var(--m-text); }
+  .mdump-text.clamp3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .mdump-feed.dimmed { opacity: 0.35; }
 
-  /* Mobile bottom dock (5 tabs — Journal joins the dock) */
+  /* Mobile bottom dock (5 tabs — Dump joins the dock) */
   .m-dock {
     height: 58px; flex-shrink: 0; border-top: 1px solid var(--m-border);
     background: var(--m-surface-raised); display: flex; padding-bottom: 4px;
@@ -548,36 +424,6 @@
   }
   .m-dock-item.active { color: var(--m-blue); }
   .m-dock-item svg { width: 21px; height: 21px; }
-
-  /* Mobile recategorize bottom sheet */
-  .m-sheet-overlay { position: absolute; inset: 0; background: var(--m-overlay); display: flex; align-items: flex-end; z-index: 80; }
-  .m-sheet { width: 100%; background: var(--m-surface-raised); border-radius: 20px 20px 0 0; padding: 6px 16px 22px; }
-  .m-sheet-grip { width: 38px; height: 4px; border-radius: 2px; background: var(--m-border); margin: 6px auto 14px; }
-  .m-sheet-quote {
-    font-size: 12px; color: var(--m-text-secondary); font-style: italic;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 14px;
-  }
-  .m-sheet-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--m-text-tertiary); margin-bottom: 8px; }
-  .m-sheet-cat {
-    display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 14px;
-    border-radius: 10px; border: 1px solid var(--m-border); background: var(--m-surface-raised);
-    cursor: pointer; font-size: 13px; font-weight: 500; color: var(--m-text); margin-bottom: 7px;
-  }
-  .m-sheet-cat.current { border-color: var(--m-blue); background: var(--m-blue-a06); }
-  .m-sheet-cat .p-count { margin-left: auto; font-size: 10px; color: var(--m-text-muted); font-family: ui-monospace, "Geist Mono", monospace; }
-  .m-sheet-cat .p-check { width: 15px; height: 15px; color: var(--m-blue); flex-shrink: 0; }
-  .m-sheet-new { display: flex; gap: 8px; margin-top: 4px; }
-  .m-sheet-new input {
-    flex: 1; min-width: 0; padding: 10px 12px; border-radius: 10px; outline: none;
-    border: 1px solid var(--m-border); background: var(--m-surface); color: var(--m-text); font-size: 13px;
-  }
-  .m-sheet-new input::placeholder { color: var(--m-text-muted); }
-  .m-sheet-new button {
-    width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--m-border);
-    background: var(--m-surface-raised); color: var(--m-text-secondary); cursor: pointer;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  }
-  .m-sheet-new button svg { width: 16px; height: 16px; }
 </style>
 </head>
 <body>
@@ -609,9 +455,9 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         Plan
       </a>
-      <a class="sidebar-item" data-nav-id="journal" href="#">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.042A8.967 8.967 0 006 4.5a8.967 8.967 0 00-3 .512v14.25A8.987 8.987 0 016 18.75c2.305 0 4.408.867 6 2.292m0-15c1.592-1.425 3.695-2.292 6-2.292 1.052 0 2.062.18 3 .512v14.25a8.987 8.987 0 00-3-.512c-2.305 0-4.408.867-6 2.292m0-15v15"/></svg>
-        Journal
+      <a class="sidebar-item" data-nav-id="dump" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
+        Dump
       </a>
     </div>
     <div class="sidebar-user">
@@ -637,67 +483,48 @@
   </div>
 </template>
 
-<!-- Journal page body (shared between Journal / Recategorize / Empty screens) -->
-<template id="tpl-journal-body">
-  <div class="journal-page">
+<!-- Dump page body (shared between Dump / Empty screens) -->
+<template id="tpl-dump-body">
+  <div class="dump-page">
     <div class="page-title-bar">
       <div class="page-title-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.042A8.967 8.967 0 006 4.5a8.967 8.967 0 00-3 .512v14.25A8.987 8.987 0 016 18.75c2.305 0 4.408.867 6 2.292m0-15c1.592-1.425 3.695-2.292 6-2.292 1.052 0 2.062.18 3 .512v14.25a8.987 8.987 0 00-3-.512c-2.305 0-4.408.867-6 2.292m0-15v15"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
       </div>
       <div class="page-title-text">
-        <span class="page-title-name">Journal</span>
-        <span class="page-title-desc">Capture what's on your mind &mdash; it gets sorted for you in the background</span>
+        <span class="page-title-name">Dump</span>
+        <span class="page-title-desc">Get it out of your head &mdash; noise, worries, ideas</span>
       </div>
       <div class="page-title-count">
-        <span class="page-title-count-num" data-count-entries>121</span> entries &middot;
-        <span class="page-title-count-num" data-count-cats>5</span> categories
+        <span class="page-title-count-num" data-count-entries>121</span> entries
       </div>
     </div>
 
-    <div class="journal-scroll">
-      <div class="journal-col">
+    <div class="dump-scroll">
+      <div class="dump-col">
 
         <!-- Capture console: land on the page, type, ⌘↵ — done -->
         <div class="composer">
           <textarea placeholder="What's on your mind?" rows="3"></textarea>
           <div class="composer-foot">
-            <span class="composer-hint">&#8984;&#8629; to capture &middot; Enter for a new line</span>
+            <span class="composer-hint">&#8984;&#8629; to dump &middot; Enter for a new line</span>
             <button class="btn btn-primary">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12L3.269 3.125A59.769 59.769 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12zm0 0h7.5"/></svg>
-              Capture
+              Dump
             </button>
           </div>
-        </div>
-
-        <!-- Category filters (server-filtered; switching resets the feed) -->
-        <div class="filter-row" data-filter-row>
-          <span class="filter-chip active">All <span class="f-count">121</span></span>
-          <span class="filter-chip"><span class="f-dot" style="background:var(--m-text-muted)"></span>Unsorted <span class="f-count">2</span></span>
-          <span class="filter-chip"><span class="f-dot" style="background:var(--m-teal)"></span>Journal <span class="f-count">41</span></span>
-          <span class="filter-chip"><span class="f-dot" style="background:var(--m-orange)"></span>Work <span class="f-count">30</span></span>
-          <span class="filter-chip"><span class="f-dot" style="background:var(--m-blue)"></span>Ideas <span class="f-count">23</span></span>
-          <span class="filter-chip"><span class="f-dot" style="background:var(--m-pink)"></span>Mood <span class="f-count">14</span></span>
-          <span class="filter-chip"><span class="f-dot" style="background:var(--m-olive)"></span>Reading <span class="f-count">11</span></span>
         </div>
 
         <!-- Feed: newest first, grouped by day, infinite scroll -->
         <div class="feed" data-feed>
           <div class="day-head"><strong>Today</strong>&nbsp;&mdash; Wed, Jul 16</div>
 
-          <!-- Just captured: background LLM call still running -->
           <div class="entry-card">
-            <div class="entry-top">
-              <span class="entry-time">09:42</span>
-              <span class="cat-chip cat-classifying"><span class="pulse-dot"></span>Classifying&hellip;</span>
-            </div>
+            <span class="entry-time">09:42</span>
             <div class="entry-text">Dentist says come back in October for a cleaning. Book it before the calendar fills up &mdash; and actually floss this time.</div>
           </div>
 
-          <div class="entry-card" data-entry="coffee">
-            <div class="entry-top">
-              <span class="entry-time">07:15</span>
-              <span class="cat-chip cat-mood" title="Change category"><span class="ai-mark">&#10022;</span>Mood</span>
-            </div>
+          <div class="entry-card">
+            <span class="entry-time">07:15</span>
             <div class="entry-text">Woke up at 4am with the demo running in my head. Note to self: no coffee after 3pm, it's not worth it.</div>
           </div>
 
@@ -705,50 +532,34 @@
 
           <!-- Long entry: clamped to 6 lines with Show more -->
           <div class="entry-card">
-            <div class="entry-top">
-              <span class="entry-time">22:30</span>
-              <span class="cat-chip cat-journal" title="Change category"><span class="ai-mark">&#10022;</span>Journal</span>
-            </div>
+            <span class="entry-time">22:30</span>
             <div class="entry-text clamped">Long walk after dinner. The week finally feels like it has a shape &mdash; the plan helped more than I expected. I keep noticing that the days I write the plan down before 9am are the days I actually finish things. Maybe the ritual matters more than the plan itself.
 
-Also thinking about how much of my anxiety is just unwritten to-dos circling. When they land somewhere &mdash; the board, this journal &mdash; the volume drops. That's probably the whole point of this app.
+Also thinking about how much of my anxiety is just unwritten to-dos circling. When they land somewhere &mdash; the board, this dump &mdash; the volume drops. That's probably the whole point of this app.
 
 Tomorrow: gym before standup, then a deep-work block till noon. If the migration review lands early I'll take the afternoon slower.</div>
             <button class="show-more">Show more</button>
           </div>
 
-          <!-- Manually recategorized: plain chip, no ✦ -->
-          <div class="entry-card" data-entry="standup">
-            <div class="entry-top">
-              <span class="entry-time">14:05</span>
-              <span class="cat-chip cat-work" title="Change category">Work</span>
-            </div>
+          <div class="entry-card">
+            <span class="entry-time">14:05</span>
             <div class="entry-text">Standup: Sara flagged the Q3 migration risk. I volunteered to draft the rollback plan by Friday.</div>
           </div>
 
           <div class="entry-card">
-            <div class="entry-top">
-              <span class="entry-time">09:58</span>
-              <span class="cat-chip cat-ideas" title="Change category"><span class="ai-mark">&#10022;</span>Ideas</span>
-            </div>
+            <span class="entry-time">09:58</span>
             <div class="entry-text">What if the board suggested a lighter &ldquo;recovery day&rdquo; when weekly completion drops under 40%? Could reuse the risk-badge signals.</div>
           </div>
 
           <div class="day-head">Mon, Jul 14</div>
 
           <div class="entry-card">
-            <div class="entry-top">
-              <span class="entry-time">21:12</span>
-              <span class="cat-chip cat-reading" title="Change category"><span class="ai-mark">&#10022;</span>Reading</span>
-            </div>
+            <span class="entry-time">21:12</span>
             <div class="entry-text">The dark forest chapters get better on a reread. Grab the sequel before next month's flight.</div>
           </div>
 
           <div class="entry-card">
-            <div class="entry-top">
-              <span class="entry-time">08:40</span>
-              <span class="cat-chip cat-work" title="Change category"><span class="ai-mark">&#10022;</span>Work</span>
-            </div>
+            <span class="entry-time">08:40</span>
             <div class="entry-text">Three deep-work blocks actually happened last week. Protect the 9&ndash;11 slot; meetings can have the afternoon.</div>
           </div>
 
@@ -764,45 +575,34 @@ Tomorrow: gym before standup, then a deep-work block till noon. If the migration
 </template>
 
 <!-- ════════════════════════════════════════════════════════════════
-     Journal — capture console + categorized feed (default view)
+     Dump — capture console + plain feed (default view)
      ════════════════════════════════════════════════════════════════ -->
-<div class="screen app active" id="screen-journal" data-nav="journal">
+<div class="screen app active" id="screen-dump" data-nav="dump">
   <div data-sidebar></div>
   <div class="main">
     <div data-header></div>
-    <div data-journal></div>
+    <div data-dump></div>
   </div>
 </div>
 
 <!-- ════════════════════════════════════════════════════════════════
-     Recategorize — click a chip → category picker popover
+     Empty state — first visit, nothing dumped yet
      ════════════════════════════════════════════════════════════════ -->
-<div class="screen app" id="screen-recat" data-nav="journal">
+<div class="screen app" id="screen-empty" data-nav="dump">
   <div data-sidebar></div>
   <div class="main">
     <div data-header></div>
-    <div data-journal data-recat></div>
+    <div data-dump data-empty></div>
   </div>
 </div>
 
 <!-- ════════════════════════════════════════════════════════════════
-     Empty state — first visit, nothing captured yet
-     ════════════════════════════════════════════════════════════════ -->
-<div class="screen app" id="screen-empty" data-nav="journal">
-  <div data-sidebar></div>
-  <div class="main">
-    <div data-header></div>
-    <div data-journal data-empty></div>
-  </div>
-</div>
-
-<!-- ════════════════════════════════════════════════════════════════
-     Mobile — phone frames (capture + feed, composing, recategorize sheet)
+     Mobile — phone frames (capture + feed, composing)
      ════════════════════════════════════════════════════════════════ -->
 <div class="screen" id="screen-mobile">
   <div class="phone-stage">
 
-    <!-- Phone A — Journal tab: composer pinned on top, feed below -->
+    <!-- Phone A — Dump tab: composer pinned on top, feed below -->
     <div class="phone-wrap">
       <div class="phone">
         <div class="m-app">
@@ -812,60 +612,44 @@ Tomorrow: gym before standup, then a deep-work block till noon. If the migration
           </div>
           <div class="m-title-bar">
             <div class="m-title-bar-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.042A8.967 8.967 0 006 4.5a8.967 8.967 0 00-3 .512v14.25A8.987 8.987 0 016 18.75c2.305 0 4.408.867 6 2.292m0-15c1.592-1.425 3.695-2.292 6-2.292 1.052 0 2.062.18 3 .512v14.25a8.987 8.987 0 00-3-.512c-2.305 0-4.408.867-6 2.292m0-15v15"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
             </div>
             <div class="m-title-bar-text">
-              <span class="m-title-bar-title">Journal</span>
+              <span class="m-title-bar-title">Dump</span>
             </div>
             <span class="m-title-bar-summary"><strong>121</strong> entries</span>
           </div>
 
-          <div class="mj-composer">
-            <div class="mj-input"><span class="ph">What's on your mind?</span></div>
-            <button class="mj-send idle">
+          <div class="mdump-composer">
+            <div class="mdump-input"><span class="ph">What's on your mind?</span></div>
+            <button class="mdump-send idle">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12L3.269 3.125A59.769 59.769 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12zm0 0h7.5"/></svg>
             </button>
           </div>
 
-          <div class="mj-filter">
-            <span class="filter-chip active">All <span class="f-count">121</span></span>
-            <span class="filter-chip"><span class="f-dot" style="background:var(--m-text-muted)"></span>Unsorted <span class="f-count">2</span></span>
-            <span class="filter-chip"><span class="f-dot" style="background:var(--m-teal)"></span>Journal <span class="f-count">41</span></span>
-            <span class="filter-chip"><span class="f-dot" style="background:var(--m-orange)"></span>Work <span class="f-count">30</span></span>
-            <span class="filter-chip"><span class="f-dot" style="background:var(--m-blue)"></span>Ideas <span class="f-count">23</span></span>
-          </div>
-
-          <div class="mj-feed">
+          <div class="mdump-feed">
             <div class="day-head"><strong>Today</strong>&nbsp;&mdash; Wed, Jul 16</div>
-            <div class="mj-card">
-              <div class="entry-top">
-                <span class="entry-time">09:42</span>
-                <span class="cat-chip cat-classifying"><span class="pulse-dot"></span>Classifying&hellip;</span>
-              </div>
-              <div class="mj-text">Dentist says come back in October for a cleaning. Book it before the calendar fills up &mdash; and actually floss this time.</div>
+            <div class="mdump-card">
+              <span class="entry-time">09:42</span>
+              <div class="mdump-text">Dentist says come back in October for a cleaning. Book it before the calendar fills up &mdash; and actually floss this time.</div>
             </div>
-            <div class="mj-card">
-              <div class="entry-top">
-                <span class="entry-time">07:15</span>
-                <span class="cat-chip cat-mood"><span class="ai-mark">&#10022;</span>Mood</span>
-              </div>
-              <div class="mj-text">Woke up at 4am with the demo running in my head. Note to self: no coffee after 3pm, it's not worth it.</div>
+            <div class="mdump-card">
+              <span class="entry-time">07:15</span>
+              <div class="mdump-text">Woke up at 4am with the demo running in my head. Note to self: no coffee after 3pm, it's not worth it.</div>
             </div>
             <div class="day-head"><strong>Yesterday</strong>&nbsp;&mdash; Tue, Jul 15</div>
-            <div class="mj-card">
-              <div class="entry-top">
-                <span class="entry-time">22:30</span>
-                <span class="cat-chip cat-journal"><span class="ai-mark">&#10022;</span>Journal</span>
-              </div>
-              <div class="mj-text clamp3">Long walk after dinner. The week finally feels like it has a shape &mdash; the plan helped more than I expected. I keep noticing that the days I write the plan down before 9am are the days I actually finish things.</div>
+            <div class="mdump-card">
+              <span class="entry-time">22:30</span>
+              <div class="mdump-text clamp3">Long walk after dinner. The week finally feels like it has a shape &mdash; the plan helped more than I expected. I keep noticing that the days I write the plan down before 9am are the days I actually finish things.</div>
               <button class="show-more">Show more</button>
             </div>
-            <div class="mj-card">
-              <div class="entry-top">
-                <span class="entry-time">14:05</span>
-                <span class="cat-chip cat-work">Work</span>
-              </div>
-              <div class="mj-text">Standup: Sara flagged the Q3 migration risk. I volunteered to draft the rollback plan by Friday.</div>
+            <div class="mdump-card">
+              <span class="entry-time">14:05</span>
+              <div class="mdump-text">Standup: Sara flagged the Q3 migration risk. I volunteered to draft the rollback plan by Friday.</div>
+            </div>
+            <div class="mdump-card">
+              <span class="entry-time">09:58</span>
+              <div class="mdump-text">What if the board suggested a lighter &ldquo;recovery day&rdquo; when weekly completion drops under 40%?</div>
             </div>
           </div>
 
@@ -883,8 +667,8 @@ Tomorrow: gym before standup, then a deep-work block till noon. If the migration
               Plan
             </div>
             <div class="m-dock-item active">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.042A8.967 8.967 0 006 4.5a8.967 8.967 0 00-3 .512v14.25A8.987 8.987 0 016 18.75c2.305 0 4.408.867 6 2.292m0-15c1.592-1.425 3.695-2.292 6-2.292 1.052 0 2.062.18 3 .512v14.25a8.987 8.987 0 00-3-.512c-2.305 0-4.408.867-6 2.292m0-15v15"/></svg>
-              Journal
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
+              Dump
             </div>
             <div class="m-dock-item">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
@@ -893,7 +677,7 @@ Tomorrow: gym before standup, then a deep-work block till noon. If the migration
           </div>
         </div>
       </div>
-      <span class="phone-caption">Mobile &mdash; Journal dock tab: composer up top, feed below</span>
+      <span class="phone-caption">Mobile &mdash; Dump dock tab: composer up top, feed below</span>
     </div>
 
     <!-- Phone B — composing: input grows, send lights up (keyboard sits below) -->
@@ -906,43 +690,34 @@ Tomorrow: gym before standup, then a deep-work block till noon. If the migration
           </div>
           <div class="m-title-bar">
             <div class="m-title-bar-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.042A8.967 8.967 0 006 4.5a8.967 8.967 0 00-3 .512v14.25A8.987 8.987 0 016 18.75c2.305 0 4.408.867 6 2.292m0-15c1.592-1.425 3.695-2.292 6-2.292 1.052 0 2.062.18 3 .512v14.25a8.987 8.987 0 00-3-.512c-2.305 0-4.408.867-6 2.292m0-15v15"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
             </div>
             <div class="m-title-bar-text">
-              <span class="m-title-bar-title">Journal</span>
+              <span class="m-title-bar-title">Dump</span>
             </div>
             <span class="m-title-bar-summary"><strong>121</strong> entries</span>
           </div>
 
-          <div class="mj-composer focused">
-            <div class="mj-input">Farmers market on Saturday &mdash; get tomatoes and ask about the honey stand<span class="caret"></span></div>
-            <button class="mj-send">
+          <div class="mdump-composer focused">
+            <div class="mdump-input">Farmers market on Saturday &mdash; get tomatoes and ask about the honey stand<span class="caret"></span></div>
+            <button class="mdump-send">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12L3.269 3.125A59.769 59.769 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12zm0 0h7.5"/></svg>
             </button>
           </div>
 
-          <div class="mj-feed dimmed">
+          <div class="mdump-feed dimmed">
             <div class="day-head"><strong>Today</strong>&nbsp;&mdash; Wed, Jul 16</div>
-            <div class="mj-card">
-              <div class="entry-top">
-                <span class="entry-time">09:42</span>
-                <span class="cat-chip cat-journal"><span class="ai-mark">&#10022;</span>Journal</span>
-              </div>
-              <div class="mj-text">Dentist says come back in October for a cleaning. Book it before the calendar fills up &mdash; and actually floss this time.</div>
+            <div class="mdump-card">
+              <span class="entry-time">09:42</span>
+              <div class="mdump-text">Dentist says come back in October for a cleaning. Book it before the calendar fills up &mdash; and actually floss this time.</div>
             </div>
-            <div class="mj-card">
-              <div class="entry-top">
-                <span class="entry-time">07:15</span>
-                <span class="cat-chip cat-mood"><span class="ai-mark">&#10022;</span>Mood</span>
-              </div>
-              <div class="mj-text">Woke up at 4am with the demo running in my head. Note to self: no coffee after 3pm, it's not worth it.</div>
+            <div class="mdump-card">
+              <span class="entry-time">07:15</span>
+              <div class="mdump-text">Woke up at 4am with the demo running in my head. Note to self: no coffee after 3pm, it's not worth it.</div>
             </div>
-            <div class="mj-card">
-              <div class="entry-top">
-                <span class="entry-time">06:58</span>
-                <span class="cat-chip cat-journal"><span class="ai-mark">&#10022;</span>Journal</span>
-              </div>
-              <div class="mj-text clamp3">Early start. Quiet house, good light. Re-reading yesterday's notes before the standup.</div>
+            <div class="mdump-card">
+              <span class="entry-time">06:58</span>
+              <div class="mdump-text clamp3">Early start. Quiet house, good light. Re-reading yesterday's notes before the standup.</div>
             </div>
           </div>
 
@@ -960,8 +735,8 @@ Tomorrow: gym before standup, then a deep-work block till noon. If the migration
               Plan
             </div>
             <div class="m-dock-item active">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.042A8.967 8.967 0 006 4.5a8.967 8.967 0 00-3 .512v14.25A8.987 8.987 0 016 18.75c2.305 0 4.408.867 6 2.292m0-15c1.592-1.425 3.695-2.292 6-2.292 1.052 0 2.062.18 3 .512v14.25a8.987 8.987 0 00-3-.512c-2.305 0-4.408.867-6 2.292m0-15v15"/></svg>
-              Journal
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
+              Dump
             </div>
             <div class="m-dock-item">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
@@ -973,103 +748,11 @@ Tomorrow: gym before standup, then a deep-work block till noon. If the migration
       <span class="phone-caption">Mobile &mdash; composing: input grows, send lights up</span>
     </div>
 
-    <!-- Phone C — tap a chip → recategorize bottom sheet -->
-    <div class="phone-wrap">
-      <div class="phone">
-        <div class="m-app">
-          <div class="m-app-header">
-            <span class="m-app-header-title"><span>Kanban</span> Planner</span>
-            <span class="m-week-badge">Week 29 &middot; Jul 13 – Jul 19</span>
-          </div>
-          <div class="m-title-bar">
-            <div class="m-title-bar-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.042A8.967 8.967 0 006 4.5a8.967 8.967 0 00-3 .512v14.25A8.987 8.987 0 016 18.75c2.305 0 4.408.867 6 2.292m0-15c1.592-1.425 3.695-2.292 6-2.292 1.052 0 2.062.18 3 .512v14.25a8.987 8.987 0 00-3-.512c-2.305 0-4.408.867-6 2.292m0-15v15"/></svg>
-            </div>
-            <div class="m-title-bar-text">
-              <span class="m-title-bar-title">Journal</span>
-            </div>
-            <span class="m-title-bar-summary"><strong>121</strong> entries</span>
-          </div>
-
-          <div class="mj-composer">
-            <div class="mj-input"><span class="ph">What's on your mind?</span></div>
-            <button class="mj-send idle">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12L3.269 3.125A59.769 59.769 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12zm0 0h7.5"/></svg>
-            </button>
-          </div>
-
-          <div class="mj-feed">
-            <div class="day-head"><strong>Yesterday</strong>&nbsp;&mdash; Tue, Jul 15</div>
-            <div class="mj-card">
-              <div class="entry-top">
-                <span class="entry-time">14:05</span>
-                <span class="cat-chip cat-work">Work</span>
-              </div>
-              <div class="mj-text">Standup: Sara flagged the Q3 migration risk. I volunteered to draft the rollback plan by Friday.</div>
-            </div>
-            <div class="mj-card">
-              <div class="entry-top">
-                <span class="entry-time">09:58</span>
-                <span class="cat-chip cat-ideas"><span class="ai-mark">&#10022;</span>Ideas</span>
-              </div>
-              <div class="mj-text">What if the board suggested a lighter &ldquo;recovery day&rdquo; when weekly completion drops under 40%?</div>
-            </div>
-          </div>
-
-          <div class="m-dock">
-            <div class="m-dock-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-              Board
-            </div>
-            <div class="m-dock-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="M3 9.75h18M9 9.75v9.75M15 9.75v9.75" stroke-linecap="round"/></svg>
-              Priorities
-            </div>
-            <div class="m-dock-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              Plan
-            </div>
-            <div class="m-dock-item active">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.042A8.967 8.967 0 006 4.5a8.967 8.967 0 00-3 .512v14.25A8.987 8.987 0 016 18.75c2.305 0 4.408.867 6 2.292m0-15c1.592-1.425 3.695-2.292 6-2.292 1.052 0 2.062.18 3 .512v14.25a8.987 8.987 0 00-3-.512c-2.305 0-4.408.867-6 2.292m0-15v15"/></svg>
-              Journal
-            </div>
-            <div class="m-dock-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-              Settings
-            </div>
-          </div>
-
-          <!-- Recategorize bottom sheet -->
-          <div class="m-sheet-overlay">
-            <div class="m-sheet">
-              <div class="m-sheet-grip"></div>
-              <div class="m-sheet-quote">&ldquo;Standup: Sara flagged the Q3 migration risk. I volunteered to&hellip;&rdquo;</div>
-              <div class="m-sheet-label">Move to</div>
-              <button class="m-sheet-cat"><span class="f-dot" style="background:var(--m-text-muted)"></span>Unsorted <span class="p-count">2</span></button>
-              <button class="m-sheet-cat"><span class="f-dot" style="background:var(--m-teal)"></span>Journal <span class="p-count">41</span></button>
-              <button class="m-sheet-cat current"><span class="f-dot" style="background:var(--m-orange)"></span>Work <span class="p-count">30</span>
-                <svg class="p-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </button>
-              <button class="m-sheet-cat"><span class="f-dot" style="background:var(--m-blue)"></span>Ideas <span class="p-count">23</span></button>
-              <button class="m-sheet-cat"><span class="f-dot" style="background:var(--m-pink)"></span>Mood <span class="p-count">14</span></button>
-              <button class="m-sheet-cat"><span class="f-dot" style="background:var(--m-olive)"></span>Reading <span class="p-count">11</span></button>
-              <div class="m-sheet-new">
-                <input type="text" placeholder="New category&hellip;" />
-                <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg></button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <span class="phone-caption">Mobile &mdash; tap a chip &rarr; recategorize sheet</span>
-    </div>
-
   </div>
 </div>
 
 <nav class="screen-nav">
-  <button class="screen-btn active" data-target="screen-journal" onclick="showScreen('screen-journal')">Journal</button>
-  <button class="screen-btn" data-target="screen-recat" onclick="showScreen('screen-recat')">Recategorize</button>
+  <button class="screen-btn active" data-target="screen-dump" onclick="showScreen('screen-dump')">Dump</button>
   <button class="screen-btn" data-target="screen-empty" onclick="showScreen('screen-empty')">Empty</button>
   <button class="screen-btn" data-target="screen-mobile" onclick="showScreen('screen-mobile')">Mobile</button>
 </nav>
@@ -1094,48 +777,25 @@ Tomorrow: gym before standup, then a deep-work block till noon. If the migration
     // Header
     var hSlot = screen.querySelector('[data-header]');
     if (hSlot) hSlot.replaceWith(frag('tpl-header').cloneNode(true));
-    // Journal body (+ optional interaction variant)
-    var jSlot = screen.querySelector('[data-journal]');
-    if (jSlot) {
-      var node = frag('tpl-journal-body').cloneNode(true);
+    // Dump body (+ optional empty variant)
+    var dSlot = screen.querySelector('[data-dump]');
+    if (dSlot) {
+      var node = frag('tpl-dump-body').cloneNode(true);
 
-      // Recategorize: picker popover open on the "coffee" entry (✦ Mood → user overrides)
-      if (jSlot.hasAttribute('data-recat')) {
-        var card = node.querySelector('[data-entry="coffee"]');
-        card.classList.add('active-pop');
-        var pop = document.createElement('div');
-        pop.className = 'cat-pop';
-        pop.innerHTML =
-          '<div class="cat-pop-title">Move to</div>' +
-          '<button class="cat-pop-item"><span class="f-dot" style="background:var(--m-text-muted)"></span>Unsorted<span class="p-count">2</span></button>' +
-          '<button class="cat-pop-item"><span class="f-dot" style="background:var(--m-teal)"></span>Journal<span class="p-count">41</span></button>' +
-          '<button class="cat-pop-item"><span class="f-dot" style="background:var(--m-orange)"></span>Work<span class="p-count">30</span></button>' +
-          '<button class="cat-pop-item"><span class="f-dot" style="background:var(--m-blue)"></span>Ideas<span class="p-count">23</span></button>' +
-          '<button class="cat-pop-item current"><span class="f-dot" style="background:var(--m-pink)"></span>Mood<span class="p-count">14</span>' +
-          '<svg class="p-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
-          '<button class="cat-pop-item"><span class="f-dot" style="background:var(--m-olive)"></span>Reading<span class="p-count">11</span></button>' +
-          '<div class="cat-pop-divider"></div>' +
-          '<div class="cat-pop-new"><input type="text" placeholder="New category&hellip;" />' +
-          '<button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14" stroke-linecap="round"/></svg></button></div>';
-        card.appendChild(pop);
-      }
-
-      // Empty state: first visit — no entries, no categories yet
-      if (jSlot.hasAttribute('data-empty')) {
+      // Empty state: first visit — nothing dumped yet
+      if (dSlot.hasAttribute('data-empty')) {
         node.querySelector('[data-count-entries]').textContent = '0';
-        node.querySelector('[data-count-cats]').textContent = '0';
-        node.querySelector('[data-filter-row]').remove();
         var feed = node.querySelector('[data-feed]');
         var empty = document.createElement('div');
         empty.className = 'empty-state';
         empty.innerHTML =
-          '<svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M12 6.042A8.967 8.967 0 006 4.5a8.967 8.967 0 00-3 .512v14.25A8.987 8.987 0 016 18.75c2.305 0 4.408.867 6 2.292m0-15c1.592-1.425 3.695-2.292 6-2.292 1.052 0 2.062.18 3 .512v14.25a8.987 8.987 0 00-3-.512c-2.305 0-4.408.867-6 2.292m0-15v15" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-          '<div class="empty-title">Your journal is empty</div>' +
-          '<div class="empty-desc">Write anything &mdash; a thought, a worry, a win. Entries sort themselves into categories in the background.</div>';
+          '<svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>' +
+          '<div class="empty-title">Nothing here yet</div>' +
+          '<div class="empty-desc">Write anything &mdash; a thought, a worry, an idea. Dump it and move on.</div>';
         feed.replaceWith(empty);
       }
 
-      jSlot.replaceWith(node);
+      dSlot.replaceWith(node);
     }
   });
 })();
