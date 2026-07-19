@@ -69,7 +69,7 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### Design error states
 
-Error presentation is unstyled or ad-hoc across the app (the AI chat's red alert strip prompted this); design one error language (tone, copy, placement, visual treatment) and apply it per flow:
+Error presentation is unstyled or ad-hoc across the app (the AI chat's red alert strip prompted this); design one error language (tone, copy, placement, visual treatment) and apply it per flow. Spike written with the full survey, three surface patterns (toast / inline alert / error screen) and plumbing options: `design/spike/error-handling.md` (awaiting review), mockups in `design/mockup/future-work/mockup-error-{toast,overlay,screen}-v2.html`:
 
 - [ ] AI plan chat — initialization/generation failures (currently a bare red alert strip above the input)
 - [ ] Plan form — create/update submit failures (`FormErrorAlert` banner above the actions)
@@ -77,6 +77,7 @@ Error presentation is unstyled or ad-hoc across the app (the AI chat's red alert
 - [ ] Board — drag/status-update failures (currently silent optimistic rollback + `console.error`)
 - [ ] Priorities — reprioritize/track failures (currently silent optimistic rollback + `console.error`)
 - [ ] Auth — OAuth sign-in failure surface (none today; login just returns to the button)
+- [ ] Page data fetch — no `error.tsx`/`not-found.tsx` anywhere; server throws land on Next's unstyled default error page (skeleton → error screen)
 
 ### Medium
 
