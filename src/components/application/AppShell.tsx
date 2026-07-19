@@ -24,7 +24,7 @@ const CHROMELESS_PREFIXES = ['/design'];
  * @hello-pangea/dnd Droppables support only one scroll parent. The plans
  * layout keeps its header fixed and scrolls the form body itself.
  */
-const SELF_SCROLLING_ROUTES = ['/kanban', '/kanban/priorities'];
+const SELF_SCROLLING_ROUTES = ['/kanban', '/kanban/priorities', '/kanban/dump'];
 const SELF_SCROLLING_PREFIXES = ['/kanban/plans'];
 
 /**

@@ -6,6 +6,7 @@ import {
   Squares2X2Icon,
   TableCellsIcon,
   PencilSquareIcon,
+  InboxArrowDownIcon,
   Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
 import {cn} from '@/components/ui/cn';
@@ -42,6 +43,7 @@ export const BottomTabBar = ({
   const isBoard = pathname === '/kanban';
   const isPriorities = pathname.startsWith('/kanban/priorities');
   const isPlan = pathname.startsWith('/kanban/plans');
+  const isDump = pathname.startsWith('/kanban/dump');
 
   return (
     <div className={cn('dock fx-chrome fx-hairline-top', className)}>
@@ -64,6 +66,10 @@ export const BottomTabBar = ({
       >
         <PencilSquareIcon className="size-5" />
         <span className="dock-label fx-display">Plan</span>
+      </Link>
+      <Link href="/kanban/dump" className={isDump ? 'dock-active' : ''}>
+        <InboxArrowDownIcon className="size-5" />
+        <span className="dock-label fx-display">Dump</span>
       </Link>
       {/* Trigger, not a route: pressed tint only while the sheet is open
           (an action, not a location — never dock-active). */}

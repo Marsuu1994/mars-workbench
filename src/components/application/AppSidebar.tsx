@@ -10,6 +10,7 @@ import {
   Squares2X2Icon,
   TableCellsIcon,
   PencilSquareIcon,
+  InboxArrowDownIcon,
 } from '@heroicons/react/24/outline';
 import {useSidebarStore} from '@/store/sidebarStore';
 import {useSettingsStore} from '@/store/settingsStore';
@@ -55,6 +56,7 @@ export const AppSidebar = ({
   const isBoardActive = pathname === '/kanban';
   const isPrioritiesActive = pathname.startsWith('/kanban/priorities');
   const isPlanActive = pathname.startsWith('/kanban/plans');
+  const isDumpActive = pathname.startsWith('/kanban/dump');
   const planHref = activePlanId
     ? `/kanban/plans/${activePlanId}`
     : '/kanban/plans/new';
@@ -100,6 +102,16 @@ export const AppSidebar = ({
           New
         </span>
       )}
+    </Link>
+  );
+
+  const renderDumpLink = () => (
+    <Link
+      href="/kanban/dump"
+      className={isDumpActive ? navItemActive : navItemInactive}
+    >
+      <InboxArrowDownIcon className="h-[18px] w-[18px] flex-shrink-0" />
+      <span className={`fx-display text-[13px] ${textOpacity}`}>Dump</span>
     </Link>
   );
 
@@ -179,6 +191,7 @@ export const AppSidebar = ({
           {renderBoardLink()}
           {renderPrioritiesLink()}
           {renderPlanLink()}
+          {renderDumpLink()}
         </nav>
       </div>
 

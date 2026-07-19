@@ -2,7 +2,7 @@
  * Canonical timezone for all kanban date calculations.
  * Ensures consistent "today" regardless of server timezone (UTC on Vercel vs local dev).
  */
-const KANBAN_TZ = 'America/Los_Angeles';
+export const KANBAN_TZ = 'America/Los_Angeles';
 
 const tzFormatter = new Intl.DateTimeFormat('en-US', {
   timeZone: KANBAN_TZ,
