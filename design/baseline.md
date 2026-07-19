@@ -326,21 +326,27 @@ When `type = DRAFT_PLAN`, content shape:
 
 UI rendering: the latest `DRAFT_PLAN` message renders expanded with template cards. All prior `DRAFT_PLAN` messages render collapsed with an expand toggle.
 
-### DumpEntry (designed — migration pending)
+### DumpEntry
 
 ```prisma
 model DumpEntry {
-  id          String   @id @default(uuid())
-  userId      String
-  content     String   // Plain text, ≤ 10,000 chars
-  isProcessed Boolean  @default(false) // Reserved: a future LLM batch-processing job marks entries it has handled
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  content     String   // Plain text, ≤ 10,000 chars (trimmed)
+  isProcessed Boolean  @default(false) @map("is_processed") // Reserved: a future LLM batch-processing job marks entries it has handled
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([userId, createdAt, id], name: "idx_dump_entries_user_id_created_at_id")
+  @@map("dump_entries")
 }
 
 // Constraints:
 // - userId references auth.users (Supabase Auth)
-// - INDEX(userId, createdAt DESC) — feed pagination (cursor = createdAt, id)
+// - createdAt is Timestamptz(3) (ms): the feed cursor round-trips it through a JS Date,
+//   so sub-ms storage would break the cursor's equality tiebreaker at page boundaries
+// - Feed pagination: (createdAt, id) DESC keyset; the wire cursor is an opaque
+//   base64url token minted/decoded only by dumpActions
 // - Append-only in V1: no edit, no delete; isProcessed is never surfaced in the UI
 //   (an index for the future batch job is added when that flow is designed, not speculatively)
 ```

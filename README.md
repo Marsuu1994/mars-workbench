@@ -52,7 +52,7 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ### Dump
 
-- **Designed, pending approval — nothing implemented yet**: friction-free brain dump (`/kanban/dump`) — zero-decision plain-text capture + a day-grouped infinite-scroll feed, storage-only V1 (a dormant `isProcessed` flag reserves future LLM batch processing); design in `design/flows/dump.md`, exploration mockup in `design/mockup/future-work/mockup-dump.html`
+- **Approved; backend landed, UI pending — not user-visible yet**: friction-free brain dump (`/kanban/dump`) — zero-decision plain-text capture + a day-grouped infinite-scroll feed, storage-only V1 (a dormant `isProcessed` flag reserves future LLM batch processing). `DumpEntry` table + capture/feed server actions (opaque-cursor keyset pagination) are in; the page/nav UI lands next. Design in `design/flows/dump.md`, exploration mockup in `design/mockup/future-work/mockup-dump.html`
 
 ### Auth
 
@@ -82,6 +82,9 @@ Open items: see [design/tracker.md](./design/tracker.md).
 - [x] Deploy app on Vercel
 
 ## Update Log
+
+### 2026-07-19
+- **Dump backend landed (commit 1 of 2)** — design approved on PR #25; the storage layer + API are in, nothing user-visible yet. `DumpEntry` model + hand-authored migration `20260719000000_add_dump_entries` (snake_case mapping, `created_at` is `TIMESTAMPTZ(3)` — ms precision so the feed cursor's JS-Date round-trip stays lossless at page boundaries; verified drift-free against `prisma migrate diff` token-for-token). New DAL `src/lib/db/dumpEntries.ts` (create / keyset feed page / count, owner-scoped), zod schemas + `Validation`/`Errors` copy, and `src/actions/dumpActions.ts`: `createDumpEntryAction` (single insert, zero side effects) + `fetchDumpEntriesAction` with **opaque-cursor pagination** — the wire cursor is a base64url token minted/decoded only server-side (industry-standard; not HMAC-signed since every query ANDs `userId`), page size server-pinned at 20 via `src/utils/dump.ts`. Gates: `prisma validate`, `tsc --noEmit`, eslint, prettier, `next build` all green; DB migration applies on the owner's machine (no DB access in this env). UI is commit 2
 
 ### 2026-07-18
 

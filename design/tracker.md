@@ -49,7 +49,7 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### High
 
-- [ ] Implement Dump V1 (**pending design approval**) — quick capture + day-grouped infinite feed at `/kanban/dump`, storage-only; design in `design/flows/dump.md` + `design/baseline.md`, exploration mockup `design/mockup/future-work/mockup-dump.html`. Landing V1 adds `/design/scenarios/dump` and deletes the exploration (per `/new-flow`)
+- [ ] Implement Dump V1 — **backend landed** (DumpEntry schema/migration, DAL, capture + opaque-cursor feed actions); remaining: the UI commit — `/kanban/dump` page, `DumpScreen` (per `design/mockup/future-work/mockup-dump.html`), store/hook, nav entries, i18n, then `/design/scenarios/dump` + mockup retirement (per `/new-flow`)
 
 ### Future
 

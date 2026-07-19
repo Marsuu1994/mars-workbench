@@ -188,14 +188,17 @@
     "templateNotFound": "Template not found",
     "generateFailed": "Couldn't generate a plan, please try again.",
     "createFailed": "Couldn't create the plan, please try again.",
-    "generic": "Something went wrong, please try again."
+    "generic": "Something went wrong, please try again.",
+    "invalidCursor": "Invalid feed cursor"
   },
   "Validation": {
     "frequencyPositive": "Frequency must be a positive integer",
     "selectAtLeastOne": "Select at least one template or one-off task",
     "titleRequired": "Title is required",
     "descriptionRequired": "Description is required",
-    "atLeastOneField": "At least one field must be provided"
+    "atLeastOneField": "At least one field must be provided",
+    "contentRequired": "Content is required",
+    "contentTooLong": "Content must be 10,000 characters or fewer"
   },
   "Metadata": {
     "title": "Mars Workbench",
