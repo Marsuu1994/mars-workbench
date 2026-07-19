@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Page Error Screen — Skeleton to Signal Lost (mars-dark)</title>
+<!--
+  PROPOSAL DEMO — error-state exploration for design/spike/error-handling.md,
+  pattern C of 3 (per-segment error.tsx: the route skeleton shown by
+  loading.tsx swaps to a full error screen on server fetch/sync failure;
+  sidebar/dock chrome survives because the root layout still renders — except
+  in the global-error variant). Sibling mockups: mockup-error-toast-v2
+  (pattern A) and mockup-error-overlay-v2 (pattern B). Self-contained per the
+  design/mockup/future-work convention — no shared CSS.
+-->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ── Tokens ── */
+:root {
+  /* mars-dark — verified hexes from design/design-language/mars-dark.md */
+  --base-100: #0d1321;  /* console panel */
+  --base-200: #070c18;  /* deck floor */
+  --base-300: #030610;  /* inset well */
+  --base-content: #d9e8ea;
+  --primary: #2ce0f1;   /* phosphor cyan — action */
+  --primary-content: #062028;
+  --secondary: #b296ff; /* violet — AI channel */
+  --accent: #fb9344;    /* signal orange — targeting */
+  --info: #69c6fa;
+  --success: #50dc8e;
+  --warning: #f9c13b;
+  --error: #fd736d;     /* abort red */
+  --error-content: #2b0605;
+  --neutral: #1c2435;
+  --snap: cubic-bezier(0.2, 0, 0, 1); /* the one easing */
+  --r-field: 6px; --r-box: 8px; --r-card: 10px;
+  --font-sans: 'Geist', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+}
+
+/* ── Base ── */
+body {
+  font-family: var(--font-sans);
+  background:
+    radial-gradient(1100px 500px at 15% -10%, rgba(44,224,241,0.06), transparent 60%),
+    radial-gradient(900px 460px at 85% 110%, rgba(178,150,255,0.05), transparent 60%),
+    var(--base-300);
+  color: var(--base-content);
+  min-height: 100vh;
+  padding: 32px 32px 96px;
+}
+svg { display: block; }
+button { font-family: inherit; cursor: pointer; }
+a { text-decoration: none; }
+
+/* ── Shared helpers (mx-*) ── */
+.mx-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: color-mix(in oklab, var(--base-content) 62%, transparent);
+}
+.mx-label-bright { color: color-mix(in oklab, var(--base-content) 85%, transparent); }
+.mx-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.mx-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in oklab, currentColor 28%, transparent);
+  background: color-mix(in oklab, currentColor 10%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in oklab, currentColor 10%, transparent);
+  white-space: nowrap;
+}
+.mx-chip.md { font-size: 11px; padding: 4px 12px; border-radius: 9999px; }
+.ch-primary { color: var(--primary); }
+.ch-error { color: var(--error); }
+.mx-led {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.mx-led-pulse { animation: mx-pulse 2.4s var(--snap) infinite; }
+.mx-panel {
+  background: color-mix(in oklab, var(--base-100) 94%, var(--base-300));
+  border: 1px solid color-mix(in oklab, var(--primary) 16%, transparent);
+  border-radius: var(--r-box);
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--base-content) 12%, transparent),
+    0 8px 24px rgba(2,4,10,0.5);
+}
+.mx-hairline-top { position: relative; }
+.mx-hairline-top::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    color-mix(in oklab, var(--primary) 55%, transparent),
+    color-mix(in oklab, var(--secondary) 55%, transparent),
+    color-mix(in oklab, var(--accent) 45%, transparent),
+    transparent);
+}
+.mx-btn {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 13px;
+  border: none;
+  border-radius: var(--r-field);
+  padding: 8px 14px;
+  transition: transform 150ms var(--snap), opacity 150ms var(--snap);
+}
+.mx-btn-primary {
+  background: var(--primary);
+  color: var(--primary-content);
+  font-weight: 600;
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--primary) 40%, transparent),
+    0 0 14px color-mix(in oklab, var(--primary) 32%, transparent);
+}
+.mx-btn-ghost {
+  background: transparent;
+  color: color-mix(in oklab, var(--base-content) 75%, transparent);
+  border: 1px solid color-mix(in oklab, var(--base-content) 15%, transparent);
+}
+
+/* ── Skeleton (daisyUI skeleton look; pixel map of loading.tsx) ── */
+.mx-skel {
+  background: color-mix(in oklab, var(--base-content) 8%, transparent);
+  border-radius: var(--r-box);
+  flex-shrink: 0;
+}
+.mx-skel.round { border-radius: 9999px; }
+.skel-pulse { animation: mx-pulse-soft 2s var(--snap) infinite; }
+/* Skeleton page regions — 1:1 with src/app/kanban/loading.tsx */
+.skel-page { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.skel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid color-mix(in oklab, var(--base-content) 10%, transparent);
+  flex-shrink: 0;
+}
+.skel-header-left { display: flex; align-items: center; gap: 12px; }
+.skel-dash {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 12px 16px;
+  border-bottom: 1px solid color-mix(in oklab, var(--base-content) 10%, transparent);
+  background: color-mix(in oklab, var(--base-300) 45%, transparent);
+  flex-shrink: 0;
+}
+.skel-ring-group { display: flex; align-items: center; gap: 12px; }
+.skel-stack { display: flex; flex-direction: column; gap: 4px; }
+.skel-divider {
+  width: 1px;
+  align-self: stretch;
+  background: color-mix(in oklab, var(--base-content) 10%, transparent);
+}
+.skel-wk { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.skel-wk-head { display: flex; justify-content: space-between; align-items: center; }
+.skel-cols {
+  flex: 1;
+  min-height: 0;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.skel-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: color-mix(in oklab, var(--base-300) 45%, transparent);
+  border-radius: 12px;
+  padding: 12px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Error language: the Pattern C screen ── */
+.err-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+}
+.err-tile {
+  width: 44px; height: 44px;
+  border-radius: var(--r-card);
+  border: 1px solid color-mix(in oklab, var(--error) 30%, transparent);
+  background: color-mix(in oklab, var(--error) 10%, transparent);
+  color: var(--error);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.err-tile svg { width: 20px; height: 20px; }
+.err-signal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--error);
+  margin-bottom: 12px;
+}
+.err-signal .mx-label { color: currentColor; font-weight: 600; }
+.err-title { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+.err-body {
+  font-size: 13px;
+  color: color-mix(in oklab, var(--base-content) 60%, transparent);
+  line-height: 1.5;
+  max-width: 340px;
+  margin-bottom: 20px;
+}
+.err-actions { display: flex; align-items: center; gap: 10px; }
+/* 404 — same composition, info/neutral voice */
+.err-tile.info-voice {
+  border-color: color-mix(in oklab, var(--info) 30%, transparent);
+  background: color-mix(in oklab, var(--info) 10%, transparent);
+  color: var(--info);
+}
+.err-signal.info-voice { color: var(--info); }
+
+/* ── Screen system ── */
+.screen { display: none; }
+.screen.active { display: block; }
+.screen-inner { max-width: 1080px; margin: 0 auto; }
+.screen-inner.mobile { max-width: 390px; }
+.screen-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 auto 12px;
+}
+.screen-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: color-mix(in oklab, var(--base-content) 12%, transparent);
+}
+.screen-nav {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  background: var(--base-100);
+  border: 1px solid color-mix(in oklab, var(--primary) 16%, transparent);
+  border-radius: 12px;
+  padding: 6px 8px;
+  z-index: 300;
+  box-shadow: 0 8px 32px rgba(2,4,10,0.6);
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: calc(100vw - 40px);
+}
+.screen-btn {
+  padding: 6px 11px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+  border: none;
+  background: transparent;
+  color: color-mix(in oklab, var(--base-content) 55%, transparent);
+  cursor: pointer;
+}
+.screen-btn.active {
+  background: color-mix(in oklab, var(--primary) 12%, transparent);
+  color: var(--primary);
+}
+
+/* ── App frame & chrome stand-ins ── */
+.frame {
+  border-radius: 16px;
+  border: 1px solid color-mix(in oklab, var(--base-content) 12%, transparent);
+  background: var(--base-200);
+  overflow: hidden;
+  box-shadow: 0 25px 60px rgba(2,4,10,0.55);
+}
+.frame-desktop { display: flex; height: 620px; }
+.frame-mobile {
+  height: 760px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+/* Sidebar */
+.sb {
+  width: 232px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: color-mix(in oklab, var(--base-100) 80%, transparent);
+  border-right: 1px solid color-mix(in oklab, var(--base-content) 8%, transparent);
+}
+.sb-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 14px 16px;
+  border-bottom: 1px solid color-mix(in oklab, var(--base-content) 10%, transparent);
+}
+.sb-logo {
+  width: 28px; height: 28px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--primary), var(--info));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--primary) 40%, transparent),
+    0 0 14px color-mix(in oklab, var(--primary) 32%, transparent);
+}
+.sb-logo svg { width: 16px; height: 16px; }
+.sb-brand { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; }
+.sb-brand em { color: var(--primary); font-style: normal; }
+.sb-nav { padding: 12px; }
+.sb-nav > .mx-label { display: block; padding: 0 8px; margin-bottom: 8px; }
+.sb-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: color-mix(in oklab, var(--base-content) 50%, transparent);
+  margin-bottom: 2px;
+}
+.sb-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+.sb-item.active {
+  color: var(--primary);
+  font-weight: 600;
+  background: color-mix(in oklab, var(--primary) 8%, transparent);
+}
+.sb-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 20%;
+  height: 60%; width: 2px;
+  border-radius: 9999px;
+  background: var(--primary);
+  box-shadow: 0 0 8px color-mix(in oklab, var(--primary) 60%, transparent);
+}
+.sb-user {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-top: 1px solid color-mix(in oklab, var(--base-content) 10%, transparent);
+}
+.sb-avatar {
+  width: 32px; height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--warning), var(--error));
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sb-user-meta { flex: 1; min-width: 0; }
+.sb-user-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-user-email { font-size: 11px; color: color-mix(in oklab, var(--base-content) 50%, transparent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-user > svg { width: 16px; height: 16px; flex-shrink: 0; color: color-mix(in oklab, var(--base-content) 40%, transparent); }
+/* Mobile bottom dock */
+.dock {
+  flex-shrink: 0;
+  display: flex;
+  background: var(--base-100);
+  padding: 6px 8px 12px;
+  position: relative;
+  z-index: 30;
+}
+.dock-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 0;
+  color: color-mix(in oklab, var(--base-content) 50%, transparent);
+  font-size: 10px;
+  font-weight: 500;
+}
+.dock-item svg { width: 20px; height: 20px; }
+.dock-item.active { color: var(--primary); }
+
+/* ── Plan chrome (PlanChrome header) ── */
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid color-mix(in oklab, var(--base-content) 10%, transparent);
+  flex-shrink: 0;
+}
+.page-title { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+.t-success { color: var(--success); }
+.plan-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  padding: 32px;
+}
+.plan-col { width: 100%; max-width: 576px; display: flex; flex-direction: column; }
+
+/* ── Global-error variant (self-contained, no chrome) ── */
+.g-main {
+  background:
+    radial-gradient(1100px 500px at 15% -10%, rgba(44,224,241,0.06), transparent 60%),
+    radial-gradient(900px 460px at 85% 110%, rgba(178,150,255,0.05), transparent 60%),
+    var(--base-300);
+}
+.g-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding-top: 64px;
+  flex-shrink: 0;
+}
+.g-logo {
+  width: 56px; height: 56px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--primary) 40%, transparent),
+    0 0 24px color-mix(in oklab, var(--primary) 32%, transparent);
+}
+.g-logo svg { width: 28px; height: 28px; }
+.g-title { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+.g-title em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.g-main .err-wrap { padding-bottom: 88px; } /* optical center under the brand */
+
+/* ── Design notes ── */
+.design-notes {
+  max-width: 820px;
+  margin: 40px auto 0;
+  background: var(--base-100);
+  border: 1px solid color-mix(in oklab, var(--base-content) 10%, transparent);
+  border-radius: 12px;
+  padding: 20px 24px;
+}
+.design-notes h3 { font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+.design-notes ul { list-style: none; }
+.design-notes li {
+  font-size: 13px;
+  color: color-mix(in oklab, var(--base-content) 75%, transparent);
+  line-height: 1.6;
+  padding-left: 16px;
+  position: relative;
+  margin-bottom: 6px;
+}
+.design-notes li::before {
+  content: '';
+  position: absolute;
+  left: 2px; top: 8px;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--primary) 60%, transparent);
+}
+.design-notes code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 8%, transparent);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* ── Keyframes ── */
+@keyframes mx-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+@keyframes mx-pulse-soft { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════ SCREEN 1 — BEFORE · BOARD LOADING SKELETON ════════ -->
+<div class="screen active" id="screen-skeleton">
+  <div class="screen-inner">
+    <div class="screen-label">Before — board loading skeleton (loading.tsx)</div>
+    <div class="frame frame-desktop">
+
+      <aside class="sb">
+        <div class="sb-head">
+          <div class="sb-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <span class="sb-brand"><em>Mars</em> Workbench</span>
+        </div>
+        <div class="sb-nav">
+          <span class="mx-label">Workspace</span>
+          <div class="sb-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            Board
+          </div>
+          <div class="sb-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16M15 4v16"/></svg>
+            Priorities
+          </div>
+          <div class="sb-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Plan
+          </div>
+          <div class="sb-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 13v5a2 2 0 01-2 2H4a2 2 0 01-2-2v-5"/><path d="M2 13h5l2 3h6l2-3h5"/><path d="M12 3v7"/><path d="M9 7l3 3 3-3"/></svg>
+            Dump
+          </div>
+        </div>
+        <div class="sb-user">
+          <div class="sb-avatar">MC</div>
+          <div class="sb-user-meta">
+            <div class="sb-user-name">Mars Chen</div>
+            <div class="sb-user-email">mars@example.com</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </div>
+      </aside>
+
+      <div class="main">
+        <!-- src/app/kanban/loading.tsx, 1:1 (Tailwind units → px) under one soft-pulse wrapper -->
+        <div class="skel-page skel-pulse">
+          <!-- BoardHeader skeleton: title h-7 w-40 · badge h-6 w-28 rounded-full · button h-8 w-24 rounded-lg -->
+          <div class="skel-header">
+            <div class="skel-header-left">
+              <div class="mx-skel" style="height:28px;width:160px"></div>
+              <div class="mx-skel round" style="height:24px;width:112px"></div>
+            </div>
+            <div class="mx-skel" style="height:32px;width:96px"></div>
+          </div>
+
+          <!-- ProgressDashboard skeleton: ring + stat pairs + week progress bar -->
+          <div class="skel-dash">
+            <div class="skel-ring-group">
+              <div class="mx-skel round" style="width:48px;height:48px"></div>
+              <div class="skel-stack">
+                <div class="mx-skel" style="height:16px;width:48px"></div>
+                <div class="mx-skel" style="height:12px;width:80px"></div>
+              </div>
+            </div>
+            <div class="skel-divider"></div>
+            <div class="skel-stack">
+              <div class="mx-skel" style="height:24px;width:64px"></div>
+              <div class="mx-skel" style="height:12px;width:80px"></div>
+            </div>
+            <div class="skel-stack">
+              <div class="mx-skel" style="height:24px;width:64px"></div>
+              <div class="mx-skel" style="height:12px;width:80px"></div>
+            </div>
+            <div class="skel-stack">
+              <div class="mx-skel" style="height:24px;width:48px"></div>
+              <div class="mx-skel" style="height:12px;width:64px"></div>
+            </div>
+            <div class="skel-divider"></div>
+            <div class="skel-wk">
+              <div class="skel-wk-head">
+                <div class="mx-skel" style="height:16px;width:96px"></div>
+                <div class="mx-skel" style="height:12px;width:32px"></div>
+              </div>
+              <div class="mx-skel round" style="height:6px;width:100%"></div>
+              <div class="mx-skel" style="height:12px;width:96px"></div>
+            </div>
+          </div>
+
+          <!-- Kanban columns skeleton: 3 columns on base-200/50, 3 card blocks each -->
+          <div class="skel-cols">
+            <div class="skel-col">
+              <div class="mx-skel" style="height:20px;width:64px"></div>
+              <div class="mx-skel" style="height:80px;width:100%"></div>
+              <div class="mx-skel" style="height:80px;width:100%"></div>
+              <div class="mx-skel" style="height:80px;width:100%"></div>
+            </div>
+            <div class="skel-col">
+              <div class="mx-skel" style="height:20px;width:64px"></div>
+              <div class="mx-skel" style="height:80px;width:100%"></div>
+              <div class="mx-skel" style="height:80px;width:100%"></div>
+              <div class="mx-skel" style="height:80px;width:100%"></div>
+            </div>
+            <div class="skel-col">
+              <div class="mx-skel" style="height:20px;width:64px"></div>
+              <div class="mx-skel" style="height:80px;width:100%"></div>
+              <div class="mx-skel" style="height:80px;width:100%"></div>
+              <div class="mx-skel" style="height:80px;width:100%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ════════ SCREEN 2 — AFTER · BOARD FETCH FAILED ════════ -->
+<div class="screen" id="screen-board-error">
+  <div class="screen-inner">
+    <div class="screen-label">After — board fetch failed · error screen (Try again → error.tsx reset())</div>
+    <div class="frame frame-desktop">
+
+      <aside class="sb">
+        <div class="sb-head">
+          <div class="sb-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <span class="sb-brand"><em>Mars</em> Workbench</span>
+        </div>
+        <div class="sb-nav">
+          <span class="mx-label">Workspace</span>
+          <div class="sb-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            Board
+          </div>
+          <div class="sb-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16M15 4v16"/></svg>
+            Priorities
+          </div>
+          <div class="sb-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Plan
+          </div>
+          <div class="sb-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 13v5a2 2 0 01-2 2H4a2 2 0 01-2-2v-5"/><path d="M2 13h5l2 3h6l2-3h5"/><path d="M12 3v7"/><path d="M9 7l3 3 3-3"/></svg>
+            Dump
+          </div>
+        </div>
+        <div class="sb-user">
+          <div class="sb-avatar">MC</div>
+          <div class="sb-user-meta">
+            <div class="sb-user-name">Mars Chen</div>
+            <div class="sb-user-email">mars@example.com</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </div>
+      </aside>
+
+      <div class="main">
+        <!-- error.tsx replaces the whole segment (header + dash + columns); chrome survives -->
+        <div class="err-wrap">
+          <div class="err-tile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+          </div>
+          <div class="err-signal">
+            <span class="mx-led mx-led-pulse"></span>
+            <span class="mx-label">Signal lost</span>
+          </div>
+          <h2 class="err-title">Something went wrong</h2>
+          <p class="err-body">We couldn't load this page — your data is safe.</p>
+          <div class="err-actions">
+            <button class="mx-btn mx-btn-primary" type="button">Try again</button>
+            <button class="mx-btn mx-btn-ghost" type="button">← Back to board</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ════════ SCREEN 3 — PLANS SEGMENT · ERROR INSIDE PLANNING CHROME ════════ -->
+<div class="screen" id="screen-plans-error">
+  <div class="screen-inner">
+    <div class="screen-label">Plans segment — error inside planning chrome</div>
+    <div class="frame frame-desktop">
+
+      <aside class="sb">
+        <div class="sb-head">
+          <div class="sb-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <span class="sb-brand"><em>Mars</em> Workbench</span>
+        </div>
+        <div class="sb-nav">
+          <span class="mx-label">Workspace</span>
+          <div class="sb-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            Board
+          </div>
+          <div class="sb-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16M15 4v16"/></svg>
+            Priorities
+          </div>
+          <div class="sb-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Plan
+          </div>
+          <div class="sb-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 13v5a2 2 0 01-2 2H4a2 2 0 01-2-2v-5"/><path d="M2 13h5l2 3h6l2-3h5"/><path d="M12 3v7"/><path d="M9 7l3 3 3-3"/></svg>
+            Dump
+          </div>
+        </div>
+        <div class="sb-user">
+          <div class="sb-avatar">MC</div>
+          <div class="sb-user-meta">
+            <div class="sb-user-name">Mars Chen</div>
+            <div class="sb-user-email">mars@example.com</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </div>
+      </aside>
+
+      <div class="main">
+        <!-- PlanChrome (the plans layout) survives — error.tsx renders in its body
+             slot exactly like the segment's loading.tsx does -->
+        <div class="page-header">
+          <h1 class="page-title"><span class="t-success">Kanban</span> Planner</h1>
+          <span class="mx-chip md ch-error">Planning Mode</span>
+        </div>
+        <div class="plan-body">
+          <div class="plan-col">
+            <div class="err-wrap">
+              <div class="err-tile">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+              </div>
+              <div class="err-signal">
+                <span class="mx-led mx-led-pulse"></span>
+                <span class="mx-label">Signal lost</span>
+              </div>
+              <h2 class="err-title">Something went wrong</h2>
+              <p class="err-body">We couldn't load this page — your data is safe.</p>
+              <div class="err-actions">
+                <button class="mx-btn mx-btn-primary" type="button">Try again</button>
+                <button class="mx-btn mx-btn-ghost" type="button">← Back to board</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ════════ SCREEN 4 — MOBILE · BOARD ERROR + DOCK ════════ -->
+<div class="screen" id="screen-mobile">
+  <div class="screen-inner mobile">
+    <div class="screen-label">Mobile — board error + dock</div>
+    <div class="frame frame-mobile">
+
+      <!-- error.tsx replaces the whole board segment (header included — BoardHeader
+           is page content, not layout chrome); only the dock survives -->
+      <div class="err-wrap">
+        <div class="err-tile">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        </div>
+        <div class="err-signal">
+          <span class="mx-led mx-led-pulse"></span>
+          <span class="mx-label">Signal lost</span>
+        </div>
+        <h2 class="err-title">Something went wrong</h2>
+        <p class="err-body">We couldn't load this page — your data is safe.</p>
+        <div class="err-actions">
+          <button class="mx-btn mx-btn-primary" type="button">Try again</button>
+          <button class="mx-btn mx-btn-ghost" type="button">← Back to board</button>
+        </div>
+      </div>
+
+      <div class="dock mx-hairline-top">
+        <div class="dock-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Board
+        </div>
+        <div class="dock-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16M15 4v16"/></svg>
+          Priorities
+        </div>
+        <div class="dock-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Plan
+        </div>
+        <div class="dock-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 13v5a2 2 0 01-2 2H4a2 2 0 01-2-2v-5"/><path d="M2 13h5l2 3h6l2-3h5"/><path d="M12 3v7"/><path d="M9 7l3 3 3-3"/></svg>
+          Dump
+        </div>
+        <div class="dock-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          Settings
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ════════ SCREEN 5 — GLOBAL-ERROR · ROOT LAYOUT FAILED ════════ -->
+<div class="screen" id="screen-global-error">
+  <div class="screen-inner">
+    <div class="screen-label">Global-error — root layout failed · self-contained, no app chrome</div>
+    <div class="frame frame-desktop">
+
+      <div class="main g-main">
+        <!-- global-error.tsx renders its own <html>/<body>: no sidebar, no dock —
+             brand mark (LoginScreen styling) anchors the page instead -->
+        <div class="g-brand">
+          <div class="g-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <span class="g-title"><em>Mars</em> Workbench</span>
+        </div>
+        <div class="err-wrap">
+          <div class="err-tile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+          </div>
+          <div class="err-signal">
+            <span class="mx-led mx-led-pulse"></span>
+            <span class="mx-label">Signal lost</span>
+          </div>
+          <h2 class="err-title">Something went wrong</h2>
+          <p class="err-body">We couldn't load this page — your data is safe.</p>
+          <div class="err-actions">
+            <button class="mx-btn mx-btn-primary" type="button">Try again</button>
+            <button class="mx-btn mx-btn-ghost" type="button">← Back to board</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ════════ SCREEN 6 — 404 · NOT FOUND ════════ -->
+<div class="screen" id="screen-notfound">
+  <div class="screen-inner">
+    <div class="screen-label">404 — not found (not-found.tsx) · info voice</div>
+    <div class="frame frame-desktop">
+
+      <aside class="sb">
+        <div class="sb-head">
+          <div class="sb-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <span class="sb-brand"><em>Mars</em> Workbench</span>
+        </div>
+        <div class="sb-nav">
+          <span class="mx-label">Workspace</span>
+          <div class="sb-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            Board
+          </div>
+          <div class="sb-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16M15 4v16"/></svg>
+            Priorities
+          </div>
+          <div class="sb-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Plan
+          </div>
+          <div class="sb-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 13v5a2 2 0 01-2 2H4a2 2 0 01-2-2v-5"/><path d="M2 13h5l2 3h6l2-3h5"/><path d="M12 3v7"/><path d="M9 7l3 3 3-3"/></svg>
+            Dump
+          </div>
+        </div>
+        <div class="sb-user">
+          <div class="sb-avatar">MC</div>
+          <div class="sb-user-meta">
+            <div class="sb-user-name">Mars Chen</div>
+            <div class="sb-user-email">mars@example.com</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </div>
+      </aside>
+
+      <div class="main">
+        <!-- not-found.tsx (edit-plan notFound()): same composition, info/neutral
+             voice — no abort channel, no pulsing LED, no secondary link -->
+        <div class="err-wrap">
+          <div class="err-tile info-voice">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+          </div>
+          <div class="err-signal info-voice">
+            <span class="mx-led"></span>
+            <span class="mx-label">404 — Not found</span>
+          </div>
+          <h2 class="err-title">Page not found</h2>
+          <p class="err-body">This page doesn't exist or may have been moved.</p>
+          <div class="err-actions">
+            <button class="mx-btn mx-btn-primary" type="button">Back to board</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ════════ DESIGN NOTES ════════ -->
+<div class="design-notes">
+  <h3>Design notes — Pattern C page error screen (see design/spike/error-handling.md)</h3>
+  <ul>
+    <li><strong>File map</strong>: <code>error.tsx</code> under <code>kanban/</code>, <code>kanban/priorities/</code>, <code>kanban/dump/</code>, and <code>kanban/plans/</code>, plus root <code>global-error.tsx</code> and <code>not-found.tsx</code> — all six render one shared <code>ErrorScreen</code> domain component (<code>domain/shared/</code>), parameterized by voice (error / info), actions, and micro-label.</li>
+    <li><strong>Skeleton → error swap</strong>: <code>loading.tsx</code> shows the pulsing skeleton while the server renders; if the render throws, Next swaps the same segment slot to <code>error.tsx</code> — the sidebar/dock survive because the root layout still renders. <strong>Try again</strong> is wired to <code>error.tsx</code>'s <code>reset()</code>, which re-renders the segment (skeleton shows again); the ghost link navigates to <code>/kanban</code>.</li>
+    <li><strong>Why sync failures land here</strong>: <code>syncService.ensureSynced</code> runs during the GET render of every kanban page, so a failed sync write takes down the whole page render — the page error screen is also the sync-failure surface. Its writes are transactional, hence the body copy's "your data is safe". Copy stays generic; the real error is logged server-side.</li>
+    <li><strong>Segment layouts survive too</strong>: the plans segment's <code>error.tsx</code> renders inside <code>PlanChrome</code> (header + <code>max-w-xl</code> body column) exactly like its <code>loading.tsx</code> does — the error state never breaks planning mode's frame.</li>
+    <li><strong>Channel discipline</strong>: the abort channel colors the <em>state</em> — icon tile <code>border-error/30 bg-error/10 text-error</code>, "SIGNAL LOST" micro-label (<code>fx-label</code>) with a pulsing <code>fx-led</code> — while the action button stays <em>primary</em> (action channel), same rule as patterns A and B. Never a filled red block.</li>
+    <li><strong>global-error.tsx</strong>: when the root layout itself crashes there is no chrome to survive — the variant is self-contained (renders its own <code>&lt;html&gt;/&lt;body&gt;</code>): brand mark (LoginScreen's glowing tile + wordmark) top-center over the bare console-sky background, then the same composition.</li>
+    <li><strong>404 voice</strong>: <code>not-found.tsx</code> (used by the edit-plan <code>notFound()</code> today) keeps the composition but swaps to the info/neutral voice — compass tile and "404 — NOT FOUND" micro-label in <code>info</code>, static LED, single primary action "Back to board". A missing page is not an abort.</li>
+    <li><strong>Copy / i18n</strong>: proposed <code>Errors</code> keys — <code>screenTitle</code> ("Something went wrong"), <code>screenBody</code> ("We couldn't load this page — your data is safe."), <code>tryAgain</code>, <code>backToBoard</code>, <code>notFoundTitle</code> ("Page not found"), <code>notFoundBody</code> ("This page doesn't exist or may have been moved."). The mono micro-labels ("SIGNAL LOST", "404 — NOT FOUND") are chrome telemetry and join the same namespace as <code>screenLabel</code>/<code>notFoundLabel</code>.</li>
+  </ul>
+</div>
+
+<!-- ════════ SCREEN NAV ════════ -->
+<div class="screen-nav">
+  <button class="screen-btn active" data-screen="skeleton" onclick="showScreen('skeleton')">Skeleton</button>
+  <button class="screen-btn" data-screen="board-error" onclick="showScreen('board-error')">Board error</button>
+  <button class="screen-btn" data-screen="plans-error" onclick="showScreen('plans-error')">Plans error</button>
+  <button class="screen-btn" data-screen="mobile" onclick="showScreen('mobile')">Mobile</button>
+  <button class="screen-btn" data-screen="global-error" onclick="showScreen('global-error')">Global error</button>
+  <button class="screen-btn" data-screen="notfound" onclick="showScreen('notfound')">404</button>
+</div>
+
+<script>
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === 'screen-' + name));
+  document.querySelectorAll('.screen-btn').forEach(b => b.classList.toggle('active', b.dataset.screen === name));
+}
+</script>
+
+</body>
+</html>
