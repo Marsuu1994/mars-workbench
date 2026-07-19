@@ -12,7 +12,7 @@ interface DumpScreenProps {
   periodKey: string;
   initialEntries: DumpEntryItem[];
   initialNextCursor: string | null;
-  totalCount: number;
+  initialTotalCount: number;
 }
 
 /**
@@ -24,35 +24,40 @@ export const DumpScreen = ({
   periodKey,
   initialEntries,
   initialNextCursor,
-  totalCount,
+  initialTotalCount,
 }: DumpScreenProps) => {
-  const feed = useDumpFeed({
+  const {
+    entries,
+    totalCount,
+    hasMore,
+    isAppending,
+    captureError,
+    capture,
+    loadMore,
+  } = useDumpFeed({
     entries: initialEntries,
     nextCursor: initialNextCursor,
-    totalCount,
+    totalCount: initialTotalCount,
   });
 
   return (
     <div className="flex flex-col h-full">
       <BoardHeader periodKey={periodKey} />
-      <DumpTitleBar totalCount={feed.totalCount} />
+      <DumpTitleBar totalCount={totalCount} />
 
       <div className="flex-shrink-0 border-b border-base-content/10 px-4 py-3">
         <div className={`mx-auto w-full ${DUMP_COLUMN_MAX_W}`}>
-          <DumpComposer
-            captureError={feed.captureError}
-            onCapture={feed.capture}
-          />
+          <DumpComposer captureError={captureError} onCapture={capture} />
         </div>
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto">
         <div className={`mx-auto w-full ${DUMP_COLUMN_MAX_W} px-4 py-4 pb-12`}>
           <DumpFeed
-            entries={feed.entries}
-            hasMore={feed.hasMore}
-            isAppending={feed.isAppending}
-            onLoadMore={feed.loadMore}
+            entries={entries}
+            hasMore={hasMore}
+            isAppending={isAppending}
+            onLoadMore={loadMore}
           />
         </div>
       </div>

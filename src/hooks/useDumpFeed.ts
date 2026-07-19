@@ -91,8 +91,9 @@ export function useDumpFeed(initial: DumpFeedInit) {
     // A stale/invalid cursor simply stops paging — the feed already shows what
     // it has; there is no user-facing failure mode for scroll.
     if ('error' in result) return;
-    setEntries(prev => [...prev, ...result.data.entries]);
-    setNextCursor(result.data.nextCursor);
+    const {entries: page, nextCursor: next} = result.data;
+    setEntries(prev => [...prev, ...page]);
+    setNextCursor(next);
   }, [isAppending, nextCursor]);
 
   return {

@@ -15,13 +15,14 @@ export default async function DumpPage() {
   // The cursorless first page can only succeed; fall back to empty on the
   // (unreachable) error branch so the types stay honest.
   const feedData = 'data' in feed ? feed.data : null;
+  const {entries, nextCursor} = feedData ?? {entries: [], nextCursor: null};
 
   return (
     <DumpScreen
       periodKey={getISOWeekKey(getTodayDate())}
-      initialEntries={feedData?.entries ?? []}
-      initialNextCursor={feedData?.nextCursor ?? null}
-      totalCount={totalCount}
+      initialEntries={entries}
+      initialNextCursor={nextCursor}
+      initialTotalCount={totalCount}
     />
   );
 }
