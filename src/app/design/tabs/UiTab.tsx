@@ -19,10 +19,10 @@ import {ChoicePills} from '@/components/ui/form/ChoicePills';
 import {Stepper} from '@/components/ui/form/Stepper';
 import {SubmitButton} from '@/components/ui/form/SubmitButton';
 import {FormErrorAlert} from '@/components/ui/form/FormErrorAlert';
-import {BottomSheet} from '@/components/ui/overlay/BottomSheet';
+import {ConfirmButton} from '@/components/ui/ConfirmButton';
 import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
+import {OverlayHeader} from '@/components/ui/overlay/OverlayHeader';
 import {Popover} from '@/components/ui/overlay/Popover';
-import {SheetCloseButton} from '@/components/ui/overlay/SheetCloseButton';
 
 import {Zone, Section, Variant, Row} from '../GalleryParts';
 import {
@@ -35,11 +35,9 @@ import {
   POPOVER_DEMO_ANCHOR,
   POPOVER_DEMO_TITLE,
   POPOVER_DEMO_BODY,
-  SHEET_DEMO_TITLE,
-  SHEET_DEMO_OPEN,
-  SHEET_DEMO_CLOSE,
-  SHEET_DEMO_HINT,
-  SHEET_DEMO_ROWS,
+  HEADER_DEMO_TITLE,
+  HEADER_DEMO_CLOSE,
+  HEADER_DEMO_BADGE,
   SHELL_DEMO_OPEN,
   SHELL_DEMO_TITLE,
   SHELL_DEMO_BODY,
@@ -59,11 +57,14 @@ import {
   CONTENT_STATS,
   CONTENT_BARS,
   CONTENT_SECTION_LABELS,
+  CONFIRM_DEMO_LABEL,
+  CONFIRM_DEMO_PROMPT,
+  CONFIRM_DEMO_CONFIRM,
+  CONFIRM_DEMO_CANCEL,
 } from '../constants';
 
 /** src/components/ui/ — generic primitives with zero domain imports. */
 export const UiTab = () => {
-  const [sheetOpen, setSheetOpen] = useState(false);
   const [shellOpen, setShellOpen] = useState(false);
   const [choice, setChoice] = useState<string>(FORM_DEMO_CHOICES[0].value);
   const [freq, setFreq] = useState(FORM_DEMO_STEP_MIN);
@@ -263,48 +264,6 @@ export const UiTab = () => {
     </Section>
   );
 
-  const renderBottomSheet = () => (
-    <Section
-      title="BottomSheet"
-      description="The uniform mobile sheet container: optional pinned header + subheader, internal scroll region, explicit backdrop dismissal."
-    >
-      <button
-        type="button"
-        className="btn btn-primary btn-sm"
-        onClick={() => setSheetOpen(true)}
-      >
-        {SHEET_DEMO_OPEN}
-      </button>
-      <BottomSheet
-        isOpen={sheetOpen}
-        onClose={() => setSheetOpen(false)}
-        closeLabel={SHEET_DEMO_CLOSE}
-        mobileOnly={false}
-        header={{
-          icon: <InboxStackIcon className="size-5 text-primary" />,
-          title: SHEET_DEMO_TITLE,
-          badge: <Pill color="primary">{SHEET_DEMO_ROWS.length}</Pill>,
-        }}
-        subheader={
-          <div className="px-4 py-2.5 text-xs text-base-content/50 border-b border-base-content/10">
-            {SHEET_DEMO_HINT}
-          </div>
-        }
-        scrollable
-        bodyClassName="p-4 flex flex-col gap-2"
-      >
-        {SHEET_DEMO_ROWS.map(row => (
-          <div
-            key={row}
-            className="rounded-card border border-base-content/10 bg-base-100 px-3.5 py-3 text-sm"
-          >
-            {row}
-          </div>
-        ))}
-      </BottomSheet>
-    </Section>
-  );
-
   const renderModalShell = () => (
     <Section
       title="OverlayShell"
@@ -361,12 +320,47 @@ export const UiTab = () => {
     </Section>
   );
 
-  const renderSheetCloseButton = () => (
+  const renderConfirmButton = () => (
     <Section
-      title="SheetCloseButton"
-      description="The standard overlay close affordance — a down-chevron in sheet/modal headers app-wide."
+      title="ConfirmButton"
+      description="Two-step destructive action row: rest → first click triggers an inline confirm → second click executes. Parents reset a stale confirm via key remount; `triggered` pins the state."
     >
-      <SheetCloseButton onClick={() => undefined} label="Close" />
+      <div className="flex max-w-md flex-col gap-4">
+        <Variant label="rest (click to trigger)">
+          <ConfirmButton
+            label={CONFIRM_DEMO_LABEL}
+            confirmPrompt={CONFIRM_DEMO_PROMPT}
+            confirmLabel={CONFIRM_DEMO_CONFIRM}
+            cancelLabel={CONFIRM_DEMO_CANCEL}
+            onConfirm={() => undefined}
+          />
+        </Variant>
+        <Variant label="triggered (pinned)">
+          <ConfirmButton
+            label={CONFIRM_DEMO_LABEL}
+            confirmPrompt={CONFIRM_DEMO_PROMPT}
+            confirmLabel={CONFIRM_DEMO_CONFIRM}
+            cancelLabel={CONFIRM_DEMO_CANCEL}
+            onConfirm={() => undefined}
+            triggered
+          />
+        </Variant>
+      </div>
+    </Section>
+  );
+
+  const renderOverlayHeader = () => (
+    <Section
+      title="OverlayHeader"
+      description="The one overlay header: icon/title/badge cluster + the standard close affordance (down-chevron on mobile, ✕ from md up). Every sheet/modal header composes this — never hand-roll one."
+    >
+      <OverlayHeader
+        icon={<InboxStackIcon className="size-5 text-primary" />}
+        title={HEADER_DEMO_TITLE}
+        badge={<Pill color="primary">{HEADER_DEMO_BADGE}</Pill>}
+        onClose={() => undefined}
+        closeLabel={HEADER_DEMO_CLOSE}
+      />
     </Section>
   );
 
@@ -385,16 +379,16 @@ export const UiTab = () => {
         {renderContentBlocks()}
         {renderEmptyState()}
         {renderTabBar()}
+        {renderConfirmButton()}
       </Zone>
 
       <Zone
         title="Overlays"
-        description="ui/overlay/ — the one dialog stack. Every sheet, modal and popover routes through OverlayShell."
+        description="ui/overlay/ — the one dialog stack: every sheet and modal composes OverlayShell + OverlayHeader; Popover is the lone non-dialog overlay."
       >
-        {renderBottomSheet()}
         {renderModalShell()}
+        {renderOverlayHeader()}
         {renderPopover()}
-        {renderSheetCloseButton()}
       </Zone>
     </div>
   );

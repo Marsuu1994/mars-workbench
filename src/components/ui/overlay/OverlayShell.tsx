@@ -12,8 +12,6 @@ interface OverlayShellProps {
   onClose: () => void;
   /** sheet = bottom sheet · responsive = sheet that centers at md · center = centered */
   variant?: OverlayVariant;
-  /** Restrict a sheet to mobile (desktop has its own affordance) */
-  mobileOnly?: boolean;
   /** Tap-outside dismissal. Keep false for forms so a stray tap can't
       discard input — an explicit decision, not a per-modal accident. */
   dismissOnBackdrop?: boolean;
@@ -41,7 +39,6 @@ export const OverlayShell = ({
   isOpen,
   onClose,
   variant = 'center',
-  mobileOnly,
   dismissOnBackdrop = true,
   closeLabel,
   corners,
@@ -54,7 +51,7 @@ export const OverlayShell = ({
   return (
     <dialog
       ref={dialogRef}
-      className={cn(VARIANT_CLASS[variant], mobileOnly && 'md:hidden')}
+      className={cn(VARIANT_CLASS[variant], 'outline-none')}
       onClose={onClose}
     >
       <div

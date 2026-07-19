@@ -14,7 +14,7 @@ A Next.js application centered on a Kanban Period Planner, with AI-assisted plan
 ## Tech Stack
 
 - Framework: Next.js 16 (App Router)
-- UI: React 19, Tailwind CSS 4, daisyUI 5 (custom `mars-dark` / `mars-light` themes + `fx-*` FX utility layer — see `design/design-system.md` "Mission Control HUD")
+- UI: React 19, Tailwind CSS 4, daisyUI 5 (custom themes + `fx-*` FX utility layer — see `design/design-language/`: `mars-dark` / `mars-light` shipped, `p5-dark` pending)
 - State: Zustand
 - Database: PostgreSQL (Supabase) + Prisma ORM
 - Auth: Supabase Auth (Google OAuth)
@@ -32,10 +32,11 @@ prisma/                            # schema.prisma + migrations/
 scripts/one-time/                  # Ad-hoc/manual scripts (see One-Time Scripts section)
 design/                            # Centralized design docs (see design/README.md for the index)
 ├── baseline.md                    # The ONE app-wide baseline (goal, entities, schema, decisions)
-├── design-system.md               # Visual design system: OKLCH palette + contrast, fx-* layer
+├── design-language/               # Per-theme visual specs (mars-dark, mars-light, p5-dark) + shared fx-* skeleton (README)
 ├── tracker.md                     # Consolidated roadmap — open items only
 ├── reference.md                   # Lean lookup tables: server actions, services, DAL
 ├── flows/                         # Per-feature flow docs
+├── spike/                         # Point-in-time spike docs for open questions (see Documentation Style)
 └── mockup/future-work/            # Self-contained HTML explorations of unbuilt designs only
 src/
 ├── proxy.ts                       # Route protection (Supabase session check)
@@ -79,6 +80,7 @@ Implemented UI is documented in-app by the Design Console (`/design`): a compone
 - **Frame modes**: `fill` (default) is for screen-level tabs only — a 1:1 viewport-bounded stand-in for the page inside AppShell's `<main>`. Everything standalone (empty states, sheets, inline modal panels) is `fit` — content height + padding — and/or `overlay` for a dimmed modal backdrop.
 - **Live-feel, no side effects**: frames wrap content in an `InteractionShield` — hover and scroll stay live; clicks/submits/drag-starts are swallowed so wired handlers can never fire against fixture ids.
 - **Modals render inline** via their extracted `*Panel`/`*Content` components (the live `OverlayShell` top-layer dialog would escape the frame's clipping).
+- **One tab, one state**: each scenario tab pins exactly one fixture/state of the rendered component (e.g. the settings overlay at rest vs with its sign-out confirm triggered) — never compose multiple states into one tab. Breakpoint presentations are not states: mobile and desktop render the same component, so they share a tab rather than getting siblings.
 
 ### Designing New UI
 
@@ -100,6 +102,7 @@ The living docs — README **Current State**, `design/tracker.md`, and everythin
 - **Length must not scale with diff size.** A bigger change earns a *higher-level* summary, not a longer one — a Current State bullet stays 1–2 lines even as the feature behind it grows.
 - **Edit living docs in place; don't append.** Rewrite the sentence that is now wrong instead of adding a paragraph; an edit keeps the doc's size roughly flat.
 - **Update Log is the pressure valve**: append-only (see Anti-Patterns) and detail-tolerated — record the day's work at whatever length it needs, just lead each bullet with the outcome rather than the operation.
+- **Open questions get a spike doc, not a chat log or a premature refactor.** When a design/tooling question has real tradeoffs and no owner decision yet, write a self-contained doc in `design/spike/` — trigger, options with honest pros/cons, and a concrete implementation plan per option — headed `Status: awaiting owner review` and linked from the tracker item it answers. Spikes are point-in-time proposals, not living docs: they are not updated after the decision; the decision lands in the tracker/Update Log instead.
 
 ## Layers
 
@@ -119,6 +122,7 @@ When adding a new convention, append it to the **end of the relevant subsection 
 
 - Keep domain helpers in `src/utils/`. Do not duplicate logic.
 - Keep file names aligned with component names when renaming.
+- **One file → one component**, and the file name maps to the component name. When a component grows a shell-free sibling (a `*Panel` extracted from a modal), the sibling gets its own file — never two exported components in one file. Bad: `SettingsSheet.tsx` exporting both `SettingsPanel` and `SettingsSheet`. Good: `SettingsPanel.tsx` + `SettingsSheet.tsx`, the sheet importing the panel.
 
 ### Enums
 
@@ -233,6 +237,8 @@ When adding a new convention, append it to the **end of the relevant subsection 
     toType: TaskType;
   }
   ```
+
+- **User-facing copy is sentence case** — capitalize only the first word (plus proper nouns/acronyms); Title Case is reserved for headers (page/section titles, nav labels). Applies to buttons, row actions, chips, hints, empty states — the same action must not flip casing between states. Bad: a rest-state button "Sign Out" whose confirm state reads "Sign out?". Good: "Sign out" / "Sign out?" / "Create task" / "Add task", with headers like "Settings" or "Kanban Planner" keeping their casing.
 
 ## Code Style
 

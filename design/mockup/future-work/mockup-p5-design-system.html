@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Calling Card — P5 Design System Exploration (mars-dark)</title>
+<!--
+  PROPOSAL DEMO — "Calling Card" (mars-dark × Persona 5).
+  Spec: design/design-system-p5.md. Dark-only exploration: no theme toggle
+  on purpose (mars-light is out of scope). Self-contained: does NOT link
+  ../mockup-theme.css / ../styles.css — this file demos a different theme.
+-->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+
+/* ═══ Tokens (mirrors design-system-p5.md; hexes are the verified values) ═══ */
+:root {
+  --ink-100: #161111;   /* base-100 ink panel */
+  --ink-200: #0e0a0a;   /* base-200 ink floor */
+  --ink-300: #060505;   /* base-300 ink well */
+  --paper:   #f5f0f0;   /* base-content */
+  --red:     #ff0c0b;   /* primary — phantom red (signal) */
+  --red-field: #c51d24; /* surface-only field red */
+  --red-blood: #721216; /* surface-only depth layer */
+  --violet-blood: #2c2151; /* AI-channel depth layer */
+  --ink-card: #191313;  /* raised task-card surface */
+  --violet:  #b296ff;   /* secondary — AI / WEEKLY */
+  --orange:  #fa8927;   /* accent — targeting (drag & drop) */
+  --blue:    #61c3f9;   /* info — DAILY / datalink */
+  --green:   #5edb81;   /* success — go / sizes */
+  --gold:    #f6c835;   /* warning — stars / caution / ONCE */
+  --rose:    #ef3565;   /* error — abort / urgent */
+  --slab:    #271f1f;   /* neutral */
+
+  --font-display: 'Anton', 'Arial Narrow', Impact, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'Geist Mono', 'SF Mono', Menlo, monospace;
+
+  --snap: cubic-bezier(0.2, 0, 0, 1);
+  --overshoot: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: var(--font-body);
+  background: var(--ink-200);
+  color: var(--paper);
+  min-height: 100vh;
+}
+
+/* ═══ fx-shell-bg → "Metaverse ground": halftone screentone (two staggered
+   dot layers) + faint diagonal speed-lines + one flat red corner wedge.
+   Flat fills only — hard gradient stops, no gradations. ═══ */
+.metaverse {
+  position: relative;
+  background-color: var(--ink-200);
+  background-image:
+    linear-gradient(107deg, rgba(197,29,36,0.12) 0 210px, transparent 210px),
+    radial-gradient(circle at center, rgba(245,240,240,0.05) 1px, transparent 1.5px),
+    radial-gradient(circle at center, rgba(245,240,240,0.028) 1px, transparent 1.5px),
+    repeating-linear-gradient(115deg, rgba(245,240,240,0.014) 0 1px, transparent 1px 84px);
+  background-size: auto, 16px 16px, 16px 16px, auto;
+  background-position: 0 0, 0 0, 8px 8px, 0 0;
+}
+
+/* ═══ Primitives ═══ */
+
+/* fx-display — the display voice: chrome labels only, never content */
+.p5-display {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-weight: 400;
+  transform: skewX(-6deg);
+  display: inline-block;
+}
+
+/* fx-tile — inverted ransom tile (one word/letter per heading, max) */
+.p5-tile {
+  background: var(--paper);
+  color: var(--ink-300);
+  padding: 0 0.14em;
+  display: inline-block;
+  transform: rotate(-2.5deg);
+}
+.p5-tile.red { background: var(--red-field); color: var(--paper); }
+
+/* fx-slash — flat red underline strip for display headings */
+.p5-slash {
+  display: block;
+  height: 4px;
+  width: 64px;
+  background: var(--red-field);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 4px 100%);
+  margin-top: 6px;
+}
+
+/* fx-label — telemetry micro-label (unchanged voice from HUD) */
+.p5-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: rgba(245,240,240,0.62);
+}
+.p5-num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* fx-led → diamond stud: flat, no glow */
+.p5-led {
+  display: inline-block;
+  width: 7px; height: 7px;
+  background: currentColor;
+  transform: rotate(45deg);
+  outline: 1px solid var(--ink-300);
+  flex-shrink: 0;
+}
+.p5-led-pulse { animation: p5-pulse 2.4s ease-in-out infinite; }
+
+/* fx-chip → currentColor parallelogram (skewed, mono voice) */
+.p5-chip {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  padding: 3px 8px;
+  border: 1.5px solid currentColor;
+  background: color-mix(in oklab, currentColor 12%, transparent);
+  transform: skewX(-10deg);
+}
+.p5-chip > span { display: inline-block; }
+
+/* fx-corners → crop marks (calling-card print marks) */
+.p5-corners { position: relative; }
+.p5-corners::after {
+  content: '';
+  position: absolute; inset: 3px;
+  pointer-events: none;
+  --l: 14px;
+  --g: linear-gradient(var(--red), var(--red));
+  background:
+    var(--g) 0 0 / var(--l) 2px,       var(--g) 0 0 / 2px var(--l),
+    var(--g) 100% 0 / var(--l) 2px,    var(--g) 100% 0 / 2px var(--l),
+    var(--g) 0 100% / var(--l) 2px,    var(--g) 0 100% / 2px var(--l),
+    var(--g) 100% 100% / var(--l) 2px, var(--g) 100% 100% / 2px var(--l);
+  background-repeat: no-repeat;
+}
+
+/* fx-burst — decorative star (budget: max one per screen) */
+.p5-burst {
+  position: absolute;
+  width: 92px; aspect-ratio: 1;
+  background: var(--red-field);
+  clip-path: polygon(100% 50%,78.98% 57.76%,93.3% 75%,71.21% 71.21%,75% 93.3%,57.76% 78.98%,50% 100%,42.24% 78.98%,25% 93.3%,28.79% 71.21%,6.7% 75%,21.02% 57.76%,0% 50%,21.02% 42.24%,6.7% 25%,28.79% 28.79%,25% 6.7%,42.24% 21.02%,50% 0%,57.76% 21.02%,75% 6.7%,71.21% 28.79%,93.3% 25%,78.98% 42.24%);
+  z-index: 0;
+}
+
+/* Buttons — skewed container, counter-skewed glyphs, hard offset depth.
+   Hover = the P5 selection flip (paper bg / ink text). */
+.p5-btn {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 9px 22px;
+  border: none;
+  cursor: pointer;
+  transform: skewX(-8deg);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+  transition: transform 0.12s var(--snap), background 0.12s var(--snap), color 0.12s var(--snap);
+}
+.p5-btn > span { display: inline-block; transform: skewX(8deg); }
+.p5-btn-wrap { display: inline-block; filter: drop-shadow(4px 4px 0 var(--ink-300)); transition: filter 0.12s var(--snap); }
+.p5-btn-wrap:hover { filter: drop-shadow(5px 5px 0 var(--red-blood)); }
+.p5-btn-primary { background: var(--red-field); color: var(--paper); }
+.p5-btn-primary:hover { background: var(--paper); color: var(--ink-300); }
+.p5-btn-ghost {
+  background: transparent;
+  color: var(--paper);
+  border: 2px solid rgba(245,240,240,0.35);
+  clip-path: none;
+}
+.p5-btn-ghost:hover { border-color: var(--paper); background: rgba(245,240,240,0.08); }
+
+/* Focus — app-wide paper ring (red vanishes on red fields) */
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--paper);
+  outline-offset: 2px;
+}
+
+/* ═══ App frame ═══ */
+.app { display: flex; height: 100vh; overflow: hidden; }
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 236px;
+  background: var(--ink-100);
+  border-right: 2px solid rgba(245,240,240,0.1);
+  display: flex; flex-direction: column;
+  flex-shrink: 0;
+}
+.sidebar-header {
+  display: flex; align-items: center; gap: 10px;
+  border-bottom: 2px solid rgba(245,240,240,0.1);
+  min-height: 56px; padding: 12px 14px;
+}
+.sidebar-logo {
+  width: 30px; height: 30px; flex-shrink: 0;
+  background: var(--red-field);
+  clip-path: polygon(8% 4%, 100% 0, 92% 96%, 0 100%);
+  display: flex; align-items: center; justify-content: center;
+  transform: rotate(-3deg);
+}
+.sidebar-logo svg { width: 16px; height: 16px; }
+.sidebar-brand { font-family: var(--font-display); font-size: 15px; letter-spacing: 0.03em; text-transform: uppercase; transform: skewX(-6deg); }
+.sidebar-brand .p5-tile { font-size: 13px; }
+.sidebar-nav { padding: 14px 10px 4px; }
+.sidebar-nav-label { margin: 0 8px 8px; }
+.sidebar-item {
+  position: relative;
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; margin-bottom: 4px;
+  font-family: var(--font-display);
+  font-size: 14px; letter-spacing: 0.05em; text-transform: uppercase;
+  color: rgba(245,240,240,0.72);
+  text-decoration: none; cursor: pointer;
+  transform: skewX(-4deg);
+  transition: color 0.12s var(--snap), transform 0.12s var(--snap);
+}
+.sidebar-item svg { width: 17px; height: 17px; flex-shrink: 0; }
+.sidebar-item:hover { color: var(--red); transform: skewX(-4deg) translateX(2px); }
+/* fx-nav-rail → the white flip: selected items invert, P5-style */
+.sidebar-item.active {
+  background: var(--paper);
+  color: var(--ink-300);
+  clip-path: polygon(0 0, 100% 2%, calc(100% - 8px) 100%, 2px 96%);
+  filter: drop-shadow(3px 3px 0 var(--red-field));
+  transform: skewX(-4deg) rotate(-1.2deg);
+}
+.sidebar-user {
+  margin-top: auto;
+  border-top: 2px solid rgba(245,240,240,0.1);
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px;
+}
+.sidebar-avatar {
+  width: 32px; height: 32px; flex-shrink: 0;
+  background: var(--slab);
+  border: 1.5px solid rgba(245,240,240,0.3);
+  clip-path: polygon(10% 0, 100% 6%, 92% 100%, 0 94%);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 12px; color: var(--paper);
+}
+.sidebar-user-name { font-size: 13px; font-weight: 600; }
+.sidebar-user-email { font-size: 11px; color: rgba(245,240,240,0.62); }
+
+/* ── Header ── */
+.header {
+  padding: 12px 20px;
+  border-bottom: 2px solid rgba(245,240,240,0.1);
+  background: var(--ink-100);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.header-left { display: flex; align-items: center; gap: 16px; }
+.header-title { font-family: var(--font-display); font-size: 24px; text-transform: uppercase; letter-spacing: 0.02em; transform: skewX(-6deg); }
+.header-title .p5-tile { font-size: 21px; margin-right: 2px; }
+.header-badge { color: var(--paper); }
+.header-badge .p5-chip { font-size: 11px; border-color: rgba(245,240,240,0.4); }
+
+/* ── Progress dashboard: stats strung along a red rail ── */
+.progress-dashboard {
+  position: relative;
+  padding: 14px 24px;
+  display: flex; align-items: center; gap: 28px;
+  border-bottom: 2px solid rgba(245,240,240,0.08);
+  background: var(--ink-300);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.progress-dashboard::before {
+  /* the guiding rail — a flat red diagonal strip behind the stats */
+  content: '';
+  position: absolute; left: -2%; right: -2%; top: 58%;
+  height: 3px;
+  background: var(--red-field);
+  transform: rotate(-1.3deg);
+  opacity: 0.55;
+  pointer-events: none;
+}
+.ring-group { display: flex; align-items: center; gap: 12px; position: relative; z-index: 1; }
+.progress-ring { position: relative; width: 52px; height: 52px; flex-shrink: 0; transform: rotate(-4deg); }
+.progress-ring svg { transform: rotate(-90deg); display: block; }
+.ring-track { fill: none; stroke: var(--slab); stroke-width: 7; }
+.ring-fill { fill: none; stroke: var(--red); stroke-width: 7; }
+.ring-center {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 13px;
+  transform: rotate(4deg);
+}
+.ring-label-title { font-family: var(--font-display); font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; transform: skewX(-6deg); display: block; }
+.ring-label-sub { font-size: 12px; color: rgba(245,240,240,0.55); }
+.stat-item { display: flex; flex-direction: column; gap: 2px; position: relative; z-index: 1; }
+.stat-value { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 20px; font-weight: 700; }
+.stat-value.green { color: var(--green); }
+.stat-value.gold { color: var(--gold); }
+.stat-value.blue { color: var(--blue); }
+.week-bar-group { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; position: relative; z-index: 1; }
+.week-bar-header { display: flex; justify-content: space-between; align-items: baseline; }
+.week-bar-title { font-family: var(--font-display); font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; transform: skewX(-6deg); }
+.week-bar-pct { font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--red); }
+.week-bar-track {
+  height: 10px; background: var(--slab);
+  transform: skewX(-24deg);
+  border: 1px solid rgba(245,240,240,0.12);
+}
+.week-bar-fill { height: 100%; background: var(--red); width: 19%; }
+.week-bar-sub { font-size: 11px; color: rgba(245,240,240,0.62); }
+
+/* ── Board ── */
+.board {
+  flex: 1; display: flex; gap: 18px;
+  padding: 20px 24px;
+  overflow-x: auto; overflow-y: hidden; min-height: 0;
+}
+.column {
+  flex: 1; min-width: 280px;
+  display: flex; flex-direction: column;
+  background: var(--ink-100);
+  border: 2px solid rgba(245,240,240,0.09);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 16px) 100%, 0 100%);
+}
+.column-header {
+  padding: 12px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 2px solid rgba(245,240,240,0.09);
+}
+.column-title { display: flex; align-items: center; gap: 9px; font-family: var(--font-display); font-size: 16px; text-transform: uppercase; letter-spacing: 0.04em; transform: skewX(-6deg) rotate(-1deg); }
+.column-count { font-family: var(--font-mono); font-size: 11px; font-weight: 700; padding: 2px 9px; border: 1.5px solid rgba(245,240,240,0.3); transform: skewX(-10deg); }
+.col-todo .column-title { color: var(--blue); }
+.col-doing .column-title { color: var(--gold); }
+.col-done .column-title { color: var(--green); }
+.column-body { flex: 1; padding: 14px 12px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+
+/* fx-target → hazard target (accent/orange channel, flat stripes).
+   Stripes are static; only the pseudo-element ring pulses (opacity-only,
+   pre-composited — mirrors the app's fx-target contract). */
+.column { position: relative; }
+.column.drop-target {
+  outline: 2px dashed var(--orange);
+  outline-offset: -2px;
+  background-image: repeating-linear-gradient(-45deg, rgba(250,137,39,0.07) 0 12px, transparent 12px 24px);
+}
+.column.drop-target::before {
+  content: '';
+  position: absolute; inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 4px rgba(250,137,39,0.28);
+  animation: p5-pulse 1.6s ease-in-out infinite;
+}
+.drop-slot {
+  border: 2px dashed rgba(250,137,39,0.6);
+  padding: 18px;
+  text-align: center;
+  font-family: var(--font-display);
+  color: var(--orange);
+  font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase;
+  transform: skewX(-4deg);
+}
+
+/* ── fx-card → sticker card ── */
+.task-card {
+  background: var(--ink-card);
+  border: 1.5px solid rgba(245,240,240,0.14);
+  padding: 13px 14px;
+  cursor: grab;
+  box-shadow: 3px 3px 0 var(--ink-300);
+  transition: box-shadow 0.12s var(--snap), transform 0.12s var(--snap);
+}
+.task-card:hover {
+  box-shadow: 4px 4px 0 var(--red);
+  transform: translate(-1px, -1px);
+}
+/* fx-card-lift (drag state) */
+.task-card.lifted {
+  box-shadow: 7px 7px 0 var(--red-blood);
+  transform: rotate(-1.2deg) translate(-2px, -2px);
+  cursor: grabbing;
+}
+.task-title { font-size: 14px; font-weight: 600; margin-bottom: 5px; }
+.task-desc { font-size: 12px; color: rgba(245,240,240,0.55); margin-bottom: 10px; line-height: 1.4; }
+.task-meta { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.task-meta .p5-chip { flex-shrink: 0; }
+.chip-daily  { color: var(--blue); }
+.chip-weekly { color: var(--violet); }
+.chip-once   { color: var(--gold); }
+.chip-size   { color: var(--green); margin-left: auto; }
+.chip-size .pts { opacity: 0.7; font-weight: 500; }
+.chip-size .dot { opacity: 0.4; }
+.chip-risk-warning { color: var(--gold); }
+.chip-risk-danger  { color: var(--rose); }
+.chip-instance { color: var(--red); font-weight: 700; }
+.rollover-tag { font-family: var(--font-mono); font-size: 11px; color: var(--gold); font-weight: 500; white-space: nowrap; }
+
+/* Risk edges — always beat the hover shadow */
+.task-card.risk-warning { border-left: 4px solid var(--gold); }
+.task-card.risk-danger  { border-left: 4px solid var(--rose); }
+.task-card.done-card { opacity: 0.55; cursor: default; box-shadow: none; }
+.task-card.done-card .task-title { text-decoration: line-through; color: rgba(245,240,240,0.6); }
+.task-card.done-card:hover { box-shadow: none; transform: none; }
+
+.add-task-btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; padding: 12px;
+  border: 2px dashed rgba(245,240,240,0.22);
+  background: transparent;
+  color: rgba(245,240,240,0.5);
+  font-family: var(--font-display); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase;
+  cursor: pointer;
+  transform: skewX(-4deg);
+  transition: border-color 0.12s var(--snap), color 0.12s var(--snap);
+}
+.add-task-btn:hover { border-color: var(--red); color: var(--red); }
+.add-task-btn svg { width: 15px; height: 15px; }
+
+/* ═══ Overlays ═══ */
+.dimmed { opacity: 0.25; pointer-events: none; }
+.modal-overlay {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at center, rgba(245,240,240,0.03) 1px, transparent 1.5px) 0 0/16px 16px,
+    rgba(6,5,5,0.82);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+}
+/* fx-panel → paper-cut panel; fx-boot-in → snap-in */
+.p5-modal-wrap { filter: drop-shadow(8px 8px 0 var(--red-blood)); animation: p5-boot 0.24s var(--snap) both; }
+.p5-modal {
+  background: var(--ink-100);
+  border: 2px solid rgba(245,240,240,0.85);
+  width: 560px; max-height: 82vh; overflow-y: auto;
+  clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 18px, 100% 100%, 14px 100%, 0 calc(100% - 12px));
+}
+.modal-header {
+  padding: 20px 24px 14px;
+  display: flex; align-items: flex-start; justify-content: space-between;
+}
+.modal-title { font-family: var(--font-display); font-size: 24px; text-transform: uppercase; letter-spacing: 0.02em; transform: skewX(-6deg); }
+.modal-close {
+  width: 30px; height: 30px; flex-shrink: 0;
+  background: var(--red-field); color: var(--paper);
+  border: none; cursor: pointer;
+  font-family: var(--font-display); font-size: 15px;
+  transform: rotate(45deg);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.12s var(--snap), color 0.12s var(--snap);
+}
+.modal-close > span { transform: rotate(-45deg); }
+.modal-close:hover { background: var(--paper); color: var(--ink-300); }
+.modal-body { padding: 6px 24px 20px; }
+.modal-footer {
+  padding: 16px 24px 20px;
+  border-top: 2px solid rgba(245,240,240,0.1);
+  display: flex; justify-content: flex-end; gap: 14px;
+}
+
+.form-group { margin-bottom: 18px; }
+.form-label { display: block; margin-bottom: 7px; }
+.form-input {
+  width: 100%; padding: 10px 12px;
+  background: var(--ink-200);
+  border: 1.5px solid rgba(245,240,240,0.18);
+  color: var(--paper);
+  font-size: 14px; font-family: var(--font-body);
+  outline: none;
+  transition: border-color 0.12s var(--snap);
+}
+.form-input:focus { border-color: var(--red); }
+.form-row { display: flex; gap: 14px; }
+.form-row .form-group { flex: 1; }
+
+/* ChoicePills → skewed toggle; active = channel flip */
+.size-pills { display: flex; gap: 8px; }
+.size-pill-btn {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  padding: 8px 6px;
+  border: 1.5px solid rgba(245,240,240,0.18);
+  background: var(--ink-200);
+  color: rgba(245,240,240,0.55);
+  cursor: pointer;
+  transform: skewX(-10deg);
+  font-family: var(--font-mono);
+  transition: all 0.12s var(--snap);
+}
+.size-pill-btn > span { display: inline-block; transform: skewX(10deg); }
+.size-pill-btn:hover { border-color: rgba(245,240,240,0.45); }
+.size-pill-btn.active {
+  background: var(--green);
+  border-color: var(--green);
+  color: #01190a;
+  filter: drop-shadow(2px 2px 0 var(--ink-300));
+}
+.size-pill-size { font-size: 12px; font-weight: 700; }
+.size-pill-pts { font-size: 10px; opacity: 0.75; }
+
+.quad-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.quad-btn {
+  padding: 10px;
+  border: 1.5px solid rgba(245,240,240,0.18);
+  background: var(--ink-200);
+  color: rgba(245,240,240,0.6);
+  font-family: var(--font-display); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+  transform: skewX(-4deg);
+  transition: all 0.12s var(--snap);
+}
+.quad-btn:hover { border-color: rgba(245,240,240,0.45); }
+.quad-btn.active { background: var(--red-field); border-color: var(--red-field); color: var(--paper); filter: drop-shadow(2px 2px 0 var(--ink-300)); }
+.quad-btn .p5-led { outline: none; }
+
+/* ── AI chat (violet channel) ── */
+.ai-panel-wrap { filter: drop-shadow(8px 8px 0 var(--violet-blood)); animation: p5-boot 0.24s var(--snap) both; }
+.ai-panel {
+  background: var(--ink-100);
+  border: 2px solid var(--violet);
+  width: 620px; max-height: 84vh;
+  display: flex; flex-direction: column;
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 16px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+}
+.ai-header {
+  padding: 14px 20px;
+  border-bottom: 2px solid rgba(178,150,255,0.35);
+  display: flex; align-items: center; gap: 10px;
+}
+.ai-title { font-family: var(--font-display); font-size: 17px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--violet); transform: skewX(-6deg); }
+.ai-live { margin-left: auto; display: flex; align-items: center; gap: 6px; color: var(--violet); }
+.ai-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+.msg { max-width: 82%; padding: 10px 14px; font-size: 13.5px; line-height: 1.5; }
+.msg-user {
+  align-self: flex-end;
+  background: var(--paper); color: var(--ink-300);
+  clip-path: polygon(2% 0, 100% 4%, 98% 100%, 0 94%);
+  font-weight: 500;
+}
+.msg-ai {
+  align-self: flex-start;
+  background: var(--slab);
+  border-left: 4px solid var(--violet);
+  clip-path: polygon(0 0, 100% 2%, 99% 98%, 1% 100%);
+}
+.msg-ai .p5-chip { margin: 6px 6px 0 0; }
+.msg-thinking {
+  align-self: flex-start;
+  background: var(--slab);
+  border: 2px dashed var(--violet);
+  color: var(--violet);
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.1em;
+  animation: p5-wiggle 1s linear infinite;
+}
+.ai-footer { padding: 14px 20px; border-top: 2px solid rgba(178,150,255,0.35); display: flex; gap: 12px; }
+.ai-input {
+  flex: 1; padding: 10px 12px;
+  background: var(--ink-200);
+  border: 1.5px solid rgba(245,240,240,0.18);
+  color: var(--paper); font-size: 13.5px; font-family: var(--font-body);
+  outline: none;
+}
+.ai-input:focus { border-color: var(--violet); }
+
+/* ── Review changes rows ── */
+.review-row {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 14px;
+  background: var(--ink-200);
+  border: 1.5px solid rgba(245,240,240,0.1);
+  border-left-width: 4px;
+  margin-bottom: 10px;
+}
+.review-row.added    { border-left-color: var(--green); }
+.review-row.removed  { border-left-color: var(--rose); }
+.review-row.modified { border-left-color: var(--gold); }
+.review-row .p5-led { margin-top: 5px; outline: none; }
+.review-row.added .p5-led { color: var(--green); }
+.review-row.removed .p5-led { color: var(--rose); }
+.review-row.modified .p5-led { color: var(--gold); }
+.review-title { font-size: 13.5px; font-weight: 600; }
+.review-meta { font-size: 12px; color: rgba(245,240,240,0.55); margin-top: 3px; display: flex; gap: 8px; align-items: center; }
+
+/* ═══ Tokens screen ═══ */
+.tokens-wrap { height: 100vh; overflow-y: auto; padding: 48px 40px 120px; }
+.tokens-inner { max-width: 1060px; margin: 0 auto; position: relative; }
+.hero { position: relative; margin-bottom: 44px; }
+.hero .p5-burst { top: -18px; left: 396px; opacity: 0.9; }
+.ransom { position: relative; z-index: 1; font-family: var(--font-display); font-size: 56px; line-height: 1.05; text-transform: uppercase; letter-spacing: 0.01em; }
+.ransom span { display: inline-block; }
+.ransom .r1 { transform: rotate(-4deg); }
+.ransom .r2 { transform: rotate(2.5deg) translateY(-3px); font-size: 0.86em; }
+.ransom .r3 { background: var(--paper); color: var(--ink-300); padding: 0 10px; transform: rotate(-2deg); }
+.ransom .r4 { transform: rotate(1.5deg); }
+.ransom .r5 { background: var(--red-field); color: var(--paper); padding: 0 10px; transform: rotate(3deg) translateY(2px); font-size: 0.9em; }
+.hero-sub { margin-top: 14px; font-size: 14px; color: rgba(245,240,240,0.65); max-width: 620px; line-height: 1.6; }
+.hero-sub b { color: var(--paper); }
+
+.zone { margin-bottom: 40px; }
+.zone-title { font-family: var(--font-display); font-size: 22px; text-transform: uppercase; letter-spacing: 0.03em; transform: skewX(-6deg); display: inline-block; }
+.zone-head { margin-bottom: 18px; }
+
+.swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+.swatch {
+  border: 1.5px solid rgba(245,240,240,0.14);
+  background: var(--ink-100);
+  box-shadow: 3px 3px 0 var(--ink-300);
+}
+.swatch-color { height: 64px; border-bottom: 1.5px solid rgba(245,240,240,0.14); position: relative; }
+.swatch-color .cx {
+  position: absolute; bottom: 6px; left: 8px;
+  font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+}
+.swatch-info { padding: 8px 10px; }
+.swatch-name { font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+.swatch-hex { font-family: var(--font-mono); font-size: 10.5px; color: rgba(245,240,240,0.62); margin-top: 2px; }
+.swatch-contrast { font-family: var(--font-mono); font-size: 10px; margin-top: 3px; color: rgba(245,240,240,0.65); }
+
+.spec-row { display: flex; flex-wrap: wrap; gap: 22px; align-items: center; padding: 18px; background: var(--ink-100); border: 1.5px solid rgba(245,240,240,0.1); box-shadow: 3px 3px 0 var(--ink-300); margin-bottom: 14px; }
+.spec-row + .spec-note { margin: -6px 0 14px; }
+.spec-note { font-size: 12px; color: rgba(245,240,240,0.62); line-height: 1.5; }
+.spec-note code { font-family: var(--font-mono); color: rgba(245,240,240,0.75); font-size: 11px; }
+
+.voice-display { font-family: var(--font-display); font-size: 30px; text-transform: uppercase; transform: skewX(-6deg); }
+.voice-sans { font-size: 15px; max-width: 300px; line-height: 1.55; }
+.voice-mono { font-family: var(--font-mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+
+.led-row { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+
+/* ═══ Screen navigator ═══ */
+.screen-nav {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 10px;
+  background: var(--ink-100);
+  padding: 10px 14px;
+  border: 2px solid rgba(245,240,240,0.35);
+  z-index: 300;
+  filter: drop-shadow(5px 5px 0 var(--ink-300));
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 12px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+.screen-btn {
+  padding: 7px 16px;
+  border: 1.5px solid rgba(245,240,240,0.25);
+  background: transparent;
+  color: rgba(245,240,240,0.6);
+  font-family: var(--font-display); font-size: 13px; letter-spacing: 0.05em; text-transform: uppercase;
+  cursor: pointer;
+  transform: skewX(-8deg);
+  transition: all 0.12s var(--snap);
+}
+.screen-btn > span { display: inline-block; transform: skewX(8deg); }
+.screen-btn:hover { color: var(--paper); border-color: rgba(245,240,240,0.6); }
+.screen-btn.active {
+  background: var(--red-field); color: var(--paper); border-color: var(--red-field);
+  filter: drop-shadow(2px 2px 0 var(--ink-300));
+}
+
+/* ═══ Keyframes (transform/opacity/clip-path only) ═══ */
+@keyframes p5-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+@keyframes p5-boot {
+  from { opacity: 0; transform: translate(-14px, 8px) rotate(-2.5deg) scale(0.96); }
+  60%  { opacity: 1; transform: translate(2px, -1px) rotate(0.4deg) scale(1.005); }
+  to   { opacity: 1; transform: translate(0, 0) rotate(0) scale(1); }
+}
+@keyframes p5-wiggle {
+  0%, 100% { clip-path: polygon(0 2%, 99% 0, 100% 98%, 1% 100%); }
+  25%      { clip-path: polygon(1% 0, 100% 3%, 98% 100%, 0 97%); }
+  50%      { clip-path: polygon(0 4%, 98% 1%, 100% 96%, 2% 99%); }
+  75%      { clip-path: polygon(2% 1%, 100% 0, 99% 99%, 0 96%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .p5-led-pulse, .column.drop-target::before, .msg-thinking, .p5-modal-wrap, .ai-panel-wrap { animation: none; }
+  .task-card, .p5-btn, .p5-btn-wrap, .sidebar-item, .add-task-btn, .screen-btn, .size-pill-btn, .quad-btn { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="screen-nav">
+  <button class="screen-btn active" onclick="show('tokens')"><span>Tokens</span></button>
+  <button class="screen-btn" onclick="show('board')"><span>Board</span></button>
+  <button class="screen-btn" onclick="show('overlays')"><span>Overlays</span></button>
+</div>
+
+<!-- ══════════════════ SCREEN 1 — TOKENS & VOICES ══════════════════ -->
+<div id="screen-tokens" class="metaverse tokens-wrap">
+  <div class="tokens-inner">
+
+    <div class="hero">
+      <div class="p5-burst"></div>
+      <div class="ransom">
+        <span class="r1">Call</span><span class="r2">ing</span>&nbsp;<span class="r3">Card</span>&nbsp;<span class="r4">/</span>&nbsp;<span class="r5">mars-dark</span>
+      </div>
+      <p class="hero-sub">
+        Persona 5 reskin proposal. <b>Red is structure</b>, not decoration; payload rides
+        maximum value contrast; depth is a second flat layer, never a glow. Spec:
+        <b>design/design-system-p5.md</b>. Channel semantics are unchanged — orange still
+        targets, violet still speaks AI, gold still stars.
+      </p>
+    </div>
+
+    <div class="zone">
+      <div class="zone-head">
+        <span class="zone-title">01 · Palette</span>
+        <div class="p5-slash"></div>
+      </div>
+      <div class="swatch-grid">
+        <div class="swatch"><div class="swatch-color" style="background:#ff0c0b"><span class="cx" style="color:#0e0505">Aa</span></div><div class="swatch-info"><div class="swatch-name" style="color:#ff0c0b">primary · phantom red</div><div class="swatch-hex">#ff0c0b · 0.63 0.255 29</div><div class="swatch-contrast">4.7:1 on base ★AA</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#b296ff"><span class="cx" style="color:#130d23">Aa</span></div><div class="swatch-info"><div class="swatch-name" style="color:#b296ff">secondary · AI violet</div><div class="swatch-hex">#b296ff · 0.74 0.15 295</div><div class="swatch-contrast">7.8:1 on base AAA</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#fa8927"><span class="cx" style="color:#251002">Aa</span></div><div class="swatch-info"><div class="swatch-name" style="color:#fa8927">accent · targeting</div><div class="swatch-hex">#fa8927 · 0.74 0.17 55</div><div class="swatch-contrast">7.7:1 on base AAA</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#61c3f9"><span class="cx" style="color:#001626">Aa</span></div><div class="swatch-info"><div class="swatch-name" style="color:#61c3f9">info · royal blue</div><div class="swatch-hex">#61c3f9 · 0.78 0.12 235</div><div class="swatch-contrast">9.5:1 on base AAA</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#5edb81"><span class="cx" style="color:#01190a">Aa</span></div><div class="swatch-info"><div class="swatch-name" style="color:#5edb81">success · all-clear</div><div class="swatch-hex">#5edb81 · 0.8 0.17 150</div><div class="swatch-contrast">10.6:1 on base AAA</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#f6c835"><span class="cx" style="color:#231900">Aa</span></div><div class="swatch-info"><div class="swatch-name" style="color:#f6c835">warning · star gold</div><div class="swatch-hex">#f6c835 · 0.85 0.16 90</div><div class="swatch-contrast">11.8:1 on base AAA</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#ef3565"><span class="cx" style="color:#130406">Aa</span></div><div class="swatch-info"><div class="swatch-name" style="color:#ef3565">error · crimson rose</div><div class="swatch-hex">#ef3565 · 0.63 0.22 12</div><div class="swatch-contrast">4.8:1 on base ★AA</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#271f1f"><span class="cx" style="color:#f2eded">Aa</span></div><div class="swatch-info"><div class="swatch-name">neutral · ink slab</div><div class="swatch-hex">#271f1f · 0.25 0.012 20</div><div class="swatch-contrast">13.9:1 pair AAA</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#c51d24"><span class="cx" style="color:#f5f0f0">Aa</span></div><div class="swatch-info"><div class="swatch-name" style="color:#f5f0f0">--fx-field-red</div><div class="swatch-hex">#c51d24 · surface only</div><div class="swatch-contrast">paper on it 5.2:1</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#721216"></div><div class="swatch-info"><div class="swatch-name">--fx-blood-red</div><div class="swatch-hex">#721216 · depth layer</div><div class="swatch-contrast">decoration only</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#161111;border-bottom-color:rgba(245,240,240,0.2)"><span class="cx" style="color:#f5f0f0">Aa</span></div><div class="swatch-info"><div class="swatch-name">base-100/200/300</div><div class="swatch-hex">#161111 #0e0a0a #060505</div><div class="swatch-contrast">paper ≥16.6:1 AAA</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#f5f0f0"><span class="cx" style="color:#060505">Aa</span></div><div class="swatch-info"><div class="swatch-name">base-content · paper</div><div class="swatch-hex">#f5f0f0 · 0.96 0.005 20</div><div class="swatch-contrast">the payload voice</div></div></div>
+      </div>
+      <p class="spec-note" style="margin-top:12px">★ The two reds trade AAA pairing for authentic P5 chroma — a documented deviation; both stay ≥ 4.5:1 body-text grade on every base. All other signals are AAA.</p>
+    </div>
+
+    <div class="zone">
+      <div class="zone-head">
+        <span class="zone-title">02 · Three voices</span>
+        <div class="p5-slash"></div>
+      </div>
+      <div class="spec-row">
+        <div>
+          <div class="voice-display">Take your <span class="p5-tile red" style="font-size:0.9em">time</span></div>
+          <p class="spec-note" style="margin-top:8px">Display — Anton, skew −6°, chrome labels only.<br/>Ransom tiles: max one word per heading.</p>
+        </div>
+        <div>
+          <div class="voice-sans">Sans keeps prose level and readable — task titles, descriptions, anything read at length never tilts.</div>
+          <p class="spec-note" style="margin-top:8px">Body — Geist Sans (system here).</p>
+        </div>
+        <div>
+          <div class="voice-mono">W08 · FEB 17–23<br/>13 TASKS · 46 PTS · 19%</div>
+          <p class="spec-note" style="margin-top:8px">Telemetry — Geist Mono via fx-label / fx-num, unchanged.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="zone">
+      <div class="zone-head">
+        <span class="zone-title">03 · Chips · LEDs · Buttons</span>
+        <div class="p5-slash"></div>
+      </div>
+      <div class="spec-row">
+        <span class="p5-chip chip-daily"><span>Daily</span></span>
+        <span class="p5-chip chip-weekly"><span>Weekly</span></span>
+        <span class="p5-chip chip-once"><span>Once</span></span>
+        <span class="p5-chip chip-size"><span>XL <span class="dot">·</span> <span class="pts">8</span></span></span>
+        <span class="p5-chip chip-risk-warning"><span>⚠ at risk</span></span>
+        <span class="p5-chip chip-risk-danger"><span>‼ urgent</span></span>
+        <span class="p5-chip chip-instance"><span>#2</span></span>
+        <span class="rollover-tag">↩ Mon, Feb 23</span>
+      </div>
+      <p class="spec-note">fx-chip keeps the currentColor derivation — pair with any <code>text-*</code> token; the skin adds skewX(−10°). Channel map unchanged: DAILY=info · WEEKLY=secondary · ONCE=warning · size=success.</p>
+      <div class="spec-row" style="margin-top:14px">
+        <div class="led-row"><span class="p5-led" style="color:#5edb81"></span> on track</div>
+        <div class="led-row"><span class="p5-led" style="color:#f6c835"></span> at risk</div>
+        <div class="led-row"><span class="p5-led" style="color:#ef3565"></span> overdue</div>
+        <div class="led-row"><span class="p5-led p5-led-pulse" style="color:#b296ff"></span> AI live</div>
+        <span style="flex:1"></span>
+        <span class="p5-btn-wrap"><button class="p5-btn p5-btn-primary"><span>Create Plan</span></button></span>
+        <button class="p5-btn p5-btn-ghost"><span>Cancel</span></button>
+      </div>
+      <p class="spec-note">fx-led → flat diamond stud, no glow. fx-glow → hard offset "pop" shadow; primary buttons flip paper/ink on hover — the P5 selection flip.</p>
+    </div>
+
+    <div class="zone">
+      <div class="zone-head">
+        <span class="zone-title">04 · Motion</span>
+        <div class="p5-slash"></div>
+      </div>
+      <p class="spec-note">
+        Easing <code>cubic-bezier(0.2, 0, 0, 1)</code> stays for micro; entrances add keyframed overshoot (settle-back ~1°).
+        Timings compress to <code>120 / 200 / 240ms</code> — P5's stated principle is zero-latency UI.
+        Loops stay rare: LED pulse 2.4s · hazard pulse 1.6s · AI wiggle 1s (clip-path vertices, focal elements only).
+        The halftone field never moves. <code>prefers-reduced-motion</code> kills everything.
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════ SCREEN 2 — BOARD ══════════════════ -->
+<div id="screen-board" class="app" style="display:none">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f5f0f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <span class="sidebar-brand"><span class="p5-tile">Mars</span> Workbench</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="p5-label sidebar-nav-label">Workspace</div>
+      <a class="sidebar-item active" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Board
+      </a>
+      <a class="sidebar-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Plan
+      </a>
+      <a class="sidebar-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-6 4 4 5-8"/></svg>
+        Priorities
+      </a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">LJ</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">Liang Jun</div>
+        <div class="sidebar-user-email">liang@example.com</div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main metaverse">
+    <div class="header">
+      <div class="header-left">
+        <span class="header-title"><span class="p5-tile red">Kanban</span> Planner</span>
+        <span class="header-badge"><span class="p5-chip"><span>Week 08 · Feb 17 – Feb 23</span></span></span>
+      </div>
+      <span class="p5-btn-wrap"><button class="p5-btn p5-btn-primary"><span>+ New Plan</span></button></span>
+    </div>
+
+    <div class="progress-dashboard">
+      <div class="ring-group">
+        <div class="progress-ring">
+          <svg viewBox="0 0 52 52" width="52" height="52">
+            <circle class="ring-track" cx="26" cy="26" r="21"/>
+            <circle class="ring-fill" cx="26" cy="26" r="21" stroke-dasharray="131.9" stroke-dashoffset="92.3"/>
+          </svg>
+          <div class="ring-center p5-num">30%</div>
+        </div>
+        <div>
+          <span class="ring-label-title">Today</span>
+          <span class="ring-label-sub p5-num">4 of 13 tasks</span>
+        </div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value green">10</span>
+        <span class="p5-label">Done</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value gold">★ 18</span>
+        <span class="p5-label">Points</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value blue">3/7</span>
+        <span class="p5-label">Day</span>
+      </div>
+      <div class="week-bar-group">
+        <div class="week-bar-header">
+          <span class="week-bar-title">Week Progress</span>
+          <span class="week-bar-pct">19%</span>
+        </div>
+        <div class="week-bar-track"><div class="week-bar-fill"></div></div>
+        <span class="week-bar-sub p5-num">10 of 46 tasks</span>
+      </div>
+    </div>
+
+    <div class="board">
+      <!-- Todo -->
+      <div class="column col-todo">
+        <div class="column-header">
+          <span class="column-title"><span class="p5-led" style="color:#61c3f9"></span>Todo</span>
+          <span class="column-count">8</span>
+        </div>
+        <div class="column-body">
+          <div class="task-card">
+            <div class="task-title">Solve 3 LeetCode problems</div>
+            <div class="task-desc">Focus on dynamic programming</div>
+            <div class="task-meta">
+              <span class="p5-chip chip-daily"><span>Daily</span></span>
+              <span class="p5-chip chip-instance"><span>#2</span></span>
+              <span class="p5-chip chip-size"><span>XL <span class="dot">·</span> <span class="pts">8</span></span></span>
+            </div>
+          </div>
+          <div class="task-card risk-warning">
+            <div class="task-title">Read 30 pages</div>
+            <div class="task-desc">System Design Interview book</div>
+            <div class="task-meta">
+              <span class="p5-chip chip-daily"><span>Daily</span></span>
+              <span class="p5-chip chip-instance"><span>#1</span></span>
+              <span class="p5-chip chip-risk-warning"><span>⚠ at risk</span></span>
+              <span class="p5-chip chip-size"><span>L <span class="dot">·</span> <span class="pts">5</span></span></span>
+            </div>
+          </div>
+          <div class="task-card risk-warning">
+            <div class="task-title">Practice mock interview</div>
+            <div class="task-meta">
+              <span class="p5-chip chip-daily"><span>Daily</span></span>
+              <span class="rollover-tag">↩ Mon, Feb 23</span>
+              <span class="p5-chip chip-risk-warning"><span>⚠ at risk</span></span>
+              <span class="p5-chip chip-size"><span>XL <span class="dot">·</span> <span class="pts">8</span></span></span>
+            </div>
+          </div>
+          <div class="task-card risk-danger">
+            <div class="task-title">Write journal entry</div>
+            <div class="task-meta">
+              <span class="p5-chip chip-daily"><span>Daily</span></span>
+              <span class="rollover-tag">↩ Mon, Feb 23</span>
+              <span class="p5-chip chip-risk-danger"><span>‼ urgent</span></span>
+              <span class="p5-chip chip-size"><span>M <span class="dot">·</span> <span class="pts">3</span></span></span>
+            </div>
+          </div>
+          <div class="task-card risk-danger">
+            <div class="task-title">Write blog post</div>
+            <div class="task-desc">Technical blog about React patterns</div>
+            <div class="task-meta">
+              <span class="p5-chip chip-weekly"><span>Weekly</span></span>
+              <span class="p5-chip chip-risk-danger"><span>‼ urgent</span></span>
+              <span class="p5-chip chip-size"><span>XL <span class="dot">·</span> <span class="pts">8</span></span></span>
+            </div>
+          </div>
+          <div class="task-card">
+            <div class="task-title">File tax report</div>
+            <div class="task-meta">
+              <span class="p5-chip chip-once"><span>Once</span></span>
+              <span class="p5-chip chip-size"><span>L <span class="dot">·</span> <span class="pts">5</span></span></span>
+            </div>
+          </div>
+          <button class="add-task-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            Add Task
+          </button>
+        </div>
+      </div>
+
+      <!-- Doing — shown as active drop target (fx-target, accent channel) -->
+      <div class="column col-doing drop-target">
+        <div class="column-header">
+          <span class="column-title"><span class="p5-led" style="color:#f6c835"></span>In Progress</span>
+          <span class="column-count">3</span>
+        </div>
+        <div class="column-body">
+          <div class="task-card lifted">
+            <div class="task-title">Go to gym – Leg day</div>
+            <div class="task-desc">30 min workout</div>
+            <div class="task-meta">
+              <span class="p5-chip chip-weekly"><span>Weekly</span></span>
+              <span class="p5-chip chip-size"><span>L <span class="dot">·</span> <span class="pts">5</span></span></span>
+            </div>
+          </div>
+          <div class="drop-slot">Drop here</div>
+          <div class="task-card">
+            <div class="task-title">Morning jog 5km</div>
+            <div class="task-meta">
+              <span class="p5-chip chip-daily"><span>Daily</span></span>
+              <span class="p5-chip chip-size"><span>M <span class="dot">·</span> <span class="pts">3</span></span></span>
+            </div>
+          </div>
+          <div class="task-card risk-warning">
+            <div class="task-title">Get sinus CT scan</div>
+            <div class="task-meta">
+              <span class="p5-chip chip-once"><span>Once</span></span>
+              <span class="p5-chip chip-risk-warning"><span>⚠ at risk</span></span>
+              <span class="p5-chip chip-size"><span>M <span class="dot">·</span> <span class="pts">3</span></span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Done -->
+      <div class="column col-done">
+        <div class="column-header">
+          <span class="column-title"><span class="p5-led" style="color:#5edb81"></span>Done</span>
+          <span class="column-count">4</span>
+        </div>
+        <div class="column-body">
+          <div class="task-card done-card">
+            <div class="task-title">Weekly grocery run</div>
+            <div class="task-meta">
+              <span class="p5-chip chip-weekly"><span>Weekly</span></span>
+              <span class="p5-chip chip-size"><span>M <span class="dot">·</span> <span class="pts">3</span></span></span>
+            </div>
+          </div>
+          <div class="task-card done-card">
+            <div class="task-title">Solve 3 LeetCode problems</div>
+            <div class="task-meta">
+              <span class="p5-chip chip-daily"><span>Daily</span></span>
+              <span class="p5-chip chip-instance"><span>#1</span></span>
+              <span class="p5-chip chip-size"><span>XL <span class="dot">·</span> <span class="pts">8</span></span></span>
+            </div>
+          </div>
+          <div class="task-card done-card">
+            <div class="task-title">Meal prep Sunday</div>
+            <div class="task-meta">
+              <span class="p5-chip chip-once"><span>Once</span></span>
+              <span class="p5-chip chip-size"><span>S <span class="dot">·</span> <span class="pts">2</span></span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ SCREEN 3 — OVERLAYS ══════════════════ -->
+<div id="screen-overlays" class="app" style="display:none">
+  <div class="main metaverse" style="overflow-y:auto; padding: 40px 32px 120px;">
+    <div style="max-width: 1100px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start;">
+
+      <!-- Task modal -->
+      <div>
+        <div class="zone-head" style="margin-bottom:16px"><span class="zone-title">Task Modal</span><div class="p5-slash"></div></div>
+        <div class="p5-modal-wrap">
+          <div class="p5-modal p5-corners">
+            <div class="modal-header">
+              <span class="modal-title">New <span class="p5-tile red" style="font-size:0.88em">Task</span></span>
+              <button class="modal-close"><span>✕</span></button>
+            </div>
+            <div class="modal-body">
+              <div class="form-group">
+                <label class="p5-label form-label">Title</label>
+                <input class="form-input" value="Prepare demo for Friday" />
+              </div>
+              <div class="form-group">
+                <label class="p5-label form-label">Size</label>
+                <div class="size-pills">
+                  <button class="size-pill-btn"><span><span class="size-pill-size">S</span> <span class="size-pill-pts">2</span></span></button>
+                  <button class="size-pill-btn active"><span><span class="size-pill-size">M</span> <span class="size-pill-pts">3</span></span></button>
+                  <button class="size-pill-btn"><span><span class="size-pill-size">L</span> <span class="size-pill-pts">5</span></span></button>
+                  <button class="size-pill-btn"><span><span class="size-pill-size">XL</span> <span class="size-pill-pts">8</span></span></button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="p5-label form-label">Quadrant</label>
+                <div class="quad-grid">
+                  <button class="quad-btn active"><span class="p5-led" style="color:#f5f0f0"></span>Do First</button>
+                  <button class="quad-btn"><span class="p5-led" style="color:#61c3f9"></span>Schedule</button>
+                  <button class="quad-btn"><span class="p5-led" style="color:#f6c835"></span>Delegate</button>
+                  <button class="quad-btn"><span class="p5-led" style="color:#ef3565"></span>Eliminate</button>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="p5-btn p5-btn-ghost"><span>Cancel</span></button>
+              <span class="p5-btn-wrap"><button class="p5-btn p5-btn-primary"><span>Create Task</span></button></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI chat -->
+      <div>
+        <div class="zone-head" style="margin-bottom:16px"><span class="zone-title">AI Plan Chat</span><div class="p5-slash" style="background:#b296ff"></div></div>
+        <div class="ai-panel-wrap">
+          <div class="ai-panel">
+            <div class="ai-header">
+              <span class="ai-title">Oracle <span style="opacity:0.5">//</span> Plan Assist</span>
+              <span class="ai-live"><span class="p5-led p5-led-pulse"></span><span class="p5-label" style="color:inherit">Live</span></span>
+            </div>
+            <div class="ai-body">
+              <div class="msg msg-user">Plan my week: 3 workouts, ship the blog post, keep LeetCode daily.</div>
+              <div class="msg msg-ai">
+                Drafted 5 templates for Week 08 — 46 pts total, EXTREME mode.
+                <div>
+                  <span class="p5-chip chip-daily"><span>LeetCode ×7</span></span>
+                  <span class="p5-chip chip-weekly"><span>Gym ×3</span></span>
+                  <span class="p5-chip chip-weekly"><span>Blog ×1</span></span>
+                </div>
+              </div>
+              <div class="msg msg-thinking">ANALYZING ▮▮▮</div>
+            </div>
+            <div class="ai-footer">
+              <input class="ai-input" placeholder="Refine the plan…" />
+              <span class="p5-btn-wrap"><button class="p5-btn p5-btn-primary" style="font-size:13px"><span>Send</span></button></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Review changes -->
+      <div style="min-width: 380px; flex: 1;">
+        <div class="zone-head" style="margin-bottom:16px"><span class="zone-title">Review Changes</span><div class="p5-slash"></div></div>
+        <div class="review-row added">
+          <span class="p5-led"></span>
+          <div>
+            <div class="review-title">Morning jog 5km</div>
+            <div class="review-meta"><span class="p5-chip chip-daily"><span>Daily</span></span><span class="p5-chip chip-size"><span>M · 3</span></span><span class="p5-num">+ added</span></div>
+          </div>
+        </div>
+        <div class="review-row removed">
+          <span class="p5-led"></span>
+          <div>
+            <div class="review-title">Watch conference talks</div>
+            <div class="review-meta"><span class="p5-chip chip-weekly"><span>Weekly</span></span><span class="p5-num">− removed</span></div>
+          </div>
+        </div>
+        <div class="review-row modified">
+          <span class="p5-led"></span>
+          <div>
+            <div class="review-title">Write blog post</div>
+            <div class="review-meta"><span class="p5-chip chip-weekly"><span>Weekly</span></span><span class="p5-num">→</span><span class="p5-chip chip-once"><span>Once</span></span><span class="p5-num">~ type changed</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function show(name) {
+  var names = ['tokens', 'board', 'overlays'];
+  names.forEach(function (s) {
+    document.getElementById('screen-' + s).style.display =
+      s === name ? (s === 'tokens' ? 'block' : 'flex') : 'none';
+  });
+  var idx = names.indexOf(name);
+  document.querySelectorAll('.screen-btn').forEach(function (b, i) {
+    b.classList.toggle('active', i === idx);
+  });
+}
+</script>
+
+</body>
+</html>

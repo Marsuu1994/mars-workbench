@@ -126,6 +126,41 @@ export const TokensFxTab = () => {
     </Section>
   );
 
+  const renderP5Utilities = () => (
+    <Section
+      title="P5 utilities (p5-dark only)"
+      description="Calling Card opt-in utilities — inert in the mars themes (cycle the theme bottom-right to see them): display voice, ransom tiles, slash rule, oblique cuts, star-burst."
+    >
+      <div className="flex flex-col gap-6">
+        <Variant label="fx-display + fx-tile / fx-tile-red">
+          <div className="fx-display text-2xl">
+            Take your <span className="fx-tile fx-tile-red">time</span>
+          </div>
+        </Variant>
+        <Variant label="fx-slash">
+          <div>
+            <span className="fx-display text-lg">Heist plan</span>
+            <span className="fx-slash" />
+          </div>
+        </Variant>
+        <Variant label="fx-cut / fx-cut-sm / fx-cut-lg (pair shadows via parent drop-shadow)">
+          <Row>
+            <div className="fx-cut bg-neutral px-6 py-4 text-xs">fx-cut</div>
+            <div className="fx-cut-sm bg-neutral px-6 py-4 text-xs">
+              fx-cut-sm
+            </div>
+            <div className="fx-cut-lg bg-neutral px-6 py-4 text-xs">
+              fx-cut-lg
+            </div>
+          </Row>
+        </Variant>
+        <Variant label="fx-burst (max one per view)">
+          <div className="fx-burst size-20" />
+        </Variant>
+      </div>
+    </Section>
+  );
+
   return (
     <div className="flex flex-col gap-8">
       <p className="text-sm text-base-content/50">
@@ -134,6 +169,7 @@ export const TokensFxTab = () => {
       </p>
       {renderPalette()}
       {renderHudPrimitives()}
+      {renderP5Utilities()}
     </div>
   );
 };

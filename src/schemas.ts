@@ -10,6 +10,7 @@ import {
   TaskType,
   TaskStatus,
 } from './utils/enums';
+import {THEMES} from './utils/theme';
 // Validation copy is centralized in the i18n catalog. zod messages are set at
 // module load (no React context), so we read the English strings directly from
 // en.json here rather than via useTranslations/getTranslations. Single-locale
@@ -163,3 +164,6 @@ export const resumeDraftPlanSchema = z.object({
   chatId: z.string().uuid(),
 });
 export type ResumeDraftPlanInput = z.infer<typeof resumeDraftPlanSchema>;
+
+export const updateThemeSchema = z.object({theme: z.enum(THEMES)});
+export type UpdateThemeInput = z.infer<typeof updateThemeSchema>;

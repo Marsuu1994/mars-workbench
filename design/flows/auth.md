@@ -25,18 +25,28 @@ Flows for authentication (`/auth/*`) — route protection, Google OAuth sign-in/
 
 Same as login — Supabase auto-creates a user record on first Google sign-in.
 
+## Theme Change Flow
+
+> The Settings overlay itself (entry points, sheet/modal presentation, panel
+> layout) is UI, not a flow — see the auth scenario (`/design/scenarios/auth`).
+> Flows below cover only its side-effecting actions. `/kanban/settings` no longer
+> exists — settings is overlay-only on both breakpoints.
+
+**Trigger:** User selects a theme card in the Settings overlay — Sora light (`mars-light`) / Sora dark (`mars-dark`) / P5 dark (`p5-dark`, per the Calling Card proposal)
+
+**Steps:**
+
+1. Client stamps `data-theme` on `<html>` immediately (optimistic, no reload)
+2. `updateThemeAction` persists the choice in an SSR-readable cookie; `layout.tsx` reads it so the next server render ships the right theme (no flash)
+3. The selected card shows its check ring; re-selecting is a no-op
+
+Rules: default with no cookie is `mars-dark` (first-time users); theme is an explicit user choice — no time- or system-preference auto-switching. Internal theme names are stable (`mars-*`, `p5-dark`); display labels live in i18n.
+
 ## Sign-Out Flow
 
-**Trigger:** User clicks the logout button
+**Trigger:** User confirms the two-step sign-out row in the Settings overlay (the arm/confirm interaction itself is UI — see the auth scenario)
 
 **Steps:**
 
 1. Call `supabase.auth.signOut()` to end the session
 2. Redirect to `/auth/login`
-
-## Settings Entry Points
-
-Known chrome asymmetry, accepted for now:
-
-- Mobile: the bottom dock has a Settings tab → `/kanban/settings` (profile card, sign-out button, app version).
-- Desktop: the sidebar has no Settings link — profile info and sign-out live inline in the sidebar user section, so `/kanban/settings` is reachable only on mobile (or by direct URL). Revisit when the tracker's "User profile/settings page" item lands.

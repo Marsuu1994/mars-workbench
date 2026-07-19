@@ -1,3 +1,5 @@
+import type {ThemeName} from '@/utils/theme';
+
 import {
   TaskType,
   TaskStatus,
@@ -14,10 +16,21 @@ import type {RiskLevel} from '@/utils/taskUtils';
 export const GALLERY_TITLE_ACCENT = 'Design';
 export const GALLERY_TITLE_REST = 'Console';
 export const GALLERY_SUBTITLE =
-  'Mars Workbench design-system primitives — Mission Control HUD, indexed by component layer. Rendered with sample data; toggle the theme to preview both palettes.';
+  'Mars Workbench design-system primitives — Mission Control HUD, indexed by component layer. Rendered with sample data; cycle the theme to preview all three (Sora dark → Sora light → P5 dark).';
 
-export const THEME_DARK = 'mars-dark';
-export const THEME_LIGHT = 'mars-light';
+/** Theme preview cycle for the floating toggle (click = next, wraps). */
+export const THEME_CYCLE: ThemeName[] = ['mars-dark', 'mars-light', 'p5-dark'];
+export const THEME_CYCLE_LABELS: Record<ThemeName, string> = {
+  'mars-dark': 'Sora dark',
+  'mars-light': 'Sora light',
+  'p5-dark': 'P5 dark',
+};
+
+/** ConfirmButton specimen copy. */
+export const CONFIRM_DEMO_LABEL = 'Delete task';
+export const CONFIRM_DEMO_PROMPT = 'Delete task?';
+export const CONFIRM_DEMO_CONFIRM = 'Delete';
+export const CONFIRM_DEMO_CANCEL = 'Cancel';
 
 /** Layer tabs — mirrors src/components/ (plus the token/FX foundation). */
 export const GALLERY_TAB_LABELS = [
@@ -313,21 +326,10 @@ export const PILL_COLORS = [
 
 export const PILL_SIZES = ['xs', 'sm', 'md'] as const;
 
-// ── BottomSheet demo fixtures ────────────────────────────────────────────────
-export const SHEET_DEMO_TITLE = 'Staged tasks';
-export const SHEET_DEMO_OPEN = 'Open bottom sheet';
-export const SHEET_DEMO_CLOSE = 'Close';
-export const SHEET_DEMO_HINT = 'Pinned subheader — hints live here.';
-export const SHEET_DEMO_ROWS = [
-  'Row one — sheets scroll internally',
-  'Row two — header and subheader stay pinned',
-  'Row three',
-  'Row four',
-  'Row five',
-  'Row six',
-  'Row seven',
-  'Row eight',
-];
+// ── OverlayHeader demo fixtures ──────────────────────────────────────────────
+export const HEADER_DEMO_TITLE = 'Staged tasks';
+export const HEADER_DEMO_CLOSE = 'Close';
+export const HEADER_DEMO_BADGE = '3';
 
 // ── OverlayShell demo fixtures ───────────────────────────────────────────────
 export const SHELL_DEMO_OPEN = 'Open modal shell';

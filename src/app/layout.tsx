@@ -1,12 +1,14 @@
 import type {Metadata, Viewport} from 'next';
-import {Geist, Geist_Mono} from 'next/font/google';
+import {cookies} from 'next/headers';
+import {Anton, Geist, Geist_Mono} from 'next/font/google';
 import {NextIntlClientProvider} from 'next-intl';
 import {getTranslations} from 'next-intl/server';
-import {ThemeProvider} from '@/components/application/ThemeProvider';
+import {ServiceWorkerRegistrar} from '@/components/application/ServiceWorkerRegistrar';
 import {BreakpointProvider} from '@/components/application/BreakpointProvider';
 import {AppShell} from '@/components/application/AppShell';
 import {createClient} from '@/lib/supabase/server';
 import {getActivePlan} from '@/lib/db/plans';
+import {resolveTheme, THEME_COOKIE} from '@/utils/theme';
 import './globals.css';
 
 const geistSans = Geist({
@@ -16,6 +18,14 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
+  subsets: ['latin'],
+});
+
+// p5-dark's display voice (fx-display) — loaded app-wide, used only
+// under [data-theme='p5-dark'] chrome labels.
+const anton = Anton({
+  variable: '--font-anton',
+  weight: '400',
   subsets: ['latin'],
 });
 
@@ -71,19 +81,25 @@ export default async function RootLayout({
 
   const activePlan = user ? await getActivePlan(user.id) : null;
 
+  const cookieStore = await cookies();
+  const theme = resolveTheme(cookieStore.get(THEME_COOKIE)?.value);
+
   return (
-    <html lang="en" data-theme="mars-dark" suppressHydrationWarning>
+    <html lang="en" data-theme={theme} suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-dvh bg-base-300 text-base-content antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${anton.variable} min-h-dvh bg-base-300 text-base-content antialiased`}
       >
         <NextIntlClientProvider>
-          <ThemeProvider>
-            <BreakpointProvider>
-              <AppShell user={userInfo} activePlanId={activePlan?.id ?? null}>
-                {children}
-              </AppShell>
-            </BreakpointProvider>
-          </ThemeProvider>
+          <ServiceWorkerRegistrar />
+          <BreakpointProvider>
+            <AppShell
+              user={userInfo}
+              activePlanId={activePlan?.id ?? null}
+              theme={theme}
+            >
+              {children}
+            </AppShell>
+          </BreakpointProvider>
         </NextIntlClientProvider>
       </body>
     </html>

@@ -7,8 +7,9 @@ import {
 } from '@heroicons/react/24/outline';
 import type {TaskItem} from '@/lib/db/tasks';
 import type {TrackTargetStatus} from '@/schemas';
-import {BottomSheet} from '@/components/ui/overlay/BottomSheet';
+import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
 import {SectionLabel} from '@/components/ui/SectionLabel';
+import {useBreakpoint} from '@/components/application/BreakpointProvider';
 import {TRACK_TARGETS} from './constants';
 
 interface MobileTrackSheetProps {
@@ -23,7 +24,8 @@ interface MobileTrackSheetProps {
  * Mobile track-this-week bottom sheet, opened by tapping an untracked
  * matrix card. Shows the card summary and the two board target columns.
  * With no active plan the buttons render disabled with a "No active plan
- * yet" note (the desktop equivalent disables the send button).
+ * yet" note (the desktop equivalent disables the send button). At md and
+ * up this renders nothing.
  */
 export default function MobileTrackSheet({
   task,
@@ -34,6 +36,11 @@ export default function MobileTrackSheet({
   const t = useTranslations('Priorities');
   const tStatus = useTranslations('Enums.TaskStatus');
   const tSize = useTranslations('Enums.TaskSize');
+  const {isMobile} = useBreakpoint();
+
+  if (!isMobile) {
+    return null;
+  }
 
   const renderSummary = (current: TaskItem) => {
     const meta = [
@@ -69,23 +76,26 @@ export default function MobileTrackSheet({
   );
 
   return (
-    <BottomSheet
+    <OverlayShell
+      variant="sheet"
       isOpen={task !== null}
       onClose={onClose}
       closeLabel={t('closeLabel')}
-      bodyClassName="px-4 pt-4 pb-6"
+      boxClassName="p-0"
     >
-      {task && renderSummary(task)}
-      <SectionLabel className="block mb-2">{t('trackTitle')}</SectionLabel>
-      {!hasActivePlan && (
-        <p className="flex items-center gap-1.5 text-xs text-warning mb-2">
-          <ExclamationTriangleIcon className="size-3.5 flex-shrink-0" />
-          {t('noPlanTooltip')}
-        </p>
-      )}
-      {TRACK_TARGETS.map(({status, dotClass}) =>
-        renderTrackButton(status, dotClass),
-      )}
-    </BottomSheet>
+      <div className="px-4 pt-4 pb-6">
+        {task && renderSummary(task)}
+        <SectionLabel className="block mb-2">{t('trackTitle')}</SectionLabel>
+        {!hasActivePlan && (
+          <p className="flex items-center gap-1.5 text-xs text-warning mb-2">
+            <ExclamationTriangleIcon className="size-3.5 flex-shrink-0" />
+            {t('noPlanTooltip')}
+          </p>
+        )}
+        {TRACK_TARGETS.map(({status, dotClass}) =>
+          renderTrackButton(status, dotClass),
+        )}
+      </div>
+    </OverlayShell>
   );
 }
