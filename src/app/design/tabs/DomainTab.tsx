@@ -14,6 +14,7 @@ import TaskCard from '@/components/domain/board/TaskCard';
 import BoardColumn from '@/components/domain/board/BoardColumn';
 import ProgressDashboard from '@/components/domain/board/ProgressDashboard';
 import MatrixTaskCard from '@/components/domain/priorities/MatrixTaskCard';
+import {DumpEntryCard} from '@/components/domain/dump/DumpEntryCard';
 import TemplateItem from '@/components/domain/plan/TemplateItem';
 import {ThemePicker} from '@/components/domain/auth/ThemePicker';
 import type {ThemeName} from '@/utils/theme';
@@ -31,6 +32,7 @@ import {
   LOADING_LABEL,
   TASK_CARD_FIXTURES,
   MATRIX_CARD_FIXTURES,
+  DUMP_CARD_FIXTURES,
   PROGRESS_FIXTURE,
   BOARD_HEADER_PERIOD,
   BOARD_COLUMN_STATUS,
@@ -225,6 +227,23 @@ export const DomainTab = () => {
     </Section>
   );
 
+  const renderDumpCards = () => (
+    <Section
+      title="DumpEntryCard"
+      description="A single dumped entry — mono timestamp over the content; entries past six lines clamp with a Show more toggle."
+    >
+      <div className="flex max-w-md flex-col gap-3">
+        {DUMP_CARD_FIXTURES.map(({label, entry}) => (
+          <Variant key={entry.id} label={label}>
+            <div className="w-full">
+              <DumpEntryCard entry={entry} />
+            </div>
+          </Variant>
+        ))}
+      </div>
+    </Section>
+  );
+
   const renderTemplateItem = () => (
     <Section
       title="TemplateItem"
@@ -339,6 +358,16 @@ export const DomainTab = () => {
       >
         {renderTemplateItem()}
         {renderChatPrimitives()}
+      </Zone>
+
+      <Zone
+        title="Dump"
+        description="The full capture page — composer over the day-grouped feed — and the empty state live in the Dump scenarios."
+        action={
+          <ScenarioLink href={SCENARIO_HREFS.dump} label="Dump scenarios" />
+        }
+      >
+        {renderDumpCards()}
       </Zone>
 
       <Zone
