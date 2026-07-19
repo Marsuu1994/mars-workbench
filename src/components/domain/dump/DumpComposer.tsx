@@ -72,7 +72,11 @@ export const DumpComposer = ({captureError, onCapture}: DumpComposerProps) => {
           onKeyDown={handleKeyDown}
           maxLength={DUMP_ENTRY_MAX_LENGTH}
           placeholder={t('placeholder')}
-          className="min-h-[72px] max-h-64 w-full resize-none border-none bg-transparent text-sm leading-relaxed outline-none placeholder:text-base-content/40"
+          // text-base (16px) on mobile stops iOS Safari from zooming in on
+          // focus; md:text-sm keeps the denser desktop size. The wrapper box
+          // shows focus (focus-within:border-primary), so the field opts out
+          // of the app-wide focus ring to avoid a double highlight.
+          className="min-h-[72px] max-h-64 w-full resize-none border-none bg-transparent text-base md:text-sm leading-relaxed outline-none focus-visible:outline-none! placeholder:text-base-content/40"
         />
         <div className="mt-1 flex items-center gap-2">
           <span className="hidden items-center gap-1 text-[11px] text-base-content/40 md:flex">
