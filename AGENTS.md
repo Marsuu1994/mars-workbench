@@ -123,6 +123,7 @@ When adding a new convention, append it to the **end of the relevant subsection 
 - Keep domain helpers in `src/utils/`. Do not duplicate logic.
 - Keep file names aligned with component names when renaming.
 - **One file → one component**, and the file name maps to the component name. When a component grows a shell-free sibling (a `*Panel` extracted from a modal), the sibling gets its own file — never two exported components in one file. Bad: `SettingsSheet.tsx` exporting both `SettingsPanel` and `SettingsSheet`. Good: `SettingsPanel.tsx` + `SettingsSheet.tsx`, the sheet importing the panel.
+- **Destructure objects instead of repeated member access.** When two or more properties of the same object are used — a hook's return value, a data record, a nested result — pull them out with a destructuring binding up front rather than repeating `obj.a`, `obj.b` at each use. A single one-off access can stay as `obj.a`. Bad: `const feed = useDumpFeed(...); … feed.entries … feed.capture … feed.hasMore`. Good: `const {entries, capture, hasMore} = useDumpFeed(...);`. (For a possibly-nullish source, destructure off a fallback: `const {entries, nextCursor} = result ?? {entries: [], nextCursor: null};`.)
 
 ### Enums
 

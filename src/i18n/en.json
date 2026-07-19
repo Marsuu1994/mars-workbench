@@ -200,6 +200,21 @@
     "contentRequired": "Content is required",
     "contentTooLong": "Content must be 10,000 characters or fewer"
   },
+  "Dump": {
+    "title": "Dump",
+    "subtitle": "Get it out of your head — noise, worries, ideas",
+    "entryCount": "{count, plural, one {entry} other {entries}}",
+    "placeholder": "What's on your mind?",
+    "dumpButton": "Dump",
+    "composerHint": "to dump · Enter for a new line",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "showMore": "Show more",
+    "showLess": "Show less",
+    "loadingMore": "Loading older entries…",
+    "emptyTitle": "Nothing here yet",
+    "emptyDesc": "Write anything — a thought, a worry, an idea. Dump it and move on."
+  },
   "Metadata": {
     "title": "Mars Workbench",
     "description": "Agile-like personal kanban planner"

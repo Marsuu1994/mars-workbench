@@ -49,7 +49,7 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### High
 
-- [ ] Implement Dump V1 — **backend landed** (DumpEntry schema/migration, DAL, capture + opaque-cursor feed actions); remaining: the UI commit — `/kanban/dump` page, `DumpScreen` (per `design/mockup/future-work/mockup-dump.html`), store/hook, nav entries, i18n, then `/design/scenarios/dump` + mockup retirement (per `/new-flow`)
+- [ ] Dump design-console follow-up — add the `/design/scenarios/dump` scenario page (+ `DomainTab` gallery entry) and retire `design/mockup/future-work/mockup-dump.html` (per `/new-flow`). Dump V1 itself (backend + `/kanban/dump` UI) has shipped.
 
 ### Future
 
