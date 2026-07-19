@@ -177,3 +177,23 @@ model Task {
   @@index([planId, createdAt, id], name: "idx_tasks_plan_id_created_at_id")
   @@map("tasks")
 }
+
+// ── Dump ──────────────────────────────────────────────────────────────────────
+
+model DumpEntry {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  content     String
+  // Reserved: a future LLM batch-processing flow marks entries it has handled.
+  // Never surfaced in the V1 UI.
+  isProcessed Boolean  @default(false) @map("is_processed")
+  // Timestamptz(3) (ms precision — unlike the bare Timestamptz elsewhere): the
+  // feed cursor round-trips createdAt through a JS Date (ms); sub-ms storage
+  // would break the cursor's equality tiebreaker and silently drop rows at
+  // page boundaries.
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([userId, createdAt, id], name: "idx_dump_entries_user_id_created_at_id")
+  @@map("dump_entries")
+}

@@ -35,6 +35,10 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 - Collapsible app sidebar with sign-out flow (states in the `/design` gallery's Application tab; login + settings in `/design/scenarios/auth`).
 - Theme preference — the user picks one of three themes in the Settings overlay: `mars-light` ("Sora light"), `mars-dark` ("Sora dark", default for new users), `p5-dark` ("P5 dark", per the Calling Card proposal). Persisted in an SSR-readable cookie (no DB schema change; the root layout stamps `data-theme` server-side so there is no theme flash). Explicit choice only — no time- or system-preference auto-switching. Side-effect flow in `./flows/auth.md`.
 
+### Designed — pending implementation
+
+1. **Dump** — friction-free brain dump (`/kanban/dump`, sidebar item + 5th dock tab): plain-text entries (noise, negatives, ideas) save in one action with zero decisions, and a day-grouped infinite-scroll feed is the reading view. Deliberately storage-only in V1 — no tags, no categories, no LLM; `DumpEntry.isProcessed` is reserved for a future LLM batch-processing flow (TBD). See the **Dump** flows in `./flows/dump.md` and the exploration mockup at `./mockup/future-work/mockup-dump.html`.
+
 Roadmap and open ideas live in [tracker.md](./tracker.md).
 
 ## Entities
@@ -55,6 +59,7 @@ Roadmap and open ideas live in [tracker.md](./tracker.md).
   - Ad hoc task: can be generated anytime as needed, does not expire with time, does not associate with any task template, optional for associated with a plan. Lives on the priority matrix (`quadrant`, `planId = null`) until tracked onto the board
 - **Chat** — A conversation session between the user and LLM for AI-assisted plan creation (and future edit). Each chat belongs to one plan. A plan can have multiple chats over its lifecycle. `Chat.metadata` stores the last plan stats snapshot (captured at creation) and `latestDraft` — the single-slot approval clipboard, overwritten on each generation. Every draft is also persisted as a `DRAFT_PLAN` message for history/rendering.
 - **Message** — A single message from either the LLM or the user. Each message has a `type` field: `TEXT` for plain text (welcome messages, user input) or `DRAFT_PLAN` for structured draft responses (content is JSON with `{ message, description, draftTemplates, followUp }`). `DRAFT_PLAN` messages are rendered in the chat and replayed to the LLM as conversation history; the latest draft is also mirrored to `Chat.metadata.latestDraft` for approval.
+- **DumpEntry** *(designed — V1 pending)* — One dumped plain-text note (noise, a worry, an idea). Append-only in V1 — no edit, no delete, no categorization. `isProcessed` (default false, never surfaced in the UI) is reserved so a future LLM batch-processing job can mark entries it has handled.
 
 ## Schema
 
@@ -321,9 +326,35 @@ When `type = DRAFT_PLAN`, content shape:
 
 UI rendering: the latest `DRAFT_PLAN` message renders expanded with template cards. All prior `DRAFT_PLAN` messages render collapsed with an expand toggle.
 
+### DumpEntry
+
+```prisma
+model DumpEntry {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  content     String   // Plain text, ≤ 10,000 chars (trimmed)
+  isProcessed Boolean  @default(false) @map("is_processed") // Reserved: a future LLM batch-processing job marks entries it has handled
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([userId, createdAt, id], name: "idx_dump_entries_user_id_created_at_id")
+  @@map("dump_entries")
+}
+
+// Constraints:
+// - userId references auth.users (Supabase Auth)
+// - createdAt is Timestamptz(3) (ms): the feed cursor round-trips it through a JS Date,
+//   so sub-ms storage would break the cursor's equality tiebreaker at page boundaries
+// - Feed pagination: (createdAt, id) DESC keyset; the wire cursor is an opaque
+//   base64url token minted/decoded only by dumpActions
+// - Append-only in V1: no edit, no delete; isProcessed is never surfaced in the UI
+//   (an index for the future batch job is added when that flow is designed, not speculatively)
+```
+
 ## Architecture Decision
 
 * Uses **Server Actions** for mutations and **direct DAL calls from Server Components** for data fetching. No REST API routes. Inputs are validated at the boundary with **Zod** schemas.
 * Ad-hoc tasks are not associated with any TaskTemplate.  They are optionally associated with a plan (planId = null means unassigned backlog).
 * **Size system** — `TaskSize` enum (EXTRA_SMALL → EXTRA_LARGE) replaces free-form integer points. Points are derived from size via `SIZE_TO_POINTS` constant and denormalized on the Task record at creation time. This keeps the raw SQL `SUM(points)` aggregation unchanged while the user-facing input is now a constrained enum. `TaskTemplate` stores only `size` (no `points` column); `Task` stores both `size` and `points`.
 * **Size UI** — Task cards and template items display a shared `SizeChip` component (green chip: `M·3`). Template and ad-hoc creation modals use a full-width pill toggle selector with effort description text ("~3 hours of effort") and a warning hint for L/XL sizes. Client-safe enums (`TaskSize`, `SIZE_TO_POINTS`, `SIZE_LABELS`, `SIZE_EFFORT`) live in `src/utils/enums.ts` for use in `"use client"` components; server-side code uses `src/utils/sizeUtils.ts`.
+* **Dump is storage-only** *(designed)* — capture is a single insert with zero side effects; anything smarter (categorization, summaries, extraction) is deferred to a future LLM **batch-processing** flow that walks `isProcessed = false` entries when it gets designed. The flag ships in V1 so that flow needs no migration later.

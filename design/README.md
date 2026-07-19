@@ -10,7 +10,7 @@ Centralized design documentation for Mars Workbench. Code is organized layer-fir
 | [design-language/](./design-language/README.md) | Per-theme visual specs (`mars-dark` · `mars-light` · `p5-dark`, one md per theme) + the shared skeleton: `fx-*` utility API, voices, motion, contrast method, sync points. |
 | [tracker.md](./tracker.md) | Consolidated roadmap — open items and ideas only (closed work moves to feature Update Logs). |
 | [reference.md](./reference.md) | Lean lookup tables for server actions, services, and DAL functions. |
-| [flows/](./flows/) | Per-page flow docs: `shared.md`, `board.md`, `plan.md`, `priorities.md`, `auth.md`. |
+| [flows/](./flows/) | Per-page flow docs: `shared.md`, `board.md`, `plan.md`, `priorities.md`, `dump.md`, `auth.md`. |
 | [spike/](./spike/) | Point-in-time spike docs for open questions: trigger, options with pros/cons, implementation plans. `Status: awaiting owner review` until decided; linked from the tracker. |
 | [mockup/future-work/](./mockup/future-work/) | Self-contained HTML explorations of **unbuilt** designs only. Implemented UI is documented by the live scenario pages instead. |
 | `/design` (in-app) | The Design Console (`src/app/design/`): component gallery tabbed by layer, plus per-feature **scenario pages** (`/design/scenarios`) — real page components + fixture data, the screen-level source of truth. |

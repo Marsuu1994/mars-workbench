@@ -40,6 +40,9 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | `trackTaskAction` | Track This Week: pull a matrix task onto the board | `matrixService.trackTaskThisWeek` |
 | **`src/actions/settingsActions.ts`** | | |
 | `updateThemeAction` | Persist the theme choice from the Settings overlay | SSR-readable cookie via `next/headers` (no service/DAL) |
+| **`src/actions/dumpActions.ts`** | | |
+| `createDumpEntryAction` | Quick Capture: insert one dump entry (storage-only, no side effects) | `db/dumpEntries.createDumpEntry` |
+| `fetchDumpEntriesAction` | Load one dump feed page by opaque cursor (server-pinned page size) | `db/dumpEntries.getDumpEntriesPage` |
 
 ## Services (src/services)
 
@@ -125,3 +128,7 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | **`messages.ts`** | |
 | `getMessagesByChatId` | All messages for a chat in creation order (LLM history) |
 | `createMessage` | Persist one message and touch the chat's `updatedAt` |
+| **`dumpEntries.ts`** | |
+| `createDumpEntry` | Insert one dump entry (isProcessed defaults false) |
+| `getDumpEntriesPage` | One owner-scoped feed page, (createdAt, id) DESC, cursor + take |
+| `countDumpEntries` | Total entry count for the dump title bar |

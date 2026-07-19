@@ -45,6 +45,19 @@ Single source of truth for open ideas and todos across the app — open items on
 
 - [ ] Track popover on a bottom card of a scrollable quadrant needs scrolling into view (absolute positioning inside the scroll container) — revisit with a portal/fixed positioning approach
 
+## Dump
+
+### High
+
+- [ ] Implement Dump V1 — **backend landed** (DumpEntry schema/migration, DAL, capture + opaque-cursor feed actions); remaining: the UI commit — `/kanban/dump` page, `DumpScreen` (per `design/mockup/future-work/mockup-dump.html`), store/hook, nav entries, i18n, then `/design/scenarios/dump` + mockup retirement (per `/new-flow`)
+
+### Future
+
+- [ ] LLM batch processing of dumped entries — what it does is TBD (classify / summarize / extract tasks); walks `isProcessed = false` entries and marks them handled
+- [ ] Entry edit + delete (V1 is append-only)
+- [ ] Full-text search across entries
+- [ ] PWA "New entry" shortcut / share-target for one-tap capture from the home screen
+
 ## Auth
 
 ### High

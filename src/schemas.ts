@@ -11,6 +11,7 @@ import {
   TaskStatus,
 } from './utils/enums';
 import {THEMES} from './utils/theme';
+import {DUMP_ENTRY_MAX_LENGTH} from './utils/dump';
 // Validation copy is centralized in the i18n catalog. zod messages are set at
 // module load (no React context), so we read the English strings directly from
 // en.json here rather than via useTranslations/getTranslations. Single-locale
@@ -108,6 +109,29 @@ export type TrackTaskInput = z.infer<typeof trackTaskSchema>;
 // Client-side union derived from the validated contract, so the UI options
 // can never drift from what the server accepts.
 export type TrackTargetStatus = TrackTaskInput['status'];
+
+// ── Dump Schemas ───────────────────────────────────────────────────────
+
+// .trim() transforms before the checks, so whitespace-only input fails min(1)
+// and the stored content is the trimmed string (interior newlines preserved).
+// .max() counts UTF-16 code units — the same unit as the textarea maxLength,
+// so client and server agree on what "10,000 characters" means.
+export const createDumpEntrySchema = z.object({
+  content: z
+    .string()
+    .trim()
+    .min(1, V.contentRequired)
+    .max(DUMP_ENTRY_MAX_LENGTH, V.contentTooLong),
+});
+export type CreateDumpEntryInput = z.infer<typeof createDumpEntrySchema>;
+
+// The feed cursor is an opaque token on the wire: the client stores and echoes
+// nextCursor verbatim and never constructs or inspects its contents. The
+// decoded payload schema is private to dumpActions.ts, not a wire contract.
+export const fetchDumpEntriesSchema = z.object({
+  cursor: z.string().min(1).optional(),
+});
+export type FetchDumpEntriesInput = z.infer<typeof fetchDumpEntriesSchema>;
 
 // ── AI Chat Schemas ────────────────────────────────────────────────────
 
