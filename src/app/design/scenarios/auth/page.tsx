@@ -1,9 +1,7 @@
-import {BottomTabBar} from '@/components/application/BottomTabBar';
 import {ScenarioTabs, type ScenarioTab} from '../ScenarioTabs';
 import {ScenarioPage} from '../ScenarioPage';
 import {LoginScenario} from './LoginScenario';
 import {SettingsScenario} from './SettingsScenario';
-import {SCENARIO_USER, SCENARIO_PLAN_ID} from './fixtures';
 
 const AUTH_SCENARIOS: ScenarioTab[] = [
   {
@@ -13,22 +11,27 @@ const AUTH_SCENARIOS: ScenarioTab[] = [
     content: <LoginScenario />,
   },
   {
-    label: 'Settings sheet (mobile)',
-    title: 'Settings sheet (mobile)',
-    note: 'The settings overlay content (identity, theme picker, two-step sign-out) as the mobile sheet presents it, above the dock with its Settings trigger pressed.',
+    label: 'Settings',
+    title: 'Settings overlay — rest',
+    note: 'The one settings panel (identity, theme picker, sign-out at rest) — mobile sheet and desktop modal render this same component, so presentation is not a separate state.',
+    display: 'fit',
     content: (
-      <div className="flex h-full flex-col bg-base-200/20 p-3">
-        {/* [contain:layout] pins the fixed dock to this phone column. */}
-        <div className="relative mx-auto flex min-h-0 w-full max-w-[430px] flex-1 flex-col overflow-hidden rounded-2xl border border-base-content/10 bg-base-100 shadow-lg [contain:layout]">
-          <div className="min-h-0 flex-1 overflow-y-auto pb-16">
-            <SettingsScenario />
-          </div>
-          <BottomTabBar
-            user={SCENARIO_USER}
-            activePlanId={SCENARIO_PLAN_ID}
-            pathname="/kanban"
-            settingsOpen
-          />
+      <div className="flex justify-center p-4">
+        <div className="fx-panel-solid w-full max-w-[430px] rounded-box p-0">
+          <SettingsScenario />
+        </div>
+      </div>
+    ),
+  },
+  {
+    label: 'Settings — sign-out confirm',
+    title: 'Settings overlay — sign-out confirm',
+    note: 'Same panel with the two-step sign-out pinned in its triggered state (Cancel / Sign out).',
+    display: 'fit',
+    content: (
+      <div className="flex justify-center p-4">
+        <div className="fx-panel-solid w-full max-w-[430px] rounded-box p-0">
+          <SettingsScenario signOutTriggered />
         </div>
       </div>
     ),

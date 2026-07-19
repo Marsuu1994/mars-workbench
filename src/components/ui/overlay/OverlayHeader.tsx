@@ -39,7 +39,7 @@ export const OverlayHeader = ({
       className,
     )}
   >
-    <div className="flex items-center gap-2 text-base font-bold md:text-lg">
+    <div className="fx-display flex items-center gap-2 text-base font-bold md:text-lg">
       {icon}
       {title}
       {badge}

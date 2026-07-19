@@ -1,6 +1,6 @@
 import type {Metadata, Viewport} from 'next';
 import {cookies} from 'next/headers';
-import {Geist, Geist_Mono} from 'next/font/google';
+import {Anton, Geist, Geist_Mono} from 'next/font/google';
 import {NextIntlClientProvider} from 'next-intl';
 import {getTranslations} from 'next-intl/server';
 import {ServiceWorkerRegistrar} from '@/components/application/ServiceWorkerRegistrar';
@@ -18,6 +18,14 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
+  subsets: ['latin'],
+});
+
+// p5-dark's display voice (fx-display) — loaded app-wide, used only
+// under [data-theme='p5-dark'] chrome labels.
+const anton = Anton({
+  variable: '--font-anton',
+  weight: '400',
   subsets: ['latin'],
 });
 
@@ -79,7 +87,7 @@ export default async function RootLayout({
   return (
     <html lang="en" data-theme={theme} suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-dvh bg-base-300 text-base-content antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${anton.variable} min-h-dvh bg-base-300 text-base-content antialiased`}
       >
         <NextIntlClientProvider>
           <ServiceWorkerRegistrar />

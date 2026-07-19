@@ -19,6 +19,7 @@ import {ChoicePills} from '@/components/ui/form/ChoicePills';
 import {Stepper} from '@/components/ui/form/Stepper';
 import {SubmitButton} from '@/components/ui/form/SubmitButton';
 import {FormErrorAlert} from '@/components/ui/form/FormErrorAlert';
+import {ConfirmButton} from '@/components/ui/ConfirmButton';
 import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
 import {OverlayHeader} from '@/components/ui/overlay/OverlayHeader';
 import {Popover} from '@/components/ui/overlay/Popover';
@@ -56,6 +57,10 @@ import {
   CONTENT_STATS,
   CONTENT_BARS,
   CONTENT_SECTION_LABELS,
+  CONFIRM_DEMO_LABEL,
+  CONFIRM_DEMO_PROMPT,
+  CONFIRM_DEMO_CONFIRM,
+  CONFIRM_DEMO_CANCEL,
 } from '../constants';
 
 /** src/components/ui/ — generic primitives with zero domain imports. */
@@ -315,6 +320,35 @@ export const UiTab = () => {
     </Section>
   );
 
+  const renderConfirmButton = () => (
+    <Section
+      title="ConfirmButton"
+      description="Two-step destructive action row: rest → first click triggers an inline confirm → second click executes. Parents reset a stale confirm via key remount; `triggered` pins the state."
+    >
+      <div className="flex max-w-md flex-col gap-4">
+        <Variant label="rest (click to trigger)">
+          <ConfirmButton
+            label={CONFIRM_DEMO_LABEL}
+            confirmPrompt={CONFIRM_DEMO_PROMPT}
+            confirmLabel={CONFIRM_DEMO_CONFIRM}
+            cancelLabel={CONFIRM_DEMO_CANCEL}
+            onConfirm={() => undefined}
+          />
+        </Variant>
+        <Variant label="triggered (pinned)">
+          <ConfirmButton
+            label={CONFIRM_DEMO_LABEL}
+            confirmPrompt={CONFIRM_DEMO_PROMPT}
+            confirmLabel={CONFIRM_DEMO_CONFIRM}
+            cancelLabel={CONFIRM_DEMO_CANCEL}
+            onConfirm={() => undefined}
+            triggered
+          />
+        </Variant>
+      </div>
+    </Section>
+  );
+
   const renderOverlayHeader = () => (
     <Section
       title="OverlayHeader"
@@ -345,6 +379,7 @@ export const UiTab = () => {
         {renderContentBlocks()}
         {renderEmptyState()}
         {renderTabBar()}
+        {renderConfirmButton()}
       </Zone>
 
       <Zone

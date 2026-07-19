@@ -1,12 +1,19 @@
 # p5-dark — "P5 dark" (Calling Card · Persona 5)
 
-> **Status: approved direction, implementation pending.** Ships as a **third
-> daisyUI theme** alongside the two mars themes (which stay untouched) — selected
-> from the Settings overlay theme picker (`design/flows/auth.md`, Theme Change
-> Flow). All theme-specific geometry below is gated under
-> `[data-theme='p5-dark']`. Skeleton, `fx-*` API and shared voices:
-> [README.md](./README.md). Live demo:
-> `design/mockup/future-work/mockup-p5-design-system.html`.
+> **Status: shipped.** A third daisyUI theme alongside the two mars themes
+> (untouched) — selected from the Settings overlay theme picker
+> (`design/flows/auth.md`, Theme Change Flow). All geometry is gated under
+> `[data-theme='p5-dark']` in `globals.css` (the "P5 DARK — geometry fork"
+> section). Skeleton, `fx-*` API and shared voices: [README.md](./README.md).
+>
+> **Implementation deviations from the map below** (all deliberate):
+> panels ship rectangular (2px paper border + 8px blood offset) — oblique
+> cuts kill box-shadows, so `fx-cut` stays opt-in with a parent
+> `drop-shadow` instead of being baked into `fx-panel`; buttons skew
+> without inner counter-skew spans (oblique chrome text is sanctioned) and
+> without clip cuts; `fx-text-gradient` renders flat phantom red in this
+> theme with `fx-tile` as the opt-in ransom treatment, not an automatic
+> substitution.
 
 ## Concept
 

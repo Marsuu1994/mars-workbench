@@ -15,6 +15,8 @@ import BoardColumn from '@/components/domain/board/BoardColumn';
 import ProgressDashboard from '@/components/domain/board/ProgressDashboard';
 import MatrixTaskCard from '@/components/domain/priorities/MatrixTaskCard';
 import TemplateItem from '@/components/domain/plan/TemplateItem';
+import {ThemePicker} from '@/components/domain/auth/ThemePicker';
+import type {ThemeName} from '@/utils/theme';
 import {BotAvatar, UserAvatar} from '@/components/domain/plan/ai-chat/Avatars';
 import {SuggestionChips} from '@/components/domain/plan/ai-chat/SuggestionChips';
 import {LoadingBubble} from '@/components/domain/plan/ai-chat/LoadingBubble';
@@ -51,6 +53,7 @@ const ScenarioLink = ({href, label}: {href: string; label: string}) => (
 
 /** Feature components composed from the primitives, across their states. */
 export const DomainTab = () => {
+  const [demoTheme, setDemoTheme] = useState<ThemeName>('mars-dark');
   const [templateSelected, setTemplateSelected] = useState(true);
   const [templateCfg, setTemplateCfg] = useState<{
     type: TaskType;
@@ -267,6 +270,17 @@ export const DomainTab = () => {
     </Section>
   );
 
+  const renderThemePicker = () => (
+    <Section
+      title="ThemePicker"
+      description="Three theme cards (preview swatch + name/tagline + check ring) on ChoicePills; selection here is local — the live panel stamps data-theme and persists the cookie."
+    >
+      <div className="max-w-md">
+        <ThemePicker value={demoTheme} onChange={setDemoTheme} />
+      </div>
+    </Section>
+  );
+
   return (
     <div className="flex flex-col gap-10">
       <p className="text-sm text-base-content/50">
@@ -325,6 +339,16 @@ export const DomainTab = () => {
       >
         {renderTemplateItem()}
         {renderChatPrimitives()}
+      </Zone>
+
+      <Zone
+        title="Auth"
+        description="The settings overlay's both presentations (mobile sheet / desktop modal, sign-out confirm) live in the Auth scenarios."
+        action={
+          <ScenarioLink href={SCENARIO_HREFS.auth} label="Auth scenarios" />
+        }
+      >
+        {renderThemePicker()}
       </Zone>
     </div>
   );
