@@ -47,10 +47,6 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ## Dump
 
-### High
-
-- [ ] Dump design-console follow-up — add the `/design/scenarios/dump` scenario page (+ `DomainTab` gallery entry) and retire `design/mockup/future-work/mockup-dump.html` (per `/new-flow`). Dump V1 itself (backend + `/kanban/dump` UI) has shipped.
-
 ### Future
 
 - [ ] LLM batch processing of dumped entries — what it does is TBD (classify / summarize / extract tasks); walks `isProcessed = false` entries and marks them handled

@@ -2,7 +2,7 @@
 
 Flows for the dump page (`/kanban/dump`) — friction-free brain dump of whatever is in your head (noise, negatives, ideas): type, dump, move on. Deliberately storage-only in V1 — no tags, no categories, no LLM. Sibling docs: `design/flows/board.md`, `design/flows/plan.md`, `design/flows/priorities.md`, `design/flows/shared.md`, `design/flows/auth.md`.
 
-> **Status: designed, pending implementation.** Exploration mockup (self-contained, per the scenario-first workflow): `design/mockup/future-work/mockup-dump.html`. Proposed schema lives in `design/baseline.md` (DumpEntry, marked "designed"). When V1 lands it gets a scenario page at `/design/scenarios/dump` and the exploration mockup is deleted.
+> **Status: shipped (V1).** Screen-level source of truth: the Dump scenarios at `/design/scenarios/dump` (populated feed + empty state). Schema in `design/baseline.md` (DumpEntry). Backend/UI reference rows in `design/reference.md`.
 
 > **Doc convention:** One flow per `##` heading, separated by `---`. Every flow has two required `###` sections — `Trigger / Entry Point` and `Steps` — plus an optional `### Rules` section for constraints and invariants. Extra `###` sections are allowed only for reference material that fits neither Steps nor Rules.
 

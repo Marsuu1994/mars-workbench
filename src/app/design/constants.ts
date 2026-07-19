@@ -8,6 +8,7 @@ import {
   SIZE_TO_POINTS,
 } from '@/utils/enums';
 import type {TaskItem} from '@/lib/db/tasks';
+import type {DumpEntryItem} from '@/lib/db/dumpEntries';
 import type {RiskLevel} from '@/utils/taskUtils';
 
 // ── Page copy ──────────────────────────────────────────────────────────────
@@ -46,6 +47,7 @@ export const SCENARIO_HREFS = {
   priorities: '/design/scenarios/priorities',
   plan: '/design/scenarios/plan',
   aiChat: '/design/scenarios/ai-chat',
+  dump: '/design/scenarios/dump',
   auth: '/design/scenarios/auth',
 } as const;
 
@@ -401,6 +403,30 @@ export const TEMPLATE_FIXTURE = {
   createdAt: TODAY,
   updatedAt: TODAY,
 };
+
+// ── Dump card fixtures ───────────────────────────────────────────────────────
+/** DumpEntryCard specimens — a short entry and a long (>6 line) one that
+    clamps with the Show more toggle. */
+export const DUMP_CARD_FIXTURES: {label: string; entry: DumpEntryItem}[] = [
+  {
+    label: 'Short',
+    entry: {
+      id: 'dump-short',
+      content: 'Book the dentist before the calendar fills up.',
+      createdAt: TODAY,
+    },
+  },
+  {
+    label: 'Long (clamped)',
+    entry: {
+      id: 'dump-long',
+      content: `Long walk after dinner. The week finally feels like it has a shape — the plan helped more than I expected. I keep noticing that the days I write the plan down before 9am are the days I actually finish things. Maybe the ritual matters more than the plan itself.
+
+Also thinking about how much of my anxiety is just unwritten to-dos circling. When they land somewhere — the board, this dump — the volume drops.`,
+      createdAt: TODAY,
+    },
+  },
+];
 
 // ── ui/ demo fixtures (EmptyState, TabBar, Popover) ──────────────────────────
 export const EMPTY_STATE_DEMO_TITLE = 'No signals yet';

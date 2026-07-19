@@ -7,6 +7,7 @@ import {
   TableCellsIcon,
   PencilSquareIcon,
   SparklesIcon,
+  InboxArrowDownIcon,
   UserCircleIcon,
 } from '@heroicons/react/24/outline';
 
@@ -42,6 +43,12 @@ const SCENARIOS: {
     title: 'Plan — AI assist plan creation',
     note: 'The plan assistant across its lifecycle: welcome, generating, drafts, created, errors.',
     icon: SparklesIcon,
+  },
+  {
+    href: '/design/scenarios/dump',
+    title: 'Dump',
+    note: 'Populated day-grouped feed (Today / Yesterday / older) and the empty state.',
+    icon: InboxArrowDownIcon,
   },
   {
     href: '/design/scenarios/auth',
