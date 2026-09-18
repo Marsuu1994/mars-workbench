@@ -87,6 +87,6 @@ Error presentation is unstyled or ad-hoc across the app (the AI chat's red alert
 
 - [ ] Cron-driven sync — move the daily / end-of-period sync to a scheduled job (e.g. Vercel Cron hitting a route just after midnight in `KANBAN_TZ`); pages keep the idempotent `ensureSynced` as fallback. `runDailySync` / `runEndOfPeriodSync` are already standalone for this
 - [ ] User-configurable timezone — Date utils are currently anchored to `America/Los_Angeles` via `KANBAN_TZ` constant. Consider making this a user setting stored in the database for multi-user support or if the user relocates (traveling users)
-- [ ] Phone notifications for unfinished tasks
+- [ ] Smart reminders + low-friction tracking ("daily rhythm": Open/Close-the-day rituals, ≤ 1 state-driven nudge, close-sheet batch updates, tap-to-advance, app badge) — spike with options + phased plan `design/spike/daily-rhythm-notifications.md` (awaiting review), mockup `design/mockup/future-work/mockup-daily-rhythm.html`; builds on the cron-driven sync item above
 - [ ] LLM-generated motivational messages
 - [ ] Evaluate Storybook vs. the in-app `/design` gallery + scenarios as the long-term UI workbench — spike written with pros/cons + phased migration plan: `design/spike/design-console-vs-storybook.md` (awaiting review)
