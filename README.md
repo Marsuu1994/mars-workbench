@@ -83,6 +83,9 @@ Open items: see [design/tracker.md](./design/tracker.md).
 
 ## Update Log
 
+### 2026-09-18
+- **Daily-rhythm spike rewritten in the owner's bilingual register** (中文叙述 + English product/research terms, matching code, mockup and tracker naming) — `design/spike/daily-rhythm-notifications.md`; structure and substance unchanged, a language-convention note added at the top for future edits
+
 ### 2026-09-17
 - **Smart reminders & low-friction tracking design exploration (pending approval)** — the "daily rhythm": two scheduled rituals (Open the day → a Today sheet that pulls picks onto the board with a capacity hint and one focus task; Close the day → a three-way batch check-off — done / still on it / not today — followed by a day card), at most one state-driven midday nudge (one task, two answers; Android notification actions, iOS quick-update sheet), glanceable notification bodies, tap-to-advance cards, app badge + in-app re-entry strip, and a "Daily rhythm" settings card. Product reasoning from behavior science / UX research (prospective memory, B=MAP, implementation intentions, recognition over recall, progress principle, peak-end, self-determination theory), channel / ritual / tracking / feedback options with tradeoffs, an n = 1 measurement plan, feasibility notes (PWA push, iOS limits, cron granularity) and a four-phase recommendation in `design/spike/daily-rhythm-notifications.md`; six-screen self-contained mockup at `design/mockup/future-work/mockup-daily-rhythm.html` (mars-dark tokens, tappable Today/Close sheets, verified via headless-Chromium screenshots). Tracker item re-pointed; no `src/` changes
 
