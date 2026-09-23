@@ -38,6 +38,7 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | `fetchPriorityMatrixAction` | Load matrix tasks + active-plan info for `/kanban/priorities` | `matrixService.fetchPriorityMatrix` |
 | `updateTaskQuadrantAction` | Move a task between Eisenhower quadrants | `db/tasks.updateTaskQuadrant` |
 | `trackTaskAction` | Track This Week: pull a matrix task onto the board | `matrixService.trackTaskThisWeek` |
+| `completeTaskAction` | Mark a matrix task done in place (credits the current ACTIVE plan when one exists) | `matrixService.completeMatrixTask` |
 | **`src/actions/settingsActions.ts`** | | |
 | `updateThemeAction` | Persist the theme choice from the Settings overlay | SSR-readable cookie via `next/headers` (no service/DAL) |
 | **`src/actions/dumpActions.ts`** | | |
@@ -61,6 +62,7 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | **`matrixService.ts`** | |
 | `fetchPriorityMatrix` | Matrix tasks + active-plan info for `/kanban/priorities` |
 | `trackTaskThisWeek` | Track This Week: pull a matrix task onto the board |
+| `completeMatrixTask` | Complete a matrix task in place: `ensureSynced` → active plan id or null → DAL |
 | **`aiChatService.ts`** | |
 | `getTemplateStats` | Last-plan per-template stats for the AI chat |
 | `createAiChat` | Start a new AI plan-creation chat |
@@ -95,6 +97,7 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | `updateTaskStatus` | Set a task's status (+`doneAt` on DONE); returns updated row or null |
 | `updateTaskQuadrant` | Set the Eisenhower quadrant of an owned AD_HOC task |
 | `trackAdhocTask` | Attach an unassigned matrix task to a plan (BACKLOG → board) in one write |
+| `completeAdhocTask` | Set an owned non-DONE AD_HOC task to DONE (+`doneAt`), filling a null `planId` with the active plan, in one write |
 | `expireStaleDailyTasks` | Expire non-DONE daily tasks older than the cutoff (1-day rollover buffer) |
 | `expireAllNonDoneTasks` | End-of-period cleanup: expire all non-done, non-ad-hoc tasks |
 | `getDailyTasksForDate` | Daily tasks for a specific date (idempotency check) |

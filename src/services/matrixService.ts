@@ -1,6 +1,7 @@
 import {
   getNonDoneAdhocTasks,
   trackAdhocTask,
+  completeAdhocTask,
   type TaskItem,
 } from '@/lib/db/tasks';
 import {TaskStatus} from '@/generated/prisma/client';
@@ -15,8 +16,9 @@ export type MatrixData = {
   activePlan: MatrixActivePlan | null;
 };
 
-export type TrackTaskResult =
-  {task: TaskItem} | {error: 'noActivePlan' | 'taskNotFound'};
+type MatrixTaskResult<E extends string> = {task: TaskItem} | {error: E};
+export type TrackTaskResult = MatrixTaskResult<'noActivePlan' | 'taskNotFound'>;
+export type CompleteTaskResult = MatrixTaskResult<'taskNotFound'>;
 
 export async function fetchPriorityMatrix(userId: string): Promise<MatrixData> {
   // ensureSynced flips an ended ACTIVE plan to PENDING_UPDATE (same lifecycle
@@ -46,6 +48,23 @@ export async function trackTaskThisWeek(
   if (!plan) return {error: 'noActivePlan'};
 
   const task = await trackAdhocTask(userId, taskId, plan.id, status);
+  if (!task) return {error: 'taskNotFound'};
+
+  return {task};
+}
+
+/**
+ * Complete One-off: mark a matrix task DONE in place. An unassigned task is
+ * credited to the current ACTIVE plan when there is one (same outcome as
+ * track → drag to Done); without a plan it is simply closed, planId null.
+ */
+export async function completeMatrixTask(
+  userId: string,
+  taskId: string,
+): Promise<CompleteTaskResult> {
+  const plan = await ensureSynced(userId);
+
+  const task = await completeAdhocTask(userId, taskId, plan?.id ?? null);
   if (!task) return {error: 'taskNotFound'};
 
   return {task};

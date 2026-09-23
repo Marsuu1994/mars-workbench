@@ -437,7 +437,7 @@ export const EMPTY_STATE_DEMO_CTA = 'Run scan';
 export const TABBAR_DEMO_LABELS = ['Overview', 'Telemetry', 'Logs'];
 
 export const POPOVER_DEMO_ANCHOR = 'Anchor';
-export const POPOVER_DEMO_TITLE = 'Track this week';
+export const POPOVER_DEMO_TITLE = 'Move to';
 export const POPOVER_DEMO_BODY =
   'Anchored below a relative parent, arrow notch, swallows clicks.';
 

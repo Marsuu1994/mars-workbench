@@ -44,17 +44,25 @@ const sized = (size: TaskSize): Pick<TaskItem, 'size' | 'points'> => ({
   points: SIZE_TO_POINTS[size],
 });
 
-/** The card whose track popover is pinned open in the Track tab — a card
-    with free space below it, so the quadrant's scroll clipping (a known
-    open issue for bottom cards) doesn't cut the popover off. */
-export const POPOVER_TASK_ID = 'scn-track-popover';
+/** The card whose Move-to popover is pinned open in the popover tabs — a
+    top-quadrant card with the whole bottom row below it, so the panel (which
+    escapes its quadrant's scroll clip but not the frame) fits at short
+    viewport heights too. */
+export const POPOVER_TASK_ID = 'scn-move-popover';
 
-/** The card shown in the mobile track sheet (has description + points meta). */
-const SHEET_TASK_ID = 'scn-track-sheet';
+/** The tracked (This Week) card whose popover is pinned open: Done only. */
+export const TRACKED_POPOVER_TASK_ID = 'scn-move-popover-tracked';
+
+/** The card shown in the mobile Move-to sheet (has description + points meta). */
+const SHEET_TASK_ID = 'scn-move-sheet';
+
+/** The tracked card shown in the mobile sheet's Done-only state. */
+const SHEET_TRACKED_TASK_ID = 'scn-move-sheet-tracked';
 
 export const MATRIX_TASKS: TaskItem[] = [
   // Do First — one tracked (dimmed, This Week tag), one actionable
   task({
+    id: TRACKED_POPOVER_TASK_ID,
     title: 'Shop birthday gift',
     description: 'For mom — this Saturday',
     quadrant: PriorityQuadrant.DO_FIRST,
@@ -69,6 +77,7 @@ export const MATRIX_TASKS: TaskItem[] = [
   }),
   // Schedule
   task({
+    id: SHEET_TRACKED_TASK_ID,
     title: 'File tax report',
     description: 'Deadline end of month',
     quadrant: PriorityQuadrant.SCHEDULE,
@@ -77,6 +86,7 @@ export const MATRIX_TASKS: TaskItem[] = [
     ...sized(TaskSize.MEDIUM),
   }),
   task({
+    id: POPOVER_TASK_ID,
     title: 'Find gym coach',
     description: 'Ask for trial sessions',
     quadrant: PriorityQuadrant.SCHEDULE,
@@ -90,7 +100,6 @@ export const MATRIX_TASKS: TaskItem[] = [
   }),
   // Squeeze In
   task({
-    id: POPOVER_TASK_ID,
     title: 'Reply to landlord',
     description: 'About the heating fix',
     quadrant: PriorityQuadrant.SQUEEZE_IN,
@@ -108,7 +117,12 @@ export const MATRIX_TASKS: TaskItem[] = [
   }),
 ];
 
-/** The task shown in the mobile track sheet. */
+/** The task shown in the mobile Move-to sheet. */
 export const SHEET_TASK: TaskItem = MATRIX_TASKS.find(
   t => t.id === SHEET_TASK_ID,
+)!;
+
+/** The tracked task shown in the mobile sheet's Done-only state. */
+export const SHEET_TRACKED_TASK: TaskItem = MATRIX_TASKS.find(
+  t => t.id === SHEET_TRACKED_TASK_ID,
 )!;

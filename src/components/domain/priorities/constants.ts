@@ -60,6 +60,9 @@ export const TRACK_TARGETS: {status: TrackTargetStatus; dotClass: string}[] = [
   {status: TaskStatus.DOING, dotClass: 'bg-warning'},
 ];
 
+/** Dot color of the chooser's Done row — matches the board's Done column. */
+export const COMPLETE_DOT_CLASS = 'bg-success';
+
 /**
  * Tasks created before the matrix (or during a deploy window) may carry a null
  * quadrant — group them into the backfill default so no card silently drops

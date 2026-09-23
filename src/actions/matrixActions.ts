@@ -6,6 +6,7 @@ import {updateTaskQuadrantSchema, trackTaskSchema} from '../schemas';
 import {
   fetchPriorityMatrix,
   trackTaskThisWeek,
+  completeMatrixTask,
 } from '../services/matrixService';
 import {updateTaskQuadrant} from '@/lib/db/tasks';
 import {getCurrentUserId} from '@/lib/auth/getCurrentUserId';
@@ -36,6 +37,19 @@ export async function trackTaskAction(taskId: string, input: unknown) {
 
   const userId = await getCurrentUserId();
   const result = await trackTaskThisWeek(userId, taskId, parsed.data.status);
+  if ('error' in result) {
+    const t = await getTranslations('Errors');
+    return {error: {formErrors: [t(result.error)], fieldErrors: {}}};
+  }
+
+  revalidatePath('/kanban');
+  revalidatePath('/kanban/priorities');
+  return {data: result.task};
+}
+
+export async function completeTaskAction(taskId: string) {
+  const userId = await getCurrentUserId();
+  const result = await completeMatrixTask(userId, taskId);
   if ('error' in result) {
     const t = await getTranslations('Errors');
     return {error: {formErrors: [t(result.error)], fieldErrors: {}}};

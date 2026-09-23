@@ -193,7 +193,7 @@ export const DomainTab = () => {
   const renderMatrixCards = () => (
     <Section
       title="MatrixTaskCard"
-      description="Priorities-page card — hover reveals the track send button; tracked cards dim with a This Week tag (★ on mobile)."
+      description="Priorities-page card — hover reveals the Move-to send button (tracked cards keep it: Done is still a valid move); tracked cards dim with a This Week tag (★ on mobile)."
     >
       <DragDropContext onDragEnd={() => undefined}>
         <Droppable droppableId="gallery-matrix-cards">
@@ -214,6 +214,7 @@ export const DomainTab = () => {
                       isPopoverOpen={false}
                       onSendToggle={() => undefined}
                       onTrack={() => undefined}
+                      onComplete={() => undefined}
                       onTap={() => undefined}
                     />
                   </div>

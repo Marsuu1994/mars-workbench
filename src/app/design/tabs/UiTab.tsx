@@ -305,7 +305,10 @@ export const UiTab = () => {
       description="Anchored panel below a position:relative parent with an arrow notch; the click-away layer stays page-level (see the matrix)."
     >
       <div className="pb-28">
-        <div className="relative inline-block">
+        {/* contain:layout makes this box the containing block for the
+            panel's fixed positioning, so the demo scrolls with the page
+            exactly like a scenario frame. */}
+        <div className="relative inline-block [contain:layout]">
           <button type="button" className="btn btn-outline btn-sm">
             {POPOVER_DEMO_ANCHOR}
           </button>
