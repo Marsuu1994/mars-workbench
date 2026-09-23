@@ -75,16 +75,17 @@ Choose **Done** in a matrix card's Move-to popover (desktop, via the hover "→"
 
 ### Steps
 
-1. UI closes the chooser, removes the card optimistically, and the title-bar counts update.
-2. Server Action completes the task: `status = DONE`, `doneAt = now`; an unassigned task is attached to the current-week `ACTIVE` plan when one exists. Rollback on failure.
-3. Revalidate `/kanban` (Done column, Today / Week metrics) and `/kanban/priorities`.
+1. UI closes the chooser, removes the card optimistically, the title-bar counts update, and a 5 s "Marked done" toast with an **Undo** button and a draining countdown bar appears (desktop: bottom-center; mobile: above the dock) — "· +N pts this week" when an active plan absorbed the points. Hovering the toast holds the clock.
+2. Server Action completes the task: `status = DONE`, `doneAt = now`; an unassigned task is attached to the current-week `ACTIVE` plan when one exists. Rollback on failure (toast withdrawn).
+3. **Undo** (within the window) waits for the completion write to land, then restores the pre-complete snapshot — `status` back to `BACKLOG` / `TODO` / `DOING`, `doneAt` cleared, the plan link detached only if the complete attached it — and the card returns to its former position.
+4. Revalidate `/kanban` (Done column, Today / Week metrics) and `/kanban/priorities`.
 
 ### Rules
 
 - Works without an active plan — that is the point of the flow; the no-plan hint bar says so. Without a plan the task keeps `planId = null` and its points are credited nowhere.
-- `planId` is only ever added (`null → active plan`), never re-attributed: an already-tracked card keeps its plan link. DONE tasks never return to the matrix.
+- `planId` is only ever added (`null → active plan`), never re-attributed: an already-tracked card keeps its plan link. DONE tasks never return to the matrix except via Undo.
 - Tracked cards complete exactly like a board drag to Done — same Done column, same Today / Week credit.
-- Completing is final: no confirm, no undo, and no "un-complete" on the board (Done cards are drag-locked) or the matrix.
+- No confirm; Undo is the only reverse path (a client can only ever detach a plan link, never attach one), and there is no "un-complete" on the board (Done cards are drag-locked). A second completion replaces the toast — the first task's undo window ends.
 
 ---
 

@@ -357,6 +357,25 @@ export async function completeAdhocTask(
 }
 
 /**
+ * Undo a matrix completion: put a DONE AD_HOC task back to its pre-complete
+ * status, clear doneAt, and drop the plan link only when the complete added
+ * it (detach). Guarded on status = DONE so a stale undo can't touch a task
+ * that already moved on. Returns null when nothing matched.
+ */
+export async function revertAdhocCompletion(
+  userId: string,
+  taskId: string,
+  {status, detach}: {status: TaskStatus; detach: boolean},
+): Promise<TaskItem | null> {
+  const [task] = await prisma.task.updateManyAndReturn({
+    where: {id: taskId, userId, type: TaskType.AD_HOC, status: TaskStatus.DONE},
+    data: {status, doneAt: null, ...(detach ? {planId: null} : {})},
+    select: taskSelect,
+  });
+  return task ?? null;
+}
+
+/**
  * Expire stale daily tasks: set status to EXPIRED for tasks
  * whose forDate is before the cutoff date and are not DONE.
  * Caller passes yesterday to implement the 1-day rollover buffer.

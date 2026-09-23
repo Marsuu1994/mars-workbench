@@ -104,6 +104,9 @@
     "noPlanNote": "No active plan yet",
     "addTaskLabel": "Add priority task",
     "addedToast": "Added to {quadrant}",
+    "doneToast": "Marked done",
+    "doneToastCredited": "Marked done · +{points, plural, one {# pt} other {# pts}} this week",
+    "undo": "Undo",
     "dropHint": "{quadrant, select, DO_FIRST {Drop here — mark Urgent & Important} SCHEDULE {Drop here — mark Important} SQUEEZE_IN {Drop here — mark Urgent} MAYBE_LATER {Drop here — mark Maybe Later} other {Drop here}}",
     "sheetPoints": "{points, plural, one {# pt} other {# pts}}"
   },
