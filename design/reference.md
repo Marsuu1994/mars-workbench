@@ -39,6 +39,7 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | `updateTaskQuadrantAction` | Move a task between Eisenhower quadrants | `db/tasks.updateTaskQuadrant` |
 | `trackTaskAction` | Track This Week: pull a matrix task onto the board | `matrixService.trackTaskThisWeek` |
 | `completeTaskAction` | Mark a matrix task done in place (credits the current ACTIVE plan when one exists) | `matrixService.completeMatrixTask` |
+| `undoCompleteTaskAction` | Undo a matrix completion within the toast window (restores the pre-complete status, detaches the plan link the complete added) | `matrixService.undoCompleteMatrixTask` |
 | **`src/actions/settingsActions.ts`** | | |
 | `updateThemeAction` | Persist the theme choice from the Settings overlay | SSR-readable cookie via `next/headers` (no service/DAL) |
 | **`src/actions/dumpActions.ts`** | | |
@@ -63,6 +64,7 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | `fetchPriorityMatrix` | Matrix tasks + active-plan info for `/kanban/priorities` |
 | `trackTaskThisWeek` | Track This Week: pull a matrix task onto the board |
 | `completeMatrixTask` | Complete a matrix task in place: `ensureSynced` → active plan id or null → DAL |
+| `undoCompleteMatrixTask` | Undo a matrix completion: validated pre-complete snapshot → DAL |
 | **`aiChatService.ts`** | |
 | `getTemplateStats` | Last-plan per-template stats for the AI chat |
 | `createAiChat` | Start a new AI plan-creation chat |
@@ -98,6 +100,7 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | `updateTaskQuadrant` | Set the Eisenhower quadrant of an owned AD_HOC task |
 | `trackAdhocTask` | Attach an unassigned matrix task to a plan (BACKLOG → board) in one write |
 | `completeAdhocTask` | Set an owned non-DONE AD_HOC task to DONE (+`doneAt`), filling a null `planId` with the active plan, in one write |
+| `revertAdhocCompletion` | Put a DONE AD_HOC task back to its pre-complete status (clear `doneAt`, optional plan detach), guarded on DONE |
 | `expireStaleDailyTasks` | Expire non-DONE daily tasks older than the cutoff (1-day rollover buffer) |
 | `expireAllNonDoneTasks` | End-of-period cleanup: expire all non-done, non-ad-hoc tasks |
 | `getDailyTasksForDate` | Daily tasks for a specific date (idempotency check) |

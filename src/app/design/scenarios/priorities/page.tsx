@@ -78,6 +78,32 @@ const PRIORITIES_SCENARIOS: ScenarioTab[] = [
     ),
   },
   {
+    label: 'Done toast',
+    title: 'Marked done — undo toast',
+    note: 'Right after Done: the card is gone and the toast counts down with Undo — credited copy because the active plan absorbed the points. Pinned, so the bar holds.',
+    content: (
+      <PrioritiesScreen
+        periodKey={SCENARIO_ACTIVE_PLAN.periodKey}
+        tasks={MATRIX_TASKS}
+        activePlan={SCENARIO_ACTIVE_PLAN}
+        initialUndoToastTaskId={POPOVER_TASK_ID}
+      />
+    ),
+  },
+  {
+    label: 'Done toast — no plan',
+    title: 'Marked done — no active plan',
+    note: 'The same toast without a plan: plain "Marked done", nothing credited.',
+    content: (
+      <PrioritiesScreen
+        periodKey={SCENARIO_ACTIVE_PLAN.periodKey}
+        tasks={MATRIX_TASKS}
+        activePlan={null}
+        initialUndoToastTaskId={POPOVER_TASK_ID}
+      />
+    ),
+  },
+  {
     label: 'Move-to sheet (mobile)',
     title: 'Move-to sheet (mobile)',
     note: 'The tap-a-card bottom sheet — summary line plus the two board columns and Done — shown inline (not as a top-layer modal).',

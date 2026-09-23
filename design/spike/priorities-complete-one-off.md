@@ -9,6 +9,7 @@
 - **Not A (Done dock).** Drag-to-complete is not actually a convenient gesture — lift, travel, drop, and the weakest input on mobile — so the dock would cost space and dnd surface for no real UX win.
 - **Not B (card check).** A ring on every card puts too many elements on an already dense matrix card; it overcomplicates the card for a single action.
 - **No undo toast.** Not worth it: C's deliberate two-step (open the chooser, pick Done) makes accidental completes rare, and the toast would need a new `ui/Toast` primitive plus a whole undo write path. Accepted consequence: a completed one-off has no UI reverse path — Done cards on the board are drag-locked, and DONE tasks never return to the matrix.
+  - **Amended after #34 shipped (2026-09-23):** the owner reinstated the undo toast — the shared contract's act-then-undo, plus a countdown bar on the toast. Completing is no longer final from the UI; the Complete One-off Flow in `design/flows/priorities.md` is the current contract.
 
 **Completion semantics (confirmed).** One `ensureSynced` lookup — the same call Track this week already makes — then one owner-scoped conditional write (`type = AD_HOC`, `status ≠ DONE`):
 

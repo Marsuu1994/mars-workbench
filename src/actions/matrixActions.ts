@@ -2,11 +2,16 @@
 
 import {revalidatePath} from 'next/cache';
 import {getTranslations} from 'next-intl/server';
-import {updateTaskQuadrantSchema, trackTaskSchema} from '../schemas';
+import {
+  updateTaskQuadrantSchema,
+  trackTaskSchema,
+  undoCompleteTaskSchema,
+} from '../schemas';
 import {
   fetchPriorityMatrix,
   trackTaskThisWeek,
   completeMatrixTask,
+  undoCompleteMatrixTask,
 } from '../services/matrixService';
 import {updateTaskQuadrant} from '@/lib/db/tasks';
 import {getCurrentUserId} from '@/lib/auth/getCurrentUserId';
@@ -50,6 +55,22 @@ export async function trackTaskAction(taskId: string, input: unknown) {
 export async function completeTaskAction(taskId: string) {
   const userId = await getCurrentUserId();
   const result = await completeMatrixTask(userId, taskId);
+  if ('error' in result) {
+    const t = await getTranslations('Errors');
+    return {error: {formErrors: [t(result.error)], fieldErrors: {}}};
+  }
+
+  revalidatePath('/kanban');
+  revalidatePath('/kanban/priorities');
+  return {data: result.task};
+}
+
+export async function undoCompleteTaskAction(taskId: string, input: unknown) {
+  const parsed = undoCompleteTaskSchema.safeParse(input);
+  if (!parsed.success) return {error: parsed.error.flatten()};
+
+  const userId = await getCurrentUserId();
+  const result = await undoCompleteMatrixTask(userId, taskId, parsed.data);
   if ('error' in result) {
     const t = await getTranslations('Errors');
     return {error: {formErrors: [t(result.error)], fieldErrors: {}}};

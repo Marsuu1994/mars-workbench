@@ -72,3 +72,6 @@ export const FALLBACK_QUADRANT = PriorityQuadrant.SCHEDULE;
 
 /** How long the mobile "Added to …" confirmation toast stays visible. */
 export const TOAST_DURATION_MS = 2500;
+
+/** The undo window after completing a task — the "Marked done" toast's countdown. */
+export const UNDO_TOAST_MS = 5000;

@@ -2,9 +2,11 @@ import {
   getNonDoneAdhocTasks,
   trackAdhocTask,
   completeAdhocTask,
+  revertAdhocCompletion,
   type TaskItem,
 } from '@/lib/db/tasks';
 import {TaskStatus} from '@/generated/prisma/client';
+import type {UndoCompleteTaskInput} from '@/schemas';
 import {ensureSynced} from '@/services/syncService';
 
 export type MatrixActivePlan = {id: string; periodKey: string};
@@ -65,6 +67,21 @@ export async function completeMatrixTask(
   const plan = await ensureSynced(userId);
 
   const task = await completeAdhocTask(userId, taskId, plan?.id ?? null);
+  if (!task) return {error: 'taskNotFound'};
+
+  return {task};
+}
+
+/**
+ * Undo a matrix completion within the toast window: restore the validated
+ * pre-complete snapshot (status, and the plan link the complete added).
+ */
+export async function undoCompleteMatrixTask(
+  userId: string,
+  taskId: string,
+  input: UndoCompleteTaskInput,
+): Promise<CompleteTaskResult> {
+  const task = await revertAdhocCompletion(userId, taskId, input);
   if (!task) return {error: 'taskNotFound'};
 
   return {task};

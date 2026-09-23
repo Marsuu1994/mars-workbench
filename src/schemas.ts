@@ -110,6 +110,19 @@ export type TrackTaskInput = z.infer<typeof trackTaskSchema>;
 // can never drift from what the server accepts.
 export type TrackTargetStatus = TrackTaskInput['status'];
 
+// Undo a matrix completion: the client sends the pre-complete snapshot —
+// status back to BACKLOG (unassigned) or TODO/DOING (tracked) — and may only
+// ever *detach* the plan link the complete added, never attach one.
+export const undoCompleteTaskSchema = z
+  .object({
+    status: z.enum([TaskStatus.BACKLOG, TaskStatus.TODO, TaskStatus.DOING]),
+    detach: z.boolean(),
+  })
+  .refine(({status, detach}) => detach === (status === TaskStatus.BACKLOG), {
+    message: 'detach must match an unassigned (BACKLOG) restore',
+  });
+export type UndoCompleteTaskInput = z.infer<typeof undoCompleteTaskSchema>;
+
 // ── Dump Schemas ───────────────────────────────────────────────────────
 
 // .trim() transforms before the checks, so whitespace-only input fails min(1)
