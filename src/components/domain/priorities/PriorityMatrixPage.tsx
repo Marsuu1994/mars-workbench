@@ -18,10 +18,11 @@ import type {MatrixActivePlan} from '@/services/matrixService';
 import {
   updateTaskQuadrantAction,
   trackTaskAction,
+  completeTaskAction,
 } from '@/actions/matrixActions';
 import TaskModal from '@/components/domain/shared/task-modal/TaskModal';
 import QuadrantCell from './QuadrantCell';
-import MobileTrackSheet from './MobileTrackSheet';
+import {MobileMoveToSheet} from './MobileMoveToSheet';
 import {
   QUADRANT_ORDER,
   FALLBACK_QUADRANT,
@@ -68,6 +69,8 @@ export default function PriorityMatrixPage({
   }, [toastQuadrant]);
 
   const activePlanId = activePlan?.id ?? null;
+  const isTrackedTask = (task: TaskItem) =>
+    activePlanId !== null && task.planId === activePlanId;
 
   const byQuadrant = useMemo(() => {
     const groups: Record<PriorityQuadrant, TaskItem[]> = {
@@ -85,9 +88,7 @@ export default function PriorityMatrixPage({
   }, [localTasks]);
 
   const totalCount = localTasks.length;
-  const trackedCount = activePlanId
-    ? localTasks.filter(task => task.planId === activePlanId).length
-    : 0;
+  const trackedCount = localTasks.filter(isTrackedTask).length;
 
   // Optimistically patch one task and fire the server action; on failure only
   // that task's previous value is restored — restoring a whole-list snapshot
@@ -142,6 +143,31 @@ export default function PriorityMatrixPage({
       () => trackTaskAction(taskId, {status}),
       'Failed to track task:',
     );
+  }
+
+  // Complete One-off: the matrix never shows DONE tasks, so the card leaves
+  // optimistically; on failure it returns to where it was. No confirm, no
+  // undo — the chooser's two-step is the deliberate action.
+  function handleComplete(taskId: string) {
+    setOpenPopoverTaskId(null);
+    setSheetTask(null);
+
+    const index = localTasks.findIndex(task => task.id === taskId);
+    if (index === -1) return;
+    const previous = localTasks[index];
+
+    setLocalTasks(prev => prev.filter(task => task.id !== taskId));
+
+    completeTaskAction(taskId).then(result => {
+      if (result.error) {
+        console.error('Failed to complete task:', result.error);
+        setLocalTasks(prev => [
+          ...prev.slice(0, index),
+          previous,
+          ...prev.slice(index),
+        ]);
+      }
+    });
   }
 
   const renderAddedToast = () =>
@@ -273,6 +299,7 @@ export default function PriorityMatrixPage({
                 openPopoverTaskId={openPopoverTaskId}
                 onSendToggle={setOpenPopoverTaskId}
                 onTrack={handleTrack}
+                onComplete={handleComplete}
                 onCardTap={setSheetTask}
                 onAdd={quadrant => setAddModal({quadrant})}
               />
@@ -293,11 +320,13 @@ export default function PriorityMatrixPage({
 
       {renderAddedToast()}
 
-      <MobileTrackSheet
+      <MobileMoveToSheet
         task={sheetTask}
+        isTracked={sheetTask !== null && isTrackedTask(sheetTask)}
         hasActivePlan={activePlanId !== null}
         onClose={() => setSheetTask(null)}
         onTrack={handleTrack}
+        onComplete={handleComplete}
       />
       <TaskModal
         isOpen={addModal !== null}

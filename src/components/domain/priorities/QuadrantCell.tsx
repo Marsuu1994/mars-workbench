@@ -16,6 +16,7 @@ interface QuadrantCellProps {
   openPopoverTaskId: string | null;
   onSendToggle: (taskId: string | null) => void;
   onTrack: (taskId: string, status: TrackTargetStatus) => void;
+  onComplete: (taskId: string) => void;
   onCardTap: (task: TaskItem) => void;
   onAdd: (quadrant: PriorityQuadrant) => void;
 }
@@ -32,6 +33,7 @@ export default function QuadrantCell({
   openPopoverTaskId,
   onSendToggle,
   onTrack,
+  onComplete,
   onCardTap,
   onAdd,
 }: QuadrantCellProps) {
@@ -122,6 +124,7 @@ export default function QuadrantCell({
                 isPopoverOpen={openPopoverTaskId === task.id}
                 onSendToggle={onSendToggle}
                 onTrack={onTrack}
+                onComplete={onComplete}
                 onTap={onCardTap}
               />
             ))}

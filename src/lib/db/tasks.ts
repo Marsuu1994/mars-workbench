@@ -318,6 +318,45 @@ export async function trackAdhocTask(
 }
 
 /**
+ * Complete a matrix task in place: DONE + doneAt, and — when an active plan
+ * is given — attach an unassigned task to it so the completion lands in the
+ * board's Done column and its points count for the week. An existing planId
+ * is never re-attributed: the linking write is scoped to planId = null and
+ * falls back to a status-only write when it matches nothing (tracked card).
+ * Returns null when the task does not exist, is not owned, is not AD_HOC, or
+ * is already DONE.
+ */
+export async function completeAdhocTask(
+  userId: string,
+  taskId: string,
+  activePlanId: string | null,
+): Promise<TaskItem | null> {
+  const where: Prisma.TaskWhereInput = {
+    id: taskId,
+    userId,
+    type: TaskType.AD_HOC,
+    status: {not: TaskStatus.DONE},
+  };
+  const data = {status: TaskStatus.DONE, doneAt: new Date()};
+
+  if (activePlanId) {
+    const [linked] = await prisma.task.updateManyAndReturn({
+      where: {...where, planId: null},
+      data: {...data, planId: activePlanId},
+      select: taskSelect,
+    });
+    if (linked) return linked;
+  }
+
+  const [task] = await prisma.task.updateManyAndReturn({
+    where,
+    data,
+    select: taskSelect,
+  });
+  return task ?? null;
+}
+
+/**
  * Expire stale daily tasks: set status to EXPIRED for tasks
  * whose forDate is before the cutoff date and are not DONE.
  * Caller passes yesterday to implement the 1-day rollover buffer.

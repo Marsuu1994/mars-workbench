@@ -11,30 +11,31 @@ import type {TaskItem} from '@/lib/db/tasks';
 import type {TrackTargetStatus} from '@/schemas';
 import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {Pill} from '@/components/ui/Pill';
-import {Popover} from '@/components/ui/overlay/Popover';
-import TrackPopover from './TrackPopover';
+import {MoveToPopover} from './MoveToPopover';
 
 interface MatrixTaskCardProps {
   task: TaskItem;
   /** Position index within the quadrant — required by Draggable */
   index: number;
-  /** planId === active plan id: dimmed "This Week" treatment, send hidden */
+  /** planId === active plan id: dimmed "This Week" treatment, chooser offers Done only */
   isTracked: boolean;
-  /** No active plan → send button disabled, tooltip instead of popover */
+  /** No active plan → the chooser's column rows disable (Done stays live) */
   hasActivePlan: boolean;
-  /** Whether this card's popover (or no-plan tooltip) is open */
+  /** Whether this card's Move-to popover is open */
   isPopoverOpen: boolean;
   /** Toggle the popover for this card (null closes) */
   onSendToggle: (taskId: string | null) => void;
   onTrack: (taskId: string, status: TrackTargetStatus) => void;
-  /** Mobile tap → open the track bottom sheet */
+  onComplete: (taskId: string) => void;
+  /** Mobile tap → open the Move-to bottom sheet */
   onTap: (task: TaskItem) => void;
 }
 
 /**
  * Single-row matrix card: title + one-line description, size chip, a
- * hover-revealed send "→" button (desktop track flow) and a decorative grip.
- * Tracked cards render dimmed with a "This Week" tag (mobile: ★) and stay
+ * hover-revealed send "→" button opening the desktop Move-to popover, and a
+ * decorative grip. Tracked cards render dimmed with a "This Week" tag
+ * (mobile: ★), keep the send button (Done is still a valid move) and stay
  * draggable — dragging only reprioritizes, never touches status/plan.
  */
 export default function MatrixTaskCard({
@@ -45,13 +46,14 @@ export default function MatrixTaskCard({
   isPopoverOpen,
   onSendToggle,
   onTrack,
+  onComplete,
   onTap,
 }: MatrixTaskCardProps) {
   const t = useTranslations('Priorities');
   const {isMobile} = useBreakpoint();
 
   const handleCardClick = () => {
-    if (isMobile && !isTracked) onTap(task);
+    if (isMobile) onTap(task);
   };
 
   const renderTrackedTag = () => (
@@ -61,6 +63,8 @@ export default function MatrixTaskCard({
     </Pill>
   );
 
+  // Always enabled — Done never needs a plan; the popover explains the
+  // no-plan state itself (column rows disabled under a note).
   const renderSendButton = () => (
     <button
       type="button"
@@ -69,16 +73,28 @@ export default function MatrixTaskCard({
         e.stopPropagation();
         onSendToggle(isPopoverOpen ? null : task.id);
       }}
-      className={`hidden flex-shrink-0 size-[22px] rounded-[5px] items-center justify-center transition-colors ${
-        isPopoverOpen ? 'md:flex' : 'md:group-hover:flex'
-      } ${
-        hasActivePlan
-          ? 'text-base-content/50 hover:bg-primary/10 hover:text-primary cursor-pointer'
-          : 'text-base-content/30 cursor-not-allowed'
-      } ${isPopoverOpen && hasActivePlan ? 'bg-primary/10 text-primary' : ''}`}
+      className={`hidden flex-shrink-0 size-[22px] rounded-[5px] items-center justify-center cursor-pointer transition-colors ${
+        isPopoverOpen
+          ? 'md:flex bg-primary/10 text-primary'
+          : 'md:group-hover:flex text-base-content/50 hover:bg-primary/10 hover:text-primary'
+      }`}
     >
       <ArrowRightIcon className="size-3.5" />
     </button>
+  );
+
+  const renderSizeChips = () => (
+    <>
+      {/* Visibility lives on wrappers — SizeChip's own classes set display,
+          so passing hidden/md:* into it is a CSS-order coin flip (this exact
+          conflict shipped a double-chip bug). */}
+      <span className="hidden md:inline-flex">
+        <SizeChip size={task.size} points={task.points} />
+      </span>
+      <span className="inline-flex md:hidden">
+        <SizeChip size={task.size} points={task.points} labelOnly />
+      </span>
+    </>
   );
 
   // Two overlapped 3-dot glyphs form the design's 6-dot drag grip
@@ -108,9 +124,7 @@ export default function MatrixTaskCard({
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           onClick={handleCardClick}
-          className={`group relative flex items-center gap-2 rounded-[10px] border bg-base-100 px-3 py-2 md:py-2.5 cursor-grab transition-[border-color,box-shadow,opacity] duration-150 ${
-            isTracked ? 'opacity-55' : ''
-          } ${
+          className={`group relative rounded-[10px] border bg-base-100 px-3 py-2 md:py-2.5 cursor-grab transition-[border-color,box-shadow] duration-150 ${
             snapshot.isDragging
               ? 'border-primary shadow-xl cursor-grabbing z-50'
               : isPopoverOpen
@@ -118,49 +132,43 @@ export default function MatrixTaskCard({
                 : 'border-base-content/10 hover:border-base-content/25'
           }`}
         >
-          <div className="flex-1 min-w-0 flex flex-col gap-0.5">
-            <span
-              className={`text-[11px] md:text-[13px] font-medium truncate ${
-                isTracked ? 'text-base-content/60' : ''
-              }`}
-            >
-              {task.title}
-            </span>
-            {task.description && (
-              <span className="hidden md:block text-xs text-base-content/60 truncate">
-                {task.description}
+          {/* The tracked dim sits on the content row, not the card root: an
+              opacity < 1 root would dim the popover and trap its z-index in
+              a new stacking context — buried under the next card. */}
+          <div
+            className={`flex items-center gap-2 transition-opacity duration-150 ${
+              isTracked ? 'opacity-55' : ''
+            }`}
+          >
+            <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+              <span
+                className={`text-[11px] md:text-[13px] font-medium truncate ${
+                  isTracked ? 'text-base-content/60' : ''
+                }`}
+              >
+                {task.title}
               </span>
-            )}
+              {task.description && (
+                <span className="hidden md:block text-xs text-base-content/60 truncate">
+                  {task.description}
+                </span>
+              )}
+            </div>
+
+            {isTracked ? renderTrackedTag() : renderSizeChips()}
+            {renderSendButton()}
+            {renderGrip()}
           </div>
 
-          {isTracked ? (
-            renderTrackedTag()
-          ) : (
-            <>
-              {/* Visibility lives on wrappers — SizeChip's own classes set
-                  display, so passing hidden/md:* into it is a CSS-order coin
-                  flip (this exact conflict shipped a double-chip bug). */}
-              <span className="hidden md:inline-flex">
-                <SizeChip size={task.size} points={task.points} />
-              </span>
-              <span className="inline-flex md:hidden">
-                <SizeChip size={task.size} points={task.points} labelOnly />
-              </span>
-              {renderSendButton()}
-            </>
-          )}
-
-          {renderGrip()}
-
           {/* Click-away layer lives at the page level (outside any Draggable) */}
-          {isPopoverOpen &&
-            (hasActivePlan ? (
-              <TrackPopover onTrack={status => onTrack(task.id, status)} />
-            ) : (
-              <Popover className="px-2.5 py-2 text-[11px] text-base-content/60 whitespace-nowrap">
-                {t('noPlanTooltip')}
-              </Popover>
-            ))}
+          {isPopoverOpen && (
+            <MoveToPopover
+              isTracked={isTracked}
+              hasActivePlan={hasActivePlan}
+              onTrack={status => onTrack(task.id, status)}
+              onComplete={() => onComplete(task.id)}
+            />
+          )}
         </div>
       )}
     </Draggable>
