@@ -1,6 +1,6 @@
 # Priorities Flows
 
-Flows for the priority matrix page (`/kanban/priorities`) — Eisenhower-matrix organization of Ad-hoc tasks and tracking them into the current week's plan. Sibling docs: `design/flows/board.md`, `design/flows/plan.md`, `design/flows/shared.md`, `design/flows/auth.md`.
+Flows for the priority matrix page (`/kanban/priorities`) — Eisenhower-matrix organization of Ad-hoc tasks, tracking them into the current week's plan or completing them in place. Sibling docs: `design/flows/board.md`, `design/flows/plan.md`, `design/flows/shared.md`, `design/flows/auth.md`.
 
 > **Doc convention:** One flow per `##` heading, separated by `---`. Every flow has two required `###` sections — `Trigger / Entry Point` and `Steps` — plus an optional `### Rules` section for constraints and invariants. Extra `###` sections (e.g. `Metrics`) are allowed only for reference material that fits neither Steps nor Rules.
 
@@ -21,7 +21,7 @@ User navigates to `/kanban/priorities` via the "Priorities" sidebar item (deskto
 ### Rules
 
 - DONE Ad-hoc tasks never show on the matrix.
-- A task counts as **tracked this week** only when its `planId` equals the current `ACTIVE` plan's id: it renders dimmed with a "This Week" tag (mobile: ★) and hides the send button. Tasks still pointing at a `PENDING_UPDATE` plan (period ended) render as normal cards.
+- A task counts as **tracked this week** only when its `planId` equals the current `ACTIVE` plan's id: it renders dimmed with a "This Week" tag (mobile: ★), and its Move-to chooser offers Done only. Tasks still pointing at a `PENDING_UPDATE` plan (period ended) render as normal cards.
 - **Stale-plan guard:** an `ACTIVE` plan whose `periodKey` differs from the current ISO week is treated as no active plan, and the matrix runs the same End of Period Sync as the board (`ACTIVE → PENDING_UPDATE`; see `design/flows/shared.md`). Without the sync, the no-plan hint's "Create Plan" CTA would dead-end — plan creation rejects while a stale plan is still `ACTIVE`.
 
 ---
@@ -49,8 +49,8 @@ User drags a card to a different quadrant (desktop and mobile).
 
 ### Trigger / Entry Point
 
-- **Desktop:** hover a card → click the "→" send button on its right edge → a popover offers the target kanban columns ("Todo" / "In Progress").
-- **Mobile:** tap a card → a bottom sheet shows the card summary and the same column options.
+- **Desktop:** hover a card → click the "→" send button on its right edge → the "Move to" popover offers the target kanban columns ("Todo" / "In Progress") and, under a hairline, "Done" (see the Complete One-off Flow).
+- **Mobile:** tap a card → a bottom sheet shows the card summary and the same rows.
 
 ### Steps
 
@@ -61,9 +61,30 @@ User drags a card to a different quadrant (desktop and mobile).
 
 ### Rules
 
-- Requires an `ACTIVE` plan (current-week per the stale-plan guard, enforced server-side too). When none exists (period ended, next plan not yet created), desktop send buttons render disabled with a "No active plan yet" tooltip; the matrix hint bar shows a "No active plan — Create Plan to track tasks this week" notice on **both** breakpoints (the instruction variant of the bar stays desktop-only — this warning is the only case where mobile renders the bar, and its Create Plan link is mobile's only in-page path to plan creation); the mobile track sheet still opens but its column buttons are disabled with the same note.
-- Already-tracked cards cannot be sent again (send button hidden).
+- Requires an `ACTIVE` plan (current-week per the stale-plan guard, enforced server-side too). When none exists (period ended, next plan not yet created), the chooser still opens on both breakpoints — the two column rows render disabled under a "No active plan yet" note while Done stays enabled — and the matrix hint bar shows a "No active plan — Create Plan to track tasks this week · you can still mark tasks done" notice on **both** breakpoints (the instruction variant of the bar stays desktop-only — this warning is the only case where mobile renders the bar, and its Create Plan link is mobile's only in-page path to plan creation).
+- Already-tracked cards cannot be sent again: their chooser drops the column rows and offers Done only.
 - There is no untrack from the matrix — detaching happens via the Update Plan flow's ad-hoc deselection (`planId = null`, status back to `BACKLOG`; see `design/flows/plan.md`).
+
+---
+
+## Complete One-off Flow
+
+### Trigger / Entry Point
+
+Choose **Done** in a matrix card's Move-to popover (desktop, via the hover "→") or Move-to sheet (mobile, tap the card) — both breakpoints, with or without an active plan, tracked cards included.
+
+### Steps
+
+1. UI closes the chooser, removes the card optimistically, and the title-bar counts update.
+2. Server Action completes the task: `status = DONE`, `doneAt = now`; an unassigned task is attached to the current-week `ACTIVE` plan when one exists. Rollback on failure.
+3. Revalidate `/kanban` (Done column, Today / Week metrics) and `/kanban/priorities`.
+
+### Rules
+
+- Works without an active plan — that is the point of the flow; the no-plan hint bar says so. Without a plan the task keeps `planId = null` and its points are credited nowhere.
+- `planId` is only ever added (`null → active plan`), never re-attributed: an already-tracked card keeps its plan link. DONE tasks never return to the matrix.
+- Tracked cards complete exactly like a board drag to Done — same Done column, same Today / Week credit.
+- Completing is final: no confirm, no undo, and no "un-complete" on the board (Done cards are drag-locked) or the matrix.
 
 ---
 

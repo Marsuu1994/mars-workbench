@@ -36,6 +36,10 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ## Priorities
 
+### High
+
+- [ ] Complete one-off tasks directly on the matrix (today they can only be finished on the board, so with no active plan nothing can be completed) — **decided 2026-09-23: Option C, a Done row in the Move-to popover / sheet, no undo toast** (`design/spike/priorities-complete-one-off.md`); flow: `design/flows/priorities.md` → Complete One-off Flow; UI spec: `design/mockup/future-work/mockup-priorities-complete-one-off.html`; next: implement (backend + chooser UI + scenarios), then delete the mockup
+
 ### Medium
 
 - [ ] Design risk level for ad-hoc task on priority matrix
