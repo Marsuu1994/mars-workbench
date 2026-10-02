@@ -23,6 +23,7 @@ import {ConfirmButton} from '@/components/ui/ConfirmButton';
 import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
 import {OverlayHeader} from '@/components/ui/overlay/OverlayHeader';
 import {Popover} from '@/components/ui/overlay/Popover';
+import {Toast} from '@/components/ui/Toast';
 
 import {Zone, Section, Variant, Row} from '../GalleryParts';
 import {
@@ -35,6 +36,10 @@ import {
   POPOVER_DEMO_ANCHOR,
   POPOVER_DEMO_TITLE,
   POPOVER_DEMO_BODY,
+  TOAST_DEMO_MESSAGE,
+  TOAST_DEMO_ACTION,
+  TOAST_DEMO_PLAIN,
+  TOAST_DEMO_DURATION_MS,
   HEADER_DEMO_TITLE,
   HEADER_DEMO_CLOSE,
   HEADER_DEMO_BADGE,
@@ -299,6 +304,39 @@ export const UiTab = () => {
     </Section>
   );
 
+  // Toast is position:fixed; the contain:layout boxes pin each specimen
+  // inside its own frame the way scenario frames do.
+  const renderToast = () => (
+    <Section
+      title="Toast"
+      description="Bottom-anchored transient message: optional action button and a countdown bar draining over the auto-dismiss window (hover holds it). Carries the matrix's undo toast and the mobile add confirmation."
+    >
+      <Row>
+        <Variant label="Action + countdown (held)">
+          <div className="relative h-24 w-80 [contain:layout]">
+            <Toast
+              tone="success"
+              actionLabel={TOAST_DEMO_ACTION}
+              durationMs={TOAST_DEMO_DURATION_MS}
+              paused
+            >
+              <CheckIcon className="size-[15px] stroke-[2.5]" />
+              {TOAST_DEMO_MESSAGE}
+            </Toast>
+          </div>
+        </Variant>
+        <Variant label="Message only">
+          <div className="relative h-24 w-80 [contain:layout]">
+            <Toast tone="success">
+              <CheckIcon className="size-[15px] stroke-[2.5]" />
+              {TOAST_DEMO_PLAIN}
+            </Toast>
+          </div>
+        </Variant>
+      </Row>
+    </Section>
+  );
+
   const renderPopover = () => (
     <Section
       title="Popover"
@@ -387,11 +425,12 @@ export const UiTab = () => {
 
       <Zone
         title="Overlays"
-        description="ui/overlay/ — the one dialog stack: every sheet and modal composes OverlayShell + OverlayHeader; Popover is the lone non-dialog overlay."
+        description="ui/overlay/ — the one dialog stack: every sheet and modal composes OverlayShell + OverlayHeader; Popover and Toast are the non-dialog overlays."
       >
         {renderModalShell()}
         {renderOverlayHeader()}
         {renderPopover()}
+        {renderToast()}
       </Zone>
     </div>
   );

@@ -441,6 +441,11 @@ export const POPOVER_DEMO_TITLE = 'Move to';
 export const POPOVER_DEMO_BODY =
   'Anchored below a relative parent, arrow notch, swallows clicks.';
 
+export const TOAST_DEMO_MESSAGE = 'Marked done · +2 pts this week';
+export const TOAST_DEMO_ACTION = 'Undo';
+export const TOAST_DEMO_PLAIN = 'Added to Schedule';
+export const TOAST_DEMO_DURATION_MS = 5000;
+
 // ── Application-layer fixtures ───────────────────────────────────────────────
 export const APP_USER = {name: 'Liang Jun', email: 'liang@example.com'};
 export const APP_PLAN_ID = 'gallery-plan';
