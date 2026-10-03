@@ -19,8 +19,6 @@ interface DesktopBacklogProps {
   today: Date;
   riskMap: Map<string, RiskLevel>;
   templateFreqMap: Map<string, number>;
-  /** Start expanded instead of collapsed (used by design scenarios). */
-  defaultOpen?: boolean;
 }
 
 /**
@@ -33,10 +31,9 @@ export default function DesktopBacklog({
   today,
   riskMap,
   templateFreqMap,
-  defaultOpen = false,
 }: DesktopBacklogProps) {
   const t = useTranslations('Board.Backlog');
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [isOpen, setIsOpen] = useState(false);
 
   const countPill = (
     <span className="badge badge-primary badge-sm font-bold">

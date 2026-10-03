@@ -15,8 +15,6 @@ interface ConfirmButtonProps {
   /** Triggered-state cancel button text */
   cancelLabel: ReactNode;
   onConfirm: () => void | Promise<void>;
-  /** Design gallery/scenario override — defaults to internal triggered state. */
-  triggered?: boolean;
   className?: string;
 }
 
@@ -33,12 +31,10 @@ export const ConfirmButton = ({
   confirmLabel,
   cancelLabel,
   onConfirm,
-  triggered: triggeredProp,
   className,
 }: ConfirmButtonProps) => {
   const [isTriggered, setIsTriggered] = useState(false);
   const [isPending, setIsPending] = useState(false);
-  const triggered = triggeredProp ?? isTriggered;
 
   const handleConfirm = async () => {
     setIsPending(true);
@@ -52,7 +48,7 @@ export const ConfirmButton = ({
   const rowBase =
     'flex w-full items-center gap-2.5 rounded-card border px-3.5 py-3 text-sm font-semibold text-error transition-colors';
 
-  if (!triggered) {
+  if (!isTriggered) {
     return (
       <button
         type="button"

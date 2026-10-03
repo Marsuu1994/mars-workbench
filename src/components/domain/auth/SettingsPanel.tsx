@@ -14,8 +14,6 @@ interface SettingsPanelProps {
   onThemeChange: (theme: ThemeName) => void;
   onSignOut: () => Promise<void>;
   onClose: () => void;
-  /** Design gallery/scenario override — pins the sign-out confirm state. */
-  signOutTriggered?: boolean;
 }
 
 /**
@@ -28,7 +26,6 @@ export const SettingsPanel = ({
   onThemeChange,
   onSignOut,
   onClose,
-  signOutTriggered,
 }: SettingsPanelProps) => {
   const t = useTranslations('Settings');
 
@@ -79,7 +76,6 @@ export const SettingsPanel = ({
       confirmLabel={t('signOut')}
       cancelLabel={t('cancel')}
       onConfirm={onSignOut}
-      triggered={signOutTriggered}
     />
   );
 

@@ -2,6 +2,8 @@
 
 import {usePathname} from 'next/navigation';
 import {SettingsSheet} from '@/components/domain/auth/SettingsSheet';
+import {useSidebarStore} from '@/store/sidebarStore';
+import {useSettingsStore} from '@/store/settingsStore';
 import type {ThemeName} from '@/utils/theme';
 import {AppSidebar} from './AppSidebar';
 import {BottomTabBar} from './BottomTabBar';
@@ -29,7 +31,9 @@ const SELF_SCROLLING_PREFIXES = ['/kanban/plans'];
 
 /**
  * Wraps page content in the app shell (sidebar + bottom tab bar), except on
- * routes listed in CHROMELESS_PREFIXES, which render standalone.
+ * routes listed in CHROMELESS_PREFIXES, which render standalone. The shell
+ * reads the route and the chrome's store state once and hands them to the
+ * sidebar and dock as props, so the gallery renders those with fixtures.
  */
 export const AppShell = ({
   user,
@@ -38,6 +42,8 @@ export const AppShell = ({
   children,
 }: AppShellProps) => {
   const pathname = usePathname();
+  const isSidebarCollapsed = useSidebarStore(s => s.isCollapsed);
+  const isSettingsOpen = useSettingsStore(s => s.isOpen);
   const isChromeless = CHROMELESS_PREFIXES.some(prefix =>
     pathname.startsWith(prefix),
   );
@@ -51,7 +57,12 @@ export const AppShell = ({
 
   return (
     <div className="fx-shell-bg flex h-dvh pt-[env(safe-area-inset-top)]">
-      <AppSidebar user={user} activePlanId={activePlanId} />
+      <AppSidebar
+        user={user}
+        activePlanId={activePlanId}
+        pathname={pathname}
+        collapsed={isSidebarCollapsed}
+      />
       {/* Mobile bottom padding matches the fixed daisyUI dock exactly:
           4rem + env(safe-area-inset-bottom) — see .dock in daisyUI. */}
       <main
@@ -64,6 +75,8 @@ export const AppShell = ({
       <BottomTabBar
         user={user}
         activePlanId={activePlanId}
+        pathname={pathname}
+        settingsOpen={isSettingsOpen}
         className="md:hidden"
       />
       <SettingsSheet user={user} initialTheme={theme} />
