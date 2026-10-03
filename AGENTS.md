@@ -14,7 +14,7 @@ A Next.js application centered on a Kanban Period Planner, with AI-assisted plan
 ## Tech Stack
 
 - Framework: Next.js 16 (App Router)
-- UI: React 19, Tailwind CSS 4, daisyUI 5 (custom themes + `fx-*` FX utility layer — see `design/design-language/`: `mars-dark` / `mars-light` shipped, `p5-dark` pending)
+- UI: React 19, Tailwind CSS 4, daisyUI 5 (custom themes + `fx-*` FX utility layer — see `design/design-language/`: `mars-dark` / `mars-light` / `p5-dark`, one shared variable contract)
 - State: Zustand
 - Database: PostgreSQL (Supabase) + Prisma ORM
 - Auth: Supabase Auth (Google OAuth)
@@ -29,6 +29,7 @@ Directory responsibilities only — for concrete file/component names, read the 
 ```text
 public/                            # PWA manifest, service worker, icons
 prisma/                            # schema.prisma + migrations/
+scripts/                           # Repo checks run in CI (check-theme-vars.mjs)
 scripts/one-time/                  # Ad-hoc/manual scripts (see One-Time Scripts section)
 design/                            # Centralized design docs (see design/README.md for the index)
 ├── baseline.md                    # The ONE app-wide baseline (goal, entities, schema, decisions)
@@ -142,6 +143,11 @@ When adding a new convention, append it to the **end of the relevant subsection 
 
 - Use Heroicons JSX imports, not inline SVG.
 - Use `text-warning` for star/points icons.
+
+### Themes
+
+- **One theme per page.** The theme lives only on `<html data-theme>`: the server renders it from the cookie, the settings sheet re-stamps it, and the Design Console previews by re-stamping it (restoring the app's theme on exit). Never nest a `data-theme` scope — theme-gated rules like `[data-theme='p5-dark'] .fx-card` match through any ancestor, so a nested scope cannot switch them off. Bad: `<div data-theme="mars-light">` around a preview. Good: `document.documentElement.setAttribute('data-theme', next)`.
+- **One variable contract.** Every theme declares the same custom properties in `globals.css` — its daisyUI block plus its `[data-theme='…']` block, in the same section order. A new variable lands in every theme in the same change and is named by role, not by one theme's palette; `npm run check:themes` (CI) fails otherwise. Bad: `--fx-blood-red` declared by p5-dark alone. Good: `--fx-depth` declared by every theme, p5's value being its blood red.
 
 ### JSX & components
 
@@ -317,6 +323,7 @@ npm run build    # Production build
 npm run lint     # Lint
 npm run format       # Format all code with Prettier (Google style)
 npm run format:check # Verify formatting (used in CI)
+npm run check:themes # Every theme declares the same CSS variables (used in CI)
 npx prisma studio
 npx prisma migrate dev
 npx prisma generate

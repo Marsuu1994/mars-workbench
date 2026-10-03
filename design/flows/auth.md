@@ -40,7 +40,7 @@ Same as login — Supabase auto-creates a user record on first Google sign-in.
 2. `updateThemeAction` persists the choice in an SSR-readable cookie; `layout.tsx` reads it so the next server render ships the right theme (no flash)
 3. The selected card shows its check ring; re-selecting is a no-op
 
-Rules: default with no cookie is `mars-dark` (first-time users); theme is an explicit user choice — no time- or system-preference auto-switching. Internal theme names are stable (`mars-*`, `p5-dark`); display labels live in i18n.
+Rules: default with no cookie is `mars-dark` (first-time users); theme is an explicit user choice — no time- or system-preference auto-switching. Internal theme names are stable (`mars-*`, `p5-dark`); display labels live in i18n. `<html>` is the only theme scope on a page: the Design Console previews by re-stamping it and restores the cookie theme on exit, never writing the cookie.
 
 ## Sign-Out Flow
 

@@ -92,13 +92,15 @@ near-ink (the P5 black-on-red layering), not white.
 
 ### Surface-only vars (never text)
 
-Like the mars themes' `--fx-art`, these live outside the daisyUI token set:
+Like `--fx-art`, these live outside the daisyUI token set. They are role variables
+every theme declares (variable contract, [README.md](./README.md)); the values below
+are p5-dark's, and the mars themes declare token-derived equivalents:
 
 | Var | OKLCH | ≈ Hex | Role | Constraint |
 | --- | --- | --- | --- | --- |
-| `--fx-field-red` | 0.53 0.2 26 | `#c51d24` | Large red *fields*: CTA fills, header wedges, rails, calling-card surfaces | Payload on it is always paper white (5.2:1, AA) or larger display type; never body copy in any other color |
-| `--fx-blood-red` | 0.36 0.13 25 | `#721216` | The flat *depth layer* — hard offset shadows behind panels/cards (P5 fakes depth with a darker flat red behind the shape) | Decoration only; never carries text, 1.6:1 on bases is fine because it is never information |
-| `--fx-blood-violet` | ≈0.29 0.09 290 | `#2c2151` | The AI channel's depth layer (offset shadow behind the AI chat panel) | Decoration only |
+| `--fx-field` | 0.53 0.2 26 | `#c51d24` | Large red *fields*: CTA fills, header wedges, rails, calling-card surfaces | Payload on it is always paper white (5.2:1, AA) or larger display type; never body copy in any other color |
+| `--fx-depth` | 0.36 0.13 25 | `#721216` | The flat *depth layer* — hard offset shadows behind panels/cards (P5 fakes depth with a darker flat red behind the shape) | Decoration only; never carries text, 1.6:1 on bases is fine because it is never information |
+| `--fx-depth-ai` | ≈0.29 0.09 290 | `#2c2151` | The AI channel's depth layer (offset shadow behind the AI chat panel) | Decoration only |
 | `--fx-card-bg` | 0.17 0.008 20 | `#191313` | Raised task-card surface between base-100 and neutral | Signals stay body-grade on it: primary 4.64:1, error 4.69:1, others ≥ 11:1 |
 
 The reds derive from the research palette (fan-sampled P5 fields cluster around
@@ -121,9 +123,8 @@ overlay scrims.
 
 P5 has no rounded corners. All radius tokens collapse to 0 **inside this theme's
 own `@plugin "daisyui/theme"` block** (`--radius-selector/field/box` are
-per-theme already); the shared `--radius-card` token is zeroed via a
-`[data-theme='p5-dark']` override, not by editing the shared value — the mars
-themes keep their 10px cards. Softness is replaced by **oblique cuts** (see
+per-theme already), and `--radius-card` — declared by every theme's variable
+block — is 0 here while the mars themes keep their 10px cards. Softness is replaced by **oblique cuts** (see
 `fx-cut`) — a corner sliced at an irregular angle reads "scissor-cut paper",
 which is the P5 shape language (the calling cards are newspaper cutouts). Pills
 (`rounded-full` chips) become **skewed parallelograms**.
@@ -141,11 +142,14 @@ single small element; reduced-motion disables it).
 per theme. The geometry changes below (offset shadows, clip cuts, diamond LEDs,
 skews) are therefore gated under `[data-theme='p5-dark']`; the mars themes'
 HUD skin is untouched. This is a per-theme fork inside `globals.css`, not a
-pure variable swap.
+pure variable swap — and it is safe only because a page carries exactly one theme
+scope (`<html data-theme>`; README → one theme scope per page). A nested
+`data-theme` would let these rules leak, as the Design Console's old nested preview
+did.
 
 | Utility | HUD skin (mars themes) | p5-dark skin |
 | --- | --- | --- |
-| `fx-shell-bg` | Star chart + nebula SVG + corner blooms | **Metaverse ground**: flat ink field + two staggered halftone dot layers (screentone, base-content at ≈4–5%) + faint diagonal speed-lines + one flat red corner band (`--fx-field-red` at low alpha via a hard-stop gradient). Fully token-derived — this theme has **no baked `--fx-art` URI** (the mars themes keep theirs) |
+| `fx-shell-bg` | Star chart + nebula SVG + corner blooms | **Metaverse ground**: flat ink field + two staggered halftone dot layers (screentone, base-content at ≈4–5%) + faint diagonal speed-lines + one flat red corner band (`--fx-field` at low alpha via a hard-stop gradient). Fully token-derived — this theme has **no baked `--fx-art` URI** (the mars themes keep theirs) |
 | `fx-chrome` / `fx-chrome-glass` | Solid slab / blur-capable slab | Both opaque ink slabs with 2px paper-at-10% hairline edges. **No backdrop blur in this theme** (P5 is opaque paper; also a mobile perf win) |
 | `fx-panel` / `fx-panel-solid` | Glass console panel | **Paper-cut panel**: base-100 fill, 2px solid paper border at 85%, two oblique corner cuts (opposite corners, unequal sizes), hard offset shadow `8px 8px 0` blood-red via `filter: drop-shadow` on a wrapper (box-shadow is clipped away by clip-path). Both names = same opaque skin |
 | `fx-corners` | Cyan reticle brackets | **Crop marks**: same 8-stroke bracket geometry, 2px, phantom red — the calling card's print marks |
@@ -156,8 +160,8 @@ pure variable swap.
 | `fx-label` (+`-bright`) | 11px mono uppercase | Unchanged (telemetry voice is load-bearing for readability). Brightness steps re-tuned to paper |
 | `fx-num` | Mono tabular numerals | Unchanged |
 | `fx-led` (+`fx-led-pulse`) | Glowing dot | **Diamond stud**: 7px square rotated 45°, flat `currentColor`, 1px ink outline, no glow. Pulse stays opacity-only |
-| `fx-rule` / `fx-hairline-top` | Luminous gradient hairlines | **Slash rules**: flat 2px `--fx-field-red` strip with parallelogram-clipped ends; `fx-hairline-top` = flat 2px red top strip. No gradients |
-| `fx-holo` | Conic holo border (AI live) | **Spray border**: 2px violet dashed border; "thinking" adds the stop-motion clip-path wiggle (1s linear — the one sanctioned clip-path loop). The AI panel's depth shadow is `--fx-blood-violet`. ⚠ visual metaphor changes from hologram to stencil spray |
+| `fx-rule` / `fx-hairline-top` | Luminous gradient hairlines | **Slash rules**: flat 2px `--fx-field` strip with parallelogram-clipped ends; `fx-hairline-top` = flat 2px red top strip. No gradients |
+| `fx-holo` | Conic holo border (AI live) | **Spray border**: 2px violet dashed border; "thinking" adds the stop-motion clip-path wiggle (1s linear — the one sanctioned clip-path loop). The AI panel's depth shadow is `--fx-depth-ai`. ⚠ visual metaphor changes from hologram to stencil spray |
 | `fx-orbit` | Rotating conic tail | **Comet tick**: flat red arc segment (border-slice, no gradient) rotating — still transform-only on a masked layer; reduced-motion off |
 | `fx-glow-pulse` | Breathing halo (login icon) | Breathing **double offset**: red + blood-red stacked hard shadows, opacity loop on pseudo-element |
 | `fx-text-gradient` | Cyan→violet gradient text | ⚠ **Replaced by `fx-tile`** in this theme (gradients banned): one word sits in an inverted tile — paper bg + ink text, or the red variant (field-red bg + paper text), tilted −2.5° to −4° — the ransom-note "one inverted letter/word" treatment. Restraint rule unchanged: one tile per heading |
