@@ -22,8 +22,8 @@ const SHELL_NOTES: {name: string; note: string}[] = [
     note: 'useBreakpoint() context over the md matchMedia query; SSR defaults to desktop.',
   },
   {
-    name: 'ThemeProvider',
-    note: 'Sets mars-dark (18:00–06:00) / mars-light by wall clock and registers the PWA service worker.',
+    name: 'ServiceWorkerRegistrar',
+    note: 'Registers the PWA service worker. The theme is not a provider: the root layout stamps <html data-theme> from the cookie.',
   },
 ];
 

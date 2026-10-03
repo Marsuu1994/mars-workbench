@@ -9,7 +9,7 @@ Per-theme visual specs plus the shared skeleton they all hang on. Implemented in
 | --- | --- | --- | --- |
 | [mars-dark.md](./mars-dark.md) | `mars-dark` | "Sora dark" | Shipped · default |
 | [mars-light.md](./mars-light.md) | `mars-light` | "Sora light" | Shipped |
-| [p5-dark.md](./p5-dark.md) | `p5-dark` | "P5 dark" | Approved direction · implementation pending (ships with the settings/theme-switch work) |
+| [p5-dark.md](./p5-dark.md) | `p5-dark` | "P5 dark" | Shipped |
 
 Display names are UI labels (i18n) — internal theme names are stable and never
 renamed. New-user default is `mars-dark`; theme is an explicit user choice
@@ -28,8 +28,20 @@ A theme is a **skin over a shared skeleton**, never a fork of components:
 - **`fx-*` utility class names are the API** — usage sites never change per theme.
   Their looks come from per-theme `--fx-*` variable blocks (`[data-theme='…']`),
   plus theme-gated skin rules where geometry differs (see p5-dark).
-- Radius tokens are per-theme (daisyUI theme blocks); `--radius-card` overrides are
-  gated per `data-theme`.
+- Radius tokens are per-theme: `--radius-selector/field/box` in the daisyUI blocks,
+  `--radius-card` in each theme's variable block (registered once in `@theme` so the
+  `rounded-card` utility exists).
+- **One variable contract**: every theme declares the same custom properties — its
+  daisyUI block plus its `[data-theme='…']` block in `globals.css`, in the same section
+  order (star chart · art · blooms · bracket · panels · edges · shadows · glows ·
+  surface & depth · geometry). Variables are named by role (`--fx-field`, `--fx-depth`,
+  `--fx-depth-ai`, `--fx-card-bg`, `--radius-card`); a theme with no use for one still
+  declares its equivalent. `npm run check:themes` enforces it in CI, and a theme added
+  to `THEMES` is held to it automatically.
+- **One theme scope per page**: the theme lives only on `<html data-theme>`; nothing
+  nests a `data-theme` (the Design Console previews by re-stamping `<html>`). That is
+  what keeps theme-gated skin rules, like p5-dark's geometry fork, from leaking into
+  another theme.
 
 ## FX utility layer — API + Mission Control HUD skin
 
