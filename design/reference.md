@@ -46,6 +46,12 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | `createDumpEntryAction` | Quick Capture: insert one dump entry (storage-only, no side effects) | `db/dumpEntries.createDumpEntry` |
 | `fetchDumpEntriesAction` | Load one dump feed page by opaque cursor (server-pinned page size) | `db/dumpEntries.getDumpEntriesPage` |
 
+## MCP (src/mcp, served at /api/mcp)
+
+| Tool | Purpose | Calls |
+| --- | --- | --- |
+| `echo` | Connectivity check (temporary; replaced by the planning tools) | — |
+
 ## Services (src/services)
 
 `syncService.ts` flow-level spec: [flows/shared.md](./flows/shared.md).
