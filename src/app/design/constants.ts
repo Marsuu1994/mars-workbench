@@ -450,7 +450,7 @@ export const TOAST_DEMO_DURATION_MS = 5000;
 export const APP_USER = {name: 'Liang Jun', email: 'liang@example.com'};
 export const APP_PLAN_ID = 'gallery-plan';
 
-/** AppSidebar states — pathname/collapsed use the component's gallery overrides. */
+/** AppSidebar states — the pathname/collapsed values AppShell supplies in the app. */
 export const SIDEBAR_VARIANTS: {
   label: string;
   pathname: string;

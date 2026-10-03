@@ -23,6 +23,7 @@ import {
 } from '@/actions/matrixActions';
 import TaskModal from '@/components/domain/shared/task-modal/TaskModal';
 import {Toast} from '@/components/ui/Toast';
+import {MatrixUndoToast} from './MatrixUndoToast';
 import QuadrantCell from './QuadrantCell';
 import {MobileMoveToSheet} from './MobileMoveToSheet';
 import {
@@ -30,17 +31,11 @@ import {
   FALLBACK_QUADRANT,
   CREATE_PLAN_HREF,
   TOAST_DURATION_MS,
-  UNDO_TOAST_MS,
 } from './constants';
 
 interface PriorityMatrixPageProps {
   tasks: TaskItem[];
   activePlan: MatrixActivePlan | null;
-  /** Design scenario override — pins a card's Move-to popover open on mount. */
-  initialOpenPopoverTaskId?: string;
-  /** Design scenario override — mounts with this card just completed: off the
-      grid, undo toast showing with its countdown held. */
-  initialUndoToastTaskId?: string;
 }
 
 /** The undo window's state: everything needed to put the card back. */
@@ -54,8 +49,6 @@ interface UndoToastState {
   /** The completion write, true once it landed — Undo waits for it because
       the server-side revert is guarded on status = DONE */
   completed: Promise<boolean>;
-  /** Scenario pin — the countdown is held */
-  pinned?: boolean;
 }
 
 const insertTaskAt = (list: TaskItem[], index: number, task: TaskItem) => [
@@ -64,22 +57,15 @@ const insertTaskAt = (list: TaskItem[], index: number, task: TaskItem) => [
   ...list.slice(index),
 ];
 
-const withoutTask = (list: TaskItem[], taskId?: string) =>
-  taskId ? list.filter(task => task.id !== taskId) : list;
-
 export default function PriorityMatrixPage({
   tasks,
   activePlan,
-  initialOpenPopoverTaskId,
-  initialUndoToastTaskId,
 }: PriorityMatrixPageProps) {
   const t = useTranslations('Priorities');
   const tQuadrant = useTranslations('Enums.PriorityQuadrant');
-  const [localTasks, setLocalTasks] = useState<TaskItem[]>(() =>
-    withoutTask(tasks, initialUndoToastTaskId),
-  );
+  const [localTasks, setLocalTasks] = useState<TaskItem[]>(tasks);
   const [openPopoverTaskId, setOpenPopoverTaskId] = useState<string | null>(
-    initialOpenPopoverTaskId ?? null,
+    null,
   );
   const [sheetTask, setSheetTask] = useState<TaskItem | null>(null);
   // null = closed; quadrant undefined = mobile global add (modal shows its picker)
@@ -89,21 +75,11 @@ export default function PriorityMatrixPage({
   const [toastQuadrant, setToastQuadrant] = useState<PriorityQuadrant | null>(
     null,
   );
-  const [undoToast, setUndoToast] = useState<UndoToastState | null>(() => {
-    const index = tasks.findIndex(task => task.id === initialUndoToastTaskId);
-    if (!initialUndoToastTaskId || index === -1) return null;
-    return {
-      task: tasks[index],
-      index,
-      credited: activePlan !== null,
-      completed: Promise.resolve(true),
-      pinned: true,
-    };
-  });
+  const [undoToast, setUndoToast] = useState<UndoToastState | null>(null);
 
   useEffect(() => {
-    setLocalTasks(withoutTask(tasks, initialUndoToastTaskId));
-  }, [tasks, initialUndoToastTaskId]);
+    setLocalTasks(tasks);
+  }, [tasks]);
 
   const activePlanId = activePlan?.id ?? null;
   const isTrackedTask = (task: TaskItem) =>
@@ -233,23 +209,19 @@ export default function PriorityMatrixPage({
   }
 
   // Keyed by task so a second completion restarts the countdown.
-  const renderUndoToast = () =>
-    undoToast !== null && (
-      <Toast
-        key={undoToast.task.id}
-        tone="success"
-        durationMs={UNDO_TOAST_MS}
-        paused={undoToast.pinned}
+  const renderUndoToast = () => {
+    if (undoToast === null) return null;
+    const {task, credited} = undoToast;
+    return (
+      <MatrixUndoToast
+        key={task.id}
+        task={task}
+        credited={credited}
+        onUndo={handleUndo}
         onDismiss={() => setUndoToast(null)}
-        actionLabel={t('undo')}
-        onAction={handleUndo}
-      >
-        <CheckIcon className="size-[15px] stroke-[2.5]" />
-        {undoToast.credited
-          ? t('doneToastCredited', {points: undoToast.task.points})
-          : t('doneToast')}
-      </Toast>
+      />
     );
+  };
 
   // Mobile-only confirmation for the picker add flow; it yields to the undo
   // toast so the two never stack.

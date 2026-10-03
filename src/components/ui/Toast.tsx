@@ -1,23 +1,20 @@
 'use client';
 
-import {useEffect, useRef, useState, type ReactNode} from 'react';
+import type {CSSProperties, ReactNode} from 'react';
 import {cn} from './cn';
-import {ProgressBar} from './ProgressBar';
 
 export type ToastTone = 'success' | 'neutral';
 
 interface ToastProps {
   /** Message content — icon + text composed by the caller */
   children: ReactNode;
-  /** Optional action button (e.g. Undo); the countdown bar renders only with one */
+  /** Optional action button (e.g. Undo); the countdown bar shows only with one */
   actionLabel?: string;
   onAction?: () => void;
   /** Auto-dismiss window in ms; omit for a toast the caller dismisses itself */
   durationMs?: number;
-  /** Fires once the window elapses (hover and `paused` hold the clock) */
+  /** Fires once the window elapses */
   onDismiss?: () => void;
-  /** Freeze the countdown — scenario pins, gallery specimens */
-  paused?: boolean;
   tone?: ToastTone;
   /** Extra classes on the positioned wrapper (e.g. a breakpoint gate) */
   className?: string;
@@ -40,16 +37,15 @@ const TONE_STYLE: Record<ToastTone, ToneStyle> = {
   },
 };
 
-/** Countdown resolution — the bar redraws this often. */
-const TICK_MS = 100;
-
 /**
  * Bottom-anchored transient message: fixed at the bottom-center on desktop
- * and above the mobile dock, with an optional action button and a countdown
- * bar draining over `durationMs`. The clock pauses while hovered (or when
- * `paused`) so the action can be aimed at; the caller owns mount/unmount via
- * `onDismiss`. Inside a [contain:layout] box (scenario frames, the gallery)
- * `fixed` anchors to that box instead of the viewport.
+ * and above the mobile dock, with an optional action button. With
+ * `durationMs` it runs an `fx-countdown` clock — a CSS animation that holds
+ * while the toast is hovered and wherever time is frozen (scenario frames,
+ * gallery specimens) — and calls `onDismiss` when the clock ends. The clock
+ * shows as a draining bar only when there is an action to aim at; without
+ * one it still runs, invisibly. Inside a [contain:layout] box `fixed`
+ * anchors to that box instead of the viewport.
  */
 export const Toast = ({
   children,
@@ -57,42 +53,10 @@ export const Toast = ({
   onAction,
   durationMs,
   onDismiss,
-  paused = false,
   tone = 'neutral',
   className,
 }: ToastProps) => {
-  const [remainingMs, setRemainingMs] = useState(durationMs ?? 0);
-  const [isHovered, setIsHovered] = useState(false);
-  const onDismissRef = useRef(onDismiss);
-  // Wall-clock accounting: elapsed time banked across pauses, so a throttled
-  // timer (background tab) still measures the true window instead of ticks.
-  const elapsedBeforePauseRef = useRef(0);
   const {box, fill} = TONE_STYLE[tone];
-  const isCounting = durationMs !== undefined && !paused && !isHovered;
-
-  useEffect(() => {
-    onDismissRef.current = onDismiss;
-  }, [onDismiss]);
-
-  useEffect(() => {
-    if (!isCounting || durationMs === undefined) return;
-    const resumedAt = performance.now();
-    const elapsed = () =>
-      elapsedBeforePauseRef.current + (performance.now() - resumedAt);
-    const timer = setInterval(
-      () => setRemainingMs(Math.max(0, durationMs - elapsed())),
-      TICK_MS,
-    );
-    return () => {
-      clearInterval(timer);
-      elapsedBeforePauseRef.current = elapsed();
-    };
-  }, [isCounting, durationMs]);
-
-  useEffect(() => {
-    if (durationMs === undefined || remainingMs > 0) return;
-    onDismissRef.current?.();
-  }, [durationMs, remainingMs]);
 
   const renderAction = () =>
     actionLabel && (
@@ -105,16 +69,21 @@ export const Toast = ({
       </button>
     );
 
-  const renderCountdown = () =>
-    actionLabel &&
+  // The clock's animationend is the dismissal. The duration is a dynamic
+  // value, so it travels as a custom property (the same exception
+  // ProgressBar makes for its width); `invisible` keeps the animation
+  // running when no bar should show.
+  const renderClock = () =>
     durationMs !== undefined && (
-      <ProgressBar
-        value={(remainingMs / durationMs) * 100}
-        fillClassName={cn(
-          'rounded-none transition-[width] duration-100 ease-linear',
+      <span
+        aria-hidden
+        onAnimationEnd={onDismiss}
+        style={{'--fx-countdown-ms': `${durationMs}ms`} as CSSProperties}
+        className={cn(
+          'fx-countdown absolute inset-x-0 bottom-0 h-0.5',
           fill,
+          !actionLabel && 'invisible',
         )}
-        className="absolute inset-x-0 bottom-0 h-0.5 rounded-none bg-transparent"
       />
     );
 
@@ -128,8 +97,6 @@ export const Toast = ({
       <div
         role="status"
         aria-live="polite"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
         className={cn(
           'fx-boot-in relative flex items-center gap-2 overflow-hidden whitespace-nowrap rounded-[10px] border px-3.5 py-2 text-xs font-semibold shadow-lg backdrop-blur-sm',
           box,
@@ -137,7 +104,7 @@ export const Toast = ({
       >
         {children}
         {renderAction()}
-        {renderCountdown()}
+        {renderClock()}
       </div>
     </div>
   );

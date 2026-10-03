@@ -17,7 +17,7 @@ Centralized design documentation for Mars Workbench. Code is organized layer-fir
 
 ## UI Design Workflow
 
-- Scenario pages are the source of truth for implemented UI — each feature's screens render the real components with pinned fixture states. After a UI change, update the affected scenario/gallery fixtures so the pinned states stay accurate.
+- Scenario pages are the source of truth for implemented UI — each feature's screens render the real components with fixture states; interaction states are reached by `play` steps that click the real controls, never by scenario-only props. After a UI change, update the affected scenario/gallery fixtures so the pinned states stay accurate.
 - Future or unapproved designs are explored as self-contained HTML mockups in `mockup/future-work/` (see `/design-explore`). Once a design ships, extend the feature's scenario page and delete the exploration mockup.
 
 ## App README

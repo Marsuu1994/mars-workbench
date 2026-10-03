@@ -8,8 +8,6 @@ interface BoardScreenProps {
   progress: ComponentProps<typeof ProgressDashboard>;
   tasks: ComponentProps<typeof KanbanBoard>['tasks'];
   planTemplates: ComponentProps<typeof KanbanBoard>['planTemplates'];
-  /** Render the board with the backlog expanded (used by design scenarios). */
-  defaultBacklogOpen?: boolean;
 }
 
 /**
@@ -23,7 +21,6 @@ export const BoardScreen = ({
   progress,
   tasks,
   planTemplates,
-  defaultBacklogOpen = false,
 }: BoardScreenProps) => (
   <div className="flex flex-col h-full">
     <BoardHeader periodKey={periodKey} />
@@ -33,7 +30,6 @@ export const BoardScreen = ({
         tasks={tasks}
         daysElapsed={progress.daysElapsed}
         planTemplates={planTemplates}
-        defaultBacklogOpen={defaultBacklogOpen}
       />
     </div>
   </div>
