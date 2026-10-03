@@ -24,6 +24,7 @@ import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
 import {OverlayHeader} from '@/components/ui/overlay/OverlayHeader';
 import {Popover} from '@/components/ui/overlay/Popover';
 import {Toast} from '@/components/ui/Toast';
+import {Play} from '../Play';
 
 import {Zone, Section, Variant, Row} from '../GalleryParts';
 import {
@@ -305,20 +306,23 @@ export const UiTab = () => {
   );
 
   // Toast is position:fixed; the contain:layout boxes pin each specimen
-  // inside its own frame the way scenario frames do.
+  // inside its own frame the way scenario frames do, and data-time="frozen"
+  // holds the countdown the same way.
   const renderToast = () => (
     <Section
       title="Toast"
       description="Bottom-anchored transient message: optional action button and a countdown bar draining over the auto-dismiss window (hover holds it). Carries the matrix's undo toast and the mobile add confirmation."
     >
       <Row>
-        <Variant label="Action + countdown (held)">
-          <div className="relative h-24 w-80 [contain:layout]">
+        <Variant label="Action + countdown (frozen)">
+          <div
+            className="relative h-24 w-80 [contain:layout]"
+            data-time="frozen"
+          >
             <Toast
               tone="success"
               actionLabel={TOAST_DEMO_ACTION}
               durationMs={TOAST_DEMO_DURATION_MS}
-              paused
             >
               <CheckIcon className="size-[15px] stroke-[2.5]" />
               {TOAST_DEMO_MESSAGE}
@@ -364,7 +368,7 @@ export const UiTab = () => {
   const renderConfirmButton = () => (
     <Section
       title="ConfirmButton"
-      description="Two-step destructive action row: rest → first click triggers an inline confirm → second click executes. Parents reset a stale confirm via key remount; `triggered` pins the state."
+      description="Two-step destructive action row: rest → first click triggers an inline confirm → second click executes. Parents reset a stale confirm via key remount. The second specimen is armed by a play step that clicks it once."
     >
       <div className="flex max-w-md flex-col gap-4">
         <Variant label="rest (click to trigger)">
@@ -376,15 +380,16 @@ export const UiTab = () => {
             onConfirm={() => undefined}
           />
         </Variant>
-        <Variant label="triggered (pinned)">
-          <ConfirmButton
-            label={CONFIRM_DEMO_LABEL}
-            confirmPrompt={CONFIRM_DEMO_PROMPT}
-            confirmLabel={CONFIRM_DEMO_CONFIRM}
-            cancelLabel={CONFIRM_DEMO_CANCEL}
-            onConfirm={() => undefined}
-            triggered
-          />
+        <Variant label="triggered (play: one click)">
+          <Play steps={[{click: {name: CONFIRM_DEMO_LABEL}}]}>
+            <ConfirmButton
+              label={CONFIRM_DEMO_LABEL}
+              confirmPrompt={CONFIRM_DEMO_PROMPT}
+              confirmLabel={CONFIRM_DEMO_CONFIRM}
+              cancelLabel={CONFIRM_DEMO_CANCEL}
+              onConfirm={() => undefined}
+            />
+          </Play>
         </Variant>
       </div>
     </Section>

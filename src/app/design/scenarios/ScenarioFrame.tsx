@@ -1,6 +1,9 @@
-import type {ReactNode} from 'react';
+'use client';
+
+import {useRef, useState, type ReactNode} from 'react';
 import {cn} from '@/components/ui/cn';
 import {InteractionShield} from '../InteractionShield';
+import {PlayRunner, type PlayStep} from '../PlayRunner';
 
 /** How a scenario frame sizes itself. */
 export type ScenarioDisplay = 'fill' | 'fit';
@@ -21,6 +24,8 @@ interface ScenarioFrameProps {
   display?: ScenarioDisplay;
   /** Dim the frame interior like a modal backdrop and center the panel. */
   overlay?: boolean;
+  /** Steps replayed after mount to reach the pinned state — see PlayRunner. */
+  play?: PlayStep[];
   children: ReactNode;
 }
 
@@ -46,21 +51,34 @@ interface ScenarioFrameProps {
  * The overlay backdrop is painted on the frame box itself (not a content
  * wrapper), so it always spans the whole framed area: in fit mode the box is
  * exactly content + padding tall, in fill mode it is the whole frame.
+ *
+ * A tab that pins an interaction state declares `play` steps instead of
+ * passing scenario-only props: PlayRunner clicks the real controls after
+ * mount, through the shield's gate. A failed step is printed under the note
+ * so a broken play never passes for the rest state. Time is frozen inside
+ * the frame (`data-time="frozen"`): `fx-countdown` clocks hold, so a pinned
+ * toast neither drains nor dismisses itself.
  */
 export const ScenarioFrame = ({
   title,
   note,
   display = 'fill',
   overlay = false,
+  play,
   children,
 }: ScenarioFrameProps) => {
   const fill = display === 'fill';
+  const shieldRef = useRef<HTMLDivElement>(null);
+  const [playError, setPlayError] = useState<string | null>(null);
 
   return (
     <div className={cn('flex flex-col gap-2', fill && 'min-h-0 flex-1')}>
       <div className="flex flex-col gap-0.5">
         <h3 className="text-base font-semibold">{title}</h3>
         {note && <p className="text-sm text-base-content/50">{note}</p>}
+        {playError && (
+          <p className="text-sm font-semibold text-error">{playError}</p>
+        )}
       </div>
       <div
         className={cn(
@@ -68,8 +86,10 @@ export const ScenarioFrame = ({
           fill && 'min-h-96 flex-1',
           overlay && 'bg-base-300/60',
         )}
+        data-time="frozen"
       >
         <InteractionShield
+          ref={shieldRef}
           className={cn(
             fill && 'absolute inset-0',
             fill && overlay && 'flex items-center justify-center p-4 md:p-6',
@@ -79,6 +99,13 @@ export const ScenarioFrame = ({
         >
           {children}
         </InteractionShield>
+        {play && (
+          <PlayRunner
+            steps={play}
+            scopeRef={shieldRef}
+            onError={setPlayError}
+          />
+        )}
       </div>
     </div>
   );

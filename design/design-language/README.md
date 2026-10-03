@@ -71,6 +71,7 @@ disables them.
 | `fx-glow-pulse` | Breathing brand halo — pre-composited shadow on a pseudo-element, opacity-only loop | login `BrandIcon` |
 | `fx-text-gradient` | Cyan→violet headline gradient. Restraint rule: first word only | gallery title, login "Mars" |
 | `fx-boot-in` | 420ms mount animation (rise + scale + fade) | modals |
+| `fx-countdown` | Clock bar draining over `--fx-countdown-ms`; its `animationend` is the dismissal. Holds while its host is hovered and inside `data-time="frozen"` (scenario frames, gallery specimens); deliberately kept out of the reduced-motion list | `Toast` |
 | `fx-nav-rail` | Luminous active-nav left rail | sidebar active item |
 | `fx-quadrant` + `fx-q-{error,primary,warning,neutral}` + `fx-q-{tl,tr,bl,br}` | Per-quadrant corner bloom keyed to semantic hue | priority matrix |
 | `fx-grid-flow` | Login-only grid crawl (transform loop; host extends 64px above viewport) | login grid layer |

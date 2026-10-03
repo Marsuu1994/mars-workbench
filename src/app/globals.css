@@ -772,6 +772,21 @@ body {
     animation: fx-boot-in 0.42s cubic-bezier(0.2, 0, 0, 1) both;
   }
 
+  /* ── Countdown clock (toasts): a bar draining over --fx-countdown-ms.
+        Its animationend is the dismissal, so it holds while its host is
+        hovered and wherever time is frozen (scenario frames, gallery
+        specimens). Deliberately not in the reduced-motion list: stopping it
+        would stop the dismissal, and a 2px linear bar is no vestibular
+        trigger. ── */
+  .fx-countdown {
+    transform-origin: left;
+    animation: fx-countdown var(--fx-countdown-ms, 5s) linear forwards;
+  }
+  :hover > .fx-countdown,
+  [data-time='frozen'] .fx-countdown {
+    animation-play-state: paused;
+  }
+
   /* ── Active-nav luminous rail (sidebar) ── */
   .fx-nav-rail {
     position: relative;
@@ -1251,6 +1266,15 @@ body {
     opacity: 1;
   }
 }
+@keyframes fx-countdown {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
 @keyframes fx-boot-in {
   from {
     opacity: 0;

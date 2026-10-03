@@ -44,13 +44,13 @@ const sized = (size: TaskSize): Pick<TaskItem, 'size' | 'points'> => ({
   points: SIZE_TO_POINTS[size],
 });
 
-/** The card whose Move-to popover is pinned open in the popover tabs — a
-    top-quadrant card with the whole bottom row below it, so the panel (which
-    escapes its quadrant's scroll clip but not the frame) fits at short
-    viewport heights too. */
+/** The card whose Move-to popover the popover tabs open with a play step —
+    a top-quadrant card with the whole bottom row below it, so the panel
+    (which escapes its quadrant's scroll clip but not the frame) fits at short
+    viewport heights too. The Done-toast tabs show it as just completed. */
 export const POPOVER_TASK_ID = 'scn-move-popover';
 
-/** The tracked (This Week) card whose popover is pinned open: Done only. */
+/** The tracked (This Week) card whose popover a play step opens: Done only. */
 export const TRACKED_POPOVER_TASK_ID = 'scn-move-popover-tracked';
 
 /** The card shown in the mobile Move-to sheet (has description + points meta). */
@@ -126,3 +126,19 @@ export const SHEET_TASK: TaskItem = MATRIX_TASKS.find(
 export const SHEET_TRACKED_TASK: TaskItem = MATRIX_TASKS.find(
   t => t.id === SHEET_TRACKED_TASK_ID,
 )!;
+
+/** The card the Done-toast tabs show as just completed. */
+export const DONE_TASK: TaskItem = MATRIX_TASKS.find(
+  t => t.id === POPOVER_TASK_ID,
+)!;
+
+/** The matrix right after DONE_TASK was marked done — the page drops the
+    card optimistically, so the composed Done-toast tabs render this. */
+export const MATRIX_TASKS_AFTER_DONE = MATRIX_TASKS.filter(
+  t => t.id !== DONE_TASK.id,
+);
+
+/** Play scope for one fixture card: @hello-pangea/dnd stamps each draggable
+    with its id. */
+export const matrixCard = (taskId: string) =>
+  `[data-rfd-draggable-id="${taskId}"]`;

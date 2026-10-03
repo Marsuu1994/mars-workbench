@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import {usePathname} from 'next/navigation';
 import {
   Squares2X2Icon,
   TableCellsIcon,
@@ -15,10 +14,11 @@ import {useSettingsStore} from '@/store/settingsStore';
 interface BottomTabBarProps {
   user: {name: string; email: string} | null;
   activePlanId: string | null;
-  /** Design gallery/scenario override — defaults to the live route. */
-  pathname?: string;
-  /** Design gallery/scenario override — defaults to the settings store. */
-  settingsOpen?: boolean;
+  /** Current route — AppShell passes usePathname() */
+  pathname: string;
+  /** Settings sheet open, so its trigger shows pressed — AppShell passes the
+      settings store's state */
+  settingsOpen: boolean;
   /** Extra classes on the dock (AppShell passes md:hidden). */
   className?: string;
 }
@@ -26,15 +26,11 @@ interface BottomTabBarProps {
 export const BottomTabBar = ({
   user,
   activePlanId,
-  pathname: pathnameProp,
-  settingsOpen: settingsOpenProp,
+  pathname,
+  settingsOpen,
   className,
 }: BottomTabBarProps) => {
-  const livePathname = usePathname();
-  const pathname = pathnameProp ?? livePathname;
   const openSettings = useSettingsStore(s => s.open);
-  const storeSettingsOpen = useSettingsStore(s => s.isOpen);
-  const settingsOpen = settingsOpenProp ?? storeSettingsOpen;
 
   if (!user || !pathname.startsWith('/kanban')) {
     return null;

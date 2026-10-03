@@ -4,13 +4,17 @@ import {ScenarioTabs, type ScenarioTab} from '../ScenarioTabs';
 import {ScenarioPage} from '../ScenarioPage';
 import {TaskModalScenario} from '../TaskModalScenario';
 import {MobileMoveToPanelScenario} from './MobileMoveToPanelScenario';
+import {DoneToastScenario} from './DoneToastScenario';
 import {
   MATRIX_TASKS,
+  MATRIX_TASKS_AFTER_DONE,
+  DONE_TASK,
   SCENARIO_ACTIVE_PLAN,
   POPOVER_TASK_ID,
   TRACKED_POPOVER_TASK_ID,
   SHEET_TASK,
   SHEET_TRACKED_TASK,
+  matrixCard,
 } from './fixtures';
 
 const PRIORITIES_SCENARIOS: ScenarioTab[] = [
@@ -29,15 +33,22 @@ const PRIORITIES_SCENARIOS: ScenarioTab[] = [
   {
     label: 'Move-to popover',
     title: 'Move to — popover open',
-    note: 'The send button popover pinned open on an untracked card: Todo / In Progress, then Done under a hairline.',
+    note: "A play step clicks an untracked card's Move-to button: Todo / In Progress, then Done under a hairline.",
     content: (
       <PrioritiesScreen
         periodKey={SCENARIO_ACTIVE_PLAN.periodKey}
         tasks={MATRIX_TASKS}
         activePlan={SCENARIO_ACTIVE_PLAN}
-        initialOpenPopoverTaskId={POPOVER_TASK_ID}
       />
     ),
+    play: [
+      {
+        click: {
+          within: matrixCard(POPOVER_TASK_ID),
+          label: 'Priorities.sendLabel',
+        },
+      },
+    ],
   },
   {
     label: 'Move-to popover — tracked',
@@ -48,9 +59,16 @@ const PRIORITIES_SCENARIOS: ScenarioTab[] = [
         periodKey={SCENARIO_ACTIVE_PLAN.periodKey}
         tasks={MATRIX_TASKS}
         activePlan={SCENARIO_ACTIVE_PLAN}
-        initialOpenPopoverTaskId={TRACKED_POPOVER_TASK_ID}
       />
     ),
+    play: [
+      {
+        click: {
+          within: matrixCard(TRACKED_POPOVER_TASK_ID),
+          label: 'Priorities.sendLabel',
+        },
+      },
+    ],
   },
   {
     label: 'No plan',
@@ -73,21 +91,30 @@ const PRIORITIES_SCENARIOS: ScenarioTab[] = [
         periodKey={SCENARIO_ACTIVE_PLAN.periodKey}
         tasks={MATRIX_TASKS}
         activePlan={null}
-        initialOpenPopoverTaskId={POPOVER_TASK_ID}
       />
     ),
+    play: [
+      {
+        click: {
+          within: matrixCard(POPOVER_TASK_ID),
+          label: 'Priorities.sendLabel',
+        },
+      },
+    ],
   },
   {
     label: 'Done toast',
     title: 'Marked done — undo toast',
-    note: 'Right after Done: the card is gone and the toast counts down with Undo — credited copy because the active plan absorbed the points. Pinned, so the bar holds.',
+    note: 'Right after Done: the card is gone and the Undo toast shows, its countdown held by the frame — credited copy because the active plan absorbed the points. Composed: the toast needs a completion write, which a scenario never makes.',
     content: (
-      <PrioritiesScreen
-        periodKey={SCENARIO_ACTIVE_PLAN.periodKey}
-        tasks={MATRIX_TASKS}
-        activePlan={SCENARIO_ACTIVE_PLAN}
-        initialUndoToastTaskId={POPOVER_TASK_ID}
-      />
+      <>
+        <PrioritiesScreen
+          periodKey={SCENARIO_ACTIVE_PLAN.periodKey}
+          tasks={MATRIX_TASKS_AFTER_DONE}
+          activePlan={SCENARIO_ACTIVE_PLAN}
+        />
+        <DoneToastScenario task={DONE_TASK} credited />
+      </>
     ),
   },
   {
@@ -95,12 +122,14 @@ const PRIORITIES_SCENARIOS: ScenarioTab[] = [
     title: 'Marked done — no active plan',
     note: 'The same toast without a plan: plain "Marked done", nothing credited.',
     content: (
-      <PrioritiesScreen
-        periodKey={SCENARIO_ACTIVE_PLAN.periodKey}
-        tasks={MATRIX_TASKS}
-        activePlan={null}
-        initialUndoToastTaskId={POPOVER_TASK_ID}
-      />
+      <>
+        <PrioritiesScreen
+          periodKey={SCENARIO_ACTIVE_PLAN.periodKey}
+          tasks={MATRIX_TASKS_AFTER_DONE}
+          activePlan={null}
+        />
+        <DoneToastScenario task={DONE_TASK} credited={false} />
+      </>
     ),
   },
   {
@@ -157,10 +186,11 @@ export default function PrioritiesScenarioPage() {
     <ScenarioPage
       title="Priorities scenarios"
       description="The real priorities page (BoardHeader + PriorityMatrixPage) fed a
-        fixture matrix — tracked states, the Move-to chooser (popover and
-        mobile sheet, with and without a plan), the no-plan fallback, and the
-        add-task modal in both entry modes. The board with tracked one-off
-        cards lives in the Board scenarios."
+        fixture matrix — tracked states, the Move-to chooser (popover opened
+        by a play step, and the mobile sheet, with and without a plan), the
+        undo toast after Done, the no-plan fallback, and the add-task modal in
+        both entry modes. The board with tracked one-off cards lives in the
+        Board scenarios."
     >
       <ScenarioTabs tabs={PRIORITIES_SCENARIOS} />
     </ScenarioPage>
