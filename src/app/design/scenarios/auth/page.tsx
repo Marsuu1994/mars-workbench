@@ -3,6 +3,16 @@ import {ScenarioPage} from '../ScenarioPage';
 import {LoginScenario} from './LoginScenario';
 import {SettingsScenario} from './SettingsScenario';
 
+// Both settings tabs mount the same panel; the confirm tab reaches its state
+// the way a user would — one click on Sign out.
+const settingsPanel = (
+  <div className="flex justify-center p-4">
+    <div className="fx-panel-solid w-full max-w-[430px] rounded-box p-0">
+      <SettingsScenario />
+    </div>
+  </div>
+);
+
 const AUTH_SCENARIOS: ScenarioTab[] = [
   {
     label: 'Login',
@@ -15,26 +25,15 @@ const AUTH_SCENARIOS: ScenarioTab[] = [
     title: 'Settings overlay — rest',
     note: 'The one settings panel (identity, theme picker, sign-out at rest) — mobile sheet and desktop modal render this same component, so presentation is not a separate state.',
     display: 'fit',
-    content: (
-      <div className="flex justify-center p-4">
-        <div className="fx-panel-solid w-full max-w-[430px] rounded-box p-0">
-          <SettingsScenario />
-        </div>
-      </div>
-    ),
+    content: settingsPanel,
   },
   {
     label: 'Settings — sign-out confirm',
     title: 'Settings overlay — sign-out confirm',
-    note: 'Same panel with the two-step sign-out pinned in its triggered state (Cancel / Sign out).',
+    note: 'Same panel one click later: the two-step sign-out in its confirm state (Cancel / Sign out), reached by a play step that clicks Sign out.',
     display: 'fit',
-    content: (
-      <div className="flex justify-center p-4">
-        <div className="fx-panel-solid w-full max-w-[430px] rounded-box p-0">
-          <SettingsScenario signOutTriggered />
-        </div>
-      </div>
-    ),
+    content: settingsPanel,
+    play: [{click: {label: 'Settings.signOut'}}],
   },
 ];
 

@@ -26,3 +26,20 @@ jobs:
 
       - name: Check formatting
         run: npm run format:check
+
+  themes:
+    name: Theme variable contract
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Dependency-free script: every theme must declare the same CSS
+      # custom properties (see AGENTS.md → Themes).
+      - name: Check theme variables
+        run: npm run check:themes

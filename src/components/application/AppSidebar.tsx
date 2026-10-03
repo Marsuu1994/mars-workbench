@@ -1,7 +1,6 @@
 'use client';
 
 import {useState} from 'react';
-import {usePathname} from 'next/navigation';
 import Link from 'next/link';
 import {
   ChevronLeftIcon,
@@ -18,21 +17,19 @@ import {useSettingsStore} from '@/store/settingsStore';
 interface AppSidebarProps {
   user: {name: string; email: string} | null;
   activePlanId: string | null;
-  /** Design gallery/scenario override — defaults to the live route. */
-  pathname?: string;
-  /** Design gallery/scenario override — defaults to the shared sidebar store. */
-  collapsed?: boolean;
+  /** Current route — AppShell passes usePathname() */
+  pathname: string;
+  /** Rail collapsed — AppShell passes the sidebar store's state */
+  collapsed: boolean;
 }
 
 export const AppSidebar = ({
   user,
   activePlanId,
-  pathname: pathnameProp,
-  collapsed: collapsedProp,
+  pathname,
+  collapsed,
 }: AppSidebarProps) => {
-  const livePathname = usePathname();
-  const pathname = pathnameProp ?? livePathname;
-  const {isCollapsed, toggleSidebar} = useSidebarStore();
+  const toggleSidebar = useSidebarStore(s => s.toggleSidebar);
   const openSettings = useSettingsStore(s => s.open);
   const [isLogoHovered, setIsLogoHovered] = useState(false);
 
@@ -47,7 +44,6 @@ export const AppSidebar = ({
     .toUpperCase()
     .slice(0, 2);
 
-  const collapsed = collapsedProp ?? isCollapsed;
   const hasPlan = !!activePlanId;
 
   // Shared: text fades so it's invisible before overflow-hidden clips it

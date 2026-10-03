@@ -22,21 +22,22 @@ const SHELL_NOTES: {name: string; note: string}[] = [
     note: 'useBreakpoint() context over the md matchMedia query; SSR defaults to desktop.',
   },
   {
-    name: 'ThemeProvider',
-    note: 'Sets mars-dark (18:00–06:00) / mars-light by wall clock and registers the PWA service worker.',
+    name: 'ServiceWorkerRegistrar',
+    note: 'Registers the PWA service worker. The theme is not a provider: the root layout stamps <html data-theme> from the cookie.',
   },
 ];
 
 /**
  * src/components/application/ — the once-rendered app frame. Specimens are
  * inert: their sign-out / collapse / nav handlers are live, so interaction is
- * disabled and states are pinned via the components' gallery override props.
+ * disabled; the route and store state AppShell supplies in the app is passed
+ * here as fixture props.
  */
 export const ApplicationTab = () => {
   const renderSidebar = () => (
     <Section
       title="AppSidebar"
-      description="Desktop collapsible nav rail: brand, workspace links with active states, user footer with sign-out. States pinned via the pathname/collapsed overrides."
+      description="Desktop collapsible nav rail: brand, workspace links with active states, user footer with sign-out. States come from the pathname/collapsed props AppShell supplies in the app."
     >
       <Row>
         {SIDEBAR_VARIANTS.map(({label, pathname, activePlanId, collapsed}) => (
@@ -58,7 +59,7 @@ export const ApplicationTab = () => {
   const renderDock = () => (
     <Section
       title="BottomTabBar"
-      description="Mobile dock with the four workspace tabs; the active tab follows the route (pinned here via the pathname override)."
+      description="Mobile dock with the four workspace tabs; the active tab follows the pathname prop AppShell supplies (a fixture route here)."
     >
       <Variant label="Board active">
         <InteractionShield className="relative h-20 w-full max-w-[430px] overflow-hidden rounded-lg border border-base-content/10 bg-base-100 [contain:layout]">
@@ -66,6 +67,7 @@ export const ApplicationTab = () => {
             user={APP_USER}
             activePlanId={APP_PLAN_ID}
             pathname={DOCK_DEMO_PATHNAME}
+            settingsOpen={false}
           />
         </InteractionShield>
       </Variant>

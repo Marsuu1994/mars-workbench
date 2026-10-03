@@ -8,7 +8,6 @@ interface PrioritiesScreenProps {
   periodKey: string;
   tasks: MatrixProps['tasks'];
   activePlan: MatrixProps['activePlan'];
-  initialOpenPopoverTaskId?: string;
 }
 
 /**
@@ -22,14 +21,9 @@ export const PrioritiesScreen = ({
   periodKey,
   tasks,
   activePlan,
-  initialOpenPopoverTaskId,
 }: PrioritiesScreenProps) => (
   <div className="flex flex-col h-full">
     <BoardHeader periodKey={periodKey} />
-    <PriorityMatrixPage
-      tasks={tasks}
-      activePlan={activePlan}
-      initialOpenPopoverTaskId={initialOpenPopoverTaskId}
-    />
+    <PriorityMatrixPage tasks={tasks} activePlan={activePlan} />
   </div>
 );

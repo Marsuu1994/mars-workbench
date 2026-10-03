@@ -55,16 +55,16 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
   {
     label: 'Board — backlog open (desktop)',
     title: 'Board — backlog open (desktop)',
-    note: 'The backlog expanded, staging template instances ready to pull onto the board.',
+    note: 'A play step opens the backlog: template instances staged, ready to pull onto the board.',
     content: (
       <BoardScreen
         periodKey={SCENARIO_PERIOD_KEY}
         progress={MID_WEEK_PROGRESS}
         tasks={MID_WEEK_TASKS}
         planTemplates={SCENARIO_PLAN_TEMPLATES}
-        defaultBacklogOpen
       />
     ),
+    play: [{click: {label: 'Board.Backlog.openLabel'}}],
   },
   {
     label: 'Backlog (mobile)',

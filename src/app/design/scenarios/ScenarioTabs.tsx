@@ -2,6 +2,7 @@
 
 import {useState, type ReactNode} from 'react';
 import {TabBar} from '@/components/ui/TabBar';
+import type {PlayStep} from '../PlayRunner';
 import {ScenarioFrame, type ScenarioDisplay} from './ScenarioFrame';
 
 export interface ScenarioTab {
@@ -17,6 +18,9 @@ export interface ScenarioTab {
   overlay?: boolean;
   /** The scenario screen, composed from real page components + fixtures */
   content: ReactNode;
+  /** Clicks replayed after mount to reach an interaction state the way a
+      user would (e.g. arm the sign-out confirm) — never a scenario-only prop. */
+  play?: PlayStep[];
 }
 
 interface ScenarioTabsProps {
@@ -42,16 +46,17 @@ export const ScenarioTabs = ({tabs}: ScenarioTabsProps) => {
       />
 
       {/* Key by tab so switching always remounts the scenario: two tabs can
-          render the same component (e.g. the board with the backlog closed
-          vs. open), and without a fresh mount React would reuse the instance
-          and ignore its new initial state (the backlog would stay as the
-          first-mounted tab left it). */}
+          render the same component (e.g. the board at rest vs. with the
+          backlog opened by a play), and without a fresh mount React would
+          reuse the instance — the second tab would inherit the first one's
+          state and its play would run against it. */}
       <ScenarioFrame
         key={activeIndex}
         title={active.title}
         note={active.note}
         display={active.display}
         overlay={active.overlay}
+        play={active.play}
       >
         {active.content}
       </ScenarioFrame>

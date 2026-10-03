@@ -14,7 +14,7 @@ A Next.js application centered on a Kanban Period Planner, with AI-assisted plan
 ## Tech Stack
 
 - Framework: Next.js 16 (App Router)
-- UI: React 19, Tailwind CSS 4, daisyUI 5 (custom themes + `fx-*` FX utility layer — see `design/design-language/`: `mars-dark` / `mars-light` shipped, `p5-dark` pending)
+- UI: React 19, Tailwind CSS 4, daisyUI 5 (custom themes + `fx-*` FX utility layer — see `design/design-language/`: `mars-dark` / `mars-light` / `p5-dark`, one shared variable contract)
 - State: Zustand
 - Database: PostgreSQL (Supabase) + Prisma ORM
 - Auth: Supabase Auth (Google OAuth)
@@ -29,6 +29,7 @@ Directory responsibilities only — for concrete file/component names, read the 
 ```text
 public/                            # PWA manifest, service worker, icons
 prisma/                            # schema.prisma + migrations/
+scripts/                           # Repo checks run in CI (check-theme-vars.mjs)
 scripts/one-time/                  # Ad-hoc/manual scripts (see One-Time Scripts section)
 design/                            # Centralized design docs (see design/README.md for the index)
 ├── baseline.md                    # The ONE app-wide baseline (goal, entities, schema, decisions)
@@ -79,6 +80,7 @@ Implemented UI is documented in-app by the Design Console (`/design`): a compone
 - **Screen components, not copied chrome**: each page's presentational layout is a screen-layer component in `domain/<feature>/` (`BoardScreen`, `PrioritiesScreen`, `PlanChrome`); the route renders it after data fetching, its scenario renders it with fixtures — pages and scenarios cannot drift. New pages follow this split.
 - **Frame modes**: `fill` (default) is for screen-level tabs only — a 1:1 viewport-bounded stand-in for the page inside AppShell's `<main>`. Everything standalone (empty states, sheets, inline modal panels) is `fit` — content height + padding — and/or `overlay` for a dimmed modal backdrop.
 - **Live-feel, no side effects**: frames wrap content in an `InteractionShield` — hover and scroll stay live; clicks/submits/drag-starts are swallowed so wired handlers can never fire against fixture ids.
+- **No console-only props**: a production component never carries a prop, branch or comment that only the Design Console uses. A scenario reaches an interaction state the way a user would — the tab's `play` steps click the real control through the shield (gallery specimens wrap in `<Play>`) — or, when the state needs a side effect, composes it from genuine pieces (the matrix's Done-toast tabs: post-completion fixtures + the shared `MatrixUndoToast`). Time freezes at the frame: `data-time="frozen"` holds `fx-countdown` clocks. Bad: `initialUndoToastTaskId` on `PriorityMatrixPage`. Good: `play: [{click: {within: matrixCard(id), label: 'Priorities.sendLabel'}}]`.
 - **Modals render inline** via their extracted `*Panel`/`*Content` components (the live `OverlayShell` top-layer dialog would escape the frame's clipping).
 - **One tab, one state**: each scenario tab pins exactly one fixture/state of the rendered component (e.g. the settings overlay at rest vs with its sign-out confirm triggered) — never compose multiple states into one tab. Breakpoint presentations are not states: mobile and desktop render the same component, so they share a tab rather than getting siblings.
 
@@ -141,6 +143,11 @@ When adding a new convention, append it to the **end of the relevant subsection 
 
 - Use Heroicons JSX imports, not inline SVG.
 - Use `text-warning` for star/points icons.
+
+### Themes
+
+- **One theme per page.** The theme lives only on `<html data-theme>`: the server renders it from the cookie, the settings sheet re-stamps it, and the Design Console previews by re-stamping it (restoring the app's theme on exit). Never nest a `data-theme` scope — theme-gated rules like `[data-theme='p5-dark'] .fx-card` match through any ancestor, so a nested scope cannot switch them off. Bad: `<div data-theme="mars-light">` around a preview. Good: `document.documentElement.setAttribute('data-theme', next)`.
+- **One variable contract.** Every theme declares the same custom properties in `globals.css` — its daisyUI block plus its `[data-theme='…']` block, in the same section order. A new variable lands in every theme in the same change and is named by role, not by one theme's palette; `npm run check:themes` (CI) fails otherwise. Bad: `--fx-blood-red` declared by p5-dark alone. Good: `--fx-depth` declared by every theme, p5's value being its blood red.
 
 ### JSX & components
 
@@ -316,6 +323,7 @@ npm run build    # Production build
 npm run lint     # Lint
 npm run format       # Format all code with Prettier (Google style)
 npm run format:check # Verify formatting (used in CI)
+npm run check:themes # Every theme declares the same CSS variables (used in CI)
 npx prisma studio
 npx prisma migrate dev
 npx prisma generate

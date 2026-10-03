@@ -19,8 +19,11 @@ import {
   updateTaskQuadrantAction,
   trackTaskAction,
   completeTaskAction,
+  undoCompleteTaskAction,
 } from '@/actions/matrixActions';
 import TaskModal from '@/components/domain/shared/task-modal/TaskModal';
+import {Toast} from '@/components/ui/Toast';
+import {MatrixUndoToast} from './MatrixUndoToast';
 import QuadrantCell from './QuadrantCell';
 import {MobileMoveToSheet} from './MobileMoveToSheet';
 import {
@@ -33,20 +36,36 @@ import {
 interface PriorityMatrixPageProps {
   tasks: TaskItem[];
   activePlan: MatrixActivePlan | null;
-  /** Design scenario override — pins a card's track popover open on mount. */
-  initialOpenPopoverTaskId?: string;
 }
+
+/** The undo window's state: everything needed to put the card back. */
+interface UndoToastState {
+  /** Pre-complete snapshot, restored verbatim on Undo */
+  task: TaskItem;
+  /** Where the card sat in the list, so it returns to the same spot */
+  index: number;
+  /** An active plan absorbed the points → "+N pts this week" copy */
+  credited: boolean;
+  /** The completion write, true once it landed — Undo waits for it because
+      the server-side revert is guarded on status = DONE */
+  completed: Promise<boolean>;
+}
+
+const insertTaskAt = (list: TaskItem[], index: number, task: TaskItem) => [
+  ...list.slice(0, index),
+  task,
+  ...list.slice(index),
+];
 
 export default function PriorityMatrixPage({
   tasks,
   activePlan,
-  initialOpenPopoverTaskId,
 }: PriorityMatrixPageProps) {
   const t = useTranslations('Priorities');
   const tQuadrant = useTranslations('Enums.PriorityQuadrant');
   const [localTasks, setLocalTasks] = useState<TaskItem[]>(tasks);
   const [openPopoverTaskId, setOpenPopoverTaskId] = useState<string | null>(
-    initialOpenPopoverTaskId ?? null,
+    null,
   );
   const [sheetTask, setSheetTask] = useState<TaskItem | null>(null);
   // null = closed; quadrant undefined = mobile global add (modal shows its picker)
@@ -56,17 +75,11 @@ export default function PriorityMatrixPage({
   const [toastQuadrant, setToastQuadrant] = useState<PriorityQuadrant | null>(
     null,
   );
+  const [undoToast, setUndoToast] = useState<UndoToastState | null>(null);
 
   useEffect(() => {
     setLocalTasks(tasks);
   }, [tasks]);
-
-  // Auto-dismiss the mobile "Added to …" confirmation toast
-  useEffect(() => {
-    if (toastQuadrant === null) return;
-    const timer = setTimeout(() => setToastQuadrant(null), TOAST_DURATION_MS);
-    return () => clearTimeout(timer);
-  }, [toastQuadrant]);
 
   const activePlanId = activePlan?.id ?? null;
   const isTrackedTask = (task: TaskItem) =>
@@ -146,8 +159,8 @@ export default function PriorityMatrixPage({
   }
 
   // Complete One-off: the matrix never shows DONE tasks, so the card leaves
-  // optimistically; on failure it returns to where it was. No confirm, no
-  // undo — the chooser's two-step is the deliberate action.
+  // optimistically and a 5 s undo toast opens; on failure the card returns
+  // to where it was and the toast is withdrawn. No confirm — act, then undo.
   function handleComplete(taskId: string) {
     setOpenPopoverTaskId(null);
     setSheetTask(null);
@@ -158,26 +171,73 @@ export default function PriorityMatrixPage({
 
     setLocalTasks(prev => prev.filter(task => task.id !== taskId));
 
-    completeTaskAction(taskId).then(result => {
-      if (result.error) {
-        console.error('Failed to complete task:', result.error);
-        setLocalTasks(prev => [
-          ...prev.slice(0, index),
-          previous,
-          ...prev.slice(index),
-        ]);
-      }
+    const completed = completeTaskAction(taskId).then(result => {
+      if (!result.error) return true;
+      console.error('Failed to complete task:', result.error);
+      setLocalTasks(prev => insertTaskAt(prev, index, previous));
+      setUndoToast(current => (current?.task.id === taskId ? null : current));
+      return false;
+    });
+
+    setUndoToast({
+      task: previous,
+      index,
+      credited: activePlanId !== null,
+      completed,
     });
   }
 
+  // Undo: wait for the completion write (the revert is guarded on DONE), then
+  // put the snapshot back — status and plan link exactly as before.
+  async function handleUndo() {
+    if (!undoToast) return;
+    const {task, index, completed} = undoToast;
+    setUndoToast(null);
+
+    if (!(await completed)) return;
+
+    setLocalTasks(prev => insertTaskAt(prev, index, task));
+
+    const result = await undoCompleteTaskAction(task.id, {
+      status: task.status,
+      detach: task.planId === null,
+    });
+    if (result.error) {
+      console.error('Failed to undo completion:', result.error);
+      setLocalTasks(prev => prev.filter(item => item.id !== task.id));
+    }
+  }
+
+  // Keyed by task so a second completion restarts the countdown.
+  const renderUndoToast = () => {
+    if (undoToast === null) return null;
+    const {task, credited} = undoToast;
+    return (
+      <MatrixUndoToast
+        key={task.id}
+        task={task}
+        credited={credited}
+        onUndo={handleUndo}
+        onDismiss={() => setUndoToast(null)}
+      />
+    );
+  };
+
+  // Mobile-only confirmation for the picker add flow; it yields to the undo
+  // toast so the two never stack.
   const renderAddedToast = () =>
-    toastQuadrant !== null && (
-      <div className="md:hidden fixed top-[calc(env(safe-area-inset-top)+7rem)] left-1/2 -translate-x-1/2 z-50">
-        <div className="flex items-center gap-2 rounded-[10px] border border-success/30 bg-success/15 px-3.5 py-2 text-xs font-semibold text-success shadow-lg backdrop-blur-sm">
-          <CheckIcon className="size-[15px] stroke-[2.5]" />
-          {t('addedToast', {quadrant: tQuadrant(toastQuadrant)})}
-        </div>
-      </div>
+    toastQuadrant !== null &&
+    undoToast === null && (
+      <Toast
+        key={toastQuadrant}
+        tone="success"
+        className="md:hidden"
+        durationMs={TOAST_DURATION_MS}
+        onDismiss={() => setToastQuadrant(null)}
+      >
+        <CheckIcon className="size-[15px] stroke-[2.5]" />
+        {t('addedToast', {quadrant: tQuadrant(toastQuadrant)})}
+      </Toast>
     );
 
   // Same title bar on both breakpoints; mobile appends the round add button
@@ -318,6 +378,7 @@ export default function PriorityMatrixPage({
         />
       )}
 
+      {renderUndoToast()}
       {renderAddedToast()}
 
       <MobileMoveToSheet

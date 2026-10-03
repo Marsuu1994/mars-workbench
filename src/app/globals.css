@@ -165,20 +165,13 @@
   --text-3xs: 0.625rem; /* 10px */
 }
 
-/* Card-surface radius — the rounded-[10px] family (matrix cards, track
-   popover, sheet action rows) collapses onto this token. Lives in a
-   non-inline @theme block ON PURPOSE: inline would bake the raw value
-   into the generated utilities, and the per-theme override below
-   ([data-theme='p5-dark'] → 0) would silently never apply.            */
+/* Card-surface radius — the rounded-[10px] family (matrix cards, Move-to
+   popover, sheet action rows) collapses onto this token. Registered here so
+   Tailwind generates `rounded-card`; every theme block below sets its value
+   (variable contract). Non-inline ON PURPOSE: inline would bake the raw
+   value into the utility, and the per-theme values would never apply.     */
 @theme {
   --radius-card: 0.625rem; /* 10px */
-}
-
-/* p5-dark zeroes the shared card radius (its own daisyUI block already
-   zeroes selector/field/box). Un-layered rule so it beats the @theme
-   emission on :root.                                                  */
-[data-theme='p5-dark'] {
-  --radius-card: 0;
 }
 
 body {
@@ -193,6 +186,13 @@ body {
    FX LAYER — Mission Control utilities (fx-* classes, --fx-* props)
    Everything derives from daisyUI tokens via color-mix(); the blocks
    below only tune per-theme intensity.
+
+   VARIABLE CONTRACT — every theme declares the same custom properties:
+   its daisyUI block above plus its [data-theme] block below, in the same
+   section order. A new variable lands in every theme in the same change
+   (`npm run check:themes` fails CI otherwise), and is named by role, not
+   by one theme's palette. The theme itself lives only on <html> — one
+   scope per page — so theme-gated rules can never leak into another.
    ═══════════════════════════════════════════════════════════════════ */
 
 [data-theme='mars-dark'] {
@@ -247,6 +247,23 @@ body {
     0 0 0 1px color-mix(in oklab, var(--color-accent) 40%, transparent),
     0 0 14px color-mix(in oklab, var(--color-accent) 30%, transparent),
     0 0 42px color-mix(in oklab, var(--color-accent) 12%, transparent);
+  /* Surface & depth — role variables every theme declares. The HUD skin
+     draws no hard depth layers, so these are its token-derived
+     equivalents; p5's geometry fork is their consumer today. */
+  --fx-field: color-mix(
+    in oklab,
+    var(--color-primary) 16%,
+    var(--color-base-100)
+  );
+  --fx-depth: var(--color-base-300);
+  --fx-depth-ai: color-mix(
+    in oklab,
+    var(--color-secondary) 30%,
+    var(--color-base-300)
+  );
+  --fx-card-bg: var(--color-base-100);
+  /* Geometry */
+  --radius-card: 0.625rem; /* 10px */
 }
 
 [data-theme='mars-light'] {
@@ -293,6 +310,23 @@ body {
   --fx-glow-accent:
     0 0 0 1px color-mix(in oklab, var(--color-accent) 50%, transparent),
     0 2px 12px color-mix(in oklab, var(--color-accent) 22%, transparent);
+  /* Surface & depth — role variables every theme declares. The HUD skin
+     draws no hard depth layers, so these are its token-derived
+     equivalents; p5's geometry fork is their consumer today. */
+  --fx-field: color-mix(
+    in oklab,
+    var(--color-primary) 16%,
+    var(--color-base-100)
+  );
+  --fx-depth: var(--color-base-300);
+  --fx-depth-ai: color-mix(
+    in oklab,
+    var(--color-secondary) 30%,
+    var(--color-base-300)
+  );
+  --fx-card-bg: var(--color-base-100);
+  /* Geometry */
+  --radius-card: 0.625rem; /* 10px */
 }
 
 /* p5-dark fx vars — REQUIRED even at palette level: fx utilities read
@@ -339,18 +373,20 @@ body {
   );
   --fx-shadow-ambient: 0 8px 24px oklch(0.05 0.01 20 / 0.5);
   --fx-shadow-hover: 0 6px 18px oklch(0.05 0.01 20 / 0.55);
-  /* Surface-only vars (never text) — the Calling Card depth system:
-     flat second layers instead of glows. See design-language/p5-dark.md */
-  --fx-field-red: oklch(0.53 0.2 26); /* large red fields   #c51d24 */
-  --fx-blood-red: oklch(0.36 0.13 25); /* depth layer       #721216 */
-  --fx-blood-violet: oklch(0.29 0.09 290); /* AI depth layer #2c2151 */
-  --fx-card-bg: oklch(0.17 0.008 20); /* raised card        #191313 */
   /* Glows become hard 0-blur pop shadows (fx-glow / fx-card-lift read
      these) — depth stays ink/blood so it never vanishes under a
      same-channel fill */
   --fx-glow-primary: 4px 4px 0 var(--color-base-300);
-  --fx-glow-primary-hi: 5px 5px 0 var(--fx-blood-red);
+  --fx-glow-primary-hi: 5px 5px 0 var(--fx-depth);
   --fx-glow-accent: 4px 4px 0 var(--color-base-300);
+  /* Surface & depth — the Calling Card depth system: flat second layers
+     instead of glows; surface-only, never text (design-language/p5-dark.md) */
+  --fx-field: oklch(0.53 0.2 26); /* large red fields   #c51d24 */
+  --fx-depth: oklch(0.36 0.13 25); /* depth layer       #721216 */
+  --fx-depth-ai: oklch(0.29 0.09 290); /* AI depth layer #2c2151 */
+  --fx-card-bg: oklch(0.17 0.008 20); /* raised card     #191313 */
+  /* Geometry — P5 has no rounded corners */
+  --radius-card: 0;
 }
 
 /* All fx-* classes live in the components layer so any Tailwind
@@ -736,6 +772,21 @@ body {
     animation: fx-boot-in 0.42s cubic-bezier(0.2, 0, 0, 1) both;
   }
 
+  /* ── Countdown clock (toasts): a bar draining over --fx-countdown-ms.
+        Its animationend is the dismissal, so it holds while its host is
+        hovered and wherever time is frozen (scenario frames, gallery
+        specimens). Deliberately not in the reduced-motion list: stopping it
+        would stop the dismissal, and a 2px linear bar is no vestibular
+        trigger. ── */
+  .fx-countdown {
+    transform-origin: left;
+    animation: fx-countdown var(--fx-countdown-ms, 5s) linear forwards;
+  }
+  :hover > .fx-countdown,
+  [data-time='frozen'] .fx-countdown {
+    animation-play-state: paused;
+  }
+
   /* ── Active-nav luminous rail (sidebar) ── */
   .fx-nav-rail {
     position: relative;
@@ -841,7 +892,7 @@ body {
   background-image:
     linear-gradient(
       107deg,
-      color-mix(in oklab, var(--fx-field-red) 14%, transparent) 0 210px,
+      color-mix(in oklab, var(--fx-field) 14%, transparent) 0 210px,
       transparent 210px
     ),
     radial-gradient(
@@ -883,7 +934,7 @@ body {
 [data-theme='p5-dark'] :is(.fx-panel, .fx-panel-solid) {
   border: 2px solid
     color-mix(in oklab, var(--color-base-content) 85%, transparent);
-  box-shadow: 8px 8px 0 var(--fx-blood-red);
+  box-shadow: 8px 8px 0 var(--fx-depth);
 }
 
 /* ── Crop marks: heavier red brackets ── */
@@ -917,7 +968,7 @@ body {
   transform: translate(-1px, -1px);
 }
 [data-theme='p5-dark'] .fx-card-lift {
-  box-shadow: 7px 7px 0 var(--fx-blood-red);
+  box-shadow: 7px 7px 0 var(--fx-depth);
   transform: rotate(-1.2deg) translate(-2px, -2px);
 }
 
@@ -957,12 +1008,12 @@ body {
 /* ── Rules: flat red slash strips — no gradients ── */
 [data-theme='p5-dark'] .fx-rule {
   height: 2px;
-  background: var(--fx-field-red);
+  background: var(--fx-field);
   clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 4px 100%);
 }
 [data-theme='p5-dark'] .fx-hairline-top::before {
   height: 2px;
-  background: var(--fx-field-red);
+  background: var(--fx-field);
 }
 
 /* ── AI spray border: dashed violet + stop-motion wiggle (the one
@@ -987,8 +1038,8 @@ body {
 /* ── Login brand: breathing double hard offset ── */
 [data-theme='p5-dark'] .fx-glow-pulse::after {
   box-shadow:
-    6px 6px 0 var(--fx-blood-red),
-    12px 12px 0 color-mix(in oklab, var(--fx-blood-red) 40%, transparent);
+    6px 6px 0 var(--fx-depth),
+    12px 12px 0 color-mix(in oklab, var(--fx-depth) 40%, transparent);
 }
 
 /* ── Gradient headline → flat phantom red (gradients are banned;
@@ -1028,8 +1079,8 @@ body {
 /* ── Buttons: red field CTA with pop shadow; hover = the P5
    selection flip (paper bg / ink text). Oblique like all chrome. ── */
 [data-theme='p5-dark'] .btn-primary {
-  background: var(--fx-field-red);
-  border-color: var(--fx-field-red);
+  background: var(--fx-field);
+  border-color: var(--fx-field);
   color: var(--color-base-content);
   box-shadow: 4px 4px 0 var(--color-base-300);
   transform: skewX(-8deg);
@@ -1042,7 +1093,7 @@ body {
   background: var(--color-base-content);
   border-color: var(--color-base-content);
   color: var(--color-base-300);
-  box-shadow: 5px 5px 0 var(--fx-blood-red);
+  box-shadow: 5px 5px 0 var(--fx-depth);
 }
 
 /* ── New utilities — opt-in markup, inert outside this theme ── */
@@ -1067,7 +1118,7 @@ body {
   transform: rotate(-2.5deg);
 }
 [data-theme='p5-dark'] .fx-tile-red {
-  background: var(--fx-field-red);
+  background: var(--fx-field);
   color: var(--color-base-content);
 }
 
@@ -1108,13 +1159,13 @@ body {
   height: 4px;
   width: 64px;
   margin-top: 6px;
-  background: var(--fx-field-red);
+  background: var(--fx-field);
   clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 4px 100%);
 }
 
 /* Decorative star-burst (flat fill) — max one per view */
 [data-theme='p5-dark'] .fx-burst {
-  background: var(--fx-field-red);
+  background: var(--fx-field);
   clip-path: polygon(
     100% 50%,
     78.98% 57.76%,
@@ -1215,6 +1266,15 @@ body {
     opacity: 1;
   }
 }
+@keyframes fx-countdown {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
 @keyframes fx-boot-in {
   from {
     opacity: 0;
