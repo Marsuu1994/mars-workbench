@@ -84,6 +84,10 @@ Open items: see [design/tracker.md](./design/tracker.md).
 
 ## Update Log
 
+### 2026-10-03
+- **MCP server (Claude as the planning brain) scoped** — Phase 1 breakdown drafted outside the repo: a remote MCP endpoint inside the Next.js app, Supabase's OAuth 2.1 Server for auth, and `get_planning_context` / `create_plan` / `update_plan` tools reusing `planService`. Supabase prerequisite confirmed: JWT signing already runs on an ECC (ES256) current key, legacy HS256 retired to "previously used".
+- **Tracker**: two infra follow-ups logged under Cross-cutting → Future — move to a custom domain (the planned MCP connector URL is tied to it) and a separate dev environment including the DB (local dev currently shares the production Supabase project).
+
 ### 2026-09-23
 - **Complete one-offs from the priority matrix (Option C — Move-to chooser)** — a one-off can now be finished without a plan and without the board round-trip. The track popover / mobile sheet became a **Move to** chooser: Todo / In Progress as before, plus **Done** under a hairline. Done sets `status = DONE` + `doneAt`; an unassigned task is linked to the current ACTIVE plan when one exists (it lands in the board's Done column and counts toward Today / Week), otherwise `planId` stays null; an existing link is never re-attributed. No confirm and no undo toast — owner decision, recorded with the rejected Done-dock and card-check-ring options in `design/spike/priorities-complete-one-off.md`.
   - **Backend**: `db/tasks.completeAdhocTask` (owner-scoped conditional write, two-step so a null `planId` is filled but an existing one is kept), `matrixService.completeMatrixTask` (`ensureSynced` → active plan or null), `completeTaskAction`. No schema change.
