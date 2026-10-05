@@ -90,6 +90,7 @@ Open items: see [design/tracker.md](./design/tracker.md).
   - **Mixed entries**: `createPlanFromDraft` → `createPlanFromEntries`, taking existing templates by id or new ones (`templateId: null`) — a `DraftTemplate` already fits.
   - **Template ownership check** (fixes a real gap): a plan could link another user's template and then read its title, and an LLM-invented id crashed approval with a raw uuid error. Create and update now reject templates the user doesn't own — `TemplateNotFoundError`, the form shows "Template not found", nothing is written.
   - **Update core**: `updatePlanInTx` (composable in a larger transaction) + pure `diffPlanTemplates` in `utils/planUtils.ts`; `updatePlan` now returns the applied diff.
+- **Tracker**: three low-priority spikes logged from the PR 2 review — a shared server-action handler, error-handling conventions, and type organization.
 
 ### 2026-10-03
 - **One theme scope per page + one variable contract for every theme** — fixes P5 geometry leaking into the Design Console's Sora previews when the app theme is P5. The console nested its preview theme in a `<div data-theme>` under the cookie-stamped `<html>`, and theme-gated rules like `[data-theme='p5-dark'] .fx-display` match through any ancestor; two variable gaps (`--radius-card` only overridden by P5, four colors only P5 declared) leaked into the nested scope too.

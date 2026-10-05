@@ -38,6 +38,7 @@ import {ensureSynced} from './syncService';
 import type {PlanItem, PlanWithTemplates} from '@/lib/db/plans';
 import type {
   NewPlanEntry,
+  PlanCreationContext,
   PlanEntry,
   PlanTemplateDiff,
   PlanTemplateInput,
@@ -151,15 +152,6 @@ async function generateTasksForTemplates(
     await createManyTasks(taskData, tx);
   }
 }
-
-export type PlanCreationContext = {
-  /** The current-week ACTIVE plan after sync; creation must refuse while set. */
-  activePlan: PlanItem | null;
-  /** Last period's plan, completed by the new plan's creation. */
-  pendingPlan: PlanItem | null;
-  today: Date;
-  periodKey: string;
-};
 
 /**
  * Guard reads shared by every plan-creation entry point (plan form, AI draft
