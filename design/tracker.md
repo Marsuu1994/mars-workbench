@@ -19,8 +19,8 @@ Single source of truth for open ideas and todos across the app — open items on
 
 - [ ] MCP server, Phase 1 — Claude creates/updates plans through the app over MCP, one PR per step
   - [x] 1/5 Skeleton — `/api/mcp` + temporary `echo` tool, 404 in production
-  - [ ] 2/5 Service refactor — shared create guard, `updatePlanInTx`, patch → full-list helper, `getPlanningContext`
-  - [ ] 3/5 Planning tools — `get_planning_context` / `create_plan` / `update_plan` + server instructions (dev identity, still 404 in production)
+  - [x] 2/5 Service refactor — shared creation guard (syncs first), mixed existing/new template entries, template-ownership check, `updatePlanInTx` + template diff
+  - [ ] 3/5 Planning services + tools — `getPlanningContext`, patch-based plan update, MCP tools `get_planning_context` / `create_plan` / `update_plan` + server instructions (dev identity, still 404 in production)
   - [ ] 4/5 OAuth consent page (`/oauth/consent`) + login return-to (`?next=`)
   - [ ] 5/5 Token auth (`withMcpAuth` + protected-resource metadata), lift the production gate, connect the custom connector in Claude
 
@@ -101,3 +101,6 @@ Error presentation is unstyled or ad-hoc across the app (the AI chat's red alert
 - [ ] Evaluate Storybook vs. the in-app `/design` gallery + scenarios as the long-term UI workbench — spike written with pros/cons + phased migration plan: `design/spike/design-console-vs-storybook.md` (awaiting review)
 - [ ] Custom domain — move off `*.vercel.app`; update Supabase Site URL + Redirect URLs. The planned MCP connector URL (and its protected-resource `resource`) is tied to the domain, so a later switch means re-adding the connector in Claude
 - [ ] Separate dev environment, including the DB — local dev currently shares the production Supabase project (data, Auth config, single Site URL); set up a dev Supabase project or branch + env vars so local work and write-tool testing never touch prod data
+- [ ] Spike: shared server-action handler — most actions repeat parse → `getCurrentUserId` → service → `revalidatePath` → map errors to `Errors.*`; explore a config-driven wrapper (schema, revalidate paths, error map). Pairs with the error-handling spike
+- [ ] Spike: error-handling conventions — services mix returned `{error}` form shapes with thrown errors (`TemplateNotFoundError`, plain `Error`); find one pattern (typed domain errors + one mapping per surface: forms, AI chat, MCP) and the common logic to extract
+- [ ] Spike: type organization — shared types live in `src/types/`, DAL row types in `lib/db/*`, plus `z.infer` aliases and service-local types; propose where each kind lives and how it's named so types stay findable as the app grows

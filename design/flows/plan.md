@@ -62,6 +62,11 @@ User clicks "Create Plan" on empty board → navigates to `/kanban/plans/new`.
 10. Archive any existing `PENDING_UPDATE` plan → `COMPLETED`.
 11. Revalidate `/kanban` to render board.
 
+### Rules
+
+- Every creation path (plan form, AI approval, MCP) runs the same guard: sync first (a finished week's ACTIVE plan flips to `PENDING_UPDATE`), then refuse while an ACTIVE plan exists.
+- Every referenced template must belong to the user; otherwise nothing is written and the form shows "Template not found".
+
 ---
 
 ## Update Plan Flow
@@ -84,6 +89,7 @@ User clicks "Edit Plan" on board header → navigates to `/kanban/plans/[id]`.
 ### Rules
 
 - DONE and EXPIRED tasks are never touched regardless of change type.
+- Added templates must belong to the user; otherwise nothing is written.
 - Changes are applied per-template, unaffected templates are fully preserved.
 - Task regeneration logic
   - Added templates: generate new instances **as `BACKLOG`** (weekly immediately, daily for today only).
@@ -159,7 +165,7 @@ User clicks the AI assistant button inside create plan page.
 
 6. **Post-approval: create plan** (`approveDraftPlanAction({ chatId })` → `approveDraftPlan` service)
    - Read the draft from `Chat.metadata.latestDraft` (already loaded with the chat).
-   - In **one transaction** (atomic), via `planService.createPlanFromDraft(tx, ...)`: batch-create the new templates (entries where `templateId` is null) with `createManyTaskTemplates`, resolve all entries to `{ templateId, type, frequency }[]`, then run the shared `createPlanInTx` core with the draft's `description` as `Plan.description` and `mode = NORMAL`. The core also completes the prior `PENDING_UPDATE` plan and links/moves ad-hoc tasks.
+   - In **one transaction** (atomic), via `planService.createPlanFromEntries(tx, ...)`: batch-create the new templates (entries where `templateId` is null) with `createManyTaskTemplates`, resolve all entries to `{ templateId, type, frequency }[]`, then run the shared `createPlanInTx` core with the draft's `description` as `Plan.description` and `mode = NORMAL`. The core also completes the prior `PENDING_UPDATE` plan and links/moves ad-hoc tasks.
    - **Ad-hoc carry-over (V1):** the pending plan's non-done `AD_HOC` tasks are passed as `adhocTaskIds`, so they move to the new plan.
 
    **Error handling:** If the LLM returns an error or unusable output, show an error message in the chat bubble. No retry logic for V1.
