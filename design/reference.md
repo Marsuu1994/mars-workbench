@@ -64,8 +64,11 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | **`planService.ts`** | |
 | `createPlan` | Create a plan from the plan form (templates, mode, ad-hoc links) |
 | `updatePlan` | Rebuild an existing plan's templates/mode/ad-hoc links |
-| `createPlanFromDraft` | Create a plan from an approved AI draft |
-| `createPlanInTx` | Shared transactional plan-creation core reused by `createPlan`/`createPlanFromDraft` |
+| `getPlanCreationContext` | Guard reads for every creation path: `ensureSynced` → active plan, pending plan, today, period key |
+| `getCarryOverAdhocTaskIds` | The pending plan's non-done ad-hoc tasks (default carry-over when no explicit selection) |
+| `createPlanFromEntries` | Create a plan from entries mixing existing templates and new ones (`templateId: null`) — AI approval, MCP |
+| `createPlanInTx` | Shared transactional plan-creation core reused by `createPlan`/`createPlanFromEntries`; rejects templates the user doesn't own |
+| `updatePlanInTx` | Transactional plan-update core (template diff + task regeneration, ad-hoc links, description/mode); returns the applied diff |
 | **`matrixService.ts`** | |
 | `fetchPriorityMatrix` | Matrix tasks + active-plan info for `/kanban/priorities` |
 | `trackTaskThisWeek` | Track This Week: pull a matrix task onto the board |
@@ -122,6 +125,7 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | **`taskTemplates.ts`** | |
 | `getTaskTemplates` | Non-archived templates for a user, newest first |
 | `getTaskTemplateTitlesByIds` | Map template ids → titles (includes archived, for stats labels) |
+| `getOwnedTemplateIds` | The subset of ids the user owns (template-ownership check) |
 | `getTaskTemplateById` | Single template, owner-scoped |
 | `createTaskTemplate` | Create a task template |
 | `createManyTaskTemplates` | Batch-create templates; returned ids preserve input order |

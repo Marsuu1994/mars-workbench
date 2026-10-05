@@ -84,6 +84,13 @@ Open items: see [design/tracker.md](./design/tracker.md).
 
 ## Update Log
 
+### 2026-10-05
+- **Plan service refactor for MCP (PR 2 of 5)** — plan creation and update now have shared cores the upcoming MCP tools reuse, with no change to the form or AI flows; verified by running create / edit / ad-hoc / AI-approve scenarios against a local Postgres on `main` and on the branch, with identical resulting rows.
+  - **One creation guard**: `getPlanCreationContext` (syncs first, then active/pending plan + period) and `getCarryOverAdhocTaskIds` back the plan form and AI approval. Side effect: approving after the week rolled over no longer fails on a stale ACTIVE plan.
+  - **Mixed entries**: `createPlanFromDraft` → `createPlanFromEntries`, taking existing templates by id or new ones (`templateId: null`) — a `DraftTemplate` already fits.
+  - **Template ownership check** (fixes a real gap): a plan could link another user's template and then read its title, and an LLM-invented id crashed approval with a raw uuid error. Create and update now reject templates the user doesn't own — `TemplateNotFoundError`, the form shows "Template not found", nothing is written.
+  - **Update core**: `updatePlanInTx` (composable in a larger transaction) + pure `diffPlanTemplates` in `utils/planUtils.ts`; `updatePlan` now returns the applied diff.
+
 ### 2026-10-03
 - **One theme scope per page + one variable contract for every theme** — fixes P5 geometry leaking into the Design Console's Sora previews when the app theme is P5. The console nested its preview theme in a `<div data-theme>` under the cookie-stamped `<html>`, and theme-gated rules like `[data-theme='p5-dark'] .fx-display` match through any ancestor; two variable gaps (`--radius-card` only overridden by P5, four colors only P5 declared) leaked into the nested scope too.
   - **One scope**: `DesignShell` previews by re-stamping `<html data-theme>`, starting from the cookie theme (read by the `/design` layout, so the first paint matches) and restoring it on exit; it never writes the cookie. No nested `data-theme` remains anywhere.

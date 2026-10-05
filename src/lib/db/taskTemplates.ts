@@ -54,6 +54,24 @@ export async function getTaskTemplateTitlesByIds(
 }
 
 /**
+ * The subset of `ids` that are templates owned by the user (archived included).
+ * Callers must pass well-formed UUIDs — the id column is `uuid`.
+ */
+export async function getOwnedTemplateIds(
+  userId: string,
+  ids: string[],
+  tx?: Prisma.TransactionClient,
+): Promise<Set<string>> {
+  if (ids.length === 0) return new Set();
+  const db = tx ?? prisma;
+  const rows = await db.taskTemplate.findMany({
+    where: {id: {in: ids}, userId},
+    select: {id: true},
+  });
+  return new Set(rows.map(r => r.id));
+}
+
+/**
  * Get a single task template by ID, scoped to the owner
  */
 export async function getTaskTemplateById(

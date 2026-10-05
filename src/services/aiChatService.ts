@@ -2,17 +2,13 @@ import {getTranslations} from 'next-intl/server';
 import {zodResponseFormat} from 'openai/helpers/zod';
 import type {ChatCompletionMessageParam} from 'openai/resources/chat/completions';
 import prisma from '@/lib/prisma';
-import {
-  getPlanTemplateStats,
-  getNonDoneAdhocTasks,
-  type PlanTemplateStatRow,
-} from '@/lib/db/tasks';
+import {getPlanTemplateStats, type PlanTemplateStatRow} from '@/lib/db/tasks';
 import {
   getTaskTemplateTitlesByIds,
   getTaskTemplates,
 } from '@/lib/db/taskTemplates';
 import {getPlanTemplatesByPlanId} from '@/lib/db/planTemplates';
-import {getActivePlan, getPlanByStatus, type PlanItem} from '@/lib/db/plans';
+import type {PlanItem} from '@/lib/db/plans';
 import {
   createChat,
   getChatById,
@@ -21,9 +17,13 @@ import {
   updateChatMetadata,
 } from '@/lib/db/chats';
 import {createMessage, getMessagesByChatId} from '@/lib/db/messages';
-import {MessageType, PlanMode, PlanStatus} from '@/generated/prisma/client';
+import {MessageType, PlanMode} from '@/generated/prisma/client';
 import {openai, DRAFT_PLAN_MODEL} from '@/lib/llm/openai';
-import {createPlanFromDraft} from './planService';
+import {
+  createPlanFromEntries,
+  getCarryOverAdhocTaskIds,
+  getPlanCreationContext,
+} from './planService';
 import {draftPlanResponseSchema, type DraftPlanResponse} from '@/schemas';
 import {buildDraftPlanSystemPrompt} from '../prompt/draftPlanPrompt';
 import {
@@ -283,29 +283,21 @@ export async function approveDraftPlan(
   const draft = metadata.latestDraft;
   if (!draft) throw new Error('No draft plan to approve');
 
-  // Guards mirror createPlan: no active plan may exist; complete the pending one.
-  const activePlan = await getActivePlan(userId);
+  // Guards shared with every creation path: no active plan may exist (after
+  // sync); the pending plan is completed by the new one.
+  const {activePlan, pendingPlan, today, periodKey} =
+    await getPlanCreationContext(userId);
   if (activePlan) throw new Error('An active plan already exists');
-  const pendingPlan = await getPlanByStatus(userId, PlanStatus.PENDING_UPDATE);
 
   // Carry the pending plan's non-done ad-hoc tasks over to the new plan.
-  let adhocTaskIds: string[] = [];
-  if (pendingPlan) {
-    const adhoc = await getNonDoneAdhocTasks(userId);
-    adhocTaskIds = adhoc
-      .filter(t => t.planId === pendingPlan.id)
-      .map(t => t.id);
-  }
-
-  const today = getTodayDate();
-  const periodKey = getISOWeekKey(today);
+  const adhocTaskIds = await getCarryOverAdhocTaskIds(userId, pendingPlan);
 
   return prisma.$transaction(async tx => {
-    const newPlan = await createPlanFromDraft(
+    const newPlan = await createPlanFromEntries(
       tx,
       userId,
       {
-        draftTemplates: draft.draftTemplates,
+        entries: draft.draftTemplates,
         description: draft.description,
         mode: PlanMode.NORMAL,
         adhocTaskIds,

@@ -1,5 +1,5 @@
+import {z} from 'zod';
 import {
-  getActivePlan,
   getPlanByStatus,
   getPlanWithTemplates,
   createPlan as dalCreatePlan,
@@ -11,10 +11,14 @@ import {
   createManyPlanTemplates,
   updatePlanTemplate,
 } from '@/lib/db/planTemplates';
-import {createManyTaskTemplates} from '@/lib/db/taskTemplates';
+import {
+  createManyTaskTemplates,
+  getOwnedTemplateIds,
+} from '@/lib/db/taskTemplates';
 import {
   createManyTasks,
   deleteIncompleteTasksByTemplateIds,
+  getNonDoneAdhocTasks,
   updateTasksPlanId,
   unlinkAdhocTasksFromPlan,
 } from '@/lib/db/tasks';
@@ -29,19 +33,54 @@ import {
 import prisma from '@/lib/prisma';
 import {getTodayDate, getISOWeekKey, isWeekend} from '@/utils/dateUtils';
 import {sizeToPoints} from '@/utils/sizeUtils';
-import type {PlanItem} from '@/lib/db/plans';
-import type {DraftTemplate} from '../types/aiChat';
-import type {z} from 'zod';
+import {diffPlanTemplates} from '@/utils/planUtils';
+import {ensureSynced} from './syncService';
+import type {PlanItem, PlanWithTemplates} from '@/lib/db/plans';
+import type {
+  NewPlanEntry,
+  PlanEntry,
+  PlanTemplateDiff,
+  PlanTemplateInput,
+} from '../types/plan';
 import type {createPlanSchema, updatePlanSchema} from '@/schemas';
 
 type CreatePlanData = z.infer<typeof createPlanSchema>;
 type UpdatePlanData = z.infer<typeof updatePlanSchema>;
-
-type PlanTemplateInput = {
-  templateId: string;
-  type: TaskType;
-  frequency: number;
+type FormError = {
+  error: {formErrors: string[]; fieldErrors: Record<string, never>};
 };
+
+const uuidSchema = z.string().uuid();
+
+/**
+ * A plan references templates the user does not own (or that do not exist).
+ * Thrown inside the plan transaction, so nothing is written; each entry point
+ * maps it to its own error surface.
+ */
+export class TemplateNotFoundError extends Error {
+  readonly templateIds: string[];
+
+  constructor(templateIds: string[]) {
+    super(`Template not found: ${templateIds.join(', ')}`);
+    this.name = 'TemplateNotFoundError';
+    this.templateIds = templateIds;
+  }
+}
+
+/**
+ * Throws TemplateNotFoundError unless every id is a template the user owns.
+ * Malformed ids (e.g. an LLM-invented one) never reach the uuid column.
+ */
+async function assertTemplatesOwned(
+  tx: Prisma.TransactionClient,
+  userId: string,
+  templateIds: string[],
+) {
+  const wellFormed = templateIds.filter(id => uuidSchema.safeParse(id).success);
+  const owned = await getOwnedTemplateIds(userId, wellFormed, tx);
+  const missing = templateIds.filter(id => !owned.has(id));
+  if (missing.length > 0) throw new TemplateNotFoundError(missing);
+}
 
 async function generateTasksForTemplates(
   userId: string,
@@ -113,11 +152,49 @@ async function generateTasksForTemplates(
   }
 }
 
+export type PlanCreationContext = {
+  /** The current-week ACTIVE plan after sync; creation must refuse while set. */
+  activePlan: PlanItem | null;
+  /** Last period's plan, completed by the new plan's creation. */
+  pendingPlan: PlanItem | null;
+  today: Date;
+  periodKey: string;
+};
+
+/**
+ * Guard reads shared by every plan-creation entry point (plan form, AI draft
+ * approval, MCP). Syncs first, so an ACTIVE plan from a finished week has
+ * already flipped to PENDING_UPDATE and does not block creation. Runs before
+ * the transaction to keep connection hold time short.
+ */
+export async function getPlanCreationContext(
+  userId: string,
+): Promise<PlanCreationContext> {
+  const activePlan = await ensureSynced(userId);
+  const pendingPlan = await getPlanByStatus(userId, PlanStatus.PENDING_UPDATE);
+  const today = getTodayDate();
+  return {activePlan, pendingPlan, today, periodKey: getISOWeekKey(today)};
+}
+
+/**
+ * The pending plan's non-done ad-hoc tasks: carried over to the new plan when
+ * the caller has no explicit selection (AI approval, MCP).
+ */
+export async function getCarryOverAdhocTaskIds(
+  userId: string,
+  pendingPlan: PlanItem | null,
+): Promise<string[]> {
+  if (!pendingPlan) return [];
+  const adhoc = await getNonDoneAdhocTasks(userId);
+  return adhoc.filter(t => t.planId === pendingPlan.id).map(t => t.id);
+}
+
 /**
  * Core plan-creation steps, running inside a caller-provided transaction. Lets
  * other flows (e.g. AI draft approval, which first creates new TaskTemplates)
  * compose plan creation into one atomic transaction. Guard reads (active plan,
- * pending plan) are the caller's responsibility.
+ * pending plan) are the caller's responsibility — see getPlanCreationContext.
+ * Throws TemplateNotFoundError when a template is not the user's.
  */
 export async function createPlanInTx(
   tx: Prisma.TransactionClient,
@@ -142,6 +219,12 @@ export async function createPlanInTx(
     adhocTaskIds,
     pendingPlan,
   } = params;
+
+  await assertTemplatesOwned(
+    tx,
+    userId,
+    templates.map(t => t.templateId),
+  );
 
   const newPlan = await dalCreatePlan(
     userId,
@@ -179,16 +262,17 @@ export async function createPlanInTx(
 }
 
 /**
- * Create a plan from an approved AI draft, inside a caller-provided transaction.
- * Batch-creates the draft's new templates (`templateId === null`), resolves every
- * entry to a real templateId, then runs the shared plan-creation core. Keeps the
- * whole approval (new templates + plan) atomic.
+ * Create a plan from template entries that mix existing templates (by id) and
+ * brand-new ones (`templateId: null`), inside a caller-provided transaction.
+ * Batch-creates the new templates, resolves every entry to a real templateId,
+ * then runs the shared plan-creation core — so new templates + plan are atomic.
+ * Used by AI draft approval (a DraftTemplate is a PlanEntry) and the MCP tools.
  */
-export async function createPlanFromDraft(
+export async function createPlanFromEntries(
   tx: Prisma.TransactionClient,
   userId: string,
   params: {
-    draftTemplates: DraftTemplate[];
+    entries: PlanEntry[];
     description?: string;
     mode: PlanMode;
     adhocTaskIds?: string[];
@@ -197,16 +281,18 @@ export async function createPlanFromDraft(
   periodKey: string,
   today: Date,
 ): Promise<PlanItem> {
-  const {draftTemplates, description, mode, adhocTaskIds, pendingPlan} = params;
+  const {entries, description, mode, adhocTaskIds, pendingPlan} = params;
 
-  const newEntries = draftTemplates.filter(d => d.templateId === null);
+  const newEntries = entries.filter(
+    (e): e is NewPlanEntry => e.templateId === null,
+  );
   const createdIds = newEntries.length
     ? await createManyTaskTemplates(
-        newEntries.map(d => ({
+        newEntries.map(e => ({
           userId,
-          title: d.title,
-          description: d.description,
-          size: d.size,
+          title: e.title,
+          description: e.description,
+          size: e.size,
         })),
         tx,
       )
@@ -214,10 +300,10 @@ export async function createPlanFromDraft(
 
   // Zip freshly-created ids back to the null entries (input order preserved).
   let nextNew = 0;
-  const templates: PlanTemplateInput[] = draftTemplates.map(d => ({
-    templateId: d.templateId ?? createdIds[nextNew++].id,
-    type: d.type,
-    frequency: d.frequency,
+  const templates: PlanTemplateInput[] = entries.map(e => ({
+    templateId: e.templateId ?? createdIds[nextNew++].id,
+    type: e.type,
+    frequency: e.frequency,
   }));
 
   return createPlanInTx(
@@ -239,22 +325,16 @@ export async function createPlanFromDraft(
 export async function createPlan(
   userId: string,
   data: CreatePlanData,
-): Promise<
-  PlanItem | {error: {formErrors: string[]; fieldErrors: Record<string, never>}}
-> {
+): Promise<PlanItem | FormError> {
   const {periodType, description, mode, templates, adhocTaskIds} = data;
 
-  // Guard reads — before transaction to keep connection hold time short
-  const existing = await getActivePlan(userId);
-  if (existing) {
+  const {activePlan, pendingPlan, today, periodKey} =
+    await getPlanCreationContext(userId);
+  if (activePlan) {
     return {
       error: {formErrors: ['An active plan already exists'], fieldErrors: {}},
     };
   }
-  const pendingPlan = await getPlanByStatus(userId, PlanStatus.PENDING_UPDATE);
-
-  const today = getTodayDate();
-  const periodKey = getISOWeekKey(today);
 
   return prisma.$transaction(tx =>
     createPlanInTx(
@@ -274,146 +354,147 @@ export async function createPlan(
   );
 }
 
+/**
+ * Apply a plan update inside a caller-provided transaction: template links
+ * (with task regeneration), ad-hoc links, description and mode — each only
+ * when present in `data`. Lets other flows (MCP, which first creates new
+ * templates) compose the update into one atomic transaction. `ownedPlan` is the
+ * caller's ownership gate: loading it authorizes every downstream mutation,
+ * including the plan_templates rows (which have no user_id of their own).
+ * Returns the applied template diff; throws TemplateNotFoundError when an
+ * added template is not the user's.
+ */
+export async function updatePlanInTx(
+  tx: Prisma.TransactionClient,
+  userId: string,
+  ownedPlan: PlanWithTemplates,
+  data: UpdatePlanData,
+  today: Date,
+): Promise<PlanTemplateDiff> {
+  const {description, mode, templates, adhocTaskIds} = data;
+  const planId = ownedPlan.id;
+  const currentLinks = ownedPlan.planTemplates;
+  const diff = diffPlanTemplates(currentLinks, templates ?? currentLinks);
+
+  // Template changes
+  if (templates !== undefined) {
+    const {added, removed, modified} = diff;
+    await assertTemplatesOwned(
+      tx,
+      userId,
+      added.map(t => t.templateId),
+    );
+
+    const periodKey = getISOWeekKey(today);
+    // Resolve effective mode: use new mode if changed, otherwise the owned plan's current mode
+    const effectiveMode = mode ?? ownedPlan.mode;
+    const linkByTemplateId = new Map(currentLinks.map(l => [l.templateId, l]));
+
+    // Removed: delete BACKLOG/TODO/DOING tasks + remove PlanTemplate links
+    if (removed.length > 0) {
+      await deleteIncompleteTasksByTemplateIds(userId, planId, removed, tx);
+      // plan_templates has no user_id; planId ownership was verified by the caller
+      await tx.planTemplate.deleteMany({
+        where: {planId, templateId: {in: removed}},
+      });
+    }
+
+    // Modified: delete BACKLOG/TODO/DOING tasks, update PlanTemplate, regenerate
+    for (const t of modified) {
+      await deleteIncompleteTasksByTemplateIds(
+        userId,
+        planId,
+        [t.templateId],
+        tx,
+      );
+      const link = linkByTemplateId.get(t.templateId)!;
+      await updatePlanTemplate(
+        link.id,
+        {type: t.type, frequency: t.frequency},
+        tx,
+      );
+    }
+    if (modified.length > 0) {
+      await generateTasksForTemplates(
+        userId,
+        planId,
+        periodKey,
+        modified,
+        today,
+        effectiveMode,
+        tx,
+      );
+    }
+
+    // Added: create PlanTemplate links + generate instances
+    if (added.length > 0) {
+      await createManyPlanTemplates(planId, added, tx);
+      await generateTasksForTemplates(
+        userId,
+        planId,
+        periodKey,
+        added,
+        today,
+        effectiveMode,
+        tx,
+      );
+    }
+
+    await updateLastSyncDate(userId, planId, today, tx);
+  }
+
+  // Ad-hoc task changes: link new, unlink removed
+  if (adhocTaskIds !== undefined) {
+    if (adhocTaskIds.length > 0) {
+      await updateTasksPlanId(userId, adhocTaskIds, planId, tx);
+    }
+    await unlinkAdhocTasksFromPlan(userId, planId, adhocTaskIds, tx);
+  }
+
+  if (description !== undefined || mode !== undefined) {
+    await dalUpdatePlan(
+      userId,
+      planId,
+      {
+        ...(description !== undefined && {description}),
+        ...(mode !== undefined && {mode}),
+      },
+      tx,
+    );
+  }
+
+  return diff;
+}
+
 export async function updatePlan(
   userId: string,
   planId: string,
   data: UpdatePlanData,
-): Promise<
-  | {error: {formErrors: string[]; fieldErrors: Record<string, never>}}
-  | undefined
-> {
+): Promise<FormError | {diff: PlanTemplateDiff}> {
   const {description, mode, templates, adhocTaskIds} = data;
 
-  // Ownership gate: loading the owned plan authorizes every downstream mutation,
-  // including the plan_templates rows (which have no user_id of their own).
+  // Ownership gate: loading the owned plan authorizes every downstream mutation.
   const ownedPlan = await getPlanWithTemplates(userId, planId);
   if (!ownedPlan) {
     return {error: {formErrors: ['Plan not found'], fieldErrors: {}}};
   }
 
-  const hasTemplateChanges = templates !== undefined;
-  const hasAdhocChanges = adhocTaskIds !== undefined;
-  const hasDescriptionChange = description !== undefined;
-  const hasModeChange = mode !== undefined;
-
-  if (hasTemplateChanges || hasAdhocChanges) {
-    // Reuse the PlanTemplate records already loaded by the ownership gate — diff doesn't need transactional isolation
-    const currentLinks = hasTemplateChanges ? ownedPlan.planTemplates : [];
-    const currentMap = new Map(currentLinks.map(l => [l.templateId, l]));
-    const newMap = hasTemplateChanges
-      ? new Map(templates.map(t => [t.templateId, t]))
-      : new Map<string, PlanTemplateInput>();
-
-    const addedTemplates = hasTemplateChanges
-      ? templates.filter(t => !currentMap.has(t.templateId))
-      : [];
-    const removedIds = hasTemplateChanges
-      ? currentLinks
-          .filter(l => !newMap.has(l.templateId))
-          .map(l => l.templateId)
-      : [];
-    const modifiedTemplates = hasTemplateChanges
-      ? templates.filter(t => {
-          const current = currentMap.get(t.templateId);
-          return (
-            current &&
-            (current.type !== t.type || current.frequency !== t.frequency)
-          );
-        })
-      : [];
-
+  if (templates !== undefined || adhocTaskIds !== undefined) {
     const today = getTodayDate();
-    const periodKey = getISOWeekKey(today);
+    const diff = await prisma.$transaction(tx =>
+      updatePlanInTx(tx, userId, ownedPlan, data, today),
+    );
+    return {diff};
+  }
 
-    // Resolve effective mode: use new mode if changed, otherwise the owned plan's current mode
-    const effectiveMode = mode ?? ownedPlan.mode;
-
-    await prisma.$transaction(async tx => {
-      // Template changes
-      if (hasTemplateChanges) {
-        // Removed: delete TODO/DOING tasks + remove PlanTemplate links
-        if (removedIds.length > 0) {
-          await deleteIncompleteTasksByTemplateIds(
-            userId,
-            planId,
-            removedIds,
-            tx,
-          );
-          // plan_templates has no user_id; planId ownership was verified above
-          await tx.planTemplate.deleteMany({
-            where: {planId, templateId: {in: removedIds}},
-          });
-        }
-
-        // Modified: delete TODO/DOING tasks, update PlanTemplate, regenerate
-        for (const t of modifiedTemplates) {
-          await deleteIncompleteTasksByTemplateIds(
-            userId,
-            planId,
-            [t.templateId],
-            tx,
-          );
-          const link = currentMap.get(t.templateId)!;
-          await updatePlanTemplate(
-            link.id,
-            {type: t.type, frequency: t.frequency},
-            tx,
-          );
-        }
-        if (modifiedTemplates.length > 0) {
-          await generateTasksForTemplates(
-            userId,
-            planId,
-            periodKey,
-            modifiedTemplates,
-            today,
-            effectiveMode,
-            tx,
-          );
-        }
-
-        // Added: create PlanTemplate links + generate instances
-        if (addedTemplates.length > 0) {
-          await createManyPlanTemplates(planId, addedTemplates, tx);
-          await generateTasksForTemplates(
-            userId,
-            planId,
-            periodKey,
-            addedTemplates,
-            today,
-            effectiveMode,
-            tx,
-          );
-        }
-
-        await updateLastSyncDate(userId, planId, today, tx);
-      }
-
-      // Ad-hoc task changes: link new, unlink removed
-      if (hasAdhocChanges) {
-        if (adhocTaskIds.length > 0) {
-          await updateTasksPlanId(userId, adhocTaskIds, planId, tx);
-        }
-        await unlinkAdhocTasksFromPlan(userId, planId, adhocTaskIds, tx);
-      }
-
-      if (hasDescriptionChange || hasModeChange) {
-        await dalUpdatePlan(
-          userId,
-          planId,
-          {
-            ...(hasDescriptionChange && {description}),
-            ...(hasModeChange && {mode}),
-          },
-          tx,
-        );
-      }
-    });
-  } else if (hasDescriptionChange || hasModeChange) {
+  if (description !== undefined || mode !== undefined) {
     // Description/mode-only update — single write, no transaction overhead needed
     await dalUpdatePlan(userId, planId, {
-      ...(hasDescriptionChange && {description}),
-      ...(hasModeChange && {mode}),
+      ...(description !== undefined && {description}),
+      ...(mode !== undefined && {mode}),
     });
   }
+  return {
+    diff: diffPlanTemplates(ownedPlan.planTemplates, ownedPlan.planTemplates),
+  };
 }
