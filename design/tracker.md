@@ -15,9 +15,17 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ## Plan
 
+### High
+
+- [ ] MCP server, Phase 1 — Claude creates/updates plans through the app over MCP, one PR per step
+  - [x] 1/5 Skeleton — `/api/mcp` + temporary `echo` tool, 404 in production
+  - [ ] 2/5 Service refactor — shared create guard, `updatePlanInTx`, patch → full-list helper, `getPlanningContext`
+  - [ ] 3/5 Planning tools — `get_planning_context` / `create_plan` / `update_plan` + server instructions (dev identity, still 404 in production)
+  - [ ] 4/5 OAuth consent page (`/oauth/consent`) + login return-to (`?next=`)
+  - [ ] 5/5 Token auth (`withMcpAuth` + protected-resource metadata), lift the production gate, connect the custom connector in Claude
+
 ### Medium
 
-- [ ] MCP server, Phase 1 — Claude creates/updates plans through the app. Skeleton landed (`/api/mcp`, 404 in production); remaining, one PR each: service refactor, planning tools (`get_planning_context` / `create_plan` / `update_plan`), OAuth consent page + login return-to, token auth + go-live
 - [ ] Add AI-generated task instance flow — LLM should be able to generate task instances based on past work + task template information; need to record the quality of tasks it generated
 - [ ] Mobile adaptation for the AI plan chat modal — it stays a 640px-capped centered card on phones while sibling modals (TaskModal, ReviewChangesModal) switch to `modal-bottom` sheets; no mobile presentation exists yet (design it first via `/design-explore`, then implement)
 - [ ] Redesign the template edit (pencil) affordance for discoverability — currently `opacity-0 group-hover:opacity-100` on TemplateItem, so it's invisible on touch and hidden-until-hover on desktop. Needs a design exploration (`/design-explore`) before implementation
