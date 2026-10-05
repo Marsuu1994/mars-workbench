@@ -90,3 +90,5 @@ Error presentation is unstyled or ad-hoc across the app (the AI chat's red alert
 - [ ] Phone notifications for unfinished tasks
 - [ ] LLM-generated motivational messages
 - [ ] Evaluate Storybook vs. the in-app `/design` gallery + scenarios as the long-term UI workbench — spike written with pros/cons + phased migration plan: `design/spike/design-console-vs-storybook.md` (awaiting review)
+- [ ] Custom domain — move off `*.vercel.app`; update Supabase Site URL + Redirect URLs. The planned MCP connector URL (and its protected-resource `resource`) is tied to the domain, so a later switch means re-adding the connector in Claude
+- [ ] Separate dev environment, including the DB — local dev currently shares the production Supabase project (data, Auth config, single Site URL); set up a dev Supabase project or branch + env vars so local work and write-tool testing never touch prod data
