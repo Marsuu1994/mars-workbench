@@ -204,3 +204,9 @@ export type ResumeDraftPlanInput = z.infer<typeof resumeDraftPlanSchema>;
 
 export const updateThemeSchema = z.object({theme: z.enum(THEMES)});
 export type UpdateThemeInput = z.infer<typeof updateThemeSchema>;
+
+// ── MCP Tool Schemas ───────────────────────────────────────────────────
+
+export const mcpEchoInputSchema = z.object({
+  message: z.string().min(1).describe('Text to send back unchanged'),
+});

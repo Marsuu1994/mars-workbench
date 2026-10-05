@@ -19,6 +19,7 @@ A Next.js application centered on a Kanban Period Planner, with AI-assisted plan
 - Database: PostgreSQL (Supabase) + Prisma ORM
 - Auth: Supabase Auth (Google OAuth)
 - LLM: OpenAI (`gpt-5-nano`) for AI-assisted plan creation — non-streaming structured output (`zodResponseFormat`)
+- MCP: `mcp-handler` + `@modelcontextprotocol/server` (v2) — remote MCP endpoint at `/api/mcp` (Streamable HTTP) so Claude can plan through the app; answers 404 in production until the OAuth layer lands
 - Icons: Heroicons
 - Language: TypeScript
 
@@ -41,7 +42,7 @@ design/                            # Centralized design docs (see design/README.
 └── mockup/future-work/            # Self-contained HTML explorations of unbuilt designs only
 src/
 ├── proxy.ts                       # Route protection (Supabase session check)
-├── app/                           # App Router: auth/, kanban/ (board, plans, priorities, settings),
+├── app/                           # App Router: auth/, kanban/ (board, plans, priorities, settings), api/mcp/,
 │                                  #   design/ (Design Console: layer-tabbed gallery + scenarios/),
 │                                  #   layout.tsx, globals.css
 ├── generated/prisma/              # Generated Prisma client (gitignored)
@@ -49,6 +50,7 @@ src/
 ├── services/                      # ALL business logic (no 'use server'); syncService.ensureSynced entry point
 ├── store/                         # Zustand stores, one per domain
 ├── hooks/                         # Store ↔ server-action bridges
+├── mcp/                           # MCP server: tool registration — thin validate → service, like actions/
 ├── prompt/                        # LLM prompt builders — never translated
 ├── types/                         # Shared domain types
 ├── utils/                         # Domain helpers (client-safe) — except statsUtils.ts (server-only)
@@ -324,6 +326,7 @@ npm run lint     # Lint
 npm run format       # Format all code with Prettier (Google style)
 npm run format:check # Verify formatting (used in CI)
 npm run check:themes # Every theme declares the same CSS variables (used in CI)
+npx @modelcontextprotocol/inspector --cli http://localhost:3000/api/mcp --transport http --method tools/list  # MCP smoke test (or drop --cli for the UI)
 npx prisma studio
 npx prisma migrate dev
 npx prisma generate
