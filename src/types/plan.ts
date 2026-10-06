@@ -72,7 +72,7 @@ export type PlanTemplatePatchConflicts = {
 // ── Planning context (MCP) ─────────────────────────────────────────────
 
 /** A reusable template as the planning tools list it. */
-export type PlanningTemplate = {
+export type TaskTemplateSummary = {
   templateId: string;
   title: string;
   description: string;
@@ -81,20 +81,20 @@ export type PlanningTemplate = {
 };
 
 /** Task-instance counts: so far for the active plan, final for a finished one. */
-export type PlanningProgress = {
+export type TaskProgress = {
   completed: number;
   expired: number;
   total: number;
   completionRate: number;
 };
 
-/** One template slot of a plan: the template, its per-plan config, and its progress. */
-export type PlanningPlanLine = PlanTemplateInput &
-  Pick<PlanningTemplate, 'title' | 'size' | 'points'> &
-  PlanningProgress;
+/** One template of a plan: the template, its per-plan config, and its progress. */
+export type PlanTemplateWithProgress = PlanTemplateInput &
+  Pick<TaskTemplateSummary, 'title' | 'size' | 'points'> &
+  TaskProgress;
 
 /** An unfinished one-off task attached to a plan. */
-export type PlanningAdhocTask = {
+export type AdhocTaskSummary = {
   taskId: string;
   title: string;
   size: TaskSize;
@@ -102,17 +102,17 @@ export type PlanningAdhocTask = {
   status: TaskStatus;
 };
 
-/** A plan as the planning tools describe it. */
-export type PlanningPlan = {
+/** One plan as the planning tools describe it (see getPlanContextByPlanId). */
+export type PlanContext = {
   planId: string;
   periodKey: string;
   description: string | null;
   mode: PlanMode;
-  templates: PlanningPlanLine[];
+  templates: PlanTemplateWithProgress[];
   /** Non-done one-off tasks attached to the plan */
-  adhocTasks: PlanningAdhocTask[];
+  adhocTasks: AdhocTaskSummary[];
   /** Totals over every template instance of the plan */
-  overall: PlanningProgress & {
+  overall: TaskProgress & {
     /** completionRate over DAILY instances only (habit signal) */
     dailyCompletionRate: number;
     pointsEarned: number;
@@ -130,22 +130,22 @@ export type PlanningContext = {
   weekday: string;
   timeZone: string;
   week: {periodKey: string; start: string; end: string};
-  activePlan: PlanningPlan | null;
-  lastPlan: PlanningPlan | null;
+  activePlan: PlanContext | null;
+  lastPlan: PlanContext | null;
   /** Non-archived templates, newest first */
-  templates: PlanningTemplate[];
+  templates: TaskTemplateSummary[];
 };
 
 /** A template or one-off task named in a change summary. */
 export type PlanChangeRef = {id: string; title: string};
 
 /** What a patch changed, plus the plan as it stands afterwards. */
-export type PlanPatchOutcome = {
+export type PlanPatchResult = {
   changes: {
     addedTemplates: PlanChangeRef[];
     modifiedTemplates: PlanChangeRef[];
     removedTemplates: PlanChangeRef[];
     removedAdhocTasks: PlanChangeRef[];
   };
-  plan: PlanningPlan;
+  plan: PlanContext;
 };

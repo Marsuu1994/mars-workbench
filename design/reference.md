@@ -48,7 +48,7 @@ Inventory of the handlers and data-access functions that already exist, so new w
 
 ## MCP (src/mcp, served at /api/mcp)
 
-Tools act for the user in `request.auth` (`src/mcp/auth.ts`); until token auth lands only local dev has one (`MCP_DEV_USER_ID`). Server instructions: `src/prompt/mcpServerInstructions.ts`.
+Tools act for the user in `request.auth` (`src/mcp/middleware/auth.ts`); until token auth lands only local dev has one (`MCP_DEV_USER_ID`). Server instructions and tool descriptions: `src/mcp/prompts/`; error messages: `src/utils/errorMessages.ts`.
 
 | Tool | Purpose | Calls |
 | --- | --- | --- |

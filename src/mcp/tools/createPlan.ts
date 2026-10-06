@@ -1,15 +1,15 @@
 import type {McpServer} from '@modelcontextprotocol/server';
 import {planSpecSchema} from '@/schemas';
 import {createPlanFromSpec} from '@/services/planningService';
-import {runTool} from '../runTool';
+import {runTool} from '../middleware/runTool';
+import {TOOL_DESCRIPTIONS} from '../prompts/toolDescriptions';
 
 export const registerCreatePlanTool = (server: McpServer) => {
   server.registerTool(
     'create_plan',
     {
       title: 'Create plan',
-      description:
-        "Create this week's plan — only when get_planning_context shows no activePlan. Run existing templates by templateId in `templates` and add brand-new ones in `newTemplates`. Completes lastPlan and moves its unfinished one-off tasks into the new plan (all of them by default). Task instances are generated into the user's backlog. Agree on the plan with the user before calling.",
+      description: TOOL_DESCRIPTIONS.CREATE_PLAN,
       inputSchema: planSpecSchema,
       annotations: {
         readOnlyHint: false,
@@ -18,7 +18,7 @@ export const registerCreatePlanTool = (server: McpServer) => {
         openWorldHint: false,
       },
     },
-    async (spec, ctx) =>
-      runTool(ctx, userId => createPlanFromSpec(userId, spec)),
+    async (planSpec, context) =>
+      runTool(context, userId => createPlanFromSpec(userId, planSpec)),
   );
 };

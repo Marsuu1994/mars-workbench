@@ -50,8 +50,11 @@ src/
 ├── services/                      # ALL business logic (no 'use server'); syncService.ensureSynced entry point
 ├── store/                         # Zustand stores, one per domain
 ├── hooks/                         # Store ↔ server-action bridges
-├── mcp/                           # MCP server: tool registration — thin validate → service, like actions/
-├── prompt/                        # LLM prompt builders — never translated
+├── mcp/                           # MCP server — thin validate → service, like actions/
+│   ├── tools/                     #   one file per tool: schema + annotations → service
+│   ├── prompts/                   #   LLM-facing text: server instructions, tool descriptions — never translated
+│   └── middleware/                #   identity (auth) + result/error shaping (runTool)
+├── prompt/                        # LLM prompt builders for the in-app AI chat — never translated
 ├── types/                         # Shared domain types
 ├── utils/                         # Domain helpers (client-safe) — except statsUtils.ts (server-only)
 ├── schemas.ts                     # All zod schemas
@@ -128,6 +131,8 @@ When adding a new convention, append it to the **end of the relevant subsection 
 - Keep file names aligned with component names when renaming.
 - **One file → one component**, and the file name maps to the component name. When a component grows a shell-free sibling (a `*Panel` extracted from a modal), the sibling gets its own file — never two exported components in one file. Bad: `SettingsSheet.tsx` exporting both `SettingsPanel` and `SettingsSheet`. Good: `SettingsPanel.tsx` + `SettingsSheet.tsx`, the sheet importing the panel.
 - **Destructure objects instead of repeated member access.** When two or more properties of the same object are used — a hook's return value, a data record, a nested result — pull them out with a destructuring binding up front rather than repeating `obj.a`, `obj.b` at each use. A single one-off access can stay as `obj.a`. Bad: `const feed = useDumpFeed(...); … feed.entries … feed.capture … feed.hasMore`. Good: `const {entries, capture, hasMore} = useDumpFeed(...);`. (For a possibly-nullish source, destructure off a fallback: `const {entries, nextCursor} = result ?? {entries: [], nextCursor: null};`.)
+- **Name things plainly — clear and boring beats short or clever.** Anyone should understand a name without opening its definition. A function says what it returns or does, including what it looks up by; a variable or parameter says what it holds — callback parameters included. Full words only: no abbreviations or one-letter names, except the established `id`, `tx` (Prisma transaction) and next-intl's `t`. Bad: `getPlanningPlan(userId, planId)`, `const [templates, active, last] = …`, `runTool(ctx, body)`, `rows.map(r => r.expired)`. Good: `getPlanContextByPlanId(userId, planId)`, `const [existingTaskTemplates, activePlanContext, pendingPlanContext] = …`, `runTool(context, toolFunction)`, `templateStats.map(stats => stats.expired)`.
+- **LLM-facing error messages live in `src/utils/errorMessages.ts`**, one UPPER_SNAKE object per surface (`PLANNING_ERROR`, `MCP_ERROR`); a message with dynamic parts is a function of them. Bad: `` throw new PlanningError(`This week already has an active plan (${id})…`) `` inline in a service. Good: `throw new PlanningError(PLANNING_ERROR.ACTIVE_PLAN_EXISTS(activePlan.id))`. (User-facing copy still goes through `en.json`.)
 
 ### Enums
 

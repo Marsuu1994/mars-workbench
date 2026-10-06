@@ -16,7 +16,8 @@ import {
 import {ensureSynced} from './syncService';
 import {sizeToPoints} from '@/utils/sizeUtils';
 import {rollUpOverall} from '@/utils/statsUtils';
-import {applyTemplatePatch, findRepeated} from '@/utils/planUtils';
+import {applyTemplatePatch, findRepeatedIds} from '@/utils/planUtils';
+import {PLANNING_ERROR} from '@/utils/errorMessages';
 import {
   KANBAN_TZ,
   formatISODate,
@@ -26,21 +27,21 @@ import {
 } from '@/utils/dateUtils';
 import type {PlanPatchInput, PlanSpecInput} from '@/schemas';
 import type {
+  AdhocTaskSummary,
   NewPlanEntry,
   PlanChangeRef,
-  PlanPatchOutcome,
+  PlanContext,
+  PlanPatchResult,
   PlanTemplatePatchConflicts,
-  PlanningAdhocTask,
   PlanningContext,
-  PlanningPlan,
-  PlanningProgress,
+  TaskProgress,
 } from '../types/plan';
 
 /**
  * A planning request the user's current data cannot satisfy — an active plan
  * already exists, a stale plan id, conflicting template changes, unknown
- * one-off tasks. Thrown before anything is written; the message tells the
- * assistant what to do instead.
+ * one-off tasks. Thrown before anything is written; the message (from
+ * PLANNING_ERROR) tells the assistant what to do instead.
  */
 export class PlanningError extends Error {
   constructor(message: string) {
@@ -49,70 +50,79 @@ export class PlanningError extends Error {
   }
 }
 
-const CONFLICT_REASONS = [
-  ['alreadyInPlan', 'already in the plan (change them with updateTemplates)'],
-  ['notInPlan', 'not in the plan'],
-  ['repeated', 'named more than once'],
-] as const;
-
-/** A linked template with no task instances yet (e.g. DAILY on a NORMAL weekend). */
-const NO_PROGRESS: PlanningProgress = {
+/** Progress of a linked template with no task instances yet (e.g. DAILY on a NORMAL weekend). */
+const NO_PROGRESS: TaskProgress = {
   completed: 0,
   expired: 0,
   total: 0,
   completionRate: 0,
 };
 
-const round2 = (n: number) => Math.round(n * 100) / 100;
+const roundToTwoDecimals = (value: number) => Math.round(value * 100) / 100;
 
+/** New-template inputs as plan entries (`templateId: null` = create it). */
 const toNewPlanEntries = (
   newTemplates: Omit<NewPlanEntry, 'templateId'>[],
-): NewPlanEntry[] => newTemplates.map(t => ({...t, templateId: null}));
+): NewPlanEntry[] =>
+  newTemplates.map(newTemplate => ({...newTemplate, templateId: null}));
 
-const toPlanningAdhocTask = ({
+const toAdhocTaskSummary = ({
   id,
   title,
   size,
   points,
   status,
-}: TaskItem): PlanningAdhocTask => ({taskId: id, title, size, points, status});
+}: TaskItem): AdhocTaskSummary => ({taskId: id, title, size, points, status});
 
-function assertNoConflicts(conflicts: PlanTemplatePatchConflicts) {
-  const problems = CONFLICT_REASONS.filter(
-    ([key]) => conflicts[key].length > 0,
-  ).map(([key, reason]) => `${reason}: ${conflicts[key].join(', ')}`);
+/** Throws a PlanningError naming every template id the patch cannot apply. */
+function assertNoPatchConflicts({
+  alreadyInPlan,
+  notInPlan,
+  repeated,
+}: PlanTemplatePatchConflicts) {
+  const problems: string[] = [];
+  if (alreadyInPlan.length > 0) {
+    problems.push(PLANNING_ERROR.TEMPLATES_ALREADY_IN_PLAN(alreadyInPlan));
+  }
+  if (notInPlan.length > 0) {
+    problems.push(PLANNING_ERROR.TEMPLATES_NOT_IN_PLAN(notInPlan));
+  }
+  if (repeated.length > 0) {
+    problems.push(PLANNING_ERROR.TEMPLATES_LISTED_TWICE(repeated));
+  }
   if (problems.length > 0) {
-    throw new PlanningError(
-      `No changes were made. Template ids ${problems.join('; ')}.`,
-    );
+    throw new PlanningError(PLANNING_ERROR.PATCH_REJECTED(problems));
   }
 }
 
 /**
- * One plan as the planning tools describe it: its template lines with their
- * instance counts (so far for the active plan), its unfinished one-off tasks,
- * and the overall totals.
+ * One plan as the planning tools describe it: its templates with their
+ * progress (so far for the active plan), its unfinished one-off tasks, and the
+ * overall totals. Shared by the planning context and both write results.
  */
-async function getPlanningPlan(
+async function getPlanContextByPlanId(
   userId: string,
   planId: string,
-): Promise<PlanningPlan> {
-  const [plan, statRows, adhocTasks] = await Promise.all([
-    getPlanWithTemplates(userId, planId),
-    getPlanTemplateStats(userId, planId),
-    getNonDoneAdhocTasks(userId),
-  ]);
-  if (!plan) throw new Error(`Plan not found: ${planId}`);
+): Promise<PlanContext> {
+  const [planWithTemplates, templateStats, nonDoneAdhocTasks] =
+    await Promise.all([
+      getPlanWithTemplates(userId, planId),
+      getPlanTemplateStats(userId, planId),
+      getNonDoneAdhocTasks(userId),
+    ]);
+  if (!planWithTemplates) throw new Error(`Plan not found: ${planId}`);
 
-  const {id, periodKey, description, mode, planTemplates} = plan;
-  const statsByTemplate = new Map(statRows.map(r => [r.templateId, r]));
+  const {id, periodKey, description, mode, planTemplates} = planWithTemplates;
+  const templateStatsById = new Map(
+    templateStats.map(stats => [stats.templateId, stats]),
+  );
   const {
     completedCount,
     totalCount,
     completionRate,
     dailyCompletionRate,
     totalPoints,
-  } = rollUpOverall(statRows);
+  } = rollUpOverall(templateStats);
 
   return {
     planId: id,
@@ -122,7 +132,7 @@ async function getPlanningPlan(
     templates: planTemplates.map(
       ({templateId, type, frequency, template: {title, size}}) => {
         const {completed, expired, total, completionRate} =
-          statsByTemplate.get(templateId) ?? NO_PROGRESS;
+          templateStatsById.get(templateId) ?? NO_PROGRESS;
         return {
           templateId,
           title,
@@ -133,19 +143,22 @@ async function getPlanningPlan(
           completed,
           expired,
           total,
-          completionRate: round2(completionRate),
+          completionRate: roundToTwoDecimals(completionRate),
         };
       },
     ),
-    adhocTasks: adhocTasks
-      .filter(t => t.planId === id)
-      .map(toPlanningAdhocTask),
+    adhocTasks: nonDoneAdhocTasks
+      .filter(task => task.planId === id)
+      .map(toAdhocTaskSummary),
     overall: {
       completed: completedCount,
-      expired: statRows.reduce((sum, r) => sum + r.expired, 0),
+      expired: templateStats.reduce(
+        (expiredCount, stats) => expiredCount + stats.expired,
+        0,
+      ),
       total: totalCount,
-      completionRate: round2(completionRate),
-      dailyCompletionRate: round2(dailyCompletionRate),
+      completionRate: roundToTwoDecimals(completionRate),
+      dailyCompletionRate: roundToTwoDecimals(dailyCompletionRate),
       pointsEarned: totalPoints,
     },
   };
@@ -162,11 +175,12 @@ export async function getPlanningContext(
 ): Promise<PlanningContext> {
   const {activePlan, pendingPlan, today, periodKey} =
     await getPlanCreationContext(userId);
-  const [templates, active, last] = await Promise.all([
-    getTaskTemplates(userId),
-    activePlan && getPlanningPlan(userId, activePlan.id),
-    pendingPlan && getPlanningPlan(userId, pendingPlan.id),
-  ]);
+  const [existingTaskTemplates, activePlanContext, pendingPlanContext] =
+    await Promise.all([
+      getTaskTemplates(userId),
+      activePlan && getPlanContextByPlanId(userId, activePlan.id),
+      pendingPlan && getPlanContextByPlanId(userId, pendingPlan.id),
+    ]);
 
   return {
     today: formatISODate(today),
@@ -177,9 +191,9 @@ export async function getPlanningContext(
       start: formatISODate(getMondayFromPeriodKey(periodKey)),
       end: formatISODate(getSundayFromPeriodKey(periodKey)),
     },
-    activePlan: active,
-    lastPlan: last,
-    templates: templates.map(({id, title, description, size}) => ({
+    activePlan: activePlanContext,
+    lastPlan: pendingPlanContext,
+    templates: existingTaskTemplates.map(({id, title, description, size}) => ({
       templateId: id,
       title,
       description,
@@ -197,52 +211,61 @@ export async function getPlanningContext(
  */
 export async function createPlanFromSpec(
   userId: string,
-  spec: PlanSpecInput,
-): Promise<{plan: PlanningPlan}> {
+  planSpec: PlanSpecInput,
+): Promise<{plan: PlanContext}> {
   const {description, mode, templates, newTemplates, carryOverAdhocTaskIds} =
-    spec;
+    planSpec;
 
   const {activePlan, pendingPlan, today, periodKey} =
     await getPlanCreationContext(userId);
   if (activePlan) {
+    throw new PlanningError(PLANNING_ERROR.ACTIVE_PLAN_EXISTS(activePlan.id));
+  }
+
+  const repeatedTemplateIds = findRepeatedIds(
+    templates.map(template => template.templateId),
+  );
+  if (repeatedTemplateIds.length > 0) {
     throw new PlanningError(
-      `This week already has an active plan (${activePlan.id}); change that plan instead of creating another.`,
+      PLANNING_ERROR.TEMPLATES_LISTED_TWICE(repeatedTemplateIds),
     );
   }
 
-  const repeated = findRepeated(templates.map(t => t.templateId));
-  if (repeated.length > 0) {
+  const carryOverCandidateIds = await getCarryOverAdhocTaskIds(
+    userId,
+    pendingPlan,
+  );
+  const adhocTaskIdsToCarry = carryOverAdhocTaskIds ?? carryOverCandidateIds;
+  const notCarryableTaskIds = adhocTaskIdsToCarry.filter(
+    taskId => !carryOverCandidateIds.includes(taskId),
+  );
+  if (notCarryableTaskIds.length > 0) {
     throw new PlanningError(
-      `Templates listed more than once: ${repeated.join(', ')}.`,
+      PLANNING_ERROR.ADHOC_TASKS_NOT_IN_LAST_PLAN(notCarryableTaskIds),
     );
   }
 
-  const carryOverIds = await getCarryOverAdhocTaskIds(userId, pendingPlan);
-  const adhocTaskIds = carryOverAdhocTaskIds ?? carryOverIds;
-  const notCarryable = adhocTaskIds.filter(id => !carryOverIds.includes(id));
-  if (notCarryable.length > 0) {
-    throw new PlanningError(
-      `Not unfinished one-off tasks of the last plan: ${notCarryable.join(', ')}.`,
-    );
+  const planEntries = [...templates, ...toNewPlanEntries(newTemplates)];
+  if (planEntries.length === 0 && adhocTaskIdsToCarry.length === 0) {
+    throw new PlanningError(PLANNING_ERROR.EMPTY_PLAN);
   }
 
-  const entries = [...templates, ...toNewPlanEntries(newTemplates)];
-  if (entries.length === 0 && adhocTaskIds.length === 0) {
-    throw new PlanningError(
-      'A plan needs at least one template or carried-over one-off task.',
-    );
-  }
-
-  const plan = await prisma.$transaction(tx =>
+  const createdPlan = await prisma.$transaction(tx =>
     createPlanFromEntries(
       tx,
       userId,
-      {entries, description, mode, adhocTaskIds, pendingPlan},
+      {
+        entries: planEntries,
+        description,
+        mode,
+        adhocTaskIds: adhocTaskIdsToCarry,
+        pendingPlan,
+      },
       periodKey,
       today,
     ),
   );
-  return {plan: await getPlanningPlan(userId, plan.id)};
+  return {plan: await getPlanContextByPlanId(userId, createdPlan.id)};
 }
 
 /**
@@ -253,8 +276,8 @@ export async function createPlanFromSpec(
  */
 export async function patchActivePlan(
   userId: string,
-  patch: PlanPatchInput,
-): Promise<PlanPatchOutcome> {
+  planPatch: PlanPatchInput,
+): Promise<PlanPatchResult> {
   const {
     planId,
     description,
@@ -264,97 +287,106 @@ export async function patchActivePlan(
     updateTemplates,
     removeTemplateIds,
     removeAdhocTaskIds,
-  } = patch;
+  } = planPatch;
 
   // Ownership + current-week gate: ensureSynced returns the user's own
   // current-week ACTIVE plan (a finished week's plan is flipped first).
   const activePlan = await ensureSynced(userId);
-  if (activePlan?.id !== planId) {
+  if (!activePlan) {
+    throw new PlanningError(PLANNING_ERROR.NO_ACTIVE_PLAN(planId));
+  }
+  if (activePlan.id !== planId) {
     throw new PlanningError(
-      activePlan
-        ? `Plan ${planId} is not this week's active plan; the active plan is ${activePlan.id}.`
-        : `Plan ${planId} is not this week's active plan; this week has no active plan yet, so create one.`,
+      PLANNING_ERROR.NOT_ACTIVE_PLAN(planId, activePlan.id),
     );
   }
 
-  const [ownedPlan, adhocTasks] = await Promise.all([
+  const [planBeforePatch, nonDoneAdhocTasks] = await Promise.all([
     getPlanWithTemplates(userId, planId),
     getNonDoneAdhocTasks(userId),
   ]);
-  if (!ownedPlan) throw new Error(`Plan not found: ${planId}`);
+  if (!planBeforePatch) throw new Error(`Plan not found: ${planId}`);
 
-  const {templates, conflicts} = applyTemplatePatch(ownedPlan.planTemplates, {
-    addTemplates,
-    updateTemplates,
-    removeTemplateIds,
-  });
-  assertNoConflicts(conflicts);
+  const {templates: patchedTemplates, conflicts} = applyTemplatePatch(
+    planBeforePatch.planTemplates,
+    {addTemplates, updateTemplates, removeTemplateIds},
+  );
+  assertNoPatchConflicts(conflicts);
 
-  const linkedAdhoc = adhocTasks.filter(t => t.planId === planId);
-  const linkedAdhocIds = new Set(linkedAdhoc.map(t => t.id));
-  const notLinked = removeAdhocTaskIds.filter(id => !linkedAdhocIds.has(id));
-  if (notLinked.length > 0) {
+  const planAdhocTasks = nonDoneAdhocTasks.filter(
+    task => task.planId === planId,
+  );
+  const unknownAdhocTaskIds = removeAdhocTaskIds.filter(
+    taskId => !planAdhocTasks.some(task => task.id === taskId),
+  );
+  if (unknownAdhocTaskIds.length > 0) {
     throw new PlanningError(
-      `Not unfinished one-off tasks of this plan: ${notLinked.join(', ')}.`,
+      PLANNING_ERROR.ADHOC_TASKS_NOT_IN_PLAN(unknownAdhocTaskIds),
     );
   }
+  const removedAdhocTasks = planAdhocTasks.filter(task =>
+    removeAdhocTaskIds.includes(task.id),
+  );
+  const keptAdhocTaskIds = planAdhocTasks
+    .filter(task => !removeAdhocTaskIds.includes(task.id))
+    .map(task => task.id);
 
-  const templatesChanged = [
+  const hasTemplateChanges = [
     addTemplates,
     newTemplates,
     updateTemplates,
     removeTemplateIds,
   ].some(list => list.length > 0);
-  const removedAdhoc = linkedAdhoc.filter(t =>
-    removeAdhocTaskIds.includes(t.id),
-  );
 
-  const diff = await prisma.$transaction(async tx => {
-    const nextTemplates = templatesChanged
+  const templateDiff = await prisma.$transaction(async tx => {
+    // The update core takes the full template list; new templates get ids first.
+    const nextTemplates = hasTemplateChanges
       ? await resolvePlanEntries(tx, userId, [
-          ...templates,
+          ...patchedTemplates,
           ...toNewPlanEntries(newTemplates),
         ])
       : undefined;
     return updatePlanInTx(
       tx,
       userId,
-      ownedPlan,
+      planBeforePatch,
       {
         description,
         mode,
         templates: nextTemplates,
         adhocTaskIds:
-          removedAdhoc.length > 0
-            ? linkedAdhoc.filter(t => !removedAdhoc.includes(t)).map(t => t.id)
-            : undefined,
+          removedAdhocTasks.length > 0 ? keptAdhocTaskIds : undefined,
       },
       getTodayDate(),
     );
   });
 
-  const plan = await getPlanningPlan(userId, planId);
-  // Titles of removed templates come from the plan as it was before the patch.
-  const titleById = new Map([
-    ...ownedPlan.planTemplates.map(
-      ({templateId, template}) => [templateId, template.title] as const,
+  const planAfterPatch = await getPlanContextByPlanId(userId, planId);
+  // Titles of removed templates come from the plan before the patch.
+  const templateTitleById = new Map([
+    ...planBeforePatch.planTemplates.map(
+      ({templateId, template: {title}}) => [templateId, title] as const,
     ),
-    ...plan.templates.map(
+    ...planAfterPatch.templates.map(
       ({templateId, title}) => [templateId, title] as const,
     ),
   ]);
-  const toRef = (id: string): PlanChangeRef => ({
-    id,
-    title: titleById.get(id) ?? '',
+  const toChangeRef = (templateId: string): PlanChangeRef => ({
+    id: templateId,
+    title: templateTitleById.get(templateId) ?? '',
   });
 
   return {
     changes: {
-      addedTemplates: diff.added.map(t => toRef(t.templateId)),
-      modifiedTemplates: diff.modified.map(t => toRef(t.templateId)),
-      removedTemplates: diff.removed.map(toRef),
-      removedAdhocTasks: removedAdhoc.map(({id, title}) => ({id, title})),
+      addedTemplates: templateDiff.added.map(template =>
+        toChangeRef(template.templateId),
+      ),
+      modifiedTemplates: templateDiff.modified.map(template =>
+        toChangeRef(template.templateId),
+      ),
+      removedTemplates: templateDiff.removed.map(toChangeRef),
+      removedAdhocTasks: removedAdhocTasks.map(({id, title}) => ({id, title})),
     },
-    plan,
+    plan: planAfterPatch,
   };
 }

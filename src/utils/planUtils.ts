@@ -37,14 +37,14 @@ export function diffPlanTemplates(
 }
 
 /** Ids that occur more than once, each listed once. */
-export function findRepeated(ids: readonly string[]): string[] {
-  const seen = new Set<string>();
-  const repeated = new Set<string>();
+export function findRepeatedIds(ids: readonly string[]): string[] {
+  const seenIds = new Set<string>();
+  const repeatedIds = new Set<string>();
   for (const id of ids) {
-    if (seen.has(id)) repeated.add(id);
-    else seen.add(id);
+    if (seenIds.has(id)) repeatedIds.add(id);
+    else seenIds.add(id);
   }
-  return [...repeated];
+  return [...repeatedIds];
 }
 
 /**
@@ -53,36 +53,38 @@ export function findRepeated(ids: readonly string[]): string[] {
  * caller rejects the patch when any conflict list is non-empty.
  */
 export function applyTemplatePatch(
-  current: readonly PlanTemplateInput[],
+  currentTemplates: readonly PlanTemplateInput[],
   {addTemplates, updateTemplates, removeTemplateIds}: PlanTemplatePatch,
 ): {templates: PlanTemplateInput[]; conflicts: PlanTemplatePatchConflicts} {
-  const linked = new Set(current.map(t => t.templateId));
-  const updates = new Map(updateTemplates.map(u => [u.templateId, u]));
-  const removed = new Set(removeTemplateIds);
+  const linkedTemplateIds = new Set(
+    currentTemplates.map(template => template.templateId),
+  );
+  const updateByTemplateId = new Map(
+    updateTemplates.map(update => [update.templateId, update]),
+  );
+  const removedTemplateIds = new Set(removeTemplateIds);
 
-  const kept = current
-    .filter(t => !removed.has(t.templateId))
+  const keptTemplates = currentTemplates
+    .filter(template => !removedTemplateIds.has(template.templateId))
     .map(({templateId, type, frequency}) => {
-      const update = updates.get(templateId);
-      return {
-        templateId,
-        type: update?.type ?? type,
-        frequency: update?.frequency ?? frequency,
-      };
+      const {type: nextType = type, frequency: nextFrequency = frequency} =
+        updateByTemplateId.get(templateId) ?? {templateId};
+      return {templateId, type: nextType, frequency: nextFrequency};
     });
 
+  const addedTemplateIds = addTemplates.map(template => template.templateId);
   return {
-    templates: [...kept, ...addTemplates],
+    templates: [...keptTemplates, ...addTemplates],
     conflicts: {
-      alreadyInPlan: [...new Set(addTemplates.map(t => t.templateId))].filter(
-        id => linked.has(id),
+      alreadyInPlan: [...new Set(addedTemplateIds)].filter(templateId =>
+        linkedTemplateIds.has(templateId),
       ),
-      notInPlan: [...new Set([...updates.keys(), ...removed])].filter(
-        id => !linked.has(id),
-      ),
-      repeated: findRepeated([
-        ...addTemplates.map(t => t.templateId),
-        ...updateTemplates.map(u => u.templateId),
+      notInPlan: [
+        ...new Set([...updateByTemplateId.keys(), ...removedTemplateIds]),
+      ].filter(templateId => !linkedTemplateIds.has(templateId)),
+      repeated: findRepeatedIds([
+        ...addedTemplateIds,
+        ...updateTemplates.map(update => update.templateId),
         ...removeTemplateIds,
       ]),
     },

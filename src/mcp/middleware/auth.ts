@@ -19,7 +19,7 @@ export const getDevAuthInfo = (): AuthInfo | undefined => {
 };
 
 /** The user a tool call acts for, or null when the request has no identity. */
-export const getMcpUserId = ({http}: ServerContext): string | null => {
-  const userId = http?.authInfo?.extra?.userId;
+export const getMcpUserId = (context: ServerContext): string | null => {
+  const userId = context.http?.authInfo?.extra?.userId;
   return typeof userId === 'string' ? userId : null;
 };

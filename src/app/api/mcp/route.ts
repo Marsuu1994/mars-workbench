@@ -1,13 +1,13 @@
 import {NextResponse} from 'next/server';
 import {createMcpHandler} from 'mcp-handler';
 import {registerTools} from '@/mcp/registerTools';
-import {getDevAuthInfo} from '@/mcp/auth';
+import {getDevAuthInfo} from '@/mcp/middleware/auth';
 import {
   MCP_DEV_IDENTITY_VERCEL_ENVS,
   MCP_DISABLED_VERCEL_ENVS,
   MCP_SERVER_INFO,
 } from '@/mcp/constants';
-import {MCP_SERVER_INSTRUCTIONS} from '@/prompt/mcpServerInstructions';
+import {MCP_SERVER_INSTRUCTIONS} from '@/mcp/prompts/serverInstructions';
 
 const mcpHandler = createMcpHandler(registerTools, {
   serverInfo: MCP_SERVER_INFO,
