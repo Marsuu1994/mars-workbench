@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OAuth Consent — /oauth/consent</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
+
+  /* ── Theme tokens (copied from src/app/globals.css) ── */
+  .theme-mars-dark {
+    --base-100: oklch(0.19 0.03 265);
+    --base-200: oklch(0.155 0.028 265);
+    --base-300: oklch(0.125 0.026 268);
+    --base-content: oklch(0.92 0.016 210);
+    --primary: oklch(0.83 0.135 205);
+    --primary-content: oklch(0.2 0.04 225);
+    --secondary: oklch(0.74 0.15 295);
+    --accent: oklch(0.76 0.155 55);
+    --neutral: oklch(0.26 0.035 265);
+    --neutral-content: oklch(0.9 0.016 210);
+    --warning: oklch(0.84 0.155 85);
+    --radius-box: 0.5rem;
+    --radius-btn: 0.75rem;
+    --grid: color-mix(in oklab, var(--base-content) 2%, transparent);
+    --glow-cyan: color-mix(in oklab, var(--primary) 7%, transparent);
+    --glow-purple: color-mix(in oklab, var(--secondary) 5%, transparent);
+    --glow-rose: color-mix(in oklab, var(--accent) 4%, transparent);
+  }
+  .theme-mars-light {
+    --base-100: oklch(0.955 0.018 80);
+    --base-200: oklch(0.925 0.024 78);
+    --base-300: oklch(0.885 0.03 76);
+    --base-content: oklch(0.24 0.032 265);
+    --primary: oklch(0.5 0.085 215);
+    --primary-content: oklch(0.975 0.01 90);
+    --secondary: oklch(0.5 0.185 295);
+    --accent: oklch(0.54 0.14 50);
+    --neutral: oklch(0.34 0.045 55);
+    --neutral-content: oklch(0.97 0.012 80);
+    --warning: oklch(0.49 0.1 75);
+    --radius-box: 0.5rem;
+    --radius-btn: 0.75rem;
+    --grid: color-mix(in oklab, var(--base-content) 4%, transparent);
+    --glow-cyan: color-mix(in oklab, var(--primary) 9%, transparent);
+    --glow-purple: color-mix(in oklab, var(--secondary) 7%, transparent);
+    --glow-rose: color-mix(in oklab, var(--accent) 5%, transparent);
+  }
+  .theme-p5-dark {
+    --base-100: oklch(0.185 0.008 20);
+    --base-200: oklch(0.15 0.006 20);
+    --base-300: oklch(0.115 0.004 20);
+    --base-content: oklch(0.96 0.005 20);
+    --primary: oklch(0.63 0.255 29);
+    --primary-content: oklch(0.13 0.02 20);
+    --secondary: oklch(0.74 0.15 295);
+    --accent: oklch(0.74 0.17 55);
+    --neutral: oklch(0.25 0.012 20);
+    --neutral-content: oklch(0.95 0.005 20);
+    --warning: oklch(0.85 0.16 90);
+    --radius-box: 0;
+    --radius-btn: 0;
+    --grid: color-mix(in oklab, var(--base-content) 2%, transparent);
+    --glow-cyan: color-mix(in oklab, var(--primary) 7%, transparent);
+    --glow-purple: color-mix(in oklab, var(--secondary) 5%, transparent);
+    --glow-rose: color-mix(in oklab, var(--accent) 4%, transparent);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Geist', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    background: #1a1a1f; color: #e8e8ec; min-height: 100vh;
+    padding: 24px 16px 96px;
+  }
+
+  /* ── Mockup chrome (not part of the design) ── */
+  .doc-head { max-width: 1180px; margin: 0 auto 20px; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: end; justify-content: space-between; }
+  .doc-title { font-size: 18px; font-weight: 600; }
+  .doc-sub { font-size: 13px; color: #9a9aa6; margin-top: 4px; }
+  .toggles { display: flex; flex-wrap: wrap; gap: 10px; }
+  .seg { display: inline-flex; border: 1px solid #34343c; border-radius: 9px; overflow: hidden; }
+  .seg button {
+    font: inherit; font-size: 12px; font-weight: 500; padding: 7px 12px;
+    background: transparent; color: #9a9aa6; border: 0; cursor: pointer;
+  }
+  .seg button + button { border-left: 1px solid #34343c; }
+  .seg button.on { background: #2c2c35; color: #fff; }
+
+  .layout { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
+  @media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+  .notes { background: #222228; border: 1px solid #303038; border-radius: 12px; padding: 18px; font-size: 13px; line-height: 1.6; color: #c4c4cc; }
+  .notes h3 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #8f8f9c; margin: 16px 0 6px; }
+  .notes h3:first-child { margin-top: 0; }
+  .notes ul { padding-left: 16px; }
+  .notes li { margin: 3px 0; }
+  .notes code { font-family: 'Geist Mono', monospace; font-size: 12px; color: #e8e8ec; background: #2c2c35; padding: 1px 5px; border-radius: 4px; }
+  .note-state { display: none; }
+  .note-state.on { display: block; }
+
+  .screen-nav {
+    position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 6px; background: #222228; padding: 6px; border-radius: 12px;
+    border: 1px solid #34343c; z-index: 50; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    max-width: calc(100vw - 32px); overflow-x: auto;
+  }
+  .screen-nav button {
+    font: inherit; font-size: 12px; font-weight: 600; white-space: nowrap;
+    padding: 7px 12px; border-radius: 8px; border: 1px solid #34343c;
+    background: transparent; color: #9a9aa6; cursor: pointer;
+  }
+  .screen-nav button.on { background: #2c2c35; color: #fff; border-color: #55556a; }
+
+  /* ── Device frame: a stand-in for the browser viewport ── */
+  .stage { display: flex; justify-content: center; }
+  .device {
+    position: relative; width: 100%; height: 760px; overflow: hidden;
+    border-radius: 14px; border: 1px solid #34343c;
+    background: var(--base-300); color: var(--base-content);
+    display: flex; align-items: center; justify-content: center;
+    transition: width 0.25s ease;
+  }
+  .device.mobile { width: 390px; max-width: 100%; height: 780px; border-radius: 28px; }
+
+  /* ════════════ The design ════════════ */
+
+  /* Same atmosphere as the login page (extracted, shared) */
+  .atmo {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 100%, var(--glow-cyan) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 20% 20%, var(--glow-purple) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 50% at 80% 30%, var(--glow-rose) 0%, transparent 60%);
+  }
+  .grid {
+    position: absolute; left: 0; right: 0; top: -64px; bottom: 0; pointer-events: none;
+    background-size: 64px 64px;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    animation: grid-flow 4s linear infinite;
+  }
+  @keyframes grid-flow { from { transform: translateY(-64px); } to { transform: translateY(0); } }
+
+  .card {
+    position: relative; z-index: 1; width: 100%; max-width: 420px;
+    padding: 40px 32px; display: flex; flex-direction: column; align-items: center; gap: 28px;
+  }
+  .device.mobile .card { padding: 32px 20px; }
+
+  /* Header: client tile ⇄ brand mark */
+  .pair { display: flex; align-items: center; gap: 14px; }
+  .tile {
+    width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .theme-p5-dark .tile { border-radius: 0; }
+  .tile-client {
+    background: var(--neutral); color: var(--neutral-content);
+    border: 1px solid color-mix(in oklab, var(--base-content) 10%, transparent);
+    font-size: 22px; font-weight: 600;
+  }
+  .tile-brand { background: linear-gradient(135deg, var(--primary), var(--secondary)); position: relative; }
+  .tile-brand::after {
+    content: ''; position: absolute; inset: 0; border-radius: inherit;
+    box-shadow: 0 0 50px color-mix(in oklab, var(--primary) 22%, transparent), 0 0 100px color-mix(in oklab, var(--secondary) 12%, transparent);
+    animation: breathe 4s ease-in-out infinite alternate;
+  }
+  @keyframes breathe { from { opacity: 0.55; } to { opacity: 1; } }
+  .tile-brand svg { width: 28px; height: 28px; stroke: #fff; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .link-dots { display: flex; align-items: center; gap: 6px; color: color-mix(in oklab, var(--base-content) 35%, transparent); }
+  .link-dots i { width: 4px; height: 4px; border-radius: 50%; background: currentColor; display: block; }
+  .link-dots svg { width: 18px; height: 18px; }
+
+  .heading { text-align: center; display: flex; flex-direction: column; gap: 10px; }
+  .heading h1 { font-size: 21px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.35; }
+  .heading h1 b { font-weight: 700; }
+  .who { font-size: 13px; color: color-mix(in oklab, var(--base-content) 55%, transparent); }
+  .who strong { font-weight: 500; color: color-mix(in oklab, var(--base-content) 85%, transparent); }
+  .who a { color: var(--primary); text-decoration: none; font-weight: 500; margin-left: 6px; }
+  .who a:hover { text-decoration: underline; }
+
+  .divider { height: 1px; width: 100%; background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--base-content) 8%, transparent), transparent); }
+
+  /* Capability panel */
+  .panel {
+    width: 100%; border-radius: var(--radius-box);
+    background: color-mix(in oklab, var(--base-100) 74%, transparent);
+    border: 1px solid color-mix(in oklab, var(--primary) 16%, transparent);
+    padding: 16px 18px; display: flex; flex-direction: column; gap: 14px;
+  }
+  .label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: color-mix(in oklab, var(--base-content) 45%, transparent); }
+  .cap { display: flex; gap: 12px; align-items: flex-start; }
+  .cap svg { width: 20px; height: 20px; flex-shrink: 0; margin-top: 1px; color: var(--primary); }
+  .cap-title { font-size: 14px; font-weight: 500; }
+  .cap-sub { font-size: 12.5px; line-height: 1.5; color: color-mix(in oklab, var(--base-content) 55%, transparent); margin-top: 2px; }
+
+  .dest {
+    width: 100%; display: flex; align-items: center; gap: 10px; font-size: 13px;
+    color: color-mix(in oklab, var(--base-content) 60%, transparent);
+  }
+  .dest svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .dest .host { font-family: 'Geist Mono', monospace; font-size: 12.5px; color: var(--base-content); background: color-mix(in oklab, var(--base-content) 7%, transparent); padding: 2px 7px; border-radius: 5px; }
+  .theme-p5-dark .dest .host { border-radius: 0; }
+  .caution { width: 100%; font-size: 12.5px; line-height: 1.5; color: color-mix(in oklab, var(--base-content) 50%, transparent); margin-top: -16px; padding-left: 28px; }
+
+  /* Actions */
+  .actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .btn {
+    font: inherit; font-size: 15px; font-weight: 500; padding: 13px 18px; border-radius: var(--radius-btn);
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, opacity 0.15s;
+  }
+  .btn:hover:not(:disabled) { transform: translateY(-1px); }
+  .btn-deny { background: transparent; color: var(--base-content); border: 1px solid color-mix(in oklab, var(--base-content) 14%, transparent); }
+  .btn-deny:hover:not(:disabled) { border-color: color-mix(in oklab, var(--base-content) 28%, transparent); }
+  .btn-allow { background: var(--primary); color: var(--primary-content); border: 1px solid transparent; font-weight: 600; }
+  .btn-allow:hover:not(:disabled) { box-shadow: 0 4px 24px color-mix(in oklab, var(--primary) 30%, transparent); }
+  .btn:disabled { cursor: default; opacity: 0.5; }
+  .btn.busy { opacity: 1; }
+  .spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .scopes { font-size: 11.5px; color: color-mix(in oklab, var(--base-content) 30%, transparent); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: center; }
+  .scopes code { font-family: 'Geist Mono', monospace; font-size: 11px; }
+
+  /* Error state */
+  .tile-warn {
+    background: color-mix(in oklab, var(--warning) 12%, transparent);
+    border: 1px solid color-mix(in oklab, var(--warning) 30%, transparent);
+    color: var(--warning);
+  }
+  .tile-warn svg { width: 28px; height: 28px; }
+  .err-body { font-size: 14px; line-height: 1.6; text-align: center; color: color-mix(in oklab, var(--base-content) 60%, transparent); max-width: 320px; }
+  .btn-home { width: 100%; background: var(--neutral); color: var(--neutral-content); border: 1px solid color-mix(in oklab, var(--base-content) 10%, transparent); }
+
+  .fade { opacity: 0; animation: fadeUp 0.6s ease forwards; }
+  .fade.d1 { animation-delay: 0.1s; } .fade.d2 { animation-delay: 0.25s; } .fade.d3 { animation-delay: 0.4s; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+  .state { display: none; }
+  .state.on { display: flex; }
+</style>
+</head>
+<body>
+
+<div class="doc-head">
+  <div>
+    <div class="doc-title">OAuth consent — <code style="font-family:'Geist Mono',monospace">/oauth/consent</code></div>
+    <div class="doc-sub">MCP Phase 1, PR 4/5 · where Supabase sends you when Claude asks to connect · chromeless, same atmosphere as login</div>
+  </div>
+  <div class="toggles">
+    <div class="seg" id="theme-seg">
+      <button data-theme="mars-dark" class="on">mars-dark</button>
+      <button data-theme="mars-light">mars-light</button>
+      <button data-theme="p5-dark">p5-dark</button>
+    </div>
+    <div class="seg" id="width-seg">
+      <button data-width="desktop" class="on">Desktop</button>
+      <button data-width="mobile">Mobile 390</button>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="stage">
+    <div class="device theme-mars-dark" id="device">
+      <div class="atmo"></div>
+      <div class="grid"></div>
+
+      <!-- ═══ State 1 + 2: consent request (2 = Allow pressed) ═══ -->
+      <div class="card state on" data-state="request">
+        <div class="pair fade d1">
+          <div class="tile tile-client" title="logo_uri when the client registers one; first letter otherwise">C</div>
+          <div class="link-dots" aria-hidden="true">
+            <i></i><i></i>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
+            <i></i><i></i>
+          </div>
+          <div class="tile tile-brand">
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+        </div>
+
+        <div class="heading fade d1">
+          <h1><b>Claude</b> wants to access your Mars Workbench account</h1>
+          <p class="who">Signed in as <strong>you@example.com</strong><a href="#" onclick="return false">Switch account</a></p>
+        </div>
+
+        <div class="divider fade d2"></div>
+
+        <div class="panel fade d2">
+          <div class="label">This will let Claude</div>
+          <div class="cap">
+            <!-- heroicons/24/outline: document-magnifying-glass -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Zm3.75 11.625a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
+            <div>
+              <div class="cap-title">Read your planning context</div>
+              <div class="cap-sub">This week's plan and progress, last week's stats, and your task templates</div>
+            </div>
+          </div>
+          <div class="cap">
+            <!-- heroicons/24/outline: pencil-square -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>
+            <div>
+              <div class="cap-title">Create and update your weekly plans</div>
+              <div class="cap-sub">Add, change, or remove tasks on this week's plan</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dest fade d2">
+          <!-- heroicons/24/outline: arrow-top-right-on-square -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
+          <span>You'll be returned to <span class="host">claude.ai</span></span>
+        </div>
+        <p class="caution fade d2">Only allow this if you started the connection yourself.</p>
+
+        <div class="actions fade d3">
+          <button class="btn btn-deny" id="btn-deny">Deny</button>
+          <button class="btn btn-allow" id="btn-allow">Allow</button>
+        </div>
+
+        <div class="scopes fade d3">Scopes <code>openid</code>·<code>email</code>·<code>profile</code></div>
+      </div>
+
+      <!-- ═══ State 3: invalid / expired request ═══ -->
+      <div class="card state" data-state="invalid">
+        <div class="tile tile-warn fade d1">
+          <!-- heroicons/24/outline: exclamation-triangle -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+        </div>
+        <div class="heading fade d1">
+          <h1>This authorization link isn't valid</h1>
+        </div>
+        <p class="err-body fade d2">It may have expired or already been used. Go back to the app you were connecting and start again.</p>
+        <button class="btn btn-home fade d3">Go to Mars Workbench</button>
+      </div>
+    </div>
+  </div>
+
+  <aside class="notes">
+    <div class="note-state on" data-note="request">
+      <h3>When it shows</h3>
+      <ul>
+        <li>Supabase redirects to <code>/oauth/consent?authorization_id=…</code> and <code>getAuthorizationDetails</code> returns details (no prior consent).</li>
+        <li>Not signed in → the proxy sends you to <code>/auth/login?next=…</code> first and Google sign-in lands you back here.</li>
+        <li>Already consented → Supabase returns a <code>redirect_url</code> and the page redirects straight back; no UI.</li>
+      </ul>
+      <h3>Data mapping</h3>
+      <ul>
+        <li>Name: <code>client.name</code>. Tile: <code>client.logo_uri</code>, or the first letter when empty.</li>
+        <li>Email: <code>user.email</code>.</li>
+        <li>Return host: the host of <code>redirect_uri</code>. Client names are self-asserted under dynamic registration; the host is the part to trust.</li>
+        <li>Scopes: <code>scope</code> split on spaces, muted. The capability list is static copy: the token reaches every MCP tool whatever the scopes.</li>
+      </ul>
+      <h3>Actions</h3>
+      <ul>
+        <li><b>Allow</b> / <b>Deny</b> → server action → Supabase <code>approve</code>/<code>denyAuthorization</code> → redirect to the returned <code>redirect_url</code> (Deny carries <code>error=access_denied</code>).</li>
+        <li><b>Switch account</b> → sign out, then <code>/auth/login?next=</code> this page.</li>
+      </ul>
+      <h3>Layout</h3>
+      <ul>
+        <li>Chromeless (no sidebar or tab bar), same glow + grid as login, one 420px column. Mobile uses the same column with tighter padding.</li>
+      </ul>
+    </div>
+    <div class="note-state" data-note="allowing">
+      <h3>Allowing…</h3>
+      <ul>
+        <li>Transient: from the click until the browser leaves for <code>redirect_url</code>.</li>
+        <li>The pressed button shows a spinner and "Allowing…" (or "Denying…"); both buttons are disabled so the decision can't be sent twice.</li>
+        <li>If the action fails (for example, the request expired while the page was open), the page re-renders into the invalid-link state.</li>
+      </ul>
+    </div>
+    <div class="note-state" data-note="invalid">
+      <h3>When it shows</h3>
+      <ul>
+        <li><code>authorization_id</code> is missing, or <code>getAuthorizationDetails</code> errors (unknown, expired, or already decided).</li>
+        <li>An approve or deny that fails lands here too.</li>
+      </ul>
+      <h3>Copy</h3>
+      <ul>
+        <li>Generic on purpose: the page can't tell expired from forged, and it doesn't know which client started the flow.</li>
+        <li>The button goes to <code>/</code>.</li>
+      </ul>
+    </div>
+  </aside>
+</div>
+
+<nav class="screen-nav">
+  <button class="on" data-screen="request">1 · Request</button>
+  <button data-screen="allowing">2 · Allowing…</button>
+  <button data-screen="invalid">3 · Invalid link</button>
+</nav>
+
+<script>
+  const device = document.getElementById('device');
+  const allow = document.getElementById('btn-allow');
+  const deny = document.getElementById('btn-deny');
+
+  const setActive = (group, attr, value) => {
+    group.querySelectorAll('button').forEach(button => button.classList.toggle('on', button.dataset[attr] === value));
+  };
+
+  document.getElementById('theme-seg').addEventListener('click', event => {
+    const theme = event.target.dataset.theme;
+    if (!theme) return;
+    device.className = device.className.replace(/theme-[\w-]+/, `theme-${theme}`);
+    setActive(event.currentTarget, 'theme', theme);
+  });
+
+  document.getElementById('width-seg').addEventListener('click', event => {
+    const width = event.target.dataset.width;
+    if (!width) return;
+    device.classList.toggle('mobile', width === 'mobile');
+    setActive(event.currentTarget, 'width', width);
+  });
+
+  const showScreen = screen => {
+    const card = screen === 'invalid' ? 'invalid' : 'request';
+    device.querySelectorAll('.state').forEach(element => element.classList.toggle('on', element.dataset.state === card));
+    document.querySelectorAll('.note-state').forEach(element => element.classList.toggle('on', element.dataset.note === screen));
+    setActive(document.querySelector('.screen-nav'), 'screen', screen);
+    const busy = screen === 'allowing';
+    allow.disabled = busy;
+    deny.disabled = busy;
+    allow.classList.toggle('busy', busy);
+    allow.innerHTML = busy ? '<span class="spinner"></span>Allowing…' : 'Allow';
+  };
+
+  document.querySelector('.screen-nav').addEventListener('click', event => {
+    const screen = event.target.dataset.screen;
+    if (screen) showScreen(screen);
+  });
+  allow.addEventListener('click', () => showScreen('allowing'));
+</script>
+</body>
+</html>
