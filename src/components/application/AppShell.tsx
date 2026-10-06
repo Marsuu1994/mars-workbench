@@ -16,8 +16,12 @@ interface AppShellProps {
   children: React.ReactNode;
 }
 
-/** Route prefixes that render without the app sidebar / bottom tab bar. */
-const CHROMELESS_PREFIXES = ['/design'];
+/**
+ * Route prefixes that render without the app sidebar / bottom tab bar: the
+ * Design Console, and the OAuth consent page (a signed-in user authorizing
+ * an external client, not navigating the app).
+ */
+const CHROMELESS_PREFIXES = ['/design', '/oauth'];
 
 /**
  * Routes whose page owns all scrolling, so <main> must not be a scroll

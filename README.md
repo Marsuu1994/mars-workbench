@@ -57,7 +57,8 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ### Auth
 
-- Supabase Auth (Google OAuth) with route protection, themed login page, collapsible workspace sidebar (Board / Priorities / Plan) and 4-tab mobile dock. **Settings is a responsive overlay** (dock tab / sidebar user row → same sheet): theme picker (Sora light / Sora dark / P5 dark, cookie-persisted, explicit choice — no time-based auto-switch) + two-step confirm sign-out. Deployed on Vercel
+- Supabase Auth (Google OAuth) with route protection (sign-in returns to the page that asked for it), themed login page, collapsible workspace sidebar (Board / Priorities / Plan) and 4-tab mobile dock. **Settings is a responsive overlay** (dock tab / sidebar user row → same sheet): theme picker (Sora light / Sora dark / P5 dark, cookie-persisted, explicit choice — no time-based auto-switch) + two-step confirm sign-out. Deployed on Vercel
+- **OAuth consent page** (`/oauth/consent`): where Supabase's OAuth server sends you to approve or deny an MCP client (Claude) — who's asking, the approving account (with Switch account), what it can do, and where the browser returns. Connecting Claude for real waits on token auth (MCP 5/5)
 
 Open items: see [design/tracker.md](./design/tracker.md).
 
@@ -91,6 +92,12 @@ Open items: see [design/tracker.md](./design/tracker.md).
   - Verified against a local Postgres via the MCP Inspector CLI and raw JSON-RPC: create, patch, and rollover + carry-over checked row by row; every error path left the DB unchanged; user isolation and the env gates hold; tsc, eslint, prettier, theme check and `next build` green.
   - **Review round**: `src/mcp/` split into `tools/`, `prompts/` (server instructions + tool descriptions) and `middleware/` (auth, runTool); planning error messages moved to `src/utils/errorMessages.ts`; AGENTS.md gains two conventions — plain, explicit names (no abbreviations; functions say what they return and look up by) and the home for LLM-facing error messages.
 - **Tracker**: Board → Medium — stack duplicate backlog tasks (one card with a count per template instead of one card per instance), found while testing the MCP tools.
+- **OAuth consent page + login return-to (MCP PR 4 of 5)** — the app now hosts the authorization page Supabase's OAuth 2.1 server sends users to when Claude connects, and sign-in returns you to the page that asked for it.
+  - **Return-to**: the proxy keeps the requested path in `?next=` on its login redirect; the login page and `/auth/callback` honor it as a same-origin path only (anything resolving to another origin falls back to `/`), and a failed exchange returns to login still carrying it.
+  - **`/oauth/consent`** (chromeless, login atmosphere): client ⇄ brand header, approving account with Switch account (local sign-out → login → back to the same request), fixed copy for what the token can do, the return host, Deny / Allow with a pending state, muted scopes. Already-consented requests redirect straight back; missing, malformed, expired or decided ones show an invalid-link state. Allow/Deny run through a server action that redirects to Supabase's `redirect_url`; `/oauth/*` refuses to be framed (clickjacking).
+  - Login's backdrop and brand mark are now shared components; the auth scenario page gains three consent tabs (request, allowing, invalid link) and the approved exploration mockup is retired.
+  - Verified against `next dev` and `next start` with a stand-in Supabase Auth server and a local Postgres: the full Google sign-in round trip through `next`, Allow / Deny / auto-redirect / invalid / expired-mid-page / switch account, no duplicate decision while pending, hostile `next` and `authorization_id` values, a same-site framing attempt blocked; tsc, eslint, prettier, theme check and `next build` green. The OAuth Server still has to be enabled in the Supabase dashboard (tracked under 5/5).
+- **Tracker**: Auth → Future — a Connected apps view to list and revoke OAuth grants.
 
 ### 2026-10-05
 - **Plan service refactor for MCP (PR 2 of 5)** — plan creation and update now have shared cores the upcoming MCP tools reuse, with no change to the form or AI flows; verified by running create / edit / ad-hoc / AI-approve scenarios against a local Postgres on `main` and on the branch, with identical resulting rows.

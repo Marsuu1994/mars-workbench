@@ -17,7 +17,7 @@ A Next.js application centered on a Kanban Period Planner, with AI-assisted plan
 - UI: React 19, Tailwind CSS 4, daisyUI 5 (custom themes + `fx-*` FX utility layer — see `design/design-language/`: `mars-dark` / `mars-light` / `p5-dark`, one shared variable contract)
 - State: Zustand
 - Database: PostgreSQL (Supabase) + Prisma ORM
-- Auth: Supabase Auth (Google OAuth)
+- Auth: Supabase Auth (Google OAuth); its OAuth 2.1 Server authorizes MCP clients through the app's consent page (`/oauth/consent`)
 - LLM: OpenAI (`gpt-5-nano`) for AI-assisted plan creation — non-streaming structured output (`zodResponseFormat`)
 - MCP: `mcp-handler` + `@modelcontextprotocol/server` (v2) — remote MCP endpoint at `/api/mcp` (Streamable HTTP) where Claude reads planning context and creates/updates plans; answers 404 in production until the OAuth layer lands, and until then only local dev has a user (`MCP_DEV_USER_ID`)
 - Icons: Heroicons
@@ -43,7 +43,7 @@ design/                            # Centralized design docs (see design/README.
 src/
 ├── proxy.ts                       # Route protection (Supabase session check)
 ├── app/                           # App Router: auth/, kanban/ (board, plans, priorities, settings), api/mcp/,
-│                                  #   design/ (Design Console: layer-tabbed gallery + scenarios/),
+│                                  #   oauth/ (MCP client consent), design/ (Design Console: layer-tabbed gallery + scenarios/),
 │                                  #   layout.tsx, globals.css
 ├── generated/prisma/              # Generated Prisma client (gitignored)
 ├── actions/                       # ALL server actions ('use server') — thin validate → service → revalidate

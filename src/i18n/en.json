@@ -154,6 +154,26 @@
     "closeBackdrop": "Close",
     "version": "Mars Workbench v0.1.0"
   },
+  "OAuthConsent": {
+    "title": "<strong>{client}</strong> wants to access your Mars Workbench account",
+    "signedInAs": "Signed in as <strong>{email}</strong>",
+    "switchAccount": "Switch account",
+    "capabilitiesLabel": "This will let {client}",
+    "readContextTitle": "Read your planning context",
+    "readContextDescription": "This week's plan and progress, last week's stats, and your task templates",
+    "writePlansTitle": "Create and update your weekly plans",
+    "writePlansDescription": "Add, change, or remove tasks on this week's plan",
+    "returnTo": "You'll be returned to <chip>{host}</chip>",
+    "caution": "Only allow this if you started the connection yourself.",
+    "deny": "Deny",
+    "allow": "Allow",
+    "denying": "Denying…",
+    "allowing": "Allowing…",
+    "scopes": "Scopes",
+    "invalidTitle": "This authorization link isn't valid",
+    "invalidDescription": "It may have expired or already been used. Go back to the app you were connecting and start again.",
+    "goHome": "Go to Mars Workbench"
+  },
   "AiChat": {
     "modalTitle": "AI Plan Assistant",
     "betaLabel": "Beta",

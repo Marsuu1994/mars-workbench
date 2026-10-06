@@ -22,8 +22,8 @@ Single source of truth for open ideas and todos across the app — open items on
   - [x] 1/5 Skeleton — `/api/mcp` + temporary `echo` tool, 404 in production
   - [x] 2/5 Service refactor — shared creation guard (syncs first), mixed existing/new template entries, template-ownership check, `updatePlanInTx` + template diff
   - [x] 3/5 Planning services + tools — `get_planning_context` / `create_plan` / patch-based `update_plan` + server instructions; local-dev identity (`MCP_DEV_USER_ID`), still 404 in production
-  - [ ] 4/5 OAuth consent page (`/oauth/consent`) + login return-to (`?next=`)
-  - [ ] 5/5 Token auth (`withMcpAuth` + protected-resource metadata), lift the production gate, connect the custom connector in Claude
+  - [x] 4/5 OAuth consent page (`/oauth/consent`) + login return-to (`?next=`)
+  - [ ] 5/5 Token auth (`withMcpAuth` + protected-resource metadata), lift the production gate, connect the custom connector in Claude. Dashboard prerequisite: Authentication → OAuth Server enabled with authorization path `/oauth/consent` (+ dynamic client registration for the connector)
 
 ### Medium
 
@@ -72,6 +72,7 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### Future
 
+- [ ] Connected apps in Settings — list and revoke the user's OAuth grants (Supabase `listGrants` / `revokeGrant`); today a grant can only be revoked from the Supabase dashboard, so the consent page doesn't promise revocation
 - [ ] User profile/settings page
 - [ ] Postgres Row-Level Security (RLS) policies (`using (user_id = auth.uid())`) as DB-level defense-in-depth beneath the app-layer userId scoping. Needs Prisma↔Supabase JWT plumbing (per-request `SET` of claims, or a JWT-aware connection role)
 

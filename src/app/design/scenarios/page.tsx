@@ -53,7 +53,7 @@ const SCENARIOS: {
   {
     href: '/design/scenarios/auth',
     title: 'Auth',
-    note: 'Login screen and mobile settings with the dock.',
+    note: 'Login, the OAuth consent page (request, allowing, invalid link) and the settings overlay.',
     icon: UserCircleIcon,
   },
 ];

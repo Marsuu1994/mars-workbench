@@ -1,5 +1,6 @@
 import {createServerClient} from '@supabase/ssr';
 import {NextResponse, type NextRequest} from 'next/server';
+import {LOGIN_PATH, withNextParam} from '@/utils/authRedirect';
 
 export const updateSession = async (request: NextRequest) => {
   let supabaseResponse = NextResponse.next({request});
@@ -30,9 +31,11 @@ export const updateSession = async (request: NextRequest) => {
   } = await supabase.auth.getUser();
 
   if (!user && !request.nextUrl.pathname.startsWith('/auth')) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/auth/login';
-    return NextResponse.redirect(url);
+    // Carry the requested page through sign-in so the visitor lands back on
+    // it (e.g. the OAuth consent page with its authorization_id).
+    const {pathname, search} = request.nextUrl;
+    const loginPath = withNextParam(LOGIN_PATH, `${pathname}${search}`);
+    return NextResponse.redirect(new URL(loginPath, request.url));
   }
 
   return supabaseResponse;
