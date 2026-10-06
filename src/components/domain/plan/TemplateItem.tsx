@@ -8,7 +8,7 @@ import {sizeToPoints} from '@/utils/enums';
 import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {ChoicePills} from '@/components/ui/form/ChoicePills';
 import {Stepper} from '@/components/ui/form/Stepper';
-import {FREQ_MIN, FREQ_MAX} from './constants';
+import {FREQ_MIN, FREQ_MAX} from '@/utils/planUtils';
 
 interface TemplateItemConfig {
   type: TaskType;

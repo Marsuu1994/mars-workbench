@@ -48,9 +48,13 @@ Inventory of the handlers and data-access functions that already exist, so new w
 
 ## MCP (src/mcp, served at /api/mcp)
 
+Tools act for the user in `request.auth` (`src/mcp/auth.ts`); until token auth lands only local dev has one (`MCP_DEV_USER_ID`). Server instructions: `src/prompt/mcpServerInstructions.ts`.
+
 | Tool | Purpose | Calls |
 | --- | --- | --- |
-| `echo` | Connectivity check (temporary; replaced by the planning tools) | — |
+| `get_planning_context` | Snapshot to plan from: date/week, active or last plan (lines + progress, one-offs, totals), reusable templates | `planningService.getPlanningContext` |
+| `create_plan` | Create this week's plan from existing + new templates, with a carry-over selection | `planningService.createPlanFromSpec` |
+| `update_plan` | Patch this week's active plan (add / new / update / remove templates, drop one-offs, mode, description) | `planningService.patchActivePlan` |
 
 ## Services (src/services)
 
@@ -66,9 +70,14 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | `updatePlan` | Rebuild an existing plan's templates/mode/ad-hoc links |
 | `getPlanCreationContext` | Guard reads for every creation path: `ensureSynced` → active plan, pending plan, today, period key |
 | `getCarryOverAdhocTaskIds` | The pending plan's non-done ad-hoc tasks (default carry-over when no explicit selection) |
+| `resolvePlanEntries` | Resolve existing + new (`templateId: null`) entries to template links, creating the new templates in the caller's transaction |
 | `createPlanFromEntries` | Create a plan from entries mixing existing templates and new ones (`templateId: null`) — AI approval, MCP |
 | `createPlanInTx` | Shared transactional plan-creation core reused by `createPlan`/`createPlanFromEntries`; rejects templates the user doesn't own |
 | `updatePlanInTx` | Transactional plan-update core (template diff + task regeneration, ad-hoc links, description/mode); returns the applied diff |
+| **`planningService.ts`** | |
+| `getPlanningContext` | MCP read model, synced first: date/week, this week's ACTIVE or last PENDING_UPDATE plan (lines + progress, one-offs, totals), reusable templates |
+| `createPlanFromSpec` | Guarded create from existing + new templates with a validated carry-over selection |
+| `patchActivePlan` | Patch this week's ACTIVE plan only: patch → full template list (conflicts rejected) → `updatePlanInTx`, one transaction with any new templates |
 | **`matrixService.ts`** | |
 | `fetchPriorityMatrix` | Matrix tasks + active-plan info for `/kanban/priorities` |
 | `trackTaskThisWeek` | Track This Week: pull a matrix task onto the board |

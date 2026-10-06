@@ -12,6 +12,7 @@ import {
 } from './utils/enums';
 import {THEMES} from './utils/theme';
 import {DUMP_ENTRY_MAX_LENGTH} from './utils/dump';
+import {FREQ_MAX, FREQ_MIN} from './utils/planUtils';
 // Validation copy is centralized in the i18n catalog. zod messages are set at
 // module load (no React context), so we read the English strings directly from
 // en.json here rather than via useTranslations/getTranslations. Single-locale
@@ -207,6 +208,122 @@ export type UpdateThemeInput = z.infer<typeof updateThemeSchema>;
 
 // ── MCP Tool Schemas ───────────────────────────────────────────────────
 
-export const mcpEchoInputSchema = z.object({
-  message: z.string().min(1).describe('Text to send back unchanged'),
+// Inputs of the planning tools (src/mcp/tools). The descriptions are read by
+// the model, so they say what a field means, not how it is validated.
+
+const planLineFields = {
+  type: z
+    .enum([TaskType.DAILY, TaskType.WEEKLY])
+    .describe(
+      'DAILY: `frequency` instances every day. WEEKLY: `frequency` instances for the whole week',
+    ),
+  frequency: z
+    .number()
+    .int()
+    .min(FREQ_MIN)
+    .max(FREQ_MAX)
+    .describe('Instances per day (DAILY) or per week (WEEKLY)'),
+};
+
+const existingPlanLineSchema = z.object({
+  templateId: z
+    .string()
+    .uuid()
+    .describe('A templateId from get_planning_context'),
+  ...planLineFields,
 });
+
+// A brand-new template, created together with the plan change.
+const newPlanLineSchema = createTemplateSchema.extend({
+  size: createTemplateSchema.shape.size.describe(
+    'Effort: EXTRA_SMALL ~1h, SMALL ~2h, MEDIUM ~3h, LARGE ~5h, EXTRA_LARGE ~8h',
+  ),
+  ...planLineFields,
+});
+
+const planModeSchema = z
+  .nativeEnum(PlanMode)
+  .describe(
+    'NORMAL: daily tasks on weekdays only. EXTREME: every day, weekends included',
+  );
+
+const uuidListSchema = z.array(z.string().uuid());
+
+export const planSpecSchema = z.object({
+  description: z
+    .string()
+    .optional()
+    .describe("A short label for the week's focus, shown on the board"),
+  mode: planModeSchema.default(PlanMode.NORMAL),
+  templates: z
+    .array(existingPlanLineSchema)
+    .default([])
+    .describe('Existing templates to run this week'),
+  newTemplates: z
+    .array(newPlanLineSchema)
+    .default([])
+    .describe('Brand-new templates to create and run this week'),
+  carryOverAdhocTaskIds: uuidListSchema
+    .optional()
+    .describe(
+      "Which of lastPlan's one-off tasks move into this plan. Omit to carry all of them over; [] carries none (the rest return to the priority matrix)",
+    ),
+});
+export type PlanSpecInput = z.infer<typeof planSpecSchema>;
+
+export const planPatchSchema = z
+  .object({
+    planId: z
+      .string()
+      .uuid()
+      .describe('activePlan.planId from get_planning_context'),
+    description: z
+      .string()
+      .optional()
+      .describe("A new label for the week's focus"),
+    mode: planModeSchema.optional(),
+    addTemplates: z
+      .array(existingPlanLineSchema)
+      .default([])
+      .describe('Existing templates to add to the plan'),
+    newTemplates: z
+      .array(newPlanLineSchema)
+      .default([])
+      .describe('Brand-new templates to create and add to the plan'),
+    updateTemplates: z
+      .array(
+        z
+          .object({
+            templateId: existingPlanLineSchema.shape.templateId,
+            type: planLineFields.type.optional(),
+            frequency: planLineFields.frequency.optional(),
+          })
+          .refine(u => u.type !== undefined || u.frequency !== undefined, {
+            message: 'Give a new type and/or frequency',
+          }),
+      )
+      .default([])
+      .describe(
+        'A new type and/or frequency for templates already in the plan',
+      ),
+    removeTemplateIds: uuidListSchema
+      .default([])
+      .describe('templateIds to take out of the plan'),
+    removeAdhocTaskIds: uuidListSchema
+      .default([])
+      .describe('One-off tasks to send back to the priority matrix'),
+  })
+  .refine(
+    p =>
+      p.description !== undefined ||
+      p.mode !== undefined ||
+      [
+        p.addTemplates,
+        p.newTemplates,
+        p.updateTemplates,
+        p.removeTemplateIds,
+        p.removeAdhocTaskIds,
+      ].some(list => list.length > 0),
+    {message: 'The patch changes nothing'},
+  );
+export type PlanPatchInput = z.infer<typeof planPatchSchema>;

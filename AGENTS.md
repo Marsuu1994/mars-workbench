@@ -19,7 +19,7 @@ A Next.js application centered on a Kanban Period Planner, with AI-assisted plan
 - Database: PostgreSQL (Supabase) + Prisma ORM
 - Auth: Supabase Auth (Google OAuth)
 - LLM: OpenAI (`gpt-5-nano`) for AI-assisted plan creation — non-streaming structured output (`zodResponseFormat`)
-- MCP: `mcp-handler` + `@modelcontextprotocol/server` (v2) — remote MCP endpoint at `/api/mcp` (Streamable HTTP) so Claude can plan through the app; answers 404 in production until the OAuth layer lands
+- MCP: `mcp-handler` + `@modelcontextprotocol/server` (v2) — remote MCP endpoint at `/api/mcp` (Streamable HTTP) where Claude reads planning context and creates/updates plans; answers 404 in production until the OAuth layer lands, and until then only local dev has a user (`MCP_DEV_USER_ID`)
 - Icons: Heroicons
 - Language: TypeScript
 
