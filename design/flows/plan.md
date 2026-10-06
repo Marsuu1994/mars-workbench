@@ -1,6 +1,6 @@
 # Plan Flows
 
-Flows for the plan pages (`/kanban/plans/new`, `/kanban/plans/[id]`) — task template management, plan create/update, and AI-assisted plan creation. Sibling docs: `design/flows/board.md`, `design/flows/priorities.md`, `design/flows/shared.md`, `design/flows/auth.md`.
+Flows for the plan pages (`/kanban/plans/new`, `/kanban/plans/[id]`) — task template management, plan create/update, AI-assisted plan creation, and planning with Claude over MCP. Sibling docs: `design/flows/board.md`, `design/flows/priorities.md`, `design/flows/shared.md`, `design/flows/auth.md`.
 
 > **Doc convention:** One flow per `##` heading, separated by `---`. Every flow has two required `###` sections — `Trigger / Entry Point` and `Steps` — plus an optional `### Rules` section for constraints and invariants. Extra `###` sections (e.g. `Metrics`) are allowed only for reference material that fits neither Steps nor Rules.
 
@@ -191,3 +191,27 @@ All data is fetched server-side and injected into the LLM system prompt as conte
 #### LLM Calls
 
 - `generateDraftPlanAction`: Generates a draft plan. Input: user message + stats + templates + last draft. Output: structured JSON (`message`, `draftTemplates`, `followUp`). Called multiple times during iteration.
+
+---
+
+## Plan with Claude (MCP) Flow
+
+### Trigger / Entry Point
+
+The user asks Claude, connected to the `/api/mcp` server, to plan or adjust their week.
+
+### Steps
+
+1. Claude calls `get_planning_context`: sync first (`ensureSynced`), then today and the week, this week's ACTIVE plan (template lines with progress so far, attached unfinished one-offs) or last period's PENDING_UPDATE plan (per-template stats, the one-offs that carry over), and the reusable templates.
+2. Claude proposes a plan or a change in conversation; the server instructions require the user's agreement before any write.
+3. No active plan → `create_plan`: existing templates by id plus brand-new ones, mode, description, and `carryOverAdhocTaskIds` (omitted = all of the last plan's unfinished one-offs). Runs the shared creation guard, then one transaction — create the new templates, then the Create Plan Flow's steps 6–10 (links/returns one-offs, generates BACKLOG instances, completes the pending plan).
+4. Active plan → `update_plan` with a patch: add existing / create new / update type or frequency / remove templates, remove one-offs, mode, description. The patch is applied to the plan's current links, and the resulting full list runs through the Update Plan Flow's regeneration in one transaction with any new templates.
+5. Each write returns the plan as it now stands (`update_plan` also lists what changed) for Claude to report back.
+
+### Rules
+
+- `update_plan` only changes this week's ACTIVE plan; a plan id read before a week rollover is rejected.
+- A patch that adds a template already in the plan, updates or removes one that isn't, or names an id twice is rejected whole; nothing is written.
+- Carried-over or removed one-offs must be unfinished one-off tasks of that plan — the tools never create one-offs or pull them from the priority matrix.
+- Identity: tool calls act for the user in `request.auth`. Until token auth lands only local development has one (`MCP_DEV_USER_ID`); deployments serve tool calls with no user, and production answers 404.
+- Errors the model can act on (active plan exists, stale plan id, patch conflicts, unknown ids, invalid input) come back as `isError` results; unexpected errors are logged and reported generically.

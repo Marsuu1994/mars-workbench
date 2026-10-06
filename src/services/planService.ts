@@ -155,9 +155,9 @@ async function generateTasksForTemplates(
 
 /**
  * Guard reads shared by every plan-creation entry point (plan form, AI draft
- * approval, MCP). Syncs first, so an ACTIVE plan from a finished week has
- * already flipped to PENDING_UPDATE and does not block creation. Runs before
- * the transaction to keep connection hold time short.
+ * approval, MCP) and the MCP planning context. Syncs first, so an ACTIVE plan
+ * from a finished week has already flipped to PENDING_UPDATE and does not block
+ * creation. Runs before the transaction to keep connection hold time short.
  */
 export async function getPlanCreationContext(
   userId: string,
@@ -254,27 +254,16 @@ export async function createPlanInTx(
 }
 
 /**
- * Create a plan from template entries that mix existing templates (by id) and
- * brand-new ones (`templateId: null`), inside a caller-provided transaction.
- * Batch-creates the new templates, resolves every entry to a real templateId,
- * then runs the shared plan-creation core — so new templates + plan are atomic.
- * Used by AI draft approval (a DraftTemplate is a PlanEntry) and the MCP tools.
+ * Resolve entries that mix existing templates (by id) and brand-new ones
+ * (`templateId: null`) to template links, inside a caller-provided transaction:
+ * batch-creates the new templates and zips their ids back in input order.
+ * Shared by plan creation and plan patches that add new templates.
  */
-export async function createPlanFromEntries(
+export async function resolvePlanEntries(
   tx: Prisma.TransactionClient,
   userId: string,
-  params: {
-    entries: PlanEntry[];
-    description?: string;
-    mode: PlanMode;
-    adhocTaskIds?: string[];
-    pendingPlan: PlanItem | null;
-  },
-  periodKey: string,
-  today: Date,
-): Promise<PlanItem> {
-  const {entries, description, mode, adhocTaskIds, pendingPlan} = params;
-
+  entries: PlanEntry[],
+): Promise<PlanTemplateInput[]> {
   const newEntries = entries.filter(
     (e): e is NewPlanEntry => e.templateId === null,
   );
@@ -292,11 +281,35 @@ export async function createPlanFromEntries(
 
   // Zip freshly-created ids back to the null entries (input order preserved).
   let nextNew = 0;
-  const templates: PlanTemplateInput[] = entries.map(e => ({
+  return entries.map(e => ({
     templateId: e.templateId ?? createdIds[nextNew++].id,
     type: e.type,
     frequency: e.frequency,
   }));
+}
+
+/**
+ * Create a plan from template entries that mix existing templates (by id) and
+ * brand-new ones (`templateId: null`), inside a caller-provided transaction.
+ * Resolves the entries (creating the new templates), then runs the shared
+ * plan-creation core — so new templates + plan are atomic. Used by AI draft
+ * approval (a DraftTemplate is a PlanEntry) and the MCP tools.
+ */
+export async function createPlanFromEntries(
+  tx: Prisma.TransactionClient,
+  userId: string,
+  params: {
+    entries: PlanEntry[];
+    description?: string;
+    mode: PlanMode;
+    adhocTaskIds?: string[];
+    pendingPlan: PlanItem | null;
+  },
+  periodKey: string,
+  today: Date,
+): Promise<PlanItem> {
+  const {entries, description, mode, adhocTaskIds, pendingPlan} = params;
+  const templates = await resolvePlanEntries(tx, userId, entries);
 
   return createPlanInTx(
     tx,

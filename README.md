@@ -84,6 +84,14 @@ Open items: see [design/tracker.md](./design/tracker.md).
 
 ## Update Log
 
+### 2026-10-06
+- **MCP planning tools (PR 3 of 5)** — Claude can now plan the week through the app over MCP (local development for now): `get_planning_context` (today and the week, the active plan's lines with progress and attached one-offs, last week's per-template stats and carry-over one-offs, reusable templates), `create_plan` (existing + brand-new templates, carry-over selection) and `update_plan` (a patch on this week's active plan), plus server instructions covering the read → propose → confirm → write workflow, frequency semantics ("3× a week" is WEEKLY × 3) and side effects. The temporary `echo` tool is gone.
+  - **Guards**: creation reuses the shared guard; updates reach only this week's ACTIVE plan, so a plan id read before a rollover fails; patch conflicts, foreign or invented ids and unknown one-offs come back as actionable `isError` results with nothing written; unexpected errors are logged and reported generically.
+  - **Identity**: tools act for the user in `request.auth` — the slot token auth fills in PR 5. Until then only local dev has a user (`MCP_DEV_USER_ID`); preview deployments get none and production still answers 404.
+  - Verified against a local Postgres via the MCP Inspector CLI and raw JSON-RPC: create, patch, and rollover + carry-over checked row by row; every error path left the DB unchanged; user isolation and the env gates hold; tsc, eslint, prettier, theme check and `next build` green.
+  - **Review round**: `src/mcp/` split into `tools/`, `prompts/` (server instructions + tool descriptions) and `middleware/` (auth, runTool); planning error messages moved to `src/utils/errorMessages.ts`; AGENTS.md gains two conventions — plain, explicit names (no abbreviations; functions say what they return and look up by) and the home for LLM-facing error messages.
+- **Tracker**: Board → Medium — stack duplicate backlog tasks (one card with a count per template instead of one card per instance), found while testing the MCP tools.
+
 ### 2026-10-05
 - **Plan service refactor for MCP (PR 2 of 5)** — plan creation and update now have shared cores the upcoming MCP tools reuse, with no change to the form or AI flows; verified by running create / edit / ad-hoc / AI-approve scenarios against a local Postgres on `main` and on the branch, with identical resulting rows.
   - **One creation guard**: `getPlanCreationContext` (syncs first, then active/pending plan + period) and `getCarryOverAdhocTaskIds` back the plan form and AI approval. Side effect: approving after the week rolled over no longer fails on a stale ACTIVE plan.

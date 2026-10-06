@@ -7,6 +7,7 @@ Single source of truth for open ideas and todos across the app — open items on
 ### Medium
 
 - [ ] Evidence submit flow — when the user moves a task to done, submit evidence
+- [ ] Stack duplicate tasks in the backlog — a template with frequency > 1 lists one card per instance (e.g. five identical "Workout" cards with `#n` badges); collapse them into one stacked card with a count that pulls one instance per drag / `↑ Todo` tap, on both breakpoints. Design it first via `/design-explore`
 
 ### Future
 
@@ -20,7 +21,7 @@ Single source of truth for open ideas and todos across the app — open items on
 - [ ] MCP server, Phase 1 — Claude creates/updates plans through the app over MCP, one PR per step
   - [x] 1/5 Skeleton — `/api/mcp` + temporary `echo` tool, 404 in production
   - [x] 2/5 Service refactor — shared creation guard (syncs first), mixed existing/new template entries, template-ownership check, `updatePlanInTx` + template diff
-  - [ ] 3/5 Planning services + tools — `getPlanningContext`, patch-based plan update, MCP tools `get_planning_context` / `create_plan` / `update_plan` + server instructions (dev identity, still 404 in production)
+  - [x] 3/5 Planning services + tools — `get_planning_context` / `create_plan` / patch-based `update_plan` + server instructions; local-dev identity (`MCP_DEV_USER_ID`), still 404 in production
   - [ ] 4/5 OAuth consent page (`/oauth/consent`) + login return-to (`?next=`)
   - [ ] 5/5 Token auth (`withMcpAuth` + protected-resource metadata), lift the production gate, connect the custom connector in Claude
 
