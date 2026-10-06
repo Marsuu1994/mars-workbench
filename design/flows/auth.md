@@ -14,14 +14,14 @@ Flows for authentication (`/auth/*`, `/oauth/consent`) — route protection, Goo
 
 **Steps:**
 
-1. User clicks "Sign in with Google"
+1. User clicks "Sign in with Google"; the login page hands `next` to the callback in a short-lived cookie scoped to `/auth/callback`
 2. Browser redirects to Google OAuth consent screen; user completes authentication
 3. Google redirects to the Supabase callback URI for token exchange
-4. Supabase redirects to `/auth/callback` (carrying `next`) with an authorization code
+4. Supabase redirects to `/auth/callback` with an authorization code
 5. The app exchanges the code for a session via `supabase.auth.exchangeCodeForSession()`
 6. User is redirected to `next`, or the homepage without one; a failed exchange returns to the login page, still carrying `next`
 
-Rules: `next` is honored only as a same-origin path (`getSafeNextPath` resolves it and rejects anything another origin could hide behind — `//host`, `/\host`, control characters); otherwise it falls back to `/`. An already signed-in visitor on `/auth/login` is forwarded to `next` the same way.
+Rules: `redirectTo` stays the bare `/auth/callback` — Supabase matches it against the Redirect URLs allow-list query included, so a `next` query would fall back to the Site URL. The callback clears the cookie, and a plain sign-in expires any stale one. `next` is honored only as a same-origin path (`getSafeNextPath` resolves it and rejects anything another origin could hide behind — `//host`, `/\host`, control characters); otherwise it falls back to `/`. An already signed-in visitor on `/auth/login` is forwarded to `next` the same way.
 
 ## Sign-Up Flow
 

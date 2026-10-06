@@ -6,8 +6,8 @@ import {createClient} from '@/lib/supabase/client';
 import {LoginScreen} from '@/components/domain/auth/LoginScreen';
 import {
   AUTH_CALLBACK_PATH,
+  buildAuthNextCookie,
   getSafeNextPath,
-  withNextParam,
 } from '@/utils/authRedirect';
 
 interface LoginPageProps {
@@ -32,11 +32,13 @@ const LoginPage = ({searchParams}: LoginPageProps) => {
   }, [router, nextPath]);
 
   const handleGoogleSignIn = async () => {
+    const {origin, protocol} = window.location;
+    document.cookie = buildAuthNextCookie(nextPath, protocol === 'https:');
     const supabase = createClient();
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}${withNextParam(AUTH_CALLBACK_PATH, nextPath)}`,
+        redirectTo: `${origin}${AUTH_CALLBACK_PATH}`,
       },
     });
   };
