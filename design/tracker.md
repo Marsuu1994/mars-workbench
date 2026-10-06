@@ -7,6 +7,7 @@ Single source of truth for open ideas and todos across the app — open items on
 ### Medium
 
 - [ ] Evidence submit flow — when the user moves a task to done, submit evidence
+- [ ] Stack duplicate tasks in the backlog — a template with frequency > 1 lists one card per instance (e.g. five identical "Workout" cards with `#n` badges); collapse them into one stacked card with a count that pulls one instance per drag / `↑ Todo` tap, on both breakpoints. Design it first via `/design-explore`
 
 ### Future
 
