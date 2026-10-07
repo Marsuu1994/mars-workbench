@@ -136,6 +136,41 @@ export function getTaskFrequency(
   return task.templateId ? (templateFreqMap.get(task.templateId) ?? 1) : 1;
 }
 
+// ─── Backlog stacks ────────────────────────────────────────────────────────
+
+/**
+ * Identical backlog instances shown as one stacked card. `tasks[0]` is the
+ * instance the next pull takes (the lowest instanceIndex).
+ */
+export interface TaskStack {
+  key: string;
+  tasks: TaskItem[];
+}
+
+/**
+ * Group sorted backlog tasks into stacks. Instances stack when they share a
+ * template and a forDate: weekly instances have no forDate, so they always
+ * stack; daily ones stack per day, keeping yesterday's rollovers apart from
+ * today's batch (their risk and rollover tag differ). Tasks without a template
+ * stand alone. Stacks follow the order of their first task and keep the input
+ * order within — pass sortTasks output so tasks[0] is the lowest instanceIndex.
+ */
+export function groupTasksIntoStacks(sortedTasks: TaskItem[]): TaskStack[] {
+  const stacksByKey = new Map<string, TaskStack>();
+  for (const task of sortedTasks) {
+    const key = task.templateId
+      ? `${task.templateId}:${task.forDate ? new Date(task.forDate).getTime() : 'week'}`
+      : task.id;
+    const stack = stacksByKey.get(key);
+    if (stack) {
+      stack.tasks.push(task);
+    } else {
+      stacksByKey.set(key, {key, tasks: [task]});
+    }
+  }
+  return [...stacksByKey.values()];
+}
+
 // ─── Sorting ───────────────────────────────────────────────────────────────
 
 /**

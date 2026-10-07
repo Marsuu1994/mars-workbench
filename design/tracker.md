@@ -7,12 +7,12 @@ Single source of truth for open ideas and todos across the app — open items on
 ### Medium
 
 - [ ] Evidence submit flow — when the user moves a task to done, submit evidence
-- [ ] Stack duplicate tasks in the backlog — a template with frequency > 1 lists one card per instance (e.g. five identical "Workout" cards with `#n` badges); collapse them into one stacked card with a count that pulls one instance per drag / `↑ Todo` tap, on both breakpoints. Design it first via `/design-explore`
 
 ### Future
 
 - [ ] Support same group ordering for drag and drop within same column
 - [ ] Weekly task rollover across periods
+- [ ] Enforce the forward-only drag rules — nothing checks the transition, so a backlog card can be dropped straight onto In Progress / Done and an In Progress card dragged back to Todo; block invalid columns while dragging and validate server-side (keeping the matrix's `BACKLOG → DOING` track path)
 
 ## Plan
 

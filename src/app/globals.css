@@ -539,6 +539,42 @@ body {
       var(--fx-glow-primary),
       0 14px 32px color-mix(in oklab, var(--color-base-300) 70%, transparent);
   }
+
+  /* ── Stack lips: paper edges peeking out below a stacked card ──
+   Hang BELOW the card (not behind it) so a translucent card never shows
+   a second edge through itself. Token-derived — base-100 lifted toward
+   base-content — so every theme gets readable edges with no new
+   variables. The host card must be position: relative.               */
+  .fx-stack-lip {
+    position: absolute;
+    top: 100%;
+    height: 5px;
+    pointer-events: none;
+    border: 1px solid
+      color-mix(in oklab, var(--color-base-content) 20%, transparent);
+    border-top: 0;
+    border-radius: 0 0 var(--radius-box) var(--radius-box);
+    background: color-mix(
+      in oklab,
+      var(--color-base-100) 88%,
+      var(--color-base-content)
+    );
+  }
+  .fx-stack-lip-2 {
+    top: calc(100% + 5px);
+    background: color-mix(
+      in oklab,
+      var(--color-base-100) 94%,
+      var(--color-base-content)
+    );
+  }
+
+  /* ── Count bump: one pop when a counter changes ──
+   Animates the standalone `scale` property, so it composes with chips
+   that carry their own transform (P5's skewed parallelograms).       */
+  .fx-bump {
+    animation: fx-bump 0.35s cubic-bezier(0.2, 0, 0, 1);
+  }
 } /* end @layer components */
 
 /* ── Drop-target highlight (mars-signal-orange channel) ──
@@ -971,6 +1007,11 @@ body {
   box-shadow: 7px 7px 0 var(--fx-depth);
   transform: rotate(-1.2deg) translate(-2px, -2px);
 }
+[data-theme='p5-dark'] .fx-stack-lip {
+  border: 1.5px solid
+    color-mix(in oklab, var(--color-base-content) 32%, transparent);
+  border-top: 0;
+}
 
 /* ── Hazard target: flat diagonal stripes, dashed edge ── */
 [data-theme='p5-dark'] .fx-target {
@@ -1274,6 +1315,11 @@ body {
     transform: scaleX(0);
   }
 }
+@keyframes fx-bump {
+  40% {
+    scale: 1.35;
+  }
+}
 
 @keyframes fx-boot-in {
   from {
@@ -1302,7 +1348,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .fx-led-pulse,
   .fx-boot-in,
-  .fx-grid-flow {
+  .fx-grid-flow,
+  .fx-bump {
     animation: none;
   }
   .fx-orbit::before,

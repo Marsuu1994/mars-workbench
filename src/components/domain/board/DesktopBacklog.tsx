@@ -10,9 +10,15 @@ import {
   ArrowLeftIcon,
 } from '@heroicons/react/24/outline';
 import type {TaskItem} from '@/lib/db/tasks';
-import {TaskStatus} from '@/utils/enums';
-import {getTaskFrequency, type RiskLevel} from '@/utils/taskUtils';
+import {
+  getTaskFrequency,
+  groupTasksIntoStacks,
+  type RiskLevel,
+  type TaskStack,
+} from '@/utils/taskUtils';
 import TaskCard from './TaskCard';
+import {TaskCardFace} from './TaskCardFace';
+import {BACKLOG_DROPPABLE_PREFIX} from './backlogConstants';
 
 interface DesktopBacklogProps {
   tasks: TaskItem[];
@@ -22,9 +28,10 @@ interface DesktopBacklogProps {
 }
 
 /**
- * Desktop-only collapsible right-edge backlog that stages BACKLOG tasks. The
- * user drags a card onto the Todo column to pull it onto the board
- * (BACKLOG → TODO). Rendered inside KanbanBoard's DragDropContext.
+ * Desktop-only collapsible right-edge backlog that stages BACKLOG tasks,
+ * identical instances collapsed into stacks. The user drags a card onto the
+ * Todo column to pull it onto the board (BACKLOG → TODO) — from a stack, one
+ * instance per drag. Rendered inside KanbanBoard's DragDropContext.
  */
 export default function DesktopBacklog({
   tasks,
@@ -81,37 +88,67 @@ export default function DesktopBacklog({
     </div>
   );
 
-  const renderBody = () => (
-    // isDropDisabled: cards only leave the backlog. Without it, the collapsed
-    // backlog's invisible panel (kept mounted for the cross-fade, overlapping
-    // the Done column) wins dnd's geometric hit-test and steals Done drops.
-    <Droppable droppableId={TaskStatus.BACKLOG} isDropDisabled>
-      {provided => (
-        <div
-          ref={provided.innerRef}
-          {...provided.droppableProps}
-          className="flex-1 overflow-y-auto p-3 flex flex-col gap-2"
-        >
-          {tasks.length === 0 && (
-            <p className="text-center text-xs text-base-content/40 mt-6 px-4">
-              {t('emptyState')}
-            </p>
-          )}
-          {tasks.map((task, index) => (
+  // One Droppable per stack, holding only the stack's top card. A lone
+  // Draggable has no siblings for dnd to displace on lift, and the home
+  // placeholder keeps its slot open — so the rest of the stack can stay in
+  // place, one count lower, under the card being dragged away.
+  // isDropDisabled: cards only leave the backlog. Without it, the collapsed
+  // backlog's invisible panel (kept mounted for the cross-fade, overlapping
+  // the Done column) wins dnd's geometric hit-test and steals Done drops.
+  const renderStack = ({key, tasks: stackTasks}: TaskStack) => {
+    const [topTask, nextTask] = stackTasks;
+    const riskLevel = riskMap.get(topTask.id) ?? 'normal';
+    const frequency = getTaskFrequency(topTask, templateFreqMap);
+
+    return (
+      <Droppable
+        key={key}
+        droppableId={`${BACKLOG_DROPPABLE_PREFIX}${key}`}
+        isDropDisabled
+      >
+        {(provided, snapshot) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className="relative"
+          >
             <TaskCard
-              key={task.id}
-              task={task}
-              taskType={task.type}
-              index={index}
+              task={topTask}
+              taskType={topTask.type}
+              index={0}
               today={today}
-              riskLevel={riskMap.get(task.id) ?? 'normal'}
-              frequency={getTaskFrequency(task, templateFreqMap)}
+              riskLevel={riskLevel}
+              frequency={frequency}
+              stackCount={stackTasks.length}
             />
-          ))}
-          {provided.placeholder}
-        </div>
+            {provided.placeholder}
+            {snapshot.draggingFromThisWith && nextTask && (
+              <TaskCardFace
+                className="absolute inset-x-0 top-0"
+                task={nextTask}
+                taskType={nextTask.type}
+                today={today}
+                riskLevel={riskLevel}
+                frequency={frequency}
+                stackCount={stackTasks.length - 1}
+              />
+            )}
+          </div>
+        )}
+      </Droppable>
+    );
+  };
+
+  // gap-4 leaves room for the stack lips hanging below each card
+  const renderBody = () => (
+    <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-4">
+      {tasks.length === 0 && (
+        <p className="text-center text-xs text-base-content/40 mt-6 px-4">
+          {t('emptyState')}
+        </p>
       )}
-    </Droppable>
+      {groupTasksIntoStacks(tasks).map(renderStack)}
+    </div>
   );
 
   return (

@@ -11,7 +11,6 @@ import {
   SCENARIO_TODAY,
   BACKLOG_TASKS,
   BACKLOG_RISK_MAP,
-  SCENARIO_TEMPLATE_FREQ_MAP,
 } from './fixtures';
 
 const BOARD_SCENARIOS: ScenarioTab[] = [
@@ -55,7 +54,7 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
   {
     label: 'Board — backlog open (desktop)',
     title: 'Board — backlog open (desktop)',
-    note: 'A play step opens the backlog: template instances staged, ready to pull onto the board.',
+    note: 'A play step opens the backlog: identical template instances collapse into stacks (×3 / ×2 / single, the rollover apart from today’s batch); each drag pulls one.',
     content: (
       <BoardScreen
         periodKey={SCENARIO_PERIOD_KEY}
@@ -69,14 +68,13 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
   {
     label: 'Backlog (mobile)',
     title: 'Backlog (mobile)',
-    note: 'The mobile backlog bottom sheet — staged instances with a tap-to-pull action — shown inline (not as a top-layer modal).',
+    note: 'The mobile backlog bottom sheet — stacked instances, each ↑ Todo tap pulls one — shown inline (not as a top-layer modal).',
     display: 'fit',
     content: (
       <MobileBacklogPanel
         tasks={BACKLOG_TASKS}
         today={SCENARIO_TODAY}
         riskMap={BACKLOG_RISK_MAP}
-        templateFreqMap={SCENARIO_TEMPLATE_FREQ_MAP}
       />
     ),
   },

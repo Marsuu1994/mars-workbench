@@ -59,6 +59,7 @@ disables them.
 | `fx-panel` / `fx-panel-solid` | Console panel (glass / no-blur). Glass is for stationary chrome only — never in scroll containers | modals |
 | `fx-corners` | Targeting-reticle corner brackets (inset 2px to clear the radius) | task modal, gallery specimens |
 | `fx-card` / `fx-card-lift` | Card edge-light + hover lift (shadow only — risk borders always win); lift = drag state class swap | `TaskCard` |
+| `fx-stack-lip` (+`fx-stack-lip-2`) | Paper edges hanging below a stacked card (below, not behind — a translucent card never shows a second edge); base-100 lifted toward base-content | `StackLips` (backlog stacks) |
 | `fx-target` | Drop-zone highlight, mars-orange channel; pulse = pseudo-element opacity (`@utility`, composes as `md:fx-target`) | board columns, gallery |
 | `fx-glow` / `fx-glow-accent` | Powered-up CTA halo | primary CTAs, sidebar logo |
 | `fx-chip` | Console chip from `currentColor` (border 28% / fill 10% / inset highlight) — pair with any `text-*` token | `TaskTypeBadge`, `SizeChip`, date pill, beta pill |
@@ -71,6 +72,7 @@ disables them.
 | `fx-glow-pulse` | Breathing brand halo — pre-composited shadow on a pseudo-element, opacity-only loop | login `BrandIcon` |
 | `fx-text-gradient` | Cyan→violet headline gradient. Restraint rule: first word only | gallery title, login "Mars" |
 | `fx-boot-in` | 420ms mount animation (rise + scale + fade) | modals |
+| `fx-bump` | One 350ms pop when a counter changes — animates the standalone `scale` property, so it composes with chips that carry their own transform; reduced-motion disables it | `StackCountBadge` |
 | `fx-countdown` | Clock bar draining over `--fx-countdown-ms`; its `animationend` is the dismissal. Holds while its host is hovered and inside `data-time="frozen"` (scenario frames, gallery specimens); deliberately kept out of the reduced-motion list | `Toast` |
 | `fx-nav-rail` | Luminous active-nav left rail | sidebar active item |
 | `fx-quadrant` + `fx-q-{error,primary,warning,neutral}` + `fx-q-{tl,tr,bl,br}` | Per-quadrant corner bloom keyed to semantic hue | priority matrix |

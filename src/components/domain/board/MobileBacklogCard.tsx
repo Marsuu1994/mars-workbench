@@ -6,34 +6,37 @@ import type {TaskItem} from '@/lib/db/tasks';
 import {isRolloverTask, type RiskLevel} from '@/utils/taskUtils';
 import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {TaskTypeBadge} from '@/components/domain/shared/TaskTypeBadge';
-import {InstanceBadge} from '@/components/ui/InstanceBadge';
+import {StackCountBadge} from '@/components/ui/StackCountBadge';
+import {StackLips} from '@/components/ui/StackLips';
 import {RiskBadge} from '@/components/domain/shared/RiskBadge';
 import {RolloverTag} from '@/components/domain/shared/RolloverTag';
 import {RISK_BORDER_LEFT} from '@/components/domain/shared/riskBorder';
 
 interface MobileBacklogCardProps {
+  /** The stack's top instance — the one a tap pulls */
   task: TaskItem;
+  /** Identical instances this card stands for; `×n` chip + lips when > 1 */
+  stackCount: number;
   today: Date;
   riskLevel: RiskLevel;
-  /** Template generation frequency; the instance badge only shows when > 1 */
-  frequency: number;
   onPull: (taskId: string) => void;
 }
 
 /**
- * Full-width row card rendered inside the mobile backlog. Mirrors the board
- * TaskCard's badge / instance / rollover / risk language, but is a plain
- * (non-draggable) presentational card with a tap "↑ Todo" pull action.
+ * Full-width row card rendered inside the mobile backlog, one per stack of
+ * identical instances. Mirrors the board TaskCard's badge / rollover / risk
+ * language, but is a plain (non-draggable) presentational card with a tap
+ * "↑ Todo" action that pulls one instance.
  */
 export default function MobileBacklogCard({
   task,
+  stackCount,
   today,
   riskLevel,
-  frequency,
   onPull,
 }: MobileBacklogCardProps) {
   const t = useTranslations('Board.Backlog');
-  const showInstance = frequency > 1;
+  const isStacked = stackCount > 1;
   const isRollover = isRolloverTask(task, today);
 
   return (
@@ -44,7 +47,12 @@ export default function MobileBacklogCard({
         <div className="flex-1 min-w-0 flex flex-col gap-1.5">
           <div className="flex items-center gap-1.5 flex-wrap">
             <TaskTypeBadge type={task.type} />
-            {showInstance && <InstanceBadge index={task.instanceIndex} />}
+            {isStacked && (
+              <StackCountBadge
+                count={stackCount}
+                label={t('stackCountLabel', {count: stackCount})}
+              />
+            )}
             {isRollover && <RolloverTag date={new Date(task.forDate!)} />}
             <RiskBadge level={riskLevel} />
           </div>
@@ -69,6 +77,8 @@ export default function MobileBacklogCard({
           </button>
         </div>
       </div>
+
+      <StackLips count={stackCount} />
     </div>
   );
 }
