@@ -5,11 +5,9 @@ import {redirect} from 'next/navigation';
 import {authorizationIdSchema, submitConsentDecisionSchema} from '@/schemas';
 import {
   getConsentRequestByAuthorizationId,
-  signOutOnThisDevice,
   submitConsentDecision,
 } from '@/services/oauthConsentService';
-import {LOGIN_PATH, withNextParam} from '@/utils/authRedirect';
-import {CONSENT_PATH, getConsentPath} from '@/utils/oauthConsent';
+import {CONSENT_PATH} from '@/utils/oauthConsent';
 
 /** Load one authorization request for `/oauth/consent`. See OAuth Consent Flow. */
 export async function getConsentRequestAction(authorizationId: string) {
@@ -35,16 +33,4 @@ export async function submitConsentDecisionAction(
     redirect(redirectUrl);
   }
   revalidatePath(CONSENT_PATH);
-}
-
-/**
- * "Switch account": sign out on this device and return to the login page,
- * which brings the newly signed-in user back to the same request.
- */
-export async function switchConsentAccountAction(
-  authorizationId: string,
-): Promise<void> {
-  const parsedAuthorizationId = authorizationIdSchema.parse(authorizationId);
-  await signOutOnThisDevice();
-  redirect(withNextParam(LOGIN_PATH, getConsentPath(parsedAuthorizationId)));
 }

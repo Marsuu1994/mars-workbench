@@ -48,7 +48,6 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | **`src/actions/oauthActions.ts`** | | |
 | `getConsentRequestAction` | Load one OAuth authorization request for `/oauth/consent` | `oauthConsentService.getConsentRequestByAuthorizationId` |
 | `submitConsentDecisionAction` | Approve / deny a request, then redirect to the client (an undecidable one re-renders the page) | `oauthConsentService.submitConsentDecision` |
-| `switchConsentAccountAction` | "Switch account": sign out on this device, back to login carrying the request | `oauthConsentService.signOutOnThisDevice` |
 
 ## MCP (src/mcp, served at /api/mcp)
 
@@ -97,7 +96,6 @@ Tools act for the user in `request.auth` (`src/mcp/middleware/auth.ts`); until t
 | **`oauthConsentService.ts`** | |
 | `getConsentRequestByAuthorizationId` | Supabase authorization details → the consent page's request, a redirect (already consented), or null (unknown/expired/decided) |
 | `submitConsentDecision` | Record approve/deny with Supabase; returns the client's redirect URL, or null when the request can't be decided |
-| `signOutOnThisDevice` | Local-scope sign-out for "Switch account" (other devices keep their session) |
 | **`syncService.ts`** | |
 | `ensureSynced` | Single sync entry point awaited by every kanban page before reading plan state; flips an ended ACTIVE plan to PENDING_UPDATE, runs the daily sync at most once per day, returns the current-week ACTIVE plan or null. Idempotent, wrapped in React `cache()`. |
 | `runDailySync` | Expire stale daily tasks + generate today's daily instances (standalone for a future cron) |

@@ -157,7 +157,6 @@
   "OAuthConsent": {
     "title": "<strong>{client}</strong> wants to access your Mars Workbench account",
     "signedInAs": "Signed in as <strong>{email}</strong>",
-    "switchAccount": "Switch account",
     "capabilitiesLabel": "This will let {client}",
     "readContextTitle": "Read your planning context",
     "readContextDescription": "This week's plan and progress, last week's stats, and your task templates",

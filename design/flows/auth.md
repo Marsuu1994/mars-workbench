@@ -35,13 +35,12 @@ Same as login — Supabase auto-creates a user record on first Google sign-in.
 
 1. Signed out → Route Protection sends the user through login and back here (`next`)
 2. The page loads the request (`getAuthorizationDetails`):
-   - consent needed → the consent screen: client, approving account (+ Switch account), what access it grants, the host the browser returns to, Deny / Allow
+   - consent needed → the consent screen: client, approving account, what access it grants, the host the browser returns to, Deny / Allow
    - already consented → redirect straight back to the client (no UI)
    - missing, malformed, unknown, expired or already decided → the invalid-link state
 3. Allow / Deny → `approveAuthorization` / `denyAuthorization` → redirect to the returned `redirect_url` (the code, or `error=access_denied`). A request that can no longer be decided re-renders the page into the invalid-link state
-4. Switch account → sign out on this device only → `/auth/login?next=` this request
 
-Rules: the page is chromeless and never renders inside a frame (`frame-ancestors 'none'` + `X-Frame-Options: DENY` on `/oauth/*`, against clickjacking the Allow button). The access list is fixed copy — a token reaches every MCP tool whatever the scopes; the raw scopes are shown muted. The return host comes from the client's redirect URI (client names are self-asserted under dynamic registration). `authorization_id` must match Supabase's alphanumeric format before any call — the SDK puts it in its API path unescaped. Requires the OAuth Server enabled in the Supabase dashboard with this authorization path.
+Rules: Supabase binds a request to the first account that opens it (another account gets not-found) and expires it after 10 minutes, so there is no in-page account switch — the wrong account starts over from the client. The page is chromeless and never renders inside a frame (`frame-ancestors 'none'` + `X-Frame-Options: DENY` on `/oauth/*`, against clickjacking the Allow button). The access list is fixed copy — a token reaches every MCP tool whatever the scopes; the raw scopes are shown muted. The return host comes from the client's redirect URI (client names are self-asserted under dynamic registration). `authorization_id` must match Supabase's alphanumeric format before any call — the SDK puts it in its API path unescaped. Requires the OAuth Server enabled in the Supabase dashboard with this authorization path.
 
 ## Theme Change Flow
 

@@ -83,12 +83,3 @@ export async function submitConsentDecision(
       throw new Error(`Unknown consent decision: ${decision satisfies never}`);
   }
 }
-
-/**
- * Ends the session on this device only, so switching the account that
- * authorizes a client never signs the user out of their other devices.
- */
-export async function signOutOnThisDevice(): Promise<void> {
-  const supabase = await createClient();
-  await supabase.auth.signOut({scope: 'local'});
-}

@@ -26,7 +26,7 @@ const AUTH_SCENARIOS: ScenarioTab[] = [
   {
     label: 'OAuth consent',
     title: 'OAuth consent — request',
-    note: 'Where Supabase sends a signed-in user when Claude asks to connect: client tile ⇄ brand mark, the approving account with Switch account, what access it grants, the host the browser returns to, Deny / Allow.',
+    note: 'Where Supabase sends a signed-in user when Claude asks to connect: client tile ⇄ brand mark, the approving account, what access it grants, the host the browser returns to, Deny / Allow.',
     content: <ConsentScenario />,
   },
   {

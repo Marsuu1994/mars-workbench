@@ -19,8 +19,6 @@ interface ConsentScreenProps {
   request: OAuthConsentRequest;
   /** Records the decision with Supabase and leaves for the client. */
   onDecision: (decision: ConsentDecision) => Promise<void>;
-  /** Signs out on this device and returns to login for this same request. */
-  onSwitchAccount: () => Promise<void>;
 }
 
 /** What a granted token can do — every MCP tool, whatever the scopes say. */
@@ -65,11 +63,7 @@ const FADE_UP = [
  * and the Deny / Allow decision. Presentational — the page loads the request
  * and passes the bound server actions, so scenarios render it with fixtures.
  */
-export const ConsentScreen = ({
-  request,
-  onDecision,
-  onSwitchAccount,
-}: ConsentScreenProps) => {
+export const ConsentScreen = ({request, onDecision}: ConsentScreenProps) => {
   const t = useTranslations('OAuthConsent');
   const [isPending, startTransition] = useTransition();
   const [chosenDecision, setChosenDecision] = useState<ConsentDecision | null>(
@@ -82,14 +76,6 @@ export const ConsentScreen = ({
     setChosenDecision(decision);
     startTransition(async () => {
       await onDecision(decision);
-    });
-  };
-
-  const handleSwitchAccount = () => {
-    if (isPending) return;
-    setChosenDecision(null);
-    startTransition(async () => {
-      await onSwitchAccount();
     });
   };
 
@@ -141,14 +127,6 @@ export const ConsentScreen = ({
               </strong>
             ),
           })}
-          <button
-            type="button"
-            onClick={handleSwitchAccount}
-            aria-disabled={isPending}
-            className="ml-1.5 cursor-pointer font-medium text-primary hover:underline aria-disabled:pointer-events-none"
-          >
-            {t('switchAccount')}
-          </button>
         </p>
       </div>
     </>

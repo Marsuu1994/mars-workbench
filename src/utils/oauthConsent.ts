@@ -20,7 +20,3 @@ export const ConsentDecision = {
 } as const;
 export type ConsentDecision =
   (typeof ConsentDecision)[keyof typeof ConsentDecision];
-
-/** The consent page for one authorization request. */
-export const getConsentPath = (authorizationId: string): string =>
-  `${CONSENT_PATH}?${new URLSearchParams({[AUTHORIZATION_ID_PARAM]: authorizationId})}`;

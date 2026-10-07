@@ -2,7 +2,6 @@ import {redirect} from 'next/navigation';
 import {
   getConsentRequestAction,
   submitConsentDecisionAction,
-  switchConsentAccountAction,
 } from '@/actions/oauthActions';
 import {ConsentInvalidScreen} from '@/components/domain/auth/ConsentInvalidScreen';
 import {ConsentScreen} from '@/components/domain/auth/ConsentScreen';
@@ -37,7 +36,6 @@ export default async function ConsentPage({searchParams}: ConsentPageProps) {
     <ConsentScreen
       request={consent}
       onDecision={submitConsentDecisionAction.bind(null, authorizationId)}
-      onSwitchAccount={switchConsentAccountAction.bind(null, authorizationId)}
     />
   );
 }
