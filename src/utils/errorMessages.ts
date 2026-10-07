@@ -29,7 +29,7 @@ export const PLANNING_ERROR = {
 /** What the MCP layer reports around a tool call (see mcp/middleware/runTool). */
 export const MCP_ERROR = {
   NO_SIGNED_IN_USER:
-    'No signed-in Mars Workbench user. In local development, set MCP_DEV_USER_ID to a Supabase user id and restart the server.',
+    'No signed-in Mars Workbench user for this request. Ask the user to reconnect the Mars Workbench connector, then retry.',
   TEMPLATE_NOT_FOUND: (templateIds: string[]) =>
     `Template not found: ${templateIds.join(', ')}. No changes were made; use templateIds from get_planning_context.`,
   UNEXPECTED:

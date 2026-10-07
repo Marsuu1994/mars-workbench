@@ -213,5 +213,5 @@ The user asks Claude, connected to the `/api/mcp` server, to plan or adjust thei
 - `update_plan` only changes this week's ACTIVE plan; a plan id read before a week rollover is rejected.
 - A patch that adds a template already in the plan, updates or removes one that isn't, or names an id twice is rejected whole; nothing is written.
 - Carried-over or removed one-offs must be unfinished one-off tasks of that plan — the tools never create one-offs or pull them from the priority matrix.
-- Identity: tool calls act for the user in `request.auth`. Until token auth lands only local development has one (`MCP_DEV_USER_ID`); deployments serve tool calls with no user, and production answers 404.
+- Identity: tool calls act for the user whose Supabase OAuth access token the request carries (see OAuth Consent Flow in `design/flows/auth.md`); local development without a token acts as `MCP_DEV_USER_ID`.
 - Errors the model can act on (active plan exists, stale plan id, patch conflicts, unknown ids, invalid input) come back as `isError` results; unexpected errors are logged and reported generically.

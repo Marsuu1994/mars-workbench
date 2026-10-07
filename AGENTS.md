@@ -19,7 +19,7 @@ A Next.js application centered on a Kanban Period Planner, with AI-assisted plan
 - Database: PostgreSQL (Supabase) + Prisma ORM
 - Auth: Supabase Auth (Google OAuth); its OAuth 2.1 Server authorizes MCP clients through the app's consent page (`/oauth/consent`)
 - LLM: OpenAI (`gpt-5-nano`) for AI-assisted plan creation — non-streaming structured output (`zodResponseFormat`)
-- MCP: `mcp-handler` + `@modelcontextprotocol/server` (v2) — remote MCP endpoint at `/api/mcp` (Streamable HTTP) where Claude reads planning context and creates/updates plans; answers 404 in production until the OAuth layer lands, and until then only local dev has a user (`MCP_DEV_USER_ID`)
+- MCP: `mcp-handler` + `@modelcontextprotocol/server` (v2) — remote MCP endpoint at `/api/mcp` (Streamable HTTP) where Claude reads planning context and creates/updates plans; every request carries a Supabase OAuth access token (verified against the project's JWKS), which clients find through the protected-resource metadata under `/.well-known/`; local dev may act as `MCP_DEV_USER_ID` instead
 - Icons: Heroicons
 - Language: TypeScript
 
@@ -43,8 +43,8 @@ design/                            # Centralized design docs (see design/README.
 src/
 ├── proxy.ts                       # Route protection (Supabase session check)
 ├── app/                           # App Router: auth/, kanban/ (board, plans, priorities, settings), api/mcp/,
-│                                  #   oauth/ (MCP client consent), design/ (Design Console: layer-tabbed gallery + scenarios/),
-│                                  #   layout.tsx, globals.css
+│                                  #   .well-known/ (api/mcp's OAuth metadata), oauth/ (MCP client consent),
+│                                  #   design/ (Design Console: layer-tabbed gallery + scenarios/), layout.tsx, globals.css
 ├── generated/prisma/              # Generated Prisma client (gitignored)
 ├── actions/                       # ALL server actions ('use server') — thin validate → service → revalidate
 ├── services/                      # ALL business logic (no 'use server'); syncService.ensureSynced entry point
@@ -280,7 +280,7 @@ When adding a new convention, append it to the **end of the relevant subsection 
 
 ## API Conventions
 
-- API handlers live in `app/api/[resource]/route.ts`.
+- API handlers live in `app/api/[resource]/route.ts` (exception: `app/.well-known/*` metadata, whose paths the OAuth RFCs fix).
 - Return via `NextResponse.json()`.
 - Use consistent error shape: `{ error: string }`.
 - Validate/parse request body before DB layer.
