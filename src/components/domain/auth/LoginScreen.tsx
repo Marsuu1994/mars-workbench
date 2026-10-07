@@ -1,5 +1,8 @@
 'use client';
 
+import {AuthBackdrop} from './AuthBackdrop';
+import {BrandIcon} from './BrandIcon';
+
 const GoogleLogo = () => (
   <svg
     viewBox="0 0 24 24"
@@ -25,22 +28,6 @@ const GoogleLogo = () => (
   </svg>
 );
 
-const BrandIcon = () => (
-  <div className="fx-glow-pulse flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-primary to-secondary">
-    <svg
-      viewBox="0 0 24 24"
-      className="h-7 w-7 fill-none stroke-white"
-      strokeWidth={1.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12 2L2 7l10 5 10-5-10-5z" />
-      <path d="M2 17l10 5 10-5" />
-      <path d="M2 12l10 5 10-5" />
-    </svg>
-  </div>
-);
-
 interface LoginScreenProps {
   onGoogleSignIn: () => void;
 }
@@ -52,29 +39,7 @@ interface LoginScreenProps {
  */
 export const LoginScreen = ({onGoogleSignIn}: LoginScreenProps) => (
   <>
-    {/* Atmospheric background */}
-    <div
-      className="pointer-events-none fixed inset-0 z-0"
-      style={{
-        background: [
-          'radial-gradient(ellipse 60% 50% at 50% 100%, var(--login-glow-cyan) 0%, transparent 70%)',
-          'radial-gradient(ellipse 40% 40% at 20% 20%, var(--login-glow-purple) 0%, transparent 60%)',
-          'radial-gradient(ellipse 50% 50% at 80% 30%, var(--login-glow-rose) 0%, transparent 60%)',
-        ].join(', '),
-      }}
-    />
-
-    {/* Subtle grid — extends one 64px cell above the viewport so the
-        fx-grid-flow crawl wraps seamlessly */}
-    <div
-      className="fx-grid-flow pointer-events-none fixed inset-x-0 -top-16 bottom-0 z-0 bg-[size:64px_64px]"
-      style={{
-        backgroundImage: [
-          'linear-gradient(var(--login-grid-color) 1px, transparent 1px)',
-          'linear-gradient(90deg, var(--login-grid-color) 1px, transparent 1px)',
-        ].join(', '),
-      }}
-    />
+    <AuthBackdrop />
 
     {/* Card */}
     <div className="relative z-10 flex w-full max-w-[400px] flex-col items-center gap-10 px-10 py-12">

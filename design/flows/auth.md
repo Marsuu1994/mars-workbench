@@ -1,12 +1,12 @@
 # Auth Flows
 
-Flows for authentication (`/auth/*`) — route protection, Google OAuth sign-in/up, and sign-out. Sibling docs: `design/flows/board.md`, `design/flows/plan.md`, `design/flows/priorities.md`, `design/flows/shared.md`.
+Flows for authentication (`/auth/*`, `/oauth/consent`) — route protection, Google OAuth sign-in/up, MCP connector consent, and sign-out. Sibling docs: `design/flows/board.md`, `design/flows/plan.md`, `design/flows/priorities.md`, `design/flows/shared.md`.
 
 ## Route Protection Flow
 
 **Trigger:** User navigates to any protected route without a valid session
 
-**Mechanism:** The Next.js proxy (`src/proxy.ts`, delegating to `updateSession` in `src/lib/supabase/middleware.ts`) checks the session. If no valid session exists, redirect to `/auth/login`.
+**Mechanism:** The Next.js proxy (`src/proxy.ts`, delegating to `updateSession` in `src/lib/supabase/middleware.ts`) checks the session. If no valid session exists, redirect to `/auth/login?next=<requested path + query>` (no `next` for `/`), so sign-in returns the visitor to the page that asked for it.
 
 ## Login Flow
 
@@ -14,16 +14,87 @@ Flows for authentication (`/auth/*`) — route protection, Google OAuth sign-in/
 
 **Steps:**
 
-1. User clicks "Sign in with Google"
+1. User clicks "Sign in with Google"; the login page hands `next` to the callback in a short-lived cookie scoped to `/auth/callback`
 2. Browser redirects to Google OAuth consent screen; user completes authentication
 3. Google redirects to the Supabase callback URI for token exchange
 4. Supabase redirects to `/auth/callback` with an authorization code
 5. The app exchanges the code for a session via `supabase.auth.exchangeCodeForSession()`
-6. User is redirected to the homepage
+6. User is redirected to `next`, or the homepage without one; a failed exchange returns to the login page, still carrying `next`
+
+Rules: `redirectTo` stays the bare `/auth/callback` — Supabase matches it against the Redirect URLs allow-list query included, so a `next` query would fall back to the Site URL. The callback clears the cookie, and a plain sign-in expires any stale one. `next` is honored only as a same-origin path (`getSafeNextPath` resolves it and rejects anything another origin could hide behind — `//host`, `/\host`, control characters); otherwise it falls back to `/`. An already signed-in visitor on `/auth/login` is forwarded to `next` the same way.
 
 ## Sign-Up Flow
 
 Same as login — Supabase auto-creates a user record on first Google sign-in.
+
+## OAuth Consent Flow
+
+**Trigger:** An MCP client (Claude) starts Supabase's OAuth 2.1 authorization flow; Supabase redirects to the app's authorization path, `/oauth/consent?authorization_id=…` (Site URL + the path set under Authentication → OAuth Server)
+
+Two OAuth flows meet here: Supabase is the **authorization server** for Claude (it issues the authorization id, the code and the token), while signing in to the app itself is the separate Google flow above. The app hosts the consent screen for Supabase and, as `/api/mcp`, is the resource server that checks the token. Shaded steps are planned for MCP 5/5.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as You (browser)
+    participant C as Claude (MCP client)
+    participant S as Supabase Auth
+    participant A as Mars Workbench /oauth/consent
+    participant M as Mars Workbench /api/mcp
+
+    rect rgba(128, 128, 128, 0.12)
+    Note over C,M: Planned (MCP 5/5): discovery and client registration
+    C->>M: call without a token
+    M-->>C: 401 + protected-resource metadata (auth server = Supabase)
+    C->>S: read auth-server metadata, register (DCR)
+    S-->>C: client_id
+    end
+
+    C->>C: create PKCE verifier (kept) + challenge (sent)
+    C->>U: open /auth/v1/oauth/authorize (client_id, redirect_uri, challenge, state)
+    U->>S: GET authorize
+    S->>S: check client + redirect_uri, create authorization_id (10 min)
+    S-->>U: redirect to Site URL /oauth/consent?authorization_id
+    U->>A: open consent page
+    opt signed out
+        A-->>U: login with next, Google sign-in, back to the consent page
+    end
+    A->>S: getAuthorizationDetails(id) with your session
+    S->>S: bind the request to you (another account now gets not-found)
+    alt already consented
+        S-->>A: redirect_url with a code
+        A-->>U: redirect straight to the client callback
+    else consent needed
+        S-->>A: client, scopes, redirect_uri, your email
+        A-->>U: consent screen
+        U->>A: Allow or Deny
+        A->>S: approveAuthorization or denyAuthorization
+        S-->>A: redirect_url (code and state, or error=access_denied)
+        A-->>U: redirect to the client callback
+    end
+    U->>C: callback with code and state
+    C->>S: POST /auth/v1/oauth/token (code + verifier)
+    S-->>C: access token (JWT: sub = you, client_id = Claude) + refresh token
+
+    rect rgba(128, 128, 128, 0.12)
+    Note over C,M: Planned (MCP 5/5): using the token
+    C->>M: tool call with Authorization Bearer token
+    M->>M: verify JWT (Supabase key, issuer, expiry), userId = sub
+    M-->>C: tool result
+    C->>S: refresh the token when it expires (the app is not involved)
+    end
+```
+
+**Steps (the consent page):**
+
+1. Signed out → Route Protection sends the user through login and back here (`next`)
+2. The page loads the request (`getAuthorizationDetails`):
+   - consent needed → the consent screen: client, approving account, what access it grants, the host the browser returns to, Deny / Allow
+   - already consented → redirect straight back to the client (no UI)
+   - missing, malformed, unknown, expired or already decided → the invalid-link state
+3. Allow / Deny → `approveAuthorization` / `denyAuthorization` → redirect to the returned `redirect_url` (the code, or `error=access_denied`). A request that can no longer be decided re-renders the page into the invalid-link state
+
+Rules: Supabase binds a request to the first account that opens it (another account gets not-found) and expires it after 10 minutes, so there is no in-page account switch — the wrong account starts over from the client. The page is chromeless and never renders inside a frame (`frame-ancestors 'none'` + `X-Frame-Options: DENY` on `/oauth/*`, against clickjacking the Allow button). The access list is fixed copy — a token reaches every MCP tool whatever the scopes; the raw scopes are shown muted. The return host comes from the client's redirect URI (client names are self-asserted under dynamic registration). `authorization_id` must match Supabase's alphanumeric format before any call — the SDK puts it in its API path unescaped. Requires the OAuth Server enabled in the Supabase dashboard with this authorization path.
 
 ## Theme Change Flow
 

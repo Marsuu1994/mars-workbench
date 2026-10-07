@@ -42,3 +42,6 @@ export const THEME_PREVIEWS: Record<ThemeName, ThemePreview> = {
     ],
   },
 };
+
+/** Where the invalid-link state on the OAuth consent page sends the user. */
+export const CONSENT_INVALID_HOME_HREF = '/';

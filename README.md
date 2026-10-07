@@ -57,7 +57,8 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ### Auth
 
-- Supabase Auth (Google OAuth) with route protection, themed login page, collapsible workspace sidebar (Board / Priorities / Plan) and 4-tab mobile dock. **Settings is a responsive overlay** (dock tab / sidebar user row → same sheet): theme picker (Sora light / Sora dark / P5 dark, cookie-persisted, explicit choice — no time-based auto-switch) + two-step confirm sign-out. Deployed on Vercel
+- Supabase Auth (Google OAuth) with route protection (sign-in returns to the page that asked for it), themed login page, collapsible workspace sidebar (Board / Priorities / Plan) and 4-tab mobile dock. **Settings is a responsive overlay** (dock tab / sidebar user row → same sheet): theme picker (Sora light / Sora dark / P5 dark, cookie-persisted, explicit choice — no time-based auto-switch) + two-step confirm sign-out. Deployed on Vercel
+- **OAuth consent page** (`/oauth/consent`): where Supabase's OAuth server sends you to approve or deny an MCP client (Claude) — who's asking, the approving account, what it can do, and where the browser returns. Connecting Claude for real waits on token auth (MCP 5/5)
 
 Open items: see [design/tracker.md](./design/tracker.md).
 
@@ -84,6 +85,10 @@ Open items: see [design/tracker.md](./design/tracker.md).
 
 ## Update Log
 
+### 2026-10-07
+- **OAuth consent: no in-page account switch** — owner validation showed Supabase binds an authorization request to the first account that opens it (any other account gets not-found), so "Switch account" could never resume the request; it is removed along with its action and service helper. The page still names the approving account, and the wrong account starts over from the client.
+- **Docs**: the OAuth Consent Flow in `design/flows/auth.md` gains a sequence diagram of the whole MCP authorization — who issues the authorization id, code and token, where the consent page sits, and the token steps still planned for MCP 5/5.
+
 ### 2026-10-06
 - **MCP planning tools (PR 3 of 5)** — Claude can now plan the week through the app over MCP (local development for now): `get_planning_context` (today and the week, the active plan's lines with progress and attached one-offs, last week's per-template stats and carry-over one-offs, reusable templates), `create_plan` (existing + brand-new templates, carry-over selection) and `update_plan` (a patch on this week's active plan), plus server instructions covering the read → propose → confirm → write workflow, frequency semantics ("3× a week" is WEEKLY × 3) and side effects. The temporary `echo` tool is gone.
   - **Guards**: creation reuses the shared guard; updates reach only this week's ACTIVE plan, so a plan id read before a rollover fails; patch conflicts, foreign or invented ids and unknown one-offs come back as actionable `isError` results with nothing written; unexpected errors are logged and reported generically.
@@ -94,6 +99,12 @@ Open items: see [design/tracker.md](./design/tracker.md).
 - **Supabase log noise fix**: `schema "pg_pgrst_no_exposed_schemas" does not exist` (3F000) was showing up repeatedly in the Postgres logs. It comes from the disabled Data API: PostgREST keeps running against a placeholder schema (the app only uses Prisma + Supabase Auth). The fix is [Supabase's documented workaround](https://supabase.com/docs/guides/troubleshooting/schema-pg_pgrst_no_exposed_schemas-does-not-exist): point PostgREST at a real, empty schema, so the Data API still exposes nothing. Run once against the project with the one-time script `scripts/one-time/silence-pgrst-no-exposed-schemas-error.sql`, which wraps it in a dry-run transaction and was tested on a local Postgres 16:
   - Apply: `create schema if not exists pgrst_no_exposed_schemas; alter role authenticator set pgrst.db_schemas = 'pgrst_no_exposed_schemas'; notify pgrst, 'reload config'; notify pgrst, 'reload schema';`
   - **Revert before ever re-enabling the Data API** (otherwise it keeps exposing only the empty schema): `alter role authenticator reset pgrst.db_schemas; drop schema if exists pgrst_no_exposed_schemas; notify pgrst, 'reload config'; notify pgrst, 'reload schema';`
+- **OAuth consent page + login return-to (MCP PR 4 of 5)** — the app now hosts the authorization page Supabase's OAuth 2.1 server sends users to when Claude connects, and sign-in returns you to the page that asked for it.
+  - **Return-to**: the proxy keeps the requested path in `?next=` on its login redirect; the login page hands it to `/auth/callback` in a short-lived cookie (the Google `redirectTo` stays the bare callback URL, so Supabase's Redirect URLs allow-list needs no wildcard), and both honor it as a same-origin path only (anything resolving to another origin falls back to `/`); a failed exchange returns to login still carrying it.
+  - **`/oauth/consent`** (chromeless, login atmosphere): client ⇄ brand header, the approving account, fixed copy for what the token can do, the return host, Deny / Allow with a pending state, muted scopes. Already-consented requests redirect straight back; missing, malformed, expired or decided ones show an invalid-link state. Allow/Deny run through a server action that redirects to Supabase's `redirect_url`; `/oauth/*` refuses to be framed (clickjacking).
+  - Login's backdrop and brand mark are now shared components; the auth scenario page gains three consent tabs (request, allowing, invalid link) and the approved exploration mockup is retired.
+  - Verified against `next dev` and `next start` with a stand-in Supabase Auth server (emulating its Redirect URLs allow-list matching) and a local Postgres: the full Google sign-in round trip through `next`, Allow / Deny / auto-redirect / invalid / expired-mid-page / switch account, no duplicate decision while pending, hostile `next` and `authorization_id` values, a same-site framing attempt blocked; tsc, eslint, prettier, theme check and `next build` green. The OAuth Server still has to be enabled in the Supabase dashboard (tracked under 5/5).
+- **Tracker**: Auth → Future — a Connected apps view to list and revoke OAuth grants.
 
 ### 2026-10-05
 - **Plan service refactor for MCP (PR 2 of 5)** — plan creation and update now have shared cores the upcoming MCP tools reuse, with no change to the form or AI flows; verified by running create / edit / ad-hoc / AI-approve scenarios against a local Postgres on `main` and on the branch, with identical resulting rows.

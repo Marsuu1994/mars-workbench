@@ -11,6 +11,7 @@ import {
   TaskStatus,
 } from './utils/enums';
 import {THEMES} from './utils/theme';
+import {AUTHORIZATION_ID_PATTERN, ConsentDecision} from './utils/oauthConsent';
 import {DUMP_ENTRY_MAX_LENGTH} from './utils/dump';
 import {FREQ_MAX, FREQ_MIN} from './utils/planUtils';
 // Validation copy is centralized in the i18n catalog. zod messages are set at
@@ -205,6 +206,18 @@ export type ResumeDraftPlanInput = z.infer<typeof resumeDraftPlanSchema>;
 
 export const updateThemeSchema = z.object({theme: z.enum(THEMES)});
 export type UpdateThemeInput = z.infer<typeof updateThemeSchema>;
+
+// ── OAuth Consent Schemas ──────────────────────────────────────────────
+
+export const authorizationIdSchema = z.string().regex(AUTHORIZATION_ID_PATTERN);
+
+export const submitConsentDecisionSchema = z.object({
+  authorizationId: authorizationIdSchema,
+  decision: z.nativeEnum(ConsentDecision),
+});
+export type SubmitConsentDecisionInput = z.infer<
+  typeof submitConsentDecisionSchema
+>;
 
 // ── MCP Tool Schemas ───────────────────────────────────────────────────
 
