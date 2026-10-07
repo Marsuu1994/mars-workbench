@@ -75,7 +75,7 @@ export default function TaskCard({
             )}
 
             {/* Desktop footer */}
-            <div className="hidden md:flex items-center gap-2 mt-2">
+            <div className="hidden md:flex flex-wrap items-center gap-x-2 gap-y-1.5 mt-2">
               <TaskTypeBadge type={taskType} />
 
               {showInstance && <InstanceBadge index={task.instanceIndex} />}
