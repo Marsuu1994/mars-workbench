@@ -41,7 +41,8 @@
       "openLabel": "Open backlog",
       "closeLabel": "Close backlog",
       "hintTapToTodo": "Tap to pull a task onto the board",
-      "pullToTodoLabel": "Todo"
+      "pullToTodoLabel": "Todo",
+      "stackCountLabel": "{count} staged — each pull takes one"
     },
     "Header": {
       "titlePrefix": "Kanban",

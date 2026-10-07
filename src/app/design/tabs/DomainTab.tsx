@@ -128,7 +128,7 @@ export const DomainTab = () => {
   const renderTaskCards = () => (
     <Section
       title="TaskCard"
-      description="The board's core card across its risk, rollover, multi-instance, and done states."
+      description="The board's core card across its risk, rollover, multi-instance, backlog-stack, and done states."
     >
       <DragDropContext onDragEnd={() => undefined}>
         <Droppable droppableId="gallery-cards">
@@ -148,6 +148,7 @@ export const DomainTab = () => {
                       today={TODAY}
                       riskLevel={fixture.riskLevel}
                       frequency={fixture.frequency}
+                      stackCount={fixture.stackCount}
                     />
                   </div>
                 </Variant>

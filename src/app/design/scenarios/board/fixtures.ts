@@ -3,6 +3,7 @@ import type {TaskItem} from '@/lib/db/tasks';
 import {
   computeRiskLevel,
   computeTemplateProgress,
+  sortTasks,
   type RiskLevel,
 } from '@/utils/taskUtils';
 
@@ -45,6 +46,22 @@ const sized = (size: TaskSize): Pick<TaskItem, 'size' | 'points'> => ({
   points: SIZE_TO_POINTS[size],
 });
 
+// Template-generated instances share everything but their index and day.
+const SPRINT: Partial<TaskItem> = {
+  title: 'Draft next sprint plan',
+  description: 'Carry over the unfinished stories first',
+  status: TaskStatus.BACKLOG,
+  templateId: 'tpl-sprint',
+};
+const WORKOUT: Partial<TaskItem> = {
+  title: 'Workout',
+  description: '45 min — gym or run',
+  type: TaskType.WEEKLY,
+  status: TaskStatus.BACKLOG,
+  templateId: 'tpl-workout',
+  ...sized(TaskSize.LARGE),
+};
+
 // ── Mid-week, on track ───────────────────────────────────────────────────────
 export const MID_WEEK_TASKS: TaskItem[] = [
   task({title: 'Review pull requests', status: TaskStatus.TODO}),
@@ -78,23 +95,19 @@ export const MID_WEEK_TASKS: TaskItem[] = [
     doneAt: daysAgo(1),
     ...sized(TaskSize.SMALL),
   }),
-  // Backlog: two instances of one daily template (#1 fresh, #2 a rollover →
-  // danger at 15:00) plus a weekly at day 4 (→ warning) — covers the instance
-  // badge and all three risk borders.
-  task({
-    title: 'Draft next sprint plan',
-    status: TaskStatus.BACKLOG,
-    templateId: 'tpl-sprint',
-    instanceIndex: 0,
-    description: 'Carry over the unfinished stories first',
-  }),
-  task({
-    title: 'Draft next sprint plan',
-    status: TaskStatus.BACKLOG,
-    templateId: 'tpl-sprint',
-    instanceIndex: 1,
-    forDate: daysAgo(1),
-  }),
+  task({...WORKOUT, status: TaskStatus.DONE, doneAt: daysAgo(1)}),
+  // Backlog stacks: today's two sprint instances (×2, fresh) apart from
+  // yesterday's leftover (a rollover → danger at 15:00), three weekly workouts
+  // (×3, two lips; #1 done above keeps them at warning) and a lone weekly
+  // (plain card, warning at day 4) — every stack depth and all three borders.
+  // Fresh dailies keep forDate null: the desktop tab's KanbanBoard runs on the
+  // real clock, where any fixture date would read as a rollover.
+  task({...SPRINT, instanceIndex: 0}),
+  task({...SPRINT, instanceIndex: 1}),
+  task({...SPRINT, instanceIndex: 1, forDate: daysAgo(1)}),
+  task({...WORKOUT, instanceIndex: 1}),
+  task({...WORKOUT, instanceIndex: 2}),
+  task({...WORKOUT, instanceIndex: 3}),
   task({
     title: 'Read the incident post-mortem',
     type: TaskType.WEEKLY,
@@ -121,18 +134,20 @@ export const SCENARIO_PLAN_TEMPLATES: Array<{
   frequency: number;
 }> = [
   {templateId: 'tpl-sprint', frequency: 2},
+  {templateId: 'tpl-workout', frequency: 4},
   {templateId: 'tpl-postmortem', frequency: 1},
 ];
 
 // ── Mobile backlog scenario inputs ───────────────────────────────────────────
 // The inline mobile backlog panel bypasses KanbanBoard, so it receives the
-// same risk/frequency lookups the live board would compute — built here with
-// the real helpers against the frozen scenario clock (deterministic).
-export const BACKLOG_TASKS = MID_WEEK_TASKS.filter(
-  task => task.status === TaskStatus.BACKLOG,
+// same sorted list and risk lookup the live board would compute — built here
+// with the real helpers against the frozen scenario clock (deterministic).
+export const BACKLOG_TASKS = sortTasks(
+  MID_WEEK_TASKS.filter(task => task.status === TaskStatus.BACKLOG),
+  SCENARIO_TODAY,
 );
 
-export const SCENARIO_TEMPLATE_FREQ_MAP = new Map(
+const SCENARIO_TEMPLATE_FREQ_MAP = new Map(
   SCENARIO_PLAN_TEMPLATES.map(pt => [pt.templateId, pt.frequency]),
 );
 

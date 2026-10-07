@@ -12,7 +12,6 @@ interface MobileBacklogPanelProps {
   today: Date;
   /** Precomputed per-task risk (the live board computes this internally). */
   riskMap: Map<string, RiskLevel>;
-  templateFreqMap: Map<string, number>;
 }
 
 const NOOP = () => {};
@@ -27,7 +26,6 @@ export const MobileBacklogPanel = ({
   tasks,
   today,
   riskMap,
-  templateFreqMap,
 }: MobileBacklogPanelProps) => {
   const t = useTranslations('Board.Backlog');
 
@@ -55,7 +53,6 @@ export const MobileBacklogPanel = ({
             tasks={tasks}
             today={today}
             riskMap={riskMap}
-            templateFreqMap={templateFreqMap}
             onPull={NOOP}
           />
         </div>

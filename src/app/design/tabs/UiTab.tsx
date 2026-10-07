@@ -9,6 +9,8 @@ import {
 
 import {Pill} from '@/components/ui/Pill';
 import {InstanceBadge} from '@/components/ui/InstanceBadge';
+import {StackCountBadge} from '@/components/ui/StackCountBadge';
+import {StackLips} from '@/components/ui/StackLips';
 import {EmptyState} from '@/components/ui/EmptyState';
 import {TabBar} from '@/components/ui/TabBar';
 import {StatBlock} from '@/components/ui/StatBlock';
@@ -41,6 +43,8 @@ import {
   TOAST_DEMO_ACTION,
   TOAST_DEMO_PLAIN,
   TOAST_DEMO_DURATION_MS,
+  STACK_DEMO_LABEL,
+  STACK_DEMO_CARD,
   HEADER_DEMO_TITLE,
   HEADER_DEMO_CLOSE,
   HEADER_DEMO_BADGE,
@@ -122,6 +126,43 @@ export const UiTab = () => {
         <Variant label="xs">
           <InstanceBadge index={2} size="xs" />
         </Variant>
+      </Row>
+    </Section>
+  );
+
+  const renderStackCountBadge = () => (
+    <Section
+      title="StackCountBadge"
+      description="'×n' chip counting the items in a stacked card; composes Pill and pops once whenever the count changes while mounted."
+    >
+      <Row>
+        <Variant label="sm (default)">
+          <Row>
+            <StackCountBadge count={2} label={STACK_DEMO_LABEL} />
+            <StackCountBadge count={4} label={STACK_DEMO_LABEL} />
+          </Row>
+        </Variant>
+        <Variant label="xs">
+          <StackCountBadge count={3} label={STACK_DEMO_LABEL} size="xs" />
+        </Variant>
+      </Row>
+    </Section>
+  );
+
+  const renderStackLips = () => (
+    <Section
+      title="StackLips"
+      description="Paper edges below a stacked card: one lip at two items, two from three up (capped — the count lives in a chip)."
+    >
+      <Row>
+        {[2, 3].map(count => (
+          <Variant key={count} label={`${count} items`}>
+            <div className="card relative w-48 border border-base-content/10 bg-base-100 p-3 text-sm">
+              {STACK_DEMO_CARD}
+              <StackLips count={count} />
+            </div>
+          </Variant>
+        ))}
       </Row>
     </Section>
   );
@@ -421,6 +462,8 @@ export const UiTab = () => {
       <Zone title="Primitives">
         {renderPills()}
         {renderInstanceBadge()}
+        {renderStackCountBadge()}
+        {renderStackLips()}
         {renderFormKit()}
         {renderContentBlocks()}
         {renderEmptyState()}

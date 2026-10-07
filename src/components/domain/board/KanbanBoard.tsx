@@ -15,6 +15,7 @@ import {updateTaskStatusAction} from '@/actions/taskActions';
 import BoardColumn from './BoardColumn';
 import DesktopBacklog from './DesktopBacklog';
 import MobileBacklog from './MobileBacklog';
+import {BACKLOG_DROPPABLE_PREFIX} from './backlogConstants';
 
 interface KanbanBoardProps {
   tasks: TaskItem[];
@@ -81,7 +82,7 @@ export default function KanbanBoard({
     if (destination.droppableId === source.droppableId) return;
 
     // Backlog is a drag source only — no un-pull back into the backlog.
-    if (destination.droppableId === TaskStatus.BACKLOG) return;
+    if (destination.droppableId.startsWith(BACKLOG_DROPPABLE_PREFIX)) return;
 
     const newStatus = destination.droppableId as TaskStatus;
     const snapshot = localTasks;
@@ -168,7 +169,6 @@ export default function KanbanBoard({
         tasks={columns[TaskStatus.BACKLOG]}
         today={today}
         riskMap={riskMap}
-        templateFreqMap={templateFreqMap}
         onPull={handlePullToTodo}
       />
     </DragDropContext>

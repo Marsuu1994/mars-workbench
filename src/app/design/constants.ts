@@ -185,6 +185,8 @@ export interface TaskCardFixture {
   taskType: string;
   riskLevel: RiskLevel;
   frequency: number;
+  /** Backlog stacks only — identical instances under this card */
+  stackCount?: number;
 }
 
 export const TASK_CARD_FIXTURES: TaskCardFixture[] = [
@@ -250,6 +252,23 @@ export const TASK_CARD_FIXTURES: TaskCardFixture[] = [
     taskType: TaskType.DAILY,
     riskLevel: 'normal',
     frequency: 5,
+  },
+  {
+    label: 'Backlog stack (×3)',
+    task: baseTask({
+      id: 't-stack',
+      title: 'Workout',
+      description: '45 min — gym or run',
+      status: TaskStatus.BACKLOG,
+      type: TaskType.WEEKLY,
+      instanceIndex: 1,
+      size: TaskSize.LARGE,
+      points: SIZE_TO_POINTS[TaskSize.LARGE],
+    }),
+    taskType: TaskType.WEEKLY,
+    riskLevel: 'warning',
+    frequency: 4,
+    stackCount: 3,
   },
   {
     label: 'Done',
@@ -445,6 +464,9 @@ export const TOAST_DEMO_MESSAGE = 'Marked done · +2 pts this week';
 export const TOAST_DEMO_ACTION = 'Undo';
 export const TOAST_DEMO_PLAIN = 'Added to Schedule';
 export const TOAST_DEMO_DURATION_MS = 5000;
+
+export const STACK_DEMO_LABEL = 'Staged — each pull takes one';
+export const STACK_DEMO_CARD = 'Stacked card';
 
 // ── Application-layer fixtures ───────────────────────────────────────────────
 export const APP_USER = {name: 'Liang Jun', email: 'liang@example.com'};

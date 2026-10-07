@@ -18,14 +18,14 @@ interface MobileBacklogProps {
   tasks: TaskItem[];
   today: Date;
   riskMap: Map<string, RiskLevel>;
-  templateFreqMap: Map<string, number>;
   onPull: (taskId: string) => void;
 }
 
 /**
  * Mobile-only backlog entry: a peeking pill docked above the bottom tab bar
- * that opens the backlog bottom sheet. The sheet stages BACKLOG tasks; tapping
- * a card's "↑ Todo" button pulls it onto the board (BACKLOG → TODO). The
+ * that opens the backlog bottom sheet. The sheet stages BACKLOG tasks in
+ * stacks; tapping a card's "↑ Todo" button pulls one instance onto the board
+ * (BACKLOG → TODO). The
  * desktop equivalent is DesktopBacklog (drag-based); at md and up this
  * renders nothing.
  */
@@ -33,7 +33,6 @@ export default function MobileBacklog({
   tasks,
   today,
   riskMap,
-  templateFreqMap,
   onPull,
 }: MobileBacklogProps) {
   const t = useTranslations('Board.Backlog');
@@ -96,7 +95,6 @@ export default function MobileBacklog({
             tasks={tasks}
             today={today}
             riskMap={riskMap}
-            templateFreqMap={templateFreqMap}
             onPull={onPull}
           />
         </div>

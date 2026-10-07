@@ -32,7 +32,7 @@ Open [http://localhost:3000](http://localhost:3000)
 ### Board
 
 - 3-column kanban (Todo / In Progress / Done): drag-and-drop with optimistic UI, risk badges, rollover tags, fibonacci task sizing (XS–XL), per-column accents
-- **Backlog** stages template-generated instances and pulls them onto the board — right-edge drag panel on desktop, bottom sheet on mobile (from a peeking "Backlog" pill); backlog tasks count toward the week projection, not Today
+- **Backlog** stages template-generated instances and pulls them onto the board — right-edge drag panel on desktop, bottom sheet on mobile (from a peeking "Backlog" pill); identical instances stack into one `×n` card that deals out one per drag / tap; backlog tasks count toward the week projection, not Today
 - **Progress dashboard**: Today ring, stat metrics, Week Progress bar
 - One-off (`AD_HOC`) tasks show an amber "ONCE" badge; created only from the priority matrix, they reach the board via Track This Week
 - **Sync** (`syncService.ensureSynced`): daily + end-of-period sync awaited by every kanban page — idempotent, page-visit order never matters
@@ -86,6 +86,16 @@ Open items: see [design/tracker.md](./design/tracker.md).
 ## Update Log
 
 ### 2026-10-07
+- **Backlog stacks** — identical template instances in the backlog now collapse into one stacked card: a `×n` count in place of the `#n` badge, with paper edges below. Instances stack when they share a template and a day, so yesterday's rollovers stay a separate stack. Each drag (desktop) or `↑ Todo` tap (mobile) pulls the lowest instance; backlog counts still count instances. No schema or server change.
+  - **Dragging a stack** lifts only its top card, which shows its `#n`. The rest of the stack stays put, one count lower; releasing anywhere but Todo restores it. Each stack is its own drop-disabled Droppable, so nothing below it shifts during the drag.
+  - **Design Console**: board fixtures cover a ×3 stack, a ×2 stack, a lone card and a separate rollover stack; the gallery gains the stacked `TaskCard`, `StackCountBadge` and `StackLips`. The exploration mockup is retired. The desktop card footer now wraps instead of pushing the size chip out of a narrow card.
+  - Verified on the real `/kanban` page against a local Postgres with a stand-in auth server:
+    - the stack below a lifted card held still for the whole drag;
+    - a drop on Todo moved Workout `#2`, and its stack went ×4 → ×3;
+    - a drop elsewhere restored the stack;
+    - a mobile tap pulled `#1`, and its stack went ×3 → ×2.
+  - Also checked: scenarios and gallery in all three themes, plus tsc, eslint, prettier, the theme check and `next build`.
+- **Tracker**: Board → Future — enforce the forward-only drag rules (found while building backlog stacks: nothing checks the transition, so a backlog card can be dropped straight onto In Progress / Done).
 - **OAuth consent: no in-page account switch** — owner validation showed Supabase binds an authorization request to the first account that opens it (any other account gets not-found), so "Switch account" could never resume the request; it is removed along with its action and service helper. The page still names the approving account, and the wrong account starts over from the client.
 - **Docs**: the OAuth Consent Flow in `design/flows/auth.md` gains a sequence diagram of the whole MCP authorization — who issues the authorization id, code and token, where the consent page sits, and the token steps still planned for MCP 5/5.
 

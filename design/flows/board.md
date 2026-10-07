@@ -164,19 +164,23 @@ The backlog (desktop panel / mobile sheet) holds the plan's template-generated t
 
 1. The collapsed strip shows the backlog count.
 
-2. On expand, render the backlog tasks (`status === BACKLOG`) as a flat list, ordered like a column (daily then weekly, by `instanceIndex`/`createdAt`).
+2. On expand, render the backlog tasks (`status === BACKLOG`) ordered like a column (daily then weekly, by `instanceIndex`/`createdAt`), with identical instances collapsed into stacks (see Rules).
 
-3. Drag a card onto the Todo column to move it to the board: optimistic update, then `updateTaskStatusAction(taskId, { status: TODO })`, rollback on failure. Todo is the only drop target; no un-pull (forward-only, per "Drag and Drop Flow").
+3. Drag a card onto the Todo column to move it to the board: optimistic update, then `updateTaskStatusAction(taskId, { status: TODO })`, rollback on failure. Dragging a stack lifts only its top instance — a plain card with its `#n` — while the rest of the stack stays in place one count lower; releasing anywhere but Todo restores it. Todo is the only drop target; no un-pull (forward-only, per "Drag and Drop Flow").
 
 #### Mobile
 
 1. The pill shows the backlog count; it is hidden entirely when the backlog is empty.
-2. On tap, open a `modal-bottom` sheet (covers the tab bar as a standard modal; the board peeks behind the scrim). Render the same backlog list as full-width rows.
-3. Tap a card's `↑ Todo` button to pull it: same optimistic `updateTaskStatusAction(taskId, { status: TODO })` + rollback. The sheet stays open for consecutive pulls; tap-to-pull replaces drag (a sheet over the board makes drag-out unreliable; backlog is forward-only anyway).
+2. On tap, open a `modal-bottom` sheet (covers the tab bar as a standard modal; the board peeks behind the scrim). Render the same stacked backlog list as full-width rows.
+3. Tap a card's `↑ Todo` button to pull it — from a stack, its top instance: same optimistic `updateTaskStatusAction(taskId, { status: TODO })` + rollback. The stack's count drops (with a one-time pop) and the last pull removes the row. The sheet stays open for consecutive pulls; tap-to-pull replaces drag (a sheet over the board makes drag-out unreliable; backlog is forward-only anyway).
 
 ### Rules
 
-- Desktop reuses the board `TaskCard`; mobile uses `BacklogSheetCard` (full-width, non-draggable) with the same badge/instance/rollover/risk language. Risk computation treats `BACKLOG` as `TODO` so visuals match the board (see "Task Risky Level Visual Effect Flow").
-- The `#{instanceIndex}` badge renders only when the template's `frequency > 1` (frequency-1 and ad-hoc tasks, always `instanceIndex = 1`, show none). The card reads `frequency` from `plan.planTemplates`.
+- **Stacking**: instances stack when they share a template and a `forDate`. Weekly instances (no `forDate`) always stack; daily ones stack per day, so yesterday's rollovers form their own stack apart from today's batch (their risk and rollover tag differ). Every card in a stack is identical, so the top card speaks for all of them. Grouping is client-side only — no schema or server change; a pull is still one task's status update.
+- **Pull order**: a drag or tap always takes the stack's lowest `instanceIndex`, so the board receives `#1`, `#2`, … in order.
+- **Stack visuals**: a `×n` chip takes the `#n` slot, with paper lips below the card — one lip at ×2, two from ×3 up (capped; the count lives in the chip). A stack of one is a plain card. The `#n` badge never shows in the backlog; board cards keep it.
+- **Counts** (desktop strip and header, mobile pill and sheet header) count instances, not stacks — the staged workload, consistent with the Week projection.
+- Desktop reuses the board `TaskCard`; mobile uses `MobileBacklogCard` (full-width, non-draggable) with the same badge/rollover/risk language. Risk computation treats `BACKLOG` as `TODO` so visuals match the board (see "Task Risky Level Visual Effect Flow").
+- On board cards, the `#{instanceIndex}` badge renders only when the template's `frequency > 1` (frequency-1 and ad-hoc tasks, always `instanceIndex = 1`, show none). The card reads `frequency` from `plan.planTemplates`.
 - The backlog open state (panel or sheet) is local UI state, default closed.
 - Empty backlog: desktop strip still shows (count `0`) with an empty-state body; the mobile pill is hidden (the sheet's empty state only appears if the last task is pulled while it is open).
