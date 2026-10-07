@@ -87,6 +87,7 @@ Open items: see [design/tracker.md](./design/tracker.md).
 
 ### 2026-10-07
 - **OAuth consent: no in-page account switch** — owner validation showed Supabase binds an authorization request to the first account that opens it (any other account gets not-found), so "Switch account" could never resume the request; it is removed along with its action and service helper. The page still names the approving account, and the wrong account starts over from the client.
+- **Docs**: the OAuth Consent Flow in `design/flows/auth.md` gains a sequence diagram of the whole MCP authorization — who issues the authorization id, code and token, where the consent page sits, and the token steps still planned for MCP 5/5.
 
 ### 2026-10-06
 - **MCP planning tools (PR 3 of 5)** — Claude can now plan the week through the app over MCP (local development for now): `get_planning_context` (today and the week, the active plan's lines with progress and attached one-offs, last week's per-template stats and carry-over one-offs, reusable templates), `create_plan` (existing + brand-new templates, carry-over selection) and `update_plan` (a patch on this week's active plan), plus server instructions covering the read → propose → confirm → write workflow, frequency semantics ("3× a week" is WEEKLY × 3) and side effects. The temporary `echo` tool is gone.

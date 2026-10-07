@@ -31,7 +31,61 @@ Same as login — Supabase auto-creates a user record on first Google sign-in.
 
 **Trigger:** An MCP client (Claude) starts Supabase's OAuth 2.1 authorization flow; Supabase redirects to the app's authorization path, `/oauth/consent?authorization_id=…` (Site URL + the path set under Authentication → OAuth Server)
 
-**Steps:**
+Two OAuth flows meet here: Supabase is the **authorization server** for Claude (it issues the authorization id, the code and the token), while signing in to the app itself is the separate Google flow above. The app hosts the consent screen for Supabase and, as `/api/mcp`, is the resource server that checks the token. Shaded steps are planned for MCP 5/5.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as You (browser)
+    participant C as Claude (MCP client)
+    participant S as Supabase Auth
+    participant A as Mars Workbench /oauth/consent
+    participant M as Mars Workbench /api/mcp
+
+    rect rgba(128, 128, 128, 0.12)
+    Note over C,M: Planned (MCP 5/5): discovery and client registration
+    C->>M: call without a token
+    M-->>C: 401 + protected-resource metadata (auth server = Supabase)
+    C->>S: read auth-server metadata, register (DCR)
+    S-->>C: client_id
+    end
+
+    C->>C: create PKCE verifier (kept) + challenge (sent)
+    C->>U: open /auth/v1/oauth/authorize (client_id, redirect_uri, challenge, state)
+    U->>S: GET authorize
+    S->>S: check client + redirect_uri, create authorization_id (10 min)
+    S-->>U: redirect to Site URL /oauth/consent?authorization_id
+    U->>A: open consent page
+    opt signed out
+        A-->>U: login with next, Google sign-in, back to the consent page
+    end
+    A->>S: getAuthorizationDetails(id) with your session
+    S->>S: bind the request to you (another account now gets not-found)
+    alt already consented
+        S-->>A: redirect_url with a code
+        A-->>U: redirect straight to the client callback
+    else consent needed
+        S-->>A: client, scopes, redirect_uri, your email
+        A-->>U: consent screen
+        U->>A: Allow or Deny
+        A->>S: approveAuthorization or denyAuthorization
+        S-->>A: redirect_url (code and state, or error=access_denied)
+        A-->>U: redirect to the client callback
+    end
+    U->>C: callback with code and state
+    C->>S: POST /auth/v1/oauth/token (code + verifier)
+    S-->>C: access token (JWT: sub = you, client_id = Claude) + refresh token
+
+    rect rgba(128, 128, 128, 0.12)
+    Note over C,M: Planned (MCP 5/5): using the token
+    C->>M: tool call with Authorization Bearer token
+    M->>M: verify JWT (Supabase key, issuer, expiry), userId = sub
+    M-->>C: tool result
+    C->>S: refresh the token when it expires (the app is not involved)
+    end
+```
+
+**Steps (the consent page):**
 
 1. Signed out → Route Protection sends the user through login and back here (`next`)
 2. The page loads the request (`getAuthorizationDetails`):
