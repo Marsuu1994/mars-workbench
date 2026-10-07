@@ -1,15 +1,17 @@
-export const MCP_SERVER_INFO = {name: 'mars-workbench', version: '0.2.0'};
+export const MCP_SERVER_INFO = {name: 'mars-workbench', version: '0.3.0'};
 
 /**
- * Vercel environments where `/api/mcp` answers 404. Production stays dark
- * until the OAuth layer lands, so no unauthenticated endpoint ever ships there;
- * local dev and preview deployments keep it reachable for validation.
+ * Where the `/api/mcp` resource's RFC 9728 metadata lives (the well-known
+ * prefix inserted before the resource path). The endpoint's 401 points MCP
+ * clients here; served by `app/.well-known/oauth-protected-resource/api/mcp`.
  */
-export const MCP_DISABLED_VERCEL_ENVS = ['production'];
+export const MCP_RESOURCE_METADATA_PATH =
+  '/.well-known/oauth-protected-resource/api/mcp';
 
 /**
- * Environments where tool calls act as `MCP_DEV_USER_ID` until token auth
- * lands. Local development only: preview URLs are public and share the
- * production database, so a deployment never carries the dev identity.
+ * Environments where a request without a bearer token acts as
+ * `MCP_DEV_USER_ID`. Local development only: the OAuth flow can't finish
+ * there (Supabase sends consent to the Site URL), and a deployment must never
+ * serve a tool call without a verified token.
  */
 export const MCP_DEV_IDENTITY_VERCEL_ENVS = ['development'];

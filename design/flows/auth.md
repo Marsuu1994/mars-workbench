@@ -1,6 +1,6 @@
 # Auth Flows
 
-Flows for authentication (`/auth/*`, `/oauth/consent`) — route protection, Google OAuth sign-in/up, MCP connector consent, and sign-out. Sibling docs: `design/flows/board.md`, `design/flows/plan.md`, `design/flows/priorities.md`, `design/flows/shared.md`.
+Flows for authentication (`/auth/*`, `/oauth/consent`, `/api/mcp` tokens) — route protection, Google OAuth sign-in/up, MCP connector consent and token checks, and sign-out. Sibling docs: `design/flows/board.md`, `design/flows/plan.md`, `design/flows/priorities.md`, `design/flows/shared.md`.
 
 ## Route Protection Flow
 
@@ -31,7 +31,7 @@ Same as login — Supabase auto-creates a user record on first Google sign-in.
 
 **Trigger:** An MCP client (Claude) starts Supabase's OAuth 2.1 authorization flow; Supabase redirects to the app's authorization path, `/oauth/consent?authorization_id=…` (Site URL + the path set under Authentication → OAuth Server)
 
-Two OAuth flows meet here: Supabase is the **authorization server** for Claude (it issues the authorization id, the code and the token), while signing in to the app itself is the separate Google flow above. The app hosts the consent screen for Supabase and, as `/api/mcp`, is the resource server that checks the token. Shaded steps are planned for MCP 5/5.
+Two OAuth flows meet here: Supabase is the **authorization server** for Claude (it issues the authorization id, the code and the token), while signing in to the app itself is the separate Google flow above. The app hosts the consent screen for Supabase and, as `/api/mcp`, is the resource server that checks the token.
 
 ```mermaid
 sequenceDiagram
@@ -42,13 +42,13 @@ sequenceDiagram
     participant A as Mars Workbench /oauth/consent
     participant M as Mars Workbench /api/mcp
 
-    rect rgba(128, 128, 128, 0.12)
-    Note over C,M: Planned (MCP 5/5): discovery and client registration
+    Note over C,M: First connect: discovery and client registration
     C->>M: call without a token
-    M-->>C: 401 + protected-resource metadata (auth server = Supabase)
+    M-->>C: 401, WWW-Authenticate points at /.well-known/oauth-protected-resource/api/mcp
+    C->>M: read protected-resource metadata
+    M-->>C: resource = /api/mcp, authorization server = Supabase Auth
     C->>S: read auth-server metadata, register (DCR)
     S-->>C: client_id
-    end
 
     C->>C: create PKCE verifier (kept) + challenge (sent)
     C->>U: open /auth/v1/oauth/authorize (client_id, redirect_uri, challenge, state)
@@ -76,13 +76,11 @@ sequenceDiagram
     C->>S: POST /auth/v1/oauth/token (code + verifier)
     S-->>C: access token (JWT: sub = you, client_id = Claude) + refresh token
 
-    rect rgba(128, 128, 128, 0.12)
-    Note over C,M: Planned (MCP 5/5): using the token
+    Note over C,M: Every tool call
     C->>M: tool call with Authorization Bearer token
-    M->>M: verify JWT (Supabase key, issuer, expiry), userId = sub
-    M-->>C: tool result
+    M->>M: verify JWT (project JWKS, expiry, issuer, client_id), userId = sub
+    M-->>C: tool result (invalid or expired token: 401)
     C->>S: refresh the token when it expires (the app is not involved)
-    end
 ```
 
 **Steps (the consent page):**
@@ -94,7 +92,9 @@ sequenceDiagram
    - missing, malformed, unknown, expired or already decided → the invalid-link state
 3. Allow / Deny → `approveAuthorization` / `denyAuthorization` → redirect to the returned `redirect_url` (the code, or `error=access_denied`). A request that can no longer be decided re-renders the page into the invalid-link state
 
-Rules: Supabase binds a request to the first account that opens it (another account gets not-found) and expires it after 10 minutes, so there is no in-page account switch — the wrong account starts over from the client. The page is chromeless and never renders inside a frame (`frame-ancestors 'none'` + `X-Frame-Options: DENY` on `/oauth/*`, against clickjacking the Allow button). The access list is fixed copy — a token reaches every MCP tool whatever the scopes; the raw scopes are shown muted. The return host comes from the client's redirect URI (client names are self-asserted under dynamic registration). `authorization_id` must match Supabase's alphanumeric format before any call — the SDK puts it in its API path unescaped. Requires the OAuth Server enabled in the Supabase dashboard with this authorization path.
+Rules: Supabase binds a request to the first account that opens it (another account gets not-found) and expires it after 10 minutes, so there is no in-page account switch — the wrong account starts over from the client. The page is chromeless and never renders inside a frame (`frame-ancestors 'none'` + `X-Frame-Options: DENY` on `/oauth/*`, against clickjacking the Allow button). The access list is fixed copy — a token reaches every MCP tool whatever the scopes; the raw scopes are shown muted. The return host comes from the client's redirect URI (client names are self-asserted under dynamic registration). `authorization_id` must match Supabase's alphanumeric format before any call — the SDK puts it in its API path unescaped. Requires the OAuth Server enabled in the Supabase dashboard with this authorization path, plus dynamic client registration (Claude registers itself).
+
+**Token rules (`/api/mcp`):** every request needs a Supabase access token signed with the project's key (checked against its JWKS, cached, no Auth round trip), unexpired, issued by `<project>/auth/v1`, and carrying `client_id`, which only OAuth-server tokens have, so the browser session's own token is refused. Supabase doesn't bind tokens to a resource (`aud` is always `authenticated`), so any OAuth client the user approved in this project can call the endpoint; scopes aren't checked. Revoking a grant stops refreshes, but an access token already issued stays valid until it expires (the JWT expiry, 1 h by default). Missing or invalid → 401 with the metadata pointer, which also sends the client to refresh or re-authorize. Local development without a token acts as `MCP_DEV_USER_ID`.
 
 ## Theme Change Flow
 

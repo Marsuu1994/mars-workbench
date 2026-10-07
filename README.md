@@ -43,6 +43,7 @@ Open [http://localhost:3000](http://localhost:3000)
 - Create/edit plans with inline per-template type/frequency config, Plan Mode (NORMAL/EXTREME), and a review-changes diff before committing edits; templates are reusable and preselected from the previous plan
 - **AI-assisted plan creation**: a chat modal drafts a structured plan via OpenAI (`gpt-5-nano`) calibrated from last period's per-template stats; refine → approve creates the plan atomically (completes the prior plan, carries over one-off tasks). Chats are durable — they resume across close/reload/restart (scoped to the current period) and auto-resume an interrupted generation; the composer is IME-safe
 - Fully mobile-adapted: bottom-sheet modals, compact AI banner, docked summary/submit footer
+- **Plan with Claude (MCP)**: add Mars Workbench to Claude as a custom connector (`/api/mcp`; sign-in and consent through Supabase's OAuth server) and Claude reads your week, then creates or patches the plan once you agree
 
 ### Priorities
 
@@ -58,7 +59,7 @@ Open [http://localhost:3000](http://localhost:3000)
 ### Auth
 
 - Supabase Auth (Google OAuth) with route protection (sign-in returns to the page that asked for it), themed login page, collapsible workspace sidebar (Board / Priorities / Plan) and 4-tab mobile dock. **Settings is a responsive overlay** (dock tab / sidebar user row → same sheet): theme picker (Sora light / Sora dark / P5 dark, cookie-persisted, explicit choice — no time-based auto-switch) + two-step confirm sign-out. Deployed on Vercel
-- **OAuth consent page** (`/oauth/consent`): where Supabase's OAuth server sends you to approve or deny an MCP client (Claude) — who's asking, the approving account, what it can do, and where the browser returns. Connecting Claude for real waits on token auth (MCP 5/5)
+- **OAuth consent page** (`/oauth/consent`): where Supabase's OAuth server sends you to approve or deny an MCP client (Claude) — who's asking, the approving account, what it can do, and where the browser returns
 
 Open items: see [design/tracker.md](./design/tracker.md).
 
@@ -88,6 +89,14 @@ Open items: see [design/tracker.md](./design/tracker.md).
 ### 2026-10-07
 - **OAuth consent: no in-page account switch** — owner validation showed Supabase binds an authorization request to the first account that opens it (any other account gets not-found), so "Switch account" could never resume the request; it is removed along with its action and service helper. The page still names the approving account, and the wrong account starts over from the client.
 - **Docs**: the OAuth Consent Flow in `design/flows/auth.md` gains a sequence diagram of the whole MCP authorization — who issues the authorization id, code and token, where the consent page sits, and the token steps still planned for MCP 5/5.
+- **MCP token auth, live in production (PR 5 of 5)** — `/api/mcp` now serves Claude with the user's Supabase OAuth access token, so Mars Workbench can be added to Claude as a custom connector; MCP Phase 1 is complete.
+  - **Token check** (`withMcpAuth` + `verifyMcpAccessToken`): the signature is verified locally against the project's JWKS (cached, no Auth round trip), along with expiry, issuer (`<project>/auth/v1`) and `client_id`, which only OAuth-server tokens carry, so a browser-session token is refused. `sub` becomes the tool's user. Expired or undecodable tokens get a plain 401 with no logged stack trace.
+  - **Discovery**: the 401's `WWW-Authenticate` points at `/.well-known/oauth-protected-resource/api/mcp` (RFC 9728 path-suffixed metadata: `resource` from the request, Supabase Auth as the authorization server, CORS preflight).
+  - **Gates**: the production 404 is gone and previews accept tokens too. A request without a token acts as `MCP_DEV_USER_ID` in local development only, and a bad token never falls back to it.
+  - **Decisions**: local verification over a per-call `getUser`, so revoking a grant takes effect when the current access token expires (≤ JWT expiry); no audience or scope check, because Supabase doesn't bind tokens to a resource and its scopes are OIDC ones.
+  - Verified with a production build (`VERCEL_ENV=production`, `MCP_DEV_USER_ID` deliberately set) against a stand-in Supabase JWKS server with locally minted ES256 tokens and a local Postgres. A missing token, expired, tampered, wrong-key, unknown-kid, wrong-issuer, no-`client_id`, non-UUID `sub`, malformed or Basic credentials all get a 401 that points at the metadata. A valid token lists and calls the tools as its own user: `create_plan` rows are owned by `sub` and a second user sees none of them. The JWKS is fetched once across repeated calls, metadata resolves behind `X-Forwarded-Host`, preview needs a token, and local dev with and without `MCP_DEV_USER_ID` behaves as above. MCP Inspector CLI works with a bearer header; tsc, eslint, prettier, theme check and `next build` are green.
+  - Owner steps: Supabase Authentication → OAuth Server (authorization path `/oauth/consent`, dynamic client registration on), then add the connector in Claude with the production `/api/mcp` URL.
+- **Tracker**: MCP Phase 1 removed (done); the custom-domain item no longer calls the connector "planned".
 
 ### 2026-10-06
 - **MCP planning tools (PR 3 of 5)** — Claude can now plan the week through the app over MCP (local development for now): `get_planning_context` (today and the week, the active plan's lines with progress and attached one-offs, last week's per-template stats and carry-over one-offs, reusable templates), `create_plan` (existing + brand-new templates, carry-over selection) and `update_plan` (a patch on this week's active plan), plus server instructions covering the read → propose → confirm → write workflow, frequency semantics ("3× a week" is WEEKLY × 3) and side effects. The temporary `echo` tool is gone.

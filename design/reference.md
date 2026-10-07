@@ -51,7 +51,7 @@ Inventory of the handlers and data-access functions that already exist, so new w
 
 ## MCP (src/mcp, served at /api/mcp)
 
-Tools act for the user in `request.auth` (`src/mcp/middleware/auth.ts`); until token auth lands only local dev has one (`MCP_DEV_USER_ID`). Server instructions and tool descriptions: `src/mcp/prompts/`; error messages: `src/utils/errorMessages.ts`.
+Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verified Supabase OAuth access token (`verifyMcpAccessToken`, `src/mcp/middleware/auth.ts`); in local dev a request without a token acts as `MCP_DEV_USER_ID`. A missing or invalid token gets a 401 pointing at `/.well-known/oauth-protected-resource/api/mcp`. Server instructions and tool descriptions: `src/mcp/prompts/`; error messages: `src/utils/errorMessages.ts`.
 
 | Tool | Purpose | Calls |
 | --- | --- | --- |

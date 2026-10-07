@@ -1,12 +1,7 @@
-import {NextResponse} from 'next/server';
-import {createMcpHandler} from 'mcp-handler';
+import {createMcpHandler, withMcpAuth} from 'mcp-handler';
 import {registerTools} from '@/mcp/registerTools';
-import {getDevAuthInfo} from '@/mcp/middleware/auth';
-import {
-  MCP_DEV_IDENTITY_VERCEL_ENVS,
-  MCP_DISABLED_VERCEL_ENVS,
-  MCP_SERVER_INFO,
-} from '@/mcp/constants';
+import {verifyMcpAccessToken} from '@/mcp/middleware/auth';
+import {MCP_RESOURCE_METADATA_PATH, MCP_SERVER_INFO} from '@/mcp/constants';
 import {MCP_SERVER_INSTRUCTIONS} from '@/mcp/prompts/serverInstructions';
 
 const mcpHandler = createMcpHandler(registerTools, {
@@ -15,28 +10,15 @@ const mcpHandler = createMcpHandler(registerTools, {
 });
 
 /**
- * Fails closed: a production build with no `VERCEL_ENV` (e.g. a local
- * `next start`, or system env vars not exposed) counts as production.
+ * Every request needs a verified Supabase OAuth access token (local
+ * development may act as `MCP_DEV_USER_ID` instead). Without one the answer is
+ * 401 with a `WWW-Authenticate` pointing at the protected-resource metadata,
+ * from which the client finds Supabase's authorization server.
  */
-const getDeploymentEnv = () => {
-  const {VERCEL_ENV, NODE_ENV} = process.env;
-  return (
-    VERCEL_ENV ?? (NODE_ENV === 'production' ? 'production' : 'development')
-  );
-};
-
-const handleMcpRequest = async (request: Request) => {
-  const deploymentEnv = getDeploymentEnv();
-  if (MCP_DISABLED_VERCEL_ENVS.includes(deploymentEnv)) {
-    return NextResponse.json({error: 'Not found'}, {status: 404});
-  }
-  // Until token auth lands, only local development has a user: the dev
-  // identity. Every deployment serves tool calls with no identity.
-  if (MCP_DEV_IDENTITY_VERCEL_ENVS.includes(deploymentEnv)) {
-    request.auth = getDevAuthInfo();
-  }
-  return mcpHandler(request);
-};
+const handleMcpRequest = withMcpAuth(mcpHandler, verifyMcpAccessToken, {
+  required: true,
+  resourceMetadataPath: MCP_RESOURCE_METADATA_PATH,
+});
 
 export const GET = handleMcpRequest;
 export const POST = handleMcpRequest;
