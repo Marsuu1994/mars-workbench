@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="mars-dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Backlog Stacks — Before / After</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Anton&display=swap');
+
+  /* ── Theme tokens (mirrors globals.css: mars-dark / mars-light / p5-dark) ── */
+  :root, [data-theme='mars-dark'] {
+    --b1: oklch(0.19 0.03 265);
+    --b2: oklch(0.155 0.028 265);
+    --b3: oklch(0.125 0.026 268);
+    --bc: oklch(0.92 0.016 210);
+    --p: oklch(0.83 0.135 205);
+    --pc: oklch(0.2 0.04 225);
+    --s: oklch(0.74 0.15 295);
+    --a: oklch(0.76 0.155 55);
+    --in: oklch(0.79 0.115 235);
+    --su: oklch(0.8 0.165 155);
+    --wa: oklch(0.84 0.155 85);
+    --er: oklch(0.72 0.17 25);
+    --rc: 10px;
+    --rb: 8px;
+    --rs: 4px;
+    --edge: color-mix(in oklab, var(--bc) 12%, transparent);
+    --card-bg: color-mix(in oklab, var(--b1) 70%, transparent);
+    --card-border: color-mix(in oklab, var(--bc) 10%, transparent);
+    --card-shadow: inset 0 1px 0 var(--edge);
+    --card-hover: inset 0 1px 0 var(--edge), 0 0 0 1px color-mix(in oklab, var(--p) 18%, transparent), 0 6px 18px oklch(0.05 0.02 265 / 0.55);
+    --card-lift: 0 0 0 1px color-mix(in oklab, var(--p) 40%, transparent), 0 0 14px color-mix(in oklab, var(--p) 32%, transparent), 0 0 42px color-mix(in oklab, var(--p) 12%, transparent), 0 14px 32px color-mix(in oklab, var(--b3) 70%, transparent);
+    --lift-transform: scale(1.02);
+    --lip-1: color-mix(in oklab, var(--b1) 88%, var(--bc));
+    --lip-2: color-mix(in oklab, var(--b1) 94%, var(--bc));
+    --lip-border: color-mix(in oklab, var(--bc) 20%, transparent);
+    --panel: color-mix(in oklab, var(--b1) 10%, transparent);
+    --page: radial-gradient(1200px 600px at 10% -10%, color-mix(in oklab, var(--p) 10%, transparent), transparent 60%),
+            radial-gradient(900px 500px at 110% 110%, color-mix(in oklab, var(--s) 10%, transparent), transparent 60%),
+            var(--b2);
+    --display: 'Geist', system-ui, sans-serif;
+  }
+  [data-theme='mars-light'] {
+    --b1: oklch(0.955 0.018 80);
+    --b2: oklch(0.925 0.024 78);
+    --b3: oklch(0.885 0.03 76);
+    --bc: oklch(0.24 0.032 265);
+    --p: oklch(0.5 0.085 215);
+    --pc: oklch(0.975 0.01 90);
+    --s: oklch(0.5 0.185 295);
+    --a: oklch(0.54 0.14 50);
+    --in: oklch(0.5 0.115 240);
+    --su: oklch(0.5 0.13 152);
+    --wa: oklch(0.49 0.1 75);
+    --er: oklch(0.53 0.19 25);
+    --edge: oklch(1 0 0 / 0.7);
+    --card-border: color-mix(in oklab, var(--bc) 12%, transparent);
+    --card-hover: inset 0 1px 0 var(--edge), 0 0 0 1px color-mix(in oklab, var(--p) 18%, transparent), 0 6px 18px oklch(0.35 0.04 265 / 0.16);
+    --card-lift: 0 0 0 1px color-mix(in oklab, var(--p) 50%, transparent), 0 2px 12px color-mix(in oklab, var(--p) 22%, transparent), 0 14px 32px color-mix(in oklab, var(--b3) 70%, transparent);
+    --lip-1: color-mix(in oklab, var(--b3) 70%, var(--b1));
+    --lip-2: color-mix(in oklab, var(--b3) 40%, var(--b1));
+    --lip-border: color-mix(in oklab, var(--bc) 22%, transparent);
+    --page: radial-gradient(1200px 600px at 10% -10%, color-mix(in oklab, var(--a) 14%, transparent), transparent 60%),
+            radial-gradient(900px 500px at 110% 110%, color-mix(in oklab, var(--s) 10%, transparent), transparent 60%),
+            var(--b2);
+  }
+  [data-theme='p5-dark'] {
+    --b1: oklch(0.185 0.008 20);
+    --b2: oklch(0.15 0.006 20);
+    --b3: oklch(0.115 0.004 20);
+    --bc: oklch(0.96 0.005 20);
+    --p: oklch(0.63 0.255 29);
+    --pc: oklch(0.13 0.02 20);
+    --s: oklch(0.74 0.15 295);
+    --a: oklch(0.74 0.17 55);
+    --in: oklch(0.78 0.12 235);
+    --su: oklch(0.8 0.17 150);
+    --wa: oklch(0.85 0.16 90);
+    --er: oklch(0.63 0.22 12);
+    --rc: 0;
+    --rb: 0;
+    --rs: 0;
+    --card-bg: oklch(0.17 0.008 20);
+    --card-border: color-mix(in oklab, var(--bc) 14%, transparent);
+    --card-shadow: 3px 3px 0 var(--b3);
+    --card-hover: 4px 4px 0 var(--p);
+    --card-lift: 7px 7px 0 oklch(0.36 0.13 25);
+    --lift-transform: rotate(-1.2deg) translate(-2px, -2px);
+    --lip-1: oklch(0.25 0.008 20);
+    --lip-2: oklch(0.21 0.006 20);
+    --lip-border: color-mix(in oklab, var(--bc) 32%, transparent);
+    --page: repeating-radial-gradient(circle at 0 0, color-mix(in oklab, var(--bc) 4%, transparent) 0 1px, transparent 1px 6px), var(--b2);
+    --display: 'Anton', 'Arial Narrow', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Geist', system-ui, -apple-system, sans-serif;
+    background: var(--page); background-attachment: fixed;
+    color: var(--bc); min-height: 100vh; padding: 24px 16px 96px;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font-family: inherit; }
+  .mono { font-family: 'Geist Mono', ui-monospace, monospace; }
+
+  /* ── Page chrome ── */
+  .topbar { max-width: 1240px; margin: 0 auto 20px; display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: flex-end; justify-content: space-between; }
+  .eyebrow { font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--p); }
+  .topbar h1 { font-size: 22px; font-weight: 700; margin-top: 4px; }
+  .topbar p { font-size: 13px; color: color-mix(in oklab, var(--bc) 60%, transparent); margin-top: 4px; max-width: 640px; line-height: 1.5; }
+  .seg { display: inline-flex; gap: 4px; padding: 4px; border-radius: 10px; background: color-mix(in oklab, var(--b1) 80%, transparent); border: 1px solid var(--card-border); }
+  [data-theme='p5-dark'] .seg { border-radius: 0; }
+  .seg button { border: 0; background: transparent; color: color-mix(in oklab, var(--bc) 60%, transparent); font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 7px; cursor: pointer; }
+  [data-theme='p5-dark'] .seg button { border-radius: 0; }
+  .seg button.on { background: color-mix(in oklab, var(--p) 16%, transparent); color: var(--p); }
+
+  .screen-nav { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 100; box-shadow: 0 10px 30px oklch(0 0 0 / .35); max-width: calc(100vw - 32px); overflow-x: auto; }
+  .screen { display: none; max-width: 1240px; margin: 0 auto; }
+  .screen.on { display: block; }
+
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 1100px) { .pair { grid-template-columns: 1fr; } }
+  .col-label { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 55%, transparent); }
+  .col-label b { color: var(--bc); font-weight: 600; }
+  .col-label.after b { color: var(--p); }
+  .col-label::after { content: ''; flex: 1; height: 1px; background: var(--card-border); }
+  .col-label .reset { margin-left: auto; order: 3; }
+  .ghost-btn { border: 1px solid var(--card-border); background: transparent; color: color-mix(in oklab, var(--bc) 65%, transparent); font-size: 11px; padding: 3px 8px; border-radius: 6px; cursor: pointer; font-family: 'Geist Mono', monospace; letter-spacing: .04em; }
+  .ghost-btn:hover { color: var(--p); border-color: var(--p); }
+  .note { font-size: 12px; line-height: 1.55; color: color-mix(in oklab, var(--bc) 60%, transparent); margin-top: 10px; }
+  .note b { color: var(--bc); font-weight: 600; }
+
+  /* ── Board slice: Todo column + backlog panel ── */
+  .slice { display: flex; height: 640px; border: 1px solid var(--card-border); border-radius: 14px; overflow: hidden; background: color-mix(in oklab, var(--b2) 60%, transparent); }
+  [data-theme='p5-dark'] .slice { border-radius: 0; border-width: 1.5px; }
+  .slice-board { flex: 1; min-width: 0; padding: 16px; display: flex; }
+  .column { flex: 1; min-width: 200px; display: flex; flex-direction: column; border: 1px solid var(--card-border); border-radius: 12px; background: color-mix(in oklab, var(--b2) 10%, transparent); transition: background .2s, border-color .2s; }
+  [data-theme='p5-dark'] .column { border-radius: 0; }
+  .column-head { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-left: 4px solid var(--in); border-bottom: 1px solid var(--card-border); border-top-left-radius: 12px; }
+  [data-theme='p5-dark'] .column-head { border-radius: 0; }
+  .fx-label { font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+  [data-theme='p5-dark'] .fx-label.display { font-family: var(--display); font-size: 14px; letter-spacing: .06em; font-weight: 400; }
+  .count-ghost { font-family: 'Geist Mono', monospace; font-size: 11px; padding: 1px 7px; border-radius: 999px; background: color-mix(in oklab, var(--bc) 8%, transparent); color: color-mix(in oklab, var(--bc) 70%, transparent); }
+  .column-body { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .column.target { border-color: transparent; outline: 1.5px dashed color-mix(in oklab, var(--a) 70%, transparent); outline-offset: -1px; background: color-mix(in oklab, var(--a) 7%, transparent); box-shadow: 0 0 0 1px color-mix(in oklab, var(--a) 30%, transparent), 0 0 24px color-mix(in oklab, var(--a) 18%, transparent); }
+  [data-theme='p5-dark'] .column.target { box-shadow: inset 0 0 0 4px color-mix(in oklab, var(--a) 28%, transparent); background: repeating-linear-gradient(-45deg, color-mix(in oklab, var(--a) 7%, transparent) 0 12px, transparent 12px 24px); }
+  .column.target .column-head .fx-label { color: var(--a); }
+
+  .backlog { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; border-left: 1px solid var(--card-border); background: var(--panel); }
+  .backlog-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--card-border); background: color-mix(in oklab, var(--b2) 30%, transparent); }
+  .backlog-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; }
+  [data-theme='p5-dark'] .backlog-title span.t { font-family: var(--display); font-weight: 400; letter-spacing: .04em; font-size: 15px; }
+  .icon { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  .icon.sm { width: 14px; height: 14px; }
+  .text-p { color: var(--p); }
+  .muted { color: color-mix(in oklab, var(--bc) 50%, transparent); }
+  .badge-count { font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: var(--p); color: var(--pc); min-width: 20px; text-align: center; }
+  [data-theme='p5-dark'] .badge-count { border-radius: 0; }
+  .icon-btn { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 6px; border: 0; background: transparent; color: color-mix(in oklab, var(--bc) 60%, transparent); cursor: pointer; }
+  .backlog-hint { display: flex; align-items: center; gap: 6px; padding: 10px 16px; font-size: 12px; color: color-mix(in oklab, var(--bc) 50%, transparent); border-bottom: 1px solid var(--card-border); }
+  .backlog-body { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .backlog-body.stacked { gap: 18px; }
+
+  /* ── Task card (desktop TaskCard) ── */
+  .card { position: relative; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--rc); box-shadow: var(--card-shadow); padding: 12px; cursor: grab; transition: box-shadow .15s cubic-bezier(.2,0,0,1), transform .15s cubic-bezier(.2,0,0,1); }
+  [data-theme='p5-dark'] .card { border-width: 1.5px; }
+  .card:hover { box-shadow: var(--card-hover); transform: translateY(-2px); }
+  [data-theme='p5-dark'] .card:hover { transform: translate(-1px, -1px); }
+  .card.risk-warning { border-left: 4px solid var(--wa); }
+  .card.risk-danger { border-left: 4px solid var(--er); }
+  .card h3 { font-size: 14px; font-weight: 500; line-height: 1.3; }
+  .card .desc { font-size: 12px; color: color-mix(in oklab, var(--bc) 60%, transparent); margin-top: 4px; line-height: 1.4; }
+  .card .foot { display: flex; align-items: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .card .foot .size { margin-left: auto; }
+  .card.lifted { box-shadow: var(--card-lift); transform: var(--lift-transform); cursor: grabbing; }
+
+  /* Pills — fx-chip recipe: mono face, currentColor border/fill */
+  .pill { display: inline-flex; align-items: center; gap: 4px; font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: .08em; padding: 2px 6px; border-radius: var(--rs); white-space: nowrap; border: 1px solid color-mix(in oklab, currentColor 28%, transparent); background: color-mix(in oklab, currentColor 10%, transparent); box-shadow: inset 0 1px 0 color-mix(in oklab, currentColor 10%, transparent); font-variant-numeric: tabular-nums; }
+  [data-theme='p5-dark'] .pill { border: 1.5px solid currentColor; box-shadow: none; transform: skewX(-8deg); }
+  .pill.xs { font-size: 8px; padding: 1px 6px; }
+  .c-info { color: var(--in); } .c-sec { color: var(--s); } .c-p { color: var(--p); }
+  .c-su { color: var(--su); } .c-wa { color: var(--wa); } .c-er { color: var(--er); }
+  .pill .dot { opacity: .4; }
+  .pill .pts { opacity: .7; }
+  .rollover { font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 500; color: var(--wa); white-space: nowrap; }
+
+  /* ── NEW: the stack ──
+     Paper lips under the top card: one lip at ×2, two at ×3+ (capped).
+     Lips sit BELOW the card (not behind it) so a translucent card never
+     shows a second edge through itself. The ×N chip takes the #n slot. */
+  .stack { position: relative; }
+  .stack .lip { position: absolute; top: 100%; height: 5px; border: 1px solid var(--lip-border); border-top: 0; border-radius: 0 0 var(--rc) var(--rc); pointer-events: none; transition: opacity .2s, transform .2s; }
+  [data-theme='p5-dark'] .stack .lip { border-width: 1.5px; border-top: 0; }
+  .stack .lip-1 { left: 6px; right: 6px; background: var(--lip-1); }
+  .stack .lip-2 { left: 12px; right: 12px; top: calc(100% + 5px); background: var(--lip-2); }
+  .stack .lip-1 { z-index: 1; }
+  .stack[data-depth='1'] .lip-2, .stack[data-depth='0'] .lip { opacity: 0; transform: translateY(-5px); }
+  .count-chip { color: var(--p); }
+  .count-chip.bump { animation: bump .35s cubic-bezier(.2,0,0,1); }
+  @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
+  [data-theme='p5-dark'] .count-chip.bump { animation-name: bump-p5; }
+  @keyframes bump-p5 { 0% { transform: skewX(-8deg) scale(1); } 40% { transform: skewX(-8deg) scale(1.35); } 100% { transform: skewX(-8deg) scale(1); } }
+
+  /* Hidden ghost source for native drag image */
+  #drag-ghost-host { position: fixed; top: -1000px; left: -1000px; width: 268px; pointer-events: none; }
+
+  /* ── Drag screen ── */
+  .drag-stage { position: relative; }
+  .float-card { position: absolute; width: 268px; z-index: 5; }
+  .callout { position: absolute; z-index: 6; display: flex; gap: 8px; align-items: flex-start; max-width: 230px; font-size: 12px; line-height: 1.45; color: var(--bc); background: color-mix(in oklab, var(--b1) 92%, transparent); border: 1px solid color-mix(in oklab, var(--p) 40%, transparent); border-radius: 8px; padding: 8px 10px; box-shadow: 0 8px 24px oklch(0 0 0 / .3); }
+  [data-theme='p5-dark'] .callout { border-radius: 0; border-width: 1.5px; box-shadow: 4px 4px 0 var(--b3); }
+  .callout .n { flex-shrink: 0; width: 18px; height: 18px; border-radius: 999px; display: grid; place-items: center; background: var(--p); color: var(--pc); font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 700; }
+  [data-theme='p5-dark'] .callout .n { border-radius: 0; }
+
+  /* ── Mobile ── */
+  .phones { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; }
+  .phone-wrap { display: flex; flex-direction: column; align-items: center; }
+  .phone { width: 375px; height: 780px; border-radius: 44px; border: 10px solid oklch(0.12 0.01 265); background: var(--b2); position: relative; overflow: hidden; box-shadow: 0 30px 70px oklch(0 0 0 / .4); }
+  [data-theme='mars-light'] .phone { border-color: oklch(0.3 0.02 265); }
+  .phone .status { height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 26px; font-size: 13px; font-weight: 600; }
+  .phone .board-peek { padding: 8px 16px; }
+  .peek-header { font-size: 22px; font-weight: 700; margin-bottom: 14px; }
+  [data-theme='p5-dark'] .peek-header { font-family: var(--display); font-weight: 400; letter-spacing: .03em; }
+  .peek-header span { color: var(--p); }
+  .peek-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; }
+  .peek-row .lbl { display: flex; align-items: center; gap: 8px; }
+  .led { width: 7px; height: 7px; border-radius: 999px; background: currentColor; box-shadow: 0 0 8px currentColor; }
+  [data-theme='p5-dark'] .led { border-radius: 0; transform: rotate(45deg); box-shadow: none; }
+  .peek-cards { display: flex; gap: 8px; margin: 6px 0 14px; }
+  .peek-cards div { width: 136px; height: 78px; flex-shrink: 0; border-radius: var(--rc); background: var(--card-bg); border: 1px solid var(--card-border); }
+  .scrim { position: absolute; inset: 0; background: oklch(0 0 0 / .45); }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; height: 80%; background: var(--b1); border-radius: 20px 20px 0 0; display: flex; flex-direction: column; box-shadow: 0 -10px 30px oklch(0 0 0 / .3); }
+  [data-theme='p5-dark'] .sheet { border-radius: 0; border-top: 2px solid var(--bc); }
+  .sheet-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 12px; }
+  .sheet-title { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; }
+  [data-theme='p5-dark'] .sheet-title .t { font-family: var(--display); font-weight: 400; letter-spacing: .04em; font-size: 18px; }
+  .sheet-hint { display: flex; align-items: center; gap: 6px; padding: 10px 16px; font-size: 12px; color: color-mix(in oklab, var(--bc) 50%, transparent); border-bottom: 1px solid var(--card-border); }
+  .sheet-body { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .sheet-body.stacked { gap: 20px; }
+  .row { position: relative; background: var(--b1); border: 1px solid var(--card-border); border-left: 4px solid transparent; border-radius: 16px; padding: 12px; display: flex; gap: 12px; }
+  [data-theme='p5-dark'] .row { border-radius: 0; border-width: 1.5px; border-left-width: 4px; box-shadow: 3px 3px 0 var(--b3); }
+  .row.risk-warning { border-left-color: var(--wa); }
+  .row.risk-danger { border-left-color: var(--er); }
+  .row .main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .row .badges { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .row h3 { font-size: 14px; font-weight: 600; }
+  .row .desc { font-size: 12px; color: color-mix(in oklab, var(--bc) 60%, transparent); }
+  .row .side { display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; gap: 8px; flex-shrink: 0; }
+  .row.stack .lip { border-radius: 0 0 16px 16px; }
+  [data-theme='p5-dark'] .row.stack .lip { border-radius: 0; }
+  .row.stack .lip-1 { left: 10px; right: 10px; }
+  .row.stack .lip-2 { left: 20px; right: 20px; }
+  .btn-pull { display: inline-flex; align-items: center; gap: 4px; height: 32px; padding: 0 12px; border-radius: var(--rb); border: 0; background: var(--p); color: var(--pc); font-size: 13px; font-weight: 600; cursor: pointer; }
+  [data-theme='p5-dark'] .btn-pull { box-shadow: 3px 3px 0 oklch(0.36 0.13 25); }
+  .btn-pull:active { transform: translateY(1px); }
+
+  /* ── Rules screen ── */
+  .rules { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+  .rule { border: 1px solid var(--card-border); border-radius: 14px; padding: 16px; background: color-mix(in oklab, var(--b1) 45%, transparent); }
+  [data-theme='p5-dark'] .rule { border-radius: 0; border-width: 1.5px; }
+  .rule h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; display: flex; gap: 8px; align-items: center; }
+  .rule h4 .n { width: 20px; height: 20px; border-radius: 999px; display: grid; place-items: center; background: color-mix(in oklab, var(--p) 18%, transparent); color: var(--p); font-family: 'Geist Mono', monospace; font-size: 11px; }
+  .rule p { font-size: 12.5px; line-height: 1.55; color: color-mix(in oklab, var(--bc) 65%, transparent); }
+  .rule p b { color: var(--bc); font-weight: 600; }
+  .rule .specimens { display: flex; flex-direction: column; gap: 16px; margin-top: 14px; padding-bottom: 8px; }
+  .rule .spec-label { font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 45%, transparent); margin-bottom: 6px; }
+  .rule .vs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .strip-demo { display: flex; gap: 14px; align-items: flex-start; margin-top: 14px; }
+  .strip { width: 48px; height: 170px; border: 1px solid var(--card-border); border-radius: 8px; display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 14px; background: color-mix(in oklab, var(--b2) 30%, transparent); }
+  [data-theme='p5-dark'] .strip { border-radius: 0; }
+  .strip .vert { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 13px; font-weight: 600; color: color-mix(in oklab, var(--bc) 60%, transparent); letter-spacing: .03em; }
+  .pill-demo { display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 14px; border-radius: 16px; background: var(--b1); border: 1px solid var(--card-border); box-shadow: 0 8px 20px oklch(0 0 0 / .25); font-size: 14px; font-weight: 600; width: 250px; }
+  [data-theme='p5-dark'] .pill-demo { border-radius: 0; }
+  .pill-demo .chev { margin-left: auto; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="i-inbox" viewBox="0 0 24 24"><path d="m7.875 14.25 1.214 1.942a2.25 2.25 0 0 0 1.908 1.058h2.006c.776 0 1.497-.4 1.908-1.058l1.214-1.942M2.41 9h4.636a2.25 2.25 0 0 1 1.872 1.002l.164.246a2.25 2.25 0 0 0 1.872 1.002h2.092a2.25 2.25 0 0 0 1.872-1.002l.164-.246A2.25 2.25 0 0 1 16.954 9h4.636M2.41 9a2.25 2.25 0 0 0-.16.832V12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 12V9.832c0-.287-.055-.57-.16-.832M2.41 9a2.25 2.25 0 0 1 .382-.632l3.285-3.832a2.25 2.25 0 0 1 1.708-.786h8.43c.657 0 1.281.287 1.709.786l3.284 3.832c.163.19.291.404.382.632M4.5 20.25h15A2.25 2.25 0 0 0 21.75 18v-2.625c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125V18a2.25 2.25 0 0 0 2.25 2.25Z"/></symbol>
+    <symbol id="i-chev-right" viewBox="0 0 24 24"><path d="m8.25 4.5 7.5 7.5-7.5 7.5"/></symbol>
+    <symbol id="i-chev-left" viewBox="0 0 24 24"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></symbol>
+    <symbol id="i-chev-up" viewBox="0 0 24 24"><path d="m4.5 15.75 7.5-7.5 7.5 7.5"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 18 18 6M6 6l12 12"/></symbol>
+  </defs>
+</svg>
+
+<header class="topbar">
+  <div>
+    <div class="eyebrow">Board · backlog · exploration (pending approval)</div>
+    <h1>Stack duplicate tasks in the backlog</h1>
+    <p>A template with frequency &gt; 1 stages one card per instance. Collapse identical instances into one stacked card with a <b class="mono">×N</b> count; each drag (desktop) or <b>↑ Todo</b> tap (mobile) deals one instance onto the board. Fixture: Tuesday, 10:00 — 12 staged instances from 5 templates.</p>
+  </div>
+  <div class="seg" id="theme-seg">
+    <button data-theme-btn="mars-dark" class="on">Sora dark</button>
+    <button data-theme-btn="mars-light">Sora light</button>
+    <button data-theme-btn="p5-dark">P5 dark</button>
+  </div>
+</header>
+
+<!-- ═════════ 1. Desktop ═════════ -->
+<section class="screen on" id="s-desktop">
+  <div class="pair">
+    <div>
+      <div class="col-label"><b>Before</b> today — one card per instance</div>
+      <div class="slice">
+        <div class="slice-board"><div class="column" id="before-todo"></div></div>
+        <aside class="backlog" id="before-backlog"></aside>
+      </div>
+      <p class="note">12 cards for 5 templates: four identical <b>Workout</b> cards (#2–#5), three <b>LeetCode</b>, two <b>Stretch</b>… the list is mostly repetition, and the one card that matters (the rollover) sits mid-scroll.</p>
+    </div>
+    <div>
+      <div class="col-label after"><b>After</b> try it — drag a stack onto Todo <button class="ghost-btn reset" data-reset>↺ reset</button></div>
+      <div class="slice">
+        <div class="slice-board"><div class="column" id="after-todo"></div></div>
+        <aside class="backlog" id="after-backlog"></aside>
+      </div>
+      <p class="note">Same 12 instances, 5 entries. Header still counts <b>instances</b> (12) — the staged workload. A stack of one is a plain card. Today's LeetCode and yesterday's rollover LeetCode stay <b>separate stacks</b>: they differ in risk and the ↩ tag.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════ 2. Drag (pinned mid-drag) ═════════ -->
+<section class="screen" id="s-drag">
+  <div class="col-label after"><b>After</b> pinned state — mid-drag, Workout stack → Todo</div>
+  <div class="drag-stage">
+    <div class="slice" style="max-width: 860px;">
+      <div class="slice-board"><div class="column target" id="drag-todo"></div></div>
+      <aside class="backlog" id="drag-backlog"></aside>
+    </div>
+    <div class="float-card" id="drag-float" style="top: 300px; left: 210px;"></div>
+    <div class="callout" style="top: 196px; left: 300px;"><span class="n">1</span><span>Only the <b>top instance</b> lifts — a normal single card with its <b class="mono">#2</b>, the instance that lands on Todo (lowest index first).</span></div>
+    <div class="callout" style="top: 470px; left: 880px;"><span class="n">2</span><span>The stack <b>ticks down on lift</b>: ×4 → ×3. At ×2 it drops to one lip; at ×1 it's a plain card. Releasing outside Todo restores it.</span></div>
+    <div class="callout" style="top: 560px; left: 40px;"><span class="n">3</span><span>Todo is still the <b>only drop target</b>, with the usual orange target highlight. Forward-only, no un-pull.</span></div>
+  </div>
+</section>
+
+<!-- ═════════ 3. Mobile ═════════ -->
+<section class="screen" id="s-mobile">
+  <div class="phones">
+    <div class="phone-wrap">
+      <div class="col-label" style="width: 375px;"><b>Before</b></div>
+      <div class="phone" id="phone-before"></div>
+    </div>
+    <div class="phone-wrap">
+      <div class="col-label after" style="width: 375px;"><b>After</b> tap ↑ Todo <button class="ghost-btn reset" data-reset>↺ reset</button></div>
+      <div class="phone" id="phone-after"></div>
+    </div>
+  </div>
+  <p class="note" style="text-align:center; max-width: 720px; margin: 16px auto 0;">The sheet row gets the same lips + <b class="mono">×N</b> chip. Each tap pulls the lowest instance; the chip bumps and the count drops; the sheet stays open for consecutive pulls (unchanged). The dock pill keeps counting instances.</p>
+</section>
+
+<!-- ═════════ 4. Rules ═════════ -->
+<section class="screen" id="s-rules">
+  <div class="rules" id="rules"></div>
+</section>
+
+<div class="seg screen-nav" id="screen-seg">
+  <button data-screen="s-desktop" class="on">1 · Desktop</button>
+  <button data-screen="s-drag">2 · Mid-drag</button>
+  <button data-screen="s-mobile">3 · Mobile</button>
+  <button data-screen="s-rules">4 · Rules &amp; edges</button>
+</div>
+
+<div id="drag-ghost-host"></div>
+
+<script>
+  // ── Fixture: Tuesday 10:00 — instance numbers are 1-based (#n) ──
+  const SEED = [
+    { key: 'lc',  title: 'LeetCode problem', desc: 'One medium, timed', type: 'DAILY',  size: 'M',  pts: 3, risk: 'normal',  freq: 3, inst: [1, 2, 3] },
+    { key: 'st',  title: 'Stretch', desc: null, type: 'DAILY', size: 'XS', pts: 1, risk: 'normal', freq: 2, inst: [1, 2] },
+    { key: 'lcr', title: 'LeetCode problem', desc: 'One medium, timed', type: 'DAILY', size: 'M', pts: 3, risk: 'warning', rollover: 'Mon, Jul 6', freq: 3, inst: [2, 3] },
+    { key: 'wo',  title: 'Workout', desc: '45 min — gym or run', type: 'WEEKLY', size: 'L', pts: 5, risk: 'warning', freq: 5, inst: [2, 3, 4, 5] },
+    { key: 'pm',  title: "Plan next week's meals", desc: null, type: 'WEEKLY', size: 'S', pts: 2, risk: 'normal', freq: 1, inst: [1] },
+  ];
+  const TODO_SEED = [
+    { title: 'Review pull requests', type: 'DAILY', size: 'M', pts: 3, risk: 'normal', freq: 1, n: 1 },
+  ];
+  const clone = x => JSON.parse(JSON.stringify(x));
+  let after = clone(SEED), afterTodo = clone(TODO_SEED);
+  let phone = clone(SEED), phoneTodo = 1;
+
+  const icon = (id, cls = '') => `<svg class="icon ${cls}"><use href="#i-${id}"/></svg>`;
+  const typePill = (type, xs) => `<span class="pill ${xs ? 'xs' : ''} ${type === 'DAILY' ? 'c-info' : 'c-sec'}">${type}</span>`;
+  const sizePill = t => `<span class="pill c-su size"><span>${t.size}</span><span class="dot">·</span><span class="pts">${t.pts}</span></span>`;
+  const riskPill = r => r === 'warning' ? '<span class="pill c-wa">⚠ at risk</span>' : r === 'danger' ? '<span class="pill c-er">‼ urgent</span>' : '';
+  const instPill = n => `<span class="pill c-p">#${n}</span>`;
+  const countPill = (c, bump) => `<span class="pill count-chip ${bump ? 'bump' : ''}" title="${c} staged — each pull takes one">×${c}</span>`;
+  const rollTag = t => t.rollover ? `<span class="rollover">↩ ${t.rollover}</span>` : '';
+  const total = list => list.reduce((s, t) => s + t.inst.length, 0);
+
+  // Desktop TaskCard. mode: 'instance' (#n when freq > 1) | 'stack' (×N when > 1)
+  function card(t, { n, count, mode = 'instance', extra = '', bump = false, attrs = '' } = {}) {
+    const marker = mode === 'stack'
+      ? (count > 1 ? countPill(count, bump) : '')
+      : (t.freq > 1 ? instPill(n) : '');
+    return `<div class="card risk-${t.risk} ${extra}" ${attrs}>
+      <h3>${t.title}</h3>
+      ${t.desc ? `<p class="desc">${t.desc}</p>` : ''}
+      <div class="foot">${typePill(t.type)}${marker}${rollTag(t)}${riskPill(t.risk)}${sizePill(t)}</div>
+    </div>`;
+  }
+  function stack(t, idx, { bump = false, draggable = false, liftedOne = false } = {}) {
+    const count = t.inst.length - (liftedOne ? 1 : 0);
+    if (count <= 0) return '';
+    const depth = Math.min(count - 1, 2);
+    return `<div class="stack" data-depth="${depth}" data-idx="${idx}" ${draggable ? 'draggable="true"' : ''}>
+      ${card(t, { count, mode: 'stack', bump })}
+      <span class="lip lip-1"></span><span class="lip lip-2"></span>
+    </div>`;
+  }
+
+  function column(el, cards, label = 'Todo') {
+    el.innerHTML = `<div class="column-head"><span class="fx-label display">${label}</span><span class="count-ghost">${cards.length}</span></div>
+      <div class="column-body">${cards.map(c => card(c, { n: c.n })).join('')}</div>`;
+  }
+  function backlogShell(el, count, bodyHtml, stacked) {
+    el.innerHTML = `<div class="backlog-head">
+        <div class="backlog-title">${icon('inbox', 'text-p')}<span class="t">Backlog</span><span class="badge-count">${count}</span></div>
+        <button class="icon-btn" title="Close backlog">${icon('chev-right', 'sm')}</button>
+      </div>
+      <div class="backlog-hint">${icon('arrow-left', 'sm text-p')}Drag tasks left to Todo to start working</div>
+      <div class="backlog-body ${stacked ? 'stacked' : ''}">${bodyHtml}</div>`;
+  }
+
+  // ── Before (flat) ──
+  function renderBefore() {
+    column(document.getElementById('before-todo'), TODO_SEED);
+    const flat = SEED.flatMap(t => t.inst.map(n => card(t, { n }))).join('');
+    backlogShell(document.getElementById('before-backlog'), total(SEED), flat, false);
+  }
+
+  // ── After (stacked, interactive drag) ──
+  let bumpKey = null;
+  function renderAfter() {
+    column(document.getElementById('after-todo'), afterTodo);
+    const body = after.map((t, i) => stack(t, i, { draggable: true, bump: t.key === bumpKey })).join('')
+      || '<p class="muted" style="text-align:center;font-size:12px;margin-top:24px">You\'re all caught up — no staged tasks.</p>';
+    backlogShell(document.getElementById('after-backlog'), total(after), body, true);
+    bumpKey = null;
+    wireDrag();
+  }
+  // Tick the source stack down in place (re-rendering would detach the drag
+  // source mid-drag and swallow its dragend).
+  function showLifted(el, t) {
+    const count = t.inst.length - 1;
+    document.querySelector('#after-backlog .badge-count').textContent = total(after) - 1;
+    if (count === 0) { el.style.display = 'none'; return; }
+    el.dataset.depth = Math.min(count - 1, 2);
+    const chip = el.querySelector('.count-chip');
+    if (count === 1) chip.remove(); else chip.textContent = '×' + count;
+  }
+  function wireDrag() {
+    const todo = document.getElementById('after-todo');
+    let dropped = false;
+    document.querySelectorAll('#after-backlog .stack').forEach(el => {
+      el.addEventListener('dragstart', e => {
+        const i = +el.dataset.idx, t = after[i];
+        const host = document.getElementById('drag-ghost-host');
+        host.innerHTML = card(t, { n: t.inst[0], extra: 'lifted' });
+        e.dataTransfer.setData('text/plain', String(i));
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setDragImage(host.firstElementChild, 130, 30);
+        dropped = false;
+        // Let the browser snapshot the ghost before the stack ticks down
+        requestAnimationFrame(() => showLifted(el, t));
+      });
+      el.addEventListener('dragend', () => {
+        todo.classList.remove('target');
+        if (!dropped) renderAfter();
+      });
+    });
+    todo.ondragover = e => { e.preventDefault(); todo.classList.add('target'); };
+    todo.ondragleave = e => { if (!todo.contains(e.relatedTarget)) todo.classList.remove('target'); };
+    todo.ondrop = e => {
+      e.preventDefault();
+      dropped = true;
+      pull(after, +e.dataTransfer.getData('text/plain'), afterTodo);
+      renderAfter();
+    };
+  }
+  function pull(list, i, todoList) {
+    const t = list[i];
+    const n = t.inst.shift();
+    if (todoList) todoList.push({ ...t, n });
+    if (t.inst.length === 0) list.splice(i, 1); else bumpKey = t.key;
+  }
+
+  // ── Drag screen (static) ──
+  function renderDrag() {
+    column(document.getElementById('drag-todo'), TODO_SEED);
+    const body = SEED.map((t, i) => stack(t, i, { liftedOne: t.key === 'wo' })).join('');
+    backlogShell(document.getElementById('drag-backlog'), total(SEED) - 1, body, true);
+    const wo = SEED.find(t => t.key === 'wo');
+    document.getElementById('drag-float').innerHTML = card(wo, { n: wo.inst[0], extra: 'lifted' });
+  }
+
+  // ── Mobile ──
+  function row(t, { n, count, mode, bump, attrs = '' }) {
+    const isStack = mode === 'stack';
+    const marker = isStack ? (count > 1 ? countPill(count, bump) : '') : (t.freq > 1 ? instPill(n) : '');
+    const depth = isStack ? Math.min(count - 1, 2) : 0;
+    return `<div class="row risk-${t.risk} ${isStack ? 'stack' : ''}" data-depth="${depth}" ${attrs}>
+      <div class="main">
+        <div class="badges">${typePill(t.type)}${marker}${rollTag(t)}${riskPill(t.risk)}</div>
+        <h3>${t.title}</h3>
+        ${t.desc ? `<p class="desc">${t.desc}</p>` : ''}
+      </div>
+      <div class="side">${sizePill(t)}<button class="btn-pull" ${isStack ? '' : 'tabindex="-1"'}>${icon('arrow-up', 'sm')}Todo</button></div>
+      ${isStack ? '<span class="lip lip-1"></span><span class="lip lip-2"></span>' : ''}
+    </div>`;
+  }
+  function phoneShell(el, count, todoCount, bodyHtml, stacked) {
+    el.innerHTML = `<div class="status"><span>10:00</span><span class="mono" style="font-size:11px">●●● ▮</span></div>
+      <div class="board-peek">
+        <div class="peek-header">Kanban<span> Planner</span></div>
+        <div class="peek-row"><span class="lbl"><span class="led c-info"></span><span class="fx-label display">Todo</span></span><span class="count-ghost">${todoCount}</span></div>
+        <div class="peek-cards"><div></div><div></div><div></div></div>
+        <div class="peek-row"><span class="lbl"><span class="led c-wa"></span><span class="fx-label display">In Progress</span></span><span class="count-ghost">0</span></div>
+      </div>
+      <div class="scrim"></div>
+      <div class="sheet">
+        <div class="sheet-head">
+          <div class="sheet-title">${icon('inbox', 'text-p')}<span class="t">Backlog</span><span class="badge-count">${count}</span></div>
+          <button class="icon-btn">${icon('x')}</button>
+        </div>
+        <div class="sheet-hint">${icon('arrow-up', 'sm text-p')}Tap to pull a task onto the board</div>
+        <div class="sheet-body ${stacked ? 'stacked' : ''}">${bodyHtml}</div>
+      </div>`;
+  }
+  function renderPhones() {
+    const flat = SEED.flatMap(t => t.inst.map(n => row(t, { n, mode: 'instance' }))).join('');
+    phoneShell(document.getElementById('phone-before'), total(SEED), 1, flat, false);
+    renderPhoneAfter();
+  }
+  let phoneBump = null;
+  function renderPhoneAfter() {
+    const body = phone.map((t, i) => row(t, { count: t.inst.length, mode: 'stack', bump: t.key === phoneBump, attrs: `data-idx="${i}"` })).join('')
+      || '<p class="muted" style="text-align:center;font-size:14px;margin-top:40px">You\'re all caught up — no staged tasks.</p>';
+    phoneShell(document.getElementById('phone-after'), total(phone), phoneTodo, body, true);
+    phoneBump = null;
+    document.querySelectorAll('#phone-after .btn-pull').forEach(btn => btn.addEventListener('click', () => {
+      const i = +btn.closest('.row').dataset.idx, t = phone[i];
+      t.inst.shift();
+      if (!t.inst.length) phone.splice(i, 1); else phoneBump = t.key;
+      phoneTodo++;
+      renderPhoneAfter();
+    }));
+  }
+
+  // ── Rules & edges ──
+  function renderRules() {
+    const lc = SEED[0], lcr = SEED[2], st = SEED[1], pm = SEED[4], wo = SEED[3];
+    const rules = [
+      { title: 'What stacks: same template, same day', body: `Instances stack when they share a <b>template and a forDate</b>. Weekly instances (no forDate) always stack; daily instances stack per day — so today's batch and yesterday's rollovers are <b>two stacks</b>, because their risk and ↩ tag differ. Every card in a stack is identical, so the top card speaks for all of them.`,
+        spec: `<div class="vs"><div><div class="spec-label">today · ×3</div>${stack(lc, 0)}</div><div><div class="spec-label">rollover · ×2</div>${stack(lcr, 0)}</div></div>` },
+      { title: 'Depth cue: lips, capped at two', body: `<b>×2</b> shows one paper lip, <b>×3 and up</b> two — the exact count lives in the chip, the lips only say "more underneath". <b>×1</b> is a plain card: no chip, no lips. The <span class="mono">#n</span> badge leaves the backlog entirely (it still marks each instance on board cards).`,
+        spec: `<div class="spec-label">×4</div>${stack(wo, 0)}<div class="spec-label">×2</div>${stack(st, 0)}<div class="spec-label">×1 — plain card</div>${stack(pm, 0)}` },
+      { title: 'Pull order: lowest instance first', body: `A drag or a tap always takes the stack's <b>lowest instanceIndex</b>, so the board receives #2, #3, #4… in order. The lifted card shows that <span class="mono">#n</span> — you see which instance you're placing. Pulls are one at a time; no "pull all" in V1.`,
+        spec: `<div class="vs"><div><div class="spec-label">lifted</div>${card(wo, { n: 2, extra: 'lifted' })}</div><div><div class="spec-label">left behind · ×3</div>${stack({ ...wo, inst: [3, 4, 5] }, 0)}</div></div>` },
+      { title: 'Counts stay in instances', body: `The backlog header, the collapsed desktop strip and the mobile dock pill keep counting <b>instances</b> (12), not stacks (5) — it's the staged workload, and it agrees with the Week projection, which already counts backlog tasks. Hint copy is unchanged.`,
+        spec: `<div class="strip-demo"><div class="strip">${icon('chev-left', 'sm muted')}<span class="badge-count">12</span><span class="vert">Backlog</span></div><div class="pill-demo">${icon('inbox', 'text-p')}Backlog<span class="badge-count">12</span><span class="chev">${icon('chev-up', 'sm muted')}</span></div></div>` },
+      { title: 'Mobile row: same language', body: `The sheet row carries the same lips and <b class="mono">×N</b> chip in its badge row. <b>↑ Todo</b> pulls one; the chip bumps as the count drops; the last pull removes the row. No new controls, no expand — tap-to-pull already covers it.`,
+        spec: `${row(wo, { count: 4, mode: 'stack' })}<div style="height:4px"></div>${row(pm, { count: 1, mode: 'stack' })}` },
+      { title: 'Out of scope', body: `<b>Board columns are unchanged</b> — Todo / In Progress / Done keep one card per instance (that's where work is tracked). No schema or server change: stacking is a pure client-side grouping of the backlog list, and a pull is still one <span class="mono">BACKLOG → TODO</span> status update for one task.`, spec: '' },
+    ];
+    document.getElementById('rules').innerHTML = rules.map((r, i) => `<div class="rule"><h4><span class="n">${i + 1}</span>${r.title}</h4><p>${r.body}</p>${r.spec ? `<div class="specimens">${r.spec}</div>` : ''}</div>`).join('');
+  }
+
+  // ── Chrome ──
+  document.getElementById('theme-seg').addEventListener('click', e => {
+    const b = e.target.closest('[data-theme-btn]'); if (!b) return;
+    document.documentElement.setAttribute('data-theme', b.dataset.themeBtn);
+    document.querySelectorAll('[data-theme-btn]').forEach(x => x.classList.toggle('on', x === b));
+  });
+  document.getElementById('screen-seg').addEventListener('click', e => {
+    const b = e.target.closest('[data-screen]'); if (!b) return;
+    document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === b.dataset.screen));
+    document.querySelectorAll('[data-screen]').forEach(x => x.classList.toggle('on', x === b));
+  });
+  document.querySelectorAll('[data-reset]').forEach(b => b.addEventListener('click', () => {
+    after = clone(SEED); afterTodo = clone(TODO_SEED); phone = clone(SEED); phoneTodo = 1;
+    renderAfter(); renderPhoneAfter();
+  }));
+
+  renderBefore(); renderAfter(); renderDrag(); renderPhones(); renderRules();
+</script>
+</body>
+</html>
