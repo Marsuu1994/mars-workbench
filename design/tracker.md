@@ -17,7 +17,7 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### Medium
 
-- [ ] Week model Phase 1 — Projects MVP: a `Project` entity (goal + ordered steps that never expire) under a Plan hub, project steps on the board, kind-first cards with risk off, MCP project tools; docs-first 5-PR plan in `design/spike/week-model-restructure.md` (awaiting review), mockup `design/mockup/future-work/temp-week-model-phase1-v2.html`
+- [ ] Week model Phase 1 — Projects MVP: a `Project` entity (goal + ordered steps that never expire) under a Plan hub, project steps on the board, kind-first cards with risk off, MCP project tools; docs-first 5-PR plan in `design/spike/week-model-restructure.md` (awaiting review), mockups `design/mockup/future-work/temp-week-model-phase1-v2.html` + `temp-projects-v2.html` (Projects page and its modals)
 - [ ] ReviewChangesModal / OverlayShell body height needs tuning on **both** breakpoints — with long change lists the box grows so tall the header ends up out of view; revisit the max-height caps (mobile `max-h-[85vh]`, desktop `md:max-h-[calc(100vh-5em)]`) so the pinned header/footer always stay on screen
 
 ### Future

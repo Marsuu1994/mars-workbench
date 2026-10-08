@@ -1,9 +1,10 @@
 # Spike: Week model restructure — Phase 1: Projects MVP
 
-**Status: awaiting owner review (round 2)** · 2026-10-08 · PR #47
+**Status: awaiting owner review (round 3)** · 2026-10-08 · PR #47
 
 Mockups:
 - Phase 1，待批准：`design/mockup/future-work/temp-week-model-phase1-v2.html`
+- Phase 1 的 Projects 页和 modal，待批准：`design/mockup/future-work/temp-projects-v2.html`
 - Phase 2，只是 exploration，不规划：`design/mockup/future-work/temp-week-model-phase2-v2.html`
 
 > 语言约定：沿用 daily-rhythm spike 的写法。叙述用中文；产品名词、状态、代码标识保留英文（habit / project / step / one-off / backlog …），和代码、mockup、tracker 里的叫法一一对应。
@@ -25,7 +26,6 @@ Mockups:
 | 三种 kind | habit / project / one-off ✓ |
 | Project entity | **选项 B**：新建 `Project` 表；step 是 `type = PROJECT` 的 Task，复用 one-off 的生命周期（见下文「数据模型」） |
 | Todo 的名字 | 先不改 |
-| Todo → Backlog 拖拽 | 不动。说明：代码里其实拖不进 backlog（desktop backlog 是 `isDropDisabled`，`handleDragEnd` 遇到 backlog 也直接 return）。能拖的是列与列之间往回拖，比如 In Progress → Todo；而 `board.md` 写的是只能往前拖。这是文档和代码的出入，不在 Phase 1 处理 |
 | App 内 AI chat（OpenAI） | 移除，放在 Phase 2 |
 | Plan Mode | 抛弃 NORMAL / EXTREME。habit 只支持 **Daily（每天）** 和 **N× / week**，放在 Phase 2；habit 级别的「工作日 / 每天 / 自定义」记进 tracker（Plan › Future） |
 | Backlog 堆叠 | 不管，tracker 里已有（PR #44） |
@@ -33,14 +33,18 @@ Mockups:
 | Risk | Phase 1 的新卡片不带 risk；per-kind 规则留在 tracker |
 | Daily rhythm 仪式 | 不做，留在 tracker |
 | 分期 | Phase 1 = project + 卡片 + MCP；Phase 2 = habit + plan form + cleanup |
+| Plan form 里的 step | 只渲染这个 plan **选中的** project steps，像 one-off 一样只能勾选 / 取消。在 plan flow 里，新建、修改 project 和往 plan 里加新 step 只走 MCP。Phase 2 再回头 |
+| AI chat 的 flow | 不改，Phase 2 直接移除 |
+| Risk 的 flow 文档 | 不删，标为 *pending update*，旧规则留作参考 |
+| 新建 / 编辑 project 和 step | 用 modal，沿用 TaskModal（Add Priority Task / Create Task Template）的模式；见 `temp-projects-v2.html` |
 
 ## Phase 1 scope
 
 | Phase 1 做 | Phase 1 不动 |
 | --- | --- |
-| `Project` entity，Plan 变成 hub（This week · Projects），加上 Projects 页 | 三列 board（Todo · In Progress · Done），Todo 不改名 |
+| `Project` entity，Plan 变成 hub（This week · Projects），加上 Projects 页和它的 modal（New Project / Edit Project / Add Step / Edit Step） | 三列 board（Todo · In Progress · Done），Todo 不改名 |
 | Step 上 board：排进这周就进 backlog，之后和其他任务一样拖动；周末不过期，回到 project 原来的位置 | Template、每周 plan 里的 type × frequency、Plan Mode、plan form 的主体、AI chat |
-| Plan form 的 carry-over：上周没做完的 step 和 one-off 一起列出 | Daily rollover 的行为（卡片上改成中性的 ↩ 日期） |
+| Plan form 只渲染这个 plan 选中的 steps，和 one-off 一样只能勾选 / 取消 | Daily rollover 的行为（卡片上改成中性的 ↩ 日期） |
 | Kind-first 卡片：desktop、backlog sheet、mobile 136px 小卡；关掉 risk；去掉 #n | Priority matrix 和 Track This Week |
 | MCP：context 里加 projects，新增 `create_project` / `update_project`，`create_plan` / `update_plan` 能带 step | Habits 页、Plan week 三步流程、去掉 Doing（都在 Phase 2） |
 
@@ -116,11 +120,11 @@ kind 由 `TaskType` 推出来，Task 上不加 kind 列：
 | `shared.md` | Ensure Synced · Daily Sync | 不变 |
 | `board.md` | Backlog Flow | backlog 里多了这周排上的 step。卡片规则改写：没有 #n，没有 risk，rollover 在 context 位置显示为 ↩ 日期。「Ad-hoc tasks never appear in the backlog」那句保留（step 不是 ad-hoc） |
 | `board.md` | Progress Tracking Flow | metrics 加 project 桶。step 和其他任务一样计入 Today 和 Week；Week projection 包含 backlog 里的 step |
-| `board.md` | Task Risky Level Visual Effect Flow | **删除**（risk 关掉），规则移到 tracker |
+| `board.md` | Task Risky Level Visual Effect Flow | 标为 **pending update**：Phase 1 不渲染 risk；flow 里保留旧规则作参考，等 per-kind 规则（tracker）回来时再改写 |
 | `board.md` | Drag and Drop Flow | 规则不变，step 和其他任务一样移动 |
-| `plan.md` | Create Plan Flow | 第 1 步：多预载 pending plan 上没做完的 step，默认选中，和 one-off 一样。第 6–7 步：选中的 step 挂到新 plan，保留原状态；没选中的退回 project（`planId = null`、`BACKLOG`，`instanceIndex` 不变） |
-| `plan.md` | Update Plan Flow | 第 3 步：已在这周的 step 可以取消选择，取消后退回 project；ReviewChangesModal 写明「回到 <project>」。plan form 里**不能新加** step |
-| `plan.md` | AI Assisted Plan Creation Flow | 审批时 step 和 one-off 一样全部带上（现在对 one-off 就是全带）。AI chat 本身在 Phase 2 移除 |
+| `plan.md` | Create Plan Flow | plan form 只渲染选中的 project steps：pending plan 上没做完的 step 默认选中，和 one-off 一样只能勾选 / 取消。选中的挂到新 plan，保留原状态；取消的退回 project（`planId = null`、`BACKLOG`，`instanceIndex` 不变）。plan form 不新建、不修改 project 或 step |
+| `plan.md` | Update Plan Flow | 同样只渲染这周已挂上的 steps，只能取消（退回 project）；ReviewChangesModal 写明「回到 <project>」。在 plan flow 里往这周加新 step 只走 MCP（`update_plan`）。Phase 2 再回头 |
+| `plan.md` | AI Assisted Plan Creation Flow | **不改**，Phase 2 直接移除。实现上：它审批时只带 one-off，没带上的 step 由推广后的 unlink 退回 project |
 | `plan.md` | Plan with Claude (MCP) Flow | context 加 projects；新增工具 `create_project` / `update_project`；`create_plan` 加 `carryOverProjectStepIds` / `projectStepIds`；`update_plan` 能加、减 step。Rules 加上 step 的校验：只能排本人的、没做完的、没在这周 plan 上的 step |
 | `plan.md` | Create / Update Task Template Flow | 不变 |
 | `priorities.md` | 全部 | 不变 |
@@ -132,14 +136,16 @@ kind 由 `TaskType` 推出来，Task 上不加 kind 列：
    - 步骤：`ensureSynced` → 列出未 archive 的 project（进度 done/total、下一步、这周排了几步）→ 选中一个看详情。Desktop 是左右两栏；mobile 进入 `/kanban/projects/[id]`。
    - 规则：archived 的 project 单独列在下面。
 2. **Create Project Flow**
-   - 入口：「+ New project」。
-   - 步骤：填 title（必填）、goal（可选）、first steps（可选，一行一步，size 默认 S）→ 在一个 transaction 里建 project 和 steps：`instanceIndex` 从 1 往下排，`planId = null`，`BACKLOG`，`type = PROJECT`。
-   - 规则：空行忽略。
+   - 入口：Projects 页的「+ New project」，或者空状态里的同一个按钮。
+   - 步骤：打开 **New Project** modal（TaskModal 同款外壳：标题栏 + ×、project 的说明 banner、Title 必填、Goal 可选、Cancel / Create project）→ 建好后进入这个 project 的详情，空状态提示「+ Add the first step」。
+   - 规则：project 没有 size（它的大小是 steps 之和）；desktop 是居中 modal，mobile 是 bottom sheet。
 3. **Edit Project Flow**
-   - 可以改 title、goal，可以 archive / unarchive。
-   - 规则：archive 时没做完的 step 退出这周（回到 project）并隐藏；done 的 step 保留 plan 归属。
+   - 入口：project 详情右上角的「Edit」，打开 **Edit Project** modal：改 title、goal；footer 左边是 Archive。
+   - 规则：archive 时没做完的 step 退出这周（回到 project）并隐藏，project 移到 Archived；done 的 step 保留 plan 归属；可以 unarchive。
 4. **Manage Steps Flow**
-   - 加 step（默认追加到末尾）；改 title、description、size；拖动调整顺序（只能拖 upcoming 的 step）；删除。
+   - 加：「+ Add step」打开 **Add Step** modal，字段和 Create Task Template 一样（Title 必填、Description 可选、Size 选择器带 effort 提示和 L / XL 拆分提醒），标题栏写明 project 名和「becomes step n」；保存后追加到末尾，modal 关闭（和 Add Priority Task 一样一次加一步，批量起草交给 Claude）。
+   - 改 / 删：没做完的 step 每行有常显的 ✎，打开 **Edit Step** modal（同样的字段，footer 左边是 Delete step）。
+   - 排序：拖 upcoming step 的把手调整顺序。
    - 规则：`instanceIndex` 保持连续；done 的 step 锁定，不能改也不能删（它们带着 points 历史）；删除一个排在这周的 step，会同时把它从这周拿掉。
 5. **Schedule Step Flow**
    - 入口：upcoming step 上的「+ This week」（Projects 页），或者 MCP。
@@ -164,7 +170,7 @@ kind 由 `TaskType` 推出来，Task 上不加 kind 列：
 | 1 | **Phase 1 文档** | baseline、新的 `flows/projects.md`、按上一节改写的 flows、tracker | — | S | PR #47 |
 | 2 | Kind-first 卡片 + 关掉 risk | 只改卡片，不改行为 | — | M | 1 |
 | 3 | Project 数据层 | migration、DAL、service、action、生命周期 | 加法 | M | 1 |
-| 4 | Projects UI + step 上 board | Plan hub、Projects 页、排期、step 卡片、plan form carry-over | — | M–L | 2、3 |
+| 4 | Projects UI + step 上 board | Plan hub、Projects 页和 4 个 modal、排期、step 卡片、plan form 渲染选中的 steps | — | M–L | 2、3 |
 | 5 | MCP 支持 projects | context、新工具、server instructions | — | M | 3 |
 
 PR 2 和 PR 3 互不依赖，可以并行。PR 5 合并后，Phase 1 MVP 上线可用。
@@ -177,7 +183,7 @@ PR 2 和 PR 3 互不依赖，可以并行。PR 5 合并后，Phase 1 MVP 上线�
   - Architecture Decision 记下选项 B 及其理由。
   - 标注方式沿用 DumpEntry 的先例：「*(designed — Phase 1 pending)*」。
 - `flows/projects.md`：新文档，写入上面 6 个 flow 加 Step Lifecycle，按现有 flow 文档的格式（Trigger / Steps / Rules）。
-- `flows/shared.md`、`board.md`、`plan.md`：按「改动的 flow」那张表改写；Task Risky Level Visual Effect Flow 删除，在 tracker 里留指针。
+- `flows/shared.md`、`board.md`、`plan.md`：按「改动的 flow」那张表改写；Task Risky Level Visual Effect Flow 标为 *pending update*，保留旧规则作参考，并指向 tracker 里的 per-kind risk 条目。
 - `design/README.md`：flows 列表加上 `projects.md`。
 - `reference.md` 不动。它是现有代码的查找表，等代码落地再更新。
 - **Done when**：owner 批准文档。
@@ -206,10 +212,11 @@ PR 2 和 PR 3 互不依赖，可以并行。PR 5 合并后，Phase 1 MVP 上线�
 ### PR 4 — Projects UI + step 上 board
 
 - Plan hub：Plan 页加 This week · Projects 两个 tab。`/kanban/projects` 和 `/kanban/projects/[id]` 也让侧栏的 Plan 项保持激活。
-- Projects 页：列表 + 详情、新建 / 编辑 / archive、管理 steps、「+ This week」和 ×。
+- Projects 页：列表 + 详情、「+ This week」和 ×。
+- 4 个 modal：New Project、Edit Project（含 Archive）、Add Step、Edit Step（含 Delete step）。复用 TaskModal 的零件（`OverlayShell` / `OverlayHeader`、`FieldRow`、size 的 `ChoicePills`、footer），是加新 mode 还是拆出共用的 form 部件，实现时按代码量决定。
 - Step 卡片面：project 名 + n/N + step bar，基于 PR 2 的卡片骨架。
-- Plan form：在 One-off Tasks 旁边加 Project Steps 的 carry-over 区块；ReviewChangesModal 写明 step 回到哪个 project。
-- Design Console：新的 projects scenario；更新 plan scenario 和 board fixtures（加上 step）；之后删除 Phase 1 mockup。
+- Plan form：在 One-off Tasks 旁边加 Project Steps 区块，只渲染这个 plan 选中的 steps，只能勾选 / 取消；ReviewChangesModal 写明 step 回到哪个 project。
+- Design Console：新的 projects scenario；更新 plan scenario 和 board fixtures（加上 step）；之后删除 Phase 1 和 Projects 两个 mockup。
 - **Done when**：手动跑通「建 project → 排进这周 → 在 board 上做完 → 下周 carry-over」。
 
 ### PR 5 — MCP 支持 projects
@@ -238,15 +245,15 @@ PR 2 和 PR 3 互不依赖，可以并行。PR 5 合并后，Phase 1 MVP 上线�
 
 方向见 Phase 2 的 mockup。另有几条独立的 tracker 项：habit 级别的天数选择、per-kind risk、one-off due date、daily rhythm、backlog 堆叠。
 
-## 待拍板（round 2）
+## 待拍板
 
 1. **Doing 列的移除放在 Phase 2。** 你列 Phase 1 时没有提到它，我按 Phase 2 处理了。OK 吗？
 2. **Projects 的入口**：Plan 页变成 hub（This week · Projects），路由 `/kanban/projects`，侧栏和 dock 都不加新项。OK 吗？
-3. **Plan form 的 carry-over**：上周没做完的 step 默认选中、可以取消（取消后回到 project），和 one-off 一样。还是不进 plan form，一律自动回到 project？
-4. **Rollover 的显示**：Phase 1 的 habit 卡片在 context 位置显示中性的「↩ 日期」，不再用警告色。OK 吗？
-5. **Phase 1 卡片不加 ✓**，只能拖动；✓ 和 Phase 2 的两列 board 一起上。OK 吗？
-6. **MCP 怎么排 step**：并进 `create_plan` / `update_plan` 的参数，不单独做一个 schedule 工具。OK 吗？
-7. **排期顺序**：step 可以不按顺序排进这周，任何 upcoming step 都能「+ This week」。OK 吗？
+3. **Rollover 的显示**：Phase 1 的 habit 卡片在 context 位置显示中性的「↩ 日期」，不再用警告色。OK 吗？
+4. **Phase 1 卡片不加 ✓**，只能拖动；✓ 和 Phase 2 的两列 board 一起上。OK 吗？
+5. **MCP 怎么排 step**：并进 `create_plan` / `update_plan` 的参数，不单独做一个 schedule 工具。OK 吗？
+6. **排期顺序**：step 可以不按顺序排进这周，任何 upcoming step 都能「+ This week」。OK 吗？
+7. **Projects 页的「+ This week」还留吗？** 我把「在 plan flow 里只走 MCP」理解为：plan form 不新建、不修改 project / step，也不往 plan 里加新 step。Projects 页本身仍然能建 project、加 step（用新的 modal），也能用「+ This week」把 step 排进这周。如果你的意思是排期也只走 MCP，就把「+ This week」和 × 去掉。
 
 ## 风险
 
@@ -256,5 +263,5 @@ PR 2 和 PR 3 互不依赖，可以并行。PR 5 合并后，Phase 1 MVP 上线�
 
 ## 批准之后
 
-1. 在 PR #47 里把 mockup 改名归档：Phase 1 → `mockup-week-model-phase1-v2.html`（PR 4 的 scenario 页接手后删除），Phase 2 → `mockup-week-model-phase2-v2.html`（留在 future-work，由 tracker 指向）。
+1. 在 PR #47 里把 mockup 改名归档：Phase 1 → `mockup-week-model-phase1-v2.html`（PR 4 的 scenario 页接手后删除），Projects → `mockup-projects-v2.html`（同样在 PR 4 之后删除），Phase 2 → `mockup-week-model-phase2-v2.html`（留在 future-work，由 tracker 指向）。
 2. 合并 PR #47，开 PR 1（文档）。

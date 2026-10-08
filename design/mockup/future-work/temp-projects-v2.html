@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Projects MVP — Before / After</title>
+<title>Projects — Modals + Journey</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Anton&display=swap');
 
@@ -765,9 +765,9 @@
 
 <header class="topbar">
   <div>
-    <div class="eyebrow">Phase 1 · Projects MVP — exploration (pending approval)</div>
-    <h1>Projects on the board, cards that say what they are</h1>
-    <p>Phase 1 adds a third kind of work — <b>projects</b>: a goal plus ordered steps that never expire — next to today's templates (<b>habits</b>) and the matrix (<b>one-offs</b>). Every card is redrawn kind-first, and risk is switched off. Claude can create projects and put steps on the week over MCP. The board keeps its three columns and the plan form stays as it is; those change in Phase 2 (<span class="mono">temp-week-model-phase2-v2.html</span>). Fixture: Wednesday Oct 7, 10:00 — week 41.</p>
+    <div class="eyebrow">Phase 1 · Projects — exploration (pending approval)</div>
+    <h1>Add a project, add its steps, put them on the week</h1>
+    <p>The Projects page and its modals for the Phase 1 MVP, split out of <span class="mono">temp-week-model-phase1-v2.html</span>. Creating and editing reuse the <b>TaskModal pattern</b> — the same shell as Add Priority Task and Create Task Template: header, an info banner, Title / Description, the size pills, Cancel + submit. Bulk drafting (a 12-lecture course) is Claude's job over MCP; the UI adds one step at a time. Fixture: Wednesday Oct 7 — week 41.</p>
   </div>
   <div class="seg" id="theme-seg">
     <button data-theme-btn="mars-dark" class="on">Sora dark</button>
@@ -776,96 +776,39 @@
   </div>
 </header>
 
-<!-- ═════════ 1. Scope ═════════ -->
-<section class="screen on" id="s-scope">
-  <div class="col-label after"><b>Phase 1</b> three kinds of work · what ships · what waits</div>
-  <div class="kinds" id="kinds"></div>
-  <div class="changes">
-    <div class="chg new"><h4>Ships in phase 1</h4><ul>
-      <li><b>Projects</b> — Plan › Projects: a goal and an ordered list of steps; steps go onto the week one by one and never expire. New Project / Add Step modals follow the TaskModal pattern — see <span class="mono">temp-projects-v2.html</span></li>
-      <li><b>Kind-first cards</b> on the board, the backlog and the mobile rows — habit, project step or one-off in the first line, the kind's own progress in the last</li>
-      <li><b>Risk off</b> — no risk badge, no risk border, no 15:00 / 20:00 thresholds</li>
-      <li><b>Plan form</b> shows the plan's project steps next to one-offs — select / deselect only</li>
-      <li><b>MCP</b> — Claude reads projects, creates them, writes steps and puts steps on the week</li>
-    </ul></div>
-    <div class="chg stay"><h4>Stays as it is</h4><ul>
-      <li>Three columns: Todo · In Progress · Done (the name Todo stays)</li>
-      <li>Templates, type × frequency per plan, Plan Mode, the plan form, the AI chat</li>
-      <li>Daily rollover (now a neutral ↩ date on the habit card)</li>
-      <li>The priority matrix and Track This Week</li>
-      <li>Drag and drop, the backlog drawer / sheet, sizes and points</li>
-    </ul></div>
-    <div class="chg gone"><h4>Waits</h4><ul>
-      <li><s>Phase 2</s> <i>— habits own their cadence (Daily or N× / week, Plan Mode dropped), Habits page, three-step Plan week, AI chat removed, Doing column removed, quiet habit expiry</i></li>
-      <li><s>Tracker</s> <i>— per-kind risk rules, one-off due dates, daily rhythm rituals, backlog stacking, habit-level days</i></li>
-    </ul></div>
-  </div>
-</section>
-
-<!-- ═════════ 2. Board ═════════ -->
-<section class="screen" id="s-board">
-  <div class="col-label"><b>Before</b> today — template instances, risk on every card</div>
-  <div class="board" id="before-board"></div>
-  <p class="note">The project-like work is a weekly template, so the board says <b>"Biomedical course #3"</b> and <b>"Protein 3D visualizer #1"</b>, not which lecture or which step. Four unrelated meanings share one coloured border and pill.</p>
-
-  <div class="col-label after spaced"><b>After</b> phase 1 — same columns, same drag and drop, new cards</div>
-  <div class="board" id="after-board"></div>
-  <p class="note">Columns, backlog and drag and drop are unchanged. Each card now opens with what it is: a <b>habit</b> (green, with its plan line — Daily / 3× / week), a <b>project step</b> (purple, with the project and step n of N) or a <b>one-off</b> (blue, with its quadrant). The last line is that kind's progress: week dots for a habit, the path for a step. Nothing turns amber or red. Tuesday's rolled-over Workout says <b>↩ Tue, Oct 6</b> where the cadence would be. The Mol* step sits in In Progress like any task.</p>
-</section>
-
-<!-- ═════════ 3. Cards ═════════ -->
-<section class="screen" id="s-cards">
-  <div class="anat">
-    <div class="anat-col">
-      <div class="col-label"><b>Before</b> one card shape, the generation rule up front</div>
-      <div class="anat-cards" id="anat-before"></div>
-      <div class="legend bad">
-        <span class="mk">1</span><span><b>Type pill</b> says DAILY / WEEKLY / ONCE — how the task was generated, not what the work is.</span>
-        <span class="mk">2</span><span><b>#n</b> numbers identical copies; the title never says which lecture or which step.</span>
-        <span class="mk">3</span><span><b>Risk border + pill</b> mean "rolls over tonight", "behind pace", "old" or "past 20:00" — the card can't say which.</span>
-        <span class="mk">4</span><span><b>↩ rollover</b> sits among the pills in the risk colour.</span>
-      </div>
-    </div>
-    <div class="anat-col">
-      <div class="col-label after"><b>After</b> one skeleton, kind first</div>
-      <div class="anat-cards" id="anat-after"></div>
-      <div class="legend">
-        <span class="mk">1</span><span><b>Kind</b> — stripe, icon and label in the kind's colour: habit green, project purple, one-off blue. Fixed per kind.</span>
-        <span class="mk">2</span><span><b>Context</b> — the plan line (Daily · 3× / week, or ↩ date for a rollover) · step n of N · quadrant.</span>
-        <span class="mk">3</span><span><b>Signal</b> — the kind's own progress: this week's dots for the habit, the path for the project. One-offs have none yet.</span>
-        <span class="mk">4</span><span><b>Size</b> — neutral now; green belongs to habits.</span>
-      </div>
-    </div>
+<!-- ═════════ 1. Journey ═════════ -->
+<section class="screen on" id="s-journey">
+  <div class="col-label after"><b>The journey</b> from nothing to a step on the board</div>
+  <div class="flow">
+    <div class="node"><div class="when">1 · Plan › Projects</div><div class="what">No projects yet</div><div class="how">An empty state with one action: <b>+ New project</b>.</div></div>
+    <div class="node"><div class="when">2 · Modal</div><div class="what">New Project</div><div class="how">Title (required) and an optional goal. Create lands on the new project.</div></div>
+    <div class="node"><div class="when">3 · Detail</div><div class="what">An empty path</div><div class="how">"No steps yet" with <b>+ Add the first step</b>.</div></div>
+    <div class="node"><div class="when">4 · Modal</div><div class="what">Add Step</div><div class="how">Title, description, size — the template modal's fields. It becomes the next step.</div></div>
+    <div class="node"><div class="when">5 · Detail</div><div class="what">The path</div><div class="how">Steps in order. ✎ opens Edit Step; drag handles reorder; <b>+ This week</b> schedules.</div></div>
+    <div class="node col bl"><div class="when">6 · Board</div><div class="what">In the backlog</div><div class="how">A purple project card, pulled to Todo like any task.</div></div>
   </div>
 
-  <div class="col-label after spaced"><b>States</b> every kind in every place it can sit</div>
-  <div class="matrix" id="state-matrix"></div>
+  <div class="col-label spaced"><b>Reference</b> the two modals this reuses — today</div>
+  <div class="stage" id="ref-modals"></div>
+  <p class="note">Same shell, same field order, same size picker (effort hint, split warning for L / XL), same footer. The project modals change only the banner, the placeholders and — for a project — drop Size, which belongs to steps.</p>
+</section>
 
-  <div class="col-label after spaced"><b>Rules</b></div>
-  <div class="rules">
-    <div class="rule">
-      <h4><span class="n">1</span>One channel per meaning</h4>
-      <p>The <b>kind colour</b> never changes on a card, and no other meaning uses it. Warning and error stay free for risk when it comes back; accent stays the drag-target colour; primary stays the CTA colour (it is red in P5).</p>
-      <table class="rt"><thead><tr><th>Kind</th><th>Colour</th><th>Context</th><th>Signal</th></tr></thead><tbody>
-        <tr data-kind="habit"><td>Habit</td><td>success</td><td>Plan line (Daily, 3× / week) or ↩ date</td><td>Week dots + n/N</td></tr>
-        <tr data-kind="project"><td>Step</td><td>secondary</td><td>Project · step n/N</td><td>Path (one segment per step)</td></tr>
-        <tr data-kind="oneoff"><td>One-off</td><td>info</td><td>Quadrant</td><td>— (due date is in the tracker)</td></tr>
-      </tbody></table>
-    </div>
-    <div class="rule">
-      <h4><span class="n">2</span>Risk is off</h4>
-      <p>Phase 1 removes the risk badge, the risk border and the clock thresholds (15:00 / 20:00) together with the card's old layout. Per-kind risk — habit pace, a step carried twice, a one-off's due date — is <b>in the tracker</b> and comes back as a colour on the signal line, never on the stripe.</p>
-    </div>
-    <div class="rule" data-kind="habit">
-      <h4><span class="n">3</span>Rollover, until phase 2</h4>
-      <p>Daily rollover still exists in phase 1. A rolled-over habit shows <b>↩ date</b> in the context slot in a neutral colour, instead of a warning-coloured tag. Phase 2 removes rollover entirely (missed days expire quietly).</p>
-      <div class="spec-label">Before → After · yesterday's Workout, still open</div>
-      <div class="vs" id="roll-vs"></div>
-    </div>
-    <div class="rule" data-kind="habit">
-      <h4><span class="n">4</span>Identical habit instances</h4>
-      <p><b>#n goes away</b>: two Read cards are the same work and are interchangeable; the week dots on either card already say "0 of 2". Collapsing them into one stacked card is the parked backlog-stacking item (PR #44) — it can move onto this card later without changes for steps or one-offs, which never stack.</p>
-    </div>
+<!-- ═════════ 2. Prototype ═════════ -->
+<section class="screen" id="s-proto">
+  <div class="col-label after"><b>After</b> plan › projects · try it — New project, + Add step, ✎, + This week <button class="ghost-btn reset" id="proto-reset">↺ reset</button></div>
+  <div class="frame proto" id="proto"></div>
+  <p class="note">Everything here is a modal or a one-tap action; there is no inline editing. <b>Done steps are locked</b> (no ✎) because they carry points history. A step still in the backlog can be taken off the week (×); a started one only leaves through Edit Plan. With no active plan, + This week is disabled with the matrix's no-plan hint.</p>
+</section>
+
+<!-- ═════════ 3. Modals ═════════ -->
+<section class="screen" id="s-modals">
+  <div class="col-label after"><b>After</b> the four project modals</div>
+  <div class="stage" id="modal-specs"></div>
+  <div class="rules" style="margin-top:20px">
+    <div class="rule"><h4><span class="n">1</span>One shell</h4><p>All four are the TaskModal shell (centred on desktop, a bottom sheet on mobile): header with the close ×, a form, a footer with <b>Cancel</b> and the primary action on the right. Destructive actions sit on the left of the footer, only in edit mode.</p></div>
+    <div class="rule"><h4><span class="n">2</span>Project fields</h4><p><b>Title</b> (required) and <b>Goal</b> (optional, "what does done look like?"). No size — a project's size is the sum of its steps. Edit Project adds <b>Archive</b>: unfinished steps leave the week and the project moves to Archived; done steps keep their plan.</p></div>
+    <div class="rule"><h4><span class="n">3</span>Step fields</h4><p>The template modal's fields: <b>Title</b> (required), <b>Description</b> (a link, notes, what done looks like) and <b>Size</b> with the effort hint and the L / XL split warning. The header says which project and which step number it becomes. Edit Step adds <b>Delete step</b> (not-done steps only).</p></div>
+    <div class="rule"><h4><span class="n">4</span>One step at a time</h4><p>The modal closes after <b>Add step</b>, like Add Priority Task. Entering a whole syllabus is what Claude does over MCP (<span class="mono">create_project</span> with ordered steps); the UI is for adding, fixing and reordering.</p></div>
   </div>
 </section>
 
@@ -874,315 +817,218 @@
   <div class="phones" id="mobile-phones"></div>
 </section>
 
-<!-- ═════════ 6. Plan form ═════════ -->
-<section class="screen" id="s-planform">
-  <div class="pair2">
-    <div>
-      <div class="col-label"><b>Before</b> create plan — carry-over is one-offs only</div>
-      <div class="co" id="co-before"></div>
-    </div>
-    <div>
-      <div class="col-label after"><b>After</b> unfinished steps carry over like one-offs · click to toggle</div>
-      <div class="co" id="co-after"></div>
-    </div>
-  </div>
-  <p class="note">The plan form is otherwise untouched in phase 1 (its redesign is phase 2). It only renders the plan's <b>selected</b> project steps — last week's unfinished ones when creating, this week's when editing — and, like one-offs, you can only select or deselect them; deselecting sends a step <b>back to its project at the same place</b>. The plan form never creates or edits a project or a step: in the plan flows that is Claude's job over MCP (<span class="mono">create_plan</span> / <span class="mono">update_plan</span>). Phase 2 revisits this.</p>
-  <div class="col-label after spaced"><b>After</b> edit plan · review changes</div>
-  <div class="co" id="co-review" style="max-width:560px"></div>
-</section>
-
-<!-- ═════════ 7. Claude (MCP) ═════════ -->
-<section class="screen" id="s-mcp">
-  <div class="col-label after"><b>Claude</b> plan a project in conversation — tool calls in order</div>
-  <div class="seq" id="mcp-seq"></div>
-  <div class="col-label after spaced"><b>Tools</b> what changes on the MCP server</div>
-  <table class="tools" id="mcp-tools"></table>
-  <p class="note">The rule stays: Claude proposes, the user agrees, then Claude writes. Projects and steps get the same ownership checks and patch semantics as plans. The tools still never create one-offs.</p>
-</section>
-
 <nav class="seg screen-nav" id="screen-nav">
-  <button data-screen="s-scope" class="on">01 Scope</button>
-  <button data-screen="s-board">02 Board</button>
-  <button data-screen="s-cards">03 Cards</button>
+  <button data-screen="s-journey" class="on">01 Journey</button>
+  <button data-screen="s-proto">02 Projects (try it)</button>
+  <button data-screen="s-modals">03 Modals</button>
   <button data-screen="s-mobile">04 Mobile</button>
-  <button data-screen="s-planform">05 Plan form</button>
-  <button data-screen="s-mcp">06 Claude (MCP)</button>
 </nav>
 
 <script>
-  // ─────────────────────────────── Fixture ───────────────────────────────
-  // Wednesday Oct 7, 10:00 — ISO week 41. Phase 1: templates and plan lines
-  // are unchanged, so a habit's context is its plan line (type × frequency).
   const PTS = {XS: 1, S: 2, M: 3, L: 5, XL: 8};
-  const HABITS = {
-    wo: {title: 'Workout', line: 'Daily', size: 'XS', target: 5, done: 1},
-    lc: {title: 'LeetCode', line: '3× / week', size: 'XS', target: 3, done: 1},
-    rd: {title: 'Read', line: '2× / week', size: 'XS', target: 2, done: 0},
-    sd: {title: 'System design case', line: '1× / week', size: 'S', target: 1, done: 0},
-  };
-  const PROJECTS = {
-    bio: {title: 'Biomedical course', goal: 'Finish the 12-lecture intro series — about an hour each.', done: 2, steps: [
-      ['Lecture 1 — Intro to the cell', 'XS'], ['Lecture 2 — Biochemistry basics', 'XS'], ['Lecture 3 — Membranes', 'XS', 'Watch + one-page notes'],
-      ['Lecture 4 — Cell signaling', 'XS'], ['Lecture 5 — Genetics I', 'XS'], ['Lecture 6 — Genetics II', 'XS'], ['Lecture 7 — Gene expression', 'XS'],
-      ['Lecture 8 — Proteins', 'XS'], ['Lecture 9 — Immunology', 'XS'], ['Lecture 10 — Neurobiology', 'XS'], ['Lecture 11 — Physiology', 'XS'], ['Lecture 12 — Review', 'XS']],
-      doneOn: ['Mon, Oct 5', 'Tue, Oct 6']},
-    pdb: {title: 'Protein 3D viewer', goal: 'A Next.js page that renders any PDB entry in 3D.', done: 1, steps: [
-      ['Fetch one structure from RCSB PDB', 'S'], ['Render it with Mol*', 'M', 'Rotate + zoom works in the page'], ['Color-by-chain toggle', 'S'],
-      ['Search box for PDB IDs', 'S'], ['Shareable link per structure', 'XS'], ['Deploy + short write-up', 'M']],
-      doneOn: ['W40 · Thu']},
-    fin: {title: 'Finance basics', goal: 'Read the three financial statements with confidence.', done: 0, steps: [
-      ['Income statement overview', 'S', 'Ch. 1–2 + one worked example'], ['Balance sheet overview', 'S'], ['Cash flow statement', 'S'], ['Link the three statements', 'S'],
-      ['Ratios I — margins', 'S'], ['Ratios II — liquidity', 'S'], ['Read one 10-K section', 'M'], ['Recap notes', 'XS']],
-      doneOn: []},
-  };
-  const ONEOFFS = {
-    tax: {title: 'File tax report', quadrant: 'Do first', size: 'S'},
-    bank: {title: 'Call bank about card', quadrant: 'Do first', size: 'XS'},
-    pkg: {title: 'Return package', quadrant: 'Squeeze in', size: 'XS'},
-  };
-  const H = (hid, extra = {}) => ({kind: 'habit', hid, ...HABITS[hid], pts: PTS[HABITS[hid].size], ...extra});
-  const P = (pid, ix, extra = {}) => {
-    const p = PROJECTS[pid], [title, size, desc] = p.steps[ix];
-    return {kind: 'project', pid, ix, project: p.title, step: ix + 1, total: p.steps.length, doneSteps: p.done, title, size, pts: PTS[size], desc, ...extra};
-  };
-  const O = (oid, extra = {}) => ({kind: 'oneoff', oid, ...ONEOFFS[oid], pts: PTS[ONEOFFS[oid].size], ...extra});
-
-  const BOARD = {
-    todo: [H('wo', {roll: 'Tue, Oct 6'}), H('wo'), H('lc'), P('bio', 2), O('tax')],
-    doing: [P('pdb', 1)],
-    done: [H('wo', {done: true}), H('lc', {done: true}), P('bio', 0, {done: true}), P('bio', 1, {done: true}), O('bank', {done: true}), O('pkg', {done: true})],
-    backlog: [H('lc'), H('rd'), H('rd'), H('sd'), P('pdb', 2), P('fin', 0)],
-  };
-
-  // ─────────────────────────────── Pieces ───────────────────────────────
+  const SIZES = ['XS', 'S', 'M', 'L', 'XL'];
   const icon = (id, cls = '') => `<svg class="icon ${cls}" aria-hidden="true"><use href="#i-${id}"/></svg>`;
-  const sizePill = (t, xs) => `<span class="pill ${xs ? 'xs' : ''} c-muted">${t.size}<span class="dot">·</span><span class="pts">${PTS[t.size]}</span></span>`;
-  const dots = t => `<span class="dots">${Array.from({length: t.target}, (_, i) => `<i class="${i < t.done ? 'on' : ''}"></i>`).join('')}</span>`;
-  const stepbar = t => `<span class="stepbar">${Array.from({length: t.total}, (_, i) =>
-    `<i class="${i < t.doneSteps ? 'on' : i === t.step - 1 ? 'cur' : ''}"></i>`).join('')}</span>`;
-  const KIND_ICON = {habit: 'repeat', project: 'map', oneoff: 'grid'};
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-  // AFTER: the kind-first TaskCard. mode: 'board' · 'backlog-m' (↑ Todo, mobile sheet).
-  function card(t, {mode = 'board', annotate = false} = {}) {
-    const mk = n => annotate ? `<b class="mk">${n}</b>` : '';
-    const done = t.done === true;
-    let head, foot;
-    switch (t.kind) {
-      case 'habit':
-        head = `${mk(1)}${icon('repeat', 'xs')}<span>Habit</span><span class="ctx ${t.roll ? 'roll' : ''}">${mk(2)}${t.roll ? `↩ ${t.roll}` : t.line}</span>`;
-        foot = `${mk(3)}${dots({...t, done: HABITS[t.hid].done})}<span class="sig">${HABITS[t.hid].done}/${t.target}</span>`;
-        break;
-      case 'project':
-        head = `${mk(1)}${icon('map', 'xs')}<span class="name">${t.project}</span><span class="ctx">${mk(2)}${t.step}/${t.total}</span>`;
-        foot = `${mk(3)}${stepbar(t)}`;
-        break;
-      default:
-        head = `${mk(1)}${icon('grid', 'xs')}<span>One-off</span><span class="ctx">${mk(2)}${t.quadrant}</span>`;
-        foot = '';
+  // ─────────────────────────── Modal pieces (TaskModal pattern) ───────────────────────────
+  const sizePicker = (size, live = false) => `<div class="spills">${SIZES.map(s =>
+    `<button type="button" class="${s === size ? 'on' : ''}" ${live ? `data-size="${s}"` : ''}>${s}<small>${PTS[s]}</small></button>`).join('')}</div>
+    <div class="effort">~${PTS[size]} hour${PTS[size] > 1 ? 's' : ''} of effort</div>${size === 'L' || size === 'XL' ? '<div class="effort warn">Consider splitting into smaller steps</div>' : ''}`;
+  const field = (label, control, {req = false, hint = ''} = {}) => `<div class="mfield"><label>${label}${req ? '<span class="req">*</span>' : ''}${hint ? `<span class="hint">${hint}</span>` : ''}</label>${control}</div>`;
+  const input = (id, value, ph, live) => live ? `<input class="minput" id="${id}" value="${esc(value)}" placeholder="${esc(ph)}" />` : `<div class="minput ${value ? '' : 'ph'}">${esc(value || ph)}</div>`;
+  const area = (id, value, ph, live) => live ? `<textarea class="minput" id="${id}" placeholder="${esc(ph)}">${esc(value)}</textarea>` : `<div class="minput area ${value ? '' : 'ph'}">${esc(value || ph)}</div>`;
+  function modal({title, ctx = '', banner = '', fields, foot}) {
+    return `<div class="mbox"><div class="mhead"><div><h3>${title}</h3>${ctx ? `<div class="ctxline">${ctx}</div>` : ''}</div><span class="x" data-act="close">${icon('x', 'sm')}</span></div>
+      <div class="mbody">${banner}${fields}<div class="mfoot">${foot}</div></div></div>`;
+  }
+  const projectBanner = `<div class="mbanner project">${icon('map', 'sm')}Projects are a goal plus ordered steps — steps go onto a week one at a time and never expire.</div>`;
+  function projectModal(mode, v = {}, live = false) {
+    const isNew = mode === 'new';
+    return modal({
+      title: isNew ? 'New Project' : 'Edit Project',
+      banner: isNew ? projectBanner : '',
+      fields: field('Title', input('f-title', v.title || '', 'e.g. Biomedical course', live), {req: true}) +
+        field('Goal', area('f-goal', v.goal || '', 'What does done look like?', live), {hint: '(optional)'}),
+      foot: isNew
+        ? `<span class="sp"></span><button class="btn" data-act="close">Cancel</button><button class="btn primary" data-act="create-project">Create project</button>`
+        : `<button class="btn danger" data-act="archive">Archive</button><span class="sp"></span><button class="btn" data-act="close">Cancel</button><button class="btn primary" data-act="save-project">Save changes</button>`,
+    });
+  }
+  function stepModal(mode, v = {}, live = false) {
+    const isAdd = mode === 'add';
+    return modal({
+      title: isAdd ? 'Add Step' : 'Edit Step',
+      ctx: `${icon('map', 'xxs')}${esc(v.project)} · ${isAdd ? `becomes step ${v.stepNo}` : `step ${v.stepNo}`}`,
+      fields: field('Title', input('f-title', v.title || '', 'e.g. Lecture 4 — Cell signaling', live), {req: true}) +
+        field('Description', area('f-desc', v.desc || '', 'A link, notes, or what done looks like', live), {hint: '(optional)'}) +
+        field('Size', sizePicker(v.size || 'S', live), {req: true}),
+      foot: isAdd
+        ? `<span class="sp"></span><button class="btn" data-act="close">Cancel</button><button class="btn primary" data-act="add-step">Add step</button>`
+        : `<button class="btn danger" data-act="delete-step">Delete step</button><span class="sp"></span><button class="btn" data-act="close">Cancel</button><button class="btn primary" data-act="save-step">Save changes</button>`,
+    });
+  }
+
+  // Reference: today's modals
+  function renderReference() {
+    const adhoc = modal({title: 'Add Priority Task', banner: `<div class="mbanner adhoc">${icon('bolt', 'sm')}Priority tasks are one-off items — they don't repeat and never expire.</div>`,
+      fields: field('Title', input('', '', 'e.g. File tax report'), {req: true}) + field('Description', area('', '', 'Optional details about this task')) +
+        field('Size', sizePicker('S'), {req: true}) + field('Quadrant', '<div class="quadpick"><span class="on">Do first</span><span>Schedule</span><span>Squeeze in</span><span>Maybe later</span></div>'),
+      foot: `<span class="sp"></span><button class="btn">Cancel</button><button class="btn primary">Add to matrix</button>`});
+    const tpl = modal({title: 'Create Task Template',
+      fields: field('Title', input('', '', 'e.g. Solve 3 LeetCode problems'), {req: true}) + field('Description', area('', '', 'e.g. Focus on dynamic programming and graph problems'), {hint: '(used by AI for task generation)'}) +
+        field('Size', sizePicker('M'), {req: true}),
+      foot: `<span class="sp"></span><button class="btn">Cancel</button><button class="btn primary">Create Template</button>`});
+    document.getElementById('ref-modals').innerHTML =
+      `<div><div class="spec-cap"><b>Before</b> · priority matrix</div><div class="backdrop">${adhoc}</div></div>` +
+      `<div><div class="spec-cap"><b>Before</b> · plan form</div><div class="backdrop">${tpl}</div></div>`;
+  }
+
+  function renderModalSpecs() {
+    const specs = [
+      ['New project', projectModal('new', {title: 'Biomedical course', goal: 'Finish the 12-lecture intro series'})],
+      ['Edit project', projectModal('edit', {title: 'Biomedical course', goal: 'Finish the 12-lecture intro series — about an hour each.'})],
+      ['Add step', stepModal('add', {project: 'Biomedical course', stepNo: 4, title: 'Lecture 4 — Cell signaling', desc: 'Watch + one-page notes', size: 'XS'})],
+      ['Edit step', stepModal('edit', {project: 'Protein 3D viewer', stepNo: 2, title: 'Render it with Mol*', desc: 'Rotate + zoom works in the page', size: 'L'})],
+    ];
+    document.getElementById('modal-specs').innerHTML = specs.map(([cap, html]) => `<div><div class="spec-cap"><b>After</b> · ${cap}</div><div class="backdrop">${html}</div></div>`).join('');
+  }
+
+  // ─────────────────────────── Prototype ───────────────────────────
+  const seed = () => ({
+    order: ['bio', 'pdb', 'fin'],
+    sel: 'bio',
+    modal: null,
+    n: 0,
+    projects: {
+      bio: {title: 'Biomedical course', goal: 'Finish the 12-lecture intro series — about an hour each.', steps: [
+        {t: 'Lecture 1 — Intro to the cell', size: 'XS', done: 'Mon, Oct 5'}, {t: 'Lecture 2 — Biochemistry basics', size: 'XS', done: 'Tue, Oct 6'},
+        {t: 'Lecture 3 — Membranes', size: 'XS', desc: 'Watch + one-page notes', week: 'Todo'}, {t: 'Lecture 4 — Cell signaling', size: 'XS'}, {t: 'Lecture 5 — Genetics I', size: 'XS'}]},
+      pdb: {title: 'Protein 3D viewer', goal: 'A Next.js page that renders any PDB entry in 3D.', steps: [
+        {t: 'Fetch one structure from RCSB PDB', size: 'S', done: 'W40 · Thu'}, {t: 'Render it with Mol*', size: 'M', desc: 'Rotate + zoom works in the page', week: 'In Progress'},
+        {t: 'Color-by-chain toggle', size: 'S', week: 'Backlog'}, {t: 'Search box for PDB IDs', size: 'S'}]},
+      fin: {title: 'Finance basics', goal: 'Read the three financial statements with confidence.', steps: [
+        {t: 'Income statement overview', size: 'S', desc: 'Ch. 1–2 + one worked example', week: 'Backlog'}, {t: 'Balance sheet overview', size: 'S'}]},
+    },
+  });
+  let ST = seed();
+  let draftSize = 'S';
+  const doneCount = p => p.steps.filter(s => s.done).length;
+
+  function stepRow(pid, s, i) {
+    const n = `<span class="ix">${i + 1}</span>`, handle = `<span class="handle">${icon('bars', 'sm')}</span>`;
+    const edit = `<button class="edit" data-act="edit-step" data-ix="${i}" title="Edit step">${icon('pencil', 'xs')}</button>`;
+    if (s.done) return `<div class="srow done"><span></span><span class="st">${icon('check', 'xxs')}</span>${n}<span class="tt">${esc(s.t)}</span><span class="side">${s.done}</span></div>`;
+    if (s.week) {
+      const off = s.week === 'Backlog' ? `<button class="tc-pull" data-act="unweek" data-ix="${i}" title="Take off this week">${icon('x', 'xxs')}</button>` : '';
+      return `<div class="srow week">${handle}<span class="st"></span>${n}<span class="tt">${esc(s.t)}${s.desc ? `<small>${esc(s.desc)}</small>` : ''}</span><span class="side"><span class="pill ${s.week === 'Backlog' ? 'c-sec' : 'c-p'}">This week · ${s.week.toLowerCase()}</span>${off}${edit}</span></div>`;
     }
-    const action = mode === 'backlog-m' ? `<button class="tc-pull">${icon('arrow-up', 'xxs')}Todo</button>` : '';
-    return `<div class="tc ${done ? 'is-done' : ''}" data-kind="${t.kind}">
-      <div class="tc-head">${head}</div>
-      <div class="tc-row"><div class="tc-title">${t.title}</div>${action}</div>
-      ${t.desc && !done ? `<div class="tc-desc">${t.desc}</div>` : ''}
-      <div class="tc-foot">${foot}<span class="size">${mk(4)}${sizePill(t)}</span></div></div>`;
+    return `<div class="srow">${handle}<span class="st"></span>${n}<span class="tt">${esc(s.t)}${s.desc ? `<small>${esc(s.desc)}</small>` : ''}</span><span class="side"><span class="pill c-muted">${s.size}·${PTS[s.size]}</span><button class="tc-pull" data-act="week" data-ix="${i}">${icon('plus', 'xxs')}This week</button>${edit}</span></div>`;
   }
-  // AFTER: the 136px card in the mobile board rows.
-  function mini(t) {
-    const label = t.kind === 'project' ? `<span class="nm">${t.project}</span>` : `<span>${t.kind === 'habit' ? 'Habit' : 'One-off'}</span>`;
-    const sig = t.kind === 'habit' ? (t.roll ? `<span class="roll">↩ ${t.roll.slice(0, 3)}</span>` : dots({...t, done: HABITS[t.hid].done})) : t.kind === 'project' ? stepbar(t) : '';
-    return `<div class="tm ${t.done === true ? 'is-done' : ''}" data-kind="${t.kind}"><div class="tm-h">${icon(KIND_ICON[t.kind], 'xxs')}${label}</div>
-      <div class="tm-t">${t.title}</div><div class="tm-f">${sig}${sizePill(t, true)}</div></div>`;
+  function renderProto() {
+    const list = ST.order.map(pid => {
+      const p = ST.projects[pid], d = doneCount(p), next = p.steps.find(s => !s.done), wk = p.steps.filter(s => s.week).length;
+      return `<div class="pcard ${pid === ST.sel ? 'sel' : ''}" data-kind="project" data-psel="${pid}">
+        <div class="r1">${icon('map', 'sm c-k')}<span class="t">${esc(p.title)}</span><span class="n">${d}/${p.steps.length}</span></div>
+        <div class="bigbar"><i style="width:${p.steps.length ? d / p.steps.length * 100 : 0}%"></i></div>
+        <div class="next">${next ? `Next: <b>${esc(next.t)}</b>` : 'No steps yet'}</div>
+        ${wk ? `<div class="r3"><span class="pill c-sec">${wk} this week</span></div>` : ''}</div>`;
+    }).join('');
+    const p = ST.projects[ST.sel], d = doneCount(p);
+    const body = p.steps.length
+      ? `<div class="srows">${p.steps.map((s, i) => stepRow(ST.sel, s, i)).join('')}</div>
+         <div><button class="btn" data-act="open-add">${icon('plus', 'sm')}Add step</button></div>`
+      : `<div class="empty-proj">${icon('map', 'sm')}No steps yet — a project is a path of small steps, about 1–3 hours each.<button class="btn primary" data-act="open-add">${icon('plus', 'sm')}Add the first step</button></div>`;
+    let overlay = '';
+    if (ST.modal) {
+      const m = ST.modal;
+      const html = m.type === 'new' ? projectModal('new', {}, true)
+        : m.type === 'edit-project' ? projectModal('edit', p, true)
+        : m.type === 'add' ? stepModal('add', {project: p.title, stepNo: p.steps.length + 1, size: draftSize}, true)
+        : stepModal('edit', {project: p.title, stepNo: m.ix + 1, title: p.steps[m.ix].t, desc: p.steps[m.ix].desc || '', size: draftSize}, true);
+      overlay = `<div class="proto-scrim" data-act="scrim">${html}</div>`;
+    }
+    document.getElementById('proto').innerHTML = `
+      <div class="frame-head"><div><h2 class="disp">Plan</h2><div class="sub">week 41 · Oct 5 – Oct 11</div></div>
+        <div class="right"><div class="seg hub"><button>This week</button><button class="on">Projects</button></div><button class="btn primary" data-act="open-new">${icon('plus', 'sm')}New project</button></div></div>
+      <div class="proj-grid">
+        <div class="proj-list">${list}</div>
+        <div class="detail" data-kind="project">
+          <div class="detail-head" style="display:flex;gap:12px;align-items:flex-start"><div style="flex:1;min-width:0"><h3 class="disp">${esc(p.title)}</h3>${p.goal ? `<p>${esc(p.goal)}</p>` : ''}
+            <div class="prog"><span class="bigbar"><i style="width:${p.steps.length ? d / p.steps.length * 100 : 0}%"></i></span>${d} of ${p.steps.length} steps</div></div>
+            <div class="toolbar"><button class="btn sm" data-act="open-edit-project">${icon('pencil', 'xs')}Edit</button></div></div>
+          ${body}
+          <div class="ai-note">${icon('sparkles', 'sm')}<span>Drafting a whole syllabus? Ask Claude — over MCP it creates the project with its steps in order, and they show up here.</span></div>
+        </div>
+      </div>${overlay}`;
+    const first = document.querySelector('#proto .mbox input');
+    if (first) first.focus();
   }
+  document.getElementById('proto').addEventListener('click', e => {
+    const sel = e.target.closest('[data-psel]');
+    const sz = e.target.closest('[data-size]');
+    const el = e.target.closest('[data-act]');
+    if (sz) { draftSize = sz.dataset.size; const keep = {t: document.getElementById('f-title')?.value, d: document.getElementById('f-desc')?.value}; renderProto(); if (keep.t !== undefined) document.getElementById('f-title').value = keep.t; if (keep.d !== undefined) document.getElementById('f-desc').value = keep.d; return; }
+    if (!el && sel && !ST.modal) { ST.sel = sel.dataset.psel; renderProto(); return; }
+    if (!el) return;
+    const act = el.dataset.act, p = ST.projects[ST.sel];
+    const val = id => (document.getElementById(id)?.value || '').trim();
+    switch (act) {
+      case 'scrim': if (e.target === el) ST.modal = null; else return; break;
+      case 'close': ST.modal = null; break;
+      case 'open-new': ST.modal = {type: 'new'}; break;
+      case 'open-edit-project': ST.modal = {type: 'edit-project'}; break;
+      case 'open-add': draftSize = 'S'; ST.modal = {type: 'add'}; break;
+      case 'edit-step': { const i = Number(el.dataset.ix); draftSize = p.steps[i].size; ST.modal = {type: 'edit-step', ix: i}; break; }
+      case 'create-project': {
+        const title = val('f-title');
+        if (!title) { document.getElementById('f-title').focus(); return; }
+        const id = `p${++ST.n}`;
+        ST.projects[id] = {title, goal: val('f-goal'), steps: []};
+        ST.order.unshift(id); ST.sel = id; ST.modal = null; break;
+      }
+      case 'save-project': { const title = val('f-title'); if (!title) return; p.title = title; p.goal = val('f-goal'); ST.modal = null; break; }
+      case 'archive': ST.order = ST.order.filter(id => id !== ST.sel); ST.sel = ST.order[0]; ST.modal = null; if (!ST.sel) { ST = seed(); } break;
+      case 'add-step': { const t = val('f-title'); if (!t) { document.getElementById('f-title').focus(); return; } p.steps.push({t, desc: val('f-desc'), size: draftSize}); ST.modal = null; break; }
+      case 'save-step': { const t = val('f-title'); if (!t) return; Object.assign(p.steps[ST.modal.ix], {t, desc: val('f-desc'), size: draftSize}); ST.modal = null; break; }
+      case 'delete-step': p.steps.splice(ST.modal.ix, 1); ST.modal = null; break;
+      case 'week': p.steps[Number(el.dataset.ix)].week = 'Backlog'; break;
+      case 'unweek': delete p.steps[Number(el.dataset.ix)].week; break;
+      default: return;
+    }
+    renderProto();
+  });
+  document.getElementById('proto-reset').addEventListener('click', () => { ST = seed(); renderProto(); });
 
-  // BEFORE: today's TaskCard.
-  const typePill = (type, xs) => `<span class="pill ${xs ? 'xs' : ''} ${type === 'DAILY' ? 'c-info' : type === 'WEEKLY' ? 'c-sec' : 'c-wa'}">${type}</span>`;
-  const oldSizePill = (t, xs) => `<span class="pill ${xs ? 'xs' : ''} c-su size">${t.size}<span class="dot">·</span><span class="pts">${PTS[t.size]}</span></span>`;
-  const riskPill = r => r === 'warning' ? '<span class="pill c-wa">⚠ at risk</span>' : r === 'danger' ? '<span class="pill c-er">‼ urgent</span>' : '';
-  function oldCard(t, {annotate = false} = {}) {
-    const mk = n => annotate ? `<b class="mk" style="background:var(--er);color:var(--b1)">${n}</b>` : '';
-    return `<div class="card risk-${t.risk || 'normal'} ${t.done ? 'is-done' : ''}">
-      <h3>${t.t}</h3>${t.d ? `<p class="desc">${t.d}</p>` : ''}
-      <div class="foot">${mk(1)}${typePill(t.type)}${t.n ? `${mk(2)}<span class="pill c-p">#${t.n}</span>` : ''}${t.roll ? `${mk(4)}<span class="rollover">↩ ${t.roll}</span>` : ''}${!t.done && t.risk ? mk(3) : ''}${t.done ? '' : riskPill(t.risk)}${oldSizePill(t)}</div></div>`;
-  }
-  const oldMini = t => `<div class="omini risk-${t.risk || 'normal'} ${t.done ? 'is-done' : ''}">
-    <div class="b">${typePill(t.type, true)}${t.n ? `<span class="pill xs c-p">#${t.n}</span>` : ''}</div>
-    <div class="t">${t.t}</div>
-    <div class="f">${t.roll ? `<span class="rollover">↩ ${t.roll}</span>` : ''}${oldSizePill(t, true)}</div></div>`;
-  const OLD = {
-    todo: [
-      {t: 'Workout', d: '45 min — gym or run', type: 'DAILY', size: 'XS', roll: 'Tue, Oct 6', risk: 'warning'},
-      {t: 'Workout', d: '45 min — gym or run', type: 'DAILY', size: 'XS'},
-      {t: 'LeetCode', d: 'One medium, 45-min timer', type: 'WEEKLY', n: 2, size: 'XS'},
-      {t: 'Biomedical course', d: 'Explore a biomedical course, ~1h', type: 'WEEKLY', n: 3, size: 'XS', risk: 'warning'},
-      {t: 'File tax report', type: 'ONCE', size: 'S', risk: 'warning'},
-    ],
-    doing: [{t: 'Protein 3D visualizer', d: 'Build a protein structure viewer', type: 'WEEKLY', n: 1, size: 'M', risk: 'warning'}],
-    done: [
-      {t: 'Workout', type: 'DAILY', size: 'XS', done: true}, {t: 'LeetCode', type: 'WEEKLY', n: 1, size: 'XS', done: true},
-      {t: 'Biomedical course', type: 'WEEKLY', n: 1, size: 'XS', done: true}, {t: 'Biomedical course', type: 'WEEKLY', n: 2, size: 'XS', done: true},
-      {t: 'Call bank about card', type: 'ONCE', size: 'XS', done: true}, {t: 'Return package', type: 'ONCE', size: 'XS', done: true},
-    ],
-    backlog: [
-      {t: 'LeetCode', d: 'One medium, 45-min timer', type: 'WEEKLY', n: 3, size: 'XS'}, {t: 'Read', type: 'WEEKLY', n: 1, size: 'XS'},
-      {t: 'Read', type: 'WEEKLY', n: 2, size: 'XS'}, {t: 'System design case', type: 'WEEKLY', n: 1, size: 'S'},
-      {t: 'Protein 3D visualizer', d: 'Build a protein structure viewer', type: 'WEEKLY', n: 2, size: 'M', risk: 'warning'},
-      {t: 'Finance basics', d: 'Learn finance basics', type: 'WEEKLY', n: 1, size: 'S'},
-    ],
-  };
-
-  // ─────────────────────────────── Screens ───────────────────────────────
-  function renderScope() {
-    const kinds = [
-      {kind: 'habit', name: 'Habit', sub: "Today's templates, unchanged in phase 1.", rows: [
-        ['Example', 'LeetCode 3× / week · Workout daily'],
-        ['Phase 1', 'Only the card changes: kind first, week dots as the signal.'],
-        ['Phase 2', 'Cadence moves onto the habit; Habits page; quiet expiry.']], spec: H('lc')},
-      {kind: 'project', name: 'Project', sub: 'New: a goal and an ordered path of steps.', rows: [
-        ['Example', 'Biomedical course — 12 lectures, a few each week'],
-        ['Lives in', 'Plan › Projects; steps go onto the week one by one'],
-        ['Missed', 'Never expires — goes back to its project at the same place'],
-        ['Claude', 'Creates projects, writes steps, puts steps on the week (MCP)']], spec: P('bio', 2)},
-      {kind: 'oneoff', name: 'One-off', sub: 'The priority matrix, unchanged in phase 1.', rows: [
-        ['Example', 'File tax report — Do first'],
-        ['Phase 1', 'Only the card changes: kind first, quadrant as context.'],
-        ['Later', 'Optional due date (tracker).']], spec: O('tax')},
-    ];
-    document.getElementById('kinds').innerHTML = kinds.map(k => `<div class="kind" data-kind="${k.kind}">
-      <h3 class="disp">${icon(KIND_ICON[k.kind])}${k.name}</h3><p class="kind-sub">${k.sub}</p>
-      <dl>${k.rows.map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>
-      <div class="spec">${card(k.spec)}</div></div>`).join('');
-  }
-
-  function boardFrame(el, {title, sub, today, week, weekPct, cols, backlogCount, backlogBody}) {
-    const col = ([cls, label, body, n]) => `<div class="column ${cls}"><div class="column-head"><span class="led"></span><span class="fx-label display">${label}</span><span class="count-ghost">${n}</span></div>
-      <div class="column-body">${body}</div></div>`;
-    el.innerHTML = `
-      <div class="board-head"><div class="board-title disp">${title}<small>${sub}</small></div>
-        <div class="dash"><div class="dash-item"><span class="fx-label muted">Today</span><span class="meter"><i style="width:0%"></i></span><b>${today}</b></div>
-        <div class="dash-item"><span class="fx-label muted">Week</span><span class="meter"><i class="info" style="width:${weekPct}%"></i></span><b>${week}</b> pts</div></div></div>
-      <div class="board-main">
-        <div class="board-cols three">${cols.map(col).join('')}</div>
-        <aside class="backlog"><div class="backlog-head"><div class="backlog-title">${icon('inbox', 'text-p')}<span class="t">Backlog</span><span class="badge-count">${backlogCount}</span></div>${icon('chev-right', 'sm muted')}</div>
-          <div class="backlog-hint">${icon('arrow-left', 'sm text-p')}Drag tasks left to Todo to start working</div>
-          <div class="backlog-body">${backlogBody}</div></aside>
-      </div>`;
-  }
-  function renderBoards() {
-    const old = list => list.map(t => oldCard(t)).join('');
-    boardFrame(document.getElementById('before-board'), {title: 'Kanban Planner', sub: 'Oct 5 – Oct 11', today: '0/6', week: '6/27', weekPct: 22,
-      cols: [['todo', 'Todo', old(OLD.todo), 5], ['doing', 'In Progress', old(OLD.doing), 1], ['done', 'Done', old(OLD.done), 6]],
-      backlogCount: 6, backlogBody: old(OLD.backlog)});
-    const nu = list => list.map(t => card(t)).join('');
-    boardFrame(document.getElementById('after-board'), {title: 'Kanban Planner', sub: 'Oct 5 – Oct 11', today: '0/6', week: '6/26', weekPct: 23,
-      cols: [['todo', 'Todo', nu(BOARD.todo), 5], ['doing', 'In Progress', nu(BOARD.doing), 1], ['done', 'Done', nu(BOARD.done), 6]],
-      backlogCount: 6, backlogBody: nu(BOARD.backlog)});
-  }
-
-  function renderCards() {
-    document.getElementById('anat-before').innerHTML = [
-      oldCard({t: 'Workout', d: '45 min — gym or run', type: 'DAILY', size: 'XS', roll: 'Tue, Oct 6', risk: 'warning'}, {annotate: true}),
-      oldCard({t: 'Biomedical course', d: 'Explore a biomedical course, ~1h', type: 'WEEKLY', n: 3, size: 'XS', risk: 'warning'}, {annotate: true}),
-      oldCard({t: 'File tax report', type: 'ONCE', size: 'S', risk: 'warning'}, {annotate: true}),
-    ].join('');
-    document.getElementById('anat-after').innerHTML = [card(H('lc'), {annotate: true}), card(P('bio', 2), {annotate: true}), card(O('tax'), {annotate: true})].join('');
-    const never = text => `<div class="never">${text}</div>`;
-    const rows = [
-      {kind: 'habit', name: 'Habit', note: 'a template instance', cells: [card(H('lc')), card(H('wo')), card(H('rd')), card(H('lc', {done: true})), mini(H('rd'))]},
-      {kind: 'project', name: 'Step', note: 'one step of a project', cells: [card(P('bio', 2)), card(P('pdb', 1)), card(P('pdb', 2)), card(P('bio', 1, {done: true})), mini(P('bio', 2))]},
-      {kind: 'oneoff', name: 'One-off', note: 'from the matrix', cells: [card(O('tax')), card(O('pkg')), never('Never — one-offs reach the board through Track This Week, straight into Todo or In Progress'), card(O('bank', {done: true})), mini(O('tax'))]},
-    ];
-    document.getElementById('state-matrix').innerHTML =
-      `<div></div><div class="mh">Todo</div><div class="mh">In Progress</div><div class="mh">Backlog</div><div class="mh">Done</div><div class="mh">Mobile row (136px)</div>` +
-      rows.map(r => `<div class="rh" data-kind="${r.kind}"><b>${icon(KIND_ICON[r.kind], 'sm')}${r.name}</b><span>${r.note}</span></div>${r.cells.map(c => `<div>${c}</div>`).join('')}`).join('');
-    document.getElementById('roll-vs').innerHTML = oldCard({t: 'Workout', d: '45 min — gym or run', type: 'DAILY', size: 'XS', roll: 'Tue, Oct 6', risk: 'warning'}) + card(H('wo', {roll: 'Tue, Oct 6'}));
-  }
-
-  // ── Phones ──
+  // ─────────────────────────── Mobile ───────────────────────────
   const status = time => `<div class="status"><span>${time}</span><span class="mono" style="font-size:11px">●●● ▮</span></div>`;
   const dock = on => `<div class="dock">${[['columns', 'Board'], ['grid', 'Priorities'], ['calendar', 'Plan'], ['pencil', 'Dump'], ['user', 'Settings']]
     .map(([i, l]) => `<span class="${l === on ? 'on' : ''}">${icon(i)}${l}</span>`).join('')}</div>`;
   const phone = (time, inner) => `<div class="phone">${status(time)}${inner}</div>`;
   const wrap = (cap, html) => `<div class="phone-wrap">${html}<div class="phone-cap">${cap}</div></div>`;
-  const mdash = (today, week, weekPct) => `<div class="mdash">
-      <div class="r"><span class="fx-label muted">Today</span><span class="meter"><i style="width:0%"></i></span><b>${today}</b></div>
-      <div class="r"><span class="fx-label muted">Week</span><span class="meter"><i class="info" style="width:${weekPct}%"></i></span><b>${week}</b></div></div>`;
-  const msec = (cls, label, items, render) => `<div class="msec ${cls}"><span class="led"></span><span class="fx-label display">${label}</span><span class="count-ghost">${items.length}</span></div>
-      <div class="hscroll">${items.map(render).join('')}</div>`;
-  const hub = on => `<div class="msegwrap"><div class="seg">${['This week', 'Projects'].map(l => `<button class="${l === on ? 'on' : ''}">${l}</button>`).join('')}</div></div>`;
-
+  const hub = `<div class="msegwrap"><div class="seg"><button>This week</button><button class="on">Projects</button></div></div>`;
+  const app = inner => `<div class="app"><div class="app-head"><h2 class="disp">Plan</h2><span class="date">week 41</span></div>${hub}${inner}</div>`;
+  const sheet = (html, h = '86%') => `<div class="scrim"></div><div class="sheet" style="height:${h};overflow:hidden"><div class="grab"></div>${html.replace('class="mbox"', 'class="mbox" style="width:100%;border:0;box-shadow:none;border-radius:0;background:transparent"')}</div>`;
   function renderMobile() {
-    const before = phone('10:02', `<div class="app">
-        <div class="app-head"><h2 class="disp">Board</h2><span class="date">Oct 5 – Oct 11</span></div>${mdash('0/6', '6/27 pts', 22)}
-        ${msec('todo', 'Todo', OLD.todo, oldMini)}${msec('doing', 'In Progress', OLD.doing, oldMini)}${msec('done', 'Done', OLD.done, oldMini)}</div>
-      <div class="peek">${icon('inbox', 'text-p')}Backlog<span class="badge-count">6</span>${icon('chev-up', 'sm chev muted')}</div>${dock('Board')}`);
-    const boardInner = `<div class="app">
-        <div class="app-head"><h2 class="disp">Board</h2><span class="date">Oct 5 – Oct 11</span></div>${mdash('0/6', '6/26 pts', 23)}
-        ${msec('todo', 'Todo', BOARD.todo, mini)}${msec('doing', 'In Progress', BOARD.doing, mini)}${msec('done', 'Done', BOARD.done, mini)}</div>
-      <div class="peek">${icon('inbox', 'text-p')}Backlog<span class="badge-count">6</span>${icon('chev-up', 'sm chev muted')}</div>${dock('Board')}`;
-    const after = phone('10:02', boardInner);
-    const sheet = phone('10:03', `${boardInner}<div class="scrim"></div>
-      <div class="sheet"><div class="grab"></div>
-        <div class="sheet-head"><div class="sheet-title">${icon('inbox', 'text-p')}<span class="disp">Backlog</span><span class="badge-count">6</span></div>${icon('x', 'sm muted')}</div>
-        <div class="sheet-body">${BOARD.backlog.map(t => card(t, {mode: 'backlog-m'})).join('')}</div></div>`);
+    const empty = app(`<div class="empty-proj" style="margin-top:20px">${icon('map', 'sm')}No projects yet. A project is a goal and a path of small steps — like a course, one lecture at a time.<button class="btn primary">${icon('plus', 'sm')}New project</button></div>
+      <div class="ai-note">${icon('sparkles', 'sm')}<span>Or ask Claude to set one up — it can draft every step.</span></div>`);
+    const detail = app(`<div class="mono muted" style="font-size:11px;display:flex;align-items:center;gap:4px">${icon('chev-left', 'xs')}All projects</div>
+      <div data-kind="project"><div style="display:flex;align-items:center;gap:8px"><h3 class="disp" style="font-size:19px;font-weight:700;flex:1">Biomedical course</h3><button class="btn sm">${icon('pencil', 'xs')}Edit</button></div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:8px;font-family:'Geist Mono',monospace;font-size:11px;color:color-mix(in oklab,var(--bc) 60%,transparent)"><span class="bigbar" style="flex:1"><i style="width:40%"></i></span>2/5</div></div>
+      <div class="srows" data-kind="project">
+        <div class="srow done m"><span class="st">${icon('check', 'xxs')}</span><span class="ix">1</span><span class="tt">Lecture 1 — Intro to the cell</span><span class="side">Mon</span></div>
+        <div class="srow done m"><span class="st">${icon('check', 'xxs')}</span><span class="ix">2</span><span class="tt">Lecture 2 — Biochemistry basics</span><span class="side">Tue</span></div>
+        <div class="srow week m"><span class="st"></span><span class="ix">3</span><span class="tt">Lecture 3 — Membranes</span><span class="side"><span class="pill c-p">todo</span><button class="edit">${icon('pencil', 'xs')}</button></span></div>
+        <div class="srow m"><span class="st"></span><span class="ix">4</span><span class="tt">Lecture 4 — Cell signaling</span><span class="side"><button class="tc-pull">${icon('plus', 'xxs')}Week</button><button class="edit">${icon('pencil', 'xs')}</button></span></div>
+        <div class="srow m"><span class="st"></span><span class="ix">5</span><span class="tt">Lecture 5 — Genetics I</span><span class="side"><button class="tc-pull">${icon('plus', 'xxs')}Week</button><button class="edit">${icon('pencil', 'xs')}</button></span></div>
+      </div><button class="btn block">${icon('plus', 'sm')}Add step</button>`);
     document.getElementById('mobile-phones').innerHTML =
-      wrap('<span class="tag before">Before</span>Type pill and #n take the first line of every 136px card; the title clamps at two lines and says little.', before) +
-      wrap('<span class="tag">After</span>Same rows, same 136px cards, kind first: <b>kind label</b> (or the project\'s name), the title, then the dots or the path. A rollover shows ↩ and the day instead of dots.', after) +
-      wrap('<span class="tag">After</span>The backlog sheet uses the full card face; <b>↑ Todo</b> pulls a card as today. Project steps scheduled this week sit here with the habit instances.', sheet);
+      wrap('<span class="tag">After</span><b>No projects yet</b>: one action, and a pointer to Claude for drafting.', phone('09:10', empty + dock('Plan'))) +
+      wrap('<span class="tag">After</span><b>New Project</b> as a bottom sheet — the same content as the desktop modal.', phone('09:11', app('') + sheet(projectModal('new', {title: 'Biomedical course', goal: 'Finish the 12-lecture intro series'}), '70%'))) +
+      wrap('<span class="tag">After</span><b>Add Step</b> as a bottom sheet: title, description, the size pills.', phone('09:13', app('') + sheet(stepModal('add', {project: 'Biomedical course', stepNo: 4, title: 'Lecture 4 — Cell signaling', desc: 'Watch + one-page notes', size: 'XS'})))) +
+      wrap('<span class="tag">After</span>Project detail: ✎ on every step that isn\'t done; <b>+ Week</b> schedules; Add step at the end.', phone('09:15', detail + dock('Plan')));
   }
 
-  // ── Plan form carry-over (interactive) ──
-  const CO = {tax: true, mol: true, inc: true};
-  function renderPlanForm() {
-    const row = (key, kind, title, pre, status, on, back) => `<div class="co-row kind ${on ? '' : 'off'}" data-kind="${kind}" data-co="${key}">
-      <span class="cb ${on ? 'on' : ''}">${icon('check', 'xxs')}</span><span class="t">${pre ? `<span>${pre} · </span>` : ''}${title}</span><span class="pill c-muted">${status}</span>${on ? '' : `<span class="back">→ ${back}</span>`}</div>`;
-    const tplRows = `<div class="old-tpl"><span class="cb on">✓</span><span>Workout</span><span class="osel">DAILY ▾</span><span class="osel">1</span></div>
-      <div class="old-tpl"><span class="cb on">✓</span><span>LeetCode</span><span class="osel">WEEKLY ▾</span><span class="osel">3</span></div>`;
-    document.getElementById('co-before').innerHTML = `<h4>Create weekly plan</h4><div class="lbl">Templates</div>${tplRows}
-      <div class="lbl">One-off Tasks</div>${row('x', 'oneoff', 'File tax report', '', 'Todo', true, '')}
-      <div class="sum">2 templates, 1 one-off task selected</div>`;
-    const n = [CO.mol, CO.inc].filter(Boolean).length;
-    document.getElementById('co-after').innerHTML = `<h4>Create weekly plan</h4><div class="lbl">Templates</div>${tplRows}
-      <div class="lbl">One-off Tasks</div>${row('tax', 'oneoff', 'File tax report', '', 'Todo', CO.tax, 'Priorities matrix')}
-      <div class="lbl">Project Steps <span class="new">· new</span></div>
-      ${row('mol', 'project', 'Render it with Mol*', 'Protein 3D viewer', 'In Progress', CO.mol, 'Protein 3D viewer, step 2')}
-      ${row('inc', 'project', 'Income statement overview', 'Finance basics', 'Backlog', CO.inc, 'Finance basics, step 1')}
-      <div class="sum">2 templates, ${CO.tax ? 1 : 0} one-off task, ${n} project step${n === 1 ? '' : 's'} selected</div>`;
-    document.getElementById('co-review').innerHTML = `<h4>Review changes</h4>
-      <div class="lbl">Project Steps</div>
-      <div class="chgrow"><span class="d" style="background:var(--er)"></span><div>Income statement overview<small>Will return to Finance basics — still step 1</small></div></div>`;
-  }
-  document.getElementById('co-after').addEventListener('click', e => {
-    const r = e.target.closest('[data-co]');
-    if (!r) return;
-    CO[r.dataset.co] = !CO[r.dataset.co];
-    renderPlanForm();
-  });
-
-  // ── Claude (MCP) ──
-  function renderMcp() {
-    const turn = (who, label, body) => `<div class="turn"><div class="who ${who}">${icon(who === 'you' ? 'user' : who === 'claude' ? 'sparkles' : 'columns', 'sm')}${label}</div><div class="bubble">${body}</div></div>`;
-    document.getElementById('mcp-seq').innerHTML = [
-      turn('you', 'You', 'I want three days this week for a biomedical course, about an hour each. Find me a good intro series.'),
-      turn('claude', 'Claude', `<span class="call"><b>get_planning_context</b>()\n<i>→ activePlan week 41 · projects: [] · templates · one-offs</i></span>`),
-      turn('claude', 'Claude', 'Proposes a <b>Biomedical course</b> project — a 12-lecture series with a link per lecture — and Lectures 1–3 for this week. "Shall I set it up?"'),
-      turn('you', 'You', 'Go.'),
-      turn('claude', 'Claude', `<span class="call"><b>create_project</b>({ title: "Biomedical course", goal: "Finish the 12-lecture intro series",\n  steps: [{ title: "Lecture 1 — Intro to the cell", size: "XS", description: "…link…" }, … ×12] })\n<i>→ projectId · stepIds in order</i></span>`),
-      turn('claude', 'Claude', `<span class="call"><b>update_plan</b>({ planId, addProjectStepIds: [L1, L2, L3] })\n<i>→ the plan as it stands · "3 project steps added to the backlog"</i></span>`),
-      turn('wb', 'Workbench', 'The board\'s backlog shows Lectures 1–3 as purple project cards (1/12 · 2/12 · 3/12); Plan › Projects shows the path 0 of 12.'),
-      '<div class="sep-week">Next Monday</div>',
-      turn('claude', 'Claude', `<span class="call"><b>get_planning_context</b>()\n<i>→ lastPlan: Biomedical 2 done · "Lecture 3" unfinished · projects[Biomedical]: 2/12, next steps 3–5</i></span>`),
-      turn('claude', 'Claude', `Proposes carrying Lecture 3 and adding Lectures 4–5, then on agreement:\n<span class="call"><b>create_plan</b>({ templates, carryOverProjectStepIds: [L3], projectStepIds: [L4, L5] })</span>`),
-    ].join('');
-    document.getElementById('mcp-tools').innerHTML = `<thead><tr><th>Tool</th><th>Change</th><th>What it does</th></tr></thead><tbody>
-      <tr><td>get_planning_context</td><td>changed</td><td>Adds <b>projects</b> (title, goal, progress, the next steps with ids and sizes), this week's scheduled steps with their status, and last week's step outcomes.</td></tr>
-      <tr><td>create_project</td><td>new</td><td>Title, optional goal, optional ordered steps (title, size, description). Returns the project with step ids.</td></tr>
-      <tr><td>update_project</td><td>new</td><td>A patch: rename, change the goal, archive; add, edit, remove or reorder steps. Done steps can't be edited or removed.</td></tr>
-      <tr><td>create_plan</td><td>changed</td><td>+ <span class="mono">carryOverProjectStepIds</span> (omitted = all of last week's unfinished steps, like one-offs) and + <span class="mono">projectStepIds</span> to put new steps on the week.</td></tr>
-      <tr><td>update_plan</td><td>changed</td><td>+ add / remove project steps on this week's plan. Removing a step returns it to its project at the same place.</td></tr></tbody>`;
-  }
-
-  // ─────────────────────────────── Chrome ───────────────────────────────
+  // ─────────────────────────── Chrome ───────────────────────────
   document.getElementById('theme-seg').addEventListener('click', e => {
     const b = e.target.closest('[data-theme-btn]');
     if (!b) return;
@@ -1190,7 +1036,7 @@
     document.querySelectorAll('#theme-seg button').forEach(x => x.classList.toggle('on', x === b));
   });
   function showScreen(id) {
-    if (!document.getElementById(id)) id = 's-scope';
+    if (!document.getElementById(id)) id = 's-journey';
     document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
     document.querySelectorAll('#screen-nav button').forEach(b => b.classList.toggle('on', b.dataset.screen === id));
   }
@@ -1202,12 +1048,10 @@
     window.scrollTo({top: 0});
   });
 
-  renderScope();
-  renderBoards();
-  renderCards();
+  renderReference();
+  renderModalSpecs();
+  renderProto();
   renderMobile();
-  renderPlanForm();
-  renderMcp();
   showScreen(location.hash.slice(1));
 </script>
 </body>
