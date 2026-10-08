@@ -13,29 +13,24 @@ Single source of truth for open ideas and todos across the app — open items on
 
 - [ ] Support same group ordering for drag and drop within same column
 - [ ] Weekly task rollover across periods
-- [ ] Per-kind risk rules — the restructure switches today's risk off (badges, borders, 15:00 / 20:00 clock thresholds); bring it back per kind: habit pace (amber when what's left needs every remaining day), project step carried 2× (amber — split it?), one-off due date (amber within 2 days, red on the day — the only red). Designed in the restructure mockup's Cards & risk screen
+- [ ] Per-kind risk rules — the restructure switches today's risk off (badges, borders, 15:00 / 20:00 clock thresholds); bring it back per kind: habit pace (amber when what's left needs every remaining day), project step carried 2× (amber — split it?), one-off due date (amber within 2 days, red on the day — the only red). First explored in PR #47's initial mockup (commit `d3ecc25`, Cards & risk screen)
 
 ## Plan
 
 ### Medium
 
-- [ ] Restructure the week into habits / projects / one-offs — Doing column removed, Todo renamed, kind-first cards, Projects + Habits pages, three-step Plan week; 8-PR plan with schema options in `design/spike/week-model-restructure.md` (awaiting review), mockup `design/mockup/future-work/temp-week-model-v2.html`
+- [ ] Week model Phase 1 — Projects MVP: a `Project` entity (goal + ordered steps that never expire) under a Plan hub, project steps on the board, kind-first cards with risk off, MCP project tools; docs-first 5-PR plan in `design/spike/week-model-restructure.md` (awaiting review), mockup `design/mockup/future-work/temp-week-model-phase1-v2.html`
 - [ ] Add AI-generated task instance flow — LLM should be able to generate task instances based on past work + task template information; need to record the quality of tasks it generated
-- [ ] Mobile adaptation for the AI plan chat modal — it stays a 640px-capped centered card on phones while sibling modals (TaskModal, ReviewChangesModal) switch to `modal-bottom` sheets; no mobile presentation exists yet (design it first via `/design-explore`, then implement)
 - [ ] Redesign the template edit (pencil) affordance for discoverability — currently `opacity-0 group-hover:opacity-100` on TemplateItem, so it's invisible on touch and hidden-until-hover on desktop. Needs a design exploration (`/design-explore`) before implementation
 - [ ] ReviewChangesModal / OverlayShell body height needs tuning on **both** breakpoints — with long change lists the box grows so tall the header ends up out of view; revisit the max-height caps (mobile `max-h-[85vh]`, desktop `md:max-h-[calc(100vh-5em)]`) so the pinned header/footer always stay on screen
 
 ### Future
 
 - [ ] Template categories — Add optional `category` field to TaskTemplate for grouping templates in the plan form. Collapsible groups + search for scalability. Mockups in `design/mockup/future-work/`
-- [ ] Expand the AI plan creation flow
-  - Per-card select/unselect to keep/remove individual draft templates during AI plan creation
-  - Inline editing of size, type, frequency on draft template cards before approval (without re-prompting)
-  - Ad-hoc task carryover in AI plan creation flow
-  - LLM-suggested plan mode (NORMAL/EXTREME)
-- [ ] AI-assisted plan editing — Use a new Chat linked to the same plan to suggest modifications via LLM. Separate from creation flow
 - [ ] Add subtitle field to task template
 - [ ] Biweekly and custom period types
+- [ ] Week model Phase 2 (not planned yet) — habits own their cadence (Daily = every day, or N× per week; Plan Mode dropped) with a Plan › Habits page; a three-step Plan week replaces the plan form; the in-app AI chat is removed (AI planning goes through Claude + MCP); the Doing column goes, Done becomes the week's day-grouped log and cards get a ✓; missed habit days expire quietly (no rollover); cleanup of `DOING` and `Plan.mode`. Exploration `design/mockup/future-work/temp-week-model-phase2-v2.html`
+- [ ] Habit-level days — let each habit run on weekdays, every day or custom days (after Phase 2 drops Plan Mode, Daily means every day)
 
 ## Priorities
 
@@ -46,6 +41,7 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### Future
 
+- [ ] Optional due date on one-off tasks — set when adding or editing a priority task, shown on matrix and board cards; the one source of red once per-kind risk rules return (see Board › Future)
 - [ ] Move-to popover on a card near the bottom of the viewport is cut off — the panel now escapes its quadrant's scroll clip (fixed at its static position, no portal) but cannot flip upward; revisit with CSS anchor positioning (`position-try-fallbacks: flip-block`)
 
 ## Dump
@@ -75,7 +71,6 @@ Single source of truth for open ideas and todos across the app — open items on
 
 Error presentation is unstyled or ad-hoc across the app (the AI chat's red alert strip prompted this); design one error language (tone, copy, placement, visual treatment) and apply it per flow:
 
-- [ ] AI plan chat — initialization/generation failures (currently a bare red alert strip above the input)
 - [ ] Plan form — create/update submit failures (`FormErrorAlert` banner above the actions)
 - [ ] Task modal — template create/edit and priority-task add failures (footer `FormErrorAlert`)
 - [ ] Board — drag/status-update failures (currently silent optimistic rollback + `console.error`)

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Week Model — Before / After</title>
+<title>Habits + Plan Week — Exploration</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Anton&display=swap');
 
@@ -603,6 +603,76 @@
   .mrow .mm { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
   .mrow .mt { font-size: 14px; font-weight: 600; }
   .mrow .ms { display: flex; align-items: center; gap: 8px; }
+
+  /* ── Split-phase additions ── */
+  .tc.is-done, .tm.is-done { opacity: .5; }
+  .tc.is-done .tc-title, .tm.is-done .tm-t { text-decoration: line-through; }
+  .tc-head .roll { color: color-mix(in oklab, var(--bc) 62%, transparent); }
+  .phase-tag { display: inline-flex; align-items: center; gap: 6px; font-family: 'Geist Mono', monospace; font-size: 10.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; border: 1px solid currentColor; }
+  [data-theme='p5-dark'] .phase-tag { border-radius: 0; }
+
+  /* Mobile board mini card (the 136px horizontal-row card) */
+  .tm { width: 136px; flex-shrink: 0; height: 92px; display: flex; flex-direction: column; gap: 4px; padding: 8px 9px; border-radius: var(--rc); background: var(--card-bg); border: 1px solid var(--card-border); border-left: 3px solid var(--k); }
+  [data-theme='p5-dark'] .tm { border-width: 1.5px; border-left-width: 4px; }
+  .tm-h { display: flex; align-items: center; gap: 4px; min-width: 0; font-family: 'Geist Mono', monospace; font-size: 8.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--k); }
+  .tm-h span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tm-h .nm { text-transform: none; letter-spacing: .02em; font-size: 9.5px; }
+  .tm-t { font-size: 12px; font-weight: 500; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .tm-f { margin-top: auto; display: flex; align-items: center; gap: 4px; }
+  .tm-f .pill { margin-left: auto; }
+  .tm .dots { gap: 3px; } .tm .dots i { width: 6px; height: 6px; border-width: 1.2px; }
+  .tm .stepbar { width: 52px; } .tm .stepbar i { height: 3px; }
+  .tm .roll { font-family: 'Geist Mono', monospace; font-size: 9px; color: color-mix(in oklab, var(--bc) 62%, transparent); }
+
+  /* Scope screen */
+  .scope { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 960px) { .scope { grid-template-columns: 1fr; } }
+  .scope .chg ul { gap: 8px; }
+  .scope .chg li b { color: var(--bc); font-weight: 600; }
+  .pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+
+  /* Plan-form carry-over panel */
+  .co { border: 1px solid var(--card-border); border-radius: 12px; padding: 14px; background: color-mix(in oklab, var(--b1) 40%, transparent); }
+  [data-theme='p5-dark'] .co { border-radius: 0; }
+  .co h4 { font-size: 14px; margin-bottom: 4px; }
+  .co .lbl { font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 50%, transparent); margin: 12px 0 6px; display: flex; align-items: center; gap: 6px; }
+  .co .lbl .new { color: var(--p); letter-spacing: .08em; }
+  .co-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--card-border); border-radius: 8px; margin-top: 6px; font-size: 13px; background: var(--card-bg); cursor: pointer; }
+  [data-theme='p5-dark'] .co-row { border-radius: 0; }
+  .co-row .t { flex: 1; min-width: 0; }
+  .co-row .t span { color: color-mix(in oklab, var(--bc) 48%, transparent); }
+  .co-row.off { opacity: .5; }
+  .co-row.kind { border-left: 3px solid var(--k); }
+  .co .sum { font-family: 'Geist Mono', monospace; font-size: 11px; color: color-mix(in oklab, var(--bc) 55%, transparent); margin-top: 12px; }
+  .co .back { font-size: 11.5px; color: color-mix(in oklab, var(--bc) 50%, transparent); margin-left: 4px; }
+  .pair2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  @media (max-width: 1000px) { .pair2 { grid-template-columns: 1fr; } }
+  .chgrow { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--card-border); border-radius: 10px; font-size: 13px; margin-top: 6px; }
+  [data-theme='p5-dark'] .chgrow { border-radius: 0; }
+  .chgrow .d { width: 7px; height: 7px; border-radius: 99px; margin-top: 6px; flex-shrink: 0; }
+  .chgrow small { display: block; font-size: 11.5px; color: color-mix(in oklab, var(--bc) 50%, transparent); margin-top: 2px; }
+
+  /* New project panel */
+  .np { max-width: 420px; }
+
+  /* MCP sequence */
+  .seq { display: flex; flex-direction: column; gap: 10px; max-width: 980px; }
+  .turn { display: grid; grid-template-columns: 140px 1fr; gap: 14px; align-items: start; }
+  .who { font-family: 'Geist Mono', monospace; font-size: 10.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; display: flex; align-items: center; gap: 6px; padding-top: 11px; }
+  .who.you { color: var(--p); } .who.claude { color: var(--s); } .who.app { color: var(--su); }
+  .bubble { border: 1px solid var(--card-border); border-radius: 12px; padding: 10px 14px; background: color-mix(in oklab, var(--b1) 50%, transparent); font-size: 13px; line-height: 1.55; color: color-mix(in oklab, var(--bc) 85%, transparent); }
+  [data-theme='p5-dark'] .bubble { border-radius: 0; }
+  .bubble b { color: var(--bc); }
+  .call { display: block; margin-top: 4px; padding: 8px 10px; border-radius: 8px; background: color-mix(in oklab, var(--b2) 75%, transparent); border: 1px solid var(--card-border); white-space: pre-wrap; font-family: 'Geist Mono', monospace; font-size: 11.5px; line-height: 1.55; color: color-mix(in oklab, var(--bc) 80%, transparent); }
+  [data-theme='p5-dark'] .call { border-radius: 0; }
+  .call b { color: var(--s); font-weight: 600; }
+  .call i { font-style: normal; color: var(--su); }
+  .sep-week { font-family: 'Geist Mono', monospace; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 50%, transparent); display: flex; align-items: center; gap: 10px; margin: 8px 0 0; }
+  .sep-week::after { content: ''; flex: 1; height: 1px; background: var(--card-border); }
+  .tools { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 8px; }
+  .tools th { text-align: left; font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 48%, transparent); padding: 8px; border-bottom: 1px solid var(--card-border); }
+  .tools td { padding: 9px 8px; border-bottom: 1px solid color-mix(in oklab, var(--bc) 6%, transparent); vertical-align: top; line-height: 1.5; color: color-mix(in oklab, var(--bc) 80%, transparent); }
+  .tools td:first-child { font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--bc); white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -642,9 +712,9 @@
 
 <header class="topbar">
   <div>
-    <div class="eyebrow">Board · Plan · Habits · Projects — exploration (pending approval)</div>
-    <h1>Three kinds of work, one week on the board</h1>
-    <p>Work splits into <b>habits</b> (fixed routines, counted per week), <b>projects</b> (ordered steps that never expire) and <b>one-offs</b> (the priority matrix, now with due dates). The week is planned once; <b>Todo is today</b>, <b>Done is the week</b>, and Doing is gone. Cards say which kind they are first, and risk is redrawn per kind. Fixture: Wednesday Oct 7, 10:00 — week 41.</p>
+    <div class="eyebrow">Phase 2 · Habits + Plan week — exploration (not planned yet)</div>
+    <h1>Habits own their cadence, the week is planned in three steps</h1>
+    <p>Phase 2 builds on Phase 1's projects (<span class="mono">temp-week-model-phase1-v2.html</span>). <b>Habits</b> carry their own cadence — <b>Daily</b> (every day) or <b>N× per week</b> — so Plan Mode goes away. A three-step <b>Plan week</b> replaces the plan form and the in-app AI chat. The board drops <b>Doing</b>: Todo is today, Done is the week. Missed habit days expire quietly. This is a direction for the tracker, not an approved plan. Fixture: Wednesday Oct 7, 10:00 — week 41.</p>
   </div>
   <div class="seg" id="theme-seg">
     <button data-theme-btn="mars-dark" class="on">Sora dark</button>
@@ -653,274 +723,125 @@
   </div>
 </header>
 
-<!-- ═════════ 1. Model ═════════ -->
-<section class="screen on" id="s-model">
-  <div class="col-label after"><b>The model</b> three kinds of work · one weekly plan · one daily loop</div>
-  <div class="kinds" id="kinds"></div>
-
-  <div class="flow">
-    <div class="node"><div class="when">Monday · weekly</div><div class="what">Plan the week</div><div class="how">Keep or skip each habit, pick how many steps each project gets, pull one-offs from the matrix. By hand, or Claude does the same three steps over MCP.</div></div>
-    <div class="node col bl"><div class="when">Drawer</div><div class="what">Backlog</div><div class="how">Everything committed for the week that isn't today yet. Habit instances stack (×2).</div></div>
-    <div class="node"><div class="when">Each morning</div><div class="what">Open the day</div><div class="how">Pick today's few from the backlog — the daily-rhythm Today sheet.</div></div>
-    <div class="node col"><div class="when">Column</div><div class="what">Todo = today</div><div class="how">Tap ✓ (or drag) when a thing is done. No Doing column.</div></div>
-    <div class="node col done"><div class="when">Column</div><div class="what">Done = this week</div><div class="how">A day-grouped log of the week. Clears on Monday.</div></div>
-    <div class="node"><div class="when">Each evening</div><div class="what">Close the day</div><div class="how">Every leftover in Todo gets an answer: Done · Tomorrow · Not today. Habits: Done · Skip.</div></div>
-  </div>
-
+<!-- ═════════ 1. Scope ═════════ -->
+<section class="screen on" id="s-scope">
+  <div class="col-label after"><b>Phase 2</b> refactoring on top of phase 1 · tracker, not planned</div>
   <div class="changes">
-    <div class="chg gone"><h4>Goes away</h4><ul>
-      <li><s>The Doing column</s> <i>— "Still on it" = stays in Todo; the focus star marks what you're on</i></li>
-      <li><s>Re-picking type × frequency inside every week's plan</s> <i>— cadence lives on the habit</i></li>
-      <li><s>Plan-wide NORMAL / EXTREME mode</s> <i>— "weekdays / every day" is per habit</i></li>
-      <li><s>Daily rollover + the ↩ tag</s> <i>— a missed habit day expires quietly</i></li>
-      <li><s>Clock-based risk (15:00 / 20:00)</s> <i>— Close the day handles today's leftovers</i></li>
-      <li><s>Type pill · risk pill · risk border · #n on cards</s></li>
+    <div class="chg new"><h4>In phase 2</h4><ul>
+      <li><b>Habits</b> — cadence lives on the habit: Daily (every day) or N× / week; Plan › Habits page; pause instead of re-picking</li>
+      <li><b>Plan Mode dropped</b> — no more NORMAL / EXTREME</li>
+      <li><b>Plan week</b> — three steps (habits · project steps · one-offs) replace the plan form</li>
+      <li><b>In-app AI chat removed</b> — AI planning goes through Claude + MCP</li>
+      <li><b>Board</b> — Doing column removed; Done becomes the week's day-grouped log; ✓ completes a card</li>
+      <li><b>Quiet expiry</b> — a missed habit day doesn't roll over</li>
+      <li><b>Cleanup</b> — DOING status, Plan.mode, dead copy and scenarios</li>
     </ul></div>
-    <div class="chg stay"><h4>Stays</h4><ul>
-      <li>Kanban board + backlog drawer / sheet, drag and drop</li>
-      <li>Priority matrix as the only place one-offs are created</li>
-      <li>Backlog stacks — now only habits stack (project steps are all different)</li>
-      <li>Sizes, points, Today ring and Week bar</li>
-      <li>Dump</li>
+    <div class="chg stay"><h4>From phase 1</h4><ul>
+      <li>Projects, project steps on the board, MCP project tools</li>
+      <li>Kind-first cards with week dots and the step path</li>
+      <li>Risk off</li>
+      <li>The name Todo</li>
     </ul></div>
-    <div class="chg new"><h4>New</h4><ul>
-      <li>Habits page — define once, runs every week until paused</li>
-      <li>Projects page — goal + ordered steps, progress across weeks</li>
-      <li>Optional due date on one-offs — the only source of red</li>
-      <li>Plan week = three short steps instead of a template form</li>
-      <li>Plan hub: Week · Habits · Projects, so the dock stays at five tabs</li>
+    <div class="chg gone"><h4>Still in the tracker</h4><ul>
+      <li><s>Habit-level days</s> <i>— weekdays / every day / custom days per habit</i></li>
+      <li><s>Per-kind risk rules</s> <i>— habit pace, step carried twice, one-off due date</i></li>
+      <li><s>One-off due dates</s></li>
+      <li><s>Daily rhythm</s> <i>— Open / Close the day, notifications</i></li>
+      <li><s>Backlog stacking</s> <i>— PR #44, onto the new card</i></li>
     </ul></div>
   </div>
 </section>
 
 <!-- ═════════ 2. Board ═════════ -->
 <section class="screen" id="s-board">
-  <div class="col-label"><b>Before</b> today — Todo · In Progress · Done, template instances</div>
-  <div class="board" id="before-board"></div>
-  <p class="note">Every recurring line is a copy of its template, so the board says <b>"Biomedical course #3"</b>, not which lecture. Four unrelated meanings share one coloured border: Tuesday's missed Workout rolling over (turns red at 15:00), the weekly pace of Biomedical, the age of the tax report and a card that has sat in In Progress since Monday.</p>
-
-  <div class="col-label after spaced"><b>After</b> try it — ✓ completes · ← Today pulls from the backlog <button class="ghost-btn reset" id="board-reset">↺ reset</button></div>
+  <div class="col-label after"><b>After</b> two columns · try it — ✓ completes · ← Todo pulls from the backlog <button class="ghost-btn reset" id="board-reset">↺ reset</button></div>
   <div class="board" id="after-board"></div>
-  <p class="note"><b>Todo is today, Done is the week</b>, grouped by day. Each card's first line says what it is: a <b>habit</b> (green, with its cadence), a <b>project step</b> (purple, with the project and step n of N) or a <b>one-off</b> (blue, with its quadrant). Only the last line ever changes colour: the dentist booking is <b>due today</b> (red), the tax report is due Friday (amber), the Mol* step has been <b>carried twice</b> (amber — probably too big). Tuesday's missed Workout is just a faint dot in the habit's week.</p>
+  <p class="note">The <b>before</b> of this screen is phase 1's board. <b>Todo holds today, Done holds the week</b> as a day-grouped log, and In Progress is gone — most cards are one sitting. ✓ completes a card from Todo; ← Todo pulls one from the backlog. Workout is now <b>Daily</b> (every day — there is no Plan Mode), so its week has seven dots; Tuesday's missed day is a faint dot and nothing rolled over.</p>
 </section>
 
-<!-- ═════════ 3. Cards & risk ═════════ -->
-<section class="screen" id="s-cards">
-  <div class="anat">
-    <div class="anat-col">
-      <div class="col-label"><b>Before</b> one card shape, four meanings on one border</div>
-      <div class="anat-cards" id="anat-before"></div>
-      <div class="legend bad">
-        <span class="mk">1</span><span><b>Type pill</b> says DAILY / WEEKLY / ONCE — a generation rule, not what the work is.</span>
-        <span class="mk">2</span><span><b>#n</b> numbers identical copies; the title never says which lecture or which step.</span>
-        <span class="mk">3</span><span><b>Risk border + risk pill</b> mean "rolls over tonight", "behind pace", "old" or "past 20:00" — the card can't say which.</span>
-        <span class="mk">4</span><span><b>↩ rollover</b> turns a missed day into debt that goes red by 15:00.</span>
-      </div>
-    </div>
-    <div class="anat-col">
-      <div class="col-label after"><b>After</b> one skeleton, kind first, one signal</div>
-      <div class="anat-cards" id="anat-after"></div>
-      <div class="legend">
-        <span class="mk">1</span><span><b>Kind</b> — stripe, icon and label in the kind's colour. Fixed; risk never touches it.</span>
-        <span class="mk">2</span><span><b>Context</b> — cadence · step n of N · quadrant. The one fact that makes the title make sense.</span>
-        <span class="mk">3</span><span><b>One action</b> — ✓ on Todo cards (tap or drag); ← Today in the backlog.</span>
-        <span class="mk">4</span><span><b>Signal</b> — the kind's own progress: week dots · the path · the due date. <b>The only thing risk recolours.</b></span>
-        <span class="mk">5</span><span><b>Size</b> — neutral now; green is a kind colour.</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-label after spaced"><b>States</b> every kind × every state it can be in</div>
-  <div class="matrix" id="state-matrix"></div>
-
-  <div class="col-label after spaced"><b>Rules</b></div>
-  <div class="rules">
-    <div class="rule">
-      <h4><span class="n">1</span>Risk, per kind</h4>
-      <p>Each kind gets the one risk that is real for it. <b>Red is reserved for a real deadline</b> — only one-offs have one. The other two top out at amber, and their amber means "pace" or "size", never "failed".</p>
-      <table class="rt">
-        <thead><tr><th>Kind</th><th>Signal</th><th>Amber when</th><th>Red when</th></tr></thead>
-        <tbody>
-          <tr data-kind="habit"><td>Habit</td><td>Week dots</td><td>What's left needs every remaining day (left ≥ days left)</td><td>Never</td></tr>
-          <tr data-kind="project"><td>Step</td><td>Times carried</td><td>Carried 2× or more — split it?</td><td>Never</td></tr>
-          <tr data-kind="oneoff"><td>One-off</td><td>Due date</td><td>Due within 2 days</td><td>Due today or overdue</td></tr>
-        </tbody>
-      </table>
-      <p style="margin-top:10px">No clock thresholds: Todo already means today, and leftovers get an answer in Close the day. The risk code shrinks to three small rules.</p>
-    </div>
-    <div class="rule" data-kind="habit">
-      <h4><span class="n">2</span>Habits expire quietly</h4>
-      <p>A missed habit day <b>doesn't roll over</b> and never turns red. It becomes a faint dot in the habit's week and the count simply doesn't move. Weekly habits (3× / week) keep their unused instances until Sunday, then reset with the week.</p>
-      <div class="spec-label">Before → After · the morning after a missed Workout</div>
-      <div class="vs" id="quiet-vs"></div>
-    </div>
-    <div class="rule" data-kind="oneoff">
-      <h4><span class="n">3</span>One-offs get an optional due date</h4>
-      <p>Set when adding or editing a priority task, shown on the matrix card and on the board. <b>No due date = no risk at all</b> — "old" no longer counts as "urgent". The quadrant keeps saying how important it is; the date says when.</p>
-      <div class="spec-label">Matrix card · Before → After</div>
-      <div class="vs" id="matrix-vs"></div>
-      <div class="spec-label">Add priority task · new field</div>
-      <div class="field">
-        <label>Due date (optional)</label>
-        <div class="seg" style="width:100%"><button>None</button><button>Today</button><button class="on">Fri</button><button>Next Mon</button><button>Pick…</button></div>
-      </div>
-    </div>
-    <div class="rule">
-      <h4><span class="n">4</span>No Doing column</h4>
-      <p>Most cards are one sitting (1–3 h), so "in progress" lasted hours and told the board nothing. Multi-day work stays in <b>Todo</b>: Close the day's <b>Tomorrow</b> keeps it there, <b>Not today</b> sends it back to the backlog. The daily-rhythm <b>focus star</b> marks the one you're on.</p>
-      <div class="spec-label">Close the day · one leftover</div>
-      <div id="decide-spec"></div>
-    </div>
-  </div>
-</section>
-
-<!-- ═════════ 4. Mobile ═════════ -->
-<section class="screen" id="s-mobile">
-  <div class="phones" id="mobile-phones"></div>
-</section>
-
-<!-- ═════════ 5. Plan week ═════════ -->
+<!-- ═════════ 3. Plan week ═════════ -->
 <section class="screen" id="s-plan">
-  <div class="col-label"><b>Before</b> the plan form — re-pick every template every week</div>
-  <div class="old-form">
-    <div class="row1"><h4>Create weekly plan</h4><span class="seg" style="margin-left:auto;font-size:11px"><button class="on">Normal</button><button>Extreme</button></span></div>
-    <div class="old-tpl"><span class="cb on">✓</span><span>Workout</span><span class="osel">DAILY ▾</span><span class="osel">1</span></div>
-    <div class="old-tpl"><span class="cb on">✓</span><span>LeetCode</span><span class="osel">WEEKLY ▾</span><span class="osel">3</span></div>
-    <div class="old-tpl"><span class="cb on">✓</span><span>Biomedical course</span><span class="osel">WEEKLY ▾</span><span class="osel">3</span></div>
-    <div class="old-tpl"><span class="cb on">✓</span><span>Protein 3D visualizer</span><span class="osel">WEEKLY ▾</span><span class="osel">2</span></div>
-    <div class="old-tpl"><span class="cb">✓</span><span>Finance basics</span><span class="osel">WEEKLY ▾</span><span class="osel">1</span></div>
-  </div>
-  <p class="note">Every week starts from the same list: type, frequency and Plan Mode are chosen again, and nothing says <b>which</b> lecture or step the 3 Biomedical instances are — each one is a copy of the template.</p>
-
-  <div class="col-label after spaced"><b>After</b> plan week — three short steps · try the steppers and checkboxes</div>
+  <div class="col-label after"><b>After</b> plan week — three short steps · try the steppers and checkboxes</div>
   <div class="frame" id="plan-frame"></div>
-  <p class="note">Habits are just kept or skipped (their cadence lives on the habit). Projects get <b>a number of next steps</b> — the list below the stepper is exactly what lands in the backlog, carried steps first. One-offs come from the matrix with carried, due-this-week and Do-first items pre-checked. The side panel compares the total with what you actually finished lately — <b>information, not a limit</b>. Claude's MCP tools would write the same three things.</p>
-
+  <p class="note">Replaces the plan form and the AI chat. Habits are kept or skipped — their cadence lives on the habit. Projects get <b>a number of next steps</b>; the list under the stepper is exactly what lands in the backlog, carried steps first. One-offs come from the matrix with carried and Do-first items pre-checked. The side panel compares the total with what you actually finished lately — information, not a limit. Claude's MCP tools write the same three things.</p>
   <div class="col-label after spaced"><b>After</b> mobile — the same three steps as a stepper</div>
   <div class="phones" id="plan-phones"></div>
 </section>
 
-<!-- ═════════ 6. Habits ═════════ -->
+<!-- ═════════ 4. Habits ═════════ -->
 <section class="screen" id="s-habits">
   <div class="col-label"><b>Before</b> a habit is a template + per-plan type/frequency + a plan-wide mode</div>
   <div class="old-form">
     <div class="old-tpl"><span class="cb on">✓</span><span>LeetCode</span><span class="osel">WEEKLY ▾</span><span class="osel">3</span></div>
     <div class="old-tpl"><span class="cb on">✓</span><span>Workout</span><span class="osel">DAILY ▾</span><span class="osel">1</span></div>
-    <p class="note" style="margin-top:8px">Weekend days depend on the whole plan's <b>NORMAL / EXTREME</b> mode; a missed daily rolls over one day, then expires.</p>
+    <p class="note" style="margin-top:8px">Weekend days depend on the whole plan's <b>NORMAL / EXTREME</b> mode, picked again every week.</p>
   </div>
-
   <div class="col-label after spaced"><b>After</b> plan › habits — defined once, runs every week · click a habit, try the editor</div>
   <div class="frame" id="habits-frame"></div>
-  <p class="note">A habit carries its own cadence: <b>daily (weekdays or every day)</b> or <b>N× per week</b> — so Plan Mode disappears. The row shows this week's dots and the last four weeks, so you can see a habit drifting before you decide to change or pause it. Pausing keeps its history and takes it out of next week's plan.</p>
-
+  <p class="note">Two cadences only: <b>Daily</b> (one instance every day, weekends included) or <b>Times per week</b> (N instances on Monday, done any day). Picking weekdays or custom days per habit is a later tracker item. The row shows this week's dots and the last four weeks; pausing keeps the history and takes the habit out of next week's plan.</p>
   <div class="col-label after spaced"><b>After</b> mobile</div>
   <div class="phones" id="habits-phones"></div>
 </section>
 
-<!-- ═════════ 7. Projects ═════════ -->
-<section class="screen" id="s-projects">
-  <div class="col-label"><b>Before</b> no such thing — a project was a weekly template ×N</div>
-  <div class="anat-cards" id="proj-before" style="max-width:640px"></div>
-  <p class="note">Two identical cards with the template's title; the actual steps lived in a chat with Claude.</p>
-
-  <div class="col-label after spaced"><b>After</b> plan › projects — a goal and an ordered path · click a project</div>
-  <div class="frame" id="projects-frame"></div>
-  <p class="note">Steps are ordered and <b>never expire</b>: a step not finished this week stays the next step. Done steps keep their date, so the project is its own record. Add steps a few at a time — or ask Claude to draft the next ones; they land here, in order. Drag handles reorder upcoming steps.</p>
-
-  <div class="col-label after spaced"><b>After</b> mobile</div>
-  <div class="phones" id="projects-phones"></div>
-</section>
-
-<!-- ═════════ 8. Day loop ═════════ -->
-<section class="screen" id="s-day">
-  <div class="phones" id="day-phones"></div>
-  <p class="note" style="margin: 18px auto 0; text-align: center;">Cascade from the daily-rhythm spike (<span class="mono">design/spike/daily-rhythm-notifications.md</span>, its own branch): the Today sheet and Close sheet regroup by kind, and Close's "Still on it" becomes <b>Tomorrow</b> now that Doing is gone. Rituals, notifications and the day card are unchanged from that spike.</p>
+<!-- ═════════ 5. Mobile board ═════════ -->
+<section class="screen" id="s-mobile">
+  <div class="phones" id="mobile-phones"></div>
 </section>
 
 <nav class="seg screen-nav" id="screen-nav">
-  <button data-screen="s-model" class="on">01 Model</button>
+  <button data-screen="s-scope" class="on">01 Scope</button>
   <button data-screen="s-board">02 Board</button>
-  <button data-screen="s-cards">03 Cards &amp; risk</button>
-  <button data-screen="s-mobile">04 Mobile</button>
-  <button data-screen="s-plan">05 Plan week</button>
-  <button data-screen="s-habits">06 Habits</button>
-  <button data-screen="s-projects">07 Projects</button>
-  <button data-screen="s-day">08 Day loop</button>
+  <button data-screen="s-plan">03 Plan week</button>
+  <button data-screen="s-habits">04 Habits</button>
+  <button data-screen="s-mobile">05 Mobile</button>
 </nav>
 
 <script>
   // ─────────────────────────────── Fixture ───────────────────────────────
-  // Wednesday Oct 7, 10:00 — ISO week 41 (Mon Oct 5 – Sun Oct 11).
+  // Wednesday Oct 7, 10:00 — ISO week 41. Habits own their cadence; Daily runs every day.
   const PTS = {XS: 1, S: 2, M: 3, L: 5, XL: 8};
-
   const HABITS = {
-    wo: {title: 'Workout', cadence: 'Weekdays', size: 'XS', target: 5, note: '45 min — gym or run', weeks: [5, 4, 5, 3]},
+    wo: {title: 'Workout', cadence: 'Daily', size: 'XS', target: 7, note: '45 min — gym or run', weeks: [6, 5, 7, 4]},
     lc: {title: 'LeetCode', cadence: '3× / week', size: 'XS', target: 3, note: 'One medium, 45-min timer', weeks: [3, 2, 3, 1]},
     rd: {title: 'Read', cadence: '2× / week', size: 'XS', target: 2, note: 'Anything not on a screen', weeks: [2, 2, 1, 2]},
     sd: {title: 'System design case', cadence: '1× / week', size: 'S', target: 1, note: 'Read + sketch, no full notes', weeks: [1, 1, 0, 1]},
   };
-
-  // steps: [title, size, description?]
   const PROJECTS = {
-    bio: {title: 'Biomedical course', goal: 'Finish the 12-lecture intro series — about an hour each.', steps: [
-      ['Lecture 1 — Intro to the cell', 'XS'], ['Lecture 2 — Biochemistry basics', 'XS'], ['Lecture 3 — Membranes', 'XS', 'Watch + one-page notes'],
-      ['Lecture 4 — Cell signaling', 'XS'], ['Lecture 5 — Genetics I', 'XS'], ['Lecture 6 — Genetics II', 'XS'], ['Lecture 7 — Gene expression', 'XS'],
-      ['Lecture 8 — Proteins', 'XS'], ['Lecture 9 — Immunology', 'XS'], ['Lecture 10 — Neurobiology', 'XS'], ['Lecture 11 — Physiology', 'XS'], ['Lecture 12 — Review', 'XS']],
-      doneOn: ['Mon, Oct 5', 'Tue, Oct 6']},
-    pdb: {title: 'Protein 3D viewer', goal: 'A Next.js page that renders any PDB entry in 3D.', steps: [
-      ['Fetch one structure from RCSB PDB', 'S'], ['Render it with Mol*', 'M', 'Rotate + zoom works in the page'], ['Color-by-chain toggle', 'S'],
-      ['Search box for PDB IDs', 'S'], ['Shareable link per structure', 'XS'], ['Deploy + short write-up', 'M']],
-      doneOn: ['W40 · Thu']},
-    fin: {title: 'Finance basics', goal: 'Read the three financial statements with confidence.', steps: [
-      ['Income statement overview', 'S', 'Ch. 1–2 + one worked example'], ['Balance sheet overview', 'S'], ['Cash flow statement', 'S'], ['Link the three statements', 'S'],
-      ['Ratios I — margins', 'S'], ['Ratios II — liquidity', 'S'], ['Read one 10-K section', 'M'], ['Recap notes', 'XS']],
-      doneOn: []},
+    bio: {title: 'Biomedical course', steps: [['Lecture 1 — Intro to the cell', 'XS'], ['Lecture 2 — Biochemistry basics', 'XS'], ['Lecture 3 — Membranes', 'XS', 'Watch + one-page notes'],
+      ['Lecture 4 — Cell signaling', 'XS'], ['Lecture 5 — Genetics I', 'XS'], ['Lecture 6 — Genetics II', 'XS'], ['Lecture 7 — Gene expression', 'XS'], ['Lecture 8 — Proteins', 'XS'],
+      ['Lecture 9 — Immunology', 'XS'], ['Lecture 10 — Neurobiology', 'XS'], ['Lecture 11 — Physiology', 'XS'], ['Lecture 12 — Review', 'XS']]},
+    pdb: {title: 'Protein 3D viewer', steps: [['Fetch one structure from RCSB PDB', 'S'], ['Render it with Mol*', 'M', 'Rotate + zoom works in the page'], ['Color-by-chain toggle', 'S'],
+      ['Search box for PDB IDs', 'S'], ['Shareable link per structure', 'XS'], ['Deploy + short write-up', 'M']]},
+    fin: {title: 'Finance basics', steps: [['Income statement overview', 'S', 'Ch. 1–2 + one worked example'], ['Balance sheet overview', 'S'], ['Cash flow statement', 'S'],
+      ['Link the three statements', 'S'], ['Ratios I — margins', 'S'], ['Ratios II — liquidity', 'S'], ['Read one 10-K section', 'M'], ['Recap notes', 'XS']]},
   };
-
   const ONEOFFS = {
-    tax: {title: 'File tax report', quadrant: 'Do first', due: 'Fri', dueLevel: 'amber', size: 'S'},
-    dent: {title: 'Book dentist appointment', quadrant: 'Schedule', due: 'Today', dueLevel: 'red', size: 'XS'},
+    tax: {title: 'File tax report', quadrant: 'Do first', size: 'S'},
+    dent: {title: 'Book dentist appointment', quadrant: 'Schedule', size: 'XS'},
     bank: {title: 'Call bank about card', quadrant: 'Do first', size: 'XS'},
     pkg: {title: 'Return package', quadrant: 'Squeeze in', size: 'XS'},
-    car: {title: 'Renew car registration', quadrant: 'Schedule', due: 'Oct 30', dueLevel: 'normal', size: 'S'},
+    car: {title: 'Renew car registration', quadrant: 'Schedule', size: 'S'},
     pho: {title: 'Sort photo backup', quadrant: 'Maybe later', size: 'M'},
   };
-
-  const WEEK_TOTAL = 26; // 27 planned − Tuesday's expired Workout
+  const WEEK_TOTAL = 28; // planned points still alive (Tuesday's missed Workout expired)
 
   function seedState() {
     return {
-      habits: {
-        wo: {done: 1, today: 1, days: ['on', 'miss', 'today', '', '']},
-        lc: {done: 1, today: 1},
-        rd: {done: 0, today: 0},
-        sd: {done: 0, today: 0},
-      },
+      habits: {wo: {done: 1, today: 1, days: ['on', 'miss', 'today', '', '', '', '']}, lc: {done: 1, today: 1}, rd: {done: 0, today: 0}, sd: {done: 0, today: 0}},
       projDone: {bio: 2, pdb: 1, fin: 0},
-      today: [
-        {uid: 't1', kind: 'habit', hid: 'wo'},
-        {uid: 't2', kind: 'habit', hid: 'lc'},
-        {uid: 't3', kind: 'project', pid: 'bio', ix: 2},
-        {uid: 't4', kind: 'oneoff', oid: 'tax'},
-      ],
+      today: [{uid: 't1', kind: 'habit', hid: 'wo'}, {uid: 't2', kind: 'habit', hid: 'lc'}, {uid: 't3', kind: 'project', pid: 'bio', ix: 2}, {uid: 't4', kind: 'oneoff', oid: 'tax'}],
       done: [
         {day: 'Today', items: []},
         {day: 'Tue, Oct 6', items: [{kind: 'project', pid: 'bio', ix: 1}, {kind: 'oneoff', oid: 'pkg'}]},
         {day: 'Mon, Oct 5', items: [{kind: 'habit', hid: 'wo'}, {kind: 'habit', hid: 'lc'}, {kind: 'project', pid: 'bio', ix: 0}, {kind: 'oneoff', oid: 'bank'}]},
       ],
       backlog: [
-        {uid: 'b1', kind: 'habit', hid: 'lc', count: 1},
-        {uid: 'b2', kind: 'habit', hid: 'rd', count: 2},
-        {uid: 'b3', kind: 'habit', hid: 'sd', count: 1},
-        {uid: 'b4', kind: 'project', pid: 'pdb', ix: 1, carried: 2},
-        {uid: 'b5', kind: 'project', pid: 'pdb', ix: 2},
-        {uid: 'b6', kind: 'project', pid: 'fin', ix: 0},
-        {uid: 'b7', kind: 'oneoff', oid: 'dent'},
+        {uid: 'b1', kind: 'habit', hid: 'lc'}, {uid: 'b2', kind: 'habit', hid: 'rd'}, {uid: 'b3', kind: 'habit', hid: 'rd'}, {uid: 'b4', kind: 'habit', hid: 'sd'},
+        {uid: 'b5', kind: 'project', pid: 'pdb', ix: 1}, {uid: 'b6', kind: 'project', pid: 'pdb', ix: 2}, {uid: 'b7', kind: 'project', pid: 'fin', ix: 0},
+        {uid: 'b8', kind: 'oneoff', oid: 'dent'},
       ],
     };
   }
-
-  // Resolve a state item into everything a card needs.
   function resolve(it, st) {
     switch (it.kind) {
       case 'habit': {
@@ -941,182 +862,64 @@
   // ─────────────────────────────── Pieces ───────────────────────────────
   const icon = (id, cls = '') => `<svg class="icon ${cls}" aria-hidden="true"><use href="#i-${id}"/></svg>`;
   const sizePill = t => `<span class="pill c-muted">${t.size}<span class="dot">·</span><span class="pts">${t.pts}</span></span>`;
-  const duePill = t => {
-    const cls = t.dueLevel === 'red' ? 'c-er' : t.dueLevel === 'amber' ? 'c-wa' : 'c-muted';
-    const label = t.due === 'Today' ? 'Due today' : t.due.startsWith('Overdue') ? t.due : `Due ${t.due}`;
-    return `<span class="pill ${cls}">${icon('calendar', 'xxs')}${label}</span>`;
-  };
   function dots(t) {
     const arr = t.days || Array.from({length: t.target}, (_, i) => i < t.done ? 'on' : i < t.done + (t.todayN || 0) ? 'today' : '');
-    return `<span class="dots ${t.amber ? 'amber' : ''}">${arr.map(c => `<i class="${c}"></i>`).join('')}</span>`;
+    return `<span class="dots">${arr.map(c => `<i class="${c}"></i>`).join('')}</span>`;
   }
-  const stepbar = t => `<span class="stepbar">${Array.from({length: t.total}, (_, i) =>
-    `<i class="${i < t.doneSteps ? 'on' : i === t.step - 1 ? 'cur' : ''}"></i>`).join('')}</span>`;
-
-  // AFTER: the kind-first TaskCard.
-  // mode: 'today' (✓) · 'backlog' (← Today) · 'backlog-m' (↑ Today) · 'static'
-  function card(t, {mode = 'static', annotate = false, compact = false} = {}) {
-    const mk = n => annotate ? `<b class="mk">${n}</b>` : '';
+  const stepbar = t => `<span class="stepbar">${Array.from({length: t.total}, (_, i) => `<i class="${i < t.doneSteps ? 'on' : i === t.step - 1 ? 'cur' : ''}"></i>`).join('')}</span>`;
+  function card(t, {mode = 'static', compact = false} = {}) {
     let head, foot;
     switch (t.kind) {
       case 'habit':
-        head = `${mk(1)}${icon('repeat', 'xs')}<span>Habit</span>${t.count > 1 ? `<span class="pill c-k count">×${t.count}</span>` : ''}<span class="ctx">${mk(2)}${t.ctx || t.cadence}</span>`;
-        foot = `${mk(4)}${dots(t)}<span class="sig ${t.amber ? 'amber' : ''}">${t.done}/${t.target}${t.amber ? ` · ${t.amber}` : ''}</span>`;
+        head = `${icon('repeat', 'xs')}<span>Habit</span><span class="ctx">${t.cadence}</span>`;
+        foot = `${dots(t)}<span class="sig">${t.done}/${t.target}</span>`;
         break;
       case 'project':
-        head = `${mk(1)}${icon('map', 'xs')}<span class="name">${t.project}</span><span class="ctx">${mk(2)}${t.step}/${t.total}</span>`;
-        foot = `${mk(4)}${stepbar(t)}${t.carried ? `<span class="pill c-wa">${icon('uturn', 'xxs')}carried ${t.carried}×</span>` : ''}`;
+        head = `${icon('map', 'xs')}<span class="name">${t.project}</span><span class="ctx">${t.step}/${t.total}</span>`;
+        foot = stepbar(t);
         break;
       default:
-        head = `${mk(1)}${icon('grid', 'xs')}<span>One-off</span><span class="ctx">${mk(2)}${t.quadrant}</span>`;
-        foot = t.due ? `${mk(4)}${duePill(t)}` : '';
+        head = `${icon('grid', 'xs')}<span>One-off</span><span class="ctx">${t.quadrant}</span>`;
+        foot = '';
     }
     let action = '';
-    if (mode === 'today') action = `${mk(3)}<button class="tc-check" data-act="done" data-uid="${t.uid || ''}" title="Done">${icon('check', 'sm')}</button>`;
-    if (mode === 'backlog') action = `${mk(3)}<button class="tc-pull" data-act="pull" data-uid="${t.uid || ''}" title="Move to today">${icon('arrow-left', 'xxs')}Today</button>`;
-    if (mode === 'backlog-m') action = `<button class="tc-pull">${icon('arrow-up', 'xxs')}Today</button>`;
-    const html = `<div class="tc ${compact ? 'compact' : ''}" data-kind="${t.kind}">
+    if (mode === 'today') action = `<button class="tc-check" data-act="done" data-uid="${t.uid || ''}" title="Done">${icon('check', 'sm')}</button>`;
+    if (mode === 'backlog') action = `<button class="tc-pull" data-act="pull" data-uid="${t.uid || ''}" title="Move to Todo">${icon('arrow-left', 'xxs')}Todo</button>`;
+    return `<div class="tc ${compact ? 'compact' : ''}" data-kind="${t.kind}">
       <div class="tc-head">${head}</div>
       <div class="tc-row"><div class="tc-title">${t.title}</div>${action}</div>
       ${t.desc ? `<div class="tc-desc">${t.desc}</div>` : ''}
-      <div class="tc-foot">${foot}<span class="size">${mk(5)}${sizePill(t)}</span></div>
-    </div>`;
-    return t.count > 1 ? `<div class="stack" data-depth="${Math.min(t.count - 1, 2)}">${html}<span class="lip lip-1"></span><span class="lip lip-2"></span></div>` : html;
+      <div class="tc-foot">${foot}<span class="size">${sizePill(t)}</span></div></div>`;
   }
-
   const doneRow = (t, fresh = false) => `<div class="done-row ${fresh ? 'fresh' : ''}" data-kind="${t.kind}">
     <span class="ok">${icon('check', 'xs')}</span><span class="kdot"></span>
     <span class="t">${t.kind === 'project' ? `<span>${t.project} · </span>` : ''}${t.title}</span><span class="pts mono">${t.pts}</span></div>`;
 
-  // BEFORE: today's TaskCard.
-  const typePill = (type, xs) => `<span class="pill ${xs ? 'xs' : ''} ${type === 'DAILY' ? 'c-info' : type === 'WEEKLY' ? 'c-sec' : 'c-wa'}">${type}</span>`;
-  const oldSizePill = (t, xs) => `<span class="pill ${xs ? 'xs' : ''} c-su size">${t.size}<span class="dot">·</span><span class="pts">${PTS[t.size]}</span></span>`;
-  const riskPill = r => r === 'warning' ? '<span class="pill c-wa">⚠ at risk</span>' : r === 'danger' ? '<span class="pill c-er">‼ urgent</span>' : '';
-  function oldCard(t, {annotate = false} = {}) {
-    const mk = n => annotate ? `<b class="mk" style="background:var(--er);color:var(--b1)">${n}</b>` : '';
-    return `<div class="card risk-${t.risk || 'normal'} ${t.done ? 'is-done' : ''}">
-      <h3>${t.t}</h3>${t.d ? `<p class="desc">${t.d}</p>` : ''}
-      <div class="foot">${mk(1)}${typePill(t.type)}${t.n ? `${mk(2)}<span class="pill c-p">#${t.n}</span>` : ''}${t.roll ? `${mk(4)}<span class="rollover">↩ ${t.roll}</span>` : ''}${!t.done && t.risk ? mk(3) : ''}${t.done ? '' : riskPill(t.risk)}${oldSizePill(t)}</div></div>`;
-  }
-  const oldMini = t => `<div class="omini risk-${t.risk || 'normal'} ${t.done ? 'is-done' : ''}">
-    <div class="b">${typePill(t.type, true)}${t.n ? `<span class="pill xs c-p">#${t.n}</span>` : ''}</div>
-    <div class="t">${t.t}</div>
-    <div class="f">${t.roll ? `<span class="rollover">↩ ${t.roll}</span>` : ''}${oldSizePill(t, true)}</div></div>`;
-
-  const OLD = {
-    todo: [
-      {t: 'Workout', d: '45 min — gym or run', type: 'DAILY', size: 'XS', roll: 'Tue, Oct 6', risk: 'warning'},
-      {t: 'Workout', d: '45 min — gym or run', type: 'DAILY', size: 'XS'},
-      {t: 'LeetCode', d: 'One medium, 45-min timer', type: 'WEEKLY', n: 2, size: 'XS'},
-      {t: 'Biomedical course', d: 'Explore a biomedical course, ~1h', type: 'WEEKLY', n: 3, size: 'XS', risk: 'warning'},
-      {t: 'File tax report', type: 'ONCE', size: 'S', risk: 'warning'},
-    ],
-    doing: [
-      {t: 'Protein 3D visualizer', d: 'Build a protein structure viewer', type: 'WEEKLY', n: 1, size: 'M', risk: 'warning'},
-    ],
-    done: [
-      {t: 'Workout', type: 'DAILY', size: 'XS', done: true},
-      {t: 'LeetCode', type: 'WEEKLY', n: 1, size: 'XS', done: true},
-      {t: 'Biomedical course', type: 'WEEKLY', n: 1, size: 'XS', done: true},
-      {t: 'Biomedical course', type: 'WEEKLY', n: 2, size: 'XS', done: true},
-      {t: 'Call bank about card', type: 'ONCE', size: 'XS', done: true},
-      {t: 'Return package', type: 'ONCE', size: 'XS', done: true},
-    ],
-    backlog: [
-      {t: 'LeetCode', d: 'One medium, 45-min timer', type: 'WEEKLY', n: 3, size: 'XS'},
-      {t: 'Read', type: 'WEEKLY', n: 1, size: 'XS'},
-      {t: 'Read', type: 'WEEKLY', n: 2, size: 'XS'},
-      {t: 'System design case', type: 'WEEKLY', n: 1, size: 'S'},
-      {t: 'Protein 3D visualizer', d: 'Build a protein structure viewer', type: 'WEEKLY', n: 2, size: 'M', risk: 'warning'},
-      {t: 'Finance basics', d: 'Learn finance basics', type: 'WEEKLY', n: 1, size: 'S'},
-    ],
-  };
-
-  // ─────────────────────────────── Screens ───────────────────────────────
-  const P0 = seedState(); // frozen snapshot for every static specimen
-  const R = it => resolve(it, P0);
-
-  function renderModel() {
-    const kinds = [
-      {kind: 'habit', icon: 'repeat', name: 'Habit', sub: 'Same thing, again and again. The count is the point.', rows: [
-        ['Example', 'LeetCode 3× / week · Workout on weekdays'],
-        ['Defined', 'Once — title, cadence, size. Runs every week until paused.'],
-        ['Progress', "This week's count (1/3); resets Monday."],
-        ['Missed', 'Expires quietly. No rollover, no debt.'],
-        ['Risk', "Amber when what's left needs every remaining day. Never red."],
-        ['Home', 'Plan › Habits']], spec: R({kind: 'habit', hid: 'lc'})},
-      {kind: 'project', icon: 'map', name: 'Project', sub: 'Different every time. The path is the point.', rows: [
-        ['Example', 'Biomedical course — 12 lectures, 3 this week'],
-        ['Defined', 'Title, goal, ordered steps. Add a few at a time, or let Claude draft them.'],
-        ['Progress', 'Steps done across weeks (2/12).'],
-        ['Missed', 'Stays put — next week starts from the same step.'],
-        ['Risk', 'Amber when a step is carried twice: probably too big. Never red.'],
-        ['Home', 'Plan › Projects']], spec: R({kind: 'project', pid: 'bio', ix: 2})},
-      {kind: 'oneoff', icon: 'grid', name: 'One-off', sub: 'Happens once. The deadline is the point.', rows: [
-        ['Example', 'File tax report — due Friday'],
-        ['Defined', 'Title, quadrant, size, optional due date — on the matrix.'],
-        ['Progress', 'Done or not.'],
-        ['Missed', 'Back to the matrix, quadrant kept.'],
-        ['Risk', 'Amber two days before the due date, red on the day. The only red on the board.'],
-        ['Home', 'Priorities (matrix)']], spec: R({kind: 'oneoff', oid: 'tax'})},
-    ];
-    document.getElementById('kinds').innerHTML = kinds.map(k => `<div class="kind" data-kind="${k.kind}">
-      <h3 class="disp">${icon(k.icon)}${k.name}</h3><p class="kind-sub">${k.sub}</p>
-      <dl>${k.rows.map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>
-      <div class="spec">${card(k.spec, {mode: 'today'})}</div></div>`).join('');
-  }
-
-  // ── Board: Before ──
-  function renderBeforeBoard() {
-    const col = (cls, label, items) => `<div class="column ${cls}"><div class="column-head"><span class="led"></span><span class="fx-label display">${label}</span><span class="count-ghost">${items.length}</span></div>
-      <div class="column-body">${items.map(t => oldCard(t)).join('')}</div></div>`;
-    document.getElementById('before-board').innerHTML = `
-      <div class="board-head"><div class="board-title disp">Kanban Planner<small>Oct 5 – Oct 11</small></div>
-        <div class="dash"><div class="dash-item"><span class="fx-label muted">Today</span><span class="meter"><i style="width:0%"></i></span><b>0/5</b></div>
-        <div class="dash-item"><span class="fx-label muted">Week</span><span class="meter"><i class="info" style="width:22%"></i></span><b>6/27</b> pts</div></div></div>
-      <div class="board-main">
-        <div class="board-cols three">${col('todo', 'Todo', OLD.todo)}${col('doing', 'In Progress', OLD.doing)}${col('done', 'Done', OLD.done)}</div>
-        <aside class="backlog"><div class="backlog-head"><div class="backlog-title">${icon('inbox', 'text-p')}<span class="t">Backlog</span><span class="badge-count">${OLD.backlog.length}</span></div>${icon('chev-right', 'sm muted')}</div>
-          <div class="backlog-hint">${icon('arrow-left', 'sm text-p')}Drag tasks left to Todo to start working</div>
-          <div class="backlog-body">${OLD.backlog.map(t => oldCard(t)).join('')}</div></aside>
-      </div>`;
-  }
-
-  // ── Board: After (interactive) ──
+  // ── Board (interactive) ──
   let S = seedState();
-  let freshKey = null;
-  const backlogCount = items => items.reduce((n, it) => n + (it.kind === 'habit' ? it.count : 1), 0);
-  function backlogGroups(items, renderItem) {
-    const groups = [['habit', 'Habits'], ['project', 'Project steps'], ['oneoff', 'One-offs']];
-    return groups.map(([kind, label]) => {
-      const list = items.filter(it => it.kind === kind);
-      if (!list.length) return '';
-      return `<div class="group-label" data-kind="${kind}"><span class="kd"></span>${label}<span class="n">${backlogCount(list)}</span></div>${list.map(renderItem).join('')}`;
-    }).join('');
-  }
-  function renderAfterBoard() {
+  let fresh = false;
+  function renderBoard() {
     const today = S.today.map(it => resolve(it, S));
     const doneToday = S.done[0].items.length;
     const donePts = S.done.reduce((n, g) => n + g.items.reduce((m, it) => m + resolve(it, S).pts, 0), 0);
-    const todayTotal = doneToday + today.length;
     const backlog = S.backlog.map(it => resolve(it, S));
     const doneBody = S.done.map((g, gi) => `<div class="day-label"><span>${g.day}</span><span>${g.items.length}</span></div>
-      ${g.items.length ? g.items.map((it, i) => doneRow(resolve(it, S), gi === 0 && i === 0 && freshKey)).join('') : '<div class="empty">Nothing yet — tap ✓ on a card</div>'}`).join('');
+      ${g.items.length ? g.items.map((it, i) => doneRow(resolve(it, S), gi === 0 && i === 0 && fresh)).join('') : '<div class="empty">Nothing yet — tap ✓ on a card</div>'}`).join('');
     document.getElementById('after-board').innerHTML = `
       <div class="board-head"><div class="board-title disp">Kanban Planner<small>Wed, Oct 7 · week 41</small></div>
-        <div class="dash"><div class="dash-item"><span class="fx-label muted">Today</span><span class="meter"><i style="width:${todayTotal ? doneToday / todayTotal * 100 : 0}%"></i></span><b>${doneToday}/${todayTotal}</b></div>
+        <div class="dash"><div class="dash-item"><span class="fx-label muted">Today</span><span class="meter"><i style="width:${doneToday / (doneToday + today.length || 1) * 100}%"></i></span><b>${doneToday}/${doneToday + today.length}</b></div>
         <div class="dash-item"><span class="fx-label muted">Week</span><span class="meter"><i class="info" style="width:${donePts / WEEK_TOTAL * 100}%"></i></span><b>${donePts}/${WEEK_TOTAL}</b> pts</div></div></div>
       <div class="board-main">
         <div class="board-cols">
-          <div class="column todo"><div class="column-head"><span class="led"></span><span class="fx-label display">Todo</span><span class="sub">today</span><span class="count-ghost">${today.length}</span></div>
-            <div class="column-body">${today.length ? today.map(t => card(t, {mode: 'today'})).join('') : '<div class="empty">Today is clear. Pull something from the backlog, or call it a day.</div>'}</div></div>
+          <div class="column todo"><div class="column-head"><span class="led"></span><span class="fx-label display">Todo</span><span class="count-ghost">${today.length}</span></div>
+            <div class="column-body">${today.length ? today.map(t => card(t, {mode: 'today'})).join('') : '<div class="empty">Todo is clear — pull something from the backlog, or call it a day.</div>'}</div></div>
           <div class="column done"><div class="column-head"><span class="led"></span><span class="fx-label display">Done</span><span class="sub">this week</span><span class="count-ghost">${S.done.reduce((n, g) => n + g.items.length, 0)}</span></div>
             <div class="column-body">${doneBody}</div></div>
         </div>
-        <aside class="backlog"><div class="backlog-head"><div class="backlog-title">${icon('inbox', 'text-p')}<span class="t">Backlog</span><span class="badge-count">${backlogCount(backlog)}</span></div>${backlog.some(t => t.dueLevel === 'red') ? '<span class="pill c-er">1 due today</span>' : '<span class="sub mono muted" style="font-size:10.5px">this week</span>'}</div>
-          <div class="backlog-body stacked">${backlogGroups(backlog, t => card(t, {mode: 'backlog'})) || '<div class="empty">All of this week is on the board.</div>'}</div></aside>
+        <aside class="backlog"><div class="backlog-head"><div class="backlog-title">${icon('inbox', 'text-p')}<span class="t">Backlog</span><span class="badge-count">${backlog.length}</span></div>${icon('chev-right', 'sm muted')}</div>
+          <div class="backlog-body">${backlog.map(t => card(t, {mode: 'backlog'})).join('') || '<div class="empty">All of this week is on the board.</div>'}</div></aside>
       </div>`;
-    freshKey = null;
+    fresh = false;
   }
   document.getElementById('after-board').addEventListener('click', e => {
     const btn = e.target.closest('[data-act]');
@@ -1133,118 +936,42 @@
       }
       if (it.kind === 'project') S.projDone[it.pid] += 1;
       S.done[0].items.unshift(it);
-      freshKey = uid;
+      fresh = true;
     } else {
       const i = S.backlog.findIndex(it => it.uid === uid);
       if (i < 0) return;
-      const it = S.backlog[i];
-      if (it.kind === 'habit') {
-        it.count -= 1;
-        if (!it.count) S.backlog.splice(i, 1);
-        S.habits[it.hid].today += 1;
-        S.today.push({uid: `${uid}-${Date.now()}`, kind: 'habit', hid: it.hid});
-      } else {
-        S.backlog.splice(i, 1);
-        S.today.push(it);
-      }
+      const [it] = S.backlog.splice(i, 1);
+      if (it.kind === 'habit') S.habits[it.hid].today += 1;
+      S.today.push(it);
     }
-    renderAfterBoard();
+    renderBoard();
   });
-  document.getElementById('board-reset').addEventListener('click', () => { S = seedState(); renderAfterBoard(); });
-
-  // ── Cards & risk ──
-  function renderCards() {
-    document.getElementById('anat-before').innerHTML = [
-      oldCard({t: 'Workout', d: '45 min — gym or run', type: 'DAILY', size: 'XS', roll: 'Tue, Oct 6', risk: 'warning'}, {annotate: true}),
-      oldCard({t: 'Biomedical course', d: 'Explore a biomedical course, ~1h', type: 'WEEKLY', n: 3, size: 'XS', risk: 'warning'}, {annotate: true}),
-      oldCard({t: 'File tax report', type: 'ONCE', size: 'S', risk: 'warning'}, {annotate: true}),
-    ].join('');
-    document.getElementById('anat-after').innerHTML = [
-      card(R({kind: 'habit', hid: 'wo'}), {mode: 'today', annotate: true}),
-      card(R({kind: 'project', pid: 'bio', ix: 2}), {mode: 'today', annotate: true}),
-      card(R({kind: 'oneoff', oid: 'tax'}), {mode: 'today', annotate: true}),
-    ].join('');
-
-    const habitAmber = {...R({kind: 'habit', hid: 'rd'}), ctx: 'Sat', amber: '2 left · 2 days'};
-    const cells = [
-      {kind: 'habit', icon: 'repeat', name: 'Habit', note: 'counted per week', cells: [
-        card(R({kind: 'habit', hid: 'lc'}), {mode: 'today'}),
-        card(habitAmber, {mode: 'today'}),
-        '<div class="never">Never red — a short week is information, not failure</div>',
-        card({...R({kind: 'habit', hid: 'rd'}), count: 2}, {mode: 'backlog'}),
-        doneRow(R({kind: 'habit', hid: 'lc'}))]},
-      {kind: 'project', icon: 'map', name: 'Step', note: 'one step of a project', cells: [
-        card(R({kind: 'project', pid: 'bio', ix: 2}), {mode: 'today'}),
-        card(R({kind: 'project', pid: 'pdb', ix: 1, carried: 2}), {mode: 'today'}),
-        '<div class="never">Never red — steps don\'t expire; an old step just waits</div>',
-        card(R({kind: 'project', pid: 'pdb', ix: 2}), {mode: 'backlog'}),
-        doneRow(R({kind: 'project', pid: 'bio', ix: 1}))]},
-      {kind: 'oneoff', icon: 'grid', name: 'One-off', note: 'from the matrix', cells: [
-        card(R({kind: 'oneoff', oid: 'pkg'}), {mode: 'today'}),
-        card(R({kind: 'oneoff', oid: 'tax'}), {mode: 'today'}),
-        card(R({kind: 'oneoff', oid: 'dent'}), {mode: 'today'}),
-        card(R({kind: 'oneoff', oid: 'car'}), {mode: 'backlog'}),
-        doneRow(R({kind: 'oneoff', oid: 'bank'}))]},
-    ];
-    document.getElementById('state-matrix').innerHTML =
-      `<div></div><div class="mh">On track</div><div class="mh amber">Amber</div><div class="mh red">Red</div><div class="mh">In backlog</div><div class="mh">Done (row)</div>` +
-      cells.map(r => `<div class="rh" data-kind="${r.kind}"><b>${icon(r.icon, 'sm')}${r.name}</b><span>${r.note}</span></div>${r.cells.map(c => `<div>${c}</div>`).join('')}`).join('');
-
-    document.getElementById('quiet-vs').innerHTML =
-      oldCard({t: 'Workout', d: '45 min — gym or run', type: 'DAILY', size: 'XS', roll: 'Tue, Oct 6', risk: 'danger'}) +
-      card(R({kind: 'habit', hid: 'wo'}), {mode: 'today'});
-
-    document.getElementById('matrix-vs').innerHTML = `
-      <div class="quad"><div class="ql"><span class="led"></span>Do first</div><div class="mcard"><div class="t">File tax report</div><div class="f">${oldSizePill({size: 'S'})}<span class="send">${icon('send', 'sm')}</span></div></div></div>
-      <div class="quad"><div class="ql"><span class="led"></span>Do first</div><div class="mcard"><div class="t">File tax report</div><div class="f">${duePill(ONEOFFS.tax)}${sizePill({size: 'S', pts: 2})}<span class="send">${icon('send', 'sm')}</span></div></div></div>`;
-
-    document.getElementById('decide-spec').innerHTML = `<div class="pick" data-kind="project"><div class="pm"><div class="pt"><span>Protein 3D viewer · </span>Render it with Mol*</div>
-      <div class="decide"><button>Done</button><button class="on tmr">Tomorrow</button><button>Not today</button></div></div></div>`;
-  }
+  document.getElementById('board-reset').addEventListener('click', () => { S = seedState(); renderBoard(); });
 
   // ── Phones ──
+  const P0 = seedState();
+  const R = it => resolve(it, P0);
   const status = time => `<div class="status"><span>${time}</span><span class="mono" style="font-size:11px">●●● ▮</span></div>`;
   const dock = on => `<div class="dock">${[['columns', 'Board'], ['grid', 'Priorities'], ['calendar', 'Plan'], ['pencil', 'Dump'], ['user', 'Settings']]
     .map(([i, l]) => `<span class="${l === on ? 'on' : ''}">${icon(i)}${l}</span>`).join('')}</div>`;
   const phone = (time, inner) => `<div class="phone">${status(time)}${inner}</div>`;
   const wrap = (cap, html) => `<div class="phone-wrap">${html}<div class="phone-cap">${cap}</div></div>`;
-  const mdash = (today, todayPct, week, weekPct) => `<div class="mdash">
-      <div class="r"><span class="fx-label muted">Today</span><span class="meter"><i style="width:${todayPct}%"></i></span><b>${today}</b></div>
-      <div class="r"><span class="fx-label muted">Week</span><span class="meter"><i class="info" style="width:${weekPct}%"></i></span><b>${week}</b></div></div>`;
-  const hub = on => `<div class="msegwrap"><div class="seg">${['Week', 'Habits', 'Projects'].map(l => `<button class="${l === on ? 'on' : ''}">${l}</button>`).join('')}</div></div>`;
+  const hub = on => `<div class="msegwrap"><div class="seg">${['This week', 'Habits', 'Projects'].map(l => `<button class="${l === on ? 'on' : ''}">${l}</button>`).join('')}</div></div>`;
+  const cbx = on => `<span class="cb ${on ? 'on' : ''}">${icon('check', 'xxs')}</span>`;
 
   function renderMobile() {
-    const msec = (cls, label, items) => `<div class="msec ${cls}"><span class="led"></span><span class="fx-label display">${label}</span><span class="count-ghost">${items.length}</span></div>
-      <div class="hscroll">${items.map(oldMini).join('')}</div>`;
-    const before = phone('10:02', `<div class="app">
-        <div class="app-head"><h2 class="disp">Board</h2><span class="date">Oct 5 – Oct 11</span></div>
-        ${mdash('0/5', 0, '6/27 pts', 22)}
-        ${msec('todo', 'Todo', OLD.todo)}${msec('doing', 'In Progress', OLD.doing)}${msec('done', 'Done', OLD.done)}
-      </div>
-      <div class="peek">${icon('inbox', 'text-p')}Backlog<span class="badge-count">6</span>${icon('chev-up', 'sm chev muted')}</div>${dock('Board')}`);
-
     const today = P0.today.map(R);
     const boardInner = `<div class="app">
         <div class="app-head"><h2 class="disp">Board</h2><span class="date">Wed, Oct 7 · W41</span></div>
-        ${mdash('0/4', 0, '6/26 pts', 23)}
-        <div class="msec todo"><span class="led"></span><span class="fx-label display">Todo</span><span class="sub mono muted" style="font-size:10.5px">today</span><span class="count-ghost">4</span></div>
+        <div class="mdash"><div class="r"><span class="fx-label muted">Today</span><span class="meter"><i style="width:0%"></i></span><b>0/4</b></div>
+          <div class="r"><span class="fx-label muted">Week</span><span class="meter"><i class="info" style="width:21%"></i></span><b>6/28 pts</b></div></div>
+        <div class="msec todo"><span class="led"></span><span class="fx-label display">Todo</span><span class="count-ghost">4</span></div>
         <div class="mlist">${today.map(t => card(t, {mode: 'today', compact: true})).join('')}</div>
         <div class="mdone"><span class="ok">${icon('check', 'sm')}</span>Done this week<span class="v">6 · 6 pts</span>${icon('chev-down', 'sm muted')}</div>
-        <div class="daychips"><span class="pill c-muted">Mon 4</span><span class="pill c-muted">Tue 2</span><span class="pill c-muted">Wed 0</span></div>
-      </div>
-      <div class="peek">${icon('inbox', 'text-p')}Backlog<span class="badge-count">8</span><span class="pill c-er" style="margin-left:4px">1 due today</span>${icon('chev-up', 'sm chev muted')}</div>${dock('Board')}`;
-    const after = phone('10:02', boardInner);
-
-    const backlog = P0.backlog.map(R);
-    const sheet = phone('10:03', `${boardInner}<div class="scrim"></div>
-      <div class="sheet"><div class="grab"></div>
-        <div class="sheet-head"><div class="sheet-title">${icon('inbox', 'text-p')}<span class="disp">Backlog</span><span class="badge-count">8</span></div><span class="sheet-sub">this week</span></div>
-        <div class="sheet-body">${backlogGroups(backlog, t => card(t, {mode: 'backlog-m', compact: true}))}</div></div>`);
-
+        <div class="daychips"><span class="pill c-muted">Mon 4</span><span class="pill c-muted">Tue 2</span><span class="pill c-muted">Wed 0</span></div></div>
+      <div class="peek">${icon('inbox', 'text-p')}Backlog<span class="badge-count">8</span>${icon('chev-up', 'sm chev muted')}</div>${dock('Board')}`;
     document.getElementById('mobile-phones').innerHTML =
-      wrap('<span class="tag before">Before</span>Three horizontal rows of 136px cards; the type pill and #n take the first line, so titles clamp at two lines and say little.', before) +
-      wrap('<span class="tag">After</span><b>Todo becomes a full-width list</b> — today is the thing to read. Done folds into one summary row (tap to expand the day log). The backlog pill surfaces anything due today.', after) +
-      wrap('<span class="tag">After</span>The backlog sheet groups by kind; habits stack. <b>↑ Today</b> pulls one item (one instance from a stack).', sheet);
+      wrap('<span class="tag">After</span>With Doing gone, <b>Todo becomes a full-width list</b> — today is the thing to read, ✓ completes. Done folds into one summary row that expands to the day log.', phone('10:02', boardInner));
   }
 
   // ── Plan week (interactive) ──
@@ -1262,68 +989,61 @@
     const oneoffs = Object.keys(ONEOFFS).filter(o => PL.oneoffs[o]).reduce((s, o) => s + PTS[ONEOFFS[o].size], 0);
     return {habits, steps, oneoffs, total: habits + steps + oneoffs};
   }
-  const cbx = on => `<span class="cb ${on ? 'on' : ''}">${icon('check', 'xxs')}</span>`;
   function projectBlock(pid, {compact = false} = {}) {
     const p = PROJECTS[pid], {from, n, carried = []} = PL.projects[pid];
     const max = p.steps.length - from;
-    const list = p.steps.slice(from, from + n).map(([t, size], i) => `<div class="step-li"><span class="ix">${from + i + 1}</span><span class="t">${t}</span>${carried.includes(from + i) ? '<span class="pill c-wa">carried</span>' : ''}<span class="pill c-muted">${size}·${PTS[size]}</span></div>`).join('');
+    const list = p.steps.slice(from, from + n).map(([t, size], i) => `<div class="step-li"><span class="ix">${from + i + 1}</span><span class="t">${t}</span>${carried.includes(from + i) ? '<span class="pill c-muted">carried</span>' : ''}<span class="pill c-muted">${size}·${PTS[size]}</span></div>`).join('');
     const nextUp = from + n < p.steps.length ? `<div class="step-li later"><span class="ix">${from + n + 1}</span><span class="t">${p.steps[from + n][0]}</span></div>` : '';
     return `<div class="pblock">
       <div class="ptop"><span class="t">${p.title}</span><span class="prog">${stepbar({total: p.steps.length, doneSteps: from, step: from + 1})}${from}/${p.steps.length}</span>
         <span class="stepper"><button data-proj="${pid}" data-d="-1" ${n === 0 ? 'disabled' : ''}>${icon('minus', 'sm')}</button><span class="v">${n}</span><button data-proj="${pid}" data-d="1" ${n >= Math.min(max, 6) ? 'disabled' : ''}>${icon('plus', 'sm')}</button></span>
         ${compact ? '' : `<span class="stepper-label">${n === 1 ? 'step' : 'steps'} this week</span>`}</div>
-      ${n ? `<div class="step-list">${list}${compact ? '' : nextUp}</div>` : '<div class="step-list"><div class="step-li later"><span class="t">Resting this week</span></div></div>'}
-      ${compact ? '' : `<div class="add-row">${icon('plus', 'xs')}Add a step</div>`}</div>`;
+      ${n ? `<div class="step-list">${list}${compact ? '' : nextUp}</div>` : '<div class="step-list"><div class="step-li later"><span class="t">Resting this week</span></div></div>'}</div>`;
   }
   function renderPlan() {
     const T = planTotals();
     const habitRows = Object.entries(HABITS).map(([hid, h]) => `<div class="hrow ${PL.habits[hid] ? '' : 'off'}" data-kind="habit" data-habit="${hid}">
       ${cbx(PL.habits[hid])}<span class="t">${h.title}</span><span class="meta">${h.cadence}</span><span class="meta">${habitWeekPts(hid)} pts</span></div>`).join('') +
       `<div class="hrow paused" data-kind="habit"><span class="cb"></span><span class="t">Meal prep</span><span class="meta">paused · resume in Habits</span></div>`;
-    const oneGroups = [['Carried from last week', ['tax']], ['Due this week', ['dent']], ['Do first', ['bank']], ['Everything else', ['pkg', 'car', 'pho']]];
-    const oneRows = oneGroups.map(([label, ids]) => `<div class="sublabel">${label}</div>` + ids.map(oid => {
+    const groups = [['Carried from last week', ['tax']], ['Do first', ['bank']], ['Everything else', ['dent', 'pkg', 'car', 'pho']]];
+    const oneRows = groups.map(([label, ids]) => `<div class="sublabel">${label}</div>` + ids.map(oid => {
       const o = ONEOFFS[oid];
-      const due = oid === 'dent' ? duePill({due: 'Wed', dueLevel: 'normal'}) : o.due ? duePill(o) : '';
-      return `<div class="hrow ${PL.oneoffs[oid] ? '' : 'off'}" data-kind="oneoff" data-one="${oid}">${cbx(PL.oneoffs[oid])}<span class="t">${o.title}</span><span class="meta">${o.quadrant}</span>${due}<span class="pill c-muted">${o.size}·${PTS[o.size]}</span></div>`;
+      return `<div class="hrow ${PL.oneoffs[oid] ? '' : 'off'}" data-kind="oneoff" data-one="${oid}">${cbx(PL.oneoffs[oid])}<span class="t">${o.title}</span><span class="meta">${o.quadrant}</span><span class="pill c-muted">${o.size}·${PTS[o.size]}</span></div>`;
     }).join('')).join('');
-    const usualLo = 16, usualHi = 21, scale = 36;
-    const capNote = T.total > usualHi ? `<b>${T.total - usualHi} pts above</b> what you usually finish — fine if the week is light elsewhere.` : T.total < usualLo ? 'Below your usual range — room to add.' : '<b>Within</b> your usual range.';
+    const lo = 16, hi = 21, scale = 36;
+    const capNote = T.total > hi ? `<b>${T.total - hi} pts above</b> what you usually finish — fine if the week is light elsewhere.` : T.total < lo ? 'Below your usual range — room to add.' : '<b>Within</b> your usual range.';
     document.getElementById('plan-frame').innerHTML = `
       <div class="frame-head"><div><h2 class="disp">Plan this week</h2><div class="sub">Mon, Oct 5 – Sun, Oct 11 · week 41</div></div>
-        <div class="right"><div class="seg hub"><button class="on">Week</button><button>Habits</button><button>Projects</button></div></div></div>
-      <div class="frame-head" style="padding:10px 20px"><div class="recap"><span class="lbl">Last week</span><span class="pill c-su">habits 9/11</span><span class="pill c-sec">steps 3/4</span><span class="pill c-info">one-offs 4/5</span><span class="pill c-muted">17 pts done</span></div></div>
+        <div class="right"><div class="seg hub"><button class="on">This week</button><button>Habits</button><button>Projects</button></div></div></div>
+      <div class="frame-head" style="padding:10px 20px"><div class="recap"><span class="lbl">Last week</span><span class="pill c-su">habits 15/18</span><span class="pill c-sec">steps 3/4</span><span class="pill c-info">one-offs 4/5</span><span class="pill c-muted">19 pts done</span></div></div>
       <div class="plan-grid">
         <div class="plan-main">
           <div data-kind="habit"><div class="sec-head"><span class="num">1</span><h3>${icon('repeat', 'sm')}Habits</h3><span class="pts">${T.habits} pts</span></div>
             <p class="sec-sub">They run every week until paused — uncheck one to skip it this week only.</p><div class="rows">${habitRows}</div></div>
           <div data-kind="project"><div class="sec-head"><span class="num">2</span><h3>${icon('map', 'sm')}Projects</h3><span class="pts">${T.steps} pts</span></div>
             <p class="sec-sub">How many next steps does each project get? The list is exactly what lands in the backlog — carried steps first.</p>
-            <div class="rows">${Object.keys(PROJECTS).map(pid => projectBlock(pid)).join('')}<div class="add-row">${icon('plus', 'xs')}New project</div></div></div>
+            <div class="rows">${Object.keys(PROJECTS).map(pid => projectBlock(pid)).join('')}</div></div>
           <div data-kind="oneoff"><div class="sec-head"><span class="num">3</span><h3>${icon('grid', 'sm')}One-offs</h3><span class="pts">${T.oneoffs} pts</span></div>
-            <p class="sec-sub">From your priority matrix. Carried, due-this-week and Do-first items start checked.</p><div class="rows">${oneRows}</div></div>
+            <p class="sec-sub">From your priority matrix. Carried and Do-first items start checked.</p><div class="rows">${oneRows}</div></div>
         </div>
         <aside class="plan-aside"><div class="aside-sticky">
           <div><div class="fx-label muted">This week</div><div class="total" style="margin-top:6px">${T.total}<small>pts</small></div></div>
           <div class="kbars">${[['habit', 'Habits', T.habits], ['project', 'Steps', T.steps], ['oneoff', 'One-offs', T.oneoffs]].map(([k, l, v]) =>
             `<div class="kbar" data-kind="${k}"><span>${l}</span><span class="bar"><i style="width:${T.total ? v / T.total * 100 : 0}%"></i></span><span class="v">${v}</span></div>`).join('')}</div>
-          <div class="cap">Last 4 weeks you finished <b>${usualLo}–${usualHi} pts</b>.
-            <div class="cap-meter"><span class="band" style="left:${usualLo / scale * 100}%;width:${(usualHi - usualLo) / scale * 100}%"></span><span class="mark" style="left:calc(${Math.min(T.total, scale) / scale * 100}% - 1.5px)"></span></div>${capNote}</div>
+          <div class="cap">Last 4 weeks you finished <b>${lo}–${hi} pts</b>.
+            <div class="cap-meter"><span class="band" style="left:${lo / scale * 100}%;width:${(hi - lo) / scale * 100}%"></span><span class="mark" style="left:calc(${Math.min(T.total, scale) / scale * 100}% - 1.5px)"></span></div>${capNote}</div>
           <button class="btn primary block">Start week</button>
           <div class="ai-note">${icon('sparkles', 'sm')}<span>Or plan it with Claude — over MCP it fills these same three steps, then you review here.</span></div>
         </div></aside>
       </div>`;
-    // mobile: step 2 of 3
-    document.getElementById('plan-phones').innerHTML = wrap('<span class="tag">After</span>Step 2 of 3. The running total and your usual range ride along in the bottom bar; <b>Next</b> moves to one-offs.', phone('08:41', `<div class="app">
-        <div class="app-head"><h2 class="disp">Plan</h2><span class="date">week 41</span></div>${hub('Week')}
+    document.getElementById('plan-phones').innerHTML = wrap('<span class="tag">After</span>Step 2 of 3. The running total and your usual range ride along in the bottom bar.', phone('08:41', `<div class="app">
+        <div class="app-head"><h2 class="disp">Plan</h2><span class="date">week 41</span></div>${hub('This week')}
         <div class="mstep"><i class="on"></i><i class="on"></i><i></i><span>Step 2 of 3 · Projects</span></div>
-        <div data-kind="project" style="display:flex;flex-direction:column;gap:6px">${Object.keys(PROJECTS).map(pid => projectBlock(pid, {compact: true})).join('')}</div>
-      </div>
-      <div class="mbar"><span class="v">${T.total} pts<small>usual ${usualLo}–${usualHi}</small></span><button class="btn">Back</button><button class="btn primary">Next</button></div>${dock('Plan')}`));
+        <div data-kind="project" style="display:flex;flex-direction:column;gap:6px">${Object.keys(PROJECTS).map(pid => projectBlock(pid, {compact: true})).join('')}</div></div>
+      <div class="mbar"><span class="v">${T.total} pts<small>usual ${lo}–${hi}</small></span><button class="btn">Back</button><button class="btn primary">Next</button></div>${dock('Plan')}`));
   }
   document.getElementById('s-plan').addEventListener('click', e => {
-    const step = e.target.closest('[data-proj]');
-    const habit = e.target.closest('[data-habit]');
-    const one = e.target.closest('[data-one]');
+    const step = e.target.closest('[data-proj]'), habit = e.target.closest('[data-habit]'), one = e.target.closest('[data-one]');
     if (step && !step.disabled) PL.projects[step.dataset.proj].n += Number(step.dataset.d);
     else if (habit) PL.habits[habit.dataset.habit] = !PL.habits[habit.dataset.habit];
     else if (one) PL.oneoffs[one.dataset.one] = !PL.oneoffs[one.dataset.one];
@@ -1333,13 +1053,8 @@
 
   // ── Habits (interactive editor) ──
   let HSEL = 'lc';
-  const HED = {}; // per-habit editor state
-  const edState = hid => HED[hid] || (HED[hid] = {
-    cadence: HABITS[hid].cadence === 'Weekdays' || HABITS[hid].cadence === 'Every day' ? 'daily' : 'week',
-    days: HABITS[hid].cadence === 'Every day' ? 'every' : 'weekdays',
-    n: HABITS[hid].cadence === 'Weekdays' ? 3 : HABITS[hid].target,
-    size: HABITS[hid].size,
-  });
+  const HED = {};
+  const edState = hid => HED[hid] || (HED[hid] = {cadence: HABITS[hid].cadence === 'Daily' ? 'daily' : 'week', n: HABITS[hid].cadence === 'Daily' ? 3 : HABITS[hid].target, size: HABITS[hid].size});
   const weeksBars = (w, target) => `<span class="weeks">${w.map(v => `<i class="${v >= target ? 'full' : ''}" style="height:${Math.max(3, v / target * 22)}px" title="${v}/${target}"></i>`).join('')}</span>`;
   function renderHabits() {
     const ed = edState(HSEL), h = HABITS[HSEL];
@@ -1351,163 +1066,43 @@
         <span style="display:flex;align-items:center;gap:8px">${dots(t)}<span class="sig">${t.done}/${t.target}</span></span>${weeksBars(x.weeks, x.target)}</div>`;
     }).join('') + `<div class="sublabel" style="margin-top:12px">Paused</div>
       <div class="hab-row paused" data-kind="habit"><span class="t">${icon('pause', 'sm')}Meal prep<small>paused since week 39</small></span><span class="pill c-muted" style="justify-self:start">1× / week</span>${sizePill({size: 'S', pts: 2})}<span></span><button class="btn sm">Resume</button></div>`;
-    const cadenceDetail = ed.cadence === 'daily'
-      ? `<div class="field"><label>Days</label><div class="segm"><button data-ed="days" data-v="weekdays" class="${ed.days === 'weekdays' ? 'on' : ''}">Weekdays</button><button data-ed="days" data-v="every" class="${ed.days === 'every' ? 'on' : ''}">Every day</button></div>
-          <div class="hint">${ed.days === 'weekdays' ? 'Mon–Fri · 5 a week' : 'Mon–Sun · 7 a week'} — one instance lands in the backlog each morning.</div></div>`
+    const detail = ed.cadence === 'daily'
+      ? `<div class="hint">One instance in the backlog every morning, weekends included. Weekdays-only or custom days come later (tracker).</div>`
       : `<div class="field"><label>Times per week</label><div style="display:flex;align-items:center;gap:10px"><span class="stepper" style="margin-left:0"><button data-ed="n" data-v="-1" ${ed.n <= 1 ? 'disabled' : ''}>${icon('minus', 'sm')}</button><span class="v">${ed.n}</span><button data-ed="n" data-v="1" ${ed.n >= 10 ? 'disabled' : ''}>${icon('plus', 'sm')}</button></span>
           <span data-kind="habit" style="display:inline-flex">${dots({target: ed.n, done: 0})}</span></div>
           <div class="hint">${ed.n} instance${ed.n > 1 ? 's' : ''} in the backlog on Monday; do them any day.</div></div>`;
     document.getElementById('habits-frame').innerHTML = `
       <div class="frame-head"><div><h2 class="disp">Habits</h2><div class="sub">Fixed routines · they run every week until paused</div></div>
-        <div class="right"><div class="seg hub"><button>Week</button><button class="on">Habits</button><button>Projects</button></div><button class="btn primary">${icon('plus', 'sm')}New habit</button></div></div>
+        <div class="right"><div class="seg hub"><button>This week</button><button class="on">Habits</button><button>Projects</button></div><button class="btn primary">${icon('plus', 'sm')}New habit</button></div></div>
       <div class="page-grid">
         <div class="page-main"><div class="hab-cols"><span>Habit</span><span>Cadence</span><span>Size</span><span>This week</span><span>Last 4 wks</span></div>${rows}</div>
         <aside class="panel">
           <h3>${icon('pencil', 'sm')}Edit habit</h3>
           <div class="field"><label>Title</label><div class="input">${h.title}</div></div>
           <div class="field"><label>Note (optional)</label><div class="input">${h.note}</div></div>
-          <div class="field"><label>Cadence</label><div class="segm"><button data-ed="cadence" data-v="daily" class="${ed.cadence === 'daily' ? 'on' : ''}">Daily</button><button data-ed="cadence" data-v="week" class="${ed.cadence === 'week' ? 'on' : ''}">Times per week</button></div></div>
-          ${cadenceDetail}
+          <div class="field"><label>Cadence</label><div class="segm"><button data-ed="cadence" data-v="daily" class="${ed.cadence === 'daily' ? 'on' : ''}">Daily</button><button data-ed="cadence" data-v="week" class="${ed.cadence === 'week' ? 'on' : ''}">Times per week</button></div>${ed.cadence === 'daily' ? detail : ''}</div>
+          ${ed.cadence === 'daily' ? '' : detail}
           <div class="field"><label>Size per time</label><div class="sizes">${['XS', 'S', 'M', 'L', 'XL'].map(s => `<button data-ed="size" data-v="${s}" class="${ed.size === s ? 'on' : ''}">${s}·${PTS[s]}</button>`).join('')}</div></div>
           <div class="info-box">${icon('info', 'sm')}<span>Missed days expire quietly — no rollover, nothing turns red. The count resets every Monday. Changes apply from next week's plan.</span></div>
           <div class="panel-foot"><button class="btn">${icon('pause', 'sm')}Pause</button><button class="btn">Cancel</button><button class="btn primary">Save</button></div>
         </aside>
       </div>`;
-  }
-  document.getElementById('habits-frame').addEventListener('click', e => {
-    const row = e.target.closest('[data-hsel]');
-    const ctl = e.target.closest('[data-ed]');
-    if (row) HSEL = row.dataset.hsel;
-    else if (ctl && !ctl.disabled) {
-      const ed = edState(HSEL), {ed: key, v} = ctl.dataset;
-      if (key === 'n') ed.n += Number(v); else ed[key] = v;
-    } else return;
-    renderHabits();
-  });
-  function renderHabitsPhone() {
-    const rows = Object.entries(HABITS).map(([hid, x]) => {
+    const phoneRows = Object.entries(HABITS).map(([hid, x]) => {
       const t = R({kind: 'habit', hid});
       return `<div class="mrow" data-kind="habit"><div class="mm"><span class="mt">${x.title}</span><span class="ms"><span class="pill c-k">${x.cadence}</span>${dots(t)}<span class="sig">${t.done}/${t.target}</span></span></div>${icon('chev-right', 'sm muted')}</div>`;
     }).join('');
-    document.getElementById('habits-phones').innerHTML = wrap('<span class="tag">After</span>Same list, one line of facts per habit; tap opens the editor as a bottom sheet (same fields as desktop).', phone('09:15', `<div class="app">
+    document.getElementById('habits-phones').innerHTML = wrap('<span class="tag">After</span>One line of facts per habit; tap opens the editor as a bottom sheet.', phone('09:15', `<div class="app">
       <div class="app-head"><h2 class="disp">Plan</h2><span class="date">week 41</span></div>${hub('Habits')}
-      <div class="mlist">${rows}<div class="mrow paused" data-kind="habit" style="opacity:.5;border-left-style:dashed"><div class="mm"><span class="mt">Meal prep</span><span class="ms"><span class="pill c-muted">paused</span></span></div></div></div>
+      <div class="mlist">${phoneRows}<div class="mrow" data-kind="habit" style="opacity:.5;border-left-style:dashed"><div class="mm"><span class="mt">Meal prep</span><span class="ms"><span class="pill c-muted">paused</span></span></div></div></div>
       <button class="btn primary block">${icon('plus', 'sm')}New habit</button></div>${dock('Plan')}`));
   }
-
-  // ── Projects ──
-  let PSEL = 'bio';
-  const STEP_STATE = { // Wednesday: where each of this week's steps is
-    bio: {2: 'In today'},
-    pdb: {1: 'Backlog', 2: 'Backlog'},
-    fin: {0: 'Backlog'},
-  };
-  const CARRIED = {pdb: {1: 2}};
-  function stepRows(pid, {limitUpcoming = 3, mobile = false} = {}) {
-    const p = PROJECTS[pid], done = P0.projDone[pid], wk = STEP_STATE[pid] || {};
-    let upcomingShown = 0, hidden = 0;
-    const rows = p.steps.map(([t, size, desc], i) => {
-      const n = `<span class="ix">${i + 1}</span>`;
-      const handle = mobile ? '' : `<span class="handle">${icon('bars', 'sm')}</span>`;
-      if (i < done) return `<div class="srow done ${mobile ? 'm' : ''}">${handle}<span class="st">${icon('check', 'xxs')}</span>${n}<span class="tt">${t}</span><span class="side">${p.doneOn[i] || ''}</span></div>`;
-      if (wk[i]) {
-        const car = CARRIED[pid] && CARRIED[pid][i];
-        return `<div class="srow week ${mobile ? 'm' : ''}">${handle}<span class="st"></span>${n}<span class="tt">${t}${desc && !mobile ? `<small>${desc}</small>` : ''}</span><span class="side">${car ? `<span class="pill c-wa">carried ${car}×</span>` : ''}<span class="pill ${wk[i] === 'In today' ? 'c-p' : 'c-sec'}">${mobile ? (wk[i] === 'In today' ? 'today' : 'this wk') : wk[i] === 'In today' ? 'This week · today' : 'This week · backlog'}</span></span></div>`;
-      }
-      if (upcomingShown >= limitUpcoming) { hidden += 1; return ''; }
-      upcomingShown += 1;
-      return `<div class="srow ${mobile ? 'm' : ''}">${handle}<span class="st"></span>${n}<span class="tt">${t}</span><span class="side">${mobile ? '' : `<span class="pill c-muted">${size}·${PTS[size]}</span>`}<button class="tc-pull">${icon('plus', 'xxs')}${mobile ? 'Wk' : 'This week'}</button></span></div>`;
-    }).join('');
-    return rows + (hidden ? `<div class="more">+ ${hidden} more upcoming</div>` : '');
-  }
-  function renderProjects() {
-    const list = Object.entries(PROJECTS).map(([pid, p]) => {
-      const done = P0.projDone[pid], wk = Object.keys(STEP_STATE[pid] || {}).map(Number);
-      const next = p.steps[done][0];
-      const car = CARRIED[pid] ? Object.values(CARRIED[pid])[0] : 0;
-      return `<div class="pcard ${pid === PSEL ? 'sel' : ''}" data-kind="project" data-psel="${pid}">
-        <div class="r1">${icon('map', 'sm c-k')}<span class="t">${p.title}</span><span class="n">${done}/${p.steps.length}</span></div>
-        <div class="bigbar"><i style="width:${done / p.steps.length * 100}%"></i></div>
-        <div class="next">Next: <b>${next}</b></div>
-        <div class="r3"><span class="pill c-sec">${wk.length} this week</span>${car ? `<span class="pill c-wa">carried ${car}×</span>` : ''}</div></div>`;
-    }).join('') + `<div class="sublabel" style="margin-top:8px">Finished</div><div class="empty">Completed projects move here, with their dates.</div>`;
-    const p = PROJECTS[PSEL], done = P0.projDone[PSEL];
-    document.getElementById('projects-frame').innerHTML = `
-      <div class="frame-head"><div><h2 class="disp">Projects</h2><div class="sub">Work with a path · steps stay in order and never expire</div></div>
-        <div class="right"><div class="seg hub"><button>Week</button><button>Habits</button><button class="on">Projects</button></div><button class="btn primary">${icon('plus', 'sm')}New project</button></div></div>
-      <div class="proj-grid">
-        <div class="proj-list">${list}</div>
-        <div class="detail" data-kind="project">
-          <div class="detail-head"><h3 class="disp">${p.title}</h3><p>${p.goal}</p>
-            <div class="prog"><span class="bigbar"><i style="width:${done / p.steps.length * 100}%"></i></span>${done} of ${p.steps.length} steps</div></div>
-          <div class="srows">${stepRows(PSEL)}</div>
-          <div class="add-row">${icon('plus', 'xs')}Add a step — Enter adds another</div>
-          <div class="ai-note">${icon('sparkles', 'sm')}<span>Ask Claude to draft the next steps (it can find the resources too). They land here in order; edit, reorder or delete before they reach a week.</span></div>
-        </div>
-      </div>`;
-  }
-  document.getElementById('projects-frame').addEventListener('click', e => {
-    const c = e.target.closest('[data-psel]');
-    if (!c) return;
-    PSEL = c.dataset.psel;
-    renderProjects();
+  document.getElementById('habits-frame').addEventListener('click', e => {
+    const row = e.target.closest('[data-hsel]'), ctl = e.target.closest('[data-ed]');
+    if (row) HSEL = row.dataset.hsel;
+    else if (ctl && !ctl.disabled) { const ed = edState(HSEL), {ed: key, v} = ctl.dataset; if (key === 'n') ed.n += Number(v); else ed[key] = v; }
+    else return;
+    renderHabits();
   });
-  function renderProjectsBefore() {
-    document.getElementById('proj-before').innerHTML = [
-      oldCard({t: 'Protein 3D visualizer', d: 'Build a protein structure viewer', type: 'WEEKLY', n: 1, size: 'M', risk: 'warning'}),
-      oldCard({t: 'Protein 3D visualizer', d: 'Build a protein structure viewer', type: 'WEEKLY', n: 2, size: 'M', risk: 'warning'}),
-    ].join('');
-  }
-  function renderProjectsPhone() {
-    const p = PROJECTS.bio;
-    document.getElementById('projects-phones').innerHTML = wrap('<span class="tag">After</span>Project detail on a phone: progress, then the path. <b>+ Wk</b> adds an upcoming step to this week\'s backlog.', phone('09:20', `<div class="app">
-      <div class="app-head"><h2 class="disp">Plan</h2><span class="date">week 41</span></div>${hub('Projects')}
-      <div class="mono muted" style="font-size:11px;display:flex;align-items:center;gap:4px">${icon('chev-left', 'xs')}All projects</div>
-      <div class="detail-head" data-kind="project"><h3 class="disp" style="font-size:19px;font-weight:700">${p.title}</h3><p style="font-size:12.5px;color:color-mix(in oklab,var(--bc) 60%,transparent);margin-top:3px">${p.goal}</p>
-        <div class="prog" style="display:flex;align-items:center;gap:10px;margin-top:10px;font-family:'Geist Mono',monospace;font-size:11px;color:color-mix(in oklab,var(--bc) 60%,transparent)"><span class="bigbar" style="flex:1"><i style="width:${2 / 12 * 100}%"></i></span>2/12</div></div>
-      <div class="srows" data-kind="project">${stepRows('bio', {limitUpcoming: 3, mobile: true})}</div>
-      <div class="add-row">${icon('plus', 'xs')}Add a step</div></div>${dock('Plan')}`));
-  }
-
-  // ── Day loop ──
-  function renderDay() {
-    const pick = (kind, title, pre, badges, on, extra = '') => `<div class="pick" data-kind="${kind}">${cbx(on)}<div class="pm"><div class="pt">${pre ? `<span>${pre} · </span>` : ''}${title}</div><div class="pb">${badges}</div>${extra}</div></div>`;
-    const lbl = (kind, label, n) => `<div class="group-label" data-kind="${kind}"><span class="kd"></span>${label}<span class="n">${n}</span></div>`;
-    const lc = R({kind: 'habit', hid: 'lc'}), wo = R({kind: 'habit', hid: 'wo'});
-    const openSheet = `<div class="scrim"></div><div class="sheet"><div class="grab"></div>
-      <div class="sheet-head"><div class="sheet-title">${icon('sun', 'text-p')}<span class="disp">Open the day</span></div><span class="sheet-sub">Wed · 4 picked · 5 pts</span></div>
-      <div class="capacity">Your usual Wednesday <b>~5 pts</b> · picked <b>5</b></div>
-      <div class="sheet-body">
-        ${lbl('habit', 'Habits', 4)}
-        ${pick('habit', 'Workout', '', `${dots(wo)}<span class="sig">today</span>`, true)}
-        ${pick('habit', 'LeetCode', '', `${dots({...lc, todayN: 0})}<span class="sig">1/3</span>`, true)}
-        <div class="hint" style="margin:-2px 4px 2px">+ 2 more habits · Read 0/2 · System design 0/1</div>
-        ${lbl('project', 'Project steps', 3)}
-        ${pick('project', 'Lecture 3 — Membranes', 'Biomedical', '<span class="pill c-muted">XS·1</span>', true)}
-        ${pick('project', 'Render it with Mol*', 'Protein 3D', '<span class="pill c-wa">carried 2×</span><span class="pill c-muted">M·3</span>', false)}
-        ${lbl('oneoff', 'One-offs', 2)}
-        ${pick('oneoff', 'File tax report', '', `${duePill(ONEOFFS.tax)}<span class="pill c-muted">S·2</span>`, true)}
-        ${pick('oneoff', 'Book dentist appointment', '', `${duePill(ONEOFFS.dent)}<span class="pill c-muted">XS·1</span>`, false)}
-      </div>
-      <div class="sheet-foot"><span class="mono muted" style="font-size:11px">Skip today</span><button class="btn primary">Start the day</button></div></div>`;
-    const closeRow = (kind, title, pre, opts, onIx) => `<div class="pick" data-kind="${kind}"><div class="pm"><div class="pt">${pre ? `<span>${pre} · </span>` : ''}${title}</div>
-      <div class="decide">${opts.map((o, i) => `<button class="${i === onIx ? 'on' : ''} ${o === 'Tomorrow' && i === onIx ? 'tmr' : ''}">${o}</button>`).join('')}</div></div></div>`;
-    const closeSheet = `<div class="scrim"></div><div class="sheet" style="height:80%"><div class="grab"></div>
-      <div class="sheet-head"><div class="sheet-title">${icon('moon', 'text-p')}<span class="disp">Close the day</span></div><span class="sheet-sub">2 of 4 done · 2 pts</span></div>
-      <div class="sheet-body">
-        <div class="group-label">Still in Todo<span class="n">2</span></div>
-        ${closeRow('habit', 'Workout', '', ['Done', 'Skip'], 1)}
-        <div class="hint" style="margin:-2px 2px 4px">Skipped habit days expire quietly.</div>
-        ${closeRow('oneoff', 'File tax report', '', ['Done', 'Tomorrow', 'Not today'], 1)}
-        <div class="group-label" style="margin-top:8px">Done today<span class="n">2</span></div>
-        ${doneRow(R({kind: 'habit', hid: 'lc'}))}${doneRow(R({kind: 'project', pid: 'bio', ix: 2}))}
-      </div>
-      <div class="sheet-foot"><span class="mono muted" style="font-size:11px">Tomorrow: 1 carried + Workout</span><button class="btn primary">Close the day</button></div></div>`;
-    const board = (today, pct, week, weekPct) => `<div class="app"><div class="app-head"><h2 class="disp">Board</h2><span class="date">Wed, Oct 7</span></div>${mdash(today, pct, week, weekPct)}</div>`;
-    document.getElementById('day-phones').innerHTML =
-      wrap('<span class="tag">After</span><b>Open the day</b> (08:32) groups candidates by kind. Habits show their week, steps show which project, one-offs show their due date — so the red dentist booking is hard to miss even when left unpicked.', phone('08:32', board('0/0', 0, '6/26 pts', 23) + openSheet + dock('Board'))) +
-      wrap('<span class="tag">After</span><b>Close the day</b> (21:04): every leftover gets an answer. One-offs and steps: Done · <b>Tomorrow</b> (stays in Todo) · Not today (back to backlog). Habits: Done · Skip.', phone('21:04', board('2/4', 50, '8/26 pts', 31) + closeSheet + dock('Board')));
-  }
 
   // ─────────────────────────────── Chrome ───────────────────────────────
   document.getElementById('theme-seg').addEventListener('click', e => {
@@ -1517,7 +1112,7 @@
     document.querySelectorAll('#theme-seg button').forEach(x => x.classList.toggle('on', x === b));
   });
   function showScreen(id) {
-    if (!document.getElementById(id)) id = 's-model';
+    if (!document.getElementById(id)) id = 's-scope';
     document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
     document.querySelectorAll('#screen-nav button').forEach(b => b.classList.toggle('on', b.dataset.screen === id));
   }
@@ -1529,18 +1124,10 @@
     window.scrollTo({top: 0});
   });
 
-  renderModel();
-  renderBeforeBoard();
-  renderAfterBoard();
-  renderCards();
+  renderBoard();
   renderMobile();
   renderPlan();
   renderHabits();
-  renderHabitsPhone();
-  renderProjectsBefore();
-  renderProjects();
-  renderProjectsPhone();
-  renderDay();
   showScreen(location.hash.slice(1));
 </script>
 </body>
