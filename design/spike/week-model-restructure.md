@@ -207,7 +207,6 @@ PR 2 和 PR 3 互不依赖，可以并行。PR 5 合并后，Phase 1 MVP 上线�
 - `create_plan` 加 `carryOverProjectStepIds`（不传 = 全部带上，和 one-off 一致）和 `projectStepIds`；`update_plan` 能加、减 step。
 - Server instructions 和 tool descriptions：讲清三种 kind，判断标准是「每次内容一样就是 habit，不一样就是 project step」；`src/utils/errorMessages.ts` 加 step 相关的报错。
 - MCP Inspector smoke test。
-- 落地后从 tracker 删掉「Add AI-generated task instance flow」，这一条由它覆盖。
 - **Done when**：在 Claude 里跑通 mockup 第 07 屏的对话。
 
 ### 每个 PR 都要做的事
