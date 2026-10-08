@@ -6,13 +6,11 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### Medium
 
-- [ ] Evidence submit flow — when the user moves a task to done, submit evidence
 - [ ] Stack duplicate habit instances in the backlog — parked until the restructure's kind-first card lands; PR #44 implements it on today's card and only needs moving onto the new face (project steps and one-offs never stack)
 
 ### Future
 
 - [ ] Support same group ordering for drag and drop within same column
-- [ ] Weekly task rollover across periods
 - [ ] Per-kind risk rules — the restructure switches today's risk off (badges, borders, 15:00 / 20:00 clock thresholds); bring it back per kind: habit pace (amber when what's left needs every remaining day), project step carried 2× (amber — split it?), one-off due date (amber within 2 days, red on the day — the only red). Designed in the restructure mockup's Cards & risk screen
 
 ## Plan
@@ -20,22 +18,9 @@ Single source of truth for open ideas and todos across the app — open items on
 ### Medium
 
 - [ ] Restructure the week into habits / projects / one-offs — Doing column removed, Todo renamed, kind-first cards, Projects + Habits pages, three-step Plan week; 8-PR plan with schema options in `design/spike/week-model-restructure.md` (awaiting review), mockup `design/mockup/future-work/temp-week-model-v2.html`
-- [ ] Add AI-generated task instance flow — LLM should be able to generate task instances based on past work + task template information; need to record the quality of tasks it generated
-- [ ] Mobile adaptation for the AI plan chat modal — it stays a 640px-capped centered card on phones while sibling modals (TaskModal, ReviewChangesModal) switch to `modal-bottom` sheets; no mobile presentation exists yet (design it first via `/design-explore`, then implement)
-- [ ] Redesign the template edit (pencil) affordance for discoverability — currently `opacity-0 group-hover:opacity-100` on TemplateItem, so it's invisible on touch and hidden-until-hover on desktop. Needs a design exploration (`/design-explore`) before implementation
 - [ ] ReviewChangesModal / OverlayShell body height needs tuning on **both** breakpoints — with long change lists the box grows so tall the header ends up out of view; revisit the max-height caps (mobile `max-h-[85vh]`, desktop `md:max-h-[calc(100vh-5em)]`) so the pinned header/footer always stay on screen
 
 ### Future
-
-- [ ] Template categories — Add optional `category` field to TaskTemplate for grouping templates in the plan form. Collapsible groups + search for scalability. Mockups in `design/mockup/future-work/`
-- [ ] Expand the AI plan creation flow
-  - Per-card select/unselect to keep/remove individual draft templates during AI plan creation
-  - Inline editing of size, type, frequency on draft template cards before approval (without re-prompting)
-  - Ad-hoc task carryover in AI plan creation flow
-  - LLM-suggested plan mode (NORMAL/EXTREME)
-- [ ] AI-assisted plan editing — Use a new Chat linked to the same plan to suggest modifications via LLM. Separate from creation flow
-- [ ] Add subtitle field to task template
-- [ ] Biweekly and custom period types
 
 ## Priorities
 
