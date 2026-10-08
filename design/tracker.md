@@ -56,7 +56,11 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ## Cross-cutting
 
-### Design error states
+### High
+
+- [ ] Daily rhythm — Open / Close-the-day rituals and phone notifications for unfinished tasks; kept out of the restructure's scope. Spike `design/spike/daily-rhythm-notifications.md` on branch `claude/notification-task-tracking-design-gcxwy0` (awaiting review); when picked up, regroup its sheets by kind and map "Still on it" to staying in Today (no Doing column)
+
+#### Design error states
 
 Error presentation is unstyled or ad-hoc across the app (the AI chat's red alert strip prompted this); design one error language (tone, copy, placement, visual treatment) and apply it per flow:
 
@@ -76,7 +80,6 @@ Error presentation is unstyled or ad-hoc across the app (the AI chat's red alert
 
 - [ ] Cron-driven sync — move the daily / end-of-period sync to a scheduled job (e.g. Vercel Cron hitting a route just after midnight in `KANBAN_TZ`); pages keep the idempotent `ensureSynced` as fallback. `runDailySync` / `runEndOfPeriodSync` are already standalone for this
 - [ ] User-configurable timezone — Date utils are currently anchored to `America/Los_Angeles` via `KANBAN_TZ` constant. Consider making this a user setting stored in the database for multi-user support or if the user relocates (traveling users)
-- [ ] Daily rhythm — Open / Close-the-day rituals and phone notifications for unfinished tasks; kept out of the restructure's scope. Spike `design/spike/daily-rhythm-notifications.md` on branch `claude/notification-task-tracking-design-gcxwy0` (awaiting review); when picked up, regroup its sheets by kind and map "Still on it" to staying in Today (no Doing column)
 - [ ] LLM-generated motivational messages
 - [ ] Evaluate Storybook vs. the in-app `/design` gallery + scenarios as the long-term UI workbench — spike written with pros/cons + phased migration plan: `design/spike/design-console-vs-storybook.md` (awaiting review)
 - [ ] Custom domain — move off `*.vercel.app`; update Supabase Site URL + Redirect URLs. The MCP connector URL (and its protected-resource `resource`) is tied to the domain, so a switch means re-adding the connector in Claude
