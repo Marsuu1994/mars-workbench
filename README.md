@@ -86,6 +86,10 @@ Open items: see [design/tracker.md](./design/tracker.md).
 
 ## Update Log
 
+### 2026-10-08
+- **Spike: week model restructure (awaiting review)** — `design/spike/week-model-restructure.md` turns the approved habits / projects / one-offs exploration into eight independently shippable PRs (board two columns + risk off → kind-first card + quiet habit expiry → one-off due date → Projects → MCP for projects → Habits → three-step Plan week → cleanup). It recommends a new `Project` table with steps as `PROJECT`-typed Tasks that reuse the one-off lifecycle (all migrations additive until the final cleanup), renaming Todo to **Today** with a drag back to the backlog, and parking backlog stacking (PR #44) until the new card lands.
+- **Tracker**: the restructure is listed under Plan; per-kind risk rules (Board › Future) and the daily-rhythm rituals (Cross-cutting › Future, replacing the bare notifications item) are recorded as out of its scope; the backlog-stacking item is marked parked.
+
 ### 2026-10-07
 - **OAuth consent: no in-page account switch** — owner validation showed Supabase binds an authorization request to the first account that opens it (any other account gets not-found), so "Switch account" could never resume the request; it is removed along with its action and service helper. The page still names the approving account, and the wrong account starts over from the client.
 - **Docs**: the OAuth Consent Flow in `design/flows/auth.md` gains a sequence diagram of the whole MCP authorization — who issues the authorization id, code and token, where the consent page sits, and the token steps still planned for MCP 5/5.

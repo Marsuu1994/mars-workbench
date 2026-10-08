@@ -7,17 +7,19 @@ Single source of truth for open ideas and todos across the app — open items on
 ### Medium
 
 - [ ] Evidence submit flow — when the user moves a task to done, submit evidence
-- [ ] Stack duplicate tasks in the backlog — a template with frequency > 1 lists one card per instance (e.g. five identical "Workout" cards with `#n` badges); collapse them into one stacked card with a count that pulls one instance per drag / `↑ Todo` tap, on both breakpoints. Design it first via `/design-explore`
+- [ ] Stack duplicate habit instances in the backlog — parked until the restructure's kind-first card lands; PR #44 implements it on today's card and only needs moving onto the new face (project steps and one-offs never stack)
 
 ### Future
 
 - [ ] Support same group ordering for drag and drop within same column
 - [ ] Weekly task rollover across periods
+- [ ] Per-kind risk rules — the restructure switches today's risk off (badges, borders, 15:00 / 20:00 clock thresholds); bring it back per kind: habit pace (amber when what's left needs every remaining day), project step carried 2× (amber — split it?), one-off due date (amber within 2 days, red on the day — the only red). Designed in the restructure mockup's Cards & risk screen
 
 ## Plan
 
 ### Medium
 
+- [ ] Restructure the week into habits / projects / one-offs — Doing column removed, Todo renamed, kind-first cards, Projects + Habits pages, three-step Plan week; 8-PR plan with schema options in `design/spike/week-model-restructure.md` (awaiting review), mockup `design/mockup/future-work/temp-week-model-v2.html`
 - [ ] Add AI-generated task instance flow — LLM should be able to generate task instances based on past work + task template information; need to record the quality of tasks it generated
 - [ ] Mobile adaptation for the AI plan chat modal — it stays a 640px-capped centered card on phones while sibling modals (TaskModal, ReviewChangesModal) switch to `modal-bottom` sheets; no mobile presentation exists yet (design it first via `/design-explore`, then implement)
 - [ ] Redesign the template edit (pencil) affordance for discoverability — currently `opacity-0 group-hover:opacity-100` on TemplateItem, so it's invisible on touch and hidden-until-hover on desktop. Needs a design exploration (`/design-explore`) before implementation
@@ -89,7 +91,7 @@ Error presentation is unstyled or ad-hoc across the app (the AI chat's red alert
 
 - [ ] Cron-driven sync — move the daily / end-of-period sync to a scheduled job (e.g. Vercel Cron hitting a route just after midnight in `KANBAN_TZ`); pages keep the idempotent `ensureSynced` as fallback. `runDailySync` / `runEndOfPeriodSync` are already standalone for this
 - [ ] User-configurable timezone — Date utils are currently anchored to `America/Los_Angeles` via `KANBAN_TZ` constant. Consider making this a user setting stored in the database for multi-user support or if the user relocates (traveling users)
-- [ ] Phone notifications for unfinished tasks
+- [ ] Daily rhythm — Open / Close-the-day rituals and phone notifications for unfinished tasks; kept out of the restructure's scope. Spike `design/spike/daily-rhythm-notifications.md` on branch `claude/notification-task-tracking-design-gcxwy0` (awaiting review); when picked up, regroup its sheets by kind and map "Still on it" to staying in Today (no Doing column)
 - [ ] LLM-generated motivational messages
 - [ ] Evaluate Storybook vs. the in-app `/design` gallery + scenarios as the long-term UI workbench — spike written with pros/cons + phased migration plan: `design/spike/design-console-vs-storybook.md` (awaiting review)
 - [ ] Custom domain — move off `*.vercel.app`; update Supabase Site URL + Redirect URLs. The MCP connector URL (and its protected-resource `resource`) is tied to the domain, so a switch means re-adding the connector in Claude
