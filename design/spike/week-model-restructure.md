@@ -74,11 +74,22 @@ CREATE TABLE projects (
   updated_at  timestamptz NOT NULL DEFAULT now()
 );
 ALTER TABLE tasks ADD COLUMN project_id uuid REFERENCES projects(id);  -- 不级联删除：做完的 step 带着 points 历史
-ALTER TABLE tasks ADD COLUMN position int;                             -- step 在 project 内的顺序
-CREATE INDEX idx_tasks_project_id_position ON tasks (project_id, position);
+CREATE INDEX idx_tasks_project_id_instance_index ON tasks (project_id, instance_index);
+-- step 在 project 内的顺序复用现有的 instance_index（见下）
 ```
 
-Project 只能 archive，不做硬删除。kind 由 `TaskType` 推出来，Task 上不加 kind 列：
+Project 只能 archive，不做硬删除。
+
+**Step 的顺序复用 `instanceIndex`**，不加新的 `position` 列（owner review 提出）：
+
+- 它本来就是「这个任务在来源里排第几个」：template instance 是第几个副本，step 是 project 里的第几步。
+- 它是 `NOT NULL` 的 int，已经在 DAL 的 `taskSelect` 里；`sortTasks` 本来就用它排同组任务的先后，所以 board 上同一个 project 的 steps 会按顺序排。
+- 两个唯一约束 `uq_task_daily` / `uq_task_weekly` 都包含 `templateId`。step 的 `templateId` 是 NULL，Postgres 把 NULL 当作互不相同，所以重新排序时不会撞约束。
+- 单独加一个可空的 `position` 列，几乎所有行上都会是 NULL。
+
+约定：对 step 来说 `instanceIndex` 从 1 开始，就是 UI 上显示的「第 n 步」。重新排序时，在一个 transaction 里给这个 project 没做完的 steps 重新编号。代价是字段名读起来像「副本序号」，所以要在 schema 上加注释说明；要不要把 Prisma 字段改成更中性的名字（保留 `@map("instance_index")`），留到 Phase 2 的 cleanup 再决定。
+
+kind 由 `TaskType` 推出来，Task 上不加 kind 列：
 
 | UI 里的 kind | DB 里的 `TaskType` |
 | --- | --- |
@@ -89,7 +100,8 @@ Project 只能 archive，不做硬删除。kind 由 `TaskType` 推出来，Task 
 ### 代码里要显式处理 `PROJECT` 的地方
 
 - `expireAllNonDoneTasks`：周末不 expire。
-- Carry-over 和 unlink：`getCarryOverAdhocTaskIds` 和 `unlinkAdhocTasksFromPlan` 要推广到 step。step 退回时只清 `planId`，`position` 保持不变。
+- Carry-over 和 unlink：`getCarryOverAdhocTaskIds` 和 `unlinkAdhocTasksFromPlan` 要推广到 step。step 退回时只清 `planId`，`instanceIndex`（step 序号）保持不变。
+- `sortTasks`：分组键从 `templateId` 改成 `templateId ?? projectId`，让同一个 project 的 steps 排在一起、按 `instanceIndex` 排序。
 - `getBoardMetricsByPlanId`：这是按 daily / weekly / adhoc 分桶的 raw SQL，要加一个 project 桶。
 - `Record<TaskType, …>` 类的映射（i18n `Enums.TaskType`、排序）：漏掉的地方 TypeScript 编译时会报出来。
 - 不用改的：matrix 的查询本来就只查 `AD_HOC`；`getPlanTemplateStats` 按 `templateId` 分组，step 没有 templateId；daily expiry 按 `forDate` 过滤，step 没有 `forDate`。
@@ -106,7 +118,7 @@ Project 只能 archive，不做硬删除。kind 由 `TaskType` 推出来，Task 
 | `board.md` | Progress Tracking Flow | metrics 加 project 桶。step 和其他任务一样计入 Today 和 Week；Week projection 包含 backlog 里的 step |
 | `board.md` | Task Risky Level Visual Effect Flow | **删除**（risk 关掉），规则移到 tracker |
 | `board.md` | Drag and Drop Flow | 规则不变，step 和其他任务一样移动 |
-| `plan.md` | Create Plan Flow | 第 1 步：多预载 pending plan 上没做完的 step，默认选中，和 one-off 一样。第 6–7 步：选中的 step 挂到新 plan，保留原状态；没选中的退回 project（`planId = null`、`BACKLOG`，`position` 不变） |
+| `plan.md` | Create Plan Flow | 第 1 步：多预载 pending plan 上没做完的 step，默认选中，和 one-off 一样。第 6–7 步：选中的 step 挂到新 plan，保留原状态；没选中的退回 project（`planId = null`、`BACKLOG`，`instanceIndex` 不变） |
 | `plan.md` | Update Plan Flow | 第 3 步：已在这周的 step 可以取消选择，取消后退回 project；ReviewChangesModal 写明「回到 <project>」。plan form 里**不能新加** step |
 | `plan.md` | AI Assisted Plan Creation Flow | 审批时 step 和 one-off 一样全部带上（现在对 one-off 就是全带）。AI chat 本身在 Phase 2 移除 |
 | `plan.md` | Plan with Claude (MCP) Flow | context 加 projects；新增工具 `create_project` / `update_project`；`create_plan` 加 `carryOverProjectStepIds` / `projectStepIds`；`update_plan` 能加、减 step。Rules 加上 step 的校验：只能排本人的、没做完的、没在这周 plan 上的 step |
@@ -121,14 +133,14 @@ Project 只能 archive，不做硬删除。kind 由 `TaskType` 推出来，Task 
    - 规则：archived 的 project 单独列在下面。
 2. **Create Project Flow**
    - 入口：「+ New project」。
-   - 步骤：填 title（必填）、goal（可选）、first steps（可选，一行一步，size 默认 S）→ 在一个 transaction 里建 project 和 steps：`position` 从 1 往下排，`planId = null`，`BACKLOG`，`type = PROJECT`。
+   - 步骤：填 title（必填）、goal（可选）、first steps（可选，一行一步，size 默认 S）→ 在一个 transaction 里建 project 和 steps：`instanceIndex` 从 1 往下排，`planId = null`，`BACKLOG`，`type = PROJECT`。
    - 规则：空行忽略。
 3. **Edit Project Flow**
    - 可以改 title、goal，可以 archive / unarchive。
    - 规则：archive 时没做完的 step 退出这周（回到 project）并隐藏；done 的 step 保留 plan 归属。
 4. **Manage Steps Flow**
    - 加 step（默认追加到末尾）；改 title、description、size；拖动调整顺序（只能拖 upcoming 的 step）；删除。
-   - 规则：`position` 保持连续；done 的 step 锁定，不能改也不能删（它们带着 points 历史）；删除一个排在这周的 step，会同时把它从这周拿掉。
+   - 规则：`instanceIndex` 保持连续；done 的 step 锁定，不能改也不能删（它们带着 points 历史）；删除一个排在这周的 step，会同时把它从这周拿掉。
 5. **Schedule Step Flow**
    - 入口：upcoming step 上的「+ This week」（Projects 页），或者 MCP。
    - 步骤：需要有 ACTIVE plan（没有时按钮禁用，提示和 matrix 的 no-plan 状态一样）→ 设 `planId = active plan`、`BACKLOG` → step 出现在 board 的 backlog → 之后走 board 现有的 flow。
@@ -142,7 +154,7 @@ Project 只能 archive，不做硬删除。kind 由 `TaskType` 推出来，Task 
    - 未排期：`planId = null` · `BACKLOG`
    - 排进这周：`planId = plan` · `BACKLOG`
    - 之后在 board 上：`TODO` → `DOING` → `DONE`
-   - 周末没做完：仍挂在 pending plan 上；到下一个 plan 时，要么被带上（保留状态），要么退回 project（`planId = null` · `BACKLOG`，`position` 不变）。
+   - 周末没做完：仍挂在 pending plan 上；到下一个 plan 时，要么被带上（保留状态），要么退回 project（`planId = null` · `BACKLOG`，`instanceIndex` 不变）。
    - project 进度 = DONE 的 step 数 / step 总数；done 的 step 显示完成日期。
 
 ## Executable plan · Phase 1 PR 序列
@@ -161,7 +173,7 @@ PR 2 和 PR 3 互不依赖，可以并行。PR 5 合并后，Phase 1 MVP 上线�
 
 - `baseline.md`：
   - Entities 加 **Project**，**Task** 加 project step 的说明；
-  - Schema 加 `projects` 表、`TaskType.PROJECT`、`Task.projectId / position`；
+  - Schema 加 `projects` 表、`TaskType.PROJECT`、`Task.projectId`（step 顺序复用 `instanceIndex`）；
   - Architecture Decision 记下选项 B 及其理由。
   - 标注方式沿用 DumpEntry 的先例：「*(designed — Phase 1 pending)*」。
 - `flows/projects.md`：新文档，写入上面 6 个 flow 加 Step Lifecycle，按现有 flow 文档的格式（Trigger / Steps / Rules）。
@@ -189,7 +201,7 @@ PR 2 和 PR 3 互不依赖，可以并行。PR 5 合并后，Phase 1 MVP 上线�
 - 新增 `lib/db/projects.ts`、`projectService`、`projectActions`，加上 zod schema。覆盖：建 / 改 / archive project；加 / 改 / 删 / 排序 step；排进这周 / 撤回。
 - 生命周期：`expireAllNonDoneTasks` 跳过 `PROJECT`；推广 carry-over 和 unlink；`getBoardMetricsByPlanId` 加 project 桶；补齐 `TaskType` 的各种映射。
 - 这个 PR 没有 UI。
-- **Done when**：migration 在本地 Postgres 跑通；用脚本验证周末不过期、carry-over、unlink 保留 `position`、DONE 保留 plan 归属；构建全绿。
+- **Done when**：migration 在本地 Postgres 跑通；用脚本验证周末不过期、carry-over、unlink 保留 `instanceIndex`、DONE 保留 plan 归属；构建全绿。
 
 ### PR 4 — Projects UI + step 上 board
 
