@@ -4,7 +4,7 @@
 
 Mockups:
 - Phase 1，待批准：`design/mockup/future-work/temp-week-model-phase1-v2.html`
-- Phase 1 的 Projects 页和 modal，待批准：`design/mockup/future-work/temp-projects-v2.html`
+- Phase 1 的 Projects flows，待批准：`design/mockup/future-work/temp-projects-v2.html`。每个 tab 是下面「新增的 flow」里的一个 flow，用编号的画面画出路径（要点的控件描边、结果着色），最后一个 tab 可以直接操作
 - Phase 2，只是 exploration，不规划：`design/mockup/future-work/temp-week-model-phase2-v2.html`
 
 > 语言约定：沿用 daily-rhythm spike 的写法。叙述用中文；产品名词、状态、代码标识保留英文（habit / project / step / one-off / backlog …），和代码、mockup、tracker 里的叫法一一对应。
@@ -134,18 +134,19 @@ kind 由 `TaskType` 推出来，Task 上不加 kind 列：
 1. **Projects Landing Flow**
    - 入口：Plan hub 的 Projects tab，进入 `/kanban/projects`。侧栏的 Plan 项和 dock 的 Plan tab 保持激活。
    - 步骤：`ensureSynced` → 列出未 archive 的 project（进度 done/total、下一步、这周排了几步）→ 选中一个看详情。Desktop 是左右两栏；mobile 进入 `/kanban/projects/[id]`。
-   - 规则：archived 的 project 单独列在下面。
+   - 规则：一个 project 都没有时，显示空状态：「New project」，外加一句提示可以请 Claude 起草；archived 的 project 单独列在列表最下面，带 Unarchive。
 2. **Create Project Flow**
    - 入口：Projects 页的「+ New project」，或者空状态里的同一个按钮。
    - 步骤：打开 **New Project** modal（TaskModal 同款外壳：标题栏 + ×、project 的说明 banner、Title 必填、Goal 可选、Cancel / Create project）→ 建好后进入这个 project 的详情，空状态提示「+ Add the first step」。
-   - 规则：project 没有 size（它的大小是 steps 之和）；desktop 是居中 modal，mobile 是 bottom sheet。
+   - 规则：Title 为空时 Create project 不可点；project 没有 size（它的大小是 steps 之和）；desktop 是居中 modal，mobile 是 bottom sheet。
 3. **Edit Project Flow**
-   - 入口：project 详情右上角的「Edit」，打开 **Edit Project** modal：改 title、goal；footer 左边是 Archive。
-   - 规则：archive 时没做完的 step 退出这周（回到 project）并隐藏，project 移到 Archived；done 的 step 保留 plan 归属；可以 unarchive。
+   - 入口：project 详情右上角的「Edit」，打开 **Edit Project** modal（New Project 去掉 banner）：改 title、goal；footer 左边是 Archive。
+   - Archive 是两步确认，沿用 sign-out 的模式：Archive → 同一个按钮变成「Archive?」，下面写明「Unfinished steps leave this week」。
+   - 规则：archive 时没做完的 step 退出这周（回到 project），project 移到 Archived，列表选中下一个 project；done 的 step 保留 plan 归属；Unarchive 原样恢复。
 4. **Manage Steps Flow**
    - 加：「+ Add step」打开 **Add Step** modal，字段和 Create Task Template 一样（Title 必填、Description 可选、Size 选择器带 effort 提示和 L / XL 拆分提醒），标题栏写明 project 名和「becomes step n」；保存后追加到末尾，modal 关闭（和 Add Priority Task 一样一次加一步，批量起草交给 Claude）。
-   - 改 / 删：没做完的 step 每行有常显的 ✎，打开 **Edit Step** modal（同样的字段，footer 左边是 Delete step）。
-   - 排序：拖 upcoming step 的把手调整顺序。
+   - 改 / 删：没做完的 step 每行有常显的 ✎（只在 hover 时出现的控件在触屏上找不到），打开 **Edit Step** modal（同样的字段，footer 左边是 Delete step）。Delete 同样两步确认：Delete step → 「Delete step?」；删掉后后面的 step 前移一位。编辑一个排在这周的 step，board 上的卡片同步更新。
+   - 排序：desktop 拖 upcoming / 这周的 step 的把手；mobile 长按拖动。done 的 step 固定在最上面，按完成顺序排。
    - 规则：`instanceIndex` 保持连续；done 的 step 锁定，不能改也不能删（它们带着 points 历史）；删除一个排在这周的 step，会同时把它从这周拿掉。
 5. **Schedule Step Flow**
    - 入口：upcoming step 上的「+ This week」（Projects 页），或者 MCP。
