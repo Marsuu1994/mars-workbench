@@ -321,9 +321,10 @@ Only patterns not already covered above. DRY, enum constants, and the component�
 ## Version Control
 
 - **Local sessions (running on the user's machine): do NOT commit or push without explicit permission from the user.** The user reviews work before it is committed. Make and stage changes, summarize what changed, and wait for the user to approve before running `git commit`, `git push`, or any other outward-facing or hard-to-reverse VCS action.
-- **Remote sessions (managed cloud environments — e.g. Claude Code on the web / GitHub integration, where the repo is cloned fresh into an ephemeral container): no permission needed for commit/push/PR.** Work on a new branch (or the session's designated working branch), commit with clear messages, push with `git push -u origin <branch>`, and open a pull request directly.
+- **Remote sessions (managed cloud environments — e.g. Claude Code on the web / GitHub integration, where the repo is cloned fresh into an ephemeral container): no permission needed for commit/push/PR.** Work on a new branch (or the session's designated working branch when its name describes the work — see branch names below), commit with clear messages, push with `git push -u origin <branch>`, and open a pull request directly.
 - In both modes, never commit or push directly to `main` — changes land via pull requests.
 - Run `npm run format` before pushing (see **Formatting** — CI's `format:check` fails the PR otherwise).
+- **Branch names say what the PR does**: `claude/<feature>-<change>`, kebab-case, a few words — for a multi-PR project include the step (`pr2`). In remote sessions, when the session's assigned branch is a random name, create a descriptive branch for the PR instead of pushing to the random one. Bad: `claude/quirky-galileo-8ofthc`, `claude/project-data-layer` (which project? which step?). Good: `claude/week-model-pr2-kind-first-cards`, `claude/week-model-pr3-project-data-layer`.
 
 ## Commands
 
