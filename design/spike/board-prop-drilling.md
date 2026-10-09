@@ -1,57 +1,59 @@
 # Spike: Simplify board prop drilling
 
-**Status: awaiting owner review** · 2026-10-09 · Answers the tracker item *Spike: simplify prop drilling* (Cross-cutting › Medium) · Related: `design/flows/projects.md` (PR 4 adds the project step face), `design/spike/scenario-states-without-production-props.md` (no console-only props)
+**Status: awaiting owner review** · 2026-10-09 · 回答 tracker 条目 *Simplify board prop drilling*（Cross-cutting › Medium）· 相关：`design/flows/projects.md`（PR 4 加 project step 的卡片 face）、`design/spike/scenario-states-without-production-props.md`（no console-only props）
 
-## Trigger
+> 语言约定：叙述用中文；产品名词、状态、代码标识保留英文（habit / project / step / one-off / backlog、`KanbanBoard`、`habitWeeks` …），和代码、mockup、tracker 里的叫法一一对应。
 
-The board's per-card inputs travel the whole tree. Today, three values are created in `KanbanBoard` and handed down until a card face finally reads them:
+## Trigger · 起因
 
-| Value | Created in | Passed through, unread | Read in |
+board 每张卡片要用的输入，现在要穿过整棵组件树。有三个值在 `KanbanBoard` 里生成，一路往下传，直到 card face 才真正读：
+
+| 值 | 在哪生成 | 只转手、不读的组件 | 在哪读 |
 | --- | --- | --- | --- |
-| `today` | `KanbanBoard` (`useMemo(getTodayDate)`) | `BoardColumn`, `DesktopBacklog`, `MobileBacklog`, `MobileBacklogContent`, `TaskCard`, `MobileBacklogCard` | `TaskCardFace`, `TaskCardMiniFace` (`isRolloverTask`) |
-| `habitWeeks` (a `Map`) | `KanbanBoard` (`computeHabitWeeks`) | `MobileBacklog` | `BoardColumn`, `DesktopBacklog`, `MobileBacklogContent` each repeat `habitWeeks.get(task.templateId)`, then pass `habitWeek` on through `TaskCard` / `MobileBacklogCard` to the faces |
-| `onPull` | `KanbanBoard` (`handlePullToTodo`) | `MobileBacklog`, `MobileBacklogContent` | `MobileBacklogCard` |
+| `today` | `KanbanBoard`（`useMemo(getTodayDate)`） | `BoardColumn`、`DesktopBacklog`、`MobileBacklog`、`MobileBacklogContent`、`TaskCard`、`MobileBacklogCard` | `TaskCardFace`、`TaskCardMiniFace`（`isRolloverTask`） |
+| `habitWeeks`（一个 `Map`） | `KanbanBoard`（`computeHabitWeeks`） | `MobileBacklog` | `BoardColumn`、`DesktopBacklog`、`MobileBacklogContent` 各自重复一遍 `habitWeeks.get(task.templateId)`，再把 `habitWeek` 经 `TaskCard` / `MobileBacklogCard` 传给 face |
+| `onPull` | `KanbanBoard`（`handlePullToTodo`） | `MobileBacklog`、`MobileBacklogContent` | `MobileBacklogCard` |
 
-Nine of the board's 14 component files carry at least one of the three, and six of them forward a prop they never read. The design console repeats the same wiring in `MobileBacklogPanel` and four gallery specimens.
+board 的 14 个组件文件里，有 9 个带着这三个值中的至少一个，其中 6 个只是转手、自己从不读。Design Console 在 `MobileBacklogPanel` 和 4 个 gallery specimen 里又把同样的接线写了一遍。
 
-The problem grows. Planned work adds more per-card inputs that would take the same route:
+而且这个问题会变大。已规划的工作还会给卡片加输入，走的是同一条路：
 
-- **PR 4, project step cards**: project name, step n of N, the path as its signal (`baseline.md` › Phase 1). None of it is on `TaskItem` (it has `projectId` and `instanceIndex` only), so a `projects` lookup comes from the server and travels like `habitWeeks` does.
-- **Per-kind risk rules** (Board › Future): habit pace needs `today` and the days left, a step needs its carry count, a one-off needs its due date.
-- **Backlog stacking** (Board › Medium): grouping habit duplicates at list level.
+- **PR 4，project step 卡片**：project 名、step n of N、path 作为 signal（`baseline.md` › Phase 1）。这些都不在 `TaskItem` 上（它只有 `projectId` 和 `instanceIndex`），所以要从 server 带一个 `projects` lookup 下来，走 `habitWeeks` 现在走的路。
+- **Per-kind risk rules**（Board › Future）：habit 的进度要 `today` 和剩余天数，step 要 carry 次数，one-off 要 due date。
+- **Backlog stacking**（Board › Medium）：在列表层把重复的 habit 实例分组。
 
-## Why it happens
+## 为什么会这样
 
-The drilled values are not shared, mutable state. They are **inputs a card needs that its `TaskItem` does not carry**: lookup tables and a clock, which each leaf turns into its kind's context and signal. The derivation is spread over the leaves:
+被层层传递的这些值不是共享的可变状态，而是**卡片要用、但它的 `TaskItem` 上没有的输入**：几张 lookup 表和一个时钟，由每个叶子组件自己换算成该 kind 的 context 和 signal。换算散落在叶子里：
 
-- `getTaskKind(task.type)` is called in `TaskCard`, `MobileBacklogCard`, `TaskCardFace` and `TaskCardMiniFace`.
-- `isRolloverTask(task, today)` runs in both faces.
-- `habitWeek` is an optional prop on four components because only one kind has it. PR 4 would add a second optional prop for steps.
+- `getTaskKind(task.type)` 在 `TaskCard`、`MobileBacklogCard`、`TaskCardFace`、`TaskCardMiniFace` 里各调一次。
+- `isRolloverTask(task, today)` 在两个 face 里都跑一遍。
+- `habitWeek` 在 4 个组件上都是可选 prop，因为只有一种 kind 有它。PR 4 会再给 step 加第二个可选 prop。
 
-The only mutable state, the tasks' statuses, has one owner (`KanbanBoard`) and two writers (drag end, mobile pull), both inside that owner's subtree. Nothing outside the board writes to it. `ProgressDashboard` is a sibling, but it reads server-computed metrics, not the tasks.
+唯一的可变状态是 task 的 status。它只有一个 owner（`KanbanBoard`），两个写入点（拖拽结束、手机端 pull），都在这个 owner 的子树里。board 外面没有任何东西会写它。`ProgressDashboard` 和它是兄弟组件，但读的是 server 算好的指标，不读 tasks。
 
-Two smaller findings from the read-through:
+通读代码时另外发现两点：
 
-- **`today` has two sources.** The server computes it for the metrics (`fetchBoard`), and `KanbanBoard` computes it again on the client. Because it is created inside `KanbanBoard`, the board scenario cannot pin it: only the mobile backlog panel takes `SCENARIO_TODAY`, and the fixtures avoid the problem by giving "today's" daily instances `forDate: null`.
-- **The board's rollback still uses a whole-list snapshot.** `handleDragEnd` and `handlePullToTodo` each copy `localTasks`, update one task, and restore the whole copy if the action fails. Restoring the copy undoes any other move made while the request was in flight. The matrix already fixed this in `runOptimisticTaskUpdate` (per-task rollback). The board has the same pattern twice, with the old bug.
+- **`today` 有两个来源。** server 为了算指标在 `fetchBoard` 里算一次，`KanbanBoard` 在 client 上又算一次。因为它在 `KanbanBoard` 内部生成，board scenario 没法固定它：只有 mobile backlog panel 能接 `SCENARIO_TODAY`，fixture 只好让「今天」的 daily 实例用 `forDate: null` 来绕开。
+- **board 的回滚还在用整张列表的快照。** `handleDragEnd` 和 `handlePullToTodo` 都先复制一份 `localTasks`，改一个 task，action 失败时整份恢复。这样恢复会把请求进行期间的其他移动也撤销掉。matrix 已经在 `runOptimisticTaskUpdate` 里修过这个问题（只回滚出错的那个 task），board 有两份同样的写法，bug 还在。
 
-## Acceptance bar
+## Acceptance bar · 验收标准
 
-- No component forwards a prop it does not read. A middle layer (column, backlog, sheet body) knows nothing about kinds, habits, projects or the date.
-- Adding a per-card input (PR 4's project context, a future risk rule) touches the place it is derived and the face that shows it, nothing in between.
-- Cards and faces stay renderable from fixtures in the gallery and scenarios with no console-only props (the rule from the scenario-states spike).
-- The board scenario can pin `today`.
-- Optimistic drag and pull keep working, and a failed move rolls back only that task.
+- 没有组件转手它不读的 prop。中间层（列、backlog、sheet body）对 kind、habit、project、日期一无所知。
+- 给卡片加一个输入（PR 4 的 project context、以后的某条 risk rule）时，只改算它的地方和显示它的 face，中间什么都不动。
+- 卡片和 face 在 gallery 和 scenario 里仍然能直接用 fixture 渲染，没有 console-only props（scenario-states spike 定下的规则）。
+- board scenario 能固定 `today`。
+- 拖拽和 pull 的乐观更新照常工作，移动失败时只回滚那一个 task。
 
 ---
 
-## Option A — React context for the board's per-card inputs
+## Option A — 用 React context 传卡片输入
 
 **Design**
 
-- A `BoardContext` provider (`domain/board/BoardContext.tsx`), mounted by `KanbanBoard`, carries `{today, habitWeeks, pullToTodo}`. PR 4 adds `projects`.
-- Leaves read it with `useBoard()` and a small `useHabitWeek(task)`. Middle layers lose the three props.
-- `useBoard()` throws when no provider is mounted. A silent default would render a habit card without its dots and nobody would notice.
+- 新增一个 `BoardContext` provider（`domain/board/BoardContext.tsx`），由 `KanbanBoard` 挂载，里面放 `{today, habitWeeks, pullToTodo}`。PR 4 再加 `projects`。
+- 叶子组件用 `useBoard()` 和一个小的 `useHabitWeek(task)` 读取，中间层去掉这三个 prop。
+- 没挂 provider 时 `useBoard()` 直接 throw。如果给默认值静默兜底，habit 卡片会悄悄少了 dots，没人会发现。
 
 ```tsx
 // domain/board/BoardContext.tsx
@@ -77,38 +79,38 @@ const habitWeek = useHabitWeek(task);
 
 **Pros**
 
-- Smallest change, almost all deletions. No new dependency, and it uses the pattern `BreakpointProvider` already uses.
-- Middle layers become plain layout.
+- 改动最小，几乎都是删除。不加依赖，用的是 `BreakpointProvider` 已经在用的模式。
+- 中间层变成纯 layout。
 
 **Cons**
 
-- **Hides the faces' inputs.** `TaskCardFace` / `TaskCardMiniFace` / `MobileBacklogCard` are the most reused board components (desktop board, both backlogs, gallery, scenarios). Every reuse site now needs a provider, and in the gallery each card specimen has to build a `habitWeeks` map keyed by the fixture's template.
-- **Leaves the derivation where it is.** The faces still look up the habit, test for rollover and switch on kind. PR 4 adds a `projects` map to the context and another lookup to the faces.
-- `habitWeek` stays optional on the faces, so a step or one-off face can still be handed one.
+- **face 的输入被藏起来了。** `TaskCardFace` / `TaskCardMiniFace` / `MobileBacklogCard` 是 board 复用最多的组件（desktop board、两个 backlog、gallery、scenario）。每个复用的地方都要包 provider；gallery 里每个卡片 specimen 都得按 fixture 的 template 拼一个 `habitWeeks` map。
+- **换算还留在原处。** face 仍然自己查 habit、判断 rollover、按 kind 分支。PR 4 会往 context 里加 `projects` map，再给 face 加一处查找。
+- `habitWeek` 在 face 上仍是可选的，step 或 one-off 的 face 照样能被塞一个进去。
 
 **Implementation plan**
 
-1. Add `BoardContext.tsx` (provider, `useBoard`, `useHabitWeek`). `KanbanBoard` wraps its tree in the provider.
-2. Remove `today` / `habitWeeks` / `onPull` from `BoardColumn`, `DesktopBacklog`, `MobileBacklog`, `MobileBacklogContent`, `TaskCard`, `MobileBacklogCard`, and have the two faces read the context.
-3. `today` comes from the server: `fetchBoard` returns the `today` it already computes, `BoardScreen` passes it on, and the scenario passes `SCENARIO_TODAY`.
-4. Design console: wrap `MobileBacklogPanel` and the TaskCard / mini face / MobileBacklogCard / BoardColumn specimens in a `BoardProvider` built from fixtures.
-5. Size: **S**. About 15 files, mostly deletions; roughly half a day.
+1. 新增 `BoardContext.tsx`（provider、`useBoard`、`useHabitWeek`），`KanbanBoard` 用 provider 包住自己的树。
+2. 从 `BoardColumn`、`DesktopBacklog`、`MobileBacklog`、`MobileBacklogContent`、`TaskCard`、`MobileBacklogCard` 去掉 `today` / `habitWeeks` / `onPull`，两个 face 改为读 context。
+3. `today` 改由 server 提供：`fetchBoard` 把它已经算好的 `today` 一起返回，`BoardScreen` 往下传，scenario 传 `SCENARIO_TODAY`。
+4. Design Console：`MobileBacklogPanel` 以及 TaskCard / mini face / MobileBacklogCard / BoardColumn 的 specimen 都包一个用 fixture 搭的 `BoardProvider`。
+5. Size：**S**。约 15 个文件，大部分是删除；大约半天。
 
 ---
 
-## Option B — Zustand board store, hydrated from the server
+## Option B — Zustand board store，从 server hydrate
 
-This is the "fetch on the server, hydrate a client store, then the board manages its own state" direction.
+这是「server 端 fetch，hydrate 到 client store，之后 board 完全由 client 管理状态」的方向。
 
 **Design**
 
-- The store has to be **created per request and handed down through a provider**. A module-level `create()` store like `sidebarStore` cannot do this:
-  - Next renders client components on the server too, and a module-level store is shared by every request on that server. Writing one user's tasks into it during render can leak into another user's server-rendered HTML.
-  - Filling it in a `useEffect` instead means the server HTML and the first client paint show an empty board.
-  - Zustand's documented Next.js setup is `createStore` from `zustand/vanilla`, wrapped in a client provider (`useState(() => createBoardStore(initial))`), and read with `useStore(store, selector)`.
-- **State**: `{tasks, plan, today}` (PR 4 adds `projects`). Derived `habitWeeks` is recomputed inside the store's setters, so selectors return stable references. **Actions**: `sync(tasks)` and `patchTask(id, patch)` / `revertTask(id, previous)`.
-- **Server actions stay out of the store** (AGENTS.md › State Management: stores make no DB or fetch calls). A `useBoardMoves()` hook in `src/hooks/` does the optimistic patch, calls `updateTaskStatusAction`, and reverts on error.
-- **The server stays the source of truth.** The dashboard's metrics come from a SQL aggregate over tasks the board never loads (expired and past instances), so they cannot be computed on the client. After every move, `revalidatePath('/kanban')` re-renders the page, and the provider must call `sync(tasks)` when new props arrive. That is the same `useEffect(() => setLocalTasks(tasks))` the board has today, moved into the provider. "Fully client-side" therefore means an optimistic cache in front of the server, not a client-owned board.
+- store 必须**每个请求新建一个，再通过 provider 往下传**。像 `sidebarStore` 那样的模块级 `create()` store 做不到这一点：
+  - Next 也会在 server 上渲染 client 组件，而模块级 store 被这台 server 上的所有请求共用。如果在 render 时把一个用户的 tasks 写进去，可能会漏到另一个用户的 server 渲染 HTML 里。
+  - 改成在 `useEffect` 里灌数据的话，server HTML 和 client 首屏都会是一个空 board。
+  - Zustand 官方的 Next.js 写法是：用 `zustand/vanilla` 的 `createStore`，包在一个 client provider 里（`useState(() => createBoardStore(initial))`），再用 `useStore(store, selector)` 读。
+- **State**：`{tasks, plan, today}`（PR 4 加 `projects`）。派生出来的 `habitWeeks` 在 store 的 setter 里重算，这样 selector 返回的引用是稳定的。**Actions**：`sync(tasks)`、`patchTask(id, patch)` / `revertTask(id, previous)`。
+- **server action 不进 store**（AGENTS.md › State Management：store 里不做 DB 或 fetch 调用）。由 `src/hooks/` 里的 `useBoardMoves()` 负责：先乐观 patch，再调 `updateTaskStatusAction`，出错时 revert。
+- **server 仍然是 source of truth。** dashboard 的指标来自一条 SQL 聚合，覆盖了 board 从不加载的 tasks（过期的、过去的实例），所以 client 算不出来。每次移动后 `revalidatePath('/kanban')` 会重新渲染页面，新 props 到达时 provider 必须调用 `sync(tasks)`。这和 board 现在的 `useEffect(() => setLocalTasks(tasks))` 是同一件事，只是搬进了 provider。所以「完全 client side」实际上是挡在 server 前面的一层乐观缓存，不是由 client 拥有的 board。
 
 ```tsx
 // store/boardStore.ts
@@ -130,37 +132,37 @@ const habitWeek = useBoardStore(s => (task.templateId ? s.habitWeeks.get(task.te
 
 **Pros**
 
-- Components subscribe to slices. A drag can re-render only the cards whose selected slice changed, instead of the whole tree as today. Nothing has measured this as slow, though; the board holds tens of cards.
-- State and its transitions live in one testable module, and `KanbanBoard` shrinks to layout plus DnD wiring.
-- It leaves room to grow if later work needs several distant components writing to the board state, for example a dashboard that updates optimistically, or editing a task from a card's sheet.
+- 组件按 slice 订阅。一次拖拽可以只重渲染 selected slice 变了的卡片，而不是像现在这样整棵树都重渲染。不过目前没有任何测量说明这里慢，board 上只有几十张卡片。
+- 状态和它的变化都集中在一个可测试的模块里，`KanbanBoard` 缩成 layout 加 DnD 接线。
+- 给以后留了扩展空间：如果后续需要多个相距较远的组件写 board 状态，比如乐观更新的 dashboard，或者从卡片的 sheet 编辑 task。
 
 **Cons**
 
-- **It solves a problem the board doesn't have.** The state has one owner and its writers sit in that owner's subtree, so a store mostly adds indirection: a provider, a store module, a bridge hook, selectors.
-- **It introduces a second store pattern.** Every store in `src/store/` today is a global UI-state singleton. This would be the first per-instance store hydrated from server data, which needs its own AGENTS.md rule saying when to use which.
-- **Two copies of the tasks.** Server props and the store have to be kept in sync by hand, and an in-flight optimistic patch can be overwritten by a `sync` from an earlier revalidation, the same race the current `useEffect` has.
-- **Selector pitfalls in Zustand v5.** A selector that returns a fresh array or object on each call (`s.tasks.filter(…)`) triggers infinite re-render warnings unless it is wrapped in `useShallow` or the value is precomputed in the store.
-- **It doesn't fix the per-kind derivation.** Like Option A, the faces still look up and derive their context; they now read it through selectors instead of props.
-- Every gallery or scenario specimen of a card or column needs a store built from fixtures.
+- **解决的是 board 没有的问题。** 状态只有一个 owner，写入点都在 owner 的子树里，所以 store 主要是多了几层间接：provider、store 模块、bridge hook、selector。
+- **引入第二种 store 模式。** 现在 `src/store/` 里的 store 都是全局的 UI 状态单例。这会是第一个从 server 数据 hydrate、每个实例一份的 store，需要在 AGENTS.md 里加规则，说明什么时候用哪种。
+- **tasks 有两份副本。** server props 和 store 要手动保持同步。一次还在进行中的乐观 patch，可能被更早一次 revalidation 触发的 `sync` 覆盖掉，这和现在的 `useEffect` 是同一个 race。
+- **Zustand v5 的 selector 陷阱。** 如果 selector 每次调用都返回新的数组或对象（`s.tasks.filter(…)`），会触发无限重渲染警告，除非包 `useShallow`，或者在 store 里预先算好。
+- **per-kind 的换算问题没解决。** 和 Option A 一样，face 仍然自己查找、自己换算 context，只是从 props 换成了 selector。
+- gallery 或 scenario 里每个卡片 / 列的 specimen 都要用 fixture 搭一个 store。
 
 **Implementation plan**
 
-1. `src/store/boardStore.ts` (`createBoardStore`, state plus derived `habitWeeks`, `sync` / `patchTask` / `revertTask`) and `domain/board/BoardStoreProvider.tsx` (per-instance store, `sync` on new props).
-2. `src/hooks/useBoardMoves.ts`: optimistic move, the action call, and a per-task revert. It replaces `handleDragEnd`'s write path and `handlePullToTodo`.
-3. `BoardScreen` mounts the provider with `tasks` / `plan` / `today` (`today` from the server, as in A). `KanbanBoard`, columns, backlogs and cards read through selectors, and their data props go.
-4. Design console: a fixture-store helper. Wrap the board scenario's panel and the card / column specimens.
-5. AGENTS.md › State Management: when a store is per-instance (server-hydrated) and when it is global, with bad and good examples.
-6. Size: **M**. About 20 files plus one new convention; roughly 1–1.5 days, including time to verify the sync race and the DnD snap-back.
+1. `src/store/boardStore.ts`（`createBoardStore`，state 加派生的 `habitWeeks`，`sync` / `patchTask` / `revertTask`），以及 `domain/board/BoardStoreProvider.tsx`（每实例一个 store，新 props 到达时 `sync`）。
+2. `src/hooks/useBoardMoves.ts`：乐观移动、调用 action、按 task 回滚。取代 `handleDragEnd` 的写入部分和 `handlePullToTodo`。
+3. `BoardScreen` 用 `tasks` / `plan` / `today` 挂载 provider（`today` 来自 server，同 A）。`KanbanBoard`、列、backlog、卡片都改用 selector 读，去掉数据 props。
+4. Design Console：加一个 fixture store 的 helper，包住 board scenario 的 panel 和卡片 / 列的 specimen。
+5. AGENTS.md › State Management：说明什么时候用每实例（server hydrate）的 store、什么时候用全局 store，附 bad / good 示例。
+6. Size：**M**。约 20 个文件，外加一条新规范；大约 1–1.5 天，包括验证 sync race 和 DnD 卡片回弹的时间。
 
 ---
 
-## Option C — Card view model: derive once, pass one card
+## Option C — 卡片 view model：算一次，传一张 card
 
 **Design**
 
-- One pure function turns the tasks and the board's inputs into **card models**, already grouped by status and sorted. Each model is a union over the kinds, so it carries exactly what that kind's face shows. `toBoardCards` replaces the `groupAndSortTasks` call and absorbs `computeHabitWeeks` and the leaves' `isRolloverTask` / `getTaskKind` calls.
-- Lists take `cards`. Cards and faces take one `card` and `switch (card.kind)`: TypeScript narrows to `habitWeek` / `rolloverFrom` for a habit, and PR 4 adds `step` for a project step. No optional per-kind props remain.
-- `KanbanBoard` derives with `useMemo` from its optimistic `localTasks`, so a habit's dots still move as soon as it is dropped on Done. The derivation has to run on the client for that reason. The server supplies the inputs: `today` (one source, so scenarios can pin it) and, in PR 4, the project lookup.
+- 用一个纯函数把 tasks 和 board 的输入换算成 **card model**，并且已经按 status 分好组、排好序。每个 model 是一个按 kind 区分的 union，正好带着该 kind 的 face 要显示的东西。`toBoardCards` 取代现在的 `groupAndSortTasks` 调用，并吸收 `computeHabitWeeks` 和叶子组件里的 `isRolloverTask` / `getTaskKind`。
+- 列表接收 `cards`。卡片和 face 只接收一个 `card`，然后 `switch (card.kind)`：TypeScript 会收窄到 habit 的 `habitWeek` / `rolloverFrom`，PR 4 再给 project step 加 `step`。不再有按 kind 区分的可选 prop。
+- `KanbanBoard` 基于乐观的 `localTasks` 用 `useMemo` 换算，这样 habit 卡片拖到 Done 的那一刻 dots 就会更新。也正因为这一点，换算必须在 client 上跑。server 负责提供输入：`today`（单一来源，scenario 可以固定它），以及 PR 4 的 project lookup。
 
 ```ts
 // utils/boardCardUtils.ts (client-safe)
@@ -198,79 +200,79 @@ const renderContext = () => {
 };
 ```
 
-After the change, every prop is read where it is passed. The one exception is `onPull`, which `MobileBacklogContent` still forwards (sheet → body → card).
+改完之后，每个 prop 都在它被传到的那一层被读。唯一的例外是 `onPull`：`MobileBacklogContent` 还要转手一次（sheet → body → card）。
 
 **Pros**
 
-- **Fixes the cause, not the delivery.** Derivation happens once, in one pure function, so the faces only render. `getTaskKind` and `isRolloverTask` leave the components.
-- **PR 4 and the risk rules land in two places**: a new branch in `toBoardCards` and the face that shows it. Columns, backlogs and the sheet don't change.
-- **Explicit and typed.** Inputs are visible at every call site, and the kind union rules out a step face holding a `habitWeek`.
-- **No provider anywhere.** Gallery and scenario fixtures declare card models directly (`TASK_CARD_FIXTURES` already pair a task with its `habitWeek`). `MobileBacklogPanel` passes `cards`.
-- **`toBoardCards` is a pure function**, so it can be unit-tested if the repo adds tests. It is also where backlog stacking would group habit duplicates.
-- No new dependency or pattern. It extends the existing `taskUtils` approach.
+- **治的是原因，不只是换一种传法。** 换算只在一个纯函数里做一次，face 只负责渲染。`getTaskKind` 和 `isRolloverTask` 从组件里消失。
+- **PR 4 和 risk rules 只落在两处**：`toBoardCards` 里加一个分支，加上显示它的 face。列、backlog、sheet 都不用动。
+- **显式且有类型。** 每个调用处都看得到输入；kind union 让 step 的 face 不可能拿到 `habitWeek`。
+- **哪里都不需要 provider。** gallery 和 scenario 的 fixture 直接声明 card model（`TASK_CARD_FIXTURES` 本来就是 task 配 `habitWeek`），`MobileBacklogPanel` 传 `cards` 即可。
+- **`toBoardCards` 是纯函数**，仓库以后加测试时可以直接做单元测试。backlog stacking 分组重复 habit 实例也正好放在这里。
+- 不加依赖、不加新模式，延续现有 `taskUtils` 的做法。
 
 **Cons**
 
-- It is still props. One `cards` / `card` per level replaces `tasks + today + habitWeeks`, and `onPull` keeps one pass-through hop.
-- It adds a type to maintain (`BoardCard`) that parallels `TaskItem`. A field added to a card face may need a change in two places (the model and the face).
-- It re-derives on every optimistic change. That is the same O(n) work as today's `groupAndSortTasks` + `computeHabitWeeks`, now in one memo.
+- 本质上还是 props。每层一个 `cards` / `card`，取代原来的 `tasks + today + habitWeeks`；`onPull` 还留一层转手。
+- 多了一个要维护的类型（`BoardCard`），和 `TaskItem` 平行。给 card face 加字段时，可能要改两处（model 和 face）。
+- 每次乐观更新都会重新换算。工作量和现在的 `groupAndSortTasks` + `computeHabitWeeks` 一样是 O(n)，只是合进了一个 memo。
 
 **Implementation plan**
 
-1. `src/utils/boardCardUtils.ts`: the `BoardCard` union and `toBoardCards`, built from `sortTasks`, `computeHabitWeeks` and the rollover test. `groupAndSortTasks` folds into it. `isRolloverTask` leaves the components and stays exported only if something else needs it.
-2. `fetchBoard` returns `today`, and `BoardScreen` → `KanbanBoard` takes it as a prop (the scenario passes `SCENARIO_TODAY`).
-3. `KanbanBoard` derives `columns` with `useMemo`. `BoardColumn` / `DesktopBacklog` / `MobileBacklog` / `MobileBacklogContent` take `cards`. `TaskCard` / `MobileBacklogCard` / `TaskCardFace` / `TaskCardMiniFace` take `card` and switch on `card.kind`.
-4. Design console: fixtures become card models (a small `habitCard()` / `oneOffCard()` helper), and `MobileBacklogPanel` takes `cards`.
-5. Size: **S–M**. About 17 files, mostly signature changes; roughly half a day to a day. PR 4 then adds the project variant on top.
+1. `src/utils/boardCardUtils.ts`：`BoardCard` union 和 `toBoardCards`，由 `sortTasks`、`computeHabitWeeks` 和 rollover 判断组成。`groupAndSortTasks` 并进去；`isRolloverTask` 从组件里拿掉，只在别处还需要时才保留 export。
+2. `fetchBoard` 返回 `today`，`BoardScreen` → `KanbanBoard` 作为 prop 接收（scenario 传 `SCENARIO_TODAY`）。
+3. `KanbanBoard` 用 `useMemo` 算出 `columns`。`BoardColumn` / `DesktopBacklog` / `MobileBacklog` / `MobileBacklogContent` 接收 `cards`；`TaskCard` / `MobileBacklogCard` / `TaskCardFace` / `TaskCardMiniFace` 接收 `card`，按 `card.kind` 分支。
+4. Design Console：fixture 改成 card model（加一个小的 `habitCard()` / `oneOffCard()` helper），`MobileBacklogPanel` 接收 `cards`。
+5. Size：**S–M**。约 17 个文件，大部分是签名改动；大约半天到一天。之后 PR 4 在此基础上加 project 分支。
 
 ---
 
-## Along the way (independent of the option)
+## Along the way · 顺手可做（与选哪个方案无关）
 
-These are cleanups the read-through turned up. Each is small and fits into whichever option lands:
+通读代码时发现的清理项。每一项都很小，可以放进最终落地的任一方案：
 
-1. **One optimistic writer, per-task rollback.** Merge `handleDragEnd`'s write path and `handlePullToTodo` into one `moveTask(taskId, status)`. Rollback restores only that task, the fix the matrix already made. The matrix's `runOptimisticTaskUpdate` and the board's version can become one shared `useOptimisticTasks(tasks)` hook (`src/hooks/`) returning `[localTasks, patchTask]`.
-   - React 19's `useOptimistic` is the built-in alternative and would also drop the `useEffect` sync. One thing to check first: `@hello-pangea/dnd` requires the reorder to happen synchronously in `onDragEnd`, and an optimistic update dispatched inside a transition must not let the card snap back before it lands.
-2. **`today` from the server** (in every option's plan). One clock for the metrics and the cards, and the board scenario can pin it.
-3. **Let `fetchBoard` shape the page's props.** Return `{plan, tasks, today, progress}` so `page.tsx` stops re-listing nine progress fields.
-4. **Narrow the plan sent to the client.** `BoardScreen` is typed `BoardPlan`, but the page passes the full `PlanWithTemplates` (user id, every template's title and description), and all of it is serialized into the client payload. Mapping to `BoardPlan` on the server sends only `periodKey`, `mode` and the plan lines.
+1. **一个乐观写入入口，按 task 回滚。** 把 `handleDragEnd` 的写入部分和 `handlePullToTodo` 合成一个 `moveTask(taskId, status)`，回滚只恢复那一个 task，也就是 matrix 已经做过的修复。matrix 的 `runOptimisticTaskUpdate` 和 board 的版本可以合成一个共享的 `useOptimisticTasks(tasks)` hook（`src/hooks/`），返回 `[localTasks, patchTask]`。
+   - React 19 自带的 `useOptimistic` 是另一个选择，还能去掉 `useEffect` 同步。需要先验证一点：`@hello-pangea/dnd` 要求在 `onDragEnd` 里同步完成重排，在 transition 里 dispatch 的乐观更新必须在卡片回弹之前生效。
+2. **`today` 由 server 提供**（三个方案的计划里都包含了）。指标和卡片用同一个时钟，board scenario 也能固定它。
+3. **让 `fetchBoard` 直接给出页面要的 props 结构。** 返回 `{plan, tasks, today, progress}`，`page.tsx` 就不用再手动列 9 个进度字段。
+4. **缩小传给 client 的 plan。** `BoardScreen` 的类型是 `BoardPlan`，但页面实际传的是完整的 `PlanWithTemplates`（user id、每个 template 的 title 和 description），全部被序列化进 client payload。在 server 上映射成 `BoardPlan`，就只会发送 `periodKey`、`mode` 和 plan lines。
 
-## Considered, not proposed
+## Considered, not proposed · 考虑过但不提议
 
-- **Global `create()` store filled in an effect.** The first render shows an empty board (both the server HTML and the first client paint), and filling it during render shares one store across all server requests. See Option B for the per-request version.
-- **TanStack Query / SWR as a client cache.** This duplicates the server action + `revalidatePath` model the app already uses throughout, and adds a dependency for one page.
-- **Jotai or another atom library.** It has the same trade-offs as Option B, plus a new dependency.
-- **Faces call `getTodayDate()` themselves.** That drops one prop, but scenarios lose the ability to pin the date, and a server-rendered card can disagree with the hydrated one around midnight.
-- **Compute card models on the server.** A habit's dots must move as soon as a card is dropped on Done, so the derivation has to re-run on the client's optimistic tasks. The server supplies the inputs only.
-- **Composition (columns and backlogs take `children`).** React's first suggestion before context: `KanbanBoard` renders the cards and the middle layers only lay them out. It would remove even the `cards` prop and the `onPull` hop, but it moves list rendering (keys, `Draggable` index, empty states, counts) up into `KanbanBoard`, the largest board file. If a hop ever needs removing, it fits on top of Option C.
+- **全局 `create()` store，在 effect 里灌数据。** 首次渲染是空 board（server HTML 和 client 首屏都是）；如果改在 render 时写入，又会让所有 server 请求共用一个 store。每请求一份的写法见 Option B。
+- **用 TanStack Query / SWR 做 client 缓存。** 和 app 全局在用的 server action + `revalidatePath` 模式重复，只为一个页面加一个依赖。
+- **Jotai 或其他 atom 库。** 取舍和 Option B 一样，还多一个新依赖。
+- **face 自己调用 `getTodayDate()`。** 能少一个 prop，但 scenario 就没法固定日期了，而且午夜前后 server 渲染的卡片可能和 hydrate 后的不一致。
+- **在 server 上算 card model。** habit 卡片拖到 Done 时 dots 要立刻更新，所以换算必须基于 client 的乐观 tasks 重新跑。server 只负责提供输入。
+- **Composition（列和 backlog 接收 `children`）。** 这是 React 在建议用 context 之前的第一选择：`KanbanBoard` 渲染卡片，中间层只负责排版。它能连 `cards` prop 和 `onPull` 那一层转手都去掉，但会把列表渲染（key、`Draggable` 的 index、空状态、计数）都搬进 `KanbanBoard`，而它已经是 board 最大的文件。如果以后确实要去掉那一层转手，可以叠加在 Option C 之上。
 
-## Comparison
+## Comparison · 对比
 
 | | A · Context | B · Zustand store | C · Card view model |
 | --- | --- | --- | --- |
-| Pass-through props left | none | none | `onPull` one hop |
-| Where per-kind derivation lives | still in the faces | still in the faces (via selectors) | one pure function |
-| PR 4 project context touches | context value + faces | store state + selectors + faces | `toBoardCards` + the step face |
-| Faces renderable from fixtures | needs a provider | needs a fixture store | plain props |
-| Inputs visible at the call site | no | no | yes |
-| Re-render on a drag | whole tree, as today | only cards whose slice changed | whole tree, as today |
-| New pattern / dependency | none | per-request store + AGENTS rule | none |
-| Size | S (~15 files, ~½ day) | M (~20 files, ~1–1.5 days) | S–M (~17 files, ~½–1 day) |
+| 剩下的转手 prop | 无 | 无 | `onPull` 一层 |
+| per-kind 换算在哪 | 仍在 face 里 | 仍在 face 里（通过 selector） | 一个纯函数 |
+| PR 4 的 project context 要改 | context value + 各 face | store state + selector + 各 face | `toBoardCards` + step face |
+| face 能否直接用 fixture 渲染 | 要包 provider | 要搭 fixture store | 直接传 props |
+| 调用处能否看到输入 | 不能 | 不能 | 能 |
+| 一次拖拽的重渲染 | 整棵树，同现在 | 只有 slice 变了的卡片 | 整棵树，同现在 |
+| 新模式 / 新依赖 | 无 | 每实例 store + AGENTS 规则 | 无 |
+| Size | S（~15 个文件，~½ 天） | M（~20 个文件，~1–1.5 天） | S–M（~17 个文件，~½–1 天） |
 
-## Decision framing
+## Decision framing · 怎么选
 
-The question is what the drilled values are: **ambient values the leaves should reach for** (A, B), or **per-card facts the board should work out once** (C).
+关键在于怎么看这些被层层传递的值：是**叶子组件该自己去拿的环境值**（A、B），还是**board 应该一次算好的每张卡片的事实**（C）。
 
-- Pick **A** for the quickest relief with the least churn. It hides the faces' inputs and keeps the derivation scattered.
-- Pick **B** if the board is expected to grow several distant writers to its task state (an optimistic dashboard, task editing from cards). Today it has one owner and one subtree of writers, so most of B's machinery would sit idle.
-- Pick **C** to remove the drilling by removing what was drilled: cards receive a finished model, middle layers know nothing about kinds, and PR 4 and the risk rules have one place to add their context.
+- 选 **A**：最快缓解、改动最少。代价是 face 的输入被藏起来，换算仍然分散在叶子里。
+- 选 **B**：如果预计 board 会出现多个相距较远、要写 task 状态的组件（乐观更新的 dashboard、从卡片编辑 task）。目前只有一个 owner，写入点都在它的子树里，B 的大部分机制会闲置。
+- 选 **C**：把要传的东西本身去掉，从而消除 drilling。卡片拿到的是算好的 model，中间层对 kind 一无所知，PR 4 和 risk rules 都只有一个地方加 context。
 
-**Recommendation: C**, with *Along the way* items 1–2. Land it before PR 4 so the project face starts as a `BoardCard` variant instead of a fourth drilled prop.
+**Recommendation: C**，加上 *Along the way* 的第 1、2 项。在 PR 4 之前落地，这样 project 卡片一开始就是 `BoardCard` 的一个分支，而不是第四个被层层传递的 prop。
 
-**When to revisit B**: if a component outside `KanbanBoard`'s subtree needs to read or write the optimistic task state (the dashboard updating on drop, a card sheet editing a task), lift the state into a per-request store then. C's `toBoardCards` would become that store's derived selector unchanged.
+**什么时候回头考虑 B**：当 `KanbanBoard` 子树以外的组件需要读或写乐观 task 状态时（dashboard 在拖拽时更新、卡片 sheet 编辑 task），再把状态提升到每请求一份的 store。届时 C 的 `toBoardCards` 可以原样变成这个 store 的派生 selector。
 
-## After the decision
+## After the decision · 拍板之后
 
-1. Implement the chosen option's plan and the agreed *Along the way* items. Update the board scenario and gallery fixtures in the same PR.
-2. If the decision sets a convention (for example, "derive per-card context once in a view model; cards take one model"), add it to the end of AGENTS.md › Coding Conventions › JSX & components with a bad/good example.
-3. Close the tracker item and record the outcome in the README Update Log.
+1. 实现选定方案的计划和同意的 *Along the way* 项，同一个 PR 里更新 board scenario 和 gallery 的 fixture。
+2. 如果这个决定形成了一条规范（比如「每张卡片的 context 在 view model 里算一次；卡片只接收一个 model」），把它加到 AGENTS.md › Coding Conventions › JSX & components 的末尾，附 bad / good 示例。
+3. 关闭 tracker 条目，在 README Update Log 里记录结果。
