@@ -88,6 +88,7 @@ Open items: see [design/tracker.md](./design/tracker.md).
 ## Update Log
 
 ### 2026-10-09
+- **Board prop-drilling spike written** (`design/spike/board-prop-drilling.md`, awaiting review): traces `today` / `habitWeeks` / `onPull` through the board tree, finds they are per-card derived inputs rather than shared state, and compares three fixes with work estimates: React context (S), a per-request Zustand store hydrated from the server (M), and a card view model derived once in `KanbanBoard` (S–M, recommended before PR 4). Also notes cleanups: per-task rollback for board moves (the matrix already has it), `today` from the server so scenarios can pin it, and a narrower plan payload.
 - **AGENTS.md: branch names say what the PR does** — `claude/<feature>-<change>` in kebab-case, with the step for a multi-PR project (`pr2`); a remote session whose assigned branch is a random name opens a descriptive branch for its PR instead.
 - **Week model Phase 1, PR 3 of 5: project data layer** (no UI yet):
   - **Migrations, additive only**: `TaskType.PROJECT` in its own migration, then a `projects` table, `tasks.project_id` with a no-cascade FK and an index on `(project_id, instance_index)`. A step's order reuses `instance_index` as its 1-based step number.
