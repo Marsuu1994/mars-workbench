@@ -87,6 +87,7 @@ Open items: see [design/tracker.md](./design/tracker.md).
 ## Update Log
 
 ### 2026-10-09
+- **AGENTS.md: branch names say what the PR does** — `claude/<feature>-<change>` in kebab-case, with the step for a multi-PR project (`pr2`); a remote session whose assigned branch is a random name opens a descriptive branch for its PR instead.
 - **Week model Phase 1, PR 3 of 5: project data layer** (no UI yet):
   - **Migrations, additive only**: `TaskType.PROJECT` in its own migration, then a `projects` table, `tasks.project_id` with a no-cascade FK and an index on `(project_id, instance_index)`. A step's order reuses `instance_index` as its 1-based step number.
   - **DAL / service / actions** (`lib/db/projects.ts`, `projectService`, `projectActions`, zod schemas):
