@@ -87,6 +87,19 @@ Open items: see [design/tracker.md](./design/tracker.md).
 ## Update Log
 
 ### 2026-10-09
+- **Week model Phase 1, PR 3 of 5: project data layer** (no UI yet):
+  - **Migrations, additive only**: `TaskType.PROJECT` in its own migration, then a `projects` table, `tasks.project_id` with a no-cascade FK and an index on `(project_id, instance_index)`. A step's order reuses `instance_index` as its 1-based step number.
+  - **DAL / service / actions** (`lib/db/projects.ts`, `projectService`, `projectActions`, zod schemas):
+    - Create a project, optionally with its first steps, then rename it, change its goal, archive or unarchive it.
+    - Add, edit, delete and reorder steps. Done steps are locked; deletes and reorders keep the numbers contiguous, and a reorder only re-assigns the numbers the unfinished steps already hold.
+    - Schedule a step onto the active plan, or take back one still in the backlog.
+    - Archiving returns the unfinished steps to the project, and done steps keep their plan.
+  - **Step lifecycle**:
+    - End-of-week sync no longer expires steps.
+    - Plan creation and updates take a `projectStepIds` selection: listed steps link with their status kept, and the rest return to their project at the same step number. The unlink is generalized to `unlinkTasksFromPlan`, one type at a time.
+    - The AI approval carries one-offs only, so pending steps return.
+    - Board metrics gain a project bucket in the week projection, and `sortTasks` keeps one project's steps together in step order.
+  - **Verified on a local Postgres 16**: the migrations apply with no schema drift, and a script over the real services passed every lifecycle check: no expiry, carry-over, return with the step number kept, DONE keeps its plan, reorder / delete numbering, archive, ownership.
 - **Spike review round 4 (owner answers on PR #47)**:
   - **Finished projects**: a project whose steps are all done shows an **All steps done** badge instead of its next step, plus a banner offering to add the next steps or archive. The state is worked out in the UI from the steps (no column), and nothing is archived automatically; archiving stays the user's call. `temp-projects-v2.html` adds this as step 3 of its Landing tab, with phone views, and the live page reaches it when a project's open steps are deleted.
   - **Plan form scope**: the plan form only loads a plan's existing project steps, to select or deselect. Adding projects or steps is not designed for the plan form; the Projects page keeps creating them and **+ This week** / × for scheduling, which retires open question 7.

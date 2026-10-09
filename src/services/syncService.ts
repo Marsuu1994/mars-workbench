@@ -80,7 +80,9 @@ export async function runDailySync(
 }
 
 /**
- * Run end-of-period sync: expire all undone tasks and move plan to PENDING_UPDATE.
+ * Run end-of-period sync: expire all undone template instances and move plan to
+ * PENDING_UPDATE. One-offs and project steps never expire — they wait on the
+ * pending plan for the next plan to carry over or return them.
  * Standalone and reusable (e.g., by a future cron job).
  */
 export async function runEndOfPeriodSync(

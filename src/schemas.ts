@@ -37,11 +37,16 @@ export const createPlanSchema = z
     mode: z.nativeEnum(PlanMode).default(PlanMode.NORMAL),
     templates: z.array(planTemplateInputSchema),
     adhocTaskIds: z.array(z.string().uuid()).optional(),
+    // Project steps to put on the new week: the pending plan's carried-over
+    // steps plus any upcoming ones. Unlisted pending steps return to their
+    // projects.
+    projectStepIds: z.array(z.string().uuid()).optional(),
   })
   .refine(
     data =>
       data.templates.length > 0 ||
-      (data.adhocTaskIds !== undefined && data.adhocTaskIds.length > 0),
+      (data.adhocTaskIds !== undefined && data.adhocTaskIds.length > 0) ||
+      (data.projectStepIds !== undefined && data.projectStepIds.length > 0),
     {message: V.selectAtLeastOne},
   );
 export type CreatePlanInput = z.infer<typeof createPlanSchema>;
@@ -51,6 +56,9 @@ export const updatePlanSchema = z.object({
   mode: z.nativeEnum(PlanMode).optional(),
   templates: z.array(planTemplateInputSchema).optional(),
   adhocTaskIds: z.array(z.string().uuid()).optional(),
+  // The week's full step selection: listed steps link, unlisted unfinished
+  // ones return to their projects. Omitted = steps untouched.
+  projectStepIds: z.array(z.string().uuid()).optional(),
 });
 export type UpdatePlanInput = z.infer<typeof updatePlanSchema>;
 
@@ -124,6 +132,57 @@ export const undoCompleteTaskSchema = z
     message: 'detach must match an unassigned (BACKLOG) restore',
   });
 export type UndoCompleteTaskInput = z.infer<typeof undoCompleteTaskSchema>;
+
+// ── Project Schemas ────────────────────────────────────────────────────
+
+// One step's fields (Add Step modal, a new project's first steps). Points are
+// derived from size server-side; the step number is the end of the path.
+const projectStepInputSchema = z.object({
+  title: z.string().trim().min(1, V.titleRequired),
+  description: z.string().trim().optional(),
+  size: z.nativeEnum(TaskSize),
+});
+
+export const createProjectSchema = z.object({
+  title: z.string().trim().min(1, V.titleRequired),
+  goal: z.string().trim().optional(),
+  steps: z.array(projectStepInputSchema).optional(),
+});
+export type CreateProjectInput = z.infer<typeof createProjectSchema>;
+
+// An empty goal clears it.
+export const updateProjectSchema = z
+  .object({
+    title: z.string().trim().min(1, V.titleRequired).optional(),
+    goal: z.string().trim().optional(),
+  })
+  .refine(data => Object.values(data).some(v => v !== undefined), {
+    message: V.atLeastOneField,
+  });
+export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
+
+export const createProjectStepSchema = projectStepInputSchema;
+export type CreateProjectStepInput = z.infer<typeof createProjectStepSchema>;
+
+// An empty description clears it.
+export const updateProjectStepSchema = z
+  .object({
+    title: z.string().trim().min(1, V.titleRequired).optional(),
+    description: z.string().trim().optional(),
+    size: z.nativeEnum(TaskSize).optional(),
+  })
+  .refine(data => Object.values(data).some(v => v !== undefined), {
+    message: V.atLeastOneField,
+  });
+export type UpdateProjectStepInput = z.infer<typeof updateProjectStepSchema>;
+
+// The project's unfinished steps, every one exactly once, in their new order.
+export const reorderProjectStepsSchema = z.object({
+  stepIds: z.array(z.string().uuid()).min(1),
+});
+export type ReorderProjectStepsInput = z.infer<
+  typeof reorderProjectStepsSchema
+>;
 
 // ── Dump Schemas ───────────────────────────────────────────────────────
 

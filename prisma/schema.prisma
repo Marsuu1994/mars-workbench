@@ -69,6 +69,7 @@ enum TaskType {
   DAILY
   WEEKLY
   AD_HOC
+  PROJECT // A project step (Task.projectId set, no template)
 }
 
 enum TaskStatus {
@@ -161,13 +162,19 @@ model Task {
   forDate       DateTime?   @map("for_date") @db.Date
   periodKey     String?     @map("period_key")
   quadrant      PriorityQuadrant? // Eisenhower quadrant on the priority matrix; AD_HOC tasks only
+  // Template instances: the copy's number within its generation batch.
+  // PROJECT tasks: the 1-based step number within the project, kept
+  // contiguous (1..n) per project.
   instanceIndex Int         @map("instance_index")
+  projectId     String?     @map("project_id") @db.Uuid // PROJECT tasks only
   createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz
   updatedAt     DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
   doneAt        DateTime?   @map("done_at") @db.Timestamptz
 
   plan     Plan?         @relation(fields: [planId], references: [id], onDelete: Cascade)
   template TaskTemplate? @relation(fields: [templateId], references: [id])
+  // No cascade: done steps carry points history, and projects are never deleted
+  project  Project?      @relation(fields: [projectId], references: [id], onDelete: NoAction)
 
   @@unique([planId, templateId, forDate, instanceIndex], name: "uq_task_daily")
   @@unique([planId, templateId, periodKey, instanceIndex], name: "uq_task_weekly")
@@ -175,7 +182,25 @@ model Task {
   @@index([planId, status], name: "idx_tasks_plan_id_status")
   @@index([planId, forDate], name: "idx_tasks_plan_id_for_date")
   @@index([planId, createdAt, id], name: "idx_tasks_plan_id_created_at_id")
+  @@index([projectId, instanceIndex], name: "idx_tasks_project_id_instance_index")
   @@map("tasks")
+}
+
+// A goal plus an ordered path of steps (Tasks with type = PROJECT). No size —
+// its size is the sum of its steps. Only ever archived, never deleted; "All
+// steps done" is derived from the steps, not stored.
+model Project {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  title      String
+  goal       String?
+  isArchived Boolean  @default(false) @map("is_archived") // Set and cleared by the user only
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  tasks Task[]
+
+  @@map("projects")
 }
 
 // ── Dump ──────────────────────────────────────────────────────────────────────
