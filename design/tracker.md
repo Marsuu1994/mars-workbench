@@ -17,13 +17,14 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### Medium
 
-- [ ] Week model Phase 1 — Projects MVP: a `Project` entity (goal + ordered steps that never expire) under a Plan hub, project steps on the board, kind-first cards with risk off, MCP project tools; docs-first 5-PR plan in `design/spike/week-model-restructure.md` (awaiting review), mockups `design/mockup/future-work/temp-week-model-phase1-v2.html` + `temp-projects-v2.html` (Projects page and its modals)
+- [ ] Week model Phase 1 — Projects MVP: a `Project` entity (goal + ordered steps that never expire) under a Plan hub, project steps on the board, kind-first cards with risk off, the Doing column removed (Todo · Done), MCP project tools; docs-first 5-PR plan in `design/spike/week-model-restructure.md` (open questions answered, awaiting approval), mockups `design/mockup/future-work/temp-week-model-phase1-v2.html` + `temp-projects-v2.html` (Projects page and its modals)
 - [ ] ReviewChangesModal / OverlayShell body height needs tuning on **both** breakpoints — with long change lists the box grows so tall the header ends up out of view; revisit the max-height caps (mobile `max-h-[85vh]`, desktop `md:max-h-[calc(100vh-5em)]`) so the pinned header/footer always stay on screen
 
 ### Future
 
-- [ ] Week model Phase 2 (not planned yet) — habits own their cadence (Daily = every day, or N× per week; Plan Mode dropped) with a Plan › Habits page; a three-step Plan week replaces the plan form; the in-app AI chat is removed (AI planning goes through Claude + MCP); the Doing column goes, Done becomes the week's day-grouped log and cards get a ✓; missed habit days expire quietly (no rollover); cleanup of `DOING` and `Plan.mode`. Exploration `design/mockup/future-work/temp-week-model-phase2-v2.html`
+- [ ] Week model Phase 2 (not planned yet) — habits own their cadence (Daily = every day, or N× per week; Plan Mode dropped) with a Plan › Habits page; a three-step Plan week replaces the plan form; the in-app AI chat is removed (AI planning goes through Claude + MCP); Done becomes the week's day-grouped log and cards get a ✓; missed habit days expire quietly (no rollover); cleanup of `DOING` and `Plan.mode`. Exploration `design/mockup/future-work/temp-week-model-phase2-v2.html`
 - [ ] Habit-level days — let each habit run on weekdays, every day or custom days (after Phase 2 drops Plan Mode, Daily means every day)
+- [ ] Explore entry points for habits and projects — whether they get their own sidebar item / dock tab instead of living under the Plan hub (Phase 1 adds no new nav items)
 
 ## Priorities
 
@@ -62,7 +63,7 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### High
 
-- [ ] Daily rhythm — Open / Close-the-day rituals and phone notifications for unfinished tasks; kept out of the restructure's scope. Spike `design/spike/daily-rhythm-notifications.md` on branch `claude/notification-task-tracking-design-gcxwy0` (awaiting review); when picked up, regroup its sheets by kind and map "Still on it" to staying in Todo once Phase 2 removes the Doing column
+- [ ] Daily rhythm — Open / Close-the-day rituals and phone notifications for unfinished tasks; kept out of the restructure's scope. Spike `design/spike/daily-rhythm-notifications.md` on branch `claude/notification-task-tracking-design-gcxwy0` (awaiting review); when picked up, regroup its sheets by kind and map "Still on it" to staying in Todo, since Phase 1 removes the Doing column
 
 #### Design error states
 

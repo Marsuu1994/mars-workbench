@@ -673,6 +673,7 @@
   .tools th { text-align: left; font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 48%, transparent); padding: 8px; border-bottom: 1px solid var(--card-border); }
   .tools td { padding: 9px 8px; border-bottom: 1px solid color-mix(in oklab, var(--bc) 6%, transparent); vertical-align: top; line-height: 1.5; color: color-mix(in oklab, var(--bc) 80%, transparent); }
   .tools td:first-child { font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--bc); white-space: nowrap; }
+  .matrix.four { grid-template-columns: 112px repeat(4, minmax(200px, 1fr)); }
 
   /* ── Modals: the TaskModal pattern (OverlayHeader + form + footer) ── */
   .mbox { width: 500px; max-width: 100%; background: var(--b1); border: 1px solid var(--card-border); border-radius: 16px; box-shadow: 0 20px 50px oklch(0 0 0 / .35); overflow: hidden; text-align: left; }
@@ -767,7 +768,7 @@
   <div>
     <div class="eyebrow">Phase 2 · Habits + Plan week — exploration (not planned yet)</div>
     <h1>Habits own their cadence, the week is planned in three steps</h1>
-    <p>Phase 2 builds on Phase 1's projects (<span class="mono">temp-week-model-phase1-v2.html</span>). <b>Habits</b> carry their own cadence — <b>Daily</b> (every day) or <b>N× per week</b> — so Plan Mode goes away. A three-step <b>Plan week</b> replaces the plan form and the in-app AI chat. The board drops <b>Doing</b>: Todo is today, Done is the week. Missed habit days expire quietly. This is a direction for the tracker, not an approved plan. Fixture: Wednesday Oct 7, 10:00 — week 41.</p>
+    <p>Phase 2 builds on Phase 1's projects (<span class="mono">temp-week-model-phase1-v2.html</span>). <b>Habits</b> carry their own cadence — <b>Daily</b> (every day) or <b>N× per week</b> — so Plan Mode goes away. A three-step <b>Plan week</b> replaces the plan form and the in-app AI chat. With Doing already gone in Phase 1, <b>Todo is today and Done is the week</b>. Missed habit days expire quietly. This is a direction for the tracker, not an approved plan. Fixture: Wednesday Oct 7, 10:00 — week 41.</p>
   </div>
   <div class="seg" id="theme-seg">
     <button data-theme-btn="mars-dark" class="on">Sora dark</button>
@@ -785,13 +786,14 @@
       <li><b>Plan Mode dropped</b> — no more NORMAL / EXTREME</li>
       <li><b>Plan week</b> — three steps (habits · project steps · one-offs) replace the plan form</li>
       <li><b>In-app AI chat removed</b> — AI planning goes through Claude + MCP</li>
-      <li><b>Board</b> — Doing column removed; Done becomes the week's day-grouped log; ✓ completes a card</li>
+      <li><b>Board</b> — Done becomes the week's day-grouped log; ✓ completes a card</li>
       <li><b>Quiet expiry</b> — a missed habit day doesn't roll over</li>
       <li><b>Cleanup</b> — DOING status, Plan.mode, dead copy and scenarios</li>
     </ul></div>
     <div class="chg stay"><h4>From phase 1</h4><ul>
       <li>Projects, project steps on the board, MCP project tools</li>
       <li>Kind-first cards with week dots and the step path</li>
+      <li>The Doing column removed (Todo · Done)</li>
       <li>Risk off</li>
       <li>The name Todo</li>
     </ul></div>
@@ -809,7 +811,7 @@
 <section class="screen" id="s-board">
   <div class="col-label after"><b>After</b> two columns · try it — ✓ completes · ← Todo pulls from the backlog <button class="ghost-btn reset" id="board-reset">↺ reset</button></div>
   <div class="board" id="after-board"></div>
-  <p class="note">The <b>before</b> of this screen is phase 1's board. <b>Todo holds today, Done holds the week</b> as a day-grouped log, and In Progress is gone — most cards are one sitting. ✓ completes a card from Todo; ← Todo pulls one from the backlog. Workout is now <b>Daily</b> (every day — there is no Plan Mode), so its week has seven dots; Tuesday's missed day is a faint dot and nothing rolled over.</p>
+  <p class="note">The <b>before</b> of this screen is phase 1's board. <b>Todo holds today, Done holds the week</b> as a day-grouped log, and there has been no In Progress since phase 1 — most cards are one sitting. ✓ completes a card from Todo; ← Todo pulls one from the backlog. Workout is now <b>Daily</b> (every day — there is no Plan Mode), so its week has seven dots; Tuesday's missed day is a faint dot and nothing rolled over.</p>
 </section>
 
 <!-- ═════════ 3. Plan week ═════════ -->

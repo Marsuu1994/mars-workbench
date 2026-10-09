@@ -1,6 +1,6 @@
 # Spike: Week model restructure — Phase 1: Projects MVP
 
-**Status: awaiting owner review (round 4)** · 2026-10-09 · PR #47
+**Status: awaiting owner approval (round 5, open questions all answered)** · 2026-10-09 · PR #47
 
 Mockups:
 - Phase 1，待批准：`design/mockup/future-work/temp-week-model-phase1-v2.html`
@@ -17,7 +17,7 @@ Mockups:
 - **Phase 2**：habit、重做 plan form、cleanup，主要是 refactoring。**先不规划**，记进 tracker。
 - Phase 1 的第一个 PR 只写文档，把 Phase 1 的设计落到 baseline 和 flows 里，然后再写代码。
 
-这一版 spike 只规划 Phase 1：记录已定的事，给出数据模型，说明 Phase 1 对现有 flow 的影响和新增的 flow，最后给出 5 个 PR 的执行序列和这一轮待拍板的事。
+这一版 spike 只规划 Phase 1：记录已定的事，给出数据模型，说明 Phase 1 对现有 flow 的影响和新增的 flow，最后给出 5 个 PR 的执行序列。待拍板的事已经全部定了。
 
 ## 已定的事 · Decisions
 
@@ -39,16 +39,22 @@ Mockups:
 | Risk 的 flow 文档 | 不删，标为 *pending update*，旧规则留作参考 |
 | 新建 / 编辑 project 和 step | 用 modal，沿用 TaskModal（Add Priority Task / Create Task Template）的模式；见 `temp-projects-v2.html` |
 | Project 做完 | 不自动收起。所有 step 都 DONE 时，UI 显示「All steps done」标识，由 steps 推导，不存库、不加字段。Archive 是用户主动收起 |
+| Doing 列 | **Phase 1 去掉，放在 PR 2**：board 只剩 Todo · Done，进行中的任务留在 Todo。现有的 DOING 任务迁到 TODO；Postgres 里的 `DOING` 值先留着，Phase 2 cleanup 再删 |
+| Projects 的入口 | Plan 页变成 hub（This week · Projects），路由 `/kanban/projects`；侧栏和 dock 不加新项。要不要给 habit / project 单独的入口，记进 tracker 做 exploration |
+| Rollover 的显示 | habit 卡片在 context 位置显示中性的「↩ 日期」，不用警告色 |
+| 卡片上的 ✓ | Phase 1 不加，只能拖动 |
+| MCP 怎么排 step | 并进 `create_plan` / `update_plan` 的参数，不单独做 schedule 工具；Phase 2 沿用 |
+| 排期顺序 | 不强制，任何 upcoming step 都能排进这周 |
 
 ## Phase 1 scope
 
 | Phase 1 做 | Phase 1 不动 |
 | --- | --- |
-| `Project` entity，Plan 变成 hub（This week · Projects），加上 Projects 页和它的 modal（New Project / Edit Project / Add Step / Edit Step） | 三列 board（Todo · In Progress · Done），Todo 不改名 |
+| `Project` entity，Plan 变成 hub（This week · Projects），加上 Projects 页和它的 modal（New Project / Edit Project / Add Step / Edit Step） | Todo 不改名，backlog 和拖动的方式 |
 | Step 上 board：排进这周就进 backlog，之后和其他任务一样拖动；周末不过期，回到 project 原来的位置 | Template、每周 plan 里的 type × frequency、Plan Mode、plan form 的主体、AI chat |
 | Plan form 只渲染这个 plan 选中的 steps，和 one-off 一样只能勾选 / 取消 | Daily rollover 的行为（卡片上改成中性的 ↩ 日期） |
-| Kind-first 卡片：desktop、backlog sheet、mobile 136px 小卡；关掉 risk；去掉 #n | Priority matrix 和 Track This Week |
-| MCP：context 里加 projects，新增 `create_project` / `update_project`，`create_plan` / `update_plan` 能带 step | Habits 页、Plan week 三步流程、去掉 Doing（都在 Phase 2） |
+| Kind-first 卡片：desktop、backlog sheet、mobile 136px 小卡；关掉 risk；去掉 #n；去掉 Doing 列（Todo · Done） | Priority matrix（Track This Week 只少了 In Progress 这个目标） |
+| MCP：context 里加 projects，新增 `create_project` / `update_project`，`create_plan` / `update_plan` 能带 step | Habits 页、Plan week 三步流程、Done 按天分组和卡片上的 ✓（都在 Phase 2） |
 
 ## 数据模型（Phase 1）
 
@@ -123,13 +129,14 @@ kind 由 `TaskType` 推出来，Task 上不加 kind 列：
 | `board.md` | Backlog Flow | backlog 里多了这周排上的 step。卡片规则改写：没有 #n，没有 risk，rollover 在 context 位置显示为 ↩ 日期。「Ad-hoc tasks never appear in the backlog」那句保留（step 不是 ad-hoc） |
 | `board.md` | Progress Tracking Flow | metrics 加 project 桶。step 和其他任务一样计入 Today 和 Week；Week projection 包含 backlog 里的 step |
 | `board.md` | Task Risky Level Visual Effect Flow | 标为 **pending update**：Phase 1 不渲染 risk；flow 里保留旧规则作参考，等 per-kind 规则（tracker）回来时再改写 |
-| `board.md` | Drag and Drop Flow | 规则不变，step 和其他任务一样移动 |
+| `board.md` | Drag and Drop Flow | 去掉 DOING：列只剩 Todo · Done，转换是 BACKLOG → TODO → DONE；Track This Week 的例外（`BACKLOG → DOING`）删掉。step 和其他任务一样移动 |
 | `plan.md` | Create Plan Flow | plan form 只渲染选中的 project steps：pending plan 上没做完的 step 默认选中，和 one-off 一样只能勾选 / 取消。选中的挂到新 plan，保留原状态；取消的退回 project（`planId = null`、`BACKLOG`，`instanceIndex` 不变）。plan form 没有新建 project / step 的功能 |
-| `plan.md` | Update Plan Flow | 同样只渲染这周已挂上的 steps，只能取消（退回 project）；ReviewChangesModal 写明「回到 <project>」。plan form 没有加 step 的功能，Phase 2 再回头 |
+| `plan.md` | Update Plan Flow | 同样只渲染这周已挂上的 steps，只能取消（退回 project）；ReviewChangesModal 写明「回到 <project>」。plan form 没有加 step 的功能，Phase 2 再回头。删除未完成实例的规则里去掉 DOING |
 | `plan.md` | AI Assisted Plan Creation Flow | **不改**，Phase 2 直接移除。实现上：它审批时只带 one-off，没带上的 step 由推广后的 unlink 退回 project |
 | `plan.md` | Plan with Claude (MCP) Flow | context 加 projects；新增工具 `create_project` / `update_project`；`create_plan` 加 `carryOverProjectStepIds` / `projectStepIds`；`update_plan` 能加、减 step。Rules 加上 step 的校验：只能排本人的、没做完的、没在这周 plan 上的 step |
 | `plan.md` | Create / Update Task Template Flow | 不变 |
-| `priorities.md` | 全部 | 不变 |
+| `priorities.md` | Track This Week Flow | 「Move to」的目标只剩 Todo（加上分隔线下的 Done），不再有 In Progress |
+| `priorities.md` | 其余 flow | 不变（Complete One-off 的 undo 照旧恢复原状态，只是不会再有 DOING） |
 
 ### 新增的 flow（新文档 `design/flows/projects.md`）
 
@@ -163,7 +170,7 @@ kind 由 `TaskType` 推出来，Task 上不加 kind 列：
 7. **Step Lifecycle**（参考小节，不是 flow）：
    - 未排期：`planId = null` · `BACKLOG`
    - 排进这周：`planId = plan` · `BACKLOG`
-   - 之后在 board 上：`TODO` → `DOING` → `DONE`
+   - 之后在 board 上：`TODO` → `DONE`
    - 周末没做完：仍挂在 pending plan 上；到下一个 plan 时，要么被带上（保留状态），要么退回 project（`planId = null` · `BACKLOG`，`instanceIndex` 不变）。
    - project 进度 = DONE 的 step 数 / step 总数；done 的 step 显示完成日期；全部 DONE 时 UI 显示 All steps done（推导，不存库）。
 
@@ -172,7 +179,7 @@ kind 由 `TaskType` 推出来，Task 上不加 kind 列：
 | # | PR | 内容 | Schema | 大小 | 依赖 |
 | --- | --- | --- | --- | --- | --- |
 | 1 | **Phase 1 文档** | baseline、新的 `flows/projects.md`、按上一节改写的 flows、tracker | — | S | PR #47 |
-| 2 | Kind-first 卡片 + 关掉 risk | 只改卡片，不改行为 | — | M | 1 |
+| 2 | Kind-first 卡片 + 关掉 risk + 去掉 Doing | 新卡片；board 变成 Todo · Done | data migration（DOING → TODO） | M | 1 |
 | 3 | Project 数据层 | migration、DAL、service、action、生命周期 | 加法 | M | 1 |
 | 4 | Projects UI + step 上 board | Plan hub、Projects 页和 4 个 modal、排期、step 卡片、plan form 渲染选中的 steps | — | M–L | 2、3 |
 | 5 | MCP 支持 projects | context、新工具、server instructions | — | M | 3 |
@@ -184,15 +191,16 @@ PR 2 和 PR 3 互不依赖，可以并行。PR 5 合并后，Phase 1 MVP 上线�
 - `baseline.md`：
   - Entities 加 **Project**，**Task** 加 project step 的说明；
   - Schema 加 `projects` 表、`TaskType.PROJECT`、`Task.projectId`（step 顺序复用 `instanceIndex`）；
-  - Architecture Decision 记下选项 B 及其理由。
+  - Architecture Decision 记下选项 B 及其理由；
+  - Kanban board 和 Drag and drop 的描述改成两列（Todo · Done）。
   - 标注方式沿用 DumpEntry 的先例：「*(designed — Phase 1 pending)*」。
 - `flows/projects.md`：新文档，写入上面 6 个 flow 加 Step Lifecycle，按现有 flow 文档的格式（Trigger / Steps / Rules）。
-- `flows/shared.md`、`board.md`、`plan.md`：按「改动的 flow」那张表改写；Task Risky Level Visual Effect Flow 标为 *pending update*，保留旧规则作参考，并指向 tracker 里的 per-kind risk 条目。
+- `flows/shared.md`、`board.md`、`plan.md`、`priorities.md`：按「改动的 flow」那张表改写；Task Risky Level Visual Effect Flow 标为 *pending update*，保留旧规则作参考，并指向 tracker 里的 per-kind risk 条目。
 - `design/README.md`：flows 列表加上 `projects.md`。
 - `reference.md` 不动。它是现有代码的查找表，等代码落地再更新。
 - **Done when**：owner 批准文档。
 
-### PR 2 — Kind-first 卡片 + 关掉 risk
+### PR 2 — Kind-first 卡片 + 关掉 risk + 去掉 Doing
 
 - 在 `src/utils/` 加 `getTaskKind(type)`，加 `Record<Kind, …>` 映射到字面 class（`success` / `secondary` / `info`）。
 - 新卡片面：desktop `TaskCard`、`MobileBacklogCard`、mobile board 的 136px 小卡。
@@ -200,10 +208,15 @@ PR 2 和 PR 3 互不依赖，可以并行。PR 5 合并后，Phase 1 MVP 上线�
   - 中间：标题，以及（仅 desktop 和 sheet）说明。
   - 最后一行：信号（habit 是这周的点，用 board 已加载的任务算，不加查询）+ 中性的 size chip。
   - Done 列沿用变暗的同一张卡。
-  - 不加 ✓（待拍板 4）。
+  - 不加 ✓（已定，和 Phase 2 的两列 board 一起上）。
 - 删除：`computeRiskLevel`、`RiskBadge`、risk 边框常量、卡片上的 type pill、#n、`RolloverTag`。`computeTemplateProgress` 保留给进度点用，去掉其中的 `doing` 计数。
-- Design Console：卡片的 gallery 条目（三种 kind × 位置），更新 board scenario 的 fixtures。
-- **Done when**：真实卡片和 Phase 1 mockup 的 Cards 屏一致；`tsc`、`lint`、`format:check`、`check:themes`、`build` 都通过。
+- 去掉 Doing 列：
+  - Board：`KanbanBoard` / `BoardColumn` 去掉 Doing 列（desktop 和 mobile），`taskUtils` 的分组去掉 DOING。
+  - 写入：`src/schemas.ts` 里移动和 Track This Week 的状态 enum 去掉 DOING；matrix 的「Move to」只剩 Todo 和 Done。
+  - 显示：PlanForm 的状态 pill、priorities 的状态点、`en.json` 里「Todo / In Progress」的 copy；MCP 的 server instructions 和 tool descriptions 里的「in progress」。
+  - 数据：一个 data migration 把现有 DOING 任务改成 TODO。Postgres 的 `DOING` enum 值先保留（删 enum 值要重建类型），Phase 2 cleanup 再删。
+- Design Console：卡片的 gallery 条目（三种 kind × 位置），更新 board、plan、priorities scenario 的 fixtures（去掉 DOING）。
+- **Done when**：真实卡片和 Phase 1 mockup 的 Board / Cards 屏一致；`tsc`、`lint`、`format:check`、`check:themes`、`build` 都通过。
 
 ### PR 3 — Project 数据层
 
@@ -244,24 +257,20 @@ PR 2 和 PR 3 互不依赖，可以并行。PR 5 合并后，Phase 1 MVP 上线�
 
 - Habit 自带 cadence：Daily（每天）或 N× / week，抛弃 Plan Mode；新增 Plan › Habits 页。
 - Plan week 三步流程取代 plan form；移除 app 内 AI chat。
-- Board 去掉 Doing；Done 改成本周按天分组的日志；卡片加 ✓。
+- Board：Done 改成本周按天分组的日志；卡片加 ✓（Doing 在 Phase 1 已经去掉）。
 - Habit 漏掉的那天安静过期（去掉 rollover）。
 - Cleanup：`DOING` enum 值、`Plan.mode`、废弃的 copy 和 scenario。
 
-方向见 Phase 2 的 mockup。另有几条独立的 tracker 项：habit 级别的天数选择、per-kind risk、one-off due date、daily rhythm、backlog 堆叠。
+方向见 Phase 2 的 mockup。另有几条独立的 tracker 项：habit 级别的天数选择、habit / project 的单独入口、per-kind risk、one-off due date、daily rhythm、backlog 堆叠。
 
 ## 待拍板
 
-1. **Doing 列的移除放在 Phase 2。** 你列 Phase 1 时没有提到它，我按 Phase 2 处理了。OK 吗？
-2. **Projects 的入口**：Plan 页变成 hub（This week · Projects），路由 `/kanban/projects`，侧栏和 dock 都不加新项。OK 吗？
-3. **Rollover 的显示**：Phase 1 的 habit 卡片在 context 位置显示中性的「↩ 日期」，不再用警告色。OK 吗？
-4. **Phase 1 卡片不加 ✓**，只能拖动；✓ 和 Phase 2 的两列 board 一起上。OK 吗？
-5. **MCP 怎么排 step**：并进 `create_plan` / `update_plan` 的参数，不单独做一个 schedule 工具。OK 吗？
-6. **排期顺序**：step 可以不按顺序排进这周，任何 upcoming step 都能「+ This week」。OK 吗？
+无。这一轮的 6 项都已拍板，记在「已定的事」里。
 
 ## 风险
 
 - **PR 2 关掉 risk 之后**，board 上没有任何「快到期 / 落后了」的提示，直到 per-kind risk 回来（tracker）。
+- **去掉 Doing 之后**，board 上分不出「正在做」和「今天要做」，两者都在 Todo。
 - **Migration 直接作用在线上 Supabase**：local dev 和 production 共用同一个。这几个 migration 都是加法，但仍要先在本地 Postgres 验证。
 - **旧 template 和新 project 会并存**：Biomedical course 这类「其实是 project」的 WEEKLY template，下周不再选就行，不做自动迁移。
 

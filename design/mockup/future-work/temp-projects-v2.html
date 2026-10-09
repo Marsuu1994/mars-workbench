@@ -673,6 +673,7 @@
   .tools th { text-align: left; font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 48%, transparent); padding: 8px; border-bottom: 1px solid var(--card-border); }
   .tools td { padding: 9px 8px; border-bottom: 1px solid color-mix(in oklab, var(--bc) 6%, transparent); vertical-align: top; line-height: 1.5; color: color-mix(in oklab, var(--bc) 80%, transparent); }
   .tools td:first-child { font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--bc); white-space: nowrap; }
+  .matrix.four { grid-template-columns: 112px repeat(4, minmax(200px, 1fr)); }
 
   /* ── Modals: the TaskModal pattern (OverlayHeader + form + footer) ── */
   .mbox { width: 500px; max-width: 100%; background: var(--b1); border: 1px solid var(--card-border); border-radius: 16px; box-shadow: 0 20px 50px oklch(0 0 0 / .35); overflow: hidden; text-align: left; }
@@ -907,7 +908,7 @@
         {t: 'Lecture 1 — Intro to the cell', size: 'XS', done: 'Mon, Oct 5'}, {t: 'Lecture 2 — Biochemistry basics', size: 'XS', done: 'Tue, Oct 6'},
         {t: 'Lecture 3 — Membranes', size: 'XS', desc: 'Watch + one-page notes', week: 'Todo'}, {t: 'Lecture 4 — Cell signaling', size: 'XS'}, {t: 'Lecture 5 — Genetics I', size: 'XS'}]},
       pdb: {title: 'Protein 3D viewer', goal: 'A Next.js page that renders any PDB entry in 3D.', steps: [
-        {t: 'Fetch one structure from RCSB PDB', size: 'S', done: 'W40 · Thu'}, {t: 'Render it with Mol*', size: 'M', desc: 'Rotate + zoom works in the page', week: 'In Progress'},
+        {t: 'Fetch one structure from RCSB PDB', size: 'S', done: 'W40 · Thu'}, {t: 'Render it with Mol*', size: 'M', desc: 'Rotate + zoom works in the page', week: 'Todo'},
         {t: 'Color-by-chain toggle', size: 'S', week: 'Backlog'}, {t: 'Search box for PDB IDs', size: 'S'}]},
       fin: {title: 'Finance basics', goal: 'Read the three financial statements with confidence.', steps: [
         {t: 'Income statement overview', size: 'S', desc: 'Ch. 1–2 + one worked example', week: 'Backlog'}, {t: 'Balance sheet overview', size: 'S'}]},

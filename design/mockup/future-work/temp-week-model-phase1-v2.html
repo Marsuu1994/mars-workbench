@@ -673,6 +673,7 @@
   .tools th { text-align: left; font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 48%, transparent); padding: 8px; border-bottom: 1px solid var(--card-border); }
   .tools td { padding: 9px 8px; border-bottom: 1px solid color-mix(in oklab, var(--bc) 6%, transparent); vertical-align: top; line-height: 1.5; color: color-mix(in oklab, var(--bc) 80%, transparent); }
   .tools td:first-child { font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--bc); white-space: nowrap; }
+  .matrix.four { grid-template-columns: 112px repeat(4, minmax(200px, 1fr)); }
 
   /* ── Modals: the TaskModal pattern (OverlayHeader + form + footer) ── */
   .mbox { width: 500px; max-width: 100%; background: var(--b1); border: 1px solid var(--card-border); border-radius: 16px; box-shadow: 0 20px 50px oklch(0 0 0 / .35); overflow: hidden; text-align: left; }
@@ -767,7 +768,7 @@
   <div>
     <div class="eyebrow">Phase 1 · Projects MVP — exploration (pending approval)</div>
     <h1>Projects on the board, cards that say what they are</h1>
-    <p>Phase 1 adds a third kind of work — <b>projects</b>: a goal plus ordered steps that never expire — next to today's templates (<b>habits</b>) and the matrix (<b>one-offs</b>). Every card is redrawn kind-first, and risk is switched off. Claude can create projects and put steps on the week over MCP. The board keeps its three columns and the plan form stays as it is; those change in Phase 2 (<span class="mono">temp-week-model-phase2-v2.html</span>). Fixture: Wednesday Oct 7, 10:00 — week 41.</p>
+    <p>Phase 1 adds a third kind of work — <b>projects</b>: a goal plus ordered steps that never expire — next to today's templates (<b>habits</b>) and the matrix (<b>one-offs</b>). Every card is redrawn kind-first, and risk is switched off. Claude can create projects and put steps on the week over MCP. The board drops its Doing column (Todo · Done); the plan form stays as it is and changes in Phase 2 (<span class="mono">temp-week-model-phase2-v2.html</span>). Fixture: Wednesday Oct 7, 10:00 — week 41.</p>
   </div>
   <div class="seg" id="theme-seg">
     <button data-theme-btn="mars-dark" class="on">Sora dark</button>
@@ -785,18 +786,19 @@
       <li><b>Projects</b> — Plan › Projects: a goal and an ordered list of steps; steps go onto the week one by one and never expire. New Project / Add Step modals follow the TaskModal pattern — see <span class="mono">temp-projects-v2.html</span></li>
       <li><b>Kind-first cards</b> on the board, the backlog and the mobile rows — habit, project step or one-off in the first line, the kind's own progress in the last</li>
       <li><b>Risk off</b> — no risk badge, no risk border, no 15:00 / 20:00 thresholds</li>
+      <li><b>Doing column removed</b> — the board is Todo · Done; work in progress stays in Todo, and tasks already in Doing move to Todo</li>
       <li><b>Plan form</b> shows the plan's project steps next to one-offs — select / deselect only</li>
       <li><b>MCP</b> — Claude reads projects, creates them, writes steps and puts steps on the week</li>
     </ul></div>
     <div class="chg stay"><h4>Stays as it is</h4><ul>
-      <li>Three columns: Todo · In Progress · Done (the name Todo stays)</li>
+      <li>The name Todo, the backlog and drag and drop</li>
       <li>Templates, type × frequency per plan, Plan Mode, the plan form, the AI chat</li>
       <li>Daily rollover (now a neutral ↩ date on the habit card)</li>
       <li>The priority matrix and Track This Week</li>
-      <li>Drag and drop, the backlog drawer / sheet, sizes and points</li>
+      <li>The backlog drawer / sheet, sizes and points</li>
     </ul></div>
     <div class="chg gone"><h4>Waits</h4><ul>
-      <li><s>Phase 2</s> <i>— habits own their cadence (Daily or N× / week, Plan Mode dropped), Habits page, three-step Plan week, AI chat removed, Doing column removed, quiet habit expiry</i></li>
+      <li><s>Phase 2</s> <i>— habits own their cadence (Daily or N× / week, Plan Mode dropped), Habits page, three-step Plan week, AI chat removed, Done as a day-grouped log with ✓ on cards, quiet habit expiry</i></li>
       <li><s>Tracker</s> <i>— per-kind risk rules, one-off due dates, daily rhythm rituals, backlog stacking, habit-level days</i></li>
     </ul></div>
   </div>
@@ -808,9 +810,9 @@
   <div class="board" id="before-board"></div>
   <p class="note">The project-like work is a weekly template, so the board says <b>"Biomedical course #3"</b> and <b>"Protein 3D visualizer #1"</b>, not which lecture or which step. Four unrelated meanings share one coloured border and pill.</p>
 
-  <div class="col-label after spaced"><b>After</b> phase 1 — same columns, same drag and drop, new cards</div>
+  <div class="col-label after spaced"><b>After</b> phase 1 — Todo · Done, same drag and drop, new cards</div>
   <div class="board" id="after-board"></div>
-  <p class="note">Columns, backlog and drag and drop are unchanged. Each card now opens with what it is: a <b>habit</b> (green, with its plan line — Daily / 3× / week), a <b>project step</b> (purple, with the project and step n of N) or a <b>one-off</b> (blue, with its quadrant). The last line is that kind's progress: week dots for a habit, the path for a step. Nothing turns amber or red. Tuesday's rolled-over Workout says <b>↩ Tue, Oct 6</b> where the cadence would be. The Mol* step sits in In Progress like any task.</p>
+  <p class="note">The Doing column is gone — Todo and Done remain, and the backlog and drag and drop are unchanged. Each card now opens with what it is: a <b>habit</b> (green, with its plan line — Daily / 3× / week), a <b>project step</b> (purple, with the project and step n of N) or a <b>one-off</b> (blue, with its quadrant). The last line is that kind's progress: week dots for a habit, the path for a step. Nothing turns amber or red. Tuesday's rolled-over Workout says <b>↩ Tue, Oct 6</b> where the cadence would be. The Mol* step that was in progress sits in Todo like any task.</p>
 </section>
 
 <!-- ═════════ 3. Cards ═════════ -->
@@ -839,7 +841,7 @@
   </div>
 
   <div class="col-label after spaced"><b>States</b> every kind in every place it can sit</div>
-  <div class="matrix" id="state-matrix"></div>
+  <div class="matrix four" id="state-matrix"></div>
 
   <div class="col-label after spaced"><b>Rules</b></div>
   <div class="rules">
@@ -886,7 +888,7 @@
       <div class="co" id="co-after"></div>
     </div>
   </div>
-  <p class="note">The plan form is otherwise untouched in phase 1 (its redesign is phase 2). It only renders the plan's <b>selected</b> project steps — last week's unfinished ones when creating, this week's when editing — and, like one-offs, you can only select or deselect them; deselecting sends a step <b>back to its project at the same place</b>. The plan form never creates or edits a project or a step: in the plan flows that is Claude's job over MCP (<span class="mono">create_plan</span> / <span class="mono">update_plan</span>). Phase 2 revisits this.</p>
+  <p class="note">The plan form is otherwise untouched in phase 1 (its redesign is phase 2). It only renders the plan's <b>selected</b> project steps — last week's unfinished ones when creating, this week's when editing — and, like one-offs, you can only select or deselect them; deselecting sends a step <b>back to its project at the same place</b>. It only loads steps that already exist — nothing here adds a project or a step; that lives on the Projects page. Phase 2 revisits this.</p>
   <div class="col-label after spaced"><b>After</b> edit plan · review changes</div>
   <div class="co" id="co-review" style="max-width:560px"></div>
 </section>
@@ -948,8 +950,7 @@
   const O = (oid, extra = {}) => ({kind: 'oneoff', oid, ...ONEOFFS[oid], pts: PTS[ONEOFFS[oid].size], ...extra});
 
   const BOARD = {
-    todo: [H('wo', {roll: 'Tue, Oct 6'}), H('wo'), H('lc'), P('bio', 2), O('tax')],
-    doing: [P('pdb', 1)],
+    todo: [H('wo', {roll: 'Tue, Oct 6'}), H('wo'), H('lc'), P('bio', 2), P('pdb', 1), O('tax')],
     done: [H('wo', {done: true}), H('lc', {done: true}), P('bio', 0, {done: true}), P('bio', 1, {done: true}), O('bank', {done: true}), O('pkg', {done: true})],
     backlog: [H('lc'), H('rd'), H('rd'), H('sd'), P('pdb', 2), P('fin', 0)],
   };
@@ -1055,6 +1056,7 @@
   }
 
   function boardFrame(el, {title, sub, today, week, weekPct, cols, backlogCount, backlogBody}) {
+    const colsClass = cols.length === 3 ? 'board-cols three' : 'board-cols';
     const col = ([cls, label, body, n]) => `<div class="column ${cls}"><div class="column-head"><span class="led"></span><span class="fx-label display">${label}</span><span class="count-ghost">${n}</span></div>
       <div class="column-body">${body}</div></div>`;
     el.innerHTML = `
@@ -1062,7 +1064,7 @@
         <div class="dash"><div class="dash-item"><span class="fx-label muted">Today</span><span class="meter"><i style="width:0%"></i></span><b>${today}</b></div>
         <div class="dash-item"><span class="fx-label muted">Week</span><span class="meter"><i class="info" style="width:${weekPct}%"></i></span><b>${week}</b> pts</div></div></div>
       <div class="board-main">
-        <div class="board-cols three">${cols.map(col).join('')}</div>
+        <div class="${colsClass}">${cols.map(col).join('')}</div>
         <aside class="backlog"><div class="backlog-head"><div class="backlog-title">${icon('inbox', 'text-p')}<span class="t">Backlog</span><span class="badge-count">${backlogCount}</span></div>${icon('chev-right', 'sm muted')}</div>
           <div class="backlog-hint">${icon('arrow-left', 'sm text-p')}Drag tasks left to Todo to start working</div>
           <div class="backlog-body">${backlogBody}</div></aside>
@@ -1075,7 +1077,7 @@
       backlogCount: 6, backlogBody: old(OLD.backlog)});
     const nu = list => list.map(t => card(t)).join('');
     boardFrame(document.getElementById('after-board'), {title: 'Kanban Planner', sub: 'Oct 5 – Oct 11', today: '0/6', week: '6/26', weekPct: 23,
-      cols: [['todo', 'Todo', nu(BOARD.todo), 5], ['doing', 'In Progress', nu(BOARD.doing), 1], ['done', 'Done', nu(BOARD.done), 6]],
+      cols: [['todo', 'Todo', nu(BOARD.todo), 6], ['done', 'Done', nu(BOARD.done), 6]],
       backlogCount: 6, backlogBody: nu(BOARD.backlog)});
   }
 
@@ -1088,12 +1090,12 @@
     document.getElementById('anat-after').innerHTML = [card(H('lc'), {annotate: true}), card(P('bio', 2), {annotate: true}), card(O('tax'), {annotate: true})].join('');
     const never = text => `<div class="never">${text}</div>`;
     const rows = [
-      {kind: 'habit', name: 'Habit', note: 'a template instance', cells: [card(H('lc')), card(H('wo')), card(H('rd')), card(H('lc', {done: true})), mini(H('rd'))]},
-      {kind: 'project', name: 'Step', note: 'one step of a project', cells: [card(P('bio', 2)), card(P('pdb', 1)), card(P('pdb', 2)), card(P('bio', 1, {done: true})), mini(P('bio', 2))]},
-      {kind: 'oneoff', name: 'One-off', note: 'from the matrix', cells: [card(O('tax')), card(O('pkg')), never('Never — one-offs reach the board through Track This Week, straight into Todo or In Progress'), card(O('bank', {done: true})), mini(O('tax'))]},
+      {kind: 'habit', name: 'Habit', note: 'a template instance', cells: [card(H('lc')), card(H('rd')), card(H('lc', {done: true})), mini(H('rd'))]},
+      {kind: 'project', name: 'Step', note: 'one step of a project', cells: [card(P('bio', 2)), card(P('pdb', 2)), card(P('bio', 1, {done: true})), mini(P('bio', 2))]},
+      {kind: 'oneoff', name: 'One-off', note: 'from the matrix', cells: [card(O('tax')), never('Never — one-offs reach the board through Track This Week, straight into Todo'), card(O('bank', {done: true})), mini(O('tax'))]},
     ];
     document.getElementById('state-matrix').innerHTML =
-      `<div></div><div class="mh">Todo</div><div class="mh">In Progress</div><div class="mh">Backlog</div><div class="mh">Done</div><div class="mh">Mobile row (136px)</div>` +
+      `<div></div><div class="mh">Todo</div><div class="mh">Backlog</div><div class="mh">Done</div><div class="mh">Mobile row (136px)</div>` +
       rows.map(r => `<div class="rh" data-kind="${r.kind}"><b>${icon(KIND_ICON[r.kind], 'sm')}${r.name}</b><span>${r.note}</span></div>${r.cells.map(c => `<div>${c}</div>`).join('')}`).join('');
     document.getElementById('roll-vs').innerHTML = oldCard({t: 'Workout', d: '45 min — gym or run', type: 'DAILY', size: 'XS', roll: 'Tue, Oct 6', risk: 'warning'}) + card(H('wo', {roll: 'Tue, Oct 6'}));
   }
@@ -1118,7 +1120,7 @@
       <div class="peek">${icon('inbox', 'text-p')}Backlog<span class="badge-count">6</span>${icon('chev-up', 'sm chev muted')}</div>${dock('Board')}`);
     const boardInner = `<div class="app">
         <div class="app-head"><h2 class="disp">Board</h2><span class="date">Oct 5 – Oct 11</span></div>${mdash('0/6', '6/26 pts', 23)}
-        ${msec('todo', 'Todo', BOARD.todo, mini)}${msec('doing', 'In Progress', BOARD.doing, mini)}${msec('done', 'Done', BOARD.done, mini)}</div>
+        ${msec('todo', 'Todo', BOARD.todo, mini)}${msec('done', 'Done', BOARD.done, mini)}</div>
       <div class="peek">${icon('inbox', 'text-p')}Backlog<span class="badge-count">6</span>${icon('chev-up', 'sm chev muted')}</div>${dock('Board')}`;
     const after = phone('10:02', boardInner);
     const sheet = phone('10:03', `${boardInner}<div class="scrim"></div>
@@ -1127,7 +1129,7 @@
         <div class="sheet-body">${BOARD.backlog.map(t => card(t, {mode: 'backlog-m'})).join('')}</div></div>`);
     document.getElementById('mobile-phones').innerHTML =
       wrap('<span class="tag before">Before</span>Type pill and #n take the first line of every 136px card; the title clamps at two lines and says little.', before) +
-      wrap('<span class="tag">After</span>Same rows, same 136px cards, kind first: <b>kind label</b> (or the project\'s name), the title, then the dots or the path. A rollover shows ↩ and the day instead of dots.', after) +
+      wrap('<span class="tag">After</span>Todo and Done rows (no In Progress), the same 136px cards, kind first: <b>kind label</b> (or the project\'s name), the title, then the dots or the path. A rollover shows ↩ and the day instead of dots.', after) +
       wrap('<span class="tag">After</span>The backlog sheet uses the full card face; <b>↑ Todo</b> pulls a card as today. Project steps scheduled this week sit here with the habit instances.', sheet);
   }
 
@@ -1145,7 +1147,7 @@
     document.getElementById('co-after').innerHTML = `<h4>Create weekly plan</h4><div class="lbl">Templates</div>${tplRows}
       <div class="lbl">One-off Tasks</div>${row('tax', 'oneoff', 'File tax report', '', 'Todo', CO.tax, 'Priorities matrix')}
       <div class="lbl">Project Steps <span class="new">· new</span></div>
-      ${row('mol', 'project', 'Render it with Mol*', 'Protein 3D viewer', 'In Progress', CO.mol, 'Protein 3D viewer, step 2')}
+      ${row('mol', 'project', 'Render it with Mol*', 'Protein 3D viewer', 'Todo', CO.mol, 'Protein 3D viewer, step 2')}
       ${row('inc', 'project', 'Income statement overview', 'Finance basics', 'Backlog', CO.inc, 'Finance basics, step 1')}
       <div class="sum">2 templates, ${CO.tax ? 1 : 0} one-off task, ${n} project step${n === 1 ? '' : 's'} selected</div>`;
     document.getElementById('co-review').innerHTML = `<h4>Review changes</h4>
