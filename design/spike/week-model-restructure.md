@@ -1,6 +1,6 @@
 # Spike: Week model restructure — Phase 1: Projects MVP
 
-**Status: awaiting owner review (round 3)** · 2026-10-08 · PR #47
+**Status: awaiting owner review (round 4)** · 2026-10-09 · PR #47
 
 Mockups:
 - Phase 1，待批准：`design/mockup/future-work/temp-week-model-phase1-v2.html`
@@ -33,10 +33,12 @@ Mockups:
 | Risk | Phase 1 的新卡片不带 risk；per-kind 规则留在 tracker |
 | Daily rhythm 仪式 | 不做，留在 tracker |
 | 分期 | Phase 1 = project + 卡片 + MCP；Phase 2 = habit + plan form + cleanup |
-| Plan form 里的 step | 只渲染这个 plan **选中的** project steps，像 one-off 一样只能勾选 / 取消。在 plan flow 里，新建、修改 project 和往 plan 里加新 step 只走 MCP。Phase 2 再回头 |
+| Plan form 里的 step | 只加载已有的 project steps（这个 plan 选中的），像 one-off 一样只能勾选 / 取消。plan form 不设计新建 project / step 的功能，Phase 2 再回头 |
+| Projects 页的「+ This week」 | 保留。上面的限制只针对 plan 部分；Projects 页照常建 project、加 step，用「+ This week」/ × 排期 |
 | AI chat 的 flow | 不改，Phase 2 直接移除 |
 | Risk 的 flow 文档 | 不删，标为 *pending update*，旧规则留作参考 |
 | 新建 / 编辑 project 和 step | 用 modal，沿用 TaskModal（Add Priority Task / Create Task Template）的模式；见 `temp-projects-v2.html` |
+| Project 做完 | 不自动收起。所有 step 都 DONE 时，UI 显示「All steps done」标识，由 steps 推导，不存库、不加字段。Archive 是用户主动收起 |
 
 ## Phase 1 scope
 
@@ -122,8 +124,8 @@ kind 由 `TaskType` 推出来，Task 上不加 kind 列：
 | `board.md` | Progress Tracking Flow | metrics 加 project 桶。step 和其他任务一样计入 Today 和 Week；Week projection 包含 backlog 里的 step |
 | `board.md` | Task Risky Level Visual Effect Flow | 标为 **pending update**：Phase 1 不渲染 risk；flow 里保留旧规则作参考，等 per-kind 规则（tracker）回来时再改写 |
 | `board.md` | Drag and Drop Flow | 规则不变，step 和其他任务一样移动 |
-| `plan.md` | Create Plan Flow | plan form 只渲染选中的 project steps：pending plan 上没做完的 step 默认选中，和 one-off 一样只能勾选 / 取消。选中的挂到新 plan，保留原状态；取消的退回 project（`planId = null`、`BACKLOG`，`instanceIndex` 不变）。plan form 不新建、不修改 project 或 step |
-| `plan.md` | Update Plan Flow | 同样只渲染这周已挂上的 steps，只能取消（退回 project）；ReviewChangesModal 写明「回到 <project>」。在 plan flow 里往这周加新 step 只走 MCP（`update_plan`）。Phase 2 再回头 |
+| `plan.md` | Create Plan Flow | plan form 只渲染选中的 project steps：pending plan 上没做完的 step 默认选中，和 one-off 一样只能勾选 / 取消。选中的挂到新 plan，保留原状态；取消的退回 project（`planId = null`、`BACKLOG`，`instanceIndex` 不变）。plan form 没有新建 project / step 的功能 |
+| `plan.md` | Update Plan Flow | 同样只渲染这周已挂上的 steps，只能取消（退回 project）；ReviewChangesModal 写明「回到 <project>」。plan form 没有加 step 的功能，Phase 2 再回头 |
 | `plan.md` | AI Assisted Plan Creation Flow | **不改**，Phase 2 直接移除。实现上：它审批时只带 one-off，没带上的 step 由推广后的 unlink 退回 project |
 | `plan.md` | Plan with Claude (MCP) Flow | context 加 projects；新增工具 `create_project` / `update_project`；`create_plan` 加 `carryOverProjectStepIds` / `projectStepIds`；`update_plan` 能加、减 step。Rules 加上 step 的校验：只能排本人的、没做完的、没在这周 plan 上的 step |
 | `plan.md` | Create / Update Task Template Flow | 不变 |
@@ -135,6 +137,7 @@ kind 由 `TaskType` 推出来，Task 上不加 kind 列：
    - 入口：Plan hub 的 Projects tab，进入 `/kanban/projects`。侧栏的 Plan 项和 dock 的 Plan tab 保持激活。
    - 步骤：`ensureSynced` → 列出未 archive 的 project（进度 done/total、下一步、这周排了几步）→ 选中一个看详情。Desktop 是左右两栏；mobile 进入 `/kanban/projects/[id]`。
    - 规则：一个 project 都没有时，显示空状态：「New project」，外加一句提示可以请 Claude 起草；archived 的 project 单独列在列表最下面，带 Unarchive。
+   - **All steps done**：project 至少有一个 step、且全部 DONE 时，列表卡片的「Next:」换成「✓ All steps done」标识，详情里出现一条 banner：「加下一批 step，或者 archive」，带 Archive（同样两步确认）。这个状态由 steps 推导，不存库；project 留在列表里，不自动 archive；再加一个 step 就回到进行中。
 2. **Create Project Flow**
    - 入口：Projects 页的「+ New project」，或者空状态里的同一个按钮。
    - 步骤：打开 **New Project** modal（TaskModal 同款外壳：标题栏 + ×、project 的说明 banner、Title 必填、Goal 可选、Cancel / Create project）→ 建好后进入这个 project 的详情，空状态提示「+ Add the first step」。
@@ -142,7 +145,7 @@ kind 由 `TaskType` 推出来，Task 上不加 kind 列：
 3. **Edit Project Flow**
    - 入口：project 详情右上角的「Edit」，打开 **Edit Project** modal（New Project 去掉 banner）：改 title、goal；footer 左边是 Archive。
    - Archive 是两步确认，沿用 sign-out 的模式：Archive → 同一个按钮变成「Archive?」，下面写明「Unfinished steps leave this week」。
-   - 规则：archive 时没做完的 step 退出这周（回到 project），project 移到 Archived，列表选中下一个 project；done 的 step 保留 plan 归属；Unarchive 原样恢复。
+   - 规则：archive 是用户主动收起，入口是这个 modal 和 All steps done 的 banner；archive 时没做完的 step 退出这周（回到 project），project 移到 Archived，列表选中下一个 project；done 的 step 保留 plan 归属；Unarchive 原样恢复。
 4. **Manage Steps Flow**
    - 加：「+ Add step」打开 **Add Step** modal，字段和 Create Task Template 一样（Title 必填、Description 可选、Size 选择器带 effort 提示和 L / XL 拆分提醒），标题栏写明 project 名和「becomes step n」；保存后追加到末尾，modal 关闭（和 Add Priority Task 一样一次加一步，批量起草交给 Claude）。
    - 改 / 删：没做完的 step 每行有常显的 ✎（只在 hover 时出现的控件在触屏上找不到），打开 **Edit Step** modal（同样的字段，footer 左边是 Delete step）。Delete 同样两步确认：Delete step → 「Delete step?」；删掉后后面的 step 前移一位。编辑一个排在这周的 step，board 上的卡片同步更新。
@@ -162,7 +165,7 @@ kind 由 `TaskType` 推出来，Task 上不加 kind 列：
    - 排进这周：`planId = plan` · `BACKLOG`
    - 之后在 board 上：`TODO` → `DOING` → `DONE`
    - 周末没做完：仍挂在 pending plan 上；到下一个 plan 时，要么被带上（保留状态），要么退回 project（`planId = null` · `BACKLOG`，`instanceIndex` 不变）。
-   - project 进度 = DONE 的 step 数 / step 总数；done 的 step 显示完成日期。
+   - project 进度 = DONE 的 step 数 / step 总数；done 的 step 显示完成日期；全部 DONE 时 UI 显示 All steps done（推导，不存库）。
 
 ## Executable plan · Phase 1 PR 序列
 
@@ -197,7 +200,7 @@ PR 2 和 PR 3 互不依赖，可以并行。PR 5 合并后，Phase 1 MVP 上线�
   - 中间：标题，以及（仅 desktop 和 sheet）说明。
   - 最后一行：信号（habit 是这周的点，用 board 已加载的任务算，不加查询）+ 中性的 size chip。
   - Done 列沿用变暗的同一张卡。
-  - 不加 ✓（待拍板 5）。
+  - 不加 ✓（待拍板 4）。
 - 删除：`computeRiskLevel`、`RiskBadge`、risk 边框常量、卡片上的 type pill、#n、`RolloverTag`。`computeTemplateProgress` 保留给进度点用，去掉其中的 `doing` 计数。
 - Design Console：卡片的 gallery 条目（三种 kind × 位置），更新 board scenario 的 fixtures。
 - **Done when**：真实卡片和 Phase 1 mockup 的 Cards 屏一致；`tsc`、`lint`、`format:check`、`check:themes`、`build` 都通过。
@@ -213,7 +216,7 @@ PR 2 和 PR 3 互不依赖，可以并行。PR 5 合并后，Phase 1 MVP 上线�
 ### PR 4 — Projects UI + step 上 board
 
 - Plan hub：Plan 页加 This week · Projects 两个 tab。`/kanban/projects` 和 `/kanban/projects/[id]` 也让侧栏的 Plan 项保持激活。
-- Projects 页：列表 + 详情、「+ This week」和 ×。
+- Projects 页：列表 + 详情、「+ This week」和 ×、All steps done 的标识和 banner（在 UI 里推导）。
 - 4 个 modal：New Project、Edit Project（含 Archive）、Add Step、Edit Step（含 Delete step）。复用 TaskModal 的零件（`OverlayShell` / `OverlayHeader`、`FieldRow`、size 的 `ChoicePills`、footer），是加新 mode 还是拆出共用的 form 部件，实现时按代码量决定。
 - Step 卡片面：project 名 + n/N + step bar，基于 PR 2 的卡片骨架。
 - Plan form：在 One-off Tasks 旁边加 Project Steps 区块，只渲染这个 plan 选中的 steps，只能勾选 / 取消；ReviewChangesModal 写明 step 回到哪个 project。
@@ -226,8 +229,9 @@ PR 2 和 PR 3 互不依赖，可以并行。PR 5 合并后，Phase 1 MVP 上线�
 - 新工具：`create_project`、`update_project`（patch 形式：rename、goal、archive，以及 add / edit / remove / reorder steps）。
 - `create_plan` 加 `carryOverProjectStepIds`（不传 = 全部带上，和 one-off 一致）和 `projectStepIds`；`update_plan` 能加、减 step。
 - Server instructions 和 tool descriptions：讲清三种 kind，判断标准是「每次内容一样就是 habit，不一样就是 project step」；`src/utils/errorMessages.ts` 加 step 相关的报错。
+- **Project 的 prompt 细节（做这个 PR 时再 finalize）**：archive 是用户主动的收起，Claude 不自己 archive，用户同意后才调用 `update_project`；context 里标出 all steps done 的 project，Claude 排下周时问用户是加下一批 step 还是 archive。
 - MCP Inspector smoke test。
-- **Done when**：在 Claude 里跑通 mockup 第 07 屏的对话。
+- **Done when**：在 Claude 里跑通 Projects mockup「07 Draft with Claude」的对话。
 
 ### 每个 PR 都要做的事
 
@@ -254,7 +258,6 @@ PR 2 和 PR 3 互不依赖，可以并行。PR 5 合并后，Phase 1 MVP 上线�
 4. **Phase 1 卡片不加 ✓**，只能拖动；✓ 和 Phase 2 的两列 board 一起上。OK 吗？
 5. **MCP 怎么排 step**：并进 `create_plan` / `update_plan` 的参数，不单独做一个 schedule 工具。OK 吗？
 6. **排期顺序**：step 可以不按顺序排进这周，任何 upcoming step 都能「+ This week」。OK 吗？
-7. **Projects 页的「+ This week」还留吗？** 我把「在 plan flow 里只走 MCP」理解为：plan form 不新建、不修改 project / step，也不往 plan 里加新 step。Projects 页本身仍然能建 project、加 step（用新的 modal），也能用「+ This week」把 step 排进这周。如果你的意思是排期也只走 MCP，就把「+ This week」和 × 去掉。
 
 ## 风险
 

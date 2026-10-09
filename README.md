@@ -86,6 +86,12 @@ Open items: see [design/tracker.md](./design/tracker.md).
 
 ## Update Log
 
+### 2026-10-09
+- **Spike review round 4 (owner answers on PR #47)**:
+  - **Finished projects**: a project whose steps are all done shows an **All steps done** badge instead of its next step, plus a banner offering to add the next steps or archive. The state is worked out in the UI from the steps (no column), and nothing is archived automatically; archiving stays the user's call. `temp-projects-v2.html` adds this as step 3 of its Landing tab, with phone views, and the live page reaches it when a project's open steps are deleted.
+  - **Plan form scope**: the plan form only loads a plan's existing project steps, to select or deselect. Adding projects or steps is not designed for the plan form; the Projects page keeps creating them and **+ This week** / × for scheduling, which retires open question 7.
+  - **MCP prompt, deferred**: guidance for finished projects goes into PR 5 to finalize there. Claude never archives on its own, and it asks whether to add the next steps or archive.
+
 ### 2026-10-08
 - **Week model restructure, split into two phases (spike awaiting review)** — `design/spike/week-model-restructure.md` now plans only **Phase 1, a Projects MVP**: a new `Project` table whose steps are `PROJECT`-typed Tasks reusing the one-off lifecycle (additive migrations), a Plan hub with a Projects page, project steps on the board and in the plan form's carry-over, kind-first cards with risk switched off, and MCP project tools — five PRs, the first one documentation only. A new section maps every flow Phase 1 changes (end-of-period sync, backlog, progress, create/update plan, AI approval, MCP; the risk-visual flow is removed) and the flows it adds (`design/flows/projects.md`: landing, create/edit project, manage steps, schedule a step, draft steps with Claude, step lifecycle). Owner decisions recorded: Todo keeps its name, the in-app AI chat goes in Phase 2, Plan Mode is dropped for Daily / N× per week, and stacking, one-off due dates, risk rules and the daily rhythm stay out of scope.
 - **Mockups split by phase** — `temp-week-model-v2.html` becomes `temp-week-model-phase1-v2.html` (scope, board with the same three columns and new cards, card states, mobile rows, Projects page, plan-form carry-over, the Claude conversation with its tool calls) and `temp-week-model-phase2-v2.html` (exploration only: two-column board, three-step Plan week, Habits page with Daily / Times per week).
