@@ -82,7 +82,7 @@ export const MATRIX_TASKS: TaskItem[] = [
     description: 'Deadline end of month',
     quadrant: PriorityQuadrant.SCHEDULE,
     planId: SCENARIO_ACTIVE_PLAN.id,
-    status: TaskStatus.DOING,
+    status: TaskStatus.TODO,
     ...sized(TaskSize.MEDIUM),
   }),
   task({

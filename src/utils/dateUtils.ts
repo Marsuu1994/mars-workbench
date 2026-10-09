@@ -111,7 +111,7 @@ export function normalizeForDate(date: Date): Date {
 
 /**
  * Formats a date as a short human-readable string, e.g. "Mon, Feb 23".
- * Used for the rollover date tag on task cards.
+ * Used for the rollover date on task cards.
  * Uses timeZone: "UTC" so that Prisma DATE values (stored as UTC midnight)
  * display the correct calendar date regardless of the client's local offset.
  */
@@ -120,6 +120,17 @@ export function formatShortDate(date: Date): string {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
+/**
+ * Formats a date as its short weekday, e.g. "Mon" — the rollover marker on
+ * the 136px mobile card. UTC for the same reason as formatShortDate.
+ */
+export function formatShortWeekday(date: Date): string {
+  return new Date(date).toLocaleDateString('en-US', {
+    weekday: 'short',
     timeZone: 'UTC',
   });
 }

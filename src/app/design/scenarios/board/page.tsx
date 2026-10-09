@@ -6,12 +6,12 @@ import {MobileBacklogPanel} from './MobileBacklogPanel';
 import {
   MID_WEEK_TASKS,
   MID_WEEK_PROGRESS,
-  SCENARIO_PLAN_TEMPLATES,
+  SCENARIO_PLAN_LINES,
+  SCENARIO_PLAN_MODE,
   SCENARIO_PERIOD_KEY,
   SCENARIO_TODAY,
   BACKLOG_TASKS,
-  BACKLOG_RISK_MAP,
-  SCENARIO_TEMPLATE_FREQ_MAP,
+  SCENARIO_HABIT_WEEKS,
 } from './fixtures';
 
 const BOARD_SCENARIOS: ScenarioTab[] = [
@@ -42,26 +42,28 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
   {
     label: 'Board',
     title: 'Board — active plan',
-    note: 'A balanced spread across Todo / In Progress / Done, backlog collapsed.',
+    note: 'Todo · Done with kind-first cards: habits with their plan line and week dots (one rolled over from yesterday), one-offs with their quadrant. Backlog collapsed.',
     content: (
       <BoardScreen
         periodKey={SCENARIO_PERIOD_KEY}
         progress={MID_WEEK_PROGRESS}
         tasks={MID_WEEK_TASKS}
-        planTemplates={SCENARIO_PLAN_TEMPLATES}
+        planLines={SCENARIO_PLAN_LINES}
+        planMode={SCENARIO_PLAN_MODE}
       />
     ),
   },
   {
     label: 'Board — backlog open (desktop)',
     title: 'Board — backlog open (desktop)',
-    note: 'A play step opens the backlog: template instances staged, ready to pull onto the board.',
+    note: 'A play step opens the backlog: habit instances staged, ready to pull onto the board.',
     content: (
       <BoardScreen
         periodKey={SCENARIO_PERIOD_KEY}
         progress={MID_WEEK_PROGRESS}
         tasks={MID_WEEK_TASKS}
-        planTemplates={SCENARIO_PLAN_TEMPLATES}
+        planLines={SCENARIO_PLAN_LINES}
+        planMode={SCENARIO_PLAN_MODE}
       />
     ),
     play: [{click: {label: 'Board.Backlog.openLabel'}}],
@@ -69,14 +71,13 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
   {
     label: 'Backlog (mobile)',
     title: 'Backlog (mobile)',
-    note: 'The mobile backlog bottom sheet — staged instances with a tap-to-pull action — shown inline (not as a top-layer modal).',
+    note: 'The mobile backlog bottom sheet — staged habit instances on the full card face with a tap-to-pull action — shown inline (not as a top-layer modal).',
     display: 'fit',
     content: (
       <MobileBacklogPanel
         tasks={BACKLOG_TASKS}
         today={SCENARIO_TODAY}
-        riskMap={BACKLOG_RISK_MAP}
-        templateFreqMap={SCENARIO_TEMPLATE_FREQ_MAP}
+        habitWeeks={SCENARIO_HABIT_WEEKS}
       />
     ),
   },

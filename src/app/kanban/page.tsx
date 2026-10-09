@@ -32,7 +32,8 @@ export default async function KanbanPage() {
         daysElapsed: board.daysElapsed,
       }}
       tasks={board.tasks}
-      planTemplates={board.plan.planTemplates}
+      planLines={board.plan.planTemplates}
+      planMode={board.plan.mode}
     />
   );
 }

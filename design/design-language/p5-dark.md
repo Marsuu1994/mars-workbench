@@ -58,11 +58,10 @@ script method — see README).
 ### Channel continuity
 
 The channel *semantics* are theme-invariant (README) — only the voice changes.
-Orange stays targeting (drag & drop), violet stays AI **and WEEKLY**
-(`TaskTypeBadge`), blue stays DAILY/datalink, green stays go/done/sizes
-(`SizeChip`), gold stays stars/caution/ONCE (`text-warning` star convention
-unchanged). Board column accents keep the app's map (`BoardColumn`): Todo =
-info, Doing = warning, Done = success. The one structural change vs the mars
+Orange stays targeting (drag & drop), violet stays AI **and project steps**,
+blue stays one-offs/datalink, green stays go/done/habits, gold stays
+stars/caution (`text-warning` star convention unchanged). Board column accents
+keep the app's map (`BoardColumn`): Todo = info, Done = success. The one structural change vs the mars
 themes: **primary hands cyan's job to red** — action, active nav, progress are
 all phantom red.
 
@@ -153,10 +152,11 @@ did.
 | `fx-chrome` / `fx-chrome-glass` | Solid slab / blur-capable slab | Both opaque ink slabs with 2px paper-at-10% hairline edges. **No backdrop blur in this theme** (P5 is opaque paper; also a mobile perf win) |
 | `fx-panel` / `fx-panel-solid` | Glass console panel | **Paper-cut panel**: base-100 fill, 2px solid paper border at 85%, two oblique corner cuts (opposite corners, unequal sizes), hard offset shadow `8px 8px 0` blood-red via `filter: drop-shadow` on a wrapper (box-shadow is clipped away by clip-path). Both names = same opaque skin |
 | `fx-corners` | Cyan reticle brackets | **Crop marks**: same 8-stroke bracket geometry, 2px, phantom red — the calling card's print marks |
-| `fx-card` / `fx-card-lift` | Edge-light + glow hover | **Sticker card**: `--fx-card-bg` fill, 1.5px paper border at 14%, `3px 3px 0` ink offset at rest; hover = `4px 4px 0` primary offset + `translate(-1px,-1px)` (no border-color change — risk edges still win); lift (drag) = `7px 7px 0` blood-red + `rotate(-1.2deg)` class swap |
+| `fx-card` / `fx-card-lift` | Edge-light + glow hover | **Sticker card**: `--fx-card-bg` fill, 1.5px paper border at 14%, `3px 3px 0` ink offset at rest; hover = `4px 4px 0` primary offset + `translate(-1px,-1px)` (no border-color change — the kind edge still wins, at 4px here); lift (drag) = `7px 7px 0` blood-red + `rotate(-1.2deg)` class swap |
 | `fx-target` | Orange dashed outline + pulsing halo | **Hazard target**: orange 2px dashed outline + flat diagonal hazard stripes (repeating-linear-gradient, hard stops — stripes are flat fills, not gradations) + opacity pulse. Channel unchanged |
 | `fx-glow` / `fx-glow-accent` | Soft luminous halo | **Pop shadow**: hard `4px 4px 0` **ink** offset at rest; hover/focus deepens to `5px 5px 0` blood-red (blood-orange for the accent variant). Depth stays ink/blood — a channel-colored offset under a same-channel fill would vanish. ⚠ skew-and-cut buttons need an inner `<span>` for counter-skewed glyphs and a wrapper for the `drop-shadow` — a markup change on existing `btn-primary` sites |
 | `fx-chip` | currentColor rounded chip | currentColor **parallelogram**: `skewX(-10deg)`, 1.5px full-strength currentColor border, fill at 12%; text stays skewed (P5 labels are oblique). Derivation from `currentColor` unchanged — `text-*` pairing still works |
+| `fx-pip` | Round signal mark | Flat **diamond**: square corners rotated 45° (the `fx-led` stud language) |
 | `fx-label` (+`-bright`) | 11px mono uppercase | Unchanged (telemetry voice is load-bearing for readability). Brightness steps re-tuned to paper |
 | `fx-num` | Mono tabular numerals | Unchanged |
 | `fx-led` (+`fx-led-pulse`) | Glowing dot | **Diamond stud**: 7px square rotated 45°, flat `currentColor`, 1px ink outline, no glow. Pulse stays opacity-only |
@@ -243,7 +243,8 @@ Hover motion never replaces focus styling.
 ## Open questions / risks
 
 - **Red primary vs rose error adjacency** (hue 29 vs 12): distinct side-by-side in the
-  demo, but audit the board's risk borders (`border-l-error`) next to primary CTAs.
+  demo, but audit error next to primary CTAs (board risk is switched off until per-kind
+  rules return; when it does, re-check its colours here).
   Escape hatch: push error toward magenta (hue ~5) if real screens confuse.
 - **Zero radius** changes daisyUI-styled controls (inputs, toggles, checkboxes)
   across this theme — the demo covers the main ones; a full `/design` gallery

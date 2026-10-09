@@ -554,9 +554,7 @@ export default function PlanForm({
                       color="muted"
                       className="rounded-full uppercase tracking-wider shrink-0"
                     >
-                      {task.status === TaskStatus.DOING
-                        ? tStatus('DOING')
-                        : tStatus('TODO')}
+                      {tStatus(TaskStatus.TODO)}
                     </Pill>
                   </div>
                 );

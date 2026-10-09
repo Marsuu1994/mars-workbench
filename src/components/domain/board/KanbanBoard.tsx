@@ -3,12 +3,11 @@
 import {useState, useEffect, useMemo} from 'react';
 import {DragDropContext, type DropResult} from '@hello-pangea/dnd';
 import type {TaskItem} from '@/lib/db/tasks';
-import {TaskStatus} from '@/utils/enums';
+import {TaskStatus, type PlanMode} from '@/utils/enums';
 import {
   groupAndSortTasks,
-  computeTemplateProgress,
-  computeRiskLevel,
-  type RiskLevel,
+  computeHabitWeeks,
+  type PlanLine,
 } from '@/utils/taskUtils';
 import {getTodayDate} from '@/utils/dateUtils';
 import {updateTaskStatusAction} from '@/actions/taskActions';
@@ -18,14 +17,16 @@ import MobileBacklog from './MobileBacklog';
 
 interface KanbanBoardProps {
   tasks: TaskItem[];
-  daysElapsed: number;
-  planTemplates: Array<{templateId: string; frequency: number}>;
+  /** The plan's template lines (type × frequency) — habit card context */
+  planLines: PlanLine[];
+  /** Generating days for daily lines — the habit dots' weekly target */
+  planMode: PlanMode;
 }
 
 export default function KanbanBoard({
   tasks,
-  daysElapsed,
-  planTemplates,
+  planLines,
+  planMode,
 }: KanbanBoardProps) {
   const [localTasks, setLocalTasks] = useState<TaskItem[]>(tasks);
   const [isDragging, setIsDragging] = useState(false);
@@ -34,41 +35,11 @@ export default function KanbanBoard({
     setLocalTasks(tasks);
   }, [tasks]);
 
-  // Compute today and current hour once per render for risk calculations
   const today = useMemo(() => getTodayDate(), []);
-  const currentHour = useMemo(() => new Date().getHours(), []);
 
-  const templateFreqMap = useMemo(
-    () => new Map(planTemplates.map(pt => [pt.templateId, pt.frequency])),
-    [planTemplates],
-  );
-  const templateProgressMap = useMemo(
-    () => computeTemplateProgress(localTasks),
-    [localTasks],
-  );
-  const riskMap = useMemo(
-    () =>
-      new Map<string, RiskLevel>(
-        localTasks.map(t => [
-          t.id,
-          computeRiskLevel(
-            t,
-            today,
-            currentHour,
-            daysElapsed,
-            templateFreqMap,
-            templateProgressMap,
-          ),
-        ]),
-      ),
-    [
-      localTasks,
-      today,
-      currentHour,
-      daysElapsed,
-      templateFreqMap,
-      templateProgressMap,
-    ],
+  const habitWeeks = useMemo(
+    () => computeHabitWeeks(localTasks, planLines, planMode),
+    [localTasks, planLines, planMode],
   );
 
   const columns = groupAndSortTasks(localTasks, today);
@@ -136,39 +107,27 @@ export default function KanbanBoard({
             status={TaskStatus.TODO}
             tasks={columns[TaskStatus.TODO]}
             today={today}
-            riskMap={riskMap}
-            templateFreqMap={templateFreqMap}
-            isDragActive={isDragging}
-          />
-          <BoardColumn
-            status={TaskStatus.DOING}
-            tasks={columns[TaskStatus.DOING]}
-            today={today}
-            riskMap={riskMap}
-            templateFreqMap={templateFreqMap}
+            habitWeeks={habitWeeks}
             isDragActive={isDragging}
           />
           <BoardColumn
             status={TaskStatus.DONE}
             tasks={columns[TaskStatus.DONE]}
             today={today}
-            riskMap={riskMap}
-            templateFreqMap={templateFreqMap}
+            habitWeeks={habitWeeks}
             isDragActive={isDragging}
           />
         </div>
         <DesktopBacklog
           tasks={columns[TaskStatus.BACKLOG]}
           today={today}
-          riskMap={riskMap}
-          templateFreqMap={templateFreqMap}
+          habitWeeks={habitWeeks}
         />
       </div>
       <MobileBacklog
         tasks={columns[TaskStatus.BACKLOG]}
         today={today}
-        riskMap={riskMap}
-        templateFreqMap={templateFreqMap}
+        habitWeeks={habitWeeks}
         onPull={handlePullToTodo}
       />
     </DragDropContext>

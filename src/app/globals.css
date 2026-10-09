@@ -520,8 +520,8 @@ body {
 
   /* ── Task cards ──
    Hover = lift + glow shadow ONLY (no border-color change, so the
-   risk edge classes md:border-l-error/-warning always win). Drag
-   lift is a class swap (.fx-card-lift), not a transition.            */
+   kind edge always wins). Drag lift is a class swap (.fx-card-lift),
+   not a transition.                                                  */
   .fx-card {
     box-shadow: inset 0 1px 0 var(--fx-edge-light);
     transition:
@@ -538,6 +538,13 @@ body {
     box-shadow:
       var(--fx-glow-primary),
       0 14px 32px color-mix(in oklab, var(--color-base-300) 70%, transparent);
+  }
+
+  /* ── Signal pip: one mark of a card's progress signal (habit dots) ── */
+  .fx-pip {
+    flex-shrink: 0;
+    border-style: solid;
+    border-radius: 9999px;
   }
 } /* end @layer components */
 
@@ -877,6 +884,22 @@ body {
   }
 } /* end @layer components */
 
+/* ── Kind edge: a task card's left border in its kind's colour ──
+   Set the hue with fx-k-*. Unlayered on purpose — the edge must beat the
+   card's own Tailwind border utilities (border / border-base-content/10). */
+.fx-kind-edge {
+  border-left: 3px solid var(--fx-k, currentColor);
+}
+.fx-k-success {
+  --fx-k: var(--color-success);
+}
+.fx-k-secondary {
+  --fx-k: var(--color-secondary);
+}
+.fx-k-info {
+  --fx-k: var(--color-info);
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    P5 DARK — "Calling Card" geometry fork
    Gated skin per design/design-language/p5-dark.md: flat depth (hard
@@ -970,6 +993,13 @@ body {
 [data-theme='p5-dark'] .fx-card-lift {
   box-shadow: 7px 7px 0 var(--fx-depth);
   transform: rotate(-1.2deg) translate(-2px, -2px);
+}
+[data-theme='p5-dark'] .fx-card.fx-kind-edge {
+  border-left: 4px solid var(--fx-k, currentColor);
+}
+[data-theme='p5-dark'] .fx-pip {
+  border-radius: 0;
+  transform: rotate(45deg) scale(0.875);
 }
 
 /* ── Hazard target: flat diagonal stripes, dashed edge ── */

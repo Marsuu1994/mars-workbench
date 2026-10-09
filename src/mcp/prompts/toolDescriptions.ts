@@ -6,5 +6,5 @@ export const TOOL_DESCRIPTIONS = {
   CREATE_PLAN:
     "Create this week's plan — only when get_planning_context shows no activePlan. Run existing templates by templateId in `templates` and add brand-new ones in `newTemplates`. Completes lastPlan and moves its unfinished one-off tasks into the new plan (all of them by default). Task instances are generated into the user's backlog. Agree on the plan with the user before calling.",
   UPDATE_PLAN:
-    "Change this week's active plan; only what you pass changes. Removing a template, or changing its type or frequency, deletes that template's unfinished task instances (backlog, to-do, in progress) and regenerates them in the backlog; completed tasks are never touched. Agree on the change with the user before calling.",
+    "Change this week's active plan; only what you pass changes. Removing a template, or changing its type or frequency, deletes that template's unfinished task instances (backlog, to-do) and regenerates them in the backlog; completed tasks are never touched. Agree on the change with the user before calling.",
 };

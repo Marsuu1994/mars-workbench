@@ -49,22 +49,21 @@ User drags a card to a different quadrant (desktop and mobile).
 
 ### Trigger / Entry Point
 
-- **Desktop:** hover a card → click the "→" send button on its right edge → the "Move to" popover offers the target kanban columns ("Todo" / "In Progress") and, under a hairline, "Done" (see the Complete One-off Flow).
+- **Desktop:** hover a card → click the "→" send button on its right edge → the "Move to" popover offers the board's "Todo" column and, under a hairline, "Done" (see the Complete One-off Flow).
 - **Mobile:** tap a card → a bottom sheet shows the card summary and the same rows.
 
 ### Steps
 
-1. User picks the target column (Todo or In Progress).
+1. User picks Todo.
 2. UI updates optimistically: the card dims, the "This Week" tag appears, the send button hides, and the "tracking this week" count increments.
-3. Server Action associates the task with the current `ACTIVE` plan and changes its status `BACKLOG → TODO` (Todo) or `BACKLOG → DOING` (In Progress); rollback on failure.
-4. Revalidate `/kanban` so the board renders the card in the chosen column.
+3. Server Action associates the task with the current `ACTIVE` plan and changes its status `BACKLOG → TODO`; rollback on failure.
+4. Revalidate `/kanban` so the board renders the card in Todo.
 
 ### Rules
 
-- Requires an `ACTIVE` plan (current-week per the stale-plan guard, enforced server-side too). When none exists (period ended, next plan not yet created), the chooser still opens on both breakpoints — the two column rows render disabled under a "No active plan yet" note while Done stays enabled — and the matrix hint bar shows a "No active plan — Create Plan to track tasks this week · you can still mark tasks done" notice on **both** breakpoints (the instruction variant of the bar stays desktop-only — this warning is the only case where mobile renders the bar, and its Create Plan link is mobile's only in-page path to plan creation).
-- Already-tracked cards cannot be sent again: their chooser drops the column rows and offers Done only.
+- Requires an `ACTIVE` plan (current-week per the stale-plan guard, enforced server-side too). When none exists (period ended, next plan not yet created), the chooser still opens on both breakpoints — the Todo row renders disabled under a "No active plan yet" note while Done stays enabled — and the matrix hint bar shows a "No active plan — Create Plan to track tasks this week · you can still mark tasks done" notice on **both** breakpoints (the instruction variant of the bar stays desktop-only — this warning is the only case where mobile renders the bar, and its Create Plan link is mobile's only in-page path to plan creation).
+- Already-tracked cards cannot be sent again: their chooser drops the Todo row and offers Done only.
 - There is no untrack from the matrix — detaching happens via the Update Plan flow's ad-hoc deselection (`planId = null`, status back to `BACKLOG`; see `design/flows/plan.md`).
-- Once the Doing column goes, tracking targets Todo only; Done stays available *(designed — Phase 1 pending, PR 2)*.
 
 ---
 
@@ -78,7 +77,7 @@ Choose **Done** in a matrix card's Move-to popover (desktop, via the hover "→"
 
 1. UI closes the chooser, removes the card optimistically, the title-bar counts update, and a 5 s "Marked done" toast with an **Undo** button and a draining countdown bar appears (desktop: bottom-center; mobile: above the dock) — "· +N pts this week" when an active plan absorbed the points. Hovering the toast holds the clock.
 2. Server Action completes the task: `status = DONE`, `doneAt = now`; an unassigned task is attached to the current-week `ACTIVE` plan when one exists. Rollback on failure (toast withdrawn).
-3. **Undo** (within the window) waits for the completion write to land, then restores the pre-complete snapshot — `status` back to `BACKLOG` / `TODO` / `DOING`, `doneAt` cleared, the plan link detached only if the complete attached it — and the card returns to its former position.
+3. **Undo** (within the window) waits for the completion write to land, then restores the pre-complete snapshot — `status` back to `BACKLOG` / `TODO`, `doneAt` cleared, the plan link detached only if the complete attached it — and the card returns to its former position.
 4. Revalidate `/kanban` (Done column, Today / Week metrics) and `/kanban/priorities`.
 
 ### Rules

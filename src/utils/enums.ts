@@ -14,7 +14,7 @@ export type TaskType = (typeof TaskType)[keyof typeof TaskType];
 export const TaskStatus = {
   BACKLOG: 'BACKLOG',
   TODO: 'TODO',
-  DOING: 'DOING',
+  DOING: 'DOING', // No longer written (board is Todo · Done); dropped in Phase 2 cleanup
   DONE: 'DONE',
   EXPIRED: 'EXPIRED',
 } as const;

@@ -31,10 +31,11 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ### Board
 
-- 3-column kanban (Todo / In Progress / Done): drag-and-drop with optimistic UI, risk badges, rollover tags, fibonacci task sizing (XS–XL), per-column accents
+- Two-column kanban (Todo · Done; work in progress stays in Todo): drag-and-drop with optimistic UI, fibonacci task sizing (XS–XL), per-column accents
+- **Kind-first cards**: each card opens with its kind — habit or one-off — in a fixed colour, then its context (a habit's plan line or ↩ rollover date, a one-off's quadrant); a habit's week dots and a neutral size close the card. Risk is switched off until per-kind rules return
 - **Backlog** stages template-generated instances and pulls them onto the board — right-edge drag panel on desktop, bottom sheet on mobile (from a peeking "Backlog" pill); backlog tasks count toward the week projection, not Today
 - **Progress dashboard**: Today ring, stat metrics, Week Progress bar
-- One-off (`AD_HOC`) tasks show an amber "ONCE" badge; created only from the priority matrix, they reach the board via Track This Week
+- One-off (`AD_HOC`) tasks are created only from the priority matrix and reach the board via Track This Week
 - **Sync** (`syncService.ensureSynced`): daily + end-of-period sync awaited by every kanban page — idempotent, page-visit order never matters
 - Empty board states for new users ("No active plan") vs returning users (last-period recap with stats); installable PWA
 
@@ -48,9 +49,9 @@ Open [http://localhost:3000](http://localhost:3000)
 ### Priorities
 
 - Full-page 2×2 Eisenhower matrix (`/kanban/priorities`) organizing all non-done one-off tasks by quadrant; drag between quadrants to reprioritize (optimistic + rollback)
-- **Move to** chooser on every card (desktop popover / mobile bottom sheet): **Track This Week** pulls the task onto the board (Todo / In Progress); **Done** completes it in place — credited to the active plan when there is one, a plain status change otherwise; no confirm — a 5 s undo toast with a countdown bar instead
+- **Move to** chooser on every card (desktop popover / mobile bottom sheet): **Track This Week** pulls the task into the board's Todo; **Done** completes it in place — credited to the active plan when there is one, a plain status change otherwise; no confirm — a 5 s undo toast with a countdown bar instead
 - **Add Priority Task** creates unassigned matrix tasks — the matrix is the only one-off entry point. Deselected one-offs return to the pool; DONE tasks keep their plan attribution
-- No active plan (incl. the stale-plan window after week rollover) → warning bar with a Create Plan link; the chooser's column rows disable, Done still works
+- No active plan (incl. the stale-plan window after week rollover) → warning bar with a Create Plan link; the chooser's Todo row disables, Done still works
 
 ### Dump
 
@@ -107,6 +108,11 @@ Open items: see [design/tracker.md](./design/tracker.md).
     - priorities — Track This Week targets Todo only.
   - The tracker's PR 1 sub-bullet is retired.
   - **Review round (owner)**: the flow docs keep only facts — what triggers each flow, what happens and the rules — with the UI detail (modal anatomy, controls, card face) left to the mockup and the Design Console, and decisions left to the spike. On desktop, the Projects landing selects the first project by default. The Create and Edit Project steps are folded into one modal step each. AGENTS.md gains the rule *flow docs state facts, not UI detail or decisions*.
+- **Week model Phase 1, PR 2 of 5: kind-first cards, risk off, Doing removed**:
+  - **Two-column board**: the board is Todo · Done. A data migration moves every `DOING` task to `TODO`. The app stops writing `DOING` (board moves, Track This Week and its undo accept Todo / Done only), while the enum value waits for Phase 2 cleanup. Track This Week loses its In Progress row, and the plan form, review copy and MCP instructions drop "in progress".
+  - **Kind-first cards** on the desktop board and backlog, the mobile backlog sheet and the 136px mobile rows. Each card opens with its kind (icon, label and a left edge in the kind's colour: habit green, one-off blue, project purple for PR 4), then its context: a habit's plan line (Daily, 3× / week) or a neutral ↩ date when it rolled over, or a one-off's quadrant. A habit's week dots and done / target count come from the tasks the board already loads. The size chip turns neutral everywhere, since green now means habit.
+  - **Risk is switched off**: the risk badge and borders, the 15:00 / 20:00 clock rules, the type pill, the `#n` instance badge and the amber rollover tag are gone, along with `computeRiskLevel`, `RiskBadge`, `RolloverTag`, the risk border maps and `InstanceBadge`. `getTaskKind` derives the kind from `TaskType`, through a `Record` that fails the build until a new type is mapped.
+  - **Design Console**: the gallery shows every kind in every place it sits, plus the mobile mini face and the backlog sheet card. The board scenario is rebuilt as a Todo · Done week with habits and one-offs, and the plan and priorities fixtures no longer use `DOING`. New fx utilities: `fx-kind-edge` with `fx-k-*` for the edge, and `fx-pip` for signal dots (diamonds in P5).
 
 ### 2026-10-08
 - **Week model restructure, split into two phases (spike awaiting review)** — `design/spike/week-model-restructure.md` now plans only **Phase 1, a Projects MVP**: a new `Project` table whose steps are `PROJECT`-typed Tasks reusing the one-off lifecycle (additive migrations), a Plan hub with a Projects page, project steps on the board and in the plan form's carry-over, kind-first cards with risk switched off, and MCP project tools — five PRs, the first one documentation only. A new section maps every flow Phase 1 changes (end-of-period sync, backlog, progress, create/update plan, AI approval, MCP; the risk-visual flow is removed) and the flows it adds (`design/flows/projects.md`: landing, create/edit project, manage steps, schedule a step, draft steps with Claude, step lifecycle). Owner decisions recorded: Todo keeps its name, the in-app AI chat goes in Phase 2, Plan Mode is dropped for Daily / N× per week, and stacking, one-off due dates, risk rules and the daily rhythm stay out of scope.

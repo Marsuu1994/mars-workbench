@@ -2,14 +2,14 @@
 
 import {useTranslations} from 'next-intl';
 import type {TaskItem} from '@/lib/db/tasks';
-import {getTaskFrequency, type RiskLevel} from '@/utils/taskUtils';
+import type {HabitWeek} from '@/utils/taskUtils';
 import MobileBacklogCard from './MobileBacklogCard';
 
 interface MobileBacklogContentProps {
   tasks: TaskItem[];
   today: Date;
-  riskMap: Map<string, RiskLevel>;
-  templateFreqMap: Map<string, number>;
+  /** Per-template habit context + dots, keyed by templateId */
+  habitWeeks: Map<string, HabitWeek>;
   onPull: (taskId: string) => void;
 }
 
@@ -22,8 +22,7 @@ interface MobileBacklogContentProps {
 export const MobileBacklogContent = ({
   tasks,
   today,
-  riskMap,
-  templateFreqMap,
+  habitWeeks,
   onPull,
 }: MobileBacklogContentProps) => {
   const t = useTranslations('Board.Backlog');
@@ -43,8 +42,9 @@ export const MobileBacklogContent = ({
           key={task.id}
           task={task}
           today={today}
-          riskLevel={riskMap.get(task.id) ?? 'normal'}
-          frequency={getTaskFrequency(task, templateFreqMap)}
+          habitWeek={
+            task.templateId ? habitWeeks.get(task.templateId) : undefined
+          }
           onPull={onPull}
         />
       ))}

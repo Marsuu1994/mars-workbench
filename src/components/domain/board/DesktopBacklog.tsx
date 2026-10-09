@@ -11,14 +11,14 @@ import {
 } from '@heroicons/react/24/outline';
 import type {TaskItem} from '@/lib/db/tasks';
 import {TaskStatus} from '@/utils/enums';
-import {getTaskFrequency, type RiskLevel} from '@/utils/taskUtils';
+import type {HabitWeek} from '@/utils/taskUtils';
 import TaskCard from './TaskCard';
 
 interface DesktopBacklogProps {
   tasks: TaskItem[];
   today: Date;
-  riskMap: Map<string, RiskLevel>;
-  templateFreqMap: Map<string, number>;
+  /** Per-template habit context + dots, keyed by templateId */
+  habitWeeks: Map<string, HabitWeek>;
 }
 
 /**
@@ -29,8 +29,7 @@ interface DesktopBacklogProps {
 export default function DesktopBacklog({
   tasks,
   today,
-  riskMap,
-  templateFreqMap,
+  habitWeeks,
 }: DesktopBacklogProps) {
   const t = useTranslations('Board.Backlog');
   const [isOpen, setIsOpen] = useState(false);
@@ -101,11 +100,11 @@ export default function DesktopBacklog({
             <TaskCard
               key={task.id}
               task={task}
-              taskType={task.type}
               index={index}
               today={today}
-              riskLevel={riskMap.get(task.id) ?? 'normal'}
-              frequency={getTaskFrequency(task, templateFreqMap)}
+              habitWeek={
+                task.templateId ? habitWeeks.get(task.templateId) : undefined
+              }
             />
           ))}
           {provided.placeholder}

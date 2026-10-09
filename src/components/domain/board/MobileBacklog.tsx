@@ -8,7 +8,7 @@ import {
   ArrowUpIcon,
 } from '@heroicons/react/24/outline';
 import type {TaskItem} from '@/lib/db/tasks';
-import type {RiskLevel} from '@/utils/taskUtils';
+import type {HabitWeek} from '@/utils/taskUtils';
 import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
 import {OverlayHeader} from '@/components/ui/overlay/OverlayHeader';
 import {useBreakpoint} from '@/components/application/BreakpointProvider';
@@ -17,8 +17,8 @@ import {MobileBacklogContent} from './MobileBacklogContent';
 interface MobileBacklogProps {
   tasks: TaskItem[];
   today: Date;
-  riskMap: Map<string, RiskLevel>;
-  templateFreqMap: Map<string, number>;
+  /** Per-template habit context + dots, keyed by templateId */
+  habitWeeks: Map<string, HabitWeek>;
   onPull: (taskId: string) => void;
 }
 
@@ -32,8 +32,7 @@ interface MobileBacklogProps {
 export default function MobileBacklog({
   tasks,
   today,
-  riskMap,
-  templateFreqMap,
+  habitWeeks,
   onPull,
 }: MobileBacklogProps) {
   const t = useTranslations('Board.Backlog');
@@ -95,8 +94,7 @@ export default function MobileBacklog({
           <MobileBacklogContent
             tasks={tasks}
             today={today}
-            riskMap={riskMap}
-            templateFreqMap={templateFreqMap}
+            habitWeeks={habitWeeks}
             onPull={onPull}
           />
         </div>

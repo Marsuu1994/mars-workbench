@@ -23,4 +23,4 @@ export const MCP_SERVER_INSTRUCTIONS = `Mars Workbench is the user's weekly kanb
 
 # Tell the user before writing
 - create_plan completes lastPlan and moves its unfinished one-off tasks into the new plan (all of them unless carryOverAdhocTaskIds narrows it; the rest return to the priority matrix).
-- update_plan: removing a template, or changing its type or frequency, deletes that template's unfinished instances (backlog, to-do, in progress) and regenerates them in the backlog; completed tasks are kept. Removing a one-off task sends it back to the priority matrix.`;
+- update_plan: removing a template, or changing its type or frequency, deletes that template's unfinished instances (backlog, to-do) and regenerates them in the backlog; completed tasks are kept. Removing a one-off task sends it back to the priority matrix.`;

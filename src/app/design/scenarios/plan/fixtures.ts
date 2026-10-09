@@ -83,7 +83,7 @@ export const PLAN_ADHOC_TASKS: AdhocTaskItem[] = [
     title: 'Get sinus CT scan',
     size: TaskSize.SMALL,
     points: SIZE_TO_POINTS[TaskSize.SMALL],
-    status: TaskStatus.DOING,
+    status: TaskStatus.TODO,
   },
 ];
 

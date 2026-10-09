@@ -33,7 +33,7 @@ const PRIORITIES_SCENARIOS: ScenarioTab[] = [
   {
     label: 'Move-to popover',
     title: 'Move to — popover open',
-    note: "A play step clicks an untracked card's Move-to button: Todo / In Progress, then Done under a hairline.",
+    note: "A play step clicks an untracked card's Move-to button: Todo, then Done under a hairline.",
     content: (
       <PrioritiesScreen
         periodKey={SCENARIO_ACTIVE_PLAN.periodKey}

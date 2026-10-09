@@ -1,6 +1,6 @@
 # Board Flows
 
-Flows for the kanban board page (`/kanban`) — landing, drag and drop, progress tracking, risk visuals, and the backlog. Sibling docs: `design/flows/shared.md` (sync lifecycle), `design/flows/plan.md`, `design/flows/priorities.md`, `design/flows/projects.md`, `design/flows/auth.md`.
+Flows for the kanban board page (`/kanban`) — landing, drag and drop, progress tracking, risk visuals (switched off), and the backlog. Sibling docs: `design/flows/shared.md` (sync lifecycle), `design/flows/plan.md`, `design/flows/priorities.md`, `design/flows/projects.md`, `design/flows/auth.md`.
 
 > **Doc convention:** One flow per `##` heading, separated by `---`. Every flow has two required `###` sections — `Trigger / Entry Point` and `Steps` — plus an optional `### Rules` section for constraints and invariants. Extra `###` sections (e.g. `Metrics`) are allowed only for reference material that fits neither Steps nor Rules.
 
@@ -37,12 +37,9 @@ User drags a task card to a different column.
 
 ### Rules
 
-- Allowed transitions: BACKLOG → TODO → DOING → DONE only (no backwards movement). `BACKLOG → TODO` is the backlog pull (drop onto the Todo column); see "Backlog Flow".
-- Exception: the Priorities "Track This Week Flow" (see `design/flows/priorities.md`) may attach a matrix task directly as `BACKLOG → DOING` (tracked into the In Progress column).
-- **The Doing column goes** *(designed — Phase 1 pending, PR 2)*:
-  - The board becomes Todo · Done, with transitions `BACKLOG → TODO → DONE`; work in progress stays in Todo.
-  - The `BACKLOG → DOING` exception above goes away.
-  - Existing `DOING` tasks move to `TODO`.
+- The board has two columns, Todo · Done; work in progress stays in Todo.
+- Allowed transitions: BACKLOG → TODO → DONE only (no backwards movement). `BACKLOG → TODO` is the backlog pull (drop onto the Todo column); see "Backlog Flow".
+- `DOING` is no longer written; tasks that were `DOING` when the column went were moved to `TODO`.
 - Project steps move like every other task *(designed — Phase 1 pending, PR 4)*.
 
 ---
@@ -57,7 +54,7 @@ Computed server-side on every board page load as part of `fetchBoard()`.
 
 Two parallel queries run after sync:
 
-1. `getBoardTasksByPlanId` — all non-expired tasks for the plan (`BACKLOG/TODO/DOING/DONE`). Today's total count/points exclude `BACKLOG` (filtered in-memory, not a separate query/field).
+1. `getBoardTasksByPlanId` — all non-expired tasks for the plan (`BACKLOG/TODO/DONE`). Today's total count/points exclude `BACKLOG` (filtered in-memory, not a separate query/field).
 2. `getBoardMetricsByPlanId` — a single raw SQL aggregate query that computes all historical counts and point sums using `FILTER` clauses. No in-memory aggregation for past data. Projection buckets (weekly-by-type, daily-past-by-`forDate`) count `BACKLOG` identically to `TODO`, so the Week projection includes backlog tasks unchanged.
 3. Future projections are then derived in-memory from the plan's current templates.
 
@@ -105,7 +102,7 @@ Two parallel queries run after sync:
 
 ## Task Risky Level Visual Effect Flow
 
-> **Pending update** *(designed — Phase 1 pending, PR 2)* — Phase 1 cards render no risk, so this flow is switched off. The rules below stay as a reference until per-kind risk rules return; see the Per-kind risk rules item in `design/tracker.md`.
+> **Switched off** — board cards render no risk since Phase 1. The rules below stay as a reference until per-kind risk rules return; see the Per-kind risk rules item in `design/tracker.md`.
 
 ### Trigger / Entry Point
 
@@ -184,7 +181,7 @@ The backlog (desktop panel / mobile sheet) holds the plan's template-generated t
 
 ### Rules
 
-- Desktop reuses the board `TaskCard`; mobile uses `BacklogSheetCard` (full-width, non-draggable) with the same badge/instance/rollover/risk language. Risk computation treats `BACKLOG` as `TODO` so visuals match the board (see "Task Risky Level Visual Effect Flow").
-- The `#{instanceIndex}` badge renders only when the template's `frequency > 1` (frequency-1 and ad-hoc tasks, always `instanceIndex = 1`, show none). The card reads `frequency` from `plan.planTemplates`.
+- Backlog cards are the board's cards (desktop drags the board `TaskCard`; mobile shows the same face, non-draggable, with the pull action), so a card reads the same before and after the pull.
+- Cards carry no risk and no instance number: identical habit instances are interchangeable, and a habit's week dots (done / target for its plan line, from the loaded tasks) say how many are left.
 - The backlog open state (panel or sheet) is local UI state, default closed.
 - Empty backlog: desktop strip still shows (count `0`) with an empty-state body; the mobile pill is hidden (the sheet's empty state only appears if the last task is pulled while it is open).

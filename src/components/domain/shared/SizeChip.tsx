@@ -13,7 +13,8 @@ interface SizeChipProps {
   labelOnly?: boolean;
 }
 
-/** Inline size + Fibonacci points indicator used on cards and rows. */
+/** Inline size + Fibonacci points indicator used on cards and rows. Neutral:
+    green belongs to the habit kind. */
 export const SizeChip = ({
   size,
   points,
@@ -23,7 +24,7 @@ export const SizeChip = ({
   const t = useTranslations('Enums.TaskSize');
 
   return (
-    <Pill color="success" className={cn('font-bold', className)}>
+    <Pill color="muted" className={cn('font-bold', className)}>
       <span>{t(size)}</span>
       {!labelOnly && (
         <>
