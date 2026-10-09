@@ -173,6 +173,7 @@ const baseTask = (overrides: Partial<TaskItem>): TaskItem => ({
   periodKey: null,
   quadrant: null,
   instanceIndex: 0,
+  projectId: null,
   createdAt: TODAY,
   updatedAt: TODAY,
   doneAt: null,

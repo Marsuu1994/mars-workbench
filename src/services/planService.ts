@@ -20,8 +20,12 @@ import {
   deleteIncompleteTasksByTemplateIds,
   getNonDoneAdhocTasks,
   updateTasksPlanId,
-  unlinkAdhocTasksFromPlan,
+  unlinkTasksFromPlan,
 } from '@/lib/db/tasks';
+import {
+  getUnfinishedStepIdsByPlanId,
+  linkProjectStepsToPlan,
+} from '@/lib/db/projects';
 import {
   Prisma,
   PeriodType,
@@ -143,7 +147,8 @@ async function generateTasksForTemplates(
         }
         break;
       case TaskType.AD_HOC:
-        // AD_HOC tasks are created on-demand, not auto-generated here
+      case TaskType.PROJECT:
+        // One-offs and project steps are created on demand, never generated
         break;
     }
   }
@@ -182,6 +187,18 @@ export async function getCarryOverAdhocTaskIds(
 }
 
 /**
+ * The pending plan's unfinished project steps: the candidates to carry over
+ * (status kept) — the rest return to their projects at the same place.
+ */
+export async function getCarryOverProjectStepIds(
+  userId: string,
+  pendingPlan: PlanItem | null,
+): Promise<string[]> {
+  if (!pendingPlan) return [];
+  return getUnfinishedStepIdsByPlanId(userId, pendingPlan.id);
+}
+
+/**
  * Core plan-creation steps, running inside a caller-provided transaction. Lets
  * other flows (e.g. AI draft approval, which first creates new TaskTemplates)
  * compose plan creation into one atomic transaction. Guard reads (active plan,
@@ -198,6 +215,7 @@ export async function createPlanInTx(
     mode: PlanMode;
     templates: PlanTemplateInput[];
     adhocTaskIds?: string[];
+    projectStepIds?: string[];
     pendingPlan: PlanItem | null;
   },
   today: Date,
@@ -209,6 +227,7 @@ export async function createPlanInTx(
     mode,
     templates,
     adhocTaskIds,
+    projectStepIds,
     pendingPlan,
   } = params;
 
@@ -235,16 +254,26 @@ export async function createPlanInTx(
       tx,
     );
   }
-  // Link selected ad-hoc tasks to new plan
+  // Link selected ad-hoc tasks and project steps to the new plan (status kept)
   if (adhocTaskIds && adhocTaskIds.length > 0) {
     await updateTasksPlanId(userId, adhocTaskIds, newPlan.id, tx);
   }
-  // Unlink deselected ad-hoc tasks from pending plan, then complete it
+  await linkProjectStepsToPlan(userId, projectStepIds ?? [], newPlan.id, tx);
+  // Return what the pending plan didn't carry — one-offs to the matrix, steps
+  // to their projects — then complete it
   if (pendingPlan) {
-    await unlinkAdhocTasksFromPlan(
+    await unlinkTasksFromPlan(
       userId,
       pendingPlan.id,
+      TaskType.AD_HOC,
       adhocTaskIds ?? [],
+      tx,
+    );
+    await unlinkTasksFromPlan(
+      userId,
+      pendingPlan.id,
+      TaskType.PROJECT,
+      projectStepIds ?? [],
       tx,
     );
     await updatePlanStatus(userId, pendingPlan.id, PlanStatus.COMPLETED, tx);
@@ -303,12 +332,20 @@ export async function createPlanFromEntries(
     description?: string;
     mode: PlanMode;
     adhocTaskIds?: string[];
+    projectStepIds?: string[];
     pendingPlan: PlanItem | null;
   },
   periodKey: string,
   today: Date,
 ): Promise<PlanItem> {
-  const {entries, description, mode, adhocTaskIds, pendingPlan} = params;
+  const {
+    entries,
+    description,
+    mode,
+    adhocTaskIds,
+    projectStepIds,
+    pendingPlan,
+  } = params;
   const templates = await resolvePlanEntries(tx, userId, entries);
 
   return createPlanInTx(
@@ -321,6 +358,7 @@ export async function createPlanFromEntries(
       mode,
       templates,
       adhocTaskIds,
+      projectStepIds,
       pendingPlan,
     },
     today,
@@ -331,7 +369,14 @@ export async function createPlan(
   userId: string,
   data: CreatePlanData,
 ): Promise<PlanItem | FormError> {
-  const {periodType, description, mode, templates, adhocTaskIds} = data;
+  const {
+    periodType,
+    description,
+    mode,
+    templates,
+    adhocTaskIds,
+    projectStepIds,
+  } = data;
 
   const {activePlan, pendingPlan, today, periodKey} =
     await getPlanCreationContext(userId);
@@ -352,6 +397,7 @@ export async function createPlan(
         mode,
         templates,
         adhocTaskIds,
+        projectStepIds,
         pendingPlan,
       },
       today,
@@ -361,8 +407,8 @@ export async function createPlan(
 
 /**
  * Apply a plan update inside a caller-provided transaction: template links
- * (with task regeneration), ad-hoc links, description and mode — each only
- * when present in `data`. Lets other flows (MCP, which first creates new
+ * (with task regeneration), ad-hoc links, project-step links, description and
+ * mode — each only when present in `data`. Lets other flows (MCP, which first creates new
  * templates) compose the update into one atomic transaction. `ownedPlan` is the
  * caller's ownership gate: loading it authorizes every downstream mutation,
  * including the plan_templates rows (which have no user_id of their own).
@@ -376,7 +422,7 @@ export async function updatePlanInTx(
   data: UpdatePlanData,
   today: Date,
 ): Promise<PlanTemplateDiff> {
-  const {description, mode, templates, adhocTaskIds} = data;
+  const {description, mode, templates, adhocTaskIds, projectStepIds} = data;
   const planId = ownedPlan.id;
   const currentLinks = ownedPlan.planTemplates;
   const diff = diffPlanTemplates(currentLinks, templates ?? currentLinks);
@@ -453,7 +499,25 @@ export async function updatePlanInTx(
     if (adhocTaskIds.length > 0) {
       await updateTasksPlanId(userId, adhocTaskIds, planId, tx);
     }
-    await unlinkAdhocTasksFromPlan(userId, planId, adhocTaskIds, tx);
+    await unlinkTasksFromPlan(
+      userId,
+      planId,
+      TaskType.AD_HOC,
+      adhocTaskIds,
+      tx,
+    );
+  }
+
+  // Project-step changes: link the selection, return the rest to their projects
+  if (projectStepIds !== undefined) {
+    await linkProjectStepsToPlan(userId, projectStepIds, planId, tx);
+    await unlinkTasksFromPlan(
+      userId,
+      planId,
+      TaskType.PROJECT,
+      projectStepIds,
+      tx,
+    );
   }
 
   if (description !== undefined || mode !== undefined) {
@@ -476,7 +540,7 @@ export async function updatePlan(
   planId: string,
   data: UpdatePlanData,
 ): Promise<FormError | {diff: PlanTemplateDiff}> {
-  const {description, mode, templates, adhocTaskIds} = data;
+  const {description, mode, templates, adhocTaskIds, projectStepIds} = data;
 
   // Ownership gate: loading the owned plan authorizes every downstream mutation.
   const ownedPlan = await getPlanWithTemplates(userId, planId);
@@ -484,7 +548,11 @@ export async function updatePlan(
     return {error: {formErrors: ['Plan not found'], fieldErrors: {}}};
   }
 
-  if (templates !== undefined || adhocTaskIds !== undefined) {
+  if (
+    templates !== undefined ||
+    adhocTaskIds !== undefined ||
+    projectStepIds !== undefined
+  ) {
     const today = getTodayDate();
     const diff = await prisma.$transaction(tx =>
       updatePlanInTx(tx, userId, ownedPlan, data, today),

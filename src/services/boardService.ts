@@ -120,14 +120,21 @@ export async function fetchBoard(userId: string): Promise<BoardData | null> {
   const weeklyPoints = boardMetrics.weeklyPoints;
   const weeklyCount = boardMetrics.weeklyCount;
 
-  // Ad-hoc tasks: always included in projected (never expire, no future generation)
+  // Ad-hoc tasks and project steps: always included in projected (never
+  // expire, no future generation) — steps waiting in the backlog included
   const adhocPoints = boardMetrics.adhocPoints;
   const adhocCount = boardMetrics.adhocCount;
+  const projectPoints = boardMetrics.projectPoints;
+  const projectCount = boardMetrics.projectCount;
 
   const weekProjectedPoints =
-    dailyPastPoints + dailyFuturePoints + weeklyPoints + adhocPoints;
+    dailyPastPoints +
+    dailyFuturePoints +
+    weeklyPoints +
+    adhocPoints +
+    projectPoints;
   const weekProjectedCount =
-    dailyPastCount + dailyFutureCount + weeklyCount + adhocCount;
+    dailyPastCount + dailyFutureCount + weeklyCount + adhocCount + projectCount;
 
   const weekDoneCount = boardMetrics.weekDoneCount;
   const weekDonePoints = boardMetrics.weekDonePoints;

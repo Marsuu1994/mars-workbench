@@ -75,12 +75,12 @@ Two parallel queries run after sync:
 **Week Points** — cumulative points earned this period vs projected period total.
 
 - Done points: `SUM(points)` where `status = DONE` across the entire plan (from DB aggregate).
-- Projected total: `dailyPastPoints + dailyFuturePoints + weeklyPoints + adhocPoints`
+- Projected total: `dailyPastPoints + dailyFuturePoints + weeklyPoints + adhocPoints + projectPoints`
   - `dailyPastPoints` (DB): `SUM(points)` where `forDate < today` — points from daily tasks already generated on previous days.
   - `dailyFuturePoints` (in-memory): `SUM(template.points × frequency)` for all daily plan templates × remaining days. Remaining days respects plan mode: NORMAL counts only weekdays via `countWeekdaysInRange`, EXTREME counts all calendar days.
   - `weeklyPoints` (DB): `SUM(points)` where `type = WEEKLY`.
   - `adhocPoints` (DB): `SUM(points)` where `type = AD_HOC`.
-  - `projectPoints` (DB): `SUM(points)` where `type = PROJECT` *(designed — Phase 1 pending, PR 3)*. Steps count in Today and Week like any task, and the Week projection includes the steps waiting in the backlog.
+  - `projectPoints` (DB): `SUM(points)` where `type = PROJECT`. Steps count in Today and Week like any task, and the Week projection includes the steps waiting in the backlog.
 
   **Daily Avg** — rolling average of points earned per elapsed day.
 
@@ -89,7 +89,7 @@ Two parallel queries run after sync:
 **Week Progress Bar** — percentage of projected task count completed this period.
 
 - Done count: `COUNT(*)` where `status = DONE` across the plan (from DB aggregate).
-- Projected total: same four-part decomposition as Week Points but using task counts (`dailyPastCount + dailyFutureCount + weeklyCount + adhocCount`), plus `projectCount` *(designed — Phase 1 pending, PR 3)*.
+- Projected total: same decomposition as Week Points but using task counts (`dailyPastCount + dailyFutureCount + weeklyCount + adhocCount + projectCount`).
 
 ### Rules
 

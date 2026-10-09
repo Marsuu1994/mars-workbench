@@ -174,7 +174,7 @@ User clicks the AI assistant button inside create plan page.
    - Read the draft from `Chat.metadata.latestDraft` (already loaded with the chat).
    - In **one transaction** (atomic), via `planService.createPlanFromEntries(tx, ...)`: batch-create the new templates (entries where `templateId` is null) with `createManyTaskTemplates`, resolve all entries to `{ templateId, type, frequency }[]`, then run the shared `createPlanInTx` core with the draft's `description` as `Plan.description` and `mode = NORMAL`. The core also completes the prior `PENDING_UPDATE` plan and links/moves ad-hoc tasks.
    - **Ad-hoc carry-over (V1):** the pending plan's non-done `AD_HOC` tasks are passed as `adhocTaskIds`, so they move to the new plan.
-   - **Project steps** *(designed — Phase 1 pending, PR 3)*: the approval carries one-offs only; the pending plan's unfinished steps return to their projects.
+   - **Project steps:** the approval carries one-offs only; the pending plan's unfinished steps return to their projects.
 
    **Error handling:** If the LLM returns an error or unusable output, show an error message in the chat bubble. No retry logic for V1.
 

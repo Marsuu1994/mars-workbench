@@ -21,10 +21,19 @@ export type TaskItem = {
   periodKey: string | null;
   quadrant: PriorityQuadrant | null;
   instanceIndex: number;
+  projectId: string | null;
   createdAt: Date;
   updatedAt: Date;
   doneAt: Date | null;
 };
+
+/**
+ * The task types that never expire and carry over between plans: one-offs
+ * (returned to the priority matrix when not carried) and project steps
+ * (returned to their project at the same place).
+ */
+export type CarryOverTaskType =
+  typeof TaskType.AD_HOC | typeof TaskType.PROJECT;
 
 export type BoardMetrics = {
   todayDoneCount: number;
@@ -37,9 +46,11 @@ export type BoardMetrics = {
   weeklyPoints: number;
   adhocCount: number;
   adhocPoints: number;
+  projectCount: number;
+  projectPoints: number;
 };
 
-const taskSelect = {
+export const taskSelect = {
   id: true,
   planId: true,
   templateId: true,
@@ -53,6 +64,7 @@ const taskSelect = {
   periodKey: true,
   quadrant: true,
   instanceIndex: true,
+  projectId: true,
   createdAt: true,
   updatedAt: true,
   doneAt: true,
@@ -101,6 +113,8 @@ const EMPTY_BOARD_METRICS: BoardMetrics = {
   weeklyPoints: 0,
   adhocCount: 0,
   adhocPoints: 0,
+  projectCount: 0,
+  projectPoints: 0,
 };
 
 type BoardMetricsRow = {
@@ -114,6 +128,8 @@ type BoardMetricsRow = {
   weeklyPoints: unknown;
   adhocCount: unknown;
   adhocPoints: unknown;
+  projectCount: unknown;
+  projectPoints: unknown;
 };
 
 function toNumber(value: unknown): number {
@@ -160,7 +176,9 @@ export async function getBoardMetricsByPlanId(
       COUNT(*) FILTER (WHERE type = 'WEEKLY') AS "weeklyCount",
       COALESCE(SUM(points) FILTER (WHERE type = 'WEEKLY'), 0) AS "weeklyPoints",
       COUNT(*) FILTER (WHERE type = 'AD_HOC') AS "adhocCount",
-      COALESCE(SUM(points) FILTER (WHERE type = 'AD_HOC'), 0) AS "adhocPoints"
+      COALESCE(SUM(points) FILTER (WHERE type = 'AD_HOC'), 0) AS "adhocPoints",
+      COUNT(*) FILTER (WHERE type = 'PROJECT') AS "projectCount",
+      COALESCE(SUM(points) FILTER (WHERE type = 'PROJECT'), 0) AS "projectPoints"
     FROM tasks
     WHERE plan_id = ${planId}::uuid
       AND user_id = ${userId}::uuid
@@ -180,6 +198,8 @@ export async function getBoardMetricsByPlanId(
     weeklyPoints: toNumber(row.weeklyPoints),
     adhocCount: toNumber(row.adhocCount),
     adhocPoints: toNumber(row.adhocPoints),
+    projectCount: toNumber(row.projectCount),
+    projectPoints: toNumber(row.projectPoints),
   };
 }
 
@@ -399,7 +419,9 @@ export async function expireStaleDailyTasks(
 }
 
 /**
- * Expire all non-done, non-ad-hoc tasks for a plan (end-of-period cleanup)
+ * Expire all non-done template instances for a plan (end-of-period cleanup).
+ * One-offs and project steps never expire: they stay on the plan until the
+ * next plan carries them over or returns them.
  */
 export async function expireAllNonDoneTasks(
   userId: string,
@@ -412,7 +434,7 @@ export async function expireAllNonDoneTasks(
       userId,
       planId,
       status: {not: 'DONE'},
-      type: {not: TaskType.AD_HOC},
+      type: {notIn: [TaskType.AD_HOC, TaskType.PROJECT]},
     },
     data: {status: 'EXPIRED'},
   });
@@ -542,14 +564,17 @@ export async function updateTasksPlanId(
 }
 
 /**
- * Unlink ad-hoc tasks from a plan: AD_HOC tasks on the given plan whose id is
- * NOT in keepIds go back to the priority matrix (planId = null, status =
- * BACKLOG — "not yet on the board"). DONE tasks are excluded: they stay on
- * their plan so completed points keep their historical attribution.
+ * Unlink one-offs or project steps from a plan: tasks of the given type on the
+ * plan whose id is NOT in keepIds leave the week (planId = null, status =
+ * BACKLOG — "not yet on the board"). A one-off goes back to the priority
+ * matrix; a step goes back to its project with its instanceIndex (step number)
+ * unchanged. DONE tasks are excluded: they stay on their plan so completed
+ * points keep their historical attribution.
  */
-export async function unlinkAdhocTasksFromPlan(
+export async function unlinkTasksFromPlan(
   userId: string,
   planId: string,
+  type: CarryOverTaskType,
   keepIds: string[],
   tx?: Prisma.TransactionClient,
 ): Promise<{count: number}> {
@@ -558,7 +583,7 @@ export async function unlinkAdhocTasksFromPlan(
     where: {
       userId,
       planId,
-      type: TaskType.AD_HOC,
+      type,
       status: {not: TaskStatus.DONE},
       id: {notIn: keepIds},
     },

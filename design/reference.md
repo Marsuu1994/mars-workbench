@@ -40,6 +40,17 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | `trackTaskAction` | Track This Week: pull a matrix task onto the board | `matrixService.trackTaskThisWeek` |
 | `completeTaskAction` | Mark a matrix task done in place (credits the current ACTIVE plan when one exists) | `matrixService.completeMatrixTask` |
 | `undoCompleteTaskAction` | Undo a matrix completion within the toast window (restores the pre-complete status, detaches the plan link the complete added) | `matrixService.undoCompleteMatrixTask` |
+| **`src/actions/projectActions.ts`** | | |
+| `createProjectAction` | Create a project, optionally with its first steps | `projectService.createProject` |
+| `updateProjectAction` | Rename a project / change its goal | `projectService.updateProject` |
+| `archiveProjectAction` | Archive a project (its unfinished steps leave the week) | `projectService.archiveProject` |
+| `unarchiveProjectAction` | Unarchive a project | `projectService.unarchiveProject` |
+| `addProjectStepAction` | Append a step to a project's path | `projectService.addProjectStep` |
+| `updateProjectStepAction` | Edit a step that isn't done | `projectService.updateProjectStep` |
+| `deleteProjectStepAction` | Delete a step that isn't done | `projectService.deleteProjectStep` |
+| `reorderProjectStepsAction` | Reorder a project's unfinished steps | `projectService.reorderProjectSteps` |
+| `scheduleProjectStepAction` | Put a step on this week | `projectService.scheduleProjectStep` |
+| `unscheduleProjectStepAction` | Take back a step still in the backlog | `projectService.unscheduleProjectStep` |
 | **`src/actions/settingsActions.ts`** | | |
 | `updateThemeAction` | Persist the theme choice from the Settings overlay | SSR-readable cookie via `next/headers` (no service/DAL) |
 | **`src/actions/dumpActions.ts`** | | |
@@ -69,14 +80,15 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `fetchBoard` | Board data + metrics for the active plan (null = no active plan) |
 | `getEmptyBoardState` | Resolve the no-active-plan state (new user vs. finished-plan recap) |
 | **`planService.ts`** | |
-| `createPlan` | Create a plan from the plan form (templates, mode, ad-hoc links) |
-| `updatePlan` | Rebuild an existing plan's templates/mode/ad-hoc links |
+| `createPlan` | Create a plan from the plan form (templates, mode, ad-hoc and project-step links) |
+| `updatePlan` | Rebuild an existing plan's templates/mode/ad-hoc and project-step links |
 | `getPlanCreationContext` | Guard reads for every creation path: `ensureSynced` → active plan, pending plan, today, period key |
 | `getCarryOverAdhocTaskIds` | The pending plan's non-done ad-hoc tasks (default carry-over when no explicit selection) |
+| `getCarryOverProjectStepIds` | The pending plan's unfinished project steps (carry-over candidates) |
 | `resolvePlanEntries` | Resolve existing + new (`templateId: null`) entries to template links, creating the new templates in the caller's transaction |
 | `createPlanFromEntries` | Create a plan from entries mixing existing templates and new ones (`templateId: null`) — AI approval, MCP |
-| `createPlanInTx` | Shared transactional plan-creation core reused by `createPlan`/`createPlanFromEntries`; rejects templates the user doesn't own |
-| `updatePlanInTx` | Transactional plan-update core (template diff + task regeneration, ad-hoc links, description/mode); returns the applied diff |
+| `createPlanInTx` | Shared transactional plan-creation core reused by `createPlan`/`createPlanFromEntries`; rejects templates the user doesn't own; links the selected one-offs and steps, returns the pending plan's others |
+| `updatePlanInTx` | Transactional plan-update core (template diff + task regeneration, ad-hoc and project-step links, description/mode); returns the applied diff |
 | **`planningService.ts`** | |
 | `getPlanningContext` | MCP read model, synced first: date/week, this week's ACTIVE or last PENDING_UPDATE plan (lines + progress, one-offs, totals), reusable templates |
 | `createPlanFromSpec` | Guarded create from existing + new templates with a validated carry-over selection |
@@ -93,6 +105,19 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `generateDraftPlan` | Send a user message, generate/revise a draft plan |
 | `resumeDraftPlan` | Regenerate after an interrupted LLM call (no new turn) |
 | `approveDraftPlan` | Approve the latest draft and create the plan |
+| **`projectService.ts`** | |
+| `listProjects` | The user's projects (archived included) with their steps |
+| `getProject` | One project with its steps, owner-scoped |
+| `createProject` | Create a project with optional first steps (one transaction) |
+| `updateProject` | Rename a project or change its goal |
+| `archiveProject` | Archive: unfinished steps return to the project (done steps keep their plan) |
+| `unarchiveProject` | Unarchive: the project returns with its path intact |
+| `addProjectStep` | Append a step to the end of the path |
+| `updateProjectStep` | Edit a step that isn't done (size re-derives points) |
+| `deleteProjectStep` | Delete a step that isn't done; later steps move up one |
+| `reorderProjectSteps` | Renumber the unfinished steps into the numbers they hold, in the given order |
+| `scheduleProjectStep` | `ensureSynced` → put an unscheduled step on the active plan |
+| `unscheduleProjectStep` | Take back a scheduled step still in the backlog |
 | **`oauthConsentService.ts`** | |
 | `getConsentRequestByAuthorizationId` | Supabase authorization details → the consent page's request, a redirect (already consented), or null (unknown/expired/decided) |
 | `submitConsentDecision` | Record approve/deny with Supabase; returns the client's redirect URL, or null when the request can't be decided |
@@ -126,7 +151,7 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `completeAdhocTask` | Set an owned non-DONE AD_HOC task to DONE (+`doneAt`), filling a null `planId` with the active plan, in one write |
 | `revertAdhocCompletion` | Put a DONE AD_HOC task back to its pre-complete status (clear `doneAt`, optional plan detach), guarded on DONE |
 | `expireStaleDailyTasks` | Expire non-DONE daily tasks older than the cutoff (1-day rollover buffer) |
-| `expireAllNonDoneTasks` | End-of-period cleanup: expire all non-done, non-ad-hoc tasks |
+| `expireAllNonDoneTasks` | End-of-period cleanup: expire all non-done template instances (one-offs and steps never expire) |
 | `getDailyTasksForDate` | Daily tasks for a specific date (idempotency check) |
 | `taskExists` | Existence + ownership check |
 | `deleteIncompleteTasksByTemplateIds` | Delete unfinished (BACKLOG/TODO) tasks for given templates in a plan |
@@ -134,9 +159,26 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `countIncompleteTasksByTemplateId` | Incomplete-task counts grouped by templateId |
 | `getNonDoneAdhocTasks` | All non-DONE AD_HOC tasks (matrix data source) |
 | `updateTasksPlanId` | Batch link ad-hoc tasks to a plan, owner-scoped |
-| `unlinkAdhocTasksFromPlan` | Return deselected ad-hoc tasks to the matrix (DONE tasks stay) |
+| `unlinkTasksFromPlan` | Return a plan's unkept one-offs (to the matrix) or steps (to their project) — DONE tasks stay |
 | `getPlanTemplateStats` | Per-template performance aggregates (LLM signal + recap stats) |
 | `isValidTaskStatus` | TaskStatus type guard (with `VALID_TASK_STATUSES` const) |
+| **`projects.ts`** | |
+| `getProjectsWithSteps` | All of a user's projects with their steps (ordered by step number) |
+| `getProjectWithStepsById` | One project with its steps; null return doubles as the ownership gate |
+| `createProject` | Create a project |
+| `updateProject` | Update title / goal, owner-scoped |
+| `updateProjectArchived` | Archive or unarchive, owner-scoped |
+| `getProjectStepById` | One step, owner-scoped |
+| `createProjectSteps` | Insert numbered steps (off the week, BACKLOG) |
+| `updateProjectStep` | Edit a step that isn't done |
+| `deleteProjectStep` | Delete a step that isn't done |
+| `shiftStepsAfterIndex` | Move later steps up one after a delete (numbers stay contiguous) |
+| `renumberProjectSteps` | Renumber unfinished steps after a reorder, in one statement |
+| `scheduleProjectStep` | Link an unscheduled step of a non-archived project to a plan |
+| `unscheduleProjectStep` | Unlink a scheduled step still in the backlog |
+| `linkProjectStepsToPlan` | Batch link unfinished steps to a plan (status kept) |
+| `unlinkUnfinishedStepsByProjectId` | Archive: return a project's unfinished steps from any plan |
+| `getUnfinishedStepIdsByPlanId` | A plan's unfinished steps (carry-over candidates) |
 | **`taskTemplates.ts`** | |
 | `getTaskTemplates` | Non-archived templates for a user, newest first |
 | `getTaskTemplateTitlesByIds` | Map template ids → titles (includes archived, for stats labels) |

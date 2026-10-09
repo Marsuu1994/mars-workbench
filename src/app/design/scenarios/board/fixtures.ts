@@ -46,6 +46,7 @@ const task = (overrides: Partial<TaskItem>): TaskItem => ({
   periodKey: SCENARIO_PERIOD_KEY,
   quadrant: null,
   instanceIndex: 0,
+  projectId: null,
   createdAt: daysAgo(4),
   updatedAt: NOW,
   doneAt: null,

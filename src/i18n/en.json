@@ -3,7 +3,8 @@
     "TaskType": {
       "DAILY": "DAILY",
       "WEEKLY": "WEEKLY",
-      "AD_HOC": "ONCE"
+      "AD_HOC": "ONCE",
+      "PROJECT": "STEP"
     },
     "TaskTypeShort": {
       "DAILY": "DAILY",
@@ -218,6 +219,9 @@
     "taskNotFound": "Task not found",
     "noActivePlan": "No active plan found",
     "templateNotFound": "Template not found",
+    "projectNotFound": "Project not found",
+    "stepNotFound": "Step not found",
+    "stepOrderMismatch": "The project's steps changed — reload and try again",
     "generateFailed": "Couldn't generate a plan, please try again.",
     "createFailed": "Couldn't create the plan, please try again.",
     "generic": "Something went wrong, please try again.",

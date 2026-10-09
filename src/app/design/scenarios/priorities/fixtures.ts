@@ -33,6 +33,7 @@ const task = (overrides: Partial<TaskItem>): TaskItem => ({
   periodKey: null,
   quadrant: PriorityQuadrant.SCHEDULE,
   instanceIndex: 0,
+  projectId: null,
   createdAt: NOW,
   updatedAt: NOW,
   doneAt: null,
