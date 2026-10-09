@@ -100,6 +100,7 @@ Open items: see [design/tracker.md](./design/tracker.md).
     - The AI approval carries one-offs only, so pending steps return.
     - Board metrics gain a project bucket in the week projection, and `sortTasks` keeps one project's steps together in step order.
   - **Verified on a local Postgres 16**: the migrations apply with no schema drift, and a script over the real services passed every lifecycle check: no expiry, carry-over, return with the step number kept, DONE keeps its plan, reorder / delete numbering, archive, ownership.
+  - **Tracker**: a new Cross-cutting item to redesign the point system and metric tracking.
 - **Spike review round 4 (owner answers on PR #47)**:
   - **Finished projects**: a project whose steps are all done shows an **All steps done** badge instead of its next step, plus a banner offering to add the next steps or archive. The state is worked out in the UI from the steps (no column), and nothing is archived automatically; archiving stays the user's call. `temp-projects-v2.html` adds this as step 3 of its Landing tab, with phone views, and the live page reaches it when a project's open steps are deleted.
   - **Plan form scope**: the plan form only loads a plan's existing project steps, to select or deselect. Adding projects or steps is not designed for the plan form; the Projects page keeps creating them and **+ This week** / × for scheduling, which retires open question 7.
