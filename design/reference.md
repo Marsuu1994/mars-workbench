@@ -43,11 +43,14 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | **`src/actions/projectActions.ts`** | | |
 | `createProjectAction` | Create a project, optionally with its first steps | `projectService.createProject` |
 | `updateProjectAction` | Rename a project / change its goal | `projectService.updateProject` |
-| `archiveProjectAction` / `unarchiveProjectAction` | Archive (unfinished steps leave the week) / unarchive | `projectService.archiveProject` / `unarchiveProject` |
+| `archiveProjectAction` | Archive a project (its unfinished steps leave the week) | `projectService.archiveProject` |
+| `unarchiveProjectAction` | Unarchive a project | `projectService.unarchiveProject` |
 | `addProjectStepAction` | Append a step to a project's path | `projectService.addProjectStep` |
-| `updateProjectStepAction` / `deleteProjectStepAction` | Edit / delete a step that isn't done | `projectService.updateProjectStep` / `deleteProjectStep` |
+| `updateProjectStepAction` | Edit a step that isn't done | `projectService.updateProjectStep` |
+| `deleteProjectStepAction` | Delete a step that isn't done | `projectService.deleteProjectStep` |
 | `reorderProjectStepsAction` | Reorder a project's unfinished steps | `projectService.reorderProjectSteps` |
-| `scheduleProjectStepAction` / `unscheduleProjectStepAction` | Put a step on this week / take back a step still in the backlog | `projectService.scheduleProjectStep` / `unscheduleProjectStep` |
+| `scheduleProjectStepAction` | Put a step on this week | `projectService.scheduleProjectStep` |
+| `unscheduleProjectStepAction` | Take back a step still in the backlog | `projectService.unscheduleProjectStep` |
 | **`src/actions/settingsActions.ts`** | | |
 | `updateThemeAction` | Persist the theme choice from the Settings overlay | SSR-readable cookie via `next/headers` (no service/DAL) |
 | **`src/actions/dumpActions.ts`** | | |
@@ -103,12 +106,18 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `resumeDraftPlan` | Regenerate after an interrupted LLM call (no new turn) |
 | `approveDraftPlan` | Approve the latest draft and create the plan |
 | **`projectService.ts`** | |
-| `listProjects` / `getProject` | The user's projects (archived included) with their steps / one project, owner-scoped |
-| `createProject` / `updateProject` | Create a project with optional first steps (one transaction) / rename, change goal |
-| `archiveProject` / `unarchiveProject` | Archive: unfinished steps return to the project (done keep their plan) / unarchive |
-| `addProjectStep` / `updateProjectStep` / `deleteProjectStep` | Append a step / edit or delete one that isn't done (delete moves later steps up) |
+| `listProjects` | The user's projects (archived included) with their steps |
+| `getProject` | One project with its steps, owner-scoped |
+| `createProject` | Create a project with optional first steps (one transaction) |
+| `updateProject` | Rename a project or change its goal |
+| `archiveProject` | Archive: unfinished steps return to the project (done steps keep their plan) |
+| `unarchiveProject` | Unarchive: the project returns with its path intact |
+| `addProjectStep` | Append a step to the end of the path |
+| `updateProjectStep` | Edit a step that isn't done (size re-derives points) |
+| `deleteProjectStep` | Delete a step that isn't done; later steps move up one |
 | `reorderProjectSteps` | Renumber the unfinished steps into the numbers they hold, in the given order |
-| `scheduleProjectStep` / `unscheduleProjectStep` | `ensureSynced` → put a step on the active plan / take a backlog step back |
+| `scheduleProjectStep` | `ensureSynced` → put an unscheduled step on the active plan |
+| `unscheduleProjectStep` | Take back a scheduled step still in the backlog |
 | **`oauthConsentService.ts`** | |
 | `getConsentRequestByAuthorizationId` | Supabase authorization details → the consent page's request, a redirect (already consented), or null (unknown/expired/decided) |
 | `submitConsentDecision` | Record approve/deny with Supabase; returns the client's redirect URL, or null when the request can't be decided |
@@ -154,13 +163,19 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `getPlanTemplateStats` | Per-template performance aggregates (LLM signal + recap stats) |
 | `isValidTaskStatus` | TaskStatus type guard (with `VALID_TASK_STATUSES` const) |
 | **`projects.ts`** | |
-| `getProjectsWithSteps` / `getProjectWithStepsById` | Projects with their steps (ordered by step number); the by-id read doubles as the ownership gate |
-| `createProject` / `updateProject` / `updateProjectArchived` | Project writes, owner-scoped |
+| `getProjectsWithSteps` | All of a user's projects with their steps (ordered by step number) |
+| `getProjectWithStepsById` | One project with its steps; null return doubles as the ownership gate |
+| `createProject` | Create a project |
+| `updateProject` | Update title / goal, owner-scoped |
+| `updateProjectArchived` | Archive or unarchive, owner-scoped |
 | `getProjectStepById` | One step, owner-scoped |
 | `createProjectSteps` | Insert numbered steps (off the week, BACKLOG) |
-| `updateProjectStep` / `deleteProjectStep` | Edit / delete a step that isn't done |
-| `shiftStepsAfterIndex` / `renumberProjectSteps` | Keep step numbers contiguous after a delete / reorder (one statement) |
-| `scheduleProjectStep` / `unscheduleProjectStep` | Link an unscheduled step of a live project to a plan / unlink a backlog step |
+| `updateProjectStep` | Edit a step that isn't done |
+| `deleteProjectStep` | Delete a step that isn't done |
+| `shiftStepsAfterIndex` | Move later steps up one after a delete (numbers stay contiguous) |
+| `renumberProjectSteps` | Renumber unfinished steps after a reorder, in one statement |
+| `scheduleProjectStep` | Link an unscheduled step of a non-archived project to a plan |
+| `unscheduleProjectStep` | Unlink a scheduled step still in the backlog |
 | `linkProjectStepsToPlan` | Batch link unfinished steps to a plan (status kept) |
 | `unlinkUnfinishedStepsByProjectId` | Archive: return a project's unfinished steps from any plan |
 | `getUnfinishedStepIdsByPlanId` | A plan's unfinished steps (carry-over candidates) |
