@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="mars-dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Habits + Plan Week — Exploration</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Anton&display=swap');
+
+  /* ── Theme tokens (mirrors globals.css: mars-dark / mars-light / p5-dark) ── */
+  :root, [data-theme='mars-dark'] {
+    --b1: oklch(0.19 0.03 265);
+    --b2: oklch(0.155 0.028 265);
+    --b3: oklch(0.125 0.026 268);
+    --bc: oklch(0.92 0.016 210);
+    --p: oklch(0.83 0.135 205);
+    --pc: oklch(0.2 0.04 225);
+    --s: oklch(0.74 0.15 295);
+    --a: oklch(0.76 0.155 55);
+    --in: oklch(0.79 0.115 235);
+    --su: oklch(0.8 0.165 155);
+    --wa: oklch(0.84 0.155 85);
+    --er: oklch(0.72 0.17 25);
+    --rc: 10px;
+    --rb: 8px;
+    --rs: 4px;
+    --edge: color-mix(in oklab, var(--bc) 12%, transparent);
+    --card-bg: color-mix(in oklab, var(--b1) 70%, transparent);
+    --card-border: color-mix(in oklab, var(--bc) 10%, transparent);
+    --card-shadow: inset 0 1px 0 var(--edge);
+    --card-hover: inset 0 1px 0 var(--edge), 0 0 0 1px color-mix(in oklab, var(--p) 18%, transparent), 0 6px 18px oklch(0.05 0.02 265 / 0.55);
+    --lip-1: color-mix(in oklab, var(--b1) 88%, var(--bc));
+    --lip-2: color-mix(in oklab, var(--b1) 94%, var(--bc));
+    --lip-border: color-mix(in oklab, var(--bc) 20%, transparent);
+    --panel: color-mix(in oklab, var(--b1) 10%, transparent);
+    --page: radial-gradient(1200px 600px at 10% -10%, color-mix(in oklab, var(--p) 10%, transparent), transparent 60%),
+            radial-gradient(900px 500px at 110% 110%, color-mix(in oklab, var(--s) 10%, transparent), transparent 60%),
+            var(--b2);
+    --display: 'Geist', system-ui, sans-serif;
+  }
+  [data-theme='mars-light'] {
+    --b1: oklch(0.955 0.018 80);
+    --b2: oklch(0.925 0.024 78);
+    --b3: oklch(0.885 0.03 76);
+    --bc: oklch(0.24 0.032 265);
+    --p: oklch(0.5 0.085 215);
+    --pc: oklch(0.975 0.01 90);
+    --s: oklch(0.5 0.185 295);
+    --a: oklch(0.54 0.14 50);
+    --in: oklch(0.5 0.115 240);
+    --su: oklch(0.5 0.13 152);
+    --wa: oklch(0.49 0.1 75);
+    --er: oklch(0.53 0.19 25);
+    --edge: oklch(1 0 0 / 0.7);
+    --card-border: color-mix(in oklab, var(--bc) 12%, transparent);
+    --card-hover: inset 0 1px 0 var(--edge), 0 0 0 1px color-mix(in oklab, var(--p) 18%, transparent), 0 6px 18px oklch(0.35 0.04 265 / 0.16);
+    --lip-1: color-mix(in oklab, var(--b3) 70%, var(--b1));
+    --lip-2: color-mix(in oklab, var(--b3) 40%, var(--b1));
+    --lip-border: color-mix(in oklab, var(--bc) 22%, transparent);
+    --page: radial-gradient(1200px 600px at 10% -10%, color-mix(in oklab, var(--a) 14%, transparent), transparent 60%),
+            radial-gradient(900px 500px at 110% 110%, color-mix(in oklab, var(--s) 10%, transparent), transparent 60%),
+            var(--b2);
+  }
+  [data-theme='p5-dark'] {
+    --b1: oklch(0.185 0.008 20);
+    --b2: oklch(0.15 0.006 20);
+    --b3: oklch(0.115 0.004 20);
+    --bc: oklch(0.96 0.005 20);
+    --p: oklch(0.63 0.255 29);
+    --pc: oklch(0.13 0.02 20);
+    --s: oklch(0.74 0.15 295);
+    --a: oklch(0.74 0.17 55);
+    --in: oklch(0.78 0.12 235);
+    --su: oklch(0.8 0.17 150);
+    --wa: oklch(0.85 0.16 90);
+    --er: oklch(0.63 0.22 12);
+    --rc: 0;
+    --rb: 0;
+    --rs: 0;
+    --card-bg: oklch(0.17 0.008 20);
+    --card-border: color-mix(in oklab, var(--bc) 14%, transparent);
+    --card-shadow: 3px 3px 0 var(--b3);
+    --card-hover: 4px 4px 0 var(--p);
+    --lip-1: oklch(0.25 0.008 20);
+    --lip-2: oklch(0.21 0.006 20);
+    --lip-border: color-mix(in oklab, var(--bc) 32%, transparent);
+    --page: repeating-radial-gradient(circle at 0 0, color-mix(in oklab, var(--bc) 4%, transparent) 0 1px, transparent 1px 6px), var(--b2);
+    --display: 'Anton', 'Arial Narrow', sans-serif;
+  }
+
+  /* ── NEW: one colour per kind of work. Cool hues only — warning/error stay
+     reserved for risk, accent stays the drag-target colour, primary stays
+     the CTA colour (and is red in P5, so it could never mean a kind). ── */
+  :root {
+    --k-habit: var(--su);
+    --k-project: var(--s);
+    --k-oneoff: var(--in);
+  }
+  [data-kind='habit'] { --k: var(--k-habit); }
+  [data-kind='project'] { --k: var(--k-project); }
+  [data-kind='oneoff'] { --k: var(--k-oneoff); }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Geist', system-ui, -apple-system, sans-serif;
+    background: var(--page); background-attachment: fixed;
+    color: var(--bc); min-height: 100vh; padding: 24px 16px 96px;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font-family: inherit; }
+  .mono { font-family: 'Geist Mono', ui-monospace, monospace; }
+  .muted { color: color-mix(in oklab, var(--bc) 50%, transparent); }
+  .text-p { color: var(--p); }
+  [data-theme='p5-dark'] .disp { font-family: var(--display); font-weight: 400; letter-spacing: .03em; }
+
+  /* ── Page chrome ── */
+  .topbar { max-width: 1240px; margin: 0 auto 20px; display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: flex-end; justify-content: space-between; }
+  .eyebrow { font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--p); }
+  .topbar h1 { font-size: 22px; font-weight: 700; margin-top: 4px; }
+  .topbar p { font-size: 13px; color: color-mix(in oklab, var(--bc) 60%, transparent); margin-top: 4px; max-width: 720px; line-height: 1.5; }
+  .topbar p b { color: var(--bc); font-weight: 600; }
+  .seg { display: inline-flex; gap: 4px; padding: 4px; border-radius: 10px; background: color-mix(in oklab, var(--b1) 80%, transparent); border: 1px solid var(--card-border); }
+  [data-theme='p5-dark'] .seg { border-radius: 0; }
+  .seg button { border: 0; background: transparent; color: color-mix(in oklab, var(--bc) 60%, transparent); font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 7px; cursor: pointer; white-space: nowrap; }
+  [data-theme='p5-dark'] .seg button { border-radius: 0; }
+  .seg button.on { background: color-mix(in oklab, var(--p) 16%, transparent); color: var(--p); }
+
+  .screen-nav { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 100; box-shadow: 0 10px 30px oklch(0 0 0 / .35); max-width: calc(100vw - 32px); overflow-x: auto; }
+  .screen { display: none; max-width: 1240px; margin: 0 auto; }
+  .screen.on { display: block; }
+
+  .col-label { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 55%, transparent); }
+  .col-label b { color: var(--bc); font-weight: 600; }
+  .col-label.after b { color: var(--p); }
+  .col-label::after { content: ''; flex: 1; height: 1px; background: var(--card-border); }
+  .col-label .reset { margin-left: auto; order: 3; }
+  .col-label.spaced { margin-top: 32px; }
+  .ghost-btn { border: 1px solid var(--card-border); background: transparent; color: color-mix(in oklab, var(--bc) 65%, transparent); font-size: 11px; padding: 3px 8px; border-radius: 6px; cursor: pointer; font-family: 'Geist Mono', monospace; letter-spacing: .04em; }
+  .ghost-btn:hover { color: var(--p); border-color: var(--p); }
+  .note { font-size: 12.5px; line-height: 1.6; color: color-mix(in oklab, var(--bc) 62%, transparent); margin-top: 10px; max-width: 980px; }
+  .note b { color: var(--bc); font-weight: 600; }
+  .icon { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  .icon.sm { width: 14px; height: 14px; }
+  .icon.xs { width: 12px; height: 12px; stroke-width: 1.8; }
+  .icon.xxs { width: 10px; height: 10px; stroke-width: 2; }
+
+  /* Pills — fx-chip recipe: mono face, currentColor border/fill */
+  .pill { display: inline-flex; align-items: center; gap: 4px; font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: .06em; padding: 2px 6px; border-radius: var(--rs); white-space: nowrap; border: 1px solid color-mix(in oklab, currentColor 28%, transparent); background: color-mix(in oklab, currentColor 10%, transparent); box-shadow: inset 0 1px 0 color-mix(in oklab, currentColor 10%, transparent); font-variant-numeric: tabular-nums; }
+  [data-theme='p5-dark'] .pill { border: 1.5px solid currentColor; box-shadow: none; transform: skewX(-8deg); }
+  .pill.xs { font-size: 8px; padding: 1px 5px; }
+  .pill .dot { opacity: .4; }
+  .pill .pts { opacity: .7; }
+  .c-info { color: var(--in); } .c-sec { color: var(--s); } .c-p { color: var(--p); }
+  .c-su { color: var(--su); } .c-wa { color: var(--wa); } .c-er { color: var(--er); }
+  .c-k { color: var(--k); }
+  .c-muted { color: color-mix(in oklab, var(--bc) 58%, transparent); }
+  .fx-label { font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+  [data-theme='p5-dark'] .fx-label.display { font-family: var(--display); font-size: 14px; letter-spacing: .06em; font-weight: 400; }
+  .count-ghost { font-family: 'Geist Mono', monospace; font-size: 11px; padding: 1px 7px; border-radius: 999px; background: color-mix(in oklab, var(--bc) 8%, transparent); color: color-mix(in oklab, var(--bc) 70%, transparent); }
+  .led { width: 7px; height: 7px; border-radius: 999px; background: currentColor; box-shadow: 0 0 8px currentColor; flex-shrink: 0; }
+  [data-theme='p5-dark'] .led { border-radius: 0; transform: rotate(45deg); box-shadow: none; }
+  .badge-count { font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: var(--p); color: var(--pc); min-width: 20px; text-align: center; }
+  [data-theme='p5-dark'] .badge-count { border-radius: 0; }
+
+  /* ── Board frame ── */
+  .board { border: 1px solid var(--card-border); border-radius: 14px; overflow: hidden; background: color-mix(in oklab, var(--b2) 60%, transparent); }
+  [data-theme='p5-dark'] .board { border-radius: 0; border-width: 1.5px; }
+  .board-head { display: flex; align-items: center; gap: 14px 22px; padding: 14px 18px; border-bottom: 1px solid var(--card-border); flex-wrap: wrap; }
+  .board-title { font-size: 18px; font-weight: 700; }
+  .board-title small { font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 500; color: color-mix(in oklab, var(--bc) 50%, transparent); margin-left: 8px; letter-spacing: .04em; }
+  .dash { margin-left: auto; display: flex; gap: 22px; align-items: center; flex-wrap: wrap; }
+  .dash-item { display: flex; align-items: center; gap: 8px; font-size: 12px; font-variant-numeric: tabular-nums; }
+  .dash-item b { font-weight: 700; }
+  .meter { width: 110px; height: 6px; border-radius: 99px; background: color-mix(in oklab, var(--bc) 10%, transparent); overflow: hidden; }
+  [data-theme='p5-dark'] .meter { border-radius: 0; }
+  .meter i { display: block; height: 100%; background: var(--su); border-radius: inherit; transition: width .3s cubic-bezier(.2,0,0,1); }
+  .meter i.info { background: var(--in); }
+  .board-main { display: flex; height: 640px; }
+  .board-cols { flex: 1; min-width: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 14px; }
+  .board-cols.three { grid-template-columns: repeat(3, 1fr); }
+  .column { min-width: 0; display: flex; flex-direction: column; border: 1px solid var(--card-border); border-radius: 12px; background: color-mix(in oklab, var(--b2) 10%, transparent); overflow: hidden; }
+  [data-theme='p5-dark'] .column { border-radius: 0; }
+  .column-head { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-left: 4px solid var(--in); border-bottom: 1px solid var(--card-border); }
+  .column-head .sub { font-family: 'Geist Mono', monospace; font-size: 10.5px; color: color-mix(in oklab, var(--bc) 50%, transparent); letter-spacing: .04em; }
+  .column-head .count-ghost { margin-left: auto; }
+  .column.todo .column-head { border-left-color: var(--in); } .column.todo .led { color: var(--in); }
+  .column.doing .column-head { border-left-color: var(--wa); } .column.doing .led { color: var(--wa); }
+  .column.done .column-head { border-left-color: var(--su); } .column.done .led { color: var(--su); }
+  .column-body { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .empty { font-size: 12px; text-align: center; color: color-mix(in oklab, var(--bc) 45%, transparent); padding: 14px 6px; border: 1px dashed var(--card-border); border-radius: 10px; }
+
+  .backlog { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; border-left: 1px solid var(--card-border); background: var(--panel); }
+  .backlog-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--card-border); background: color-mix(in oklab, var(--b2) 30%, transparent); }
+  .backlog-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; }
+  [data-theme='p5-dark'] .backlog-title span.t { font-family: var(--display); font-weight: 400; letter-spacing: .04em; font-size: 15px; }
+  .backlog-hint { display: flex; align-items: center; gap: 6px; padding: 10px 16px; font-size: 12px; color: color-mix(in oklab, var(--bc) 50%, transparent); border-bottom: 1px solid var(--card-border); }
+  .backlog-body { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .backlog-body.stacked { gap: 12px; }
+  .group-label { display: flex; align-items: center; gap: 7px; font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 55%, transparent); margin: 4px 2px -2px; }
+  .group-label .kd { width: 6px; height: 6px; border-radius: 99px; background: var(--k); }
+  [data-theme='p5-dark'] .group-label .kd { border-radius: 0; transform: rotate(45deg); }
+  .group-label .n { margin-left: auto; letter-spacing: .04em; }
+
+  /* ── BEFORE: today's TaskCard ── */
+  .card { position: relative; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--rc); box-shadow: var(--card-shadow); padding: 12px; }
+  [data-theme='p5-dark'] .card { border-width: 1.5px; }
+  .card.risk-warning { border-left: 4px solid var(--wa); }
+  .card.risk-danger { border-left: 4px solid var(--er); }
+  .card h3 { font-size: 14px; font-weight: 500; line-height: 1.3; }
+  .card .desc { font-size: 12px; color: color-mix(in oklab, var(--bc) 60%, transparent); margin-top: 4px; line-height: 1.4; }
+  .card .foot { display: flex; align-items: center; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+  .card .foot .size { margin-left: auto; }
+  .card.is-done { opacity: .5; }
+  .card.is-done h3 { text-decoration: line-through; }
+  .rollover { font-family: 'Geist Mono', monospace; font-size: 11.5px; font-weight: 500; color: var(--wa); white-space: nowrap; }
+
+  /* ── AFTER: the kind-first TaskCard ──
+     Line 1 = what kind of work this is (+ its context). Never changes colour.
+     Line 2 = the title, with the one action (✓ today / ← Today in backlog).
+     Last line = the kind's own progress signal. The ONLY thing risk recolours. */
+  .tc { position: relative; background: var(--card-bg); border: 1px solid var(--card-border); border-left: 3px solid var(--k); border-radius: var(--rc); box-shadow: var(--card-shadow); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; transition: box-shadow .15s cubic-bezier(.2,0,0,1), transform .15s cubic-bezier(.2,0,0,1); }
+  [data-theme='p5-dark'] .tc { border-width: 1.5px; border-left-width: 4px; }
+  .tc:hover { box-shadow: var(--card-hover); transform: translateY(-2px); }
+  [data-theme='p5-dark'] .tc:hover { transform: translate(-1px, -1px); }
+  .tc-head { display: flex; align-items: center; gap: 6px; min-width: 0; font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--k); }
+  .tc-head .name { text-transform: none; letter-spacing: .02em; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .tc-head .ctx { margin-left: auto; color: color-mix(in oklab, var(--bc) 50%, transparent); letter-spacing: .04em; text-transform: none; font-weight: 500; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+  .tc-head .count { margin-left: 2px; }
+  .tc-row { display: flex; align-items: flex-start; gap: 10px; }
+  .tc-title { flex: 1; min-width: 0; font-size: 14px; font-weight: 500; line-height: 1.3; }
+  .tc-desc { font-size: 12px; color: color-mix(in oklab, var(--bc) 58%, transparent); line-height: 1.4; margin-top: -2px; }
+  .tc-foot { display: flex; align-items: center; gap: 8px; min-height: 18px; flex-wrap: wrap; }
+  .tc-foot .size { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; }
+  .tc-check { width: 24px; height: 24px; border-radius: 999px; border: 1.5px solid color-mix(in oklab, var(--bc) 28%, transparent); background: transparent; display: grid; place-items: center; color: color-mix(in oklab, var(--bc) 30%, transparent); cursor: pointer; flex-shrink: 0; transition: all .15s; }
+  .tc-check:hover { border-color: var(--su); color: var(--su); background: color-mix(in oklab, var(--su) 14%, transparent); }
+  [data-theme='p5-dark'] .tc-check { border-radius: 0; }
+  .tc-pull { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 8px; border-radius: 6px; border: 1px solid var(--card-border); background: transparent; color: color-mix(in oklab, var(--bc) 60%, transparent); font-family: 'Geist Mono', monospace; font-size: 10.5px; font-weight: 600; cursor: pointer; flex-shrink: 0; }
+  .tc-pull:hover { color: var(--p); border-color: var(--p); }
+  [data-theme='p5-dark'] .tc-pull { border-radius: 0; }
+  .tc.compact { padding: 9px 11px; gap: 5px; }
+  .tc.compact .tc-title { font-size: 13.5px; }
+  .tc.compact .tc-desc { display: none; }
+
+  /* Habit signal: one dot per instance this week */
+  .dots { display: inline-flex; gap: 4px; align-items: center; }
+  .dots i { width: 8px; height: 8px; border-radius: 99px; border: 1.5px solid color-mix(in oklab, var(--k) 65%, transparent); }
+  .dots i.on { background: var(--k); border-color: var(--k); }
+  .dots i.today { border-color: var(--k); box-shadow: 0 0 0 2.5px color-mix(in oklab, var(--k) 25%, transparent); }
+  .dots i.miss { border-style: dashed; opacity: .3; } /* quiet expiry: faint, never red */
+  .dots.amber i:not(.on):not(.miss) { border-color: var(--wa); }
+  [data-theme='p5-dark'] .dots i { border-radius: 0; transform: rotate(45deg); width: 7px; height: 7px; }
+  .sig { font-family: 'Geist Mono', monospace; font-size: 11px; color: color-mix(in oklab, var(--bc) 55%, transparent); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .sig.amber { color: var(--wa); }
+  /* Project signal: the path — one segment per step */
+  .stepbar { display: inline-flex; gap: 2px; width: 92px; }
+  .stepbar i { flex: 1; height: 4px; border-radius: 2px; background: color-mix(in oklab, var(--k) 18%, transparent); }
+  .stepbar i.on { background: var(--k); }
+  .stepbar i.cur { background: color-mix(in oklab, var(--k) 55%, transparent); box-shadow: 0 0 0 1px var(--k); }
+  [data-theme='p5-dark'] .stepbar i { border-radius: 0; }
+
+  /* Stack lips (from the backlog-stack work) — habits are the only kind that stacks */
+  .stack { position: relative; margin-bottom: 6px; }
+  .stack .lip { position: absolute; top: 100%; height: 5px; border: 1px solid var(--lip-border); border-top: 0; border-radius: 0 0 var(--rc) var(--rc); pointer-events: none; }
+  [data-theme='p5-dark'] .stack .lip { border-width: 1.5px; border-top: 0; }
+  .stack .lip-1 { left: 6px; right: 6px; background: var(--lip-1); z-index: 1; }
+  .stack .lip-2 { left: 12px; right: 12px; top: calc(100% + 5px); background: var(--lip-2); }
+  .stack[data-depth='1'] .lip-2 { display: none; }
+
+  /* Done rows — Done is the week's record, so it reads as a log, not cards */
+  .day-label { display: flex; justify-content: space-between; font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 50%, transparent); margin: 6px 2px 0; }
+  .day-label:first-child { margin-top: 0; }
+  .done-row { display: flex; align-items: center; gap: 8px; padding: 7px 9px; border-radius: 8px; font-size: 12.5px; color: color-mix(in oklab, var(--bc) 72%, transparent); background: color-mix(in oklab, var(--b1) 45%, transparent); border: 1px solid color-mix(in oklab, var(--bc) 6%, transparent); }
+  [data-theme='p5-dark'] .done-row { border-radius: 0; }
+  .done-row .ok { color: var(--su); display: grid; }
+  .done-row .kdot { width: 6px; height: 6px; border-radius: 99px; background: var(--k); flex-shrink: 0; }
+  [data-theme='p5-dark'] .done-row .kdot { border-radius: 0; transform: rotate(45deg); }
+  .done-row .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .done-row .t span { color: color-mix(in oklab, var(--bc) 45%, transparent); }
+  .done-row .pts { font-size: 10.5px; color: color-mix(in oklab, var(--bc) 45%, transparent); }
+  .done-row.fresh { animation: fresh .6s cubic-bezier(.2,0,0,1); }
+  @keyframes fresh { 0% { background: color-mix(in oklab, var(--su) 28%, transparent); } 100% { background: color-mix(in oklab, var(--b1) 45%, transparent); } }
+
+  /* ── Model screen ── */
+  .kinds { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 960px) { .kinds { grid-template-columns: 1fr; } }
+  .kind { border: 1px solid var(--card-border); border-top: 3px solid var(--k); border-radius: 14px; padding: 16px; background: color-mix(in oklab, var(--b1) 45%, transparent); }
+  [data-theme='p5-dark'] .kind { border-radius: 0; border-width: 1.5px; border-top-width: 4px; }
+  .kind h3 { display: flex; gap: 8px; align-items: center; color: var(--k); font-size: 17px; font-weight: 700; }
+  .kind .kind-sub { font-size: 13px; margin-top: 4px; color: color-mix(in oklab, var(--bc) 75%, transparent); }
+  .kind dl { display: grid; grid-template-columns: 82px 1fr; gap: 9px 12px; font-size: 12.5px; line-height: 1.45; margin-top: 14px; }
+  .kind dt { font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 48%, transparent); padding-top: 2px; }
+  .kind dd { color: color-mix(in oklab, var(--bc) 82%, transparent); }
+  .kind .spec { margin-top: 14px; }
+  .flow { display: flex; margin-top: 22px; border: 1px solid var(--card-border); border-radius: 14px; overflow-x: auto; background: color-mix(in oklab, var(--b1) 30%, transparent); }
+  [data-theme='p5-dark'] .flow { border-radius: 0; border-width: 1.5px; }
+  .node { flex: 1; min-width: 165px; padding: 14px 16px; border-right: 1px solid var(--card-border); position: relative; }
+  .node:last-child { border-right: 0; }
+  .node .when { font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--p); }
+  .node .what { font-size: 15px; font-weight: 700; margin-top: 4px; display: flex; align-items: center; gap: 6px; }
+  .node .how { font-size: 12px; line-height: 1.5; margin-top: 6px; color: color-mix(in oklab, var(--bc) 60%, transparent); }
+  .node.col .what { color: var(--in); } .node.col.done .what { color: var(--su); } .node.col.bl .what { color: var(--p); }
+  .node:not(:last-child)::after { content: '→'; position: absolute; right: -7px; top: 14px; font-size: 12px; color: color-mix(in oklab, var(--bc) 40%, transparent); background: var(--b2); line-height: 1; padding: 1px 0; }
+  .changes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 22px; }
+  @media (max-width: 960px) { .changes { grid-template-columns: 1fr; } }
+  .chg { border: 1px solid var(--card-border); border-radius: 12px; padding: 14px 16px; background: color-mix(in oklab, var(--b1) 30%, transparent); }
+  [data-theme='p5-dark'] .chg { border-radius: 0; }
+  .chg h4 { font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 8px; }
+  .chg ul { list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; line-height: 1.45; color: color-mix(in oklab, var(--bc) 75%, transparent); }
+  .chg li::before { content: '–'; margin-right: 8px; color: color-mix(in oklab, var(--bc) 35%, transparent); }
+  .chg.gone h4 { color: var(--er); } .chg.gone li s { text-decoration-color: color-mix(in oklab, var(--er) 60%, transparent); }
+  .chg.gone li i { font-style: normal; color: color-mix(in oklab, var(--bc) 50%, transparent); }
+  .chg.stay h4 { color: var(--bc); } .chg.new h4 { color: var(--su); }
+
+  /* ── Cards screen ── */
+  .anat { display: flex; flex-direction: column; gap: 28px; }
+  .anat-col { display: grid; grid-template-columns: 2fr 1fr; gap: 0 20px; align-items: start; }
+  .anat-col > .col-label { grid-column: 1 / -1; }
+  @media (max-width: 1100px) { .anat-col { grid-template-columns: 1fr; gap: 12px; } }
+  .anat-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-items: start; }
+  @media (max-width: 700px) { .anat-cards { grid-template-columns: 1fr; } }
+  .mk { display: inline-grid; place-items: center; width: 15px; height: 15px; border-radius: 99px; background: var(--p); color: var(--pc); font-family: 'Geist Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 0; flex-shrink: 0; text-transform: none; }
+  [data-theme='p5-dark'] .mk { border-radius: 0; }
+  .legend { display: grid; grid-template-columns: 18px 1fr; gap: 7px 10px; font-size: 12.5px; line-height: 1.5; color: color-mix(in oklab, var(--bc) 72%, transparent); padding: 12px 14px; border: 1px solid var(--card-border); border-radius: 12px; background: color-mix(in oklab, var(--b1) 30%, transparent); }
+  [data-theme='p5-dark'] .legend { border-radius: 0; }
+  .legend b { color: var(--bc); font-weight: 600; }
+  .legend.bad .mk { background: var(--er); color: var(--b1); }
+  .matrix { display: grid; grid-template-columns: 112px repeat(5, minmax(200px, 1fr)); gap: 12px; overflow-x: auto; padding-bottom: 6px; }
+  .matrix .mh { font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 50%, transparent); padding: 0 2px; align-self: end; }
+  .matrix .mh.red { color: var(--er); } .matrix .mh.amber { color: var(--wa); }
+  .matrix .rh { display: flex; flex-direction: column; gap: 4px; padding-top: 8px; }
+  .matrix .rh b { color: var(--k); font-size: 13px; display: flex; align-items: center; gap: 6px; }
+  .matrix .rh span { font-size: 11px; line-height: 1.4; color: color-mix(in oklab, var(--bc) 50%, transparent); }
+  .never { height: 100%; min-height: 96px; display: grid; place-items: center; text-align: center; padding: 10px; font-size: 11.5px; line-height: 1.45; color: color-mix(in oklab, var(--bc) 45%, transparent); border: 1px dashed var(--card-border); border-radius: var(--rc); }
+  .rules { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 18px; }
+  .rule { border: 1px solid var(--card-border); border-radius: 14px; padding: 16px; background: color-mix(in oklab, var(--b1) 45%, transparent); }
+  [data-theme='p5-dark'] .rule { border-radius: 0; border-width: 1.5px; }
+  .rule h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; display: flex; gap: 8px; align-items: center; }
+  .rule h4 .n { width: 20px; height: 20px; border-radius: 999px; display: grid; place-items: center; background: color-mix(in oklab, var(--p) 18%, transparent); color: var(--p); font-family: 'Geist Mono', monospace; font-size: 11px; }
+  [data-theme='p5-dark'] .rule h4 .n { border-radius: 0; }
+  .rule p { font-size: 12.5px; line-height: 1.55; color: color-mix(in oklab, var(--bc) 65%, transparent); }
+  .rule p b { color: var(--bc); font-weight: 600; }
+  .rule .spec-label { font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 45%, transparent); margin: 12px 0 6px; }
+  .rule .vs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+  table.rt { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+  table.rt th { text-align: left; font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 48%, transparent); font-weight: 600; padding: 6px 6px; border-bottom: 1px solid var(--card-border); }
+  table.rt td { padding: 7px 6px; border-bottom: 1px solid color-mix(in oklab, var(--bc) 6%, transparent); vertical-align: top; line-height: 1.45; color: color-mix(in oklab, var(--bc) 78%, transparent); }
+  table.rt td:first-child { color: var(--k); font-weight: 600; white-space: nowrap; }
+  .mcard { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--rc); padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; box-shadow: var(--card-shadow); }
+  [data-theme='p5-dark'] .mcard { border-width: 1.5px; }
+  .mcard .t { font-size: 13.5px; font-weight: 500; }
+  .mcard .f { display: flex; align-items: center; gap: 6px; }
+  .mcard .send { margin-left: auto; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; color: var(--p); background: color-mix(in oklab, var(--p) 12%, transparent); }
+  [data-theme='p5-dark'] .mcard .send { border-radius: 0; }
+  .quad { border-top: 2px solid var(--er); padding-top: 8px; }
+  .quad .ql { font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--er); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+
+  /* ── Generic page frame (plan / habits / projects) ── */
+  .frame { border: 1px solid var(--card-border); border-radius: 14px; background: color-mix(in oklab, var(--b2) 60%, transparent); overflow: hidden; }
+  [data-theme='p5-dark'] .frame { border-radius: 0; border-width: 1.5px; }
+  .frame-head { padding: 16px 20px; border-bottom: 1px solid var(--card-border); display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; }
+  .frame-head h2 { font-size: 20px; font-weight: 700; }
+  .frame-head .sub { font-family: 'Geist Mono', monospace; font-size: 11px; color: color-mix(in oklab, var(--bc) 50%, transparent); margin-top: 2px; letter-spacing: .03em; }
+  .frame-head .right { margin-left: auto; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .hub { font-size: 12px; }
+  .recap { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 12px; }
+  .recap .lbl { font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 48%, transparent); margin-right: 2px; }
+  .btn { height: 34px; padding: 0 14px; border-radius: var(--rb); border: 1px solid var(--card-border); background: transparent; color: var(--bc); font-weight: 600; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .btn:hover { border-color: var(--p); color: var(--p); }
+  .btn.primary { background: var(--p); color: var(--pc); border: 0; }
+  .btn.primary:hover { color: var(--pc); filter: brightness(1.06); }
+  [data-theme='p5-dark'] .btn.primary { box-shadow: 3px 3px 0 oklch(0.36 0.13 25); }
+  .btn.block { width: 100%; justify-content: center; height: 42px; font-size: 14px; }
+  .btn.sm { height: 28px; padding: 0 10px; font-size: 12px; }
+
+  /* Plan week */
+  .plan-grid { display: grid; grid-template-columns: 1fr 300px; }
+  @media (max-width: 980px) { .plan-grid { grid-template-columns: 1fr; } }
+  .plan-main { padding: 18px 20px 22px; display: flex; flex-direction: column; gap: 24px; border-right: 1px solid var(--card-border); min-width: 0; }
+  .sec-head { display: flex; align-items: center; gap: 10px; }
+  .sec-head .num { width: 22px; height: 22px; border-radius: 99px; display: grid; place-items: center; background: color-mix(in oklab, var(--k) 18%, transparent); color: var(--k); font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 700; }
+  [data-theme='p5-dark'] .sec-head .num { border-radius: 0; }
+  .sec-head h3 { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+  .sec-head h3 .icon { color: var(--k); }
+  .sec-head .pts { margin-left: auto; font-family: 'Geist Mono', monospace; font-size: 11px; color: color-mix(in oklab, var(--bc) 55%, transparent); }
+  .sec-sub { font-size: 12px; color: color-mix(in oklab, var(--bc) 55%, transparent); margin: 4px 0 10px 32px; line-height: 1.5; }
+  .rows { display: flex; flex-direction: column; gap: 6px; margin-left: 32px; }
+  .hrow { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 1px solid var(--card-border); border-left: 3px solid var(--k); border-radius: 10px; background: var(--card-bg); cursor: pointer; transition: opacity .15s; }
+  [data-theme='p5-dark'] .hrow { border-radius: 0; border-width: 1.5px; border-left-width: 4px; }
+  .hrow .t { font-size: 13.5px; font-weight: 500; flex: 1; min-width: 0; }
+  .hrow .meta { font-family: 'Geist Mono', monospace; font-size: 11px; color: color-mix(in oklab, var(--bc) 55%, transparent); white-space: nowrap; }
+  .hrow.off { opacity: .45; }
+  .hrow.paused { cursor: default; opacity: .5; border-left-style: dashed; }
+  .cb { width: 18px; height: 18px; border-radius: 5px; border: 2px solid color-mix(in oklab, var(--bc) 35%, transparent); display: grid; place-items: center; flex-shrink: 0; color: transparent; }
+  .cb.on { background: var(--p); border-color: var(--p); color: var(--pc); }
+  [data-theme='p5-dark'] .cb { border-radius: 0; }
+  .sublabel { font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 45%, transparent); margin: 6px 0 0 2px; }
+  .pblock { border: 1px solid var(--card-border); border-left: 3px solid var(--k-project); border-radius: 10px; background: var(--card-bg); padding: 11px 12px; }
+  [data-theme='p5-dark'] .pblock { border-radius: 0; border-width: 1.5px; border-left-width: 4px; }
+  .pblock + .pblock { margin-top: 6px; }
+  .ptop { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .ptop .t { font-weight: 600; font-size: 14px; }
+  .ptop .prog { font-family: 'Geist Mono', monospace; font-size: 11px; color: color-mix(in oklab, var(--bc) 50%, transparent); display: inline-flex; align-items: center; gap: 8px; }
+  .stepper { margin-left: auto; display: inline-flex; align-items: center; border: 1px solid var(--card-border); border-radius: 8px; overflow: hidden; background: color-mix(in oklab, var(--b2) 40%, transparent); }
+  [data-theme='p5-dark'] .stepper { border-radius: 0; }
+  .stepper button { width: 28px; height: 28px; border: 0; background: transparent; color: var(--bc); cursor: pointer; display: grid; place-items: center; }
+  .stepper button:hover { background: color-mix(in oklab, var(--p) 14%, transparent); color: var(--p); }
+  .stepper button:disabled { opacity: .3; cursor: default; background: transparent; color: var(--bc); }
+  .stepper .v { min-width: 26px; text-align: center; font-family: 'Geist Mono', monospace; font-size: 13px; font-weight: 700; }
+  .stepper-label { font-size: 11.5px; color: color-mix(in oklab, var(--bc) 50%, transparent); }
+  .step-list { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; }
+  .step-li { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 6px 9px; border-radius: 6px; background: color-mix(in oklab, var(--k-project) 8%, transparent); }
+  [data-theme='p5-dark'] .step-li { border-radius: 0; }
+  .step-li .ix { font-family: 'Geist Mono', monospace; font-size: 10.5px; color: color-mix(in oklab, var(--bc) 45%, transparent); width: 18px; }
+  .step-li .t { flex: 1; min-width: 0; }
+  .step-li.later { background: transparent; color: color-mix(in oklab, var(--bc) 45%, transparent); }
+  .step-li.later::after { content: 'next up'; font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .06em; }
+  .add-row { font-size: 12px; color: color-mix(in oklab, var(--bc) 50%, transparent); padding: 6px 9px; border: 1px dashed var(--card-border); border-radius: 6px; display: flex; gap: 6px; align-items: center; margin-top: 4px; }
+  [data-theme='p5-dark'] .add-row { border-radius: 0; }
+  .plan-aside { padding: 18px; display: flex; flex-direction: column; gap: 16px; background: color-mix(in oklab, var(--b1) 25%, transparent); }
+  .aside-sticky { position: sticky; top: 16px; display: flex; flex-direction: column; gap: 16px; }
+  .total { font-size: 36px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+  .total small { font-size: 14px; font-weight: 500; color: color-mix(in oklab, var(--bc) 55%, transparent); margin-left: 4px; }
+  .kbars { display: flex; flex-direction: column; gap: 8px; }
+  .kbar { display: grid; grid-template-columns: 82px 1fr 34px; gap: 8px; align-items: center; font-size: 12px; }
+  .kbar .bar { height: 6px; border-radius: 99px; background: color-mix(in oklab, var(--bc) 8%, transparent); overflow: hidden; }
+  .kbar .bar i { display: block; height: 100%; background: var(--k); transition: width .25s; }
+  .kbar .v { font-family: 'Geist Mono', monospace; text-align: right; font-size: 11px; }
+  .cap { font-size: 12px; line-height: 1.5; color: color-mix(in oklab, var(--bc) 62%, transparent); }
+  .cap-meter { position: relative; height: 8px; border-radius: 99px; background: color-mix(in oklab, var(--bc) 8%, transparent); margin: 8px 0 6px; }
+  .cap-meter .band { position: absolute; top: 0; bottom: 0; background: color-mix(in oklab, var(--su) 30%, transparent); border-radius: 99px; }
+  .cap-meter .mark { position: absolute; top: -4px; width: 3px; height: 16px; border-radius: 2px; background: var(--bc); transition: left .25s; }
+  .cap b { color: var(--bc); }
+  .ai-note { font-size: 12px; line-height: 1.5; color: color-mix(in oklab, var(--bc) 62%, transparent); display: flex; gap: 8px; border: 1px dashed color-mix(in oklab, var(--s) 45%, transparent); border-radius: 10px; padding: 10px 12px; }
+  .ai-note .icon { color: var(--s); margin-top: 1px; }
+  [data-theme='p5-dark'] .ai-note { border-radius: 0; }
+
+  /* Before plan form (compact replica of today's PlanForm) */
+  .old-form { border: 1px solid var(--card-border); border-radius: 12px; padding: 14px; background: color-mix(in oklab, var(--b1) 40%, transparent); max-width: 560px; }
+  [data-theme='p5-dark'] .old-form { border-radius: 0; }
+  .old-form .row1 { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .old-form .row1 h4 { font-size: 14px; }
+  .old-tpl { display: grid; grid-template-columns: 18px 1fr 86px 46px; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--card-border); border-radius: 8px; margin-top: 6px; font-size: 13px; background: var(--card-bg); }
+  [data-theme='p5-dark'] .old-tpl { border-radius: 0; }
+  .osel { height: 26px; border: 1px solid var(--card-border); border-radius: 6px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; font-family: 'Geist Mono', monospace; font-size: 10.5px; color: color-mix(in oklab, var(--bc) 75%, transparent); }
+  [data-theme='p5-dark'] .osel { border-radius: 0; }
+
+  /* Habits page */
+  .page-grid { display: grid; grid-template-columns: 1fr 360px; }
+  @media (max-width: 980px) { .page-grid { grid-template-columns: 1fr; } }
+  .page-main { padding: 18px 20px 22px; display: flex; flex-direction: column; gap: 8px; border-right: 1px solid var(--card-border); min-width: 0; }
+  .hab-row { display: grid; grid-template-columns: 1fr 100px 56px 120px 70px; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--card-border); border-left: 3px solid var(--k-habit); border-radius: 10px; background: var(--card-bg); cursor: pointer; }
+  [data-theme='p5-dark'] .hab-row { border-radius: 0; border-width: 1.5px; border-left-width: 4px; }
+  .hab-row.sel { box-shadow: 0 0 0 1.5px color-mix(in oklab, var(--p) 65%, transparent); }
+  .hab-row.paused { opacity: .5; border-left-style: dashed; }
+  .hab-row .t { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .hab-row .t .icon { color: var(--k-habit); }
+  .hab-row .t small { font-weight: 400; font-size: 12px; color: color-mix(in oklab, var(--bc) 50%, transparent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hab-cols { display: grid; grid-template-columns: 1fr 100px 56px 120px 70px; gap: 12px; padding: 0 14px 2px 17px; font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 45%, transparent); }
+  .weeks { display: flex; gap: 4px; align-items: flex-end; height: 22px; }
+  .weeks i { width: 10px; border-radius: 2px; background: color-mix(in oklab, var(--k-habit) 45%, transparent); }
+  .weeks i.full { background: var(--k-habit); }
+  [data-theme='p5-dark'] .weeks i { border-radius: 0; }
+  .panel { padding: 18px; display: flex; flex-direction: column; gap: 16px; background: color-mix(in oklab, var(--b1) 50%, transparent); }
+  .panel h3 { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .field label { font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 50%, transparent); display: block; margin-bottom: 6px; }
+  .input { min-height: 38px; border: 1px solid var(--card-border); border-radius: var(--rb); background: color-mix(in oklab, var(--b1) 80%, transparent); padding: 8px 12px; display: flex; align-items: center; font-size: 14px; }
+  .input.ph { color: color-mix(in oklab, var(--bc) 40%, transparent); font-size: 13px; }
+  .segm { display: flex; gap: 4px; padding: 4px; border-radius: 10px; border: 1px solid var(--card-border); background: color-mix(in oklab, var(--b2) 50%, transparent); }
+  [data-theme='p5-dark'] .segm { border-radius: 0; }
+  .segm button { flex: 1; border: 0; background: transparent; color: color-mix(in oklab, var(--bc) 60%, transparent); font-size: 12.5px; font-weight: 600; padding: 7px 8px; border-radius: 7px; cursor: pointer; }
+  [data-theme='p5-dark'] .segm button { border-radius: 0; }
+  .segm button.on { background: color-mix(in oklab, var(--p) 16%, transparent); color: var(--p); }
+  .sizes { display: flex; gap: 4px; }
+  .sizes button { flex: 1; height: 34px; border: 1px solid var(--card-border); border-radius: 7px; background: transparent; color: color-mix(in oklab, var(--bc) 65%, transparent); font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 600; cursor: pointer; }
+  [data-theme='p5-dark'] .sizes button { border-radius: 0; }
+  .sizes button.on { border-color: var(--p); color: var(--p); background: color-mix(in oklab, var(--p) 12%, transparent); }
+  .hint { font-size: 11.5px; color: color-mix(in oklab, var(--bc) 50%, transparent); margin-top: 6px; }
+  .info-box { font-size: 12px; line-height: 1.55; padding: 10px 12px; border-radius: 8px; background: color-mix(in oklab, var(--k-habit) 9%, transparent); border: 1px solid color-mix(in oklab, var(--k-habit) 28%, transparent); color: color-mix(in oklab, var(--bc) 78%, transparent); display: flex; gap: 8px; }
+  .info-box .icon { color: var(--k-habit); margin-top: 1px; }
+  [data-theme='p5-dark'] .info-box { border-radius: 0; }
+  .panel-foot { display: flex; gap: 8px; margin-top: auto; padding-top: 6px; }
+  .panel-foot .btn.primary { margin-left: auto; }
+
+  /* Projects page */
+  .proj-grid { display: grid; grid-template-columns: 320px 1fr; }
+  @media (max-width: 980px) { .proj-grid { grid-template-columns: 1fr; } }
+  .proj-list { padding: 14px; border-right: 1px solid var(--card-border); display: flex; flex-direction: column; gap: 8px; }
+  .pcard { padding: 12px; border: 1px solid var(--card-border); border-left: 3px solid var(--k-project); border-radius: 10px; background: var(--card-bg); cursor: pointer; display: flex; flex-direction: column; gap: 7px; }
+  [data-theme='p5-dark'] .pcard { border-radius: 0; border-width: 1.5px; border-left-width: 4px; }
+  .pcard.sel { box-shadow: 0 0 0 1.5px color-mix(in oklab, var(--p) 65%, transparent); }
+  .pcard .r1 { display: flex; align-items: center; gap: 8px; }
+  .pcard .t { font-size: 14px; font-weight: 600; flex: 1; min-width: 0; }
+  .pcard .n { font-family: 'Geist Mono', monospace; font-size: 11px; color: color-mix(in oklab, var(--bc) 55%, transparent); }
+  .pcard .next { font-size: 12px; color: color-mix(in oklab, var(--bc) 58%, transparent); }
+  .pcard .next b { color: color-mix(in oklab, var(--bc) 85%, transparent); font-weight: 500; }
+  .pcard .r3 { display: flex; align-items: center; gap: 6px; }
+  .bigbar { height: 6px; border-radius: 99px; background: color-mix(in oklab, var(--k-project) 16%, transparent); overflow: hidden; }
+  .bigbar i { display: block; height: 100%; background: var(--k-project); border-radius: inherit; }
+  [data-theme='p5-dark'] .bigbar { border-radius: 0; }
+  .detail { padding: 18px 22px 22px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .detail-head h3 { font-size: 20px; font-weight: 700; color: var(--bc); }
+  .detail-head p { font-size: 13px; color: color-mix(in oklab, var(--bc) 60%, transparent); margin-top: 4px; }
+  .detail-head .prog { display: flex; align-items: center; gap: 12px; margin-top: 12px; font-family: 'Geist Mono', monospace; font-size: 11.5px; color: color-mix(in oklab, var(--bc) 60%, transparent); }
+  .detail-head .prog .bigbar { flex: 1; max-width: 360px; }
+  .srows { display: flex; flex-direction: column; gap: 4px; }
+  .srow { display: grid; grid-template-columns: 16px 22px 26px 1fr auto; gap: 10px; align-items: center; padding: 9px 10px; border-radius: 8px; border: 1px solid transparent; font-size: 13.5px; }
+  [data-theme='p5-dark'] .srow { border-radius: 0; }
+  .srow .handle { color: color-mix(in oklab, var(--bc) 25%, transparent); display: grid; }
+  .srow .ix { font-family: 'Geist Mono', monospace; font-size: 11px; color: color-mix(in oklab, var(--bc) 45%, transparent); }
+  .srow .st { width: 18px; height: 18px; border-radius: 99px; border: 1.5px solid color-mix(in oklab, var(--bc) 30%, transparent); display: grid; place-items: center; }
+  [data-theme='p5-dark'] .srow .st { border-radius: 0; }
+  .srow.done .st { background: var(--su); border-color: var(--su); color: var(--b1); }
+  .srow.done .tt { color: color-mix(in oklab, var(--bc) 50%, transparent); }
+  .srow.week { background: color-mix(in oklab, var(--k-project) 8%, transparent); border-color: color-mix(in oklab, var(--k-project) 25%, transparent); }
+  .srow.week .st { border-color: var(--k-project); }
+  .srow.week .st::after { content: ''; width: 8px; height: 8px; border-radius: 99px; background: var(--k-project); }
+  .srow .tt small { display: block; font-size: 11.5px; color: color-mix(in oklab, var(--bc) 50%, transparent); margin-top: 2px; }
+  .srow .side { display: flex; align-items: center; gap: 6px; font-family: 'Geist Mono', monospace; font-size: 11px; color: color-mix(in oklab, var(--bc) 50%, transparent); white-space: nowrap; }
+  .srow.m { grid-template-columns: 20px 18px 1fr auto; gap: 8px; padding: 8px; font-size: 13px; }
+  .more { font-size: 12px; color: color-mix(in oklab, var(--bc) 50%, transparent); padding: 4px 10px 4px 58px; }
+
+  /* ── Phones ── */
+  .phones { display: flex; gap: 32px; justify-content: center; flex-wrap: wrap; align-items: flex-start; }
+  .phone-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 375px; }
+  .phone-cap { font-size: 12px; line-height: 1.55; color: color-mix(in oklab, var(--bc) 60%, transparent); width: 100%; }
+  .phone-cap b { color: var(--bc); font-weight: 600; }
+  .phone-cap .tag { display: inline-block; font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; margin-right: 6px; color: var(--p); }
+  .phone-cap .tag.before { color: color-mix(in oklab, var(--bc) 55%, transparent); }
+  .phone { width: 375px; height: 790px; border-radius: 44px; border: 10px solid oklch(0.12 0.01 265); background: var(--page); position: relative; overflow: hidden; box-shadow: 0 30px 70px oklch(0 0 0 / .4); display: flex; flex-direction: column; }
+  [data-theme='mars-light'] .phone { border-color: oklch(0.3 0.02 265); }
+  .phone .status { height: 40px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 26px; font-size: 13px; font-weight: 600; }
+  .app { flex: 1; min-height: 0; overflow: hidden; padding: 4px 14px 140px; display: flex; flex-direction: column; gap: 10px; }
+  .app-head { display: flex; align-items: center; justify-content: space-between; }
+  .app-head h2 { font-size: 22px; font-weight: 700; }
+  .app-head .date { font-family: 'Geist Mono', monospace; font-size: 11px; color: color-mix(in oklab, var(--bc) 50%, transparent); }
+  .mdash { display: flex; flex-direction: column; gap: 7px; padding: 10px 12px; border: 1px solid var(--card-border); border-radius: 12px; background: color-mix(in oklab, var(--b1) 50%, transparent); }
+  [data-theme='p5-dark'] .mdash { border-radius: 0; }
+  .mdash .r { display: grid; grid-template-columns: 50px 1fr auto; gap: 10px; align-items: center; font-size: 12px; font-variant-numeric: tabular-nums; }
+  .mdash .meter { width: auto; }
+  .msec { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
+  .msec.todo .led { color: var(--in); } .msec.doing .led { color: var(--wa); } .msec.done .led { color: var(--su); }
+  .msec .count-ghost { margin-left: auto; }
+  .mlist { display: flex; flex-direction: column; gap: 8px; }
+  .hscroll { display: flex; gap: 8px; overflow: hidden; }
+  .omini { width: 136px; flex-shrink: 0; height: 88px; display: flex; flex-direction: column; gap: 5px; padding: 9px; border-radius: var(--rc); background: var(--card-bg); border: 1px solid var(--card-border); }
+  [data-theme='p5-dark'] .omini { border-width: 1.5px; }
+  .omini.risk-warning { border-top: 3px solid var(--wa); }
+  .omini.risk-danger { border-top: 3px solid var(--er); }
+  .omini .b { display: flex; gap: 4px; }
+  .omini .t { font-size: 12px; font-weight: 500; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .omini .f { margin-top: auto; display: flex; align-items: center; gap: 4px; }
+  .omini .f .pill { margin-left: auto; }
+  .omini .rollover { font-size: 8.5px; }
+  .omini.is-done { opacity: .5; }
+  .mdone { display: flex; align-items: center; gap: 8px; padding: 11px 12px; border-radius: 12px; border: 1px solid var(--card-border); background: color-mix(in oklab, var(--b1) 50%, transparent); font-size: 13px; font-weight: 600; }
+  [data-theme='p5-dark'] .mdone { border-radius: 0; }
+  .mdone .ok { color: var(--su); display: grid; }
+  .mdone .v { margin-left: auto; font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 500; color: color-mix(in oklab, var(--bc) 55%, transparent); }
+  .daychips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .peek { position: absolute; left: 14px; right: 14px; bottom: 76px; height: 46px; border-radius: 14px; background: var(--b1); border: 1px solid var(--card-border); box-shadow: 0 8px 20px oklch(0 0 0 / .3); display: flex; align-items: center; gap: 10px; padding: 0 14px; font-weight: 600; font-size: 14px; z-index: 3; }
+  [data-theme='p5-dark'] .peek { border-radius: 0; }
+  .peek .chev { margin-left: auto; }
+  .dock { position: absolute; left: 0; right: 0; bottom: 0; height: 66px; border-top: 1px solid var(--card-border); background: color-mix(in oklab, var(--b1) 94%, transparent); display: flex; justify-content: space-around; align-items: flex-start; padding-top: 9px; z-index: 3; }
+  .dock span { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; color: color-mix(in oklab, var(--bc) 50%, transparent); }
+  .dock span.on { color: var(--p); }
+  .scrim { position: absolute; inset: 0; background: oklch(0 0 0 / .45); z-index: 4; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; height: 84%; background: var(--b1); border-radius: 20px 20px 0 0; display: flex; flex-direction: column; box-shadow: 0 -10px 30px oklch(0 0 0 / .3); z-index: 5; }
+  [data-theme='p5-dark'] .sheet { border-radius: 0; border-top: 2px solid var(--bc); }
+  .sheet .grab { width: 36px; height: 4px; border-radius: 99px; background: color-mix(in oklab, var(--bc) 25%, transparent); margin: 8px auto 0; }
+  .sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px 10px; }
+  .sheet-title { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 700; }
+  .sheet-sub { font-family: 'Geist Mono', monospace; font-size: 11px; color: color-mix(in oklab, var(--bc) 55%, transparent); }
+  .sheet-body { flex: 1; overflow: hidden; padding: 4px 14px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .sheet-foot { padding: 12px 14px 22px; border-top: 1px solid var(--card-border); display: flex; align-items: center; gap: 10px; }
+  .sheet-foot .btn.primary { margin-left: auto; height: 40px; }
+  .capacity { margin: 0 14px 6px; padding: 9px 11px; border-radius: 10px; background: color-mix(in oklab, var(--b2) 50%, transparent); border: 1px solid var(--card-border); font-size: 11.5px; color: color-mix(in oklab, var(--bc) 65%, transparent); }
+  [data-theme='p5-dark'] .capacity { border-radius: 0; }
+  .capacity b { color: var(--bc); }
+  .pick { display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 10px; border: 1px solid var(--card-border); border-left: 3px solid var(--k); background: var(--card-bg); font-size: 13px; }
+  [data-theme='p5-dark'] .pick { border-radius: 0; border-left-width: 4px; }
+  .pick .pm { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .pick .pt { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pick .pt span { color: color-mix(in oklab, var(--bc) 48%, transparent); font-weight: 400; }
+  .pick .pb { display: flex; align-items: center; gap: 6px; }
+  .pick.locked { opacity: .65; }
+  .decide { display: flex; gap: 4px; margin-top: 2px; }
+  .decide button { flex: 1; height: 30px; border-radius: 8px; border: 1px solid var(--card-border); background: transparent; color: color-mix(in oklab, var(--bc) 70%, transparent); font-size: 12px; font-weight: 600; }
+  [data-theme='p5-dark'] .decide button { border-radius: 0; }
+  .decide button.on { border-color: var(--su); color: var(--su); background: color-mix(in oklab, var(--su) 12%, transparent); }
+  .decide button.on.tmr { border-color: var(--in); color: var(--in); background: color-mix(in oklab, var(--in) 12%, transparent); }
+  .msegwrap { display: flex; }
+  .msegwrap .seg { flex: 1; }
+  .msegwrap .seg button { flex: 1; }
+  .mstep { display: flex; align-items: center; gap: 8px; font-family: 'Geist Mono', monospace; font-size: 11px; color: color-mix(in oklab, var(--bc) 55%, transparent); }
+  .mstep i { width: 20px; height: 4px; border-radius: 99px; background: color-mix(in oklab, var(--bc) 15%, transparent); }
+  .mstep i.on { background: var(--p); }
+  .mbar { position: absolute; left: 0; right: 0; bottom: 66px; padding: 10px 14px; border-top: 1px solid var(--card-border); background: var(--b1); display: flex; align-items: center; gap: 10px; z-index: 3; }
+  .mbar .v { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .mbar .v small { display: block; font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 500; color: color-mix(in oklab, var(--bc) 50%, transparent); }
+  .mbar .btn { margin-left: auto; }
+  .mrow { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border: 1px solid var(--card-border); border-left: 3px solid var(--k); border-radius: 12px; background: var(--card-bg); }
+  [data-theme='p5-dark'] .mrow { border-radius: 0; border-width: 1.5px; border-left-width: 4px; }
+  .mrow .mm { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+  .mrow .mt { font-size: 14px; font-weight: 600; }
+  .mrow .ms { display: flex; align-items: center; gap: 8px; }
+
+  /* ── Split-phase additions ── */
+  .tc.is-done, .tm.is-done { opacity: .5; }
+  .tc.is-done .tc-title, .tm.is-done .tm-t { text-decoration: line-through; }
+  .tc-head .roll { color: color-mix(in oklab, var(--bc) 62%, transparent); }
+  .phase-tag { display: inline-flex; align-items: center; gap: 6px; font-family: 'Geist Mono', monospace; font-size: 10.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; border: 1px solid currentColor; }
+  [data-theme='p5-dark'] .phase-tag { border-radius: 0; }
+
+  /* Mobile board mini card (the 136px horizontal-row card) */
+  .tm { width: 136px; flex-shrink: 0; height: 92px; display: flex; flex-direction: column; gap: 4px; padding: 8px 9px; border-radius: var(--rc); background: var(--card-bg); border: 1px solid var(--card-border); border-left: 3px solid var(--k); }
+  [data-theme='p5-dark'] .tm { border-width: 1.5px; border-left-width: 4px; }
+  .tm-h { display: flex; align-items: center; gap: 4px; min-width: 0; font-family: 'Geist Mono', monospace; font-size: 8.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--k); }
+  .tm-h span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tm-h .nm { text-transform: none; letter-spacing: .02em; font-size: 9.5px; }
+  .tm-t { font-size: 12px; font-weight: 500; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .tm-f { margin-top: auto; display: flex; align-items: center; gap: 4px; }
+  .tm-f .pill { margin-left: auto; }
+  .tm .dots { gap: 3px; } .tm .dots i { width: 6px; height: 6px; border-width: 1.2px; }
+  .tm .stepbar { width: 52px; } .tm .stepbar i { height: 3px; }
+  .tm .roll { font-family: 'Geist Mono', monospace; font-size: 9px; color: color-mix(in oklab, var(--bc) 62%, transparent); }
+
+  /* Scope screen */
+  .scope { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 960px) { .scope { grid-template-columns: 1fr; } }
+  .scope .chg ul { gap: 8px; }
+  .scope .chg li b { color: var(--bc); font-weight: 600; }
+  .pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+
+  /* Plan-form carry-over panel */
+  .co { border: 1px solid var(--card-border); border-radius: 12px; padding: 14px; background: color-mix(in oklab, var(--b1) 40%, transparent); }
+  [data-theme='p5-dark'] .co { border-radius: 0; }
+  .co h4 { font-size: 14px; margin-bottom: 4px; }
+  .co .lbl { font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 50%, transparent); margin: 12px 0 6px; display: flex; align-items: center; gap: 6px; }
+  .co .lbl .new { color: var(--p); letter-spacing: .08em; }
+  .co-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--card-border); border-radius: 8px; margin-top: 6px; font-size: 13px; background: var(--card-bg); cursor: pointer; }
+  [data-theme='p5-dark'] .co-row { border-radius: 0; }
+  .co-row .t { flex: 1; min-width: 0; }
+  .co-row .t span { color: color-mix(in oklab, var(--bc) 48%, transparent); }
+  .co-row.off { opacity: .5; }
+  .co-row.kind { border-left: 3px solid var(--k); }
+  .co .sum { font-family: 'Geist Mono', monospace; font-size: 11px; color: color-mix(in oklab, var(--bc) 55%, transparent); margin-top: 12px; }
+  .co .back { font-size: 11.5px; color: color-mix(in oklab, var(--bc) 50%, transparent); margin-left: 4px; }
+  .pair2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  @media (max-width: 1000px) { .pair2 { grid-template-columns: 1fr; } }
+  .chgrow { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--card-border); border-radius: 10px; font-size: 13px; margin-top: 6px; }
+  [data-theme='p5-dark'] .chgrow { border-radius: 0; }
+  .chgrow .d { width: 7px; height: 7px; border-radius: 99px; margin-top: 6px; flex-shrink: 0; }
+  .chgrow small { display: block; font-size: 11.5px; color: color-mix(in oklab, var(--bc) 50%, transparent); margin-top: 2px; }
+
+  /* New project panel */
+  .np { max-width: 420px; }
+
+  /* MCP sequence */
+  .seq { display: flex; flex-direction: column; gap: 10px; max-width: 980px; }
+  .turn { display: grid; grid-template-columns: 140px 1fr; gap: 14px; align-items: start; }
+  .who { font-family: 'Geist Mono', monospace; font-size: 10.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; display: flex; align-items: center; gap: 6px; padding-top: 11px; }
+  .who.you { color: var(--p); } .who.claude { color: var(--s); } .who.wb { color: var(--su); }
+  .bubble { border: 1px solid var(--card-border); border-radius: 12px; padding: 10px 14px; background: color-mix(in oklab, var(--b1) 50%, transparent); font-size: 13px; line-height: 1.55; color: color-mix(in oklab, var(--bc) 85%, transparent); }
+  [data-theme='p5-dark'] .bubble { border-radius: 0; }
+  .bubble b { color: var(--bc); }
+  .call { display: block; margin-top: 4px; padding: 8px 10px; border-radius: 8px; background: color-mix(in oklab, var(--b2) 75%, transparent); border: 1px solid var(--card-border); white-space: pre-wrap; font-family: 'Geist Mono', monospace; font-size: 11.5px; line-height: 1.55; color: color-mix(in oklab, var(--bc) 80%, transparent); }
+  [data-theme='p5-dark'] .call { border-radius: 0; }
+  .call b { color: var(--s); font-weight: 600; }
+  .call i { font-style: normal; color: var(--su); }
+  .sep-week { font-family: 'Geist Mono', monospace; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 50%, transparent); display: flex; align-items: center; gap: 10px; margin: 8px 0 0; }
+  .sep-week::after { content: ''; flex: 1; height: 1px; background: var(--card-border); }
+  .tools { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 8px; }
+  .tools th { text-align: left; font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 48%, transparent); padding: 8px; border-bottom: 1px solid var(--card-border); }
+  .tools td { padding: 9px 8px; border-bottom: 1px solid color-mix(in oklab, var(--bc) 6%, transparent); vertical-align: top; line-height: 1.5; color: color-mix(in oklab, var(--bc) 80%, transparent); }
+  .tools td:first-child { font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--bc); white-space: nowrap; }
+  .matrix.four { grid-template-columns: 112px repeat(4, minmax(200px, 1fr)); }
+
+  /* ── Modals: the TaskModal pattern (OverlayHeader + form + footer) ── */
+  .mbox { width: 500px; max-width: 100%; background: var(--b1); border: 1px solid var(--card-border); border-radius: 16px; box-shadow: 0 20px 50px oklch(0 0 0 / .35); overflow: hidden; text-align: left; }
+  [data-theme='p5-dark'] .mbox { border-radius: 0; border-width: 1.5px; box-shadow: 6px 6px 0 var(--b3); }
+  .mhead { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 24px 14px; border-bottom: 1px solid var(--card-border); }
+  .mhead h3 { font-size: 18px; font-weight: 700; }
+  [data-theme='p5-dark'] .mhead h3 { font-family: var(--display); font-weight: 400; letter-spacing: .03em; }
+  .mhead .ctxline { font-family: 'Geist Mono', monospace; font-size: 11px; color: color-mix(in oklab, var(--bc) 52%, transparent); margin-top: 3px; display: flex; align-items: center; gap: 6px; }
+  .mhead .x { color: color-mix(in oklab, var(--bc) 55%, transparent); cursor: pointer; display: grid; padding: 4px; }
+  .mbody { padding: 16px 24px 22px; display: flex; flex-direction: column; gap: 16px; }
+  .mbanner { display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1.45; padding: 10px 14px; border-radius: 10px; }
+  [data-theme='p5-dark'] .mbanner { border-radius: 0; }
+  .mbanner.adhoc { background: color-mix(in oklab, var(--wa) 10%, transparent); color: var(--wa); }
+  .mbanner.project { background: color-mix(in oklab, var(--k-project) 11%, transparent); color: var(--k-project); }
+  .mfield > label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .mfield > label .req { color: var(--er); margin-left: 2px; }
+  .mfield > label .hint { font-weight: 400; font-size: 12px; color: color-mix(in oklab, var(--bc) 50%, transparent); margin-left: 4px; }
+  .minput { width: 100%; min-height: 40px; border: 1px solid color-mix(in oklab, var(--bc) 20%, transparent); border-radius: var(--rb); padding: 9px 12px; font: inherit; font-size: 14px; color: var(--bc); background: color-mix(in oklab, var(--b2) 45%, transparent); display: flex; align-items: center; }
+  textarea.minput, .minput.area { min-height: 76px; resize: none; align-items: flex-start; }
+  .minput:focus { outline: 2px solid color-mix(in oklab, var(--p) 55%, transparent); outline-offset: 0; }
+  .minput.ph { color: color-mix(in oklab, var(--bc) 40%, transparent); }
+  .spills { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .spills button { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 8px 0; border-radius: 999px; border: 1px solid color-mix(in oklab, var(--bc) 15%, transparent); background: color-mix(in oklab, var(--b2) 60%, transparent); font: inherit; font-size: 12px; font-weight: 700; color: color-mix(in oklab, var(--bc) 50%, transparent); cursor: pointer; }
+  [data-theme='p5-dark'] .spills button { border-radius: 0; }
+  .spills button small { font-size: 10px; opacity: .55; }
+  .spills button.on { background: color-mix(in oklab, var(--s) 10%, transparent); border-color: var(--s); color: var(--s); }
+  .effort { font-size: 12px; color: var(--s); margin-top: 6px; }
+  .effort.warn { color: var(--wa); margin-top: 2px; }
+  .quadpick { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .quadpick span { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--card-border); font-size: 12.5px; }
+  .quadpick span.on { border-color: var(--er); color: var(--er); background: color-mix(in oklab, var(--er) 8%, transparent); }
+  .mfoot { display: flex; align-items: center; gap: 8px; padding-top: 4px; }
+  .mfoot .sp { flex: 1; }
+  .btn.danger { color: var(--er); border-color: color-mix(in oklab, var(--er) 35%, transparent); }
+  .btn.danger:hover { color: var(--er); border-color: var(--er); }
+  .stage { display: flex; gap: 22px; flex-wrap: wrap; align-items: flex-start; }
+  .stage > div { flex: 1 1 440px; min-width: 0; }
+  .backdrop { padding: 26px; border-radius: 14px; background: color-mix(in oklab, var(--b3) 75%, transparent); border: 1px solid var(--card-border); display: grid; place-items: center; }
+  [data-theme='p5-dark'] .backdrop { border-radius: 0; }
+  .spec-cap { font-family: 'Geist Mono', monospace; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 50%, transparent); margin-bottom: 8px; }
+  .spec-cap b { color: var(--p); font-weight: 600; }
+
+  /* Interactive prototype overlay inside the projects frame */
+  .proto { position: relative; }
+  .proto-scrim { position: absolute; inset: 0; background: oklch(0 0 0 / .5); display: grid; place-items: center; z-index: 10; padding: 20px; }
+  [data-theme='mars-light'] .proto-scrim { background: oklch(0.2 0.03 265 / .35); }
+  .srow .edit { color: color-mix(in oklab, var(--bc) 45%, transparent); display: grid; place-items: center; width: 26px; height: 24px; border-radius: 6px; border: 1px solid var(--card-border); background: transparent; cursor: pointer; }
+  .srow .edit:hover { color: var(--p); border-color: var(--p); }
+  [data-theme='p5-dark'] .srow .edit { border-radius: 0; }
+  .empty-proj { border: 1px dashed var(--card-border); border-radius: 12px; padding: 26px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; color: color-mix(in oklab, var(--bc) 55%, transparent); font-size: 13px; }
+  [data-theme='p5-dark'] .empty-proj { border-radius: 0; }
+  .toolbar { display: flex; gap: 8px; align-items: center; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="i-inbox" viewBox="0 0 24 24"><path d="m7.875 14.25 1.214 1.942a2.25 2.25 0 0 0 1.908 1.058h2.006c.776 0 1.497-.4 1.908-1.058l1.214-1.942M2.41 9h4.636a2.25 2.25 0 0 1 1.872 1.002l.164.246a2.25 2.25 0 0 0 1.872 1.002h2.092a2.25 2.25 0 0 0 1.872-1.002l.164-.246A2.25 2.25 0 0 1 16.954 9h4.636M2.41 9a2.25 2.25 0 0 0-.16.832V12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 12V9.832c0-.287-.055-.57-.16-.832M2.41 9a2.25 2.25 0 0 1 .382-.632l3.285-3.832a2.25 2.25 0 0 1 1.708-.786h8.43c.657 0 1.281.287 1.709.786l3.284 3.832c.163.19.291.404.382.632M4.5 20.25h15A2.25 2.25 0 0 0 21.75 18v-2.625c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125V18a2.25 2.25 0 0 0 2.25 2.25Z"/></symbol>
+    <symbol id="i-chev-right" viewBox="0 0 24 24"><path d="m8.25 4.5 7.5 7.5-7.5 7.5"/></symbol>
+    <symbol id="i-chev-left" viewBox="0 0 24 24"><path d="M15.75 19.5 8.25 12l7.5-7.5"/></symbol>
+    <symbol id="i-chev-up" viewBox="0 0 24 24"><path d="m4.5 15.75 7.5-7.5 7.5 7.5"/></symbol>
+    <symbol id="i-chev-down" viewBox="0 0 24 24"><path d="m19.5 8.25-7.5 7.5-7.5-7.5"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 18 18 6M6 6l12 12"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m4.5 12.75 6 6 9-13.5"/></symbol>
+    <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><path d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 4.5v15m7.5-7.5h-15"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M15.75 5.25v13.5m-7.5-13.5v13.5"/></symbol>
+    <symbol id="i-pencil" viewBox="0 0 24 24"><path d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></symbol>
+    <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"/></symbol>
+    <symbol id="i-uturn" viewBox="0 0 24 24"><path d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3"/></symbol>
+    <symbol id="i-bars" viewBox="0 0 24 24"><path d="M3.75 9h16.5m-16.5 6.75h16.5"/></symbol>
+    <symbol id="i-columns" viewBox="0 0 24 24"><path d="M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125Z"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><path d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><path d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><path d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></symbol>
+    <symbol id="i-dots" viewBox="0 0 24 24"><path d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.563.563 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></symbol>
+      <symbol id="i-bolt" viewBox="0 0 24 24"><path d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z"/></symbol>
+  </defs>
+</svg>
+
+<header class="topbar">
+  <div>
+    <div class="eyebrow">Phase 2 · Habits + Plan week — exploration (not planned yet)</div>
+    <h1>Habits own their cadence, the week is planned in three steps</h1>
+    <p>Phase 2 builds on Phase 1's projects (<span class="mono">mockup-week-model-phase1-v2.html</span>). <b>Habits</b> carry their own cadence — <b>Daily</b> (every day) or <b>N× per week</b> — so Plan Mode goes away. A three-step <b>Plan week</b> replaces the plan form and the in-app AI chat. With Doing already gone in Phase 1, <b>Todo is today and Done is the week</b>. Missed habit days expire quietly. This is a direction for the tracker, not an approved plan. Fixture: Wednesday Oct 7, 10:00 — week 41.</p>
+  </div>
+  <div class="seg" id="theme-seg">
+    <button data-theme-btn="mars-dark" class="on">Sora dark</button>
+    <button data-theme-btn="mars-light">Sora light</button>
+    <button data-theme-btn="p5-dark">P5 dark</button>
+  </div>
+</header>
+
+<!-- ═════════ 1. Scope ═════════ -->
+<section class="screen on" id="s-scope">
+  <div class="col-label after"><b>Phase 2</b> refactoring on top of phase 1 · tracker, not planned</div>
+  <div class="changes">
+    <div class="chg new"><h4>In phase 2</h4><ul>
+      <li><b>Habits</b> — cadence lives on the habit: Daily (every day) or N× / week; Plan › Habits page; pause instead of re-picking</li>
+      <li><b>Plan Mode dropped</b> — no more NORMAL / EXTREME</li>
+      <li><b>Plan week</b> — three steps (habits · project steps · one-offs) replace the plan form</li>
+      <li><b>In-app AI chat removed</b> — AI planning goes through Claude + MCP</li>
+      <li><b>Board</b> — Done becomes the week's day-grouped log; ✓ completes a card</li>
+      <li><b>Quiet expiry</b> — a missed habit day doesn't roll over</li>
+      <li><b>Cleanup</b> — DOING status, Plan.mode, dead copy and scenarios</li>
+    </ul></div>
+    <div class="chg stay"><h4>From phase 1</h4><ul>
+      <li>Projects, project steps on the board, MCP project tools</li>
+      <li>Kind-first cards with week dots and the step path</li>
+      <li>The Doing column removed (Todo · Done)</li>
+      <li>Risk off</li>
+      <li>The name Todo</li>
+    </ul></div>
+    <div class="chg gone"><h4>Still in the tracker</h4><ul>
+      <li><s>Habit-level days</s> <i>— weekdays / every day / custom days per habit</i></li>
+      <li><s>Per-kind risk rules</s> <i>— habit pace, step carried twice, one-off due date</i></li>
+      <li><s>One-off due dates</s></li>
+      <li><s>Daily rhythm</s> <i>— Open / Close the day, notifications</i></li>
+      <li><s>Backlog stacking</s> <i>— PR #44, onto the new card</i></li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- ═════════ 2. Board ═════════ -->
+<section class="screen" id="s-board">
+  <div class="col-label after"><b>After</b> two columns · try it — ✓ completes · ← Todo pulls from the backlog <button class="ghost-btn reset" id="board-reset">↺ reset</button></div>
+  <div class="board" id="after-board"></div>
+  <p class="note">The <b>before</b> of this screen is phase 1's board. <b>Todo holds today, Done holds the week</b> as a day-grouped log, and there has been no In Progress since phase 1 — most cards are one sitting. ✓ completes a card from Todo; ← Todo pulls one from the backlog. Workout is now <b>Daily</b> (every day — there is no Plan Mode), so its week has seven dots; Tuesday's missed day is a faint dot and nothing rolled over.</p>
+</section>
+
+<!-- ═════════ 3. Plan week ═════════ -->
+<section class="screen" id="s-plan">
+  <div class="col-label after"><b>After</b> plan week — three short steps · try the steppers and checkboxes</div>
+  <div class="frame" id="plan-frame"></div>
+  <p class="note">Replaces the plan form and the AI chat. Habits are kept or skipped — their cadence lives on the habit. Projects get <b>a number of next steps</b>; the list under the stepper is exactly what lands in the backlog, carried steps first. One-offs come from the matrix with carried and Do-first items pre-checked. The side panel compares the total with what you actually finished lately — information, not a limit. Claude's MCP tools write the same three things.</p>
+  <div class="col-label after spaced"><b>After</b> mobile — the same three steps as a stepper</div>
+  <div class="phones" id="plan-phones"></div>
+</section>
+
+<!-- ═════════ 4. Habits ═════════ -->
+<section class="screen" id="s-habits">
+  <div class="col-label"><b>Before</b> a habit is a template + per-plan type/frequency + a plan-wide mode</div>
+  <div class="old-form">
+    <div class="old-tpl"><span class="cb on">✓</span><span>LeetCode</span><span class="osel">WEEKLY ▾</span><span class="osel">3</span></div>
+    <div class="old-tpl"><span class="cb on">✓</span><span>Workout</span><span class="osel">DAILY ▾</span><span class="osel">1</span></div>
+    <p class="note" style="margin-top:8px">Weekend days depend on the whole plan's <b>NORMAL / EXTREME</b> mode, picked again every week.</p>
+  </div>
+  <div class="col-label after spaced"><b>After</b> plan › habits — defined once, runs every week · click a habit, try the editor</div>
+  <div class="frame" id="habits-frame"></div>
+  <p class="note">Two cadences only: <b>Daily</b> (one instance every day, weekends included) or <b>Times per week</b> (N instances on Monday, done any day). Picking weekdays or custom days per habit is a later tracker item. The row shows this week's dots and the last four weeks; pausing keeps the history and takes the habit out of next week's plan.</p>
+  <div class="col-label after spaced"><b>After</b> mobile</div>
+  <div class="phones" id="habits-phones"></div>
+</section>
+
+<!-- ═════════ 5. Mobile board ═════════ -->
+<section class="screen" id="s-mobile">
+  <div class="phones" id="mobile-phones"></div>
+</section>
+
+<nav class="seg screen-nav" id="screen-nav">
+  <button data-screen="s-scope" class="on">01 Scope</button>
+  <button data-screen="s-board">02 Board</button>
+  <button data-screen="s-plan">03 Plan week</button>
+  <button data-screen="s-habits">04 Habits</button>
+  <button data-screen="s-mobile">05 Mobile</button>
+</nav>
+
+<script>
+  // ─────────────────────────────── Fixture ───────────────────────────────
+  // Wednesday Oct 7, 10:00 — ISO week 41. Habits own their cadence; Daily runs every day.
+  const PTS = {XS: 1, S: 2, M: 3, L: 5, XL: 8};
+  const HABITS = {
+    wo: {title: 'Workout', cadence: 'Daily', size: 'XS', target: 7, note: '45 min — gym or run', weeks: [6, 5, 7, 4]},
+    lc: {title: 'LeetCode', cadence: '3× / week', size: 'XS', target: 3, note: 'One medium, 45-min timer', weeks: [3, 2, 3, 1]},
+    rd: {title: 'Read', cadence: '2× / week', size: 'XS', target: 2, note: 'Anything not on a screen', weeks: [2, 2, 1, 2]},
+    sd: {title: 'System design case', cadence: '1× / week', size: 'S', target: 1, note: 'Read + sketch, no full notes', weeks: [1, 1, 0, 1]},
+  };
+  const PROJECTS = {
+    bio: {title: 'Biomedical course', steps: [['Lecture 1 — Intro to the cell', 'XS'], ['Lecture 2 — Biochemistry basics', 'XS'], ['Lecture 3 — Membranes', 'XS', 'Watch + one-page notes'],
+      ['Lecture 4 — Cell signaling', 'XS'], ['Lecture 5 — Genetics I', 'XS'], ['Lecture 6 — Genetics II', 'XS'], ['Lecture 7 — Gene expression', 'XS'], ['Lecture 8 — Proteins', 'XS'],
+      ['Lecture 9 — Immunology', 'XS'], ['Lecture 10 — Neurobiology', 'XS'], ['Lecture 11 — Physiology', 'XS'], ['Lecture 12 — Review', 'XS']]},
+    pdb: {title: 'Protein 3D viewer', steps: [['Fetch one structure from RCSB PDB', 'S'], ['Render it with Mol*', 'M', 'Rotate + zoom works in the page'], ['Color-by-chain toggle', 'S'],
+      ['Search box for PDB IDs', 'S'], ['Shareable link per structure', 'XS'], ['Deploy + short write-up', 'M']]},
+    fin: {title: 'Finance basics', steps: [['Income statement overview', 'S', 'Ch. 1–2 + one worked example'], ['Balance sheet overview', 'S'], ['Cash flow statement', 'S'],
+      ['Link the three statements', 'S'], ['Ratios I — margins', 'S'], ['Ratios II — liquidity', 'S'], ['Read one 10-K section', 'M'], ['Recap notes', 'XS']]},
+  };
+  const ONEOFFS = {
+    tax: {title: 'File tax report', quadrant: 'Do first', size: 'S'},
+    dent: {title: 'Book dentist appointment', quadrant: 'Schedule', size: 'XS'},
+    bank: {title: 'Call bank about card', quadrant: 'Do first', size: 'XS'},
+    pkg: {title: 'Return package', quadrant: 'Squeeze in', size: 'XS'},
+    car: {title: 'Renew car registration', quadrant: 'Schedule', size: 'S'},
+    pho: {title: 'Sort photo backup', quadrant: 'Maybe later', size: 'M'},
+  };
+  const WEEK_TOTAL = 28; // planned points still alive (Tuesday's missed Workout expired)
+
+  function seedState() {
+    return {
+      habits: {wo: {done: 1, today: 1, days: ['on', 'miss', 'today', '', '', '', '']}, lc: {done: 1, today: 1}, rd: {done: 0, today: 0}, sd: {done: 0, today: 0}},
+      projDone: {bio: 2, pdb: 1, fin: 0},
+      today: [{uid: 't1', kind: 'habit', hid: 'wo'}, {uid: 't2', kind: 'habit', hid: 'lc'}, {uid: 't3', kind: 'project', pid: 'bio', ix: 2}, {uid: 't4', kind: 'oneoff', oid: 'tax'}],
+      done: [
+        {day: 'Today', items: []},
+        {day: 'Tue, Oct 6', items: [{kind: 'project', pid: 'bio', ix: 1}, {kind: 'oneoff', oid: 'pkg'}]},
+        {day: 'Mon, Oct 5', items: [{kind: 'habit', hid: 'wo'}, {kind: 'habit', hid: 'lc'}, {kind: 'project', pid: 'bio', ix: 0}, {kind: 'oneoff', oid: 'bank'}]},
+      ],
+      backlog: [
+        {uid: 'b1', kind: 'habit', hid: 'lc'}, {uid: 'b2', kind: 'habit', hid: 'rd'}, {uid: 'b3', kind: 'habit', hid: 'rd'}, {uid: 'b4', kind: 'habit', hid: 'sd'},
+        {uid: 'b5', kind: 'project', pid: 'pdb', ix: 1}, {uid: 'b6', kind: 'project', pid: 'pdb', ix: 2}, {uid: 'b7', kind: 'project', pid: 'fin', ix: 0},
+        {uid: 'b8', kind: 'oneoff', oid: 'dent'},
+      ],
+    };
+  }
+  function resolve(it, st) {
+    switch (it.kind) {
+      case 'habit': {
+        const h = HABITS[it.hid], s = st.habits[it.hid];
+        return {...it, title: h.title, cadence: h.cadence, size: h.size, pts: PTS[h.size], target: h.target, done: s.done, todayN: s.today, days: s.days};
+      }
+      case 'project': {
+        const p = PROJECTS[it.pid], [title, size, desc] = p.steps[it.ix];
+        return {...it, project: p.title, step: it.ix + 1, total: p.steps.length, doneSteps: st.projDone[it.pid], title, size, pts: PTS[size], desc};
+      }
+      default: {
+        const o = ONEOFFS[it.oid];
+        return {...it, ...o, pts: PTS[o.size]};
+      }
+    }
+  }
+
+  // ─────────────────────────────── Pieces ───────────────────────────────
+  const icon = (id, cls = '') => `<svg class="icon ${cls}" aria-hidden="true"><use href="#i-${id}"/></svg>`;
+  const sizePill = t => `<span class="pill c-muted">${t.size}<span class="dot">·</span><span class="pts">${t.pts}</span></span>`;
+  function dots(t) {
+    const arr = t.days || Array.from({length: t.target}, (_, i) => i < t.done ? 'on' : i < t.done + (t.todayN || 0) ? 'today' : '');
+    return `<span class="dots">${arr.map(c => `<i class="${c}"></i>`).join('')}</span>`;
+  }
+  const stepbar = t => `<span class="stepbar">${Array.from({length: t.total}, (_, i) => `<i class="${i < t.doneSteps ? 'on' : i === t.step - 1 ? 'cur' : ''}"></i>`).join('')}</span>`;
+  function card(t, {mode = 'static', compact = false} = {}) {
+    let head, foot;
+    switch (t.kind) {
+      case 'habit':
+        head = `${icon('repeat', 'xs')}<span>Habit</span><span class="ctx">${t.cadence}</span>`;
+        foot = `${dots(t)}<span class="sig">${t.done}/${t.target}</span>`;
+        break;
+      case 'project':
+        head = `${icon('map', 'xs')}<span class="name">${t.project}</span><span class="ctx">${t.step}/${t.total}</span>`;
+        foot = stepbar(t);
+        break;
+      default:
+        head = `${icon('grid', 'xs')}<span>One-off</span><span class="ctx">${t.quadrant}</span>`;
+        foot = '';
+    }
+    let action = '';
+    if (mode === 'today') action = `<button class="tc-check" data-act="done" data-uid="${t.uid || ''}" title="Done">${icon('check', 'sm')}</button>`;
+    if (mode === 'backlog') action = `<button class="tc-pull" data-act="pull" data-uid="${t.uid || ''}" title="Move to Todo">${icon('arrow-left', 'xxs')}Todo</button>`;
+    return `<div class="tc ${compact ? 'compact' : ''}" data-kind="${t.kind}">
+      <div class="tc-head">${head}</div>
+      <div class="tc-row"><div class="tc-title">${t.title}</div>${action}</div>
+      ${t.desc ? `<div class="tc-desc">${t.desc}</div>` : ''}
+      <div class="tc-foot">${foot}<span class="size">${sizePill(t)}</span></div></div>`;
+  }
+  const doneRow = (t, fresh = false) => `<div class="done-row ${fresh ? 'fresh' : ''}" data-kind="${t.kind}">
+    <span class="ok">${icon('check', 'xs')}</span><span class="kdot"></span>
+    <span class="t">${t.kind === 'project' ? `<span>${t.project} · </span>` : ''}${t.title}</span><span class="pts mono">${t.pts}</span></div>`;
+
+  // ── Board (interactive) ──
+  let S = seedState();
+  let fresh = false;
+  function renderBoard() {
+    const today = S.today.map(it => resolve(it, S));
+    const doneToday = S.done[0].items.length;
+    const donePts = S.done.reduce((n, g) => n + g.items.reduce((m, it) => m + resolve(it, S).pts, 0), 0);
+    const backlog = S.backlog.map(it => resolve(it, S));
+    const doneBody = S.done.map((g, gi) => `<div class="day-label"><span>${g.day}</span><span>${g.items.length}</span></div>
+      ${g.items.length ? g.items.map((it, i) => doneRow(resolve(it, S), gi === 0 && i === 0 && fresh)).join('') : '<div class="empty">Nothing yet — tap ✓ on a card</div>'}`).join('');
+    document.getElementById('after-board').innerHTML = `
+      <div class="board-head"><div class="board-title disp">Kanban Planner<small>Wed, Oct 7 · week 41</small></div>
+        <div class="dash"><div class="dash-item"><span class="fx-label muted">Today</span><span class="meter"><i style="width:${doneToday / (doneToday + today.length || 1) * 100}%"></i></span><b>${doneToday}/${doneToday + today.length}</b></div>
+        <div class="dash-item"><span class="fx-label muted">Week</span><span class="meter"><i class="info" style="width:${donePts / WEEK_TOTAL * 100}%"></i></span><b>${donePts}/${WEEK_TOTAL}</b> pts</div></div></div>
+      <div class="board-main">
+        <div class="board-cols">
+          <div class="column todo"><div class="column-head"><span class="led"></span><span class="fx-label display">Todo</span><span class="count-ghost">${today.length}</span></div>
+            <div class="column-body">${today.length ? today.map(t => card(t, {mode: 'today'})).join('') : '<div class="empty">Todo is clear — pull something from the backlog, or call it a day.</div>'}</div></div>
+          <div class="column done"><div class="column-head"><span class="led"></span><span class="fx-label display">Done</span><span class="sub">this week</span><span class="count-ghost">${S.done.reduce((n, g) => n + g.items.length, 0)}</span></div>
+            <div class="column-body">${doneBody}</div></div>
+        </div>
+        <aside class="backlog"><div class="backlog-head"><div class="backlog-title">${icon('inbox', 'text-p')}<span class="t">Backlog</span><span class="badge-count">${backlog.length}</span></div>${icon('chev-right', 'sm muted')}</div>
+          <div class="backlog-body">${backlog.map(t => card(t, {mode: 'backlog'})).join('') || '<div class="empty">All of this week is on the board.</div>'}</div></aside>
+      </div>`;
+    fresh = false;
+  }
+  document.getElementById('after-board').addEventListener('click', e => {
+    const btn = e.target.closest('[data-act]');
+    if (!btn) return;
+    const uid = btn.dataset.uid;
+    if (btn.dataset.act === 'done') {
+      const i = S.today.findIndex(it => it.uid === uid);
+      if (i < 0) return;
+      const [it] = S.today.splice(i, 1);
+      if (it.kind === 'habit') {
+        const h = S.habits[it.hid];
+        h.done += 1; h.today -= 1;
+        if (h.days) h.days[h.days.indexOf('today')] = 'on';
+      }
+      if (it.kind === 'project') S.projDone[it.pid] += 1;
+      S.done[0].items.unshift(it);
+      fresh = true;
+    } else {
+      const i = S.backlog.findIndex(it => it.uid === uid);
+      if (i < 0) return;
+      const [it] = S.backlog.splice(i, 1);
+      if (it.kind === 'habit') S.habits[it.hid].today += 1;
+      S.today.push(it);
+    }
+    renderBoard();
+  });
+  document.getElementById('board-reset').addEventListener('click', () => { S = seedState(); renderBoard(); });
+
+  // ── Phones ──
+  const P0 = seedState();
+  const R = it => resolve(it, P0);
+  const status = time => `<div class="status"><span>${time}</span><span class="mono" style="font-size:11px">●●● ▮</span></div>`;
+  const dock = on => `<div class="dock">${[['columns', 'Board'], ['grid', 'Priorities'], ['calendar', 'Plan'], ['pencil', 'Dump'], ['user', 'Settings']]
+    .map(([i, l]) => `<span class="${l === on ? 'on' : ''}">${icon(i)}${l}</span>`).join('')}</div>`;
+  const phone = (time, inner) => `<div class="phone">${status(time)}${inner}</div>`;
+  const wrap = (cap, html) => `<div class="phone-wrap">${html}<div class="phone-cap">${cap}</div></div>`;
+  const hub = on => `<div class="msegwrap"><div class="seg">${['This week', 'Habits', 'Projects'].map(l => `<button class="${l === on ? 'on' : ''}">${l}</button>`).join('')}</div></div>`;
+  const cbx = on => `<span class="cb ${on ? 'on' : ''}">${icon('check', 'xxs')}</span>`;
+
+  function renderMobile() {
+    const today = P0.today.map(R);
+    const boardInner = `<div class="app">
+        <div class="app-head"><h2 class="disp">Board</h2><span class="date">Wed, Oct 7 · W41</span></div>
+        <div class="mdash"><div class="r"><span class="fx-label muted">Today</span><span class="meter"><i style="width:0%"></i></span><b>0/4</b></div>
+          <div class="r"><span class="fx-label muted">Week</span><span class="meter"><i class="info" style="width:21%"></i></span><b>6/28 pts</b></div></div>
+        <div class="msec todo"><span class="led"></span><span class="fx-label display">Todo</span><span class="count-ghost">4</span></div>
+        <div class="mlist">${today.map(t => card(t, {mode: 'today', compact: true})).join('')}</div>
+        <div class="mdone"><span class="ok">${icon('check', 'sm')}</span>Done this week<span class="v">6 · 6 pts</span>${icon('chev-down', 'sm muted')}</div>
+        <div class="daychips"><span class="pill c-muted">Mon 4</span><span class="pill c-muted">Tue 2</span><span class="pill c-muted">Wed 0</span></div></div>
+      <div class="peek">${icon('inbox', 'text-p')}Backlog<span class="badge-count">8</span>${icon('chev-up', 'sm chev muted')}</div>${dock('Board')}`;
+    document.getElementById('mobile-phones').innerHTML =
+      wrap('<span class="tag">After</span>With Doing gone, <b>Todo becomes a full-width list</b> — today is the thing to read, ✓ completes. Done folds into one summary row that expands to the day log.', phone('10:02', boardInner));
+  }
+
+  // ── Plan week (interactive) ──
+  const PLAN0 = () => ({
+    habits: {wo: true, lc: true, rd: true, sd: true},
+    projects: {bio: {from: 0, n: 3}, pdb: {from: 1, n: 2, carried: [1]}, fin: {from: 0, n: 1}},
+    oneoffs: {tax: true, dent: true, bank: true, pkg: true, car: false, pho: false},
+  });
+  let PL = PLAN0();
+  const habitWeekPts = hid => HABITS[hid].target * PTS[HABITS[hid].size];
+  const projStepsPts = pid => { const {from, n} = PL.projects[pid]; return PROJECTS[pid].steps.slice(from, from + n).reduce((s, [, size]) => s + PTS[size], 0); };
+  function planTotals() {
+    const habits = Object.keys(HABITS).filter(h => PL.habits[h]).reduce((s, h) => s + habitWeekPts(h), 0);
+    const steps = Object.keys(PROJECTS).reduce((s, p) => s + projStepsPts(p), 0);
+    const oneoffs = Object.keys(ONEOFFS).filter(o => PL.oneoffs[o]).reduce((s, o) => s + PTS[ONEOFFS[o].size], 0);
+    return {habits, steps, oneoffs, total: habits + steps + oneoffs};
+  }
+  function projectBlock(pid, {compact = false} = {}) {
+    const p = PROJECTS[pid], {from, n, carried = []} = PL.projects[pid];
+    const max = p.steps.length - from;
+    const list = p.steps.slice(from, from + n).map(([t, size], i) => `<div class="step-li"><span class="ix">${from + i + 1}</span><span class="t">${t}</span>${carried.includes(from + i) ? '<span class="pill c-muted">carried</span>' : ''}<span class="pill c-muted">${size}·${PTS[size]}</span></div>`).join('');
+    const nextUp = from + n < p.steps.length ? `<div class="step-li later"><span class="ix">${from + n + 1}</span><span class="t">${p.steps[from + n][0]}</span></div>` : '';
+    return `<div class="pblock">
+      <div class="ptop"><span class="t">${p.title}</span><span class="prog">${stepbar({total: p.steps.length, doneSteps: from, step: from + 1})}${from}/${p.steps.length}</span>
+        <span class="stepper"><button data-proj="${pid}" data-d="-1" ${n === 0 ? 'disabled' : ''}>${icon('minus', 'sm')}</button><span class="v">${n}</span><button data-proj="${pid}" data-d="1" ${n >= Math.min(max, 6) ? 'disabled' : ''}>${icon('plus', 'sm')}</button></span>
+        ${compact ? '' : `<span class="stepper-label">${n === 1 ? 'step' : 'steps'} this week</span>`}</div>
+      ${n ? `<div class="step-list">${list}${compact ? '' : nextUp}</div>` : '<div class="step-list"><div class="step-li later"><span class="t">Resting this week</span></div></div>'}</div>`;
+  }
+  function renderPlan() {
+    const T = planTotals();
+    const habitRows = Object.entries(HABITS).map(([hid, h]) => `<div class="hrow ${PL.habits[hid] ? '' : 'off'}" data-kind="habit" data-habit="${hid}">
+      ${cbx(PL.habits[hid])}<span class="t">${h.title}</span><span class="meta">${h.cadence}</span><span class="meta">${habitWeekPts(hid)} pts</span></div>`).join('') +
+      `<div class="hrow paused" data-kind="habit"><span class="cb"></span><span class="t">Meal prep</span><span class="meta">paused · resume in Habits</span></div>`;
+    const groups = [['Carried from last week', ['tax']], ['Do first', ['bank']], ['Everything else', ['dent', 'pkg', 'car', 'pho']]];
+    const oneRows = groups.map(([label, ids]) => `<div class="sublabel">${label}</div>` + ids.map(oid => {
+      const o = ONEOFFS[oid];
+      return `<div class="hrow ${PL.oneoffs[oid] ? '' : 'off'}" data-kind="oneoff" data-one="${oid}">${cbx(PL.oneoffs[oid])}<span class="t">${o.title}</span><span class="meta">${o.quadrant}</span><span class="pill c-muted">${o.size}·${PTS[o.size]}</span></div>`;
+    }).join('')).join('');
+    const lo = 16, hi = 21, scale = 36;
+    const capNote = T.total > hi ? `<b>${T.total - hi} pts above</b> what you usually finish — fine if the week is light elsewhere.` : T.total < lo ? 'Below your usual range — room to add.' : '<b>Within</b> your usual range.';
+    document.getElementById('plan-frame').innerHTML = `
+      <div class="frame-head"><div><h2 class="disp">Plan this week</h2><div class="sub">Mon, Oct 5 – Sun, Oct 11 · week 41</div></div>
+        <div class="right"><div class="seg hub"><button class="on">This week</button><button>Habits</button><button>Projects</button></div></div></div>
+      <div class="frame-head" style="padding:10px 20px"><div class="recap"><span class="lbl">Last week</span><span class="pill c-su">habits 15/18</span><span class="pill c-sec">steps 3/4</span><span class="pill c-info">one-offs 4/5</span><span class="pill c-muted">19 pts done</span></div></div>
+      <div class="plan-grid">
+        <div class="plan-main">
+          <div data-kind="habit"><div class="sec-head"><span class="num">1</span><h3>${icon('repeat', 'sm')}Habits</h3><span class="pts">${T.habits} pts</span></div>
+            <p class="sec-sub">They run every week until paused — uncheck one to skip it this week only.</p><div class="rows">${habitRows}</div></div>
+          <div data-kind="project"><div class="sec-head"><span class="num">2</span><h3>${icon('map', 'sm')}Projects</h3><span class="pts">${T.steps} pts</span></div>
+            <p class="sec-sub">How many next steps does each project get? The list is exactly what lands in the backlog — carried steps first.</p>
+            <div class="rows">${Object.keys(PROJECTS).map(pid => projectBlock(pid)).join('')}</div></div>
+          <div data-kind="oneoff"><div class="sec-head"><span class="num">3</span><h3>${icon('grid', 'sm')}One-offs</h3><span class="pts">${T.oneoffs} pts</span></div>
+            <p class="sec-sub">From your priority matrix. Carried and Do-first items start checked.</p><div class="rows">${oneRows}</div></div>
+        </div>
+        <aside class="plan-aside"><div class="aside-sticky">
+          <div><div class="fx-label muted">This week</div><div class="total" style="margin-top:6px">${T.total}<small>pts</small></div></div>
+          <div class="kbars">${[['habit', 'Habits', T.habits], ['project', 'Steps', T.steps], ['oneoff', 'One-offs', T.oneoffs]].map(([k, l, v]) =>
+            `<div class="kbar" data-kind="${k}"><span>${l}</span><span class="bar"><i style="width:${T.total ? v / T.total * 100 : 0}%"></i></span><span class="v">${v}</span></div>`).join('')}</div>
+          <div class="cap">Last 4 weeks you finished <b>${lo}–${hi} pts</b>.
+            <div class="cap-meter"><span class="band" style="left:${lo / scale * 100}%;width:${(hi - lo) / scale * 100}%"></span><span class="mark" style="left:calc(${Math.min(T.total, scale) / scale * 100}% - 1.5px)"></span></div>${capNote}</div>
+          <button class="btn primary block">Start week</button>
+          <div class="ai-note">${icon('sparkles', 'sm')}<span>Or plan it with Claude — over MCP it fills these same three steps, then you review here.</span></div>
+        </div></aside>
+      </div>`;
+    document.getElementById('plan-phones').innerHTML = wrap('<span class="tag">After</span>Step 2 of 3. The running total and your usual range ride along in the bottom bar.', phone('08:41', `<div class="app">
+        <div class="app-head"><h2 class="disp">Plan</h2><span class="date">week 41</span></div>${hub('This week')}
+        <div class="mstep"><i class="on"></i><i class="on"></i><i></i><span>Step 2 of 3 · Projects</span></div>
+        <div data-kind="project" style="display:flex;flex-direction:column;gap:6px">${Object.keys(PROJECTS).map(pid => projectBlock(pid, {compact: true})).join('')}</div></div>
+      <div class="mbar"><span class="v">${T.total} pts<small>usual ${lo}–${hi}</small></span><button class="btn">Back</button><button class="btn primary">Next</button></div>${dock('Plan')}`));
+  }
+  document.getElementById('s-plan').addEventListener('click', e => {
+    const step = e.target.closest('[data-proj]'), habit = e.target.closest('[data-habit]'), one = e.target.closest('[data-one]');
+    if (step && !step.disabled) PL.projects[step.dataset.proj].n += Number(step.dataset.d);
+    else if (habit) PL.habits[habit.dataset.habit] = !PL.habits[habit.dataset.habit];
+    else if (one) PL.oneoffs[one.dataset.one] = !PL.oneoffs[one.dataset.one];
+    else return;
+    renderPlan();
+  });
+
+  // ── Habits (interactive editor) ──
+  let HSEL = 'lc';
+  const HED = {};
+  const edState = hid => HED[hid] || (HED[hid] = {cadence: HABITS[hid].cadence === 'Daily' ? 'daily' : 'week', n: HABITS[hid].cadence === 'Daily' ? 3 : HABITS[hid].target, size: HABITS[hid].size});
+  const weeksBars = (w, target) => `<span class="weeks">${w.map(v => `<i class="${v >= target ? 'full' : ''}" style="height:${Math.max(3, v / target * 22)}px" title="${v}/${target}"></i>`).join('')}</span>`;
+  function renderHabits() {
+    const ed = edState(HSEL), h = HABITS[HSEL];
+    const rows = Object.entries(HABITS).map(([hid, x]) => {
+      const t = R({kind: 'habit', hid});
+      return `<div class="hab-row ${hid === HSEL ? 'sel' : ''}" data-kind="habit" data-hsel="${hid}">
+        <span class="t">${icon('repeat', 'sm')}${x.title}<small>${x.note}</small></span>
+        <span class="pill c-k" style="justify-self:start">${x.cadence}</span>${sizePill({size: x.size, pts: PTS[x.size]})}
+        <span style="display:flex;align-items:center;gap:8px">${dots(t)}<span class="sig">${t.done}/${t.target}</span></span>${weeksBars(x.weeks, x.target)}</div>`;
+    }).join('') + `<div class="sublabel" style="margin-top:12px">Paused</div>
+      <div class="hab-row paused" data-kind="habit"><span class="t">${icon('pause', 'sm')}Meal prep<small>paused since week 39</small></span><span class="pill c-muted" style="justify-self:start">1× / week</span>${sizePill({size: 'S', pts: 2})}<span></span><button class="btn sm">Resume</button></div>`;
+    const detail = ed.cadence === 'daily'
+      ? `<div class="hint">One instance in the backlog every morning, weekends included. Weekdays-only or custom days come later (tracker).</div>`
+      : `<div class="field"><label>Times per week</label><div style="display:flex;align-items:center;gap:10px"><span class="stepper" style="margin-left:0"><button data-ed="n" data-v="-1" ${ed.n <= 1 ? 'disabled' : ''}>${icon('minus', 'sm')}</button><span class="v">${ed.n}</span><button data-ed="n" data-v="1" ${ed.n >= 10 ? 'disabled' : ''}>${icon('plus', 'sm')}</button></span>
+          <span data-kind="habit" style="display:inline-flex">${dots({target: ed.n, done: 0})}</span></div>
+          <div class="hint">${ed.n} instance${ed.n > 1 ? 's' : ''} in the backlog on Monday; do them any day.</div></div>`;
+    document.getElementById('habits-frame').innerHTML = `
+      <div class="frame-head"><div><h2 class="disp">Habits</h2><div class="sub">Fixed routines · they run every week until paused</div></div>
+        <div class="right"><div class="seg hub"><button>This week</button><button class="on">Habits</button><button>Projects</button></div><button class="btn primary">${icon('plus', 'sm')}New habit</button></div></div>
+      <div class="page-grid">
+        <div class="page-main"><div class="hab-cols"><span>Habit</span><span>Cadence</span><span>Size</span><span>This week</span><span>Last 4 wks</span></div>${rows}</div>
+        <aside class="panel">
+          <h3>${icon('pencil', 'sm')}Edit habit</h3>
+          <div class="field"><label>Title</label><div class="input">${h.title}</div></div>
+          <div class="field"><label>Note (optional)</label><div class="input">${h.note}</div></div>
+          <div class="field"><label>Cadence</label><div class="segm"><button data-ed="cadence" data-v="daily" class="${ed.cadence === 'daily' ? 'on' : ''}">Daily</button><button data-ed="cadence" data-v="week" class="${ed.cadence === 'week' ? 'on' : ''}">Times per week</button></div>${ed.cadence === 'daily' ? detail : ''}</div>
+          ${ed.cadence === 'daily' ? '' : detail}
+          <div class="field"><label>Size per time</label><div class="sizes">${['XS', 'S', 'M', 'L', 'XL'].map(s => `<button data-ed="size" data-v="${s}" class="${ed.size === s ? 'on' : ''}">${s}·${PTS[s]}</button>`).join('')}</div></div>
+          <div class="info-box">${icon('info', 'sm')}<span>Missed days expire quietly — no rollover, nothing turns red. The count resets every Monday. Changes apply from next week's plan.</span></div>
+          <div class="panel-foot"><button class="btn">${icon('pause', 'sm')}Pause</button><button class="btn">Cancel</button><button class="btn primary">Save</button></div>
+        </aside>
+      </div>`;
+    const phoneRows = Object.entries(HABITS).map(([hid, x]) => {
+      const t = R({kind: 'habit', hid});
+      return `<div class="mrow" data-kind="habit"><div class="mm"><span class="mt">${x.title}</span><span class="ms"><span class="pill c-k">${x.cadence}</span>${dots(t)}<span class="sig">${t.done}/${t.target}</span></span></div>${icon('chev-right', 'sm muted')}</div>`;
+    }).join('');
+    document.getElementById('habits-phones').innerHTML = wrap('<span class="tag">After</span>One line of facts per habit; tap opens the editor as a bottom sheet.', phone('09:15', `<div class="app">
+      <div class="app-head"><h2 class="disp">Plan</h2><span class="date">week 41</span></div>${hub('Habits')}
+      <div class="mlist">${phoneRows}<div class="mrow" data-kind="habit" style="opacity:.5;border-left-style:dashed"><div class="mm"><span class="mt">Meal prep</span><span class="ms"><span class="pill c-muted">paused</span></span></div></div></div>
+      <button class="btn primary block">${icon('plus', 'sm')}New habit</button></div>${dock('Plan')}`));
+  }
+  document.getElementById('habits-frame').addEventListener('click', e => {
+    const row = e.target.closest('[data-hsel]'), ctl = e.target.closest('[data-ed]');
+    if (row) HSEL = row.dataset.hsel;
+    else if (ctl && !ctl.disabled) { const ed = edState(HSEL), {ed: key, v} = ctl.dataset; if (key === 'n') ed.n += Number(v); else ed[key] = v; }
+    else return;
+    renderHabits();
+  });
+
+  // ─────────────────────────────── Chrome ───────────────────────────────
+  document.getElementById('theme-seg').addEventListener('click', e => {
+    const b = e.target.closest('[data-theme-btn]');
+    if (!b) return;
+    document.documentElement.setAttribute('data-theme', b.dataset.themeBtn);
+    document.querySelectorAll('#theme-seg button').forEach(x => x.classList.toggle('on', x === b));
+  });
+  function showScreen(id) {
+    if (!document.getElementById(id)) id = 's-scope';
+    document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
+    document.querySelectorAll('#screen-nav button').forEach(b => b.classList.toggle('on', b.dataset.screen === id));
+  }
+  document.getElementById('screen-nav').addEventListener('click', e => {
+    const b = e.target.closest('[data-screen]');
+    if (!b) return;
+    history.replaceState(null, '', `#${b.dataset.screen}`);
+    showScreen(b.dataset.screen);
+    window.scrollTo({top: 0});
+  });
+
+  renderBoard();
+  renderMobile();
+  renderPlan();
+  renderHabits();
+  showScreen(location.hash.slice(1));
+</script>
+</body>
+</html>
