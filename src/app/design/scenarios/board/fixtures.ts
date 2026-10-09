@@ -12,12 +12,11 @@ import {computeHabitWeeks, type BoardPlan} from '@/utils/taskUtils';
 /* Board scenario fixtures — real KanbanBoard + ProgressDashboard fed
    fictional weeks that are hard to reach against live data. */
 
+// Friday of ISO week 28 (Mon Jul 6 – Sun Jul 12).
 const NOW = new Date('2026-07-10T15:00:00');
 const daysAgo = (n: number) => new Date(NOW.getTime() - n * 86_400_000);
-
-/** The scenario's frozen "today" (midnight) — the inline mobile backlog
-    renders its rollover against it so the pinned state never drifts. */
-export const SCENARIO_TODAY = new Date('2026-07-10T00:00:00');
+/** A daily instance's day, as Prisma returns a DATE (UTC midnight). */
+const forDay = (dayOfJuly: number) => new Date(Date.UTC(2026, 6, dayOfJuly));
 
 const SCENARIO_PERIOD_KEY = '2026-W28';
 
@@ -91,12 +90,12 @@ const oneOff = (overrides: Partial<TaskItem>) =>
   });
 
 // ── Mid-week, every kind ─────────────────────────────────────────────────────
-// Habits carry their plan line and week dots, one Workout rolled over from
-// yesterday (↩ date in the context slot), one-offs show their quadrant.
+// Habits carry their plan line and week dots — each card rings its own dot:
+// Workout ran Mon and Wed, missed Tue and Thu (expired, not loaded), and
+// today's is open; LeetCode #1 is done. One-offs show their quadrant.
 export const MID_WEEK_TASKS: TaskItem[] = [
   // Todo
-  workout({forDate: daysAgo(1)}),
-  workout({instanceIndex: 0}),
+  workout({forDate: forDay(10)}),
   leetcode({instanceIndex: 1}),
   oneOff({
     title: 'File tax report',
@@ -104,7 +103,8 @@ export const MID_WEEK_TASKS: TaskItem[] = [
     ...sized(TaskSize.SMALL),
   }),
   // Done
-  workout({status: TaskStatus.DONE, forDate: daysAgo(2), doneAt: daysAgo(2)}),
+  workout({status: TaskStatus.DONE, forDate: forDay(6), doneAt: daysAgo(4)}),
+  workout({status: TaskStatus.DONE, forDate: forDay(8), doneAt: daysAgo(2)}),
   leetcode({instanceIndex: 0, status: TaskStatus.DONE, doneAt: daysAgo(1)}),
   oneOff({
     title: 'Call bank about card',
@@ -136,9 +136,9 @@ export const MID_WEEK_PROGRESS = {
   todayTotalCount: 8,
   todayDonePoints: 2,
   todayTotalPoints: 9,
-  weekDoneCount: 4,
+  weekDoneCount: 5,
   weekProjectedCount: 14,
-  weekDonePoints: 4,
+  weekDonePoints: 5,
   weekProjectedPoints: 16,
   daysElapsed: 5,
 };

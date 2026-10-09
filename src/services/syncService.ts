@@ -18,12 +18,7 @@ import {
   TaskType,
   TaskStatus,
 } from '@/generated/prisma/client';
-import {
-  getTodayDate,
-  getYesterdayDate,
-  isPeriodCurrent,
-  isWeekend,
-} from '../utils/dateUtils';
+import {getTodayDate, isPeriodCurrent, isWeekend} from '../utils/dateUtils';
 import {sizeToPoints} from '../utils/sizeUtils';
 
 /**
@@ -66,13 +61,11 @@ export async function runDailySync(
     }
   }
 
-  // 1-day rollover buffer: expire tasks older than yesterday, not older than today.
-  // Yesterday's tasks stay active for one more day before expiring.
-  const yesterday = getYesterdayDate();
+  // No rollover: a missed day's unfinished daily tasks expire with the day.
 
   await prisma.$transaction(async tx => {
     await updateLastSyncDate(userId, planId, today, tx);
-    await expireStaleDailyTasks(userId, planId, yesterday, tx);
+    await expireStaleDailyTasks(userId, planId, today, tx);
     if (dailyTaskData.length > 0) {
       await createManyTasks(dailyTaskData, tx);
     }

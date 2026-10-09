@@ -11,7 +11,6 @@ import TaskCard from './TaskCard';
 interface BoardColumnProps {
   status: BoardColumnStatus;
   tasks: TaskItem[];
-  today: Date;
   /** Per-template habit context + dots, keyed by templateId */
   habitWeeks: Map<string, HabitWeek>;
   /** True while any card is being dragged — faintly outlines all drop targets. */
@@ -31,7 +30,6 @@ const STATUS_STYLE: Record<
 export default function BoardColumn({
   status,
   tasks,
-  today,
   habitWeeks,
   isDragActive = false,
 }: BoardColumnProps) {
@@ -91,7 +89,6 @@ export default function BoardColumn({
                 key={task.id}
                 task={task}
                 index={index}
-                today={today}
                 habitWeek={
                   task.templateId ? habitWeeks.get(task.templateId) : undefined
                 }

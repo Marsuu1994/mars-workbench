@@ -9,7 +9,6 @@ import {TaskCardFace} from './TaskCardFace';
 
 interface MobileBacklogCardProps {
   task: TaskItem;
-  today: Date;
   /** The habit's plan line and week dots; absent for other kinds */
   habitWeek?: HabitWeek;
   onPull: (taskId: string) => void;
@@ -22,7 +21,6 @@ interface MobileBacklogCardProps {
  */
 export default function MobileBacklogCard({
   task,
-  today,
   habitWeek,
   onPull,
 }: MobileBacklogCardProps) {
@@ -45,7 +43,6 @@ export default function MobileBacklogCard({
     >
       <TaskCardFace
         task={task}
-        today={today}
         habitWeek={habitWeek}
         action={renderPullButton()}
       />

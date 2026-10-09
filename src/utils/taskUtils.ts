@@ -1,6 +1,6 @@
 import type {TaskItem} from '@/lib/db/tasks';
 import {PlanMode, TaskStatus, TaskType as TaskTypeEnum} from '@/utils/enums';
-import {normalizeForDate} from '@/utils/dateUtils';
+import {getMondayFromPeriodKey, normalizeForDate} from '@/utils/dateUtils';
 
 // ─── Kind ──────────────────────────────────────────────────────────────────
 
@@ -51,77 +51,110 @@ export interface BoardPlan {
 export interface HabitWeek {
   type: TaskTypeEnum;
   frequency: number;
-  /** Instances done this week */
+  /**
+   * One mark per instance the line generates this week, in order — weekly:
+   * by instance; daily: by day, then instance. True when that instance is done.
+   */
+  slots: boolean[];
+  /** Each loaded instance's slot, by task id — a card's own mark */
+  slotByTaskId: Map<string, number>;
+  /** Done slots */
   done: number;
-  /** Instances the plan line generates this week */
+  /** All slots */
   target: number;
 }
 
+const DAY_MS = 86_400_000;
+
 /**
- * Per-template habit progress for the week, computed from the tasks the board
- * already loaded (no extra query). Weekly lines generate `frequency` instances;
- * daily lines repeat on every generating day — weekdays in NORMAL mode, every
- * day in EXTREME — so the target counts the whole week even when the plan
- * started mid-week. DONE instances stay on the plan, so `done` is exact.
+ * Per-template habit slots for the week, computed from the tasks the board
+ * already loaded (no extra query). A weekly line has one slot per instance;
+ * a daily line has `frequency` slots on every generating day — weekdays in
+ * NORMAL mode, every day in EXTREME — so its slots cover the whole week even
+ * when the plan started mid-week. A slot fills when its instance is DONE
+ * (DONE instances stay on the plan); missed days expired, so theirs stay empty.
  */
 export function computeHabitWeeks(
   tasks: TaskItem[],
-  {planTemplates, mode}: Pick<BoardPlan, 'planTemplates' | 'mode'>,
+  {periodKey, planTemplates, mode}: BoardPlan,
 ): Map<string, HabitWeek> {
-  const doneByTemplate = new Map<string, number>();
+  const tasksByTemplate = new Map<string, TaskItem[]>();
   for (const task of tasks) {
-    if (!task.templateId || task.status !== TaskStatus.DONE) continue;
-    doneByTemplate.set(
-      task.templateId,
-      (doneByTemplate.get(task.templateId) ?? 0) + 1,
-    );
+    if (!task.templateId) continue;
+    const templateTasks = tasksByTemplate.get(task.templateId) ?? [];
+    templateTasks.push(task);
+    tasksByTemplate.set(task.templateId, templateTasks);
   }
 
+  const weekStart = getMondayFromPeriodKey(periodKey).getTime();
   const generatingDays = mode === PlanMode.EXTREME ? 7 : 5;
+
+  // A daily instance's slot: its day in the week, then its instance that day.
+  // Instances outside the line's days (a mode switch, a frequency cut) get none.
+  const getDailySlot = (task: TaskItem, frequency: number): number | null => {
+    if (task.forDate === null || task.instanceIndex >= frequency) return null;
+    const dayOffset = Math.round(
+      (normalizeForDate(task.forDate).getTime() - weekStart) / DAY_MS,
+    );
+    if (dayOffset < 0 || dayOffset >= generatingDays) return null;
+    return dayOffset * frequency + task.instanceIndex;
+  };
+
   const habitWeeks = new Map<string, HabitWeek>();
   for (const {templateId, type, frequency} of planTemplates) {
-    const done = doneByTemplate.get(templateId) ?? 0;
-    const lineTarget =
-      type === TaskTypeEnum.DAILY ? frequency * generatingDays : frequency;
-    // A frequency cut mid-week keeps its DONE instances — never show 4/3.
+    const templateTasks = tasksByTemplate.get(templateId) ?? [];
+    const slotByTaskId = new Map<string, number>();
+    let slotCount: number;
+
+    if (type === TaskTypeEnum.DAILY) {
+      slotCount = frequency * generatingDays;
+      for (const task of templateTasks) {
+        const slot = getDailySlot(task, frequency);
+        if (slot !== null) slotByTaskId.set(task.id, slot);
+      }
+    } else {
+      // A frequency cut mid-week keeps its DONE instances (and their numbers),
+      // so the slots stretch to the highest instance still on the plan.
+      slotCount = Math.max(
+        frequency,
+        ...templateTasks.map(task => task.instanceIndex + 1),
+      );
+      for (const task of templateTasks) {
+        slotByTaskId.set(task.id, task.instanceIndex);
+      }
+    }
+
+    const slots: boolean[] = Array.from({length: slotCount}, () => false);
+    for (const task of templateTasks) {
+      const slot = slotByTaskId.get(task.id);
+      if (slot !== undefined && task.status === TaskStatus.DONE) {
+        slots[slot] = true;
+      }
+    }
+
     habitWeeks.set(templateId, {
       type,
       frequency,
-      done,
-      target: Math.max(lineTarget, done),
+      slots,
+      slotByTaskId,
+      done: slots.filter(Boolean).length,
+      target: slotCount,
     });
   }
   return habitWeeks;
 }
 
-/**
- * A daily task is "rollover" when it was scheduled for a past day and is not yet
- * done. Shared by the board card and the mobile backlog card so the ↩ date
- * renders identically in both.
- */
-export function isRolloverTask(task: TaskItem, today: Date): boolean {
-  return (
-    task.status !== TaskStatus.DONE &&
-    task.type === TaskTypeEnum.DAILY &&
-    task.forDate !== null &&
-    normalizeForDate(task.forDate) < today
-  );
-}
-
 // ─── Sorting ───────────────────────────────────────────────────────────────
 
 /**
- * Sort tasks within a column:
- * 1. Today's daily tasks (forDate >= today)
- * 2. Rollover daily tasks (forDate < today)
- * 3. Weekly / AD_HOC
+ * Sort tasks within a column: daily tasks first, then everything else.
  * Within each priority group, a group — the instances of one template, or the
  * steps of one project — stays contiguous (ranked by the group's earliest
  * createdAt) and is ordered by instanceIndex (copy number / step number), so
  * e.g. leetcode #1, leetcode #2, workout #1, workout #2 — not interleaved.
  * Final tiebreakers: createdAt ascending, then id.
  */
-export function sortTasks(tasks: TaskItem[], today: Date): TaskItem[] {
+export function sortTasks(tasks: TaskItem[]): TaskItem[] {
   // A task's group: its template, or its project for a project step.
   const groupKey = (t: TaskItem): string | null => t.templateId ?? t.projectId;
 
@@ -138,11 +171,8 @@ export function sortTasks(tasks: TaskItem[], today: Date): TaskItem[] {
     }
   }
 
-  const priority = (t: TaskItem): number => {
-    if (t.type !== TaskTypeEnum.DAILY) return 2;
-    if (t.forDate !== null && normalizeForDate(t.forDate) < today) return 1; // rollover
-    return 0; // fresh daily
-  };
+  const priority = (t: TaskItem): number =>
+    t.type === TaskTypeEnum.DAILY ? 0 : 1;
 
   // Grouped tasks rank by their group's earliest createdAt; ad-hoc tasks
   // (no group) rank by their own createdAt.
@@ -191,7 +221,6 @@ type BoardStatus =
  */
 export function groupAndSortTasks(
   tasks: TaskItem[],
-  today: Date,
 ): Record<BoardStatus, TaskItem[]> {
   const grouped: Record<BoardStatus, TaskItem[]> = {
     [TaskStatus.BACKLOG]: [],
@@ -207,8 +236,8 @@ export function groupAndSortTasks(
   }
 
   return {
-    [TaskStatus.BACKLOG]: sortTasks(grouped[TaskStatus.BACKLOG], today),
-    [TaskStatus.TODO]: sortTasks(grouped[TaskStatus.TODO], today),
-    [TaskStatus.DONE]: sortTasks(grouped[TaskStatus.DONE], today),
+    [TaskStatus.BACKLOG]: sortTasks(grouped[TaskStatus.BACKLOG]),
+    [TaskStatus.TODO]: sortTasks(grouped[TaskStatus.TODO]),
+    [TaskStatus.DONE]: sortTasks(grouped[TaskStatus.DONE]),
   } as Record<BoardStatus, TaskItem[]>;
 }

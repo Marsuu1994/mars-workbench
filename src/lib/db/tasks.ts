@@ -398,7 +398,7 @@ export async function revertAdhocCompletion(
 /**
  * Expire stale daily tasks: set status to EXPIRED for tasks
  * whose forDate is before the cutoff date and are not DONE.
- * Caller passes yesterday to implement the 1-day rollover buffer.
+ * The daily sync passes today: a missed day's tasks expire with the day.
  */
 export async function expireStaleDailyTasks(
   userId: string,

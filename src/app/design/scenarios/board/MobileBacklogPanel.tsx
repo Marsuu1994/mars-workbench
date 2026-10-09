@@ -9,7 +9,6 @@ import {MobileBacklogContent} from '@/components/domain/board/MobileBacklogConte
 
 interface MobileBacklogPanelProps {
   tasks: TaskItem[];
-  today: Date;
   /** Precomputed habit lookups (the live board computes these internally). */
   habitWeeks: Map<string, HabitWeek>;
 }
@@ -24,7 +23,6 @@ const NOOP = () => {};
  */
 export const MobileBacklogPanel = ({
   tasks,
-  today,
   habitWeeks,
 }: MobileBacklogPanelProps) => {
   const t = useTranslations('Board.Backlog');
@@ -51,7 +49,6 @@ export const MobileBacklogPanel = ({
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
           <MobileBacklogContent
             tasks={tasks}
-            today={today}
             habitWeeks={habitWeeks}
             onPull={NOOP}
           />

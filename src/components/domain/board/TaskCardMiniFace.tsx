@@ -2,50 +2,25 @@
 
 import type {TaskItem} from '@/lib/db/tasks';
 import {TaskStatus} from '@/utils/enums';
-import {
-  getTaskKind,
-  isRolloverTask,
-  TaskKind,
-  type HabitWeek,
-} from '@/utils/taskUtils';
-import {formatShortWeekday} from '@/utils/dateUtils';
+import {getTaskKind, TaskKind, type HabitWeek} from '@/utils/taskUtils';
 import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {TaskCardHead} from './TaskCardHead';
 import {HabitSignal} from './HabitSignal';
 
 interface TaskCardMiniFaceProps {
   task: TaskItem;
-  today: Date;
   /** The habit's week dots; absent for other kinds */
   habitWeek?: HabitWeek;
 }
 
 /**
  * The 136px card face in the mobile board rows: kind label, the title
- * (two lines), then the signal — dots, or ↩ and the day for a rollover —
- * and the size.
+ * (two lines), then the signal — a habit's week dots, its own ringed — and
+ * the size.
  */
-export const TaskCardMiniFace = ({
-  task,
-  today,
-  habitWeek,
-}: TaskCardMiniFaceProps) => {
+export const TaskCardMiniFace = ({task, habitWeek}: TaskCardMiniFaceProps) => {
   const kind = getTaskKind(task.type);
   const isDone = task.status === TaskStatus.DONE;
-
-  const renderSignal = () => {
-    if (kind !== TaskKind.HABIT) return null;
-    if (isRolloverTask(task, today)) {
-      return (
-        <span className="fx-num text-[9px] text-base-content/60">
-          ↩ {formatShortWeekday(task.forDate!)}
-        </span>
-      );
-    }
-    return habitWeek ? (
-      <HabitSignal habitWeek={habitWeek} variant="mini" />
-    ) : null;
-  };
 
   return (
     <>
@@ -60,7 +35,13 @@ export const TaskCardMiniFace = ({
       </h3>
 
       <div className="mt-auto flex items-center gap-1">
-        {renderSignal()}
+        {kind === TaskKind.HABIT && habitWeek && (
+          <HabitSignal
+            habitWeek={habitWeek}
+            currentSlot={habitWeek.slotByTaskId.get(task.id)}
+            variant="mini"
+          />
+        )}
         <SizeChip
           size={task.size}
           points={task.points}
