@@ -17,12 +17,17 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### Medium
 
-- [ ] Week model Phase 1 — Projects MVP: a `Project` entity (goal + ordered steps that never expire) under a Plan hub, project steps on the board, kind-first cards with risk off, the Doing column removed (Todo · Done), MCP project tools; docs-first 5-PR plan in `design/spike/week-model-restructure.md` (open questions answered, awaiting approval), mockups `design/mockup/future-work/temp-week-model-phase1-v2.html` + `temp-projects-v2.html` (Projects page and its modals)
+- [ ] Week model Phase 1 — Projects MVP: projects (a goal + ordered steps that never expire) under a Plan hub, kind-first cards with risk off, a Todo · Done board, and MCP project tools. Spike `design/spike/week-model-restructure.md` (approved); mockups `design/mockup/future-work/mockup-week-model-phase1-v2.html` + `mockup-projects-v2.html`
+  - [ ] PR 1 — Phase 1 docs: `baseline.md`, a new `flows/projects.md`, and the board / plan / priorities / shared flows it changes
+  - [ ] PR 2 — kind-first cards, risk off, the Doing column removed (existing DOING tasks migrate to TODO)
+  - [ ] PR 3 — project data layer: additive migrations, DAL / service / actions, the step lifecycle (can run alongside PR 2)
+  - [ ] PR 4 — Projects UI: Plan hub, Projects page and its modals, All steps done, steps on the board and in the plan form, scenario pages (then the two Phase 1 mockups go)
+  - [ ] PR 5 — MCP for projects: projects in the context, `create_project` / `update_project`, steps in `create_plan` / `update_plan`, and the prompt for finished projects and archiving (finalized in this PR)
 - [ ] ReviewChangesModal / OverlayShell body height needs tuning on **both** breakpoints — with long change lists the box grows so tall the header ends up out of view; revisit the max-height caps (mobile `max-h-[85vh]`, desktop `md:max-h-[calc(100vh-5em)]`) so the pinned header/footer always stay on screen
 
 ### Future
 
-- [ ] Week model Phase 2 (not planned yet) — habits own their cadence (Daily = every day, or N× per week; Plan Mode dropped) with a Plan › Habits page; a three-step Plan week replaces the plan form; the in-app AI chat is removed (AI planning goes through Claude + MCP); Done becomes the week's day-grouped log and cards get a ✓; missed habit days expire quietly (no rollover); cleanup of `DOING` and `Plan.mode`. Exploration `design/mockup/future-work/temp-week-model-phase2-v2.html`
+- [ ] Week model Phase 2 (not planned yet) — habits own their cadence (Daily = every day, or N× per week; Plan Mode dropped) with a Plan › Habits page; a three-step Plan week replaces the plan form; the in-app AI chat is removed (AI planning goes through Claude + MCP); Done becomes the week's day-grouped log and cards get a ✓; missed habit days expire quietly (no rollover); cleanup of `DOING` and `Plan.mode`. Exploration `design/mockup/future-work/mockup-week-model-phase2-v2.html`
 - [ ] Habit-level days — let each habit run on weekdays, every day or custom days (after Phase 2 drops Plan Mode, Daily means every day)
 - [ ] Explore entry points for habits and projects — whether they get their own sidebar item / dock tab instead of living under the Plan hub (Phase 1 adds no new nav items)
 

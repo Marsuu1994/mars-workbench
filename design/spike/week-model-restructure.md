@@ -1,11 +1,11 @@
 # Spike: Week model restructure — Phase 1: Projects MVP
 
-**Status: awaiting owner approval (round 5, open questions all answered)** · 2026-10-09 · PR #47
+**Status: approved** · 2026-10-09 · PR #47（经过 5 轮 review）
 
 Mockups:
-- Phase 1，待批准：`design/mockup/future-work/temp-week-model-phase1-v2.html`
-- Phase 1 的 Projects flows，待批准：`design/mockup/future-work/temp-projects-v2.html`。每个 tab 是下面「新增的 flow」里的一个 flow，用编号的画面画出路径（要点的控件描边、结果着色），最后一个 tab 可以直接操作
-- Phase 2，只是 exploration，不规划：`design/mockup/future-work/temp-week-model-phase2-v2.html`
+- Phase 1，已批准：`design/mockup/future-work/mockup-week-model-phase1-v2.html`
+- Phase 1 的 Projects flows，已批准：`design/mockup/future-work/mockup-projects-v2.html`。每个 tab 是下面「新增的 flow」里的一个 flow，用编号的画面画出路径（要点的控件描边、结果着色），最后一个 tab 可以直接操作
+- Phase 2，只是 exploration，不规划：`design/mockup/future-work/mockup-week-model-phase2-v2.html`
 
 > 语言约定：沿用 daily-rhythm spike 的写法。叙述用中文；产品名词、状态、代码标识保留英文（habit / project / step / one-off / backlog …），和代码、mockup、tracker 里的叫法一一对应。
 
@@ -37,7 +37,7 @@ Mockups:
 | Projects 页的「+ This week」 | 保留。上面的限制只针对 plan 部分；Projects 页照常建 project、加 step，用「+ This week」/ × 排期 |
 | AI chat 的 flow | 不改，Phase 2 直接移除 |
 | Risk 的 flow 文档 | 不删，标为 *pending update*，旧规则留作参考 |
-| 新建 / 编辑 project 和 step | 用 modal，沿用 TaskModal（Add Priority Task / Create Task Template）的模式；见 `temp-projects-v2.html` |
+| 新建 / 编辑 project 和 step | 用 modal，沿用 TaskModal（Add Priority Task / Create Task Template）的模式；见 `mockup-projects-v2.html` |
 | Project 做完 | 不自动收起。所有 step 都 DONE 时，UI 显示「All steps done」标识，由 steps 推导，不存库、不加字段。Archive 是用户主动收起 |
 | Doing 列 | **Phase 1 去掉，放在 PR 2**：board 只剩 Todo · Done，进行中的任务留在 Todo。现有的 DOING 任务迁到 TODO；Postgres 里的 `DOING` 值先留着，Phase 2 cleanup 再删 |
 | Projects 的入口 | Plan 页变成 hub（This week · Projects），路由 `/kanban/projects`；侧栏和 dock 不加新项。要不要给 habit / project 单独的入口，记进 tracker 做 exploration |
@@ -276,5 +276,5 @@ PR 2 和 PR 3 互不依赖，可以并行。PR 5 合并后，Phase 1 MVP 上线�
 
 ## 批准之后
 
-1. 在 PR #47 里把 mockup 改名归档：Phase 1 → `mockup-week-model-phase1-v2.html`（PR 4 的 scenario 页接手后删除），Projects → `mockup-projects-v2.html`（同样在 PR 4 之后删除），Phase 2 → `mockup-week-model-phase2-v2.html`（留在 future-work，由 tracker 指向）。
-2. 合并 PR #47，开 PR 1（文档）。
+1. ✓ mockup 已在 PR #47 里改名归档：Phase 1 → `mockup-week-model-phase1-v2.html`（PR 4 的 scenario 页接手后删除），Projects → `mockup-projects-v2.html`（同样在 PR 4 之后删除），Phase 2 → `mockup-week-model-phase2-v2.html`（留在 future-work，由 tracker 指向）。
+2. 合并 PR #47，开 PR 1（文档）。之后的进度记在 tracker 的 Phase 1 条目下，这份 spike 不再更新。
