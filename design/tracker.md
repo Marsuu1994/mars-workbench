@@ -17,8 +17,7 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### Medium
 
-- [ ] Week model Phase 1 — Projects MVP: projects (a goal + ordered steps that never expire) under a Plan hub, kind-first cards with risk off, a Todo · Done board, and MCP project tools. Spike `design/spike/week-model-restructure.md` (approved); mockups `design/mockup/future-work/mockup-week-model-phase1-v2.html` + `mockup-projects-v2.html`
-  - [ ] PR 1 — Phase 1 docs: `baseline.md`, a new `flows/projects.md`, and the board / plan / priorities / shared flows it changes
+- [ ] Week model Phase 1 — Projects MVP: projects (a goal + ordered steps that never expire) under a Plan hub, kind-first cards with risk off, a Todo · Done board, and MCP project tools. Spike `design/spike/week-model-restructure.md` (approved); flows `design/flows/projects.md` + the *Phase 1 pending* notes in `baseline.md` and `flows/`; mockups `design/mockup/future-work/mockup-week-model-phase1-v2.html` + `mockup-projects-v2.html`
   - [ ] PR 2 — kind-first cards, risk off, the Doing column removed (existing DOING tasks migrate to TODO)
   - [ ] PR 3 — project data layer: additive migrations, DAL / service / actions, the step lifecycle (can run alongside PR 2)
   - [ ] PR 4 — Projects UI: Plan hub, Projects page and its modals, All steps done, steps on the board and in the plan form, scenario pages (then the two Phase 1 mockups go)

@@ -1,6 +1,6 @@
 # Priorities Flows
 
-Flows for the priority matrix page (`/kanban/priorities`) — Eisenhower-matrix organization of Ad-hoc tasks, tracking them into the current week's plan or completing them in place. Sibling docs: `design/flows/board.md`, `design/flows/plan.md`, `design/flows/shared.md`, `design/flows/auth.md`.
+Flows for the priority matrix page (`/kanban/priorities`) — Eisenhower-matrix organization of Ad-hoc tasks, tracking them into the current week's plan or completing them in place. Sibling docs: `design/flows/board.md`, `design/flows/plan.md`, `design/flows/projects.md`, `design/flows/shared.md`, `design/flows/auth.md`.
 
 > **Doc convention:** One flow per `##` heading, separated by `---`. Every flow has two required `###` sections — `Trigger / Entry Point` and `Steps` — plus an optional `### Rules` section for constraints and invariants. Extra `###` sections (e.g. `Metrics`) are allowed only for reference material that fits neither Steps nor Rules.
 
@@ -64,6 +64,7 @@ User drags a card to a different quadrant (desktop and mobile).
 - Requires an `ACTIVE` plan (current-week per the stale-plan guard, enforced server-side too). When none exists (period ended, next plan not yet created), the chooser still opens on both breakpoints — the two column rows render disabled under a "No active plan yet" note while Done stays enabled — and the matrix hint bar shows a "No active plan — Create Plan to track tasks this week · you can still mark tasks done" notice on **both** breakpoints (the instruction variant of the bar stays desktop-only — this warning is the only case where mobile renders the bar, and its Create Plan link is mobile's only in-page path to plan creation).
 - Already-tracked cards cannot be sent again: their chooser drops the column rows and offers Done only.
 - There is no untrack from the matrix — detaching happens via the Update Plan flow's ad-hoc deselection (`planId = null`, status back to `BACKLOG`; see `design/flows/plan.md`).
+- When the Doing column goes, the chooser's column rows shrink to Todo; Done stays under the hairline *(designed — Phase 1 pending, PR 2)*.
 
 ---
 

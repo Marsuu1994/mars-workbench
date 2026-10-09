@@ -1,6 +1,6 @@
 # Plan Flows
 
-Flows for the plan pages (`/kanban/plans/new`, `/kanban/plans/[id]`) — task template management, plan create/update, AI-assisted plan creation, and planning with Claude over MCP. Sibling docs: `design/flows/board.md`, `design/flows/priorities.md`, `design/flows/shared.md`, `design/flows/auth.md`.
+Flows for the plan pages (`/kanban/plans/new`, `/kanban/plans/[id]`) — task template management, plan create/update, AI-assisted plan creation, and planning with Claude over MCP. Sibling docs: `design/flows/board.md`, `design/flows/priorities.md`, `design/flows/projects.md`, `design/flows/shared.md`, `design/flows/auth.md`.
 
 > **Doc convention:** One flow per `##` heading, separated by `---`. Every flow has two required `###` sections — `Trigger / Entry Point` and `Steps` — plus an optional `### Rules` section for constraints and invariants. Extra `###` sections (e.g. `Metrics`) are allowed only for reference material that fits neither Steps nor Rules.
 
@@ -65,6 +65,11 @@ User clicks "Create Plan" on empty board → navigates to `/kanban/plans/new`.
 ### Rules
 
 - Every creation path (plan form, AI approval, MCP) runs the same guard: sync first (a finished week's ACTIVE plan flips to `PENDING_UPDATE`), then refuse while an ACTIVE plan exists.
+- **Project steps** *(designed — Phase 1 pending, PR 4)*:
+  - The form loads the `PENDING_UPDATE` plan's unfinished steps in a Project Steps section next to the one-offs. They are preselected and can only be selected or deselected.
+  - Selected steps are re-pointed to the new plan and keep their status.
+  - Deselected steps return to their project: `planId = null`, `BACKLOG`, `instanceIndex` unchanged.
+  - The plan form has nothing for adding a project or a step; that lives on the Projects page (see `design/flows/projects.md`).
 - Every referenced template must belong to the user; otherwise nothing is written and the form shows "Template not found".
 
 ---
@@ -95,6 +100,11 @@ User clicks "Edit Plan" on board header → navigates to `/kanban/plans/[id]`.
   - Added templates: generate new instances **as `BACKLOG`** (weekly immediately, daily for today only).
   - Removed templates: delete BACKLOG, TODO and DOING instances for that template.
   - Modified templates (type or frequency changed): delete BACKLOG, TODO and DOING instances for that template and regenerate (as `BACKLOG`) based on new config.
+  - Once the Doing column goes, these deletes cover BACKLOG and TODO only *(designed — Phase 1 pending, PR 2)*.
+- **Project steps** *(designed — Phase 1 pending, PR 4)*:
+  - The form loads this week's steps, which can only be deselected.
+  - A deselected step returns to its project, and the confirmation modal names the project it returns to.
+  - The form has nothing for adding a step; Phase 2 revisits this.
 
 ---
 
@@ -167,6 +177,7 @@ User clicks the AI assistant button inside create plan page.
    - Read the draft from `Chat.metadata.latestDraft` (already loaded with the chat).
    - In **one transaction** (atomic), via `planService.createPlanFromEntries(tx, ...)`: batch-create the new templates (entries where `templateId` is null) with `createManyTaskTemplates`, resolve all entries to `{ templateId, type, frequency }[]`, then run the shared `createPlanInTx` core with the draft's `description` as `Plan.description` and `mode = NORMAL`. The core also completes the prior `PENDING_UPDATE` plan and links/moves ad-hoc tasks.
    - **Ad-hoc carry-over (V1):** the pending plan's non-done `AD_HOC` tasks are passed as `adhocTaskIds`, so they move to the new plan.
+   - **Project steps** *(designed — Phase 1 pending, PR 3)*: the flow itself is unchanged and is removed in Phase 2. The approval carries one-offs only, so the generalized unlink returns the pending plan's unfinished steps to their projects.
 
    **Error handling:** If the LLM returns an error or unusable output, show an error message in the chat bubble. No retry logic for V1.
 
@@ -215,3 +226,9 @@ The user asks Claude, connected to the `/api/mcp` server, to plan or adjust thei
 - Carried-over or removed one-offs must be unfinished one-off tasks of that plan — the tools never create one-offs or pull them from the priority matrix.
 - Identity: tool calls act for the user whose Supabase OAuth access token the request carries (see OAuth Consent Flow in `design/flows/auth.md`); local development without a token acts as `MCP_DEV_USER_ID`.
 - Errors the model can act on (active plan exists, stale plan id, patch conflicts, unknown ids, invalid input) come back as `isError` results; unexpected errors are logged and reported generically.
+- **Projects** *(designed — Phase 1 pending, PR 5)*:
+  - `get_planning_context` adds projects (progress, upcoming steps with ids and sizes), this week's scheduled steps with their status, and last week's step results.
+  - New tools `create_project` and `update_project` (see "Draft Steps with Claude (MCP) Flow" in `design/flows/projects.md`).
+  - `create_plan` takes `carryOverProjectStepIds` (omitted = all of the last plan's unfinished steps, like one-offs) and `projectStepIds`. `update_plan` can add and remove steps.
+  - A scheduled step must be the user's, unfinished, and not already on this week's plan.
+  - The prompt for finished projects and archiving is finalized in that PR.

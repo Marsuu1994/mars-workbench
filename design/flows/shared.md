@@ -1,6 +1,6 @@
 # Shared Flows
 
-Cross-page sync lifecycle, centralized in `syncService` (`src/services/syncService.ts`). Every kanban page — board (`design/flows/board.md`), priorities matrix (`design/flows/priorities.md`), plan create/edit (`design/flows/plan.md`) — awaits `ensureSynced` before reading plan state, so no page carries its own sync branching and page-visit order never matters.
+Cross-page sync lifecycle, centralized in `syncService` (`src/services/syncService.ts`). Every kanban page — board (`design/flows/board.md`), priorities matrix (`design/flows/priorities.md`), plan create/edit (`design/flows/plan.md`), and the Projects page (`design/flows/projects.md`, designed — Phase 1 pending) — awaits `ensureSynced` before reading plan state, so no page carries its own sync branching and page-visit order never matters.
 
 > **Doc convention:** One flow per `##` heading, separated by `---`. Every flow has two required `###` sections — `Trigger / Entry Point` and `Steps` — plus an optional `### Rules` section for constraints and invariants. Extra `###` sections (e.g. `Metrics`) are allowed only for reference material that fits neither Steps nor Rules.
 
@@ -62,6 +62,10 @@ Current ISO week key differs from `plan.periodKey` (checked by Ensure Synced).
 
 ### Steps
 
-1. Expire all remaining non-DONE tasks instances except one-off (`AD_HOC`) tasks.
+1. Expire all remaining non-DONE tasks instances except one-off (`AD_HOC`) tasks. Project steps (`PROJECT`) are skipped too *(designed — Phase 1 pending, PR 3)*.
 2. Set plan status: `ACTIVE` → `PENDING_UPDATE`.
 3. Return null → the calling page renders its no-plan state (board: "Create Plan" prompt; matrix: warn hint bar + disabled send).
+
+### Rules
+
+- One-offs and project steps left unfinished stay on the `PENDING_UPDATE` plan. The next plan either carries them over or returns them: a one-off to the priority matrix, a step to its project at the same place. *(designed — Phase 1 pending, PR 3)*
