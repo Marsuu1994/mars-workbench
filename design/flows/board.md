@@ -1,6 +1,6 @@
 # Board Flows
 
-Flows for the kanban board page (`/kanban`) — landing, drag and drop, progress tracking, risk visuals, and the backlog. Sibling docs: `design/flows/shared.md` (sync lifecycle), `design/flows/plan.md`, `design/flows/priorities.md`, `design/flows/auth.md`.
+Flows for the kanban board page (`/kanban`) — landing, drag and drop, progress tracking, risk visuals, and the backlog. Sibling docs: `design/flows/shared.md` (sync lifecycle), `design/flows/plan.md`, `design/flows/priorities.md`, `design/flows/projects.md`, `design/flows/auth.md`.
 
 > **Doc convention:** One flow per `##` heading, separated by `---`. Every flow has two required `###` sections — `Trigger / Entry Point` and `Steps` — plus an optional `### Rules` section for constraints and invariants. Extra `###` sections (e.g. `Metrics`) are allowed only for reference material that fits neither Steps nor Rules.
 
@@ -39,6 +39,11 @@ User drags a task card to a different column.
 
 - Allowed transitions: BACKLOG → TODO → DOING → DONE only (no backwards movement). `BACKLOG → TODO` is the backlog pull (drop onto the Todo column); see "Backlog Flow".
 - Exception: the Priorities "Track This Week Flow" (see `design/flows/priorities.md`) may attach a matrix task directly as `BACKLOG → DOING` (tracked into the In Progress column).
+- **The Doing column goes** *(designed — Phase 1 pending, PR 2)*:
+  - The board becomes Todo · Done, with transitions `BACKLOG → TODO → DONE`; work in progress stays in Todo.
+  - The `BACKLOG → DOING` exception above goes away.
+  - Existing `DOING` tasks move to `TODO`.
+- Project steps move like every other task *(designed — Phase 1 pending, PR 4)*.
 
 ---
 
@@ -78,6 +83,7 @@ Two parallel queries run after sync:
   - `dailyFuturePoints` (in-memory): `SUM(template.points × frequency)` for all daily plan templates × remaining days. Remaining days respects plan mode: NORMAL counts only weekdays via `countWeekdaysInRange`, EXTREME counts all calendar days.
   - `weeklyPoints` (DB): `SUM(points)` where `type = WEEKLY`.
   - `adhocPoints` (DB): `SUM(points)` where `type = AD_HOC`.
+  - `projectPoints` (DB): `SUM(points)` where `type = PROJECT` *(designed — Phase 1 pending, PR 3)*. Steps count in Today and Week like any task, and the Week projection includes the steps waiting in the backlog.
 
   **Daily Avg** — rolling average of points earned per elapsed day.
 
@@ -86,7 +92,7 @@ Two parallel queries run after sync:
 **Week Progress Bar** — percentage of projected task count completed this period.
 
 - Done count: `COUNT(*)` where `status = DONE` across the plan (from DB aggregate).
-- Projected total: same four-part decomposition as Week Points but using task counts (`dailyPastCount + dailyFutureCount + weeklyCount + adhocCount`).
+- Projected total: same four-part decomposition as Week Points but using task counts (`dailyPastCount + dailyFutureCount + weeklyCount + adhocCount`), plus `projectCount` *(designed — Phase 1 pending, PR 3)*.
 
 ### Rules
 
@@ -98,6 +104,8 @@ Two parallel queries run after sync:
 ---
 
 ## Task Risky Level Visual Effect Flow
+
+> **Pending update** *(designed — Phase 1 pending, PR 2)* — Phase 1 cards render no risk, so this flow is switched off. The rules below stay as a reference until per-kind risk rules return; see the Per-kind risk rules item in `design/tracker.md`.
 
 ### Trigger / Entry Point
 
@@ -156,7 +164,7 @@ Computed client-side on every board render, based on `forDate`, `createdAt`, tas
 - **Desktop (`md+`):** A collapsed backlog strip sits on the right edge of the board. The user clicks it to expand the backlog panel.
 - **Mobile (`< md`):** A peeking "Backlog" pill sits above the bottom tab bar. The user taps it to open a bottom sheet.
 
-The backlog (desktop panel / mobile sheet) holds the plan's template-generated task instances with `status === BACKLOG` — the staging area they land in before reaching the board. Ad-hoc tasks never appear in the backlog UI: while off the board they are also `BACKLOG`, but they live on the priority matrix (`planId = null`), outside the plan-scoped backlog query.
+The backlog (desktop panel / mobile sheet) holds the plan's template-generated task instances with `status === BACKLOG` — the staging area they land in before reaching the board. It also holds the project steps scheduled this week *(designed — Phase 1 pending, PR 4)*. Ad-hoc tasks never appear in the backlog UI: while off the board they are also `BACKLOG`, but they live on the priority matrix (`planId = null`), outside the plan-scoped backlog query.
 
 ### Steps
 

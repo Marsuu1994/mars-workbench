@@ -8,15 +8,15 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 
 ### Implemented
 
-1. **Kanban board** — Three columns (Todo, Doing, Done) displaying task instances for the active plan. Tasks are ordered by type (daily first, then weekly) and creation time within each column.
-2. **Drag and drop** — User can move tasks between columns: Todo -> Doing -> Done. Optimistic UI update + backend persistence.
+1. **Kanban board** — Three columns (Todo, Doing, Done) displaying task instances for the active plan. Tasks are ordered by type (daily first, then weekly) and creation time within each column. *(Phase 1 removes Doing, leaving Todo · Done — see Designed: Phase 1 below.)*
+2. **Drag and drop** — User can move tasks between columns: Todo -> Doing -> Done. Optimistic UI update + backend persistence. *(Phase 1: Todo -> Done.)*
 3. **Plan creation** — User creates a weekly plan by selecting task templates. First-time users create new templates; returning users can load templates from their last plan.
 4. **Task templates** — Reusable blueprints with title, description, and size (`TaskSize` enum: XS/S/M/L/XL). Type and frequency are configured per-plan in PlanTemplate.
 5. **Auto-generation** — After plan creation, generate all necessary task instances. Daily tasks are regenerated each day.
 6. **Daily status recompute** — On the first kanban page load each day (any page — board, priorities, plan create/edit — via the shared `syncService.ensureSynced` entry point), expire unfinished daily tasks older than yesterday and generate today's daily tasks. Idempotent. Yesterday's unfinished tasks carry over for one extra day with a distinct "rolled over" visual treatment. See the **Shared** flows in `./flows/shared.md`.
 7. **Standardized sizing** — Tasks use a `TaskSize` enum (XS=1pt, S=2pt, M=3pt, L=5pt, XL=8pt) mapped to fibonacci points via `SIZE_TO_POINTS`. Points are denormalized on Task at creation time for efficient DB aggregation. Task cards display a green size chip (`M·3`). Template/ad-hoc modals use a full-width pill toggle selector (XS|S|M|L|XL) with effort hint text and L/XL split warning. Progress dashboard aggregates use the denormalized `points` column directly.
 8. **Daily task rollover** — Unfinished daily tasks from yesterday roll over to the board for one extra day, shown with a "↩ Mon, Feb 23" date badge. Tasks older than yesterday are expired.
-9. **Risk level visualization** — Tasks display color-coded risk badges (warning / danger) based on task type, time of day, days elapsed in the period, and completion progress.
+9. **Risk level visualization** — Tasks display color-coded risk badges (warning / danger) based on task type, time of day, days elapsed in the period, and completion progress. *(Switched off in Phase 1 until per-kind rules return.)*
 
 10. **Ad-hoc tasks** — One-off tasks (e.g. file tax report, get sinus CT) not tied to templates. Never expire, exist independently of plans. Can be added to the board from the kanban page or carried over from previous plans.
 
@@ -36,6 +36,18 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 - Collapsible app sidebar with sign-out flow (states in the `/design` gallery's Application tab; login + settings in `/design/scenarios/auth`).
 - Theme preference — the user picks one of three themes in the Settings overlay: `mars-light` ("Sora light"), `mars-dark` ("Sora dark", default for new users), `p5-dark` ("P5 dark", per the Calling Card proposal). Persisted in an SSR-readable cookie (no DB schema change; the root layout stamps `data-theme` server-side so there is no theme flash). Explicit choice only — no time- or system-preference auto-switching. Side-effect flow in `./flows/auth.md`.
 
+### Designed: Phase 1 — Projects MVP *(pending)*
+
+Approved in [`spike/week-model-restructure.md`](./spike/week-model-restructure.md) and built in PRs 2–5, which are tracked under Plan in [tracker.md](./tracker.md). Lines marked *(designed — Phase 1 pending)* here and in `./flows/` describe this target until the PR that ships them.
+
+1. **Projects** — a goal plus an ordered path of steps that never expire, on a Projects page under a Plan hub (This week · Projects).
+   - Steps go onto the week one at a time and move across the board like any task.
+   - A project whose steps are all done shows "All steps done" until the user archives it.
+   - See `./flows/projects.md`.
+2. **Kind-first cards** — board cards are redesigned around the three kinds of work (habit, project step, one-off), and risk is switched off. The card design lives in the Phase 1 mockup, then in the Design Console.
+3. **Two-column board** — the Doing column goes: Todo · Done. Work in progress stays in Todo.
+4. **MCP for projects** — Claude reads projects, creates and edits them, and puts steps on the week.
+
 Roadmap and open ideas live in [tracker.md](./tracker.md).
 
 ## Entities
@@ -54,8 +66,10 @@ Roadmap and open ideas live in [tracker.md](./tracker.md).
   - Daily task: has `forDate`, generated each day by daily sync
   - Weekly task: has `periodKey`, generated once at plan creation
   - Ad hoc task: can be generated anytime as needed, does not expire with time, does not associate with any task template, optional for associated with a plan. Lives on the priority matrix (`quadrant`, `planId = null`) until tracked onto the board
+  - Project step *(designed — Phase 1 pending)*: one step of a Project (`type = PROJECT`, `projectId` set, no template). Follows the ad-hoc lifecycle: off the week it has `planId = null`, it never expires, the next plan carries it over or returns it, and once DONE it keeps its plan link. `instanceIndex` is its 1-based step number.
 - **Chat** — A conversation session between the user and LLM for AI-assisted plan creation (and future edit). Each chat belongs to one plan. A plan can have multiple chats over its lifecycle. `Chat.metadata` stores the last plan stats snapshot (captured at creation) and `latestDraft` — the single-slot approval clipboard, overwritten on each generation. Every draft is also persisted as a `DRAFT_PLAN` message for history/rendering.
 - **Message** — A single message from either the LLM or the user. Each message has a `type` field: `TEXT` for plain text (welcome messages, user input) or `DRAFT_PLAN` for structured draft responses (content is JSON with `{ message, description, draftTemplates, followUp }`). `DRAFT_PLAN` messages are rendered in the chat and replayed to the LLM as conversation history; the latest draft is also mirrored to `Chat.metadata.latestDraft` for approval.
+- **Project** *(designed — Phase 1 pending)* — A goal plus an ordered path of steps (Tasks with `type = PROJECT`). It has a title and an optional goal, and no size: its size is the sum of its steps. Projects are only ever archived (by the user), never hard-deleted. "All steps done" is derived from the steps and is not stored.
 - **DumpEntry** *(designed — V1 pending)* — One dumped plain-text note (noise, a worry, an idea). Append-only in V1 — no edit, no delete, no categorization. `isProcessed` (default false, never surfaced in the UI) is reserved so a future LLM batch-processing job can mark entries it has handled.
 
 ## Schema
@@ -148,6 +162,7 @@ enum TaskType {
   DAILY
   WEEKLY
   AD_HOC
+  PROJECT   // Designed — Phase 1 pending: a project step (own migration: a new enum value can't be used before it commits)
 }
 
 // Constraints:
@@ -171,19 +186,21 @@ model Task {
   forDate       DateTime?    // Set for daily tasks (the date this task is for)
   periodKey     String?      // Set for weekly tasks (e.g. "2026-W06")
   quadrant      PriorityQuadrant? // Set for AD_HOC tasks only — Eisenhower quadrant on the priority matrix
-  instanceIndex Int          // 1..frequency
+  instanceIndex Int          // 1..frequency; for PROJECT tasks, the 1-based step number within the project
+  projectId     String?      // Designed — Phase 1 pending: set for PROJECT tasks only
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   doneAt        DateTime?
 
   plan     Plan?         @relation(fields: [planId], references: [id])
   template TaskTemplate? @relation(fields: [templateId], references: [id])
+  project  Project?      @relation(fields: [projectId], references: [id]) // Designed — Phase 1 pending; no cascade: done steps carry points history
 }
 
 enum TaskStatus {
   BACKLOG   // Not yet on the board: template instances staged in the backlog, AD_HOC tasks on the priority matrix
   TODO
-  DOING
+  DOING     // Phase 1 stops writing it (existing DOING tasks migrate to TODO); the value is dropped in Phase 2 cleanup
   DONE
   EXPIRED
 }
@@ -212,6 +229,36 @@ enum PriorityQuadrant {
 //   with the active plan when there is one, otherwise left null); detaching from a plan resets them to
 //   BACKLOG. Otherwise status changes only when a task crosses the BACKLOG↔board boundary — carry-over
 //   between plans re-points planId only.
+// - PROJECT tasks (designed — Phase 1 pending): projectId is required, templateId / forDate / periodKey /
+//   quadrant are null, planId is optional (null = not on any week). They do not expire, and they carry over
+//   or return like AD_HOC tasks; returning clears planId only, so the step keeps its instanceIndex.
+//   instanceIndex stays contiguous (1..n) per project, and reordering renumbers the unfinished steps in one
+//   transaction. uq_task_daily / uq_task_weekly include templateId, which is NULL for steps, so
+//   renumbering never collides.
+// - INDEX(projectId, instanceIndex) — idx_tasks_project_id_instance_index (designed — Phase 1 pending)
+```
+
+### Project *(designed — Phase 1 pending)*
+
+```prisma
+model Project {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  title      String
+  goal       String?
+  isArchived Boolean  @default(false) @map("is_archived") // Set and cleared by the user only (Archive / Unarchive)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  tasks      Task[]   // Its steps, ordered by instanceIndex
+
+  @@map("projects")
+}
+
+// Constraints:
+// - userId references auth.users (Supabase Auth)
+// - Never hard-deleted (no cascade from tasks)
+// - "All steps done" = at least one step and every step DONE; derived in the UI, not stored
 ```
 
 ### Chat
@@ -356,4 +403,10 @@ model DumpEntry {
 * Ad-hoc tasks are not associated with any TaskTemplate.  They are optionally associated with a plan (planId = null means unassigned backlog).
 * **Size system** — `TaskSize` enum (EXTRA_SMALL → EXTRA_LARGE) replaces free-form integer points. Points are derived from size via `SIZE_TO_POINTS` constant and denormalized on the Task record at creation time. This keeps the raw SQL `SUM(points)` aggregation unchanged while the user-facing input is now a constrained enum. `TaskTemplate` stores only `size` (no `points` column); `Task` stores both `size` and `points`.
 * **Size UI** — Task cards and template items display a shared `SizeChip` component (green chip: `M·3`). Template and ad-hoc creation modals use a full-width pill toggle selector with effort description text ("~3 hours of effort") and a warning hint for L/XL sizes. Client-safe enums (`TaskSize`, `SIZE_TO_POINTS`, `SIZE_LABELS`, `SIZE_EFFORT`) live in `src/utils/enums.ts` for use in `"use client"` components; server-side code uses `src/utils/sizeUtils.ts`.
+* **Projects are their own table; steps are `PROJECT`-typed Tasks** *(designed — Phase 1 pending)*.
+  - A step's lifecycle is the one-off's, which the code already implements: it skips end-of-week expiry, links to a plan, and is unlinked when not carried over.
+  - Reusing `TaskTemplate` was rejected: every template read, write and stat path would need a kind filter.
+  - A separate step table was rejected: it would store each step twice and keep two statuses in sync.
+  - Step order reuses `instanceIndex` rather than a mostly-NULL `position` column. Renaming the Prisma field to something neutral is left to Phase 2 cleanup.
+* **Kind is derived from `TaskType`** *(designed — Phase 1 pending)* — habit = `DAILY` / `WEEKLY`, project step = `PROJECT`, one-off = `AD_HOC`. There is no kind column.
 * **Dump is storage-only** *(designed)* — capture is a single insert with zero side effects; anything smarter (categorization, summaries, extraction) is deferred to a future LLM **batch-processing** flow that walks `isProcessed = false` entries when it gets designed. The flag ships in V1 so that flow needs no migration later.
