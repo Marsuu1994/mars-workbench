@@ -143,21 +143,26 @@ export function getTaskFrequency(
  * 1. Today's daily tasks (forDate >= today)
  * 2. Rollover daily tasks (forDate < today)
  * 3. Weekly / AD_HOC
- * Within each priority group, instances of the same template stay contiguous
- * (ranked by the group's earliest createdAt) and are ordered by instanceIndex,
- * so e.g. leetcode #1, leetcode #2, workout #1, workout #2 — not interleaved.
+ * Within each priority group, a group — the instances of one template, or the
+ * steps of one project — stays contiguous (ranked by the group's earliest
+ * createdAt) and is ordered by instanceIndex (copy number / step number), so
+ * e.g. leetcode #1, leetcode #2, workout #1, workout #2 — not interleaved.
  * Final tiebreakers: createdAt ascending, then id.
  */
 export function sortTasks(tasks: TaskItem[], today: Date): TaskItem[] {
-  // Earliest createdAt per template — the group's sort rank, so all instances
-  // of a template sort together regardless of per-instance createdAt.
-  const templateRank = new Map<string, number>();
+  // A task's group: its template, or its project for a project step.
+  const groupKey = (t: TaskItem): string | null => t.templateId ?? t.projectId;
+
+  // Earliest createdAt per group — the group's sort rank, so all of a group's
+  // tasks sort together regardless of per-task createdAt.
+  const groupCreatedRank = new Map<string, number>();
   for (const t of tasks) {
-    if (!t.templateId) continue;
+    const key = groupKey(t);
+    if (!key) continue;
     const created = new Date(t.createdAt).getTime();
-    const existing = templateRank.get(t.templateId);
+    const existing = groupCreatedRank.get(key);
     if (existing === undefined || created < existing) {
-      templateRank.set(t.templateId, created);
+      groupCreatedRank.set(key, created);
     }
   }
 
@@ -167,12 +172,14 @@ export function sortTasks(tasks: TaskItem[], today: Date): TaskItem[] {
     return 0; // fresh daily
   };
 
-  // Templated tasks rank by their group's earliest createdAt; ad-hoc tasks
-  // (no template) rank by their own createdAt.
-  const groupRank = (t: TaskItem): number =>
-    t.templateId
-      ? (templateRank.get(t.templateId) ?? 0)
+  // Grouped tasks rank by their group's earliest createdAt; ad-hoc tasks
+  // (no group) rank by their own createdAt.
+  const groupRank = (t: TaskItem): number => {
+    const key = groupKey(t);
+    return key
+      ? (groupCreatedRank.get(key) ?? 0)
       : new Date(t.createdAt).getTime();
+  };
 
   return [...tasks].sort((a, b) => {
     const pa = priority(a);
@@ -183,11 +190,11 @@ export function sortTasks(tasks: TaskItem[], today: Date): TaskItem[] {
     const gb = groupRank(b);
     if (ga !== gb) return ga - gb;
 
-    // Keep same-template groups contiguous even when ranks tie (batch-generated
-    // instances can share a createdAt), then order by instance index within.
-    const ta = a.templateId ?? '';
-    const tb = b.templateId ?? '';
-    if (ta !== tb) return ta.localeCompare(tb);
+    // Keep groups contiguous even when ranks tie (batch-generated instances
+    // can share a createdAt), then order by instance index within.
+    const ka = groupKey(a) ?? '';
+    const kb = groupKey(b) ?? '';
+    if (ka !== kb) return ka.localeCompare(kb);
     if (a.instanceIndex !== b.instanceIndex) {
       return a.instanceIndex - b.instanceIndex;
     }

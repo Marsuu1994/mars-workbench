@@ -12,6 +12,7 @@ const COLOR_CONFIG: Record<string, PillColor> = {
   [TaskType.DAILY]: 'info',
   [TaskType.WEEKLY]: 'secondary',
   [TaskType.AD_HOC]: 'warning',
+  [TaskType.PROJECT]: 'secondary',
 };
 
 /** Semantic chip for a task's recurrence type. */

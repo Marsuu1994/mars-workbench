@@ -62,10 +62,10 @@ Current ISO week key differs from `plan.periodKey` (checked by Ensure Synced).
 
 ### Steps
 
-1. Expire all remaining non-DONE tasks instances except one-off (`AD_HOC`) tasks. Project steps (`PROJECT`) are skipped too *(designed — Phase 1 pending, PR 3)*.
+1. Expire all remaining non-DONE template instances; one-offs (`AD_HOC`) and project steps (`PROJECT`) never expire.
 2. Set plan status: `ACTIVE` → `PENDING_UPDATE`.
 3. Return null → the calling page renders its no-plan state (board: "Create Plan" prompt; matrix: warn hint bar + disabled send).
 
 ### Rules
 
-- One-offs and project steps left unfinished stay on the `PENDING_UPDATE` plan. The next plan either carries them over or returns them: a one-off to the priority matrix, a step to its project at the same place. *(designed — Phase 1 pending, PR 3)*
+- One-offs and project steps left unfinished stay on the `PENDING_UPDATE` plan. The next plan either carries them over or returns them: a one-off to the priority matrix, a step to its project at the same place.

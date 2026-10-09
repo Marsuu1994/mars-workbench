@@ -66,10 +66,10 @@ Roadmap and open ideas live in [tracker.md](./tracker.md).
   - Daily task: has `forDate`, generated each day by daily sync
   - Weekly task: has `periodKey`, generated once at plan creation
   - Ad hoc task: can be generated anytime as needed, does not expire with time, does not associate with any task template, optional for associated with a plan. Lives on the priority matrix (`quadrant`, `planId = null`) until tracked onto the board
-  - Project step *(designed — Phase 1 pending)*: one step of a Project (`type = PROJECT`, `projectId` set, no template). Follows the ad-hoc lifecycle: off the week it has `planId = null`, it never expires, the next plan carries it over or returns it, and once DONE it keeps its plan link. `instanceIndex` is its 1-based step number.
+  - Project step: one step of a Project (`type = PROJECT`, `projectId` set, no template). Follows the ad-hoc lifecycle: off the week it has `planId = null`, it never expires, the next plan carries it over or returns it, and once DONE it keeps its plan link. `instanceIndex` is its 1-based step number.
 - **Chat** — A conversation session between the user and LLM for AI-assisted plan creation (and future edit). Each chat belongs to one plan. A plan can have multiple chats over its lifecycle. `Chat.metadata` stores the last plan stats snapshot (captured at creation) and `latestDraft` — the single-slot approval clipboard, overwritten on each generation. Every draft is also persisted as a `DRAFT_PLAN` message for history/rendering.
 - **Message** — A single message from either the LLM or the user. Each message has a `type` field: `TEXT` for plain text (welcome messages, user input) or `DRAFT_PLAN` for structured draft responses (content is JSON with `{ message, description, draftTemplates, followUp }`). `DRAFT_PLAN` messages are rendered in the chat and replayed to the LLM as conversation history; the latest draft is also mirrored to `Chat.metadata.latestDraft` for approval.
-- **Project** *(designed — Phase 1 pending)* — A goal plus an ordered path of steps (Tasks with `type = PROJECT`). It has a title and an optional goal, and no size: its size is the sum of its steps. Projects are only ever archived (by the user), never hard-deleted. "All steps done" is derived from the steps and is not stored.
+- **Project** — A goal plus an ordered path of steps (Tasks with `type = PROJECT`). It has a title and an optional goal, and no size: its size is the sum of its steps. Projects are only ever archived (by the user), never hard-deleted. "All steps done" is derived from the steps and is not stored.
 - **DumpEntry** *(designed — V1 pending)* — One dumped plain-text note (noise, a worry, an idea). Append-only in V1 — no edit, no delete, no categorization. `isProcessed` (default false, never surfaced in the UI) is reserved so a future LLM batch-processing job can mark entries it has handled.
 
 ## Schema
@@ -162,7 +162,7 @@ enum TaskType {
   DAILY
   WEEKLY
   AD_HOC
-  PROJECT   // Designed — Phase 1 pending: a project step (own migration: a new enum value can't be used before it commits)
+  PROJECT   // A project step (own migration: a new enum value can't be used before it commits)
 }
 
 // Constraints:
@@ -187,14 +187,14 @@ model Task {
   periodKey     String?      // Set for weekly tasks (e.g. "2026-W06")
   quadrant      PriorityQuadrant? // Set for AD_HOC tasks only — Eisenhower quadrant on the priority matrix
   instanceIndex Int          // 1..frequency; for PROJECT tasks, the 1-based step number within the project
-  projectId     String?      // Designed — Phase 1 pending: set for PROJECT tasks only
+  projectId     String?      // Set for PROJECT tasks only
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   doneAt        DateTime?
 
   plan     Plan?         @relation(fields: [planId], references: [id])
   template TaskTemplate? @relation(fields: [templateId], references: [id])
-  project  Project?      @relation(fields: [projectId], references: [id]) // Designed — Phase 1 pending; no cascade: done steps carry points history
+  project  Project?      @relation(fields: [projectId], references: [id], onDelete: NoAction) // No cascade: done steps carry points history
 }
 
 enum TaskStatus {
@@ -229,16 +229,17 @@ enum PriorityQuadrant {
 //   with the active plan when there is one, otherwise left null); detaching from a plan resets them to
 //   BACKLOG. Otherwise status changes only when a task crosses the BACKLOG↔board boundary — carry-over
 //   between plans re-points planId only.
-// - PROJECT tasks (designed — Phase 1 pending): projectId is required, templateId / forDate / periodKey /
+// - PROJECT tasks: projectId is required, templateId / forDate / periodKey /
 //   quadrant are null, planId is optional (null = not on any week). They do not expire, and they carry over
-//   or return like AD_HOC tasks; returning clears planId only, so the step keeps its instanceIndex.
-//   instanceIndex stays contiguous (1..n) per project, and reordering renumbers the unfinished steps in one
-//   transaction. uq_task_daily / uq_task_weekly include templateId, which is NULL for steps, so
-//   renumbering never collides.
-// - INDEX(projectId, instanceIndex) — idx_tasks_project_id_instance_index (designed — Phase 1 pending)
+//   or return like AD_HOC tasks; returning sets planId = null and BACKLOG and keeps the instanceIndex.
+//   instanceIndex stays contiguous (1..n) per project: adding appends n + 1, deleting moves later steps up
+//   one, and reordering renumbers the unfinished steps into the numbers they already hold, in one
+//   transaction (done steps keep theirs). uq_task_daily / uq_task_weekly include templateId, which is
+//   NULL for steps, so renumbering never collides.
+// - INDEX(projectId, instanceIndex) — idx_tasks_project_id_instance_index
 ```
 
-### Project *(designed — Phase 1 pending)*
+### Project
 
 ```prisma
 model Project {
@@ -403,7 +404,7 @@ model DumpEntry {
 * Ad-hoc tasks are not associated with any TaskTemplate.  They are optionally associated with a plan (planId = null means unassigned backlog).
 * **Size system** — `TaskSize` enum (EXTRA_SMALL → EXTRA_LARGE) replaces free-form integer points. Points are derived from size via `SIZE_TO_POINTS` constant and denormalized on the Task record at creation time. This keeps the raw SQL `SUM(points)` aggregation unchanged while the user-facing input is now a constrained enum. `TaskTemplate` stores only `size` (no `points` column); `Task` stores both `size` and `points`.
 * **Size UI** — Task cards and template items display a shared `SizeChip` component (green chip: `M·3`). Template and ad-hoc creation modals use a full-width pill toggle selector with effort description text ("~3 hours of effort") and a warning hint for L/XL sizes. Client-safe enums (`TaskSize`, `SIZE_TO_POINTS`, `SIZE_LABELS`, `SIZE_EFFORT`) live in `src/utils/enums.ts` for use in `"use client"` components; server-side code uses `src/utils/sizeUtils.ts`.
-* **Projects are their own table; steps are `PROJECT`-typed Tasks** *(designed — Phase 1 pending)*.
+* **Projects are their own table; steps are `PROJECT`-typed Tasks**.
   - A step's lifecycle is the one-off's, which the code already implements: it skips end-of-week expiry, links to a plan, and is unlinked when not carried over.
   - Reusing `TaskTemplate` was rejected: every template read, write and stat path would need a kind filter.
   - A separate step table was rejected: it would store each step twice and keep two statuses in sync.

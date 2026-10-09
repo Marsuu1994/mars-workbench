@@ -2,7 +2,7 @@
 
 Flows for the Projects page (`/kanban/projects`; on mobile a project's detail is `/kanban/projects/[id]`). A project is a goal plus an ordered path of steps that never expire. Steps go onto the week one at a time and then move across the board like any other task. Sibling docs: `design/flows/board.md`, `design/flows/plan.md`, `design/flows/priorities.md`, `design/flows/shared.md`, `design/flows/auth.md`.
 
-> **Status:** *designed — Phase 1 pending.* Screens: `design/mockup/future-work/mockup-projects-v2.html`, until the Projects scenario page replaces it.
+> **Status:** the data layer is built (PR 3: projects, steps, scheduling, carry-over); the Projects page and its modals are *designed — Phase 1 pending (PR 4)*, and the MCP flow PR 5. Screens: `design/mockup/future-work/mockup-projects-v2.html`, until the Projects scenario page replaces it.
 
 > **Doc convention:** One flow per `##` heading, separated by `---`. Every flow has two required `###` sections — `Trigger / Entry Point` and `Steps` — plus an optional `### Rules` section for constraints and invariants. Extra `###` sections (e.g. `Metrics`) are allowed only for reference material that fits neither Steps nor Rules.
 
