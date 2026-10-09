@@ -38,7 +38,7 @@ User opens the **Projects** tab of the Plan hub → `/kanban/projects`.
 
 ### Steps
 
-1. Open the **New Project** modal: title (required) and goal (optional). On create, validate via Zod and persist the Project.
+1. Open the **New Project** modal and enter the title (required) and goal (optional). On create, validate via Zod and persist the Project.
 2. The new project is selected, with an empty path.
 
 ### Rules
@@ -76,8 +76,8 @@ Adding a step to a project, editing or deleting a step that isn't done, or reord
 
 ### Steps
 
-1. **Add:** open the **Add Step** modal: title (required), description (optional), size. Saving appends the step to the end of the path as a `PROJECT` task with `planId = null`, `BACKLOG` and `instanceIndex = n`.
-2. **Edit:** open the **Edit Step** modal with the same fields. Saving updates the step, including its board card when it is on this week.
+1. **Add:** open the **Add Step** modal and enter the title (required), description (optional) and size. Saving appends the step to the end of the path as a `PROJECT` task with `planId = null`, `BACKLOG` and `instanceIndex = n`.
+2. **Edit:** open the **Edit Step** modal and change the same fields. Saving updates the step, including its board card when it is on this week.
 3. **Delete:** from the Edit Step modal, after a confirm. The steps after it move up one.
 4. **Reorder:** move a step to a new place in the path. The project's unfinished steps are renumbered in one transaction.
 
