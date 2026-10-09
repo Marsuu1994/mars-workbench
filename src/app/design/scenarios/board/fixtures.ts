@@ -7,7 +7,7 @@ import {
   SIZE_TO_POINTS,
 } from '@/utils/enums';
 import type {TaskItem} from '@/lib/db/tasks';
-import {computeHabitWeeks, type PlanLine} from '@/utils/taskUtils';
+import {computeHabitWeeks, type BoardPlan} from '@/utils/taskUtils';
 
 /* Board scenario fixtures — real KanbanBoard + ProgressDashboard fed
    fictional weeks that are hard to reach against live data. */
@@ -19,17 +19,19 @@ const daysAgo = (n: number) => new Date(NOW.getTime() - n * 86_400_000);
     renders its rollover against it so the pinned state never drifts. */
 export const SCENARIO_TODAY = new Date('2026-07-10T00:00:00');
 
-export const SCENARIO_PERIOD_KEY = '2026-W28';
+const SCENARIO_PERIOD_KEY = '2026-W28';
 
-export const SCENARIO_PLAN_MODE = PlanMode.NORMAL;
-
-/** The week's plan lines: one daily habit and three weekly ones. */
-export const SCENARIO_PLAN_LINES: PlanLine[] = [
-  {templateId: 'tpl-workout', type: TaskType.DAILY, frequency: 1},
-  {templateId: 'tpl-leetcode', type: TaskType.WEEKLY, frequency: 3},
-  {templateId: 'tpl-read', type: TaskType.WEEKLY, frequency: 2},
-  {templateId: 'tpl-design', type: TaskType.WEEKLY, frequency: 1},
-];
+/** The active plan: NORMAL mode, one daily habit and three weekly ones. */
+export const SCENARIO_PLAN: BoardPlan = {
+  periodKey: SCENARIO_PERIOD_KEY,
+  mode: PlanMode.NORMAL,
+  planTemplates: [
+    {templateId: 'tpl-workout', type: TaskType.DAILY, frequency: 1},
+    {templateId: 'tpl-leetcode', type: TaskType.WEEKLY, frequency: 3},
+    {templateId: 'tpl-read', type: TaskType.WEEKLY, frequency: 2},
+    {templateId: 'tpl-design', type: TaskType.WEEKLY, frequency: 1},
+  ],
+};
 
 let seq = 0;
 const task = (overrides: Partial<TaskItem>): TaskItem => ({
@@ -151,6 +153,5 @@ export const BACKLOG_TASKS = MID_WEEK_TASKS.filter(
 
 export const SCENARIO_HABIT_WEEKS = computeHabitWeeks(
   MID_WEEK_TASKS,
-  SCENARIO_PLAN_LINES,
-  SCENARIO_PLAN_MODE,
+  SCENARIO_PLAN,
 );

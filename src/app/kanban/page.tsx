@@ -19,7 +19,7 @@ export default async function KanbanPage() {
 
   return (
     <BoardScreen
-      periodKey={board.plan.periodKey}
+      plan={board.plan}
       progress={{
         todayDoneCount: board.todayDoneCount,
         todayTotalCount: board.todayTotalCount,
@@ -32,8 +32,6 @@ export default async function KanbanPage() {
         daysElapsed: board.daysElapsed,
       }}
       tasks={board.tasks}
-      planLines={board.plan.planTemplates}
-      planMode={board.plan.mode}
     />
   );
 }

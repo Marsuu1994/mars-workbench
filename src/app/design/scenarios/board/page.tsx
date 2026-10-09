@@ -6,9 +6,7 @@ import {MobileBacklogPanel} from './MobileBacklogPanel';
 import {
   MID_WEEK_TASKS,
   MID_WEEK_PROGRESS,
-  SCENARIO_PLAN_LINES,
-  SCENARIO_PLAN_MODE,
-  SCENARIO_PERIOD_KEY,
+  SCENARIO_PLAN,
   SCENARIO_TODAY,
   BACKLOG_TASKS,
   SCENARIO_HABIT_WEEKS,
@@ -45,11 +43,9 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
     note: 'Todo · Done with kind-first cards: habits with their plan line and week dots (one rolled over from yesterday), one-offs with their quadrant. Backlog collapsed.',
     content: (
       <BoardScreen
-        periodKey={SCENARIO_PERIOD_KEY}
+        plan={SCENARIO_PLAN}
         progress={MID_WEEK_PROGRESS}
         tasks={MID_WEEK_TASKS}
-        planLines={SCENARIO_PLAN_LINES}
-        planMode={SCENARIO_PLAN_MODE}
       />
     ),
   },
@@ -59,11 +55,9 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
     note: 'A play step opens the backlog: habit instances staged, ready to pull onto the board.',
     content: (
       <BoardScreen
-        periodKey={SCENARIO_PERIOD_KEY}
+        plan={SCENARIO_PLAN}
         progress={MID_WEEK_PROGRESS}
         tasks={MID_WEEK_TASKS}
-        planLines={SCENARIO_PLAN_LINES}
-        planMode={SCENARIO_PLAN_MODE}
       />
     ),
     play: [{click: {label: 'Board.Backlog.openLabel'}}],

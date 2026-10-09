@@ -3,11 +3,11 @@
 import {useState, useEffect, useMemo} from 'react';
 import {DragDropContext, type DropResult} from '@hello-pangea/dnd';
 import type {TaskItem} from '@/lib/db/tasks';
-import {TaskStatus, type PlanMode} from '@/utils/enums';
+import {TaskStatus} from '@/utils/enums';
 import {
   groupAndSortTasks,
   computeHabitWeeks,
-  type PlanLine,
+  type BoardPlan,
 } from '@/utils/taskUtils';
 import {getTodayDate} from '@/utils/dateUtils';
 import {updateTaskStatusAction} from '@/actions/taskActions';
@@ -17,17 +17,11 @@ import MobileBacklog from './MobileBacklog';
 
 interface KanbanBoardProps {
   tasks: TaskItem[];
-  /** The plan's template lines (type × frequency) — habit card context */
-  planLines: PlanLine[];
-  /** Generating days for daily lines — the habit dots' weekly target */
-  planMode: PlanMode;
+  /** The active plan — its lines and mode drive the habit cards */
+  plan: BoardPlan;
 }
 
-export default function KanbanBoard({
-  tasks,
-  planLines,
-  planMode,
-}: KanbanBoardProps) {
+export default function KanbanBoard({tasks, plan}: KanbanBoardProps) {
   const [localTasks, setLocalTasks] = useState<TaskItem[]>(tasks);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -38,8 +32,8 @@ export default function KanbanBoard({
   const today = useMemo(() => getTodayDate(), []);
 
   const habitWeeks = useMemo(
-    () => computeHabitWeeks(localTasks, planLines, planMode),
-    [localTasks, planLines, planMode],
+    () => computeHabitWeeks(localTasks, plan),
+    [localTasks, plan],
   );
 
   const columns = groupAndSortTasks(localTasks, today);

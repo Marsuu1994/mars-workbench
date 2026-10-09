@@ -37,6 +37,16 @@ export interface PlanLine {
   frequency: number;
 }
 
+/**
+ * The plan as the board reads it: its week, its lines (habit card context)
+ * and its mode (the generating days of daily lines).
+ */
+export interface BoardPlan {
+  periodKey: string;
+  mode: PlanMode;
+  planTemplates: PlanLine[];
+}
+
 /** A habit card's context and signal: its plan line plus this week's dots. */
 export interface HabitWeek {
   type: TaskTypeEnum;
@@ -56,8 +66,7 @@ export interface HabitWeek {
  */
 export function computeHabitWeeks(
   tasks: TaskItem[],
-  planLines: PlanLine[],
-  mode: PlanMode,
+  {planTemplates, mode}: Pick<BoardPlan, 'planTemplates' | 'mode'>,
 ): Map<string, HabitWeek> {
   const doneByTemplate = new Map<string, number>();
   for (const task of tasks) {
@@ -70,7 +79,7 @@ export function computeHabitWeeks(
 
   const generatingDays = mode === PlanMode.EXTREME ? 7 : 5;
   const habitWeeks = new Map<string, HabitWeek>();
-  for (const {templateId, type, frequency} of planLines) {
+  for (const {templateId, type, frequency} of planTemplates) {
     const done = doneByTemplate.get(templateId) ?? 0;
     const lineTarget =
       type === TaskTypeEnum.DAILY ? frequency * generatingDays : frequency;
