@@ -42,7 +42,7 @@ User drags a task card to a different column.
 - **The Doing column goes** *(designed — Phase 1 pending, PR 2)*:
   - The board becomes Todo · Done, with transitions `BACKLOG → TODO → DONE`; work in progress stays in Todo.
   - The `BACKLOG → DOING` exception above goes away.
-  - A data migration moves existing `DOING` tasks to `TODO`. The enum value stays until Phase 2 cleanup.
+  - Existing `DOING` tasks move to `TODO`.
 - Project steps move like every other task *(designed — Phase 1 pending, PR 4)*.
 
 ---
@@ -105,7 +105,7 @@ Two parallel queries run after sync:
 
 ## Task Risky Level Visual Effect Flow
 
-> **Pending update** *(designed — Phase 1 pending, PR 2)* — the kind-first cards render no risk, so this flow is switched off. The rules below stay as a reference until per-kind risk rules return; see the Per-kind risk rules item in `design/tracker.md`.
+> **Pending update** *(designed — Phase 1 pending, PR 2)* — Phase 1 cards render no risk, so this flow is switched off. The rules below stay as a reference until per-kind risk rules return; see the Per-kind risk rules item in `design/tracker.md`.
 
 ### Trigger / Entry Point
 
@@ -188,8 +188,3 @@ The backlog (desktop panel / mobile sheet) holds the plan's template-generated t
 - The `#{instanceIndex}` badge renders only when the template's `frequency > 1` (frequency-1 and ad-hoc tasks, always `instanceIndex = 1`, show none). The card reads `frequency` from `plan.planTemplates`.
 - The backlog open state (panel or sheet) is local UI state, default closed.
 - Empty backlog: desktop strip still shows (count `0`) with an empty-state body; the mobile pill is hidden (the sheet's empty state only appears if the last task is pulled while it is open).
-- **Kind-first cards** *(designed — Phase 1 pending, PR 2)*. The same card face is used on the board, in the backlog and on the mobile 136px card:
-  - First line: the kind (color bar + icon + label) and its context — a habit's plan line (Daily / 3× / week, or ↩ and the date when rolled over), a step's project and n/N, a one-off's quadrant.
-  - Then the title, plus the description on desktop and in the sheet.
-  - Last line: the kind's progress — week dots for a habit, the path for a step — and a neutral size chip.
-  - The cards drop the `#n` badge and the risk visuals.

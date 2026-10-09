@@ -44,7 +44,7 @@ Approved in [`spike/week-model-restructure.md`](./spike/week-model-restructure.m
    - Steps go onto the week one at a time and move across the board like any task.
    - A project whose steps are all done shows "All steps done" until the user archives it.
    - See `./flows/projects.md`.
-2. **Kind-first cards** — every card opens with its kind (habit, project step or one-off) and its context, and ends with that kind's progress. Risk is switched off, and a rollover shows as a neutral ↩ date.
+2. **Kind-first cards** — board cards are redesigned around the three kinds of work (habit, project step, one-off), and risk is switched off. The card design lives in the Phase 1 mockup, then in the Design Console.
 3. **Two-column board** — the Doing column goes: Todo · Done. Work in progress stays in Todo.
 4. **MCP for projects** — Claude reads projects, creates and edits them, and puts steps on the week.
 
@@ -408,5 +408,5 @@ model DumpEntry {
   - Reusing `TaskTemplate` was rejected: every template read, write and stat path would need a kind filter.
   - A separate step table was rejected: it would store each step twice and keep two statuses in sync.
   - Step order reuses `instanceIndex` rather than a mostly-NULL `position` column. Renaming the Prisma field to something neutral is left to Phase 2 cleanup.
-* **Kind is derived from `TaskType`** *(designed — Phase 1 pending)* — habit = `DAILY` / `WEEKLY`, project step = `PROJECT`, one-off = `AD_HOC`. There is no kind column; cards map each kind to literal semantic classes (`success` / `secondary` / `info`).
+* **Kind is derived from `TaskType`** *(designed — Phase 1 pending)* — habit = `DAILY` / `WEEKLY`, project step = `PROJECT`, one-off = `AD_HOC`. There is no kind column.
 * **Dump is storage-only** *(designed)* — capture is a single insert with zero side effects; anything smarter (categorization, summaries, extraction) is deferred to a future LLM **batch-processing** flow that walks `isProcessed = false` entries when it gets designed. The flag ships in V1 so that flow needs no migration later.
