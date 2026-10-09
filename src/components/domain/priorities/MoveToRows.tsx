@@ -58,8 +58,8 @@ const VARIANT_STYLE: Record<MoveToVariant, VariantStyle> = {
 
 /**
  * The Move-to chooser rows shared by the desktop popover and the mobile
- * sheet: "Move to" label, the two board columns (Todo / In Progress) and,
- * under a hairline, Done. Column rows need an active plan (disabled with a
+ * sheet: "Move to" label, the board's Todo column and, under a hairline,
+ * Done. Column rows need an active plan (disabled with a
  * note otherwise) and vanish for tracked cards; Done never needs a plan —
  * completing is the one move that works from any state.
  */

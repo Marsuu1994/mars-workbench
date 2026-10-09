@@ -8,7 +8,6 @@ import {
 } from '@heroicons/react/24/outline';
 
 import {Pill} from '@/components/ui/Pill';
-import {InstanceBadge} from '@/components/ui/InstanceBadge';
 import {EmptyState} from '@/components/ui/EmptyState';
 import {TabBar} from '@/components/ui/TabBar';
 import {StatBlock} from '@/components/ui/StatBlock';
@@ -104,25 +103,6 @@ export const UiTab = () => {
           </Row>
         </Variant>
       </div>
-    </Section>
-  );
-
-  const renderInstanceBadge = () => (
-    <Section
-      title="InstanceBadge"
-      description="'#n' chip marking one instance of a multi-frequency template; composes Pill."
-    >
-      <Row>
-        <Variant label="sm (default)">
-          <Row>
-            <InstanceBadge index={0} />
-            <InstanceBadge index={1} />
-          </Row>
-        </Variant>
-        <Variant label="xs">
-          <InstanceBadge index={2} size="xs" />
-        </Variant>
-      </Row>
     </Section>
   );
 
@@ -420,7 +400,6 @@ export const UiTab = () => {
 
       <Zone title="Primitives">
         {renderPills()}
-        {renderInstanceBadge()}
         {renderFormKit()}
         {renderContentBlocks()}
         {renderEmptyState()}

@@ -22,9 +22,11 @@ A theme is a **skin over a shared skeleton**, never a fork of components:
 - **daisyUI semantic tokens** (`--color-primary`, `text-warning`, `border-l-error`, …)
   carry all color; components only ever reference semantics.
 - **Channel semantics are theme-invariant**: primary = action/brand · secondary = AI
-  (and WEEKLY) · accent = targeting/drop zones · info = DAILY/datalink · success =
-  go/done/sizes · warning = stars/caution/ONCE · error = abort/urgent. A theme may
-  change *what color* a channel is, never *what it means*.
+  and project steps · accent = targeting/drop zones · info = one-offs/datalink/Todo ·
+  success = go/done/habits · warning = stars/caution · error = abort/urgent. The three
+  kinds of work each own one colour (habit success, project step secondary, one-off
+  info) that never changes on a card; sizes are neutral. A theme may change *what
+  color* a channel is, never *what it means*.
 - **`fx-*` utility class names are the API** — usage sites never change per theme.
   Their looks come from per-theme `--fx-*` variable blocks (`[data-theme='…']`),
   plus theme-gated skin rules where geometry differs (see p5-dark).
@@ -58,12 +60,14 @@ disables them.
 | `fx-chrome` / `fx-chrome-glass` | Chrome slab (always solid) / chrome that may blur. The dock stays solid — it floats over a scrolling board, where backdrop blur re-filters every frame; the sidebar's backdrop is static, so glass is cheap there | dock (solid), sidebar (glass) |
 | `fx-panel` / `fx-panel-solid` | Console panel (glass / no-blur). Glass is for stationary chrome only — never in scroll containers | modals |
 | `fx-corners` | Targeting-reticle corner brackets (inset 2px to clear the radius) | task modal, gallery specimens |
-| `fx-card` / `fx-card-lift` | Card edge-light + hover lift (shadow only — risk borders always win); lift = drag state class swap | `TaskCard` |
+| `fx-card` / `fx-card-lift` | Card edge-light + hover lift (shadow only — the kind edge always wins); lift = drag state class swap | `TaskCard` |
+| `fx-kind-edge` + `fx-k-{success,secondary,info}` | A card's 3px left border in its kind's colour. Unlayered, so it beats the card's own Tailwind border utilities | task cards (via `TASK_KIND_STYLE`) |
+| `fx-pip` | One round mark of a card's progress signal; colour and size come from utilities | habit week dots |
 | `fx-target` | Drop-zone highlight, mars-orange channel; pulse = pseudo-element opacity (`@utility`, composes as `md:fx-target`) | board columns, gallery |
 | `fx-glow` / `fx-glow-accent` | Powered-up CTA halo | primary CTAs, sidebar logo |
-| `fx-chip` | Console chip from `currentColor` (border 28% / fill 10% / inset highlight) — pair with any `text-*` token | `TaskTypeBadge`, `SizeChip`, date pill, beta pill |
+| `fx-chip` | Console chip from `currentColor` (border 28% / fill 10% / inset highlight) — pair with any `text-*` token | `SizeChip`, `TaskTypeBadge`, date pill, beta pill |
 | `fx-label` (+`-bright`) | 11px mono uppercase 0.14em micro-label | column headers, quadrant titles, stat labels, "Workspace" |
-| `fx-num` | Mono tabular numerals | points, counts, %, dates, `#n` |
+| `fx-num` | Mono tabular numerals | points, counts, %, dates, card kind lines |
 | `fx-led` (+`fx-led-pulse`) | Status LED dot from `currentColor` | column status, quadrant headers, AI live |
 | `fx-rule` / `fx-hairline-top` | Luminous gradient hairlines (single / multi-hue top edge) | dock top edge, AI modal header |
 | `fx-holo` | Conic holo border — the AI thinking/live state | `LoadingBubble` |

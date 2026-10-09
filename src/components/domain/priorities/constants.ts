@@ -57,7 +57,6 @@ export const QUADRANT_CONFIG: Record<PriorityQuadrant, QuadrantConfig> = {
  */
 export const TRACK_TARGETS: {status: TrackTargetStatus; dotClass: string}[] = [
   {status: TaskStatus.TODO, dotClass: 'bg-info'},
-  {status: TaskStatus.DOING, dotClass: 'bg-warning'},
 ];
 
 /** Dot color of the chooser's Done row — matches the board's Done column. */

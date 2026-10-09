@@ -97,9 +97,8 @@ User clicks "Edit Plan" on board header → navigates to `/kanban/plans/[id]`.
 - Changes are applied per-template, unaffected templates are fully preserved.
 - Task regeneration logic
   - Added templates: generate new instances **as `BACKLOG`** (weekly immediately, daily for today only).
-  - Removed templates: delete BACKLOG, TODO and DOING instances for that template.
-  - Modified templates (type or frequency changed): delete BACKLOG, TODO and DOING instances for that template and regenerate (as `BACKLOG`) based on new config.
-  - Once the Doing column goes, these deletes cover BACKLOG and TODO only *(designed — Phase 1 pending, PR 2)*.
+  - Removed templates: delete the template's unfinished (BACKLOG, TODO) instances.
+  - Modified templates (type or frequency changed): delete the template's unfinished (BACKLOG, TODO) instances and regenerate (as `BACKLOG`) based on new config.
 - **Project steps** *(designed — Phase 1 pending, PR 4)*:
   - The form loads this week's steps, which can only be deselected.
   - A deselected step returns to its project.

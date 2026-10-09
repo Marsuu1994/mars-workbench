@@ -5,22 +5,26 @@ import {useTranslations} from 'next-intl';
 import {useBreakpoint} from '@/components/application/BreakpointProvider';
 import type {TaskItem} from '@/lib/db/tasks';
 import {TaskStatus} from '@/utils/enums';
-import {getTaskFrequency, type RiskLevel} from '@/utils/taskUtils';
+import type {HabitWeek} from '@/utils/taskUtils';
 import TaskCard from './TaskCard';
 
 interface BoardColumnProps {
-  status: string;
+  status: BoardColumnStatus;
   tasks: TaskItem[];
   today: Date;
-  riskMap: Map<string, RiskLevel>;
-  templateFreqMap: Map<string, number>;
+  /** Per-template habit context + dots, keyed by templateId */
+  habitWeeks: Map<string, HabitWeek>;
   /** True while any card is being dragged — faintly outlines all drop targets. */
   isDragActive?: boolean;
 }
 
-const STATUS_STYLE: Record<string, {accent: string; ledColor: string}> = {
+type BoardColumnStatus = typeof TaskStatus.TODO | typeof TaskStatus.DONE;
+
+const STATUS_STYLE: Record<
+  BoardColumnStatus,
+  {accent: string; ledColor: string}
+> = {
   [TaskStatus.TODO]: {accent: 'md:border-l-info', ledColor: 'text-info'},
-  [TaskStatus.DOING]: {accent: 'md:border-l-warning', ledColor: 'text-warning'},
   [TaskStatus.DONE]: {accent: 'md:border-l-success', ledColor: 'text-success'},
 };
 
@@ -28,22 +32,12 @@ export default function BoardColumn({
   status,
   tasks,
   today,
-  riskMap,
-  templateFreqMap,
+  habitWeeks,
   isDragActive = false,
 }: BoardColumnProps) {
   const {isMobile} = useBreakpoint();
   const tStatus = useTranslations('Enums.TaskStatus');
-  const style = STATUS_STYLE[status] ?? {
-    accent: '',
-    ledColor: 'text-base-content',
-  };
-  const label =
-    status === TaskStatus.TODO ||
-    status === TaskStatus.DOING ||
-    status === TaskStatus.DONE
-      ? tStatus(status)
-      : status;
+  const {accent, ledColor} = STATUS_STYLE[status];
 
   // Only one border-color utility is active at a time, so highlights override
   // the base color cleanly (no Tailwind class-ordering ambiguity). Drop
@@ -66,16 +60,16 @@ export default function BoardColumn({
           )}`}
         >
           <div
-            className={`flex items-center justify-between md:justify-start gap-2 px-4 py-1.5 md:py-3 md:border-l-4 md:border-b md:border-b-base-content/10 ${style.accent} md:rounded-tl-xl`}
+            className={`flex items-center justify-between md:justify-start gap-2 px-4 py-1.5 md:py-3 md:border-l-4 md:border-b md:border-b-base-content/10 ${accent} md:rounded-tl-xl`}
           >
             <div className="flex items-center gap-2">
-              <span className={`fx-led md:hidden ${style.ledColor}`} />
+              <span className={`fx-led md:hidden ${ledColor}`} />
               <h2
                 className={`fx-label fx-label-bright fx-display font-semibold ${
                   snapshot.isDraggingOver ? 'max-md:text-accent' : ''
                 }`}
               >
-                {label}
+                {tStatus(status)}
               </h2>
             </div>
             <span className="badge badge-ghost badge-sm fx-num">
@@ -96,11 +90,11 @@ export default function BoardColumn({
               <TaskCard
                 key={task.id}
                 task={task}
-                taskType={task.type}
                 index={index}
                 today={today}
-                riskLevel={riskMap.get(task.id) ?? 'normal'}
-                frequency={getTaskFrequency(task, templateFreqMap)}
+                habitWeek={
+                  task.templateId ? habitWeeks.get(task.templateId) : undefined
+                }
               />
             ))}
             {provided.placeholder}

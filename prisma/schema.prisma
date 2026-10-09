@@ -75,7 +75,7 @@ enum TaskType {
 enum TaskStatus {
   BACKLOG
   TODO
-  DOING
+  DOING // No longer written: the board is Todo · Done. Dropped in Phase 2 cleanup
   DONE
   EXPIRED
 }

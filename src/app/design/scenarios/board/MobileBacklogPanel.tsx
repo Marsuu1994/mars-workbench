@@ -3,16 +3,15 @@
 import {useTranslations} from 'next-intl';
 import {InboxStackIcon, ArrowUpIcon} from '@heroicons/react/24/outline';
 import type {TaskItem} from '@/lib/db/tasks';
-import type {RiskLevel} from '@/utils/taskUtils';
+import type {HabitWeek} from '@/utils/taskUtils';
 import {OverlayHeader} from '@/components/ui/overlay/OverlayHeader';
 import {MobileBacklogContent} from '@/components/domain/board/MobileBacklogContent';
 
 interface MobileBacklogPanelProps {
   tasks: TaskItem[];
   today: Date;
-  /** Precomputed per-task risk (the live board computes this internally). */
-  riskMap: Map<string, RiskLevel>;
-  templateFreqMap: Map<string, number>;
+  /** Precomputed habit lookups (the live board computes these internally). */
+  habitWeeks: Map<string, HabitWeek>;
 }
 
 const NOOP = () => {};
@@ -26,8 +25,7 @@ const NOOP = () => {};
 export const MobileBacklogPanel = ({
   tasks,
   today,
-  riskMap,
-  templateFreqMap,
+  habitWeeks,
 }: MobileBacklogPanelProps) => {
   const t = useTranslations('Board.Backlog');
 
@@ -54,8 +52,7 @@ export const MobileBacklogPanel = ({
           <MobileBacklogContent
             tasks={tasks}
             today={today}
-            riskMap={riskMap}
-            templateFreqMap={templateFreqMap}
+            habitWeeks={habitWeeks}
             onPull={NOOP}
           />
         </div>

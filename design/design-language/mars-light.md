@@ -28,7 +28,7 @@ Same seven hue-wheel stops as mars-dark, driven deep against sand bases.
 | error | 0.53 0.19 25 | `#c2272d` | 5.4 |
 | neutral (mars rock) | 0.34 0.045 55 | `#4a3221` | 10.9 |
 
-Warning stays a deep bronze so `text-warning` (star points, at-risk labels) is
+Warning stays a deep bronze so `text-warning` (star points, caution labels) is
 **body-text grade on the sand bases** (the pre-redesign amber failed AA in three
 components).
 

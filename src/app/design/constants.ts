@@ -9,7 +9,7 @@ import {
 } from '@/utils/enums';
 import type {TaskItem} from '@/lib/db/tasks';
 import type {DumpEntryItem} from '@/lib/db/dumpEntries';
-import type {RiskLevel} from '@/utils/taskUtils';
+import type {HabitWeek} from '@/utils/taskUtils';
 
 // ── Page copy ──────────────────────────────────────────────────────────────
 /** Title halves — the accent word renders with fx-text-gradient (the
@@ -91,7 +91,7 @@ export const TOKEN_SWATCHES: {name: string; swatch: string; role: string}[] = [
   {
     name: 'secondary',
     swatch: 'bg-secondary text-secondary-content',
-    role: 'Violet — the AI channel, WEEKLY',
+    role: 'Violet — the AI channel, project steps',
   },
   {
     name: 'accent',
@@ -101,17 +101,17 @@ export const TOKEN_SWATCHES: {name: string; swatch: string; role: string}[] = [
   {
     name: 'info',
     swatch: 'bg-info text-info-content',
-    role: 'Datalink blue — DAILY, week stats',
+    role: 'Datalink blue — one-offs, Todo, week stats',
   },
   {
     name: 'success',
     swatch: 'bg-success text-success-content',
-    role: 'Go-green — done, sizes',
+    role: 'Go-green — habits, done',
   },
   {
     name: 'warning',
     swatch: 'bg-warning text-warning-content',
-    role: 'Caution amber — risk, ONCE, points',
+    role: 'Caution amber — caution, points',
   },
   {
     name: 'error',
@@ -180,90 +180,120 @@ const baseTask = (overrides: Partial<TaskItem>): TaskItem => ({
   ...overrides,
 });
 
+const xs = {
+  size: TaskSize.EXTRA_SMALL,
+  points: SIZE_TO_POINTS[TaskSize.EXTRA_SMALL],
+};
+
+/** Habit plan lines + this week's dots, as KanbanBoard computes them. */
+const LEETCODE_WEEK: HabitWeek = {
+  type: TaskType.WEEKLY,
+  frequency: 3,
+  done: 1,
+  target: 3,
+};
+const WORKOUT_WEEK: HabitWeek = {
+  type: TaskType.DAILY,
+  frequency: 1,
+  done: 2,
+  target: 5,
+};
+const READ_WEEK: HabitWeek = {
+  type: TaskType.WEEKLY,
+  frequency: 2,
+  done: 0,
+  target: 2,
+};
+
 export interface TaskCardFixture {
   label: string;
   task: TaskItem;
-  taskType: string;
-  riskLevel: RiskLevel;
-  frequency: number;
+  habitWeek?: HabitWeek;
 }
 
+/** Every kind in every place it can sit (a one-off never reaches the
+    backlog — Track This Week sends it straight to Todo). */
 export const TASK_CARD_FIXTURES: TaskCardFixture[] = [
   {
-    label: 'Default',
+    label: 'Habit · Todo',
     task: baseTask({
-      id: 't-default',
-      title: 'Review pull requests',
-      description: 'Go through the open PRs and leave feedback.',
-    }),
-    taskType: TaskType.DAILY,
-    riskLevel: 'normal',
-    frequency: 1,
-  },
-  {
-    label: 'At risk (warning)',
-    task: baseTask({
-      id: 't-warning',
-      title: 'Write weekly summary',
-      size: TaskSize.LARGE,
-      points: SIZE_TO_POINTS[TaskSize.LARGE],
+      id: 't-habit',
+      templateId: 'tpl-leetcode',
       type: TaskType.WEEKLY,
+      title: 'LeetCode',
+      description: 'One medium, 45-min timer',
+      ...xs,
     }),
-    taskType: TaskType.WEEKLY,
-    riskLevel: 'warning',
-    frequency: 1,
+    habitWeek: LEETCODE_WEEK,
   },
   {
-    label: 'Urgent (danger)',
-    task: baseTask({
-      id: 't-danger',
-      title: 'Ship the release build',
-      size: TaskSize.EXTRA_LARGE,
-      points: SIZE_TO_POINTS[TaskSize.EXTRA_LARGE],
-      type: TaskType.WEEKLY,
-    }),
-    taskType: TaskType.WEEKLY,
-    riskLevel: 'danger',
-    frequency: 1,
-  },
-  {
-    label: 'Rollover (overdue daily)',
+    label: 'Habit · rollover',
     task: baseTask({
       id: 't-rollover',
-      title: 'Stretch for 10 minutes',
+      templateId: 'tpl-workout',
+      title: 'Workout',
+      description: '45 min — gym or run',
       forDate: YESTERDAY,
-      size: TaskSize.EXTRA_SMALL,
-      points: SIZE_TO_POINTS[TaskSize.EXTRA_SMALL],
+      ...xs,
     }),
-    taskType: TaskType.DAILY,
-    riskLevel: 'normal',
-    frequency: 1,
+    habitWeek: WORKOUT_WEEK,
   },
   {
-    label: 'Multi-instance (#2)',
+    label: 'Habit · Backlog',
     task: baseTask({
-      id: 't-instance',
-      title: 'Stand-up notes',
-      instanceIndex: 1,
+      id: 't-backlog',
+      templateId: 'tpl-read',
+      type: TaskType.WEEKLY,
+      title: 'Read',
+      status: TaskStatus.BACKLOG,
+      ...xs,
+    }),
+    habitWeek: READ_WEEK,
+  },
+  {
+    label: 'Habit · Done',
+    task: baseTask({
+      id: 't-habit-done',
+      templateId: 'tpl-workout',
+      title: 'Workout',
+      description: '45 min — gym or run',
+      status: TaskStatus.DONE,
+      forDate: TODAY,
+      doneAt: TODAY,
+      ...xs,
+    }),
+    habitWeek: WORKOUT_WEEK,
+  },
+  {
+    label: 'One-off · Todo',
+    task: baseTask({
+      id: 't-oneoff',
+      type: TaskType.AD_HOC,
+      title: 'File tax report',
+      quadrant: PriorityQuadrant.DO_FIRST,
       size: TaskSize.SMALL,
       points: SIZE_TO_POINTS[TaskSize.SMALL],
     }),
-    taskType: TaskType.DAILY,
-    riskLevel: 'normal',
-    frequency: 5,
   },
   {
-    label: 'Done',
+    label: 'One-off · Done',
     task: baseTask({
-      id: 't-done',
-      title: 'Clear inbox',
+      id: 't-oneoff-done',
+      type: TaskType.AD_HOC,
+      title: 'Call bank about card',
+      quadrant: PriorityQuadrant.DO_FIRST,
       status: TaskStatus.DONE,
       doneAt: TODAY,
+      ...xs,
     }),
-    taskType: TaskType.DAILY,
-    riskLevel: 'normal',
-    frequency: 1,
   },
+];
+
+/** The 136px mobile-row faces: dots, a rollover's ↩ day, and a one-off. */
+export const MINI_CARD_FIXTURES: TaskCardFixture[] = [
+  TASK_CARD_FIXTURES[0],
+  TASK_CARD_FIXTURES[1],
+  TASK_CARD_FIXTURES[4],
 ];
 
 // ── Matrix card fixtures ─────────────────────────────────────────────────────
@@ -384,14 +414,21 @@ export const CONTENT_SECTION_LABELS = [
 /** BoardHeader shows the desktop/mobile accent drift — documented, not fixed. */
 export const BOARD_HEADER_PERIOD = '2026-W28';
 
-/** A Todo column filled from the first three task-card fixtures. */
+/** A Todo column: a habit, a rolled-over habit and a one-off. */
 export const BOARD_COLUMN_STATUS = TaskStatus.TODO;
-export const BOARD_COLUMN_TASKS: TaskItem[] = TASK_CARD_FIXTURES.slice(
-  0,
-  3,
-).map(f => f.task);
-export const BOARD_COLUMN_RISK: [string, RiskLevel][] =
-  TASK_CARD_FIXTURES.slice(0, 3).map(f => [f.task.id, f.riskLevel]);
+const BOARD_COLUMN_FIXTURES = [
+  TASK_CARD_FIXTURES[0],
+  TASK_CARD_FIXTURES[1],
+  TASK_CARD_FIXTURES[4],
+];
+export const BOARD_COLUMN_TASKS: TaskItem[] = BOARD_COLUMN_FIXTURES.map(
+  fixture => fixture.task,
+);
+export const BOARD_COLUMN_HABIT_WEEKS = new Map<string, HabitWeek>(
+  BOARD_COLUMN_FIXTURES.flatMap(({task, habitWeek}) =>
+    task.templateId && habitWeek ? [[task.templateId, habitWeek]] : [],
+  ),
+);
 
 /** TemplateItem — a single selectable plan-template row. */
 export const TEMPLATE_FIXTURE = {

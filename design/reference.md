@@ -154,7 +154,7 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `expireAllNonDoneTasks` | End-of-period cleanup: expire all non-done template instances (one-offs and steps never expire) |
 | `getDailyTasksForDate` | Daily tasks for a specific date (idempotency check) |
 | `taskExists` | Existence + ownership check |
-| `deleteIncompleteTasksByTemplateIds` | Delete TODO/DOING tasks for given templates in a plan |
+| `deleteIncompleteTasksByTemplateIds` | Delete unfinished (BACKLOG/TODO) tasks for given templates in a plan |
 | `countTasksByTemplateIds` | Total incomplete-task count for given templates |
 | `countIncompleteTasksByTemplateId` | Incomplete-task counts grouped by templateId |
 | `getNonDoneAdhocTasks` | All non-DONE AD_HOC tasks (matrix data source) |

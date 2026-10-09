@@ -84,11 +84,8 @@ export type UpdateTemplateInput = z.infer<typeof updateTemplateSchema>;
 
 // ── Task Schemas ───────────────────────────────────────────────────────
 
-const mutableTaskStatuses = [
-  TaskStatus.TODO,
-  TaskStatus.DOING,
-  TaskStatus.DONE,
-] as const;
+// Board moves: Todo · Done (the Doing column is gone; DOING is no longer written)
+const mutableTaskStatuses = [TaskStatus.TODO, TaskStatus.DONE] as const;
 
 export const updateTaskStatusSchema = z.object({
   status: z.enum(mutableTaskStatuses),
@@ -111,9 +108,9 @@ export const updateTaskQuadrantSchema = z.object({
 });
 export type UpdateTaskQuadrantInput = z.infer<typeof updateTaskQuadrantSchema>;
 
-// Track This Week targets: Todo or In Progress only
+// Track This Week target: Todo only
 export const trackTaskSchema = z.object({
-  status: z.enum([TaskStatus.TODO, TaskStatus.DOING]),
+  status: z.enum([TaskStatus.TODO]),
 });
 export type TrackTaskInput = z.infer<typeof trackTaskSchema>;
 // Client-side union derived from the validated contract, so the UI options
@@ -121,11 +118,11 @@ export type TrackTaskInput = z.infer<typeof trackTaskSchema>;
 export type TrackTargetStatus = TrackTaskInput['status'];
 
 // Undo a matrix completion: the client sends the pre-complete snapshot —
-// status back to BACKLOG (unassigned) or TODO/DOING (tracked) — and may only
+// status back to BACKLOG (unassigned) or TODO (tracked) — and may only
 // ever *detach* the plan link the complete added, never attach one.
 export const undoCompleteTaskSchema = z
   .object({
-    status: z.enum([TaskStatus.BACKLOG, TaskStatus.TODO, TaskStatus.DOING]),
+    status: z.enum([TaskStatus.BACKLOG, TaskStatus.TODO]),
     detach: z.boolean(),
   })
   .refine(({status, detach}) => detach === (status === TaskStatus.BACKLOG), {

@@ -6,19 +6,18 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### Medium
 
-- [ ] Stack duplicate habit instances in the backlog — parked until the restructure's kind-first card lands; PR #44 implements it on today's card and only needs moving onto the new face (project steps and one-offs never stack)
+- [ ] Stack duplicate habit instances in the backlog — the kind-first card has landed; PR #44 implements stacking on the old card and needs moving onto the new face (project steps and one-offs never stack)
 
 ### Future
 
 - [ ] Support same group ordering for drag and drop within same column
-- [ ] Per-kind risk rules — the restructure switches today's risk off (badges, borders, 15:00 / 20:00 clock thresholds); bring it back per kind: habit pace (amber when what's left needs every remaining day), project step carried 2× (amber — split it?), one-off due date (amber within 2 days, red on the day — the only red). First explored in PR #47's initial mockup (commit `d3ecc25`, Cards & risk screen)
+- [ ] Per-kind risk rules — Phase 1 switched risk off (badges, borders, 15:00 / 20:00 clock thresholds); bring it back per kind, as a colour on the card's signal line (never the kind edge): habit pace (amber when what's left needs every remaining day), project step carried 2× (amber — split it?), one-off due date (amber within 2 days, red on the day — the only red). First explored in PR #47's initial mockup (commit `d3ecc25`, Cards & risk screen)
 
 ## Plan
 
 ### Medium
 
 - [ ] Week model Phase 1 — Projects MVP: projects (a goal + ordered steps that never expire) under a Plan hub, kind-first cards with risk off, a Todo · Done board, and MCP project tools. Spike `design/spike/week-model-restructure.md` (approved); flows `design/flows/projects.md` + the *Phase 1 pending* notes in `baseline.md` and `flows/`; mockups `design/mockup/future-work/mockup-week-model-phase1-v2.html` + `mockup-projects-v2.html`
-  - [ ] PR 2 — kind-first cards, risk off, the Doing column removed (existing DOING tasks migrate to TODO)
   - [ ] PR 4 — Projects UI: Plan hub, Projects page and its modals, All steps done, steps on the board and in the plan form, scenario pages (then the two Phase 1 mockups go)
   - [ ] PR 5 — MCP for projects: projects in the context, `create_project` / `update_project`, steps in `create_plan` / `update_plan`, and the prompt for finished projects and archiving (finalized in this PR)
 - [ ] ReviewChangesModal / OverlayShell body height needs tuning on **both** breakpoints — with long change lists the box grows so tall the header ends up out of view; revisit the max-height caps (mobile `max-h-[85vh]`, desktop `md:max-h-[calc(100vh-5em)]`) so the pinned header/footer always stay on screen
@@ -66,7 +65,7 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### High
 
-- [ ] Daily rhythm — Open / Close-the-day rituals and phone notifications for unfinished tasks; kept out of the restructure's scope. Spike `design/spike/daily-rhythm-notifications.md` on branch `claude/notification-task-tracking-design-gcxwy0` (awaiting review); when picked up, regroup its sheets by kind and map "Still on it" to staying in Todo, since Phase 1 removes the Doing column
+- [ ] Daily rhythm — Open / Close-the-day rituals and phone notifications for unfinished tasks; kept out of the restructure's scope. Spike `design/spike/daily-rhythm-notifications.md` on branch `claude/notification-task-tracking-design-gcxwy0` (awaiting review); when picked up, regroup its sheets by kind and map "Still on it" to staying in Todo (the board has no Doing column)
 
 #### Design error states
 
@@ -83,6 +82,7 @@ Error presentation is unstyled or ad-hoc across the app (the AI chat's red alert
 - [ ] `ui/` component-structure lookup in `reference.md` — a lean high-level map for agents (humans use the `/design` gallery); follow-up to the landed component library
 - [ ] Uniform page header across board/priorities/settings on both breakpoints (plan keeps its planning-mode header); also resolves the BoardHeader green-vs-primary accent drift and revisits the mobile header type scale (current mobile header font size reads too large)
 - [ ] Redesign the point system and metric tracking — how sizes map to points, and what the board's Today / Week / Daily avg metrics count now that a week mixes habits, project steps and one-offs (PR 3 only added a project bucket to the week projection)
+- [ ] Spike: simplify prop drilling — board props (`today`, `habitWeeks`, plan data) thread through KanbanBoard → columns / backlogs → cards, and PR 4 adds project context on top; explore a store (Zustand is already in the stack) or a context, and simplify the components along the way
 
 ### Future
 

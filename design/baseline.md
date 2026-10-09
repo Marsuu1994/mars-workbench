@@ -2,21 +2,21 @@
 
 ## Goal
 
-A tool to plan and track tasks within defined periods (e.g., weekly). It visualizes task progress on a drag-and-drop kanban board, helping users understand what's done, what's in progress, and what's been missed. Authentication via Supabase Google OAuth identifies users and gates access to features, enabling per-user data isolation (each user sees only their own plans, chats, and tasks).
+A tool to plan and track tasks within defined periods (e.g., weekly). It visualizes task progress on a drag-and-drop kanban board, helping users understand what's done, what's still to do, and what's been missed. Authentication via Supabase Google OAuth identifies users and gates access to features, enabling per-user data isolation (each user sees only their own plans, chats, and tasks).
 
 ## Features
 
 ### Implemented
 
-1. **Kanban board** — Three columns (Todo, Doing, Done) displaying task instances for the active plan. Tasks are ordered by type (daily first, then weekly) and creation time within each column. *(Phase 1 removes Doing, leaving Todo · Done — see Designed: Phase 1 below.)*
-2. **Drag and drop** — User can move tasks between columns: Todo -> Doing -> Done. Optimistic UI update + backend persistence. *(Phase 1: Todo -> Done.)*
+1. **Kanban board** — Two columns (Todo · Done) displaying task instances for the active plan; work in progress stays in Todo. Tasks are ordered by type (daily first, then weekly) and creation time within each column. Cards are kind-first: each opens with its kind (habit, project step, one-off) in a fixed colour, then its context (a habit's plan line or ↩ rollover date, a one-off's quadrant), the title, and the kind's signal (a habit's week dots) beside a neutral size.
+2. **Drag and drop** — User can move tasks between columns: Todo -> Done. Optimistic UI update + backend persistence.
 3. **Plan creation** — User creates a weekly plan by selecting task templates. First-time users create new templates; returning users can load templates from their last plan.
 4. **Task templates** — Reusable blueprints with title, description, and size (`TaskSize` enum: XS/S/M/L/XL). Type and frequency are configured per-plan in PlanTemplate.
 5. **Auto-generation** — After plan creation, generate all necessary task instances. Daily tasks are regenerated each day.
 6. **Daily status recompute** — On the first kanban page load each day (any page — board, priorities, plan create/edit — via the shared `syncService.ensureSynced` entry point), expire unfinished daily tasks older than yesterday and generate today's daily tasks. Idempotent. Yesterday's unfinished tasks carry over for one extra day with a distinct "rolled over" visual treatment. See the **Shared** flows in `./flows/shared.md`.
-7. **Standardized sizing** — Tasks use a `TaskSize` enum (XS=1pt, S=2pt, M=3pt, L=5pt, XL=8pt) mapped to fibonacci points via `SIZE_TO_POINTS`. Points are denormalized on Task at creation time for efficient DB aggregation. Task cards display a green size chip (`M·3`). Template/ad-hoc modals use a full-width pill toggle selector (XS|S|M|L|XL) with effort hint text and L/XL split warning. Progress dashboard aggregates use the denormalized `points` column directly.
-8. **Daily task rollover** — Unfinished daily tasks from yesterday roll over to the board for one extra day, shown with a "↩ Mon, Feb 23" date badge. Tasks older than yesterday are expired.
-9. **Risk level visualization** — Tasks display color-coded risk badges (warning / danger) based on task type, time of day, days elapsed in the period, and completion progress. *(Switched off in Phase 1 until per-kind rules return.)*
+7. **Standardized sizing** — Tasks use a `TaskSize` enum (XS=1pt, S=2pt, M=3pt, L=5pt, XL=8pt) mapped to fibonacci points via `SIZE_TO_POINTS`. Points are denormalized on Task at creation time for efficient DB aggregation. Task cards display a neutral size chip (`M·3`). Template/ad-hoc modals use a full-width pill toggle selector (XS|S|M|L|XL) with effort hint text and L/XL split warning. Progress dashboard aggregates use the denormalized `points` column directly.
+8. **Daily task rollover** — Unfinished daily tasks from yesterday roll over to the board for one extra day, shown with a neutral "↩ Mon, Feb 23" date in the card's context slot. Tasks older than yesterday are expired.
+9. **Risk level visualization** — switched off in Phase 1: cards carry no risk badge, border or clock threshold until per-kind rules return (tracker).
 
 10. **Ad-hoc tasks** — One-off tasks (e.g. file tax report, get sinus CT) not tied to templates. Never expire, exist independently of plans. Can be added to the board from the kanban page or carried over from previous plans.
 
@@ -25,8 +25,8 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 1. **Mobile Kanban + PWA app** — PWA manifest, service worker, mobile board layout, bottom tab bar dock, safe-area insets for iOS/Android standalone mode.
 2. **Workspace sidebar** — Sidebar redesigned from feature-level nav (Chat/Kanban) to kanban workspace nav (Board/Plan). Board disabled with tooltip when no active plan; Plan shows "New" nudge badge. Edit Plan button removed from board header (Plan entry in sidebar).
 3. **LLM-assisted plan creation** — AI drafts a plan via non-streaming structured JSON output. User approves the batch (commit-as-is, the latest `DRAFT_PLAN` message is the approval source of truth) or rejects with text feedback to re-generate; no per-card editing. Static no-LLM welcome + suggestion chips. The chat is durable (DB-backed): it resumes the most recent unapproved chat across modal close / reload / restart and auto-resumes a generation interrupted mid-run. Approval atomically creates new TaskTemplates + the plan, completes the prior `PENDING_UPDATE` plan, and carries over ad-hoc tasks. See **AI Assisted Plan Creation Flow** in `./flows/plan.md`.
-4. **Backlog** — Collapsible right-edge panel (desktop) for staging template-generated task instances (`status = BACKLOG`) before pulling them onto the board via drag-and-drop (`BACKLOG → TODO`); on mobile, a bottom sheet opened from a peeking "Backlog" pill (tap `↑ Todo` to pull). Reduces visual clutter from duplicate (`frequency > 1`) cards. Reuses the board `TaskCard` (risk + rollover + `#n` instance badge stay in sync). Today ring/points count board tasks only; Week projection includes backlog. See the **Backlog Flow** in `./flows/board.md` and the Board scenarios at `/design/scenarios/board`.
-5. **Priorities page (Eisenhower matrix)** — Full-page 2×2 priority matrix at `/kanban/priorities` (sidebar item + mobile dock tab) for organizing one-off `AD_HOC` tasks by urgency/importance (`Task.quadrant`, unassigned tasks are `BACKLOG` with `planId = null`). Cards drag freely between quadrants (reprioritize); every card's "Move to" chooser (desktop send-button popover / mobile bottom sheet) either tracks the task into the current ACTIVE plan (`BACKLOG → TODO/DOING`) or completes it in place (`→ DONE`, linked to the active plan when one exists so the points count for the week, otherwise `planId` stays null — no confirm, a 5 s undo toast instead); quadrant "Add" buttons reuse the ad-hoc task modal to create matrix tasks. Board-side ad-hoc creation is removed; deselecting an ad-hoc task from a plan returns it to the matrix (DONE tasks stay linked to preserve point history). Renames shipped alongside: the AD_HOC type badge displays as "Todo" (blue). See the **Priorities** flows in `./flows/priorities.md` and the Priorities scenarios at `/design/scenarios/priorities`.
+4. **Backlog** — Collapsible right-edge panel (desktop) for staging template-generated task instances (`status = BACKLOG`) before pulling them onto the board via drag-and-drop (`BACKLOG → TODO`); on mobile, a bottom sheet opened from a peeking "Backlog" pill (tap `↑ Todo` to pull). Reduces visual clutter from duplicate (`frequency > 1`) cards. Reuses the board's kind-first card, so a card reads the same before and after the pull. Today ring/points count board tasks only; Week projection includes backlog. See the **Backlog Flow** in `./flows/board.md` and the Board scenarios at `/design/scenarios/board`.
+5. **Priorities page (Eisenhower matrix)** — Full-page 2×2 priority matrix at `/kanban/priorities` (sidebar item + mobile dock tab) for organizing one-off `AD_HOC` tasks by urgency/importance (`Task.quadrant`, unassigned tasks are `BACKLOG` with `planId = null`). Cards drag freely between quadrants (reprioritize); every card's "Move to" chooser (desktop send-button popover / mobile bottom sheet) either tracks the task into the current ACTIVE plan (`BACKLOG → TODO`) or completes it in place (`→ DONE`, linked to the active plan when one exists so the points count for the week, otherwise `planId` stays null — no confirm, a 5 s undo toast instead); quadrant "Add" buttons reuse the ad-hoc task modal to create matrix tasks. Board-side ad-hoc creation is removed; deselecting an ad-hoc task from a plan returns it to the matrix (DONE tasks stay linked to preserve point history). See the **Priorities** flows in `./flows/priorities.md` and the Priorities scenarios at `/design/scenarios/priorities`.
 6. **Dump page** — Friction-free brain dump at `/kanban/dump` (sidebar item + 5th mobile dock tab): plain-text entries (noise, negatives, ideas) save in one action with zero decisions (auto-growing IME-safe composer, ⌘/Ctrl+Enter to dump), and a day-grouped, newest-first feed with cursor-based infinite scroll and a 6-line clamp is the reading view. Deliberately storage-only in V1 — no tags, no categories, no LLM; append-only; `DumpEntry.isProcessed` is reserved for a future LLM batch-processing flow (TBD). See the **Dump** flows in `./flows/dump.md` and the Dump scenarios at `/design/scenarios/dump`.
 
 ### Auth
@@ -44,9 +44,8 @@ Approved in [`spike/week-model-restructure.md`](./spike/week-model-restructure.m
    - Steps go onto the week one at a time and move across the board like any task.
    - A project whose steps are all done shows "All steps done" until the user archives it.
    - See `./flows/projects.md`.
-2. **Kind-first cards** — board cards are redesigned around the three kinds of work (habit, project step, one-off), and risk is switched off. The card design lives in the Phase 1 mockup, then in the Design Console.
-3. **Two-column board** — the Doing column goes: Todo · Done. Work in progress stays in Todo.
-4. **MCP for projects** — Claude reads projects, creates and edits them, and puts steps on the week.
+2. **Project step cards** — the kind-first card's project face (project name, step n of N, the path as its signal).
+3. **MCP for projects** — Claude reads projects, creates and edits them, and puts steps on the week.
 
 Roadmap and open ideas live in [tracker.md](./tracker.md).
 
@@ -200,7 +199,7 @@ model Task {
 enum TaskStatus {
   BACKLOG   // Not yet on the board: template instances staged in the backlog, AD_HOC tasks on the priority matrix
   TODO
-  DOING     // Phase 1 stops writing it (existing DOING tasks migrate to TODO); the value is dropped in Phase 2 cleanup
+  DOING     // No longer written since the board went to Todo · Done (DOING tasks were migrated to TODO); dropped in Phase 2 cleanup
   DONE
   EXPIRED
 }
@@ -224,7 +223,7 @@ enum PriorityQuadrant {
 // - Exactly one of forDate or periodKey must be set for DAILY and WEEKLY tasks
 // - BACKLOG means "not yet on the board" for every type. Template-generated instances (DAILY, WEEKLY)
 //   are created as BACKLOG in the plan's backlog and move to TODO when pulled onto the board.
-//   AD_HOC tasks are created as BACKLOG on the priority matrix (planId = null) and move to TODO/DOING
+//   AD_HOC tasks are created as BACKLOG on the priority matrix (planId = null) and move to TODO
 //   when tracked ("Track This Week") or straight to DONE when completed from the matrix (planId filled
 //   with the active plan when there is one, otherwise left null); detaching from a plan resets them to
 //   BACKLOG. Otherwise status changes only when a task crosses the BACKLOG↔board boundary — carry-over
@@ -403,11 +402,11 @@ model DumpEntry {
 * Uses **Server Actions** for mutations and **direct DAL calls from Server Components** for data fetching. No REST API routes — besides the auth callback, Route Handlers serve only MCP: `/api/mcp`, the endpoint external AI clients (Claude) call with a Supabase OAuth access token, and its protected-resource metadata under `/.well-known/`. Inputs are validated at the boundary with **Zod** schemas.
 * Ad-hoc tasks are not associated with any TaskTemplate.  They are optionally associated with a plan (planId = null means unassigned backlog).
 * **Size system** — `TaskSize` enum (EXTRA_SMALL → EXTRA_LARGE) replaces free-form integer points. Points are derived from size via `SIZE_TO_POINTS` constant and denormalized on the Task record at creation time. This keeps the raw SQL `SUM(points)` aggregation unchanged while the user-facing input is now a constrained enum. `TaskTemplate` stores only `size` (no `points` column); `Task` stores both `size` and `points`.
-* **Size UI** — Task cards and template items display a shared `SizeChip` component (green chip: `M·3`). Template and ad-hoc creation modals use a full-width pill toggle selector with effort description text ("~3 hours of effort") and a warning hint for L/XL sizes. Client-safe enums (`TaskSize`, `SIZE_TO_POINTS`, `SIZE_LABELS`, `SIZE_EFFORT`) live in `src/utils/enums.ts` for use in `"use client"` components; server-side code uses `src/utils/sizeUtils.ts`.
+* **Size UI** — Task cards and template items display a shared `SizeChip` component (neutral chip: `M·3` — green belongs to the habit kind). Template and ad-hoc creation modals use a full-width pill toggle selector with effort description text ("~3 hours of effort") and a warning hint for L/XL sizes. Client-safe enums (`TaskSize`, `SIZE_TO_POINTS`, `SIZE_LABELS`, `SIZE_EFFORT`) live in `src/utils/enums.ts` for use in `"use client"` components; server-side code uses `src/utils/sizeUtils.ts`.
 * **Projects are their own table; steps are `PROJECT`-typed Tasks**.
   - A step's lifecycle is the one-off's, which the code already implements: it skips end-of-week expiry, links to a plan, and is unlinked when not carried over.
   - Reusing `TaskTemplate` was rejected: every template read, write and stat path would need a kind filter.
   - A separate step table was rejected: it would store each step twice and keep two statuses in sync.
   - Step order reuses `instanceIndex` rather than a mostly-NULL `position` column. Renaming the Prisma field to something neutral is left to Phase 2 cleanup.
-* **Kind is derived from `TaskType`** *(designed — Phase 1 pending)* — habit = `DAILY` / `WEEKLY`, project step = `PROJECT`, one-off = `AD_HOC`. There is no kind column.
+* **Kind is derived from `TaskType`** — habit = `DAILY` / `WEEKLY`, project step = `PROJECT`, one-off = `AD_HOC`. There is no kind column. Each kind has one fixed colour (habit success, project step secondary, one-off info); warning and error stay free for per-kind risk.
 * **Dump is storage-only** *(designed)* — capture is a single insert with zero side effects; anything smarter (categorization, summaries, extraction) is deferred to a future LLM **batch-processing** flow that walks `isProcessed = false` entries when it gets designed. The flag ships in V1 so that flow needs no migration later.

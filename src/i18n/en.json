@@ -12,8 +12,12 @@
     },
     "TaskStatus": {
       "TODO": "Todo",
-      "DOING": "In Progress",
       "DONE": "Done"
+    },
+    "TaskKind": {
+      "HABIT": "Habit",
+      "PROJECT": "Project",
+      "ONE_OFF": "One-off"
     },
     "TaskSize": {
       "EXTRA_SMALL": "XS",
@@ -50,8 +54,14 @@
       "planningMode": "Planning Mode"
     },
     "Card": {
-      "atRisk": "at risk",
-      "urgent": "urgent"
+      "planLineDaily": "{frequency, plural, one {Daily} other {#× / day}}",
+      "planLineWeekly": "{frequency}× / week",
+      "Quadrant": {
+        "DO_FIRST": "Do first",
+        "SCHEDULE": "Schedule",
+        "SQUEEZE_IN": "Squeeze in",
+        "MAYBE_LATER": "Maybe later"
+      }
     },
     "Dashboard": {
       "today": "Today",
@@ -286,9 +296,9 @@
     "templateCount": "{count, plural, one {# template} other {# templates}}",
     "taskCount": "{count, plural, one {# task} other {# tasks}}",
     "addedNote": "New {type} tasks will be generated starting today",
-    "removedNoteWithTasks": "{count, plural, one {# Todo / In Progress task} other {# Todo / In Progress tasks}} will be deleted from the board",
+    "removedNoteWithTasks": "{count, plural, one {# unfinished task} other {# unfinished tasks}} will be deleted from the board",
     "removedNoteNoTasks": "No active tasks on the board",
-    "modifiedNote": "{hasTasks, select, yes {Existing Todo / In Progress tasks deleted} other {No active tasks to remove}} — {count, plural, one {# new {type} instance} other {# new {type} instances}} will be generated",
+    "modifiedNote": "{hasTasks, select, yes {Existing unfinished tasks deleted} other {No active tasks to remove}} — {count, plural, one {# new {type} instance} other {# new {type} instances}} will be generated",
     "adhocHeading": "One-off Tasks",
     "addedToBoard": "Added to board",
     "adhocAddedNote": "Will appear on the board",

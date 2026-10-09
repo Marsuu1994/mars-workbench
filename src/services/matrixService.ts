@@ -39,7 +39,7 @@ export async function fetchPriorityMatrix(userId: string): Promise<MatrixData> {
 
 /**
  * Track This Week: attach an unassigned matrix task to the current ACTIVE
- * plan, moving it BACKLOG → TODO/DOING onto the board.
+ * plan, moving it BACKLOG → TODO onto the board.
  */
 export async function trackTaskThisWeek(
   userId: string,

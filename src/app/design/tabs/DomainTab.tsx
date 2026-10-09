@@ -7,10 +7,10 @@ import {ArrowRightIcon} from '@heroicons/react/24/outline';
 
 import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {TaskTypeBadge} from '@/components/domain/shared/TaskTypeBadge';
-import {RiskBadge} from '@/components/domain/shared/RiskBadge';
-import {RolloverTag} from '@/components/domain/shared/RolloverTag';
 import BoardHeader from '@/components/domain/shared/BoardHeader';
 import TaskCard from '@/components/domain/board/TaskCard';
+import {TaskCardMiniFace} from '@/components/domain/board/TaskCardMiniFace';
+import MobileBacklogCard from '@/components/domain/board/MobileBacklogCard';
 import BoardColumn from '@/components/domain/board/BoardColumn';
 import ProgressDashboard from '@/components/domain/board/ProgressDashboard';
 import MatrixTaskCard from '@/components/domain/priorities/MatrixTaskCard';
@@ -23,7 +23,9 @@ import {SuggestionChips} from '@/components/domain/plan/ai-chat/SuggestionChips'
 import {LoadingBubble} from '@/components/domain/plan/ai-chat/LoadingBubble';
 
 import {Zone, Section, Variant, Row} from '../GalleryParts';
-import {TaskType} from '@/utils/enums';
+import {TaskStatus, TaskType} from '@/utils/enums';
+import {getTaskKind} from '@/utils/taskUtils';
+import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
 import {
   TODAY,
   SIZE_FIXTURES,
@@ -31,13 +33,14 @@ import {
   SUGGESTION_CHIPS,
   LOADING_LABEL,
   TASK_CARD_FIXTURES,
+  MINI_CARD_FIXTURES,
   MATRIX_CARD_FIXTURES,
   DUMP_CARD_FIXTURES,
   PROGRESS_FIXTURE,
   BOARD_HEADER_PERIOD,
   BOARD_COLUMN_STATUS,
   BOARD_COLUMN_TASKS,
-  BOARD_COLUMN_RISK,
+  BOARD_COLUMN_HABIT_WEEKS,
   TEMPLATE_FIXTURE,
   SCENARIO_HREFS,
 } from '../constants';
@@ -94,7 +97,7 @@ export const DomainTab = () => {
   const renderTypeBadges = () => (
     <Section
       title="TaskTypeBadge"
-      description="Semantic badge for a task's recurrence type."
+      description="Semantic badge for a template's recurrence type — used by the AI plan draft cards; board cards show their kind instead."
     >
       <Row>
         {TYPE_FIXTURES.map(type => (
@@ -106,29 +109,10 @@ export const DomainTab = () => {
     </Section>
   );
 
-  const renderRiskAndRollover = () => (
-    <Section
-      title="RiskBadge & RolloverTag"
-      description="Risk-level chip (at risk / urgent) and the rolled-over-from marker."
-    >
-      <Row>
-        <Variant label="RiskBadge">
-          <Row>
-            <RiskBadge level="warning" />
-            <RiskBadge level="danger" />
-          </Row>
-        </Variant>
-        <Variant label="RolloverTag">
-          <RolloverTag date={TODAY} />
-        </Variant>
-      </Row>
-    </Section>
-  );
-
   const renderTaskCards = () => (
     <Section
       title="TaskCard"
-      description="The board's core card across its risk, rollover, multi-instance, and done states."
+      description="The board's kind-first card, every kind in every place it sits: kind + context (plan line, ↩ date, quadrant), the title, then the kind's signal (habit week dots) and a neutral size. No risk. Below md the same card shows its 136px mini face (next section)."
     >
       <DragDropContext onDragEnd={() => undefined}>
         <Droppable droppableId="gallery-cards">
@@ -140,14 +124,12 @@ export const DomainTab = () => {
             >
               {TASK_CARD_FIXTURES.map((fixture, index) => (
                 <Variant key={fixture.task.id} label={fixture.label}>
-                  <div className="w-56">
+                  <div className="w-64">
                     <TaskCard
                       task={fixture.task}
-                      taskType={fixture.taskType}
                       index={index}
                       today={TODAY}
-                      riskLevel={fixture.riskLevel}
-                      frequency={fixture.frequency}
+                      habitWeek={fixture.habitWeek}
                     />
                   </div>
                 </Variant>
@@ -157,6 +139,50 @@ export const DomainTab = () => {
           )}
         </Droppable>
       </DragDropContext>
+    </Section>
+  );
+
+  const renderMiniFaces = () => (
+    <Section
+      title="TaskCardMiniFace"
+      description="The 136px face TaskCard shows in the mobile board rows: kind label, a two-line title, then dots — or ↩ and the day for a rollover — and the size. Shown here in the card's mobile frame."
+    >
+      <Row>
+        {MINI_CARD_FIXTURES.map(({label, task, habitWeek}) => (
+          <Variant key={task.id} label={label}>
+            <div
+              className={`card fx-card bg-base-100/70 border border-base-content/10 w-[136px] h-[92px] flex flex-col gap-1 px-[9px] py-2 ${
+                TASK_KIND_STYLE[getTaskKind(task.type)].edge
+              }`}
+            >
+              <TaskCardMiniFace
+                task={task}
+                today={TODAY}
+                habitWeek={habitWeek}
+              />
+            </div>
+          </Variant>
+        ))}
+      </Row>
+    </Section>
+  );
+
+  const renderMobileBacklogCard = () => (
+    <Section
+      title="MobileBacklogCard"
+      description="The mobile backlog sheet's card: the full face on a plain card, with the ↑ Todo pull beside the title."
+    >
+      <div className="flex max-w-sm flex-col gap-2.5">
+        {MINI_CARD_FIXTURES.slice(0, 2).map(({task, habitWeek}) => (
+          <MobileBacklogCard
+            key={task.id}
+            task={{...task, status: TaskStatus.BACKLOG}}
+            today={TODAY}
+            habitWeek={habitWeek}
+            onPull={() => undefined}
+          />
+        ))}
+      </div>
     </Section>
   );
 
@@ -171,8 +197,7 @@ export const DomainTab = () => {
             status={BOARD_COLUMN_STATUS}
             tasks={BOARD_COLUMN_TASKS}
             today={TODAY}
-            riskMap={new Map(BOARD_COLUMN_RISK)}
-            templateFreqMap={new Map()}
+            habitWeeks={BOARD_COLUMN_HABIT_WEEKS}
           />
         </div>
       </DragDropContext>
@@ -316,7 +341,6 @@ export const DomainTab = () => {
         {renderBoardHeader()}
         {renderSizeChips()}
         {renderTypeBadges()}
-        {renderRiskAndRollover()}
       </Zone>
 
       <Zone
@@ -327,6 +351,8 @@ export const DomainTab = () => {
         }
       >
         {renderTaskCards()}
+        {renderMiniFaces()}
+        {renderMobileBacklogCard()}
         {renderBoardColumn()}
         {renderProgress()}
       </Zone>
