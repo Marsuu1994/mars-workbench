@@ -45,7 +45,7 @@ Awaited by every kanban page's data fetch before reading plan state: board (`fet
 
 - Idempotent — safe to re-run multiple times.
 - Plan creation and template updates also set `lastSyncDate` to avoid redundant sync on next page load.
-- **No rollover:** a missed day's unfinished daily tasks expire with the day. They leave the board, and their dot in the habit's week stays empty.
+- A missed day's unfinished daily tasks expire with the day: they leave the board, and their dot in the habit's week stays empty.
 - During weekends, daily task generation is skipped unless plan mode is EXTREME.
 - Week projection formula adjusts for mode: NORMAL counts only remaining weekdays, EXTREME counts all remaining calendar days.
 

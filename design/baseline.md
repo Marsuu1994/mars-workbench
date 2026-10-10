@@ -15,7 +15,7 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 5. **Auto-generation** — After plan creation, generate all necessary task instances. Daily tasks are regenerated each day.
 6. **Daily status recompute** — On the first kanban page load each day (any page — board, priorities, plan create/edit — via the shared `syncService.ensureSynced` entry point), expire unfinished daily tasks from earlier days and generate today's daily tasks. Idempotent. See the **Shared** flows in `./flows/shared.md`.
 7. **Standardized sizing** — Tasks use a `TaskSize` enum (XS=1pt, S=2pt, M=3pt, L=5pt, XL=8pt) mapped to fibonacci points via `SIZE_TO_POINTS`. Points are denormalized on Task at creation time for efficient DB aggregation. Task cards display a neutral size chip (`M·3`). Template/ad-hoc modals use a full-width pill toggle selector (XS|S|M|L|XL) with effort hint text and L/XL split warning. Progress dashboard aggregates use the denormalized `points` column directly.
-8. **No daily rollover** — a missed day's unfinished daily tasks expire with the day; the habit's week dots show the missed day as an empty dot.
+8. **Missed daily tasks expire** — a daily task not done by the end of its day expires; the habit's week dots show that day as an empty dot.
 9. **Risk level visualization** — switched off in Phase 1: cards carry no risk badge, border or clock threshold until per-kind rules return (tracker).
 
 10. **Ad-hoc tasks** — One-off tasks (e.g. file tax report, get sinus CT) not tied to templates. Never expire, exist independently of plans. Can be added to the board from the kanban page or carried over from previous plans.

@@ -33,7 +33,7 @@ Open [http://localhost:3000](http://localhost:3000)
 
 - Two-column kanban (Todo · Done; work in progress stays in Todo): drag-and-drop with optimistic UI, fibonacci task sizing (XS–XL), per-column accents
 - **Kind-first cards**: each card opens with its kind — habit or one-off — in a fixed colour, then its context (a habit's plan line, a one-off's quadrant); a neutral size closes the card. A habit's week dots show each instance in order, filled when done, with the card's own dot ringed. Risk is switched off until per-kind rules return
-- **No daily rollover**: a missed day's habit instances expire with the day and stay an empty dot
+- **Missed days expire**: a habit instance not done by the end of its day expires and stays an empty dot
 - **Backlog** stages template-generated instances and pulls them onto the board — right-edge drag panel on desktop, bottom sheet on mobile (from a peeking "Backlog" pill); backlog tasks count toward the week projection, not Today
 - **Progress dashboard**: Today ring, stat metrics, Week Progress bar
 - One-off (`AD_HOC`) tasks are created only from the priority matrix and reach the board via Track This Week
