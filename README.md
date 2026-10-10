@@ -88,6 +88,12 @@ Open items: see [design/tracker.md](./design/tracker.md).
 
 ## Update Log
 
+### 2026-10-10
+- **Board prop-drilling spike written** (`design/spike/board-prop-drilling.md`, awaiting review):
+  - **Diagnosis**: after #52 removed rollover, `habitWeeks` and `onPull` still thread from `KanbanBoard` through columns / backlogs to the card faces. They are per-card inputs each leaf re-derives, not shared state, and PR 4's project context and the per-kind risk rules would take the same path.
+  - **Options**, each shown on the same five examples (habit dots, PR 4 step context, mobile pull, gallery specimens, a risk rule bringing `today` back): React context (S), a per-request Zustand store hydrated from the server (M), and a card view model derived once in `KanbanBoard`, delivered as props, context + container, or children. Recommends the view model passed as `cards` (C1), before PR 4; the owner ruled out context + container in review.
+  - **Component tree review** (route → card): face layout written three times, the mobile backlog panel copied into its scenario, an extra BoardHeader div, two client components that need no `'use client'`, backlog cards rendered three times on mobile, a drifted `loading.tsx` skeleton. Also noted: board moves still roll back with a whole-list snapshot (the matrix already rolls back per task).
+
 ### 2026-10-09
 - **Habit dots per card, rollover removed** (follow-up to Phase 1 PR 2; the spike had rollover removal in Phase 2):
   - **Each habit card shows its own place in the week.** The dots are the week's instances in order: weekly lines by instance, daily lines by day and then instance. A dot fills when its instance is done, and the card's own dot is ringed in the habit colour. Before, every card of a habit showed the same `n / N`. Up to 10 dots, then the count alone.

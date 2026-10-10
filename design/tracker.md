@@ -82,7 +82,7 @@ Error presentation is unstyled or ad-hoc across the app (the AI chat's red alert
 - [ ] `ui/` component-structure lookup in `reference.md` — a lean high-level map for agents (humans use the `/design` gallery); follow-up to the landed component library
 - [ ] Uniform page header across board/priorities/settings on both breakpoints (plan keeps its planning-mode header); also resolves the BoardHeader green-vs-primary accent drift and revisits the mobile header type scale (current mobile header font size reads too large)
 - [ ] Redesign the point system and metric tracking — how sizes map to points, and what the board's Today / Week / Daily avg metrics count now that a week mixes habits, project steps and one-offs (PR 3 only added a project bucket to the week projection)
-- [ ] Simplify board prop drilling — `today` / `habitWeeks` / `onPull` thread through KanbanBoard → columns / backlogs → cards, and PR 4 adds project context on top; spike compares a context, a per-request Zustand store and a card view model (recommends the view model, before PR 4): `design/spike/board-prop-drilling.md` (awaiting review)
+- [ ] Simplify board prop drilling — `habitWeeks` / `onPull` thread through KanbanBoard → columns / backlogs → cards, and PR 4 adds project context on top; spike compares a context, a per-request Zustand store and a card view model (recommends the view model passed as `cards`, before PR 4) and reviews the route → card component tree: `design/spike/board-prop-drilling.md` (awaiting review)
 
 ### Future
 
