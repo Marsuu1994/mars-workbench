@@ -23,7 +23,7 @@ PR 4 是 Phase 1 里 UI 最重的一步。画面已经在两份 mockup 里批准
 | --- | --- | --- |
 | PR 3（#50） | `projectActions` 的 10 个 action（project：create / update / archive / unarchive；step：add / update / delete / reorder / schedule / unschedule）、`getProjectsWithSteps`、plan 的 `projectStepIds` | UI 直接调用；只加一个页面读取入口和两个 DAL 读取 |
 | PR 2 + #53 | Kind-first 卡片、`BoardCard` union（`ProjectStepCard` 目前只有 `{kind, task}`）、`toBoardCards`、C3 composition | step face 只改 `toBoardCards` 的 PROJECT 分支和两个 face |
-| `ui/` | `OverlayShell`、`OverlayHeader`、`FieldRow`、`ChoicePills`、`SubmitButton`、`FormErrorAlert`、`ConfirmButton`、`TabBar`、`EmptyState`、`ProgressBar`、`Pill`、`SectionLabel` | 大部分直接复用；新增 4 个、扩展 3 个（见组件清单） |
+| `ui/` | `OverlayShell`、`OverlayHeader`、`FieldRow`、`ChoicePills`、`SubmitButton`、`FormErrorAlert`、`ConfirmButton`、`EmptyState`、`ProgressBar`、`Pill`、`SectionLabel` | 大部分直接复用；新增 4 个、扩展 2 个（见组件清单） |
 | `useOptimisticTasks` | 单个 task 的乐观更新，失败按 task 回滚 | schedule / × 直接用；reorder 要一次改多个 task |
 
 读代码时发现 3 件事，影响 PR 的顺序和范围：
@@ -92,18 +92,16 @@ fetchBoard → {plan, tasks, progress, projects（新）}
 
 按 AGENTS › *Component placement*：import 了 domain 类型就是 domain；只渲染一次的 app frame 是 application；其余是 ui。
 
-### `ui/` — 新增 4 个，扩展 3 个
+### `ui/` — 新增 4 个，扩展 2 个
 
 | 组件 | 新 / 改 | Props（要点） | 用在哪 | Mockup |
 | --- | --- | --- | --- | --- |
-| `LinkTabBar` | 新 | `tabs: {label, href}[]` · `activeHref` · `ariaLabel` | Plan hub 的 This week · Projects。是 `<nav>` 里的 `Link`，active 的那个带 `aria-current="page"`；`TabBar` 是切换面板的 `role="tablist"` 按钮，语义不同 | `.seg.hub` |
-| `tabStyles.ts` | 新（常量） | `TAB_RAIL_CLASS` · `TAB_CLASS: Record<'active' \| 'inactive', string>` | `TabBar` 和 `LinkTabBar` 共用，两种 tabs 永远长得一样 | — |
+| `LinkTabBar` | 新 | `tabs: {label, href}[]` · `activeHref` · `ariaLabel` | Plan hub 的 This week · Projects。是 `<nav>` 里的 `Link`，active 的那个带 `aria-current="page"`。production 里第一个 tab 组件，样式照 mockup 自带 | `.seg.hub` |
 | `Banner` | 新 | `tone: 'secondary' \| 'success' \| 'warning'` · `icon` · `children` · `action?` | New Project 的说明、All steps done、no plan；`TaskModalPanel` 的 adhoc 说明也改用它 | `.mbanner` `.donebar` `.warnbar` |
 | `InlineConfirmButton` | 新 | `label` · `confirmLabel` · `hint?` · `onConfirm` | Archive（modal footer、banner）、Delete step | `.btn.danger` → `.btn.danger.solid` + `.confirm-hint` |
 | `form/ModalFormFooter` | 新 | `error` · `isSubmitting` · `onCancel` · `cancelLabel` · `submitLabel` · `submitIcon` · `submitDisabled?` · `leading?` | 4 个新 modal；取代 `TaskModalFooter` | `.mfoot` |
 | `EmptyState` | 改 | + `variant: 'page' \| 'inline'`（默认 page，现有调用不变）。inline：虚线框、小一号的标题和正文 | 没有 project、project 没有 step | `.empty-proj` |
 | `overlay/OverlayHeader` | 改 | + `subtitle?`：标题下一行等宽小字 | Step modal 的「🗺 Biomedical course · becomes step 4」 | `.ctxline` |
-| `TabBar` | 改 | props 不变，class 改从 `tabStyles` 取 | — | — |
 
 `InlineConfirmButton` 不做成 `ConfirmButton` 的 variant：`ConfirmButton` 是整行宽的「提示 + Cancel / Confirm」；mockup 要的是同一个按钮原地变成「Archive?」（实心 error）加一行说明，没有 cancel（modal 的 Cancel 或者离开就是取消）。两者只共用两个 `useState`，合成一个组件要靠 union props 区分形状，反而难读。
 
@@ -298,18 +296,20 @@ getPlanStepsByPlanId(userId, planId): Promise<PlanStepItem[]>;
 
 派生：`useMemo(() => toProjectsView(projects, localSteps, {activePlanId, selectedProjectId}), […])`。派生出来的东西不进 state。
 
+下表的「step 行」指 detail 里的 `ProjectStepRow`，四种 state 见组件清单里 `ProjectStepRow` 的表；比如 `UPCOMING` 是没做完、也没排进任何一周的 step（`planId = null`）。
+
 | 交互 | 入口 | Action | 乐观更新 | 之后 |
 | --- | --- | --- | --- | --- |
 | New project | header（md 以上）、空状态、列表底部（mobile） | `createProjectAction` | 否 | modal 关；desktop 选中新 project；mobile push `/kanban/projects/[id]` |
 | Save project | Edit Project | `updateProjectAction` | 否 | modal 关 |
 | Archive | Edit Project footer、All steps done banner | `archiveProjectAction` | 否（按钮 pending） | 选中下一个 active project；mobile 回 `/kanban/projects` |
-| Unarchive | archived 行 | `unarchiveProjectAction` | 否 | 选中它 |
+| Unarchive | Archived 一节的 project 行 | `unarchiveProjectAction` | 否 | 选中它 |
 | Add step | 「+ Add step」/「Add the first step」 | `addProjectStepAction` | 否 | modal 关，step 接在末尾 |
 | Save step | Edit Step | `updateProjectStepAction` | 否 | modal 关；board 卡片同步（action 已 revalidate `/kanban`） |
 | Delete step | Edit Step footer | `deleteProjectStepAction` | 否 | modal 关，后面的 step 前移一位 |
-| + This week | upcoming 行 | `scheduleProjectStepAction` | 是：`planId = activePlanId` | 失败只回滚这个 step |
-| × | this week · backlog 行 | `unscheduleProjectStepAction` | 是：`planId = null` | 同上 |
-| Reorder | 拖动 open 行 | `reorderProjectStepsAction` | 是：open steps 重新编号 | 失败回滚这几个 step |
+| + This week | `UPCOMING` 的 step 行 | `scheduleProjectStepAction` | 是：`planId = activePlanId` | 失败只回滚这个 step |
+| × | `THIS_WEEK` 且还在 backlog 的 step 行 | `unscheduleProjectStepAction` | 是：`planId = null` | 同上 |
+| Reorder | 拖动未完成的 step 行 | `reorderProjectStepsAction` | 是：open steps 重新编号 | 失败回滚这几个 step |
 
 - Reorder 必须是乐观的：`@hello-pangea/dnd` 要求在 `onDragEnd` 里同步完成重排，否则行会先弹回原处。
 - `useOptimisticTasks` 加 `runOptimisticTasksUpdate(patchById, action, errorLabel)`：一次改多个 task，失败按 task 回滚。现有的单 task 版本改成调用它。
@@ -478,7 +478,7 @@ Projects 页的 header 已经批准（mockup：「Plan」+ 周 + This week · Pr
 
 分支 `claude/week-model-pr4b-shared-modal-parts`。
 
-1. `ui/`：`tabStyles` + `LinkTabBar`（`TabBar` 改用 `tabStyles`）、`Banner`、`InlineConfirmButton`、`form/ModalFormFooter`、`EmptyState.variant`、`OverlayHeader.subtitle`。
+1. `ui/`：`LinkTabBar`、`Banner`、`InlineConfirmButton`、`form/ModalFormFooter`、`EmptyState.variant`、`OverlayHeader.subtitle`。
 2. `domain/shared/task-modal/`：`SizePicker`；`TaskModalPanel` 拆到自己的文件，改用 `SizePicker`、`ModalFormFooter`、`Banner`；删掉 `TaskModalFooter`；`utils/formErrors.ts`。
 3. Design Console：ui gallery 的新条目；`ModalPanelFrame`。
 4. **Done when**：Task modal 三种 mode 的 scenario（plan 的 New / Edit template、priorities 的 Add task）前后截图一致；gallery 的新条目在三个主题下检查过。
