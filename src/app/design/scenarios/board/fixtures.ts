@@ -7,7 +7,9 @@ import {
   SIZE_TO_POINTS,
 } from '@/utils/enums';
 import type {TaskItem} from '@/lib/db/tasks';
-import {computeHabitWeeks, type BoardPlan} from '@/utils/taskUtils';
+import type {BoardPlan} from '@/utils/taskUtils';
+import {toBoardCards} from '@/utils/boardCardUtils';
+import type {BoardProgress} from '@/types/board';
 
 /* Board scenario fixtures — real KanbanBoard + ProgressDashboard fed
    fictional weeks that are hard to reach against live data. */
@@ -131,7 +133,7 @@ export const MID_WEEK_TASKS: TaskItem[] = [
   }),
 ];
 
-export const MID_WEEK_PROGRESS = {
+export const MID_WEEK_PROGRESS: BoardProgress = {
   todayDoneCount: 2,
   todayTotalCount: 8,
   todayDonePoints: 2,
@@ -144,14 +146,8 @@ export const MID_WEEK_PROGRESS = {
 };
 
 // ── Mobile backlog scenario inputs ───────────────────────────────────────────
-// The inline mobile backlog panel bypasses KanbanBoard, so it receives the
-// same habit lookups the live board would compute — built here with the real
-// helper (deterministic).
-export const BACKLOG_TASKS = MID_WEEK_TASKS.filter(
-  task => task.status === TaskStatus.BACKLOG,
-);
-
-export const SCENARIO_HABIT_WEEKS = computeHabitWeeks(
-  MID_WEEK_TASKS,
-  SCENARIO_PLAN,
-);
+// The inline mobile backlog sheet bypasses KanbanBoard, so its cards come from
+// the same adapter the live board runs, on the same fixture week.
+export const BACKLOG_CARDS = toBoardCards(MID_WEEK_TASKS, {
+  plan: SCENARIO_PLAN,
+})[TaskStatus.BACKLOG];

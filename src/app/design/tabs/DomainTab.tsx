@@ -24,7 +24,6 @@ import {LoadingBubble} from '@/components/domain/plan/ai-chat/LoadingBubble';
 
 import {Zone, Section, Variant, Row} from '../GalleryParts';
 import {TaskStatus, TaskType} from '@/utils/enums';
-import {getTaskKind} from '@/utils/taskUtils';
 import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
 import {
   SIZE_FIXTURES,
@@ -38,8 +37,7 @@ import {
   PROGRESS_FIXTURE,
   BOARD_HEADER_PERIOD,
   BOARD_COLUMN_STATUS,
-  BOARD_COLUMN_TASKS,
-  BOARD_COLUMN_HABIT_WEEKS,
+  BOARD_COLUMN_CARDS,
   TEMPLATE_FIXTURE,
   SCENARIO_HREFS,
 } from '../constants';
@@ -121,14 +119,10 @@ export const DomainTab = () => {
               {...provided.droppableProps}
               className="flex flex-wrap items-start gap-6"
             >
-              {TASK_CARD_FIXTURES.map((fixture, index) => (
-                <Variant key={fixture.task.id} label={fixture.label}>
+              {TASK_CARD_FIXTURES.map(({label, card}, index) => (
+                <Variant key={card.task.id} label={label}>
                   <div className="w-64">
-                    <TaskCard
-                      task={fixture.task}
-                      index={index}
-                      habitWeek={fixture.habitWeek}
-                    />
+                    <TaskCard card={card} index={index} />
                   </div>
                 </Variant>
               ))}
@@ -146,14 +140,14 @@ export const DomainTab = () => {
       description="The 136px face TaskCard shows in the mobile board rows: kind label, a two-line title, then the week dots (the card's own ringed) and the size. Shown here in the card's mobile frame."
     >
       <Row>
-        {MINI_CARD_FIXTURES.map(({label, task, habitWeek}) => (
-          <Variant key={task.id} label={label}>
+        {MINI_CARD_FIXTURES.map(({label, card}) => (
+          <Variant key={card.task.id} label={label}>
             <div
-              className={`card fx-card bg-base-100/70 border border-base-content/10 w-[136px] h-[92px] flex flex-col gap-1 px-[9px] py-2 ${
-                TASK_KIND_STYLE[getTaskKind(task.type)].edge
+              className={`card fx-card bg-base-100/70 border border-base-content/10 w-[136px] h-[92px] ${
+                TASK_KIND_STYLE[card.kind].edge
               }`}
             >
-              <TaskCardMiniFace task={task} habitWeek={habitWeek} />
+              <TaskCardMiniFace card={card} />
             </div>
           </Variant>
         ))}
@@ -167,11 +161,10 @@ export const DomainTab = () => {
       description="The mobile backlog sheet's card: the full face on a plain card, with the ↑ Todo pull beside the title."
     >
       <div className="flex max-w-sm flex-col gap-2.5">
-        {MINI_CARD_FIXTURES.slice(0, 2).map(({task, habitWeek}) => (
+        {MINI_CARD_FIXTURES.slice(0, 2).map(({card}) => (
           <MobileBacklogCard
-            key={task.id}
-            task={{...task, status: TaskStatus.BACKLOG}}
-            habitWeek={habitWeek}
+            key={card.task.id}
+            card={{...card, task: {...card.task, status: TaskStatus.BACKLOG}}}
             onPull={() => undefined}
           />
         ))}
@@ -182,15 +175,18 @@ export const DomainTab = () => {
   const renderBoardColumn = () => (
     <Section
       title="BoardColumn"
-      description="One kanban column: LED-accented header, count badge, and a droppable task list."
+      description="One kanban column: LED-accented header, count badge, and a droppable list — a frame the board renders its cards into."
     >
       <DragDropContext onDragEnd={() => undefined}>
         <div className="max-w-sm">
           <BoardColumn
             status={BOARD_COLUMN_STATUS}
-            tasks={BOARD_COLUMN_TASKS}
-            habitWeeks={BOARD_COLUMN_HABIT_WEEKS}
-          />
+            count={BOARD_COLUMN_CARDS.length}
+          >
+            {BOARD_COLUMN_CARDS.map((card, index) => (
+              <TaskCard key={card.task.id} card={card} index={index} />
+            ))}
+          </BoardColumn>
         </div>
       </DragDropContext>
     </Section>

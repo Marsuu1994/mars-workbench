@@ -9,7 +9,8 @@ import {
 } from '@/utils/enums';
 import type {TaskItem} from '@/lib/db/tasks';
 import type {DumpEntryItem} from '@/lib/db/dumpEntries';
-import type {HabitWeek} from '@/utils/taskUtils';
+import {TaskKind, type HabitWeek} from '@/utils/taskUtils';
+import type {BoardCard} from '@/utils/boardCardUtils';
 
 // ── Page copy ──────────────────────────────────────────────────────────────
 /** Title halves — the accent word renders with fx-text-gradient (the
@@ -184,43 +185,49 @@ const xs = {
   points: SIZE_TO_POINTS[TaskSize.EXTRA_SMALL],
 };
 
-/** A habit's week as KanbanBoard computes it: its slots in order (true =
-    done) and the slot each fixture card holds. */
+/** A habit's week as toBoardCards computes it: its slots in order (true =
+    done). */
 const habitWeek = (
   type: TaskType,
   frequency: number,
   slots: boolean[],
-  slotByTaskId: Record<string, number>,
 ): HabitWeek => ({
   type,
   frequency,
   slots,
-  slotByTaskId: new Map(Object.entries(slotByTaskId)),
   done: slots.filter(Boolean).length,
   target: slots.length,
 });
 
 // LeetCode 3× / week: #1 done, the Todo card is #2.
-const LEETCODE_WEEK = habitWeek(TaskType.WEEKLY, 3, [true, false, false], {
-  't-habit': 1,
-});
+const LEETCODE_WEEK = habitWeek(TaskType.WEEKLY, 3, [true, false, false]);
 // Workout daily (NORMAL): Mon and Wed done, Tue missed; the Todo card is
 // Thursday's, the Done card Wednesday's.
-const WORKOUT_WEEK = habitWeek(
-  TaskType.DAILY,
-  1,
-  [true, false, true, false, false],
-  {'t-daily': 3, 't-habit-done': 2},
-);
+const WORKOUT_WEEK = habitWeek(TaskType.DAILY, 1, [
+  true,
+  false,
+  true,
+  false,
+  false,
+]);
 // Read 2× / week, both still in the backlog; the card is #1.
-const READ_WEEK = habitWeek(TaskType.WEEKLY, 2, [false, false], {
-  't-backlog': 0,
+const READ_WEEK = habitWeek(TaskType.WEEKLY, 2, [false, false]);
+
+/** A habit card: its week, and the slot of its own (ringed) dot. */
+const habitCard = (
+  task: TaskItem,
+  week: HabitWeek,
+  currentSlot: number,
+): BoardCard => ({kind: TaskKind.HABIT, task, habitWeek: week, currentSlot});
+
+const oneOffCard = (task: TaskItem): BoardCard => ({
+  kind: TaskKind.ONE_OFF,
+  task,
 });
 
 export interface TaskCardFixture {
   label: string;
-  task: TaskItem;
-  habitWeek?: HabitWeek;
+  card: BoardCard;
 }
 
 /** Every kind in every place it can sit (a one-off never reaches the
@@ -228,76 +235,92 @@ export interface TaskCardFixture {
 export const TASK_CARD_FIXTURES: TaskCardFixture[] = [
   {
     label: 'Habit · Todo (weekly)',
-    task: baseTask({
-      id: 't-habit',
-      templateId: 'tpl-leetcode',
-      type: TaskType.WEEKLY,
-      title: 'LeetCode',
-      description: 'One medium, 45-min timer',
-      ...xs,
-    }),
-    habitWeek: LEETCODE_WEEK,
+    card: habitCard(
+      baseTask({
+        id: 't-habit',
+        templateId: 'tpl-leetcode',
+        type: TaskType.WEEKLY,
+        title: 'LeetCode',
+        description: 'One medium, 45-min timer',
+        ...xs,
+      }),
+      LEETCODE_WEEK,
+      1,
+    ),
   },
   {
     label: 'Habit · Todo (daily)',
-    task: baseTask({
-      id: 't-daily',
-      templateId: 'tpl-workout',
-      title: 'Workout',
-      description: '45 min — gym or run',
-      forDate: TODAY,
-      ...xs,
-    }),
-    habitWeek: WORKOUT_WEEK,
+    card: habitCard(
+      baseTask({
+        id: 't-daily',
+        templateId: 'tpl-workout',
+        title: 'Workout',
+        description: '45 min — gym or run',
+        forDate: TODAY,
+        ...xs,
+      }),
+      WORKOUT_WEEK,
+      3,
+    ),
   },
   {
     label: 'Habit · Backlog',
-    task: baseTask({
-      id: 't-backlog',
-      templateId: 'tpl-read',
-      type: TaskType.WEEKLY,
-      title: 'Read',
-      status: TaskStatus.BACKLOG,
-      ...xs,
-    }),
-    habitWeek: READ_WEEK,
+    card: habitCard(
+      baseTask({
+        id: 't-backlog',
+        templateId: 'tpl-read',
+        type: TaskType.WEEKLY,
+        title: 'Read',
+        status: TaskStatus.BACKLOG,
+        ...xs,
+      }),
+      READ_WEEK,
+      0,
+    ),
   },
   {
     label: 'Habit · Done',
-    task: baseTask({
-      id: 't-habit-done',
-      templateId: 'tpl-workout',
-      title: 'Workout',
-      description: '45 min — gym or run',
-      status: TaskStatus.DONE,
-      forDate: TODAY,
-      doneAt: TODAY,
-      ...xs,
-    }),
-    habitWeek: WORKOUT_WEEK,
+    card: habitCard(
+      baseTask({
+        id: 't-habit-done',
+        templateId: 'tpl-workout',
+        title: 'Workout',
+        description: '45 min — gym or run',
+        status: TaskStatus.DONE,
+        forDate: TODAY,
+        doneAt: TODAY,
+        ...xs,
+      }),
+      WORKOUT_WEEK,
+      2,
+    ),
   },
   {
     label: 'One-off · Todo',
-    task: baseTask({
-      id: 't-oneoff',
-      type: TaskType.AD_HOC,
-      title: 'File tax report',
-      quadrant: PriorityQuadrant.DO_FIRST,
-      size: TaskSize.SMALL,
-      points: SIZE_TO_POINTS[TaskSize.SMALL],
-    }),
+    card: oneOffCard(
+      baseTask({
+        id: 't-oneoff',
+        type: TaskType.AD_HOC,
+        title: 'File tax report',
+        quadrant: PriorityQuadrant.DO_FIRST,
+        size: TaskSize.SMALL,
+        points: SIZE_TO_POINTS[TaskSize.SMALL],
+      }),
+    ),
   },
   {
     label: 'One-off · Done',
-    task: baseTask({
-      id: 't-oneoff-done',
-      type: TaskType.AD_HOC,
-      title: 'Call bank about card',
-      quadrant: PriorityQuadrant.DO_FIRST,
-      status: TaskStatus.DONE,
-      doneAt: TODAY,
-      ...xs,
-    }),
+    card: oneOffCard(
+      baseTask({
+        id: 't-oneoff-done',
+        type: TaskType.AD_HOC,
+        title: 'Call bank about card',
+        quadrant: PriorityQuadrant.DO_FIRST,
+        status: TaskStatus.DONE,
+        doneAt: TODAY,
+        ...xs,
+      }),
+    ),
   },
 ];
 
@@ -426,21 +449,13 @@ export const CONTENT_SECTION_LABELS = [
 /** BoardHeader shows the desktop/mobile accent drift — documented, not fixed. */
 export const BOARD_HEADER_PERIOD = '2026-W28';
 
-/** A Todo column: a habit, a rolled-over habit and a one-off. */
+/** A Todo column: a weekly habit, a daily habit and a one-off. */
 export const BOARD_COLUMN_STATUS = TaskStatus.TODO;
-const BOARD_COLUMN_FIXTURES = [
+export const BOARD_COLUMN_CARDS: BoardCard[] = [
   TASK_CARD_FIXTURES[0],
   TASK_CARD_FIXTURES[1],
   TASK_CARD_FIXTURES[4],
-];
-export const BOARD_COLUMN_TASKS: TaskItem[] = BOARD_COLUMN_FIXTURES.map(
-  fixture => fixture.task,
-);
-export const BOARD_COLUMN_HABIT_WEEKS = new Map<string, HabitWeek>(
-  BOARD_COLUMN_FIXTURES.flatMap(({task, habitWeek}) =>
-    task.templateId && habitWeek ? [[task.templateId, habitWeek]] : [],
-  ),
-);
+].map(fixture => fixture.card);
 
 /** TemplateItem — a single selectable plan-template row. */
 export const TEMPLATE_FIXTURE = {

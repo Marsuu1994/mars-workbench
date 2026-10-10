@@ -1,28 +1,26 @@
 'use client';
 
 import {Draggable} from '@hello-pangea/dnd';
-import type {TaskItem} from '@/lib/db/tasks';
 import {TaskStatus} from '@/utils/enums';
-import {getTaskKind, type HabitWeek} from '@/utils/taskUtils';
+import type {BoardCard} from '@/utils/boardCardUtils';
 import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
 import {TaskCardFace} from './TaskCardFace';
 import {TaskCardMiniFace} from './TaskCardMiniFace';
 
 type TaskCardProps = {
-  task: TaskItem;
+  card: BoardCard;
   /** Position index within the column — required by Draggable */
   index: number;
-  /** The habit's plan line and week dots; absent for other kinds */
-  habitWeek?: HabitWeek;
 };
 
 /**
  * The draggable board card: the full kind-first face from md up, the 136px
  * mini face in the mobile rows. Done cards dim and stay put.
  */
-export default function TaskCard({task, index, habitWeek}: TaskCardProps) {
+export default function TaskCard({card, index}: TaskCardProps) {
+  const {kind, task} = card;
   const isDone = task.status === TaskStatus.DONE;
-  const {edge} = TASK_KIND_STYLE[getTaskKind(task.type)];
+  const {edge} = TASK_KIND_STYLE[kind];
 
   return (
     <Draggable draggableId={task.id} index={index} isDragDisabled={isDone}>
@@ -35,12 +33,8 @@ export default function TaskCard({task, index, habitWeek}: TaskCardProps) {
             isDone ? 'opacity-50 cursor-default' : 'cursor-grab'
           } ${snapshot.isDragging ? 'fx-card-lift scale-[1.02] z-50' : ''}`}
         >
-          <div className="md:hidden flex h-full flex-col gap-1 px-[9px] py-2">
-            <TaskCardMiniFace task={task} habitWeek={habitWeek} />
-          </div>
-          <div className="hidden md:flex flex-col gap-1.5 px-3 py-2.5">
-            <TaskCardFace task={task} habitWeek={habitWeek} />
-          </div>
+          <TaskCardMiniFace card={card} className="md:hidden" />
+          <TaskCardFace card={card} className="hidden md:flex" />
         </div>
       )}
     </Draggable>

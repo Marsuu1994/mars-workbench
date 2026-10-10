@@ -1,18 +1,17 @@
 'use client';
 
+import type {ReactNode} from 'react';
 import {Droppable} from '@hello-pangea/dnd';
 import {useTranslations} from 'next-intl';
 import {useBreakpoint} from '@/components/application/BreakpointProvider';
-import type {TaskItem} from '@/lib/db/tasks';
 import {TaskStatus} from '@/utils/enums';
-import type {HabitWeek} from '@/utils/taskUtils';
-import TaskCard from './TaskCard';
 
 interface BoardColumnProps {
   status: BoardColumnStatus;
-  tasks: TaskItem[];
-  /** Per-template habit context + dots, keyed by templateId */
-  habitWeeks: Map<string, HabitWeek>;
+  /** Cards in the column — the header badge */
+  count: number;
+  /** The column's cards, rendered by KanbanBoard */
+  children: ReactNode;
   /** True while any card is being dragged — faintly outlines all drop targets. */
   isDragActive?: boolean;
 }
@@ -27,10 +26,14 @@ const STATUS_STYLE: Record<
   [TaskStatus.DONE]: {accent: 'md:border-l-success', ledColor: 'text-success'},
 };
 
+/**
+ * One kanban column: the header (LED, label, count) and a droppable list. A
+ * frame only — KanbanBoard renders the cards into it.
+ */
 export default function BoardColumn({
   status,
-  tasks,
-  habitWeeks,
+  count,
+  children,
   isDragActive = false,
 }: BoardColumnProps) {
   const {isMobile} = useBreakpoint();
@@ -70,9 +73,7 @@ export default function BoardColumn({
                 {tStatus(status)}
               </h2>
             </div>
-            <span className="badge badge-ghost badge-sm fx-num">
-              {tasks.length}
-            </span>
+            <span className="badge badge-ghost badge-sm fx-num">{count}</span>
           </div>
 
           <div
@@ -84,16 +85,7 @@ export default function BoardColumn({
                 : 'max-md:border-transparent'
             }`}
           >
-            {tasks.map((task, index) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                index={index}
-                habitWeek={
-                  task.templateId ? habitWeeks.get(task.templateId) : undefined
-                }
-              />
-            ))}
+            {children}
             {provided.placeholder}
           </div>
         </div>

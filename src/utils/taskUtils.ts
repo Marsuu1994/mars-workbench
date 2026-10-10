@@ -56,12 +56,17 @@ export interface HabitWeek {
    * by instance; daily: by day, then instance. True when that instance is done.
    */
   slots: boolean[];
-  /** Each loaded instance's slot, by task id — a card's own mark */
-  slotByTaskId: Map<string, number>;
   /** Done slots */
   done: number;
   /** All slots */
   target: number;
+}
+
+/** The week's habit lines, plus where each loaded instance sits in its line. */
+export interface HabitWeeks {
+  habitWeekByTemplateId: Map<string, HabitWeek>;
+  /** Each loaded instance's slot in its line, by task id — a card's own mark */
+  slotByTaskId: Map<string, number>;
 }
 
 const DAY_MS = 86_400_000;
@@ -77,7 +82,7 @@ const DAY_MS = 86_400_000;
 export function computeHabitWeeks(
   tasks: TaskItem[],
   {periodKey, planTemplates, mode}: BoardPlan,
-): Map<string, HabitWeek> {
+): HabitWeeks {
   const tasksByTemplate = new Map<string, TaskItem[]>();
   for (const task of tasks) {
     if (!task.templateId) continue;
@@ -100,10 +105,10 @@ export function computeHabitWeeks(
     return dayOffset * frequency + task.instanceIndex;
   };
 
-  const habitWeeks = new Map<string, HabitWeek>();
+  const habitWeekByTemplateId = new Map<string, HabitWeek>();
+  const slotByTaskId = new Map<string, number>();
   for (const {templateId, type, frequency} of planTemplates) {
     const templateTasks = tasksByTemplate.get(templateId) ?? [];
-    const slotByTaskId = new Map<string, number>();
     let slotCount: number;
 
     if (type === TaskTypeEnum.DAILY) {
@@ -132,16 +137,15 @@ export function computeHabitWeeks(
       }
     }
 
-    habitWeeks.set(templateId, {
+    habitWeekByTemplateId.set(templateId, {
       type,
       frequency,
       slots,
-      slotByTaskId,
       done: slots.filter(Boolean).length,
       target: slotCount,
     });
   }
-  return habitWeeks;
+  return {habitWeekByTemplateId, slotByTaskId};
 }
 
 // ─── Sorting ───────────────────────────────────────────────────────────────
@@ -206,38 +210,4 @@ export function sortTasks(tasks: TaskItem[]): TaskItem[] {
     if (byCreatedAt !== 0) return byCreatedAt;
     return a.id.localeCompare(b.id);
   });
-}
-
-/**
- * Statuses rendered in the UI (excludes EXPIRED). BACKLOG is shown in the
- * backlog; TODO/DONE are the board columns.
- */
-type BoardStatus =
-  typeof TaskStatus.BACKLOG | typeof TaskStatus.TODO | typeof TaskStatus.DONE;
-
-/**
- * Group tasks by status and sort each group.
- * Used by KanbanBoard for both initial render and optimistic state updates.
- */
-export function groupAndSortTasks(
-  tasks: TaskItem[],
-): Record<BoardStatus, TaskItem[]> {
-  const grouped: Record<BoardStatus, TaskItem[]> = {
-    [TaskStatus.BACKLOG]: [],
-    [TaskStatus.TODO]: [],
-    [TaskStatus.DONE]: [],
-  };
-
-  for (const task of tasks) {
-    const bucket = grouped[task.status as BoardStatus];
-    if (bucket) {
-      bucket.push(task);
-    }
-  }
-
-  return {
-    [TaskStatus.BACKLOG]: sortTasks(grouped[TaskStatus.BACKLOG]),
-    [TaskStatus.TODO]: sortTasks(grouped[TaskStatus.TODO]),
-    [TaskStatus.DONE]: sortTasks(grouped[TaskStatus.DONE]),
-  } as Record<BoardStatus, TaskItem[]>;
 }

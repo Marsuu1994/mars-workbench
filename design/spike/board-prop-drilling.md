@@ -1,6 +1,6 @@
 # Spike: Simplify board prop drilling
 
-**Status: awaiting owner review** · 2026-10-10 · 回答 tracker 条目 *Simplify board prop drilling*（Cross-cutting › Medium）· 相关：`design/flows/projects.md`（PR 4 加 project step 的卡片 face）、`design/spike/scenario-states-without-production-props.md`（no console-only props）
+**Status: decided — Option C3**（view model + composition）, implemented in PR #53 · 2026-10-10 · 回答 tracker 条目 *Simplify board prop drilling*（Cross-cutting › Medium）· 相关：`design/flows/projects.md`（PR 4 加 project step 的卡片 face）、`design/spike/scenario-states-without-production-props.md`（no console-only props）
 
 > 语言约定：叙述用中文；产品名词、状态、代码标识保留英文（habit / project / step / one-off / backlog、`KanbanBoard`、`habitWeeks` …），和代码、mockup、tracker 里的叫法一一对应。
 
