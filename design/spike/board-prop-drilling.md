@@ -22,7 +22,6 @@ board 的 14 个组件文件里，有 10 个带着这两个值中的至少一个
 已规划的工作还会给卡片加输入，按现在的结构都会走同一条路：
 
 - **PR 4，project step 卡片**：project 名、step n of N、path 作为 signal（`baseline.md` › Phase 1）。`TaskItem` 上只有 `projectId` 和 `instanceIndex`，所以要从 server 带一个 `projects` lookup 下来，沿 `habitWeeks` 的路径传。
-- **Per-kind risk rules**（Board › Future）：habit pace 要用 `today` 和剩余天数，step 要 carry 次数，one-off 要 due date。`today` 会沿着 #52 刚拆掉的那条路回来。
 - **Backlog stacking**（Board › Medium）：在列表层把同一个 habit 的重复实例叠起来。
 
 ## Component tree · 从 route 到一张卡片
@@ -89,7 +88,7 @@ drilling 的深度取决于数据要经过几层**组件**（`KanbanBoard` → �
 ## Acceptance bar · 验收标准
 
 - 没有组件转手它不读的 prop。中间层（列、backlog、sheet）对 kind、habit、project 一无所知。
-- 给卡片加一个输入（PR 4 的 project context、某条 risk rule）时，只改算它的地方和显示它的 face，中间不动。
+- 给卡片加一个输入（比如 PR 4 的 project context）时，只改算它的地方和显示它的 face，中间不动。
 - 卡片和 face 在 gallery 和 scenario 里仍能直接用 fixture 渲染，没有 console-only props。
 - 拖拽和 pull 的乐观更新照常工作，移动失败时只回滚那一个 task。
 
@@ -103,7 +102,6 @@ drilling 的深度取决于数据要经过几层**组件**（`KanbanBoard` → �
 - **例 2**：PR 4，给 project step 加 context（project 名、step n/N、path）
 - **例 3**：手机 backlog 的 pull（`onPull`）
 - **例 4**：Design Console，gallery 里渲染一张 `TaskCard` 和一个 `BoardColumn`
-- **例 5**：per-kind risk rule 让 `today` 回来（habit pace）
 
 ## Option A — React context 传卡片输入
 
@@ -172,13 +170,6 @@ const {pullToTodo} = useBoard();
 </BoardProvider>
 ```
 
-例 5 · risk：context 加 `today`，face 自己算 pace。
-
-```tsx
-const {today} = useBoard();
-const paceRisk = habitWeek && getHabitPaceRisk(habitWeek, today); // 假设的 helper，risk rules 时再定
-```
-
 **Pros**
 
 - 改动最小，几乎都是删除。不加依赖，用的是 `BreakpointProvider` 已经在用的模式。
@@ -187,7 +178,7 @@ const paceRisk = habitWeek && getHabitPaceRisk(habitWeek, today); // 假设的 h
 **Cons**
 
 - **face 的输入被藏起来了。** `TaskCardFace` / `TaskCardMiniFace` / `MobileBacklogCard` 是复用最多的组件（desktop board、两个 backlog、gallery、scenario），每个复用的地方都要包 provider（例 4）。
-- **换算还留在原处，而且会越来越多。** face 仍然自己查 lookup、找 slot、按 kind 分支。PR 4 和 risk rules 都要两个 face 各写一遍（例 2、例 5）。
+- **换算还留在原处，而且会越来越多。** face 仍然自己查 lookup、找 slot、按 kind 分支。PR 4 要两个 face 各写一遍（例 2）。
 - 按 kind 区分仍是运行时判断（`task.templateId`、`kind === TaskKind.HABIT`），没有类型保护。
 
 **Implementation plan**
@@ -273,12 +264,6 @@ const {moveTask} = useBoardMoves();
 </BoardStoreProvider>
 ```
 
-例 5 · risk：store 加 `today`（server 提供），selector 里算 pace。注意 selector 不能每次返回新对象（见 Cons）。
-
-```tsx
-const paceRisk = useBoardStore(state => getHabitPaceRisk(state.habitWeeks.get(templateId), state.today));
-```
-
 **Pros**
 
 - 组件按 slice 订阅：一次拖拽可以只重渲染 slice 变了的卡片（现在是整棵树）。不过没有任何测量说明这里慢，board 上只有几十张卡片。
@@ -291,7 +276,7 @@ const paceRisk = useBoardStore(state => getHabitPaceRisk(state.habitWeeks.get(te
 - **引入第二种 store 模式。** `src/store/` 现在都是全局的 UI 状态单例。这会是第一个从 server 数据 hydrate、每实例一份的 store，需要在 AGENTS.md 加规则说明什么时候用哪种。
 - **tasks 有两份副本。** server props 和 store 要手动同步，进行中的乐观 patch 可能被更早一次 revalidation 触发的 `sync` 覆盖，和现在的 `useEffect` 是同一个 race。
 - **Zustand v5 的 selector 陷阱。** selector 每次返回新数组或对象（`state.tasks.filter(…)`）会触发无限重渲染警告，除非包 `useShallow` 或在 store 里预先算好。
-- **换算问题没解决。** 和 A 一样，face 仍然自己查找、自己换算（例 2、例 5），只是从 props 换成了 selector。
+- **换算问题没解决。** 和 A 一样，face 仍然自己查找、自己换算（例 2），只是从 props 换成了 selector。
 - 卡片读 hook 之后（例 3）不再是纯展示组件，gallery 每个 specimen 都要搭 store（例 4）。
 
 **Implementation plan**
@@ -311,7 +296,7 @@ const paceRisk = useBoardStore(state => getHabitPaceRisk(state.habitWeeks.get(te
 
 - 一个纯函数把 tasks 和 board 的输入换算成 **card model**，并且已经按 status 分组、排好序。每个 model 是按 kind 区分的 union，正好带着该 kind 的 face 要显示的东西。`toBoardCards` 取代 `groupAndSortTasks` 的调用，吸收 `computeHabitWeeks`，以及叶子组件里的 `getTaskKind` 和 slot 查找。
 - 卡片和 face 只接收一个 `card`，`switch (card.kind)`，TypeScript 自动收窄。不再有按 kind 区分的可选 prop。
-- `KanbanBoard` 基于乐观的 `localTasks` 用 `useMemo` 换算，所以 habit 卡片拖到 Done 的那一刻 dots 就会更新。也因为这一点，换算必须在 client 上跑；server 只提供输入（`plan`，PR 4 的 `projects`，risk rules 的 `today`）。
+- `KanbanBoard` 基于乐观的 `localTasks` 用 `useMemo` 换算，所以 habit 卡片拖到 Done 的那一刻 dots 就会更新。也因为这一点，换算必须在 client 上跑；server 只提供输入（`plan`，PR 4 的 `projects`）。
 - 卡片的 `currentSlot` 由 `toBoardCards` 直接给出，`HabitWeek.slotByTaskId` 就只是换算过程里的中间结果，可以从类型里拿掉。
 
 ```ts
@@ -323,7 +308,7 @@ export type BoardCard =
 
 export function toBoardCards(
   tasks: TaskItem[],
-  {plan}: BoardCardInputs, // PR 4：+ projects · risk rules：+ today
+  {plan}: BoardCardInputs, // PR 4：+ projects
 ): Record<BoardStatus, BoardCard[]> {
   const habitWeeks = computeHabitWeeks(tasks, plan);
   const toCard = (task: TaskItem): BoardCard => {
@@ -450,19 +435,10 @@ const LEETCODE_CARD: BoardCard = {kind: TaskKind.HABIT, task: leetcodeTask, habi
 </BoardColumn>
 ```
 
-例 5 · risk：`today` 作为 `toBoardCards` 的输入，由 server 提供（`fetchBoard` 本来就算了 `today`），只经过 page → `BoardScreen` → `KanbanBoard` 一条短路径。卡片拿到的是结果，scenario 传一个固定日期就能把状态钉住。
-
-```ts
-// toBoardCards(tasks, {plan, projects, today})
-case TaskKind.HABIT:
-  return {kind, task, habitWeek, currentSlot, risk: getHabitPaceRisk(habitWeek, today)};
-// face：card.risk 决定 signal line 的颜色
-```
-
 **Pros（三种方式共有）**
 
 - **治的是原因，不只是换一种传法。** 换算只在一个纯函数里做一次，face 只负责渲染。`getTaskKind` 和 slot 查找从组件里消失。
-- **PR 4 和 risk rules 只落在两处**：`toBoardCards` 的一个分支，加上显示它的 face（例 2、例 5）。
+- **PR 4 只落在两处**：`toBoardCards` 的一个分支，加上显示它的 face（例 2）。以后再给卡片加输入也是同样两处。
 - **有类型保护。** kind union 让 step 的 face 不可能拿到 `habitWeek`。
 - `toBoardCards` 是纯函数，仓库以后加测试时可以直接做单元测试；backlog stacking 分组重复 habit 也正好放在这里。
 - 不加依赖、不加新模式，延续 `taskUtils` 的做法。
@@ -505,9 +481,9 @@ case TaskKind.HABIT:
 
 关键在于怎么看这些被层层传递的值：是**叶子该自己去拿的环境值**（A、B、C2），还是 **board 应该一次算好的每张卡片的事实**（C）。
 
-- 选 **A**：最快缓解。代价是 face 的输入被藏起来，换算继续散在叶子里，PR 4 和 risk rules 各要改两个 face。
+- 选 **A**：最快缓解。代价是 face 的输入被藏起来，换算继续散在叶子里，PR 4 要改两个 face。
 - 选 **B**：如果预计 board 会出现多个相距较远、要写 task 状态的组件。目前只有一个 owner，B 的大部分机制会闲置。
-- 选 **C**：把要传的东西本身去掉。卡片拿到的是算好的 model，中间层对 kind 一无所知，PR 4 和 risk rules 都只有一个地方加。
+- 选 **C**：把要传的东西本身去掉。卡片拿到的是算好的 model，中间层对 kind 一无所知，PR 4 只有一个地方加。
 
 **Recommendation：C1**，加上 *Along the way* 第 1 项，在 PR 4 之前落地，这样 project 卡片一开始就是 `BoardCard` 的一个分支。C1 和 C3 的差别只剩 `onPull` 一层转手，不值得把列表渲染搬进 `KanbanBoard`；如果想让列和 backlog 成为纯外框，C3 也成立。
 
@@ -563,7 +539,6 @@ case TaskKind.HABIT:
 - **TanStack Query / SWR 做 client 缓存。** 和 app 全局在用的 server action + `revalidatePath` 模式重复，只为一个页面加一个依赖。
 - **Jotai 或其他 atom 库。** 取舍和 Option B 一样，还多一个依赖。
 - **在 server 上算 card model。** habit 卡片拖到 Done 时 dots 要立刻更新，换算必须基于 client 的乐观 tasks 重跑。server 只提供输入。
-- **risk rules 回来时让 face 自己调用 `getTodayDate()`。** 能少一个输入，但 scenario 就没法固定日期，而且午夜前后 server 渲染的卡片可能和 hydrate 后的不一致。见 Option C 例 5。
 
 ## After the decision · 拍板之后
 

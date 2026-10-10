@@ -90,8 +90,8 @@ Open items: see [design/tracker.md](./design/tracker.md).
 
 ### 2026-10-10
 - **Board prop-drilling spike written** (`design/spike/board-prop-drilling.md`, awaiting review):
-  - **Diagnosis**: after #52 removed rollover, `habitWeeks` and `onPull` still thread from `KanbanBoard` through columns / backlogs to the card faces. They are per-card inputs each leaf re-derives, not shared state, and PR 4's project context and the per-kind risk rules would take the same path.
-  - **Options**, each shown on the same five examples (habit dots, PR 4 step context, mobile pull, gallery specimens, a risk rule bringing `today` back): React context (S), a per-request Zustand store hydrated from the server (M), and a card view model derived once in `KanbanBoard`, delivered as props, context + container, or children. Recommends the view model passed as `cards` (C1), before PR 4; the owner ruled out context + container in review.
+  - **Diagnosis**: after #52 removed rollover, `habitWeeks` and `onPull` still thread from `KanbanBoard` through columns / backlogs to the card faces. They are per-card inputs each leaf re-derives, not shared state, and PR 4's project context would take the same path.
+  - **Options**, each shown on the same four examples (habit dots, PR 4 step context, mobile pull, gallery specimens): React context (S), a per-request Zustand store hydrated from the server (M), and a card view model derived once in `KanbanBoard`, delivered as props, context + container, or children. Recommends the view model passed as `cards` (C1), before PR 4; the owner ruled out context + container in review.
   - **Component tree review** (route → card): face layout written three times, the mobile backlog panel copied into its scenario, an extra BoardHeader div, two client components that need no `'use client'`, backlog cards rendered three times on mobile, a drifted `loading.tsx` skeleton. Also noted: board moves still roll back with a whole-list snapshot (the matrix already rolls back per task).
 
 ### 2026-10-09
