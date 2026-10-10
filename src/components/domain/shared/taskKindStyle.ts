@@ -15,6 +15,8 @@ interface TaskKindStyle {
   fill: string;
   /** Signal mark outlines */
   outline: string;
+  /** The card's own signal mark: full-strength outline plus a halo */
+  current: string;
   Icon: ComponentType<SVGProps<SVGSVGElement>>;
 }
 
@@ -28,6 +30,7 @@ export const TASK_KIND_STYLE: Record<TaskKind, TaskKindStyle> = {
     edge: 'fx-kind-edge fx-k-success',
     fill: 'bg-success border-success',
     outline: 'border-success/65',
+    current: 'border-success ring-success/30',
     Icon: ArrowPathIcon,
   },
   [TaskKind.PROJECT]: {
@@ -35,6 +38,7 @@ export const TASK_KIND_STYLE: Record<TaskKind, TaskKindStyle> = {
     edge: 'fx-kind-edge fx-k-secondary',
     fill: 'bg-secondary border-secondary',
     outline: 'border-secondary/65',
+    current: 'border-secondary ring-secondary/30',
     Icon: MapIcon,
   },
   [TaskKind.ONE_OFF]: {
@@ -42,6 +46,7 @@ export const TASK_KIND_STYLE: Record<TaskKind, TaskKindStyle> = {
     edge: 'fx-kind-edge fx-k-info',
     fill: 'bg-info border-info',
     outline: 'border-info/65',
+    current: 'border-info ring-info/30',
     Icon: Squares2X2Icon,
   },
 };

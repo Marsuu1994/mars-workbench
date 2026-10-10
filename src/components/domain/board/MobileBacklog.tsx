@@ -16,7 +16,6 @@ import {MobileBacklogContent} from './MobileBacklogContent';
 
 interface MobileBacklogProps {
   tasks: TaskItem[];
-  today: Date;
   /** Per-template habit context + dots, keyed by templateId */
   habitWeeks: Map<string, HabitWeek>;
   onPull: (taskId: string) => void;
@@ -31,7 +30,6 @@ interface MobileBacklogProps {
  */
 export default function MobileBacklog({
   tasks,
-  today,
   habitWeeks,
   onPull,
 }: MobileBacklogProps) {
@@ -93,7 +91,6 @@ export default function MobileBacklog({
         <div className="flex-1 overflow-y-auto p-4">
           <MobileBacklogContent
             tasks={tasks}
-            today={today}
             habitWeeks={habitWeeks}
             onPull={onPull}
           />

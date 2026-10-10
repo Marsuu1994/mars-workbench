@@ -9,7 +9,6 @@ import {
   computeHabitWeeks,
   type BoardPlan,
 } from '@/utils/taskUtils';
-import {getTodayDate} from '@/utils/dateUtils';
 import {updateTaskStatusAction} from '@/actions/taskActions';
 import BoardColumn from './BoardColumn';
 import DesktopBacklog from './DesktopBacklog';
@@ -29,14 +28,12 @@ export default function KanbanBoard({tasks, plan}: KanbanBoardProps) {
     setLocalTasks(tasks);
   }, [tasks]);
 
-  const today = useMemo(() => getTodayDate(), []);
-
   const habitWeeks = useMemo(
     () => computeHabitWeeks(localTasks, plan),
     [localTasks, plan],
   );
 
-  const columns = groupAndSortTasks(localTasks, today);
+  const columns = groupAndSortTasks(localTasks);
 
   function handleDragEnd(result: DropResult) {
     setIsDragging(false);
@@ -100,27 +97,23 @@ export default function KanbanBoard({tasks, plan}: KanbanBoardProps) {
           <BoardColumn
             status={TaskStatus.TODO}
             tasks={columns[TaskStatus.TODO]}
-            today={today}
             habitWeeks={habitWeeks}
             isDragActive={isDragging}
           />
           <BoardColumn
             status={TaskStatus.DONE}
             tasks={columns[TaskStatus.DONE]}
-            today={today}
             habitWeeks={habitWeeks}
             isDragActive={isDragging}
           />
         </div>
         <DesktopBacklog
           tasks={columns[TaskStatus.BACKLOG]}
-          today={today}
           habitWeeks={habitWeeks}
         />
       </div>
       <MobileBacklog
         tasks={columns[TaskStatus.BACKLOG]}
-        today={today}
         habitWeeks={habitWeeks}
         onPull={handlePullToTodo}
       />

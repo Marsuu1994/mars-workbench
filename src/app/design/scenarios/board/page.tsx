@@ -7,7 +7,6 @@ import {
   MID_WEEK_TASKS,
   MID_WEEK_PROGRESS,
   SCENARIO_PLAN,
-  SCENARIO_TODAY,
   BACKLOG_TASKS,
   SCENARIO_HABIT_WEEKS,
 } from './fixtures';
@@ -40,7 +39,7 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
   {
     label: 'Board',
     title: 'Board — active plan',
-    note: 'Todo · Done with kind-first cards: habits with their plan line and week dots (one rolled over from yesterday), one-offs with their quadrant. Backlog collapsed.',
+    note: 'Todo · Done with kind-first cards: habits with their plan line and week dots (each card rings its own dot; Workout shows a missed day), one-offs with their quadrant. Backlog collapsed.',
     content: (
       <BoardScreen
         plan={SCENARIO_PLAN}
@@ -70,7 +69,6 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
     content: (
       <MobileBacklogPanel
         tasks={BACKLOG_TASKS}
-        today={SCENARIO_TODAY}
         habitWeeks={SCENARIO_HABIT_WEEKS}
       />
     ),

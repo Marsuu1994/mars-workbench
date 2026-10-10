@@ -12,7 +12,6 @@ type TaskCardProps = {
   task: TaskItem;
   /** Position index within the column — required by Draggable */
   index: number;
-  today: Date;
   /** The habit's plan line and week dots; absent for other kinds */
   habitWeek?: HabitWeek;
 };
@@ -21,12 +20,7 @@ type TaskCardProps = {
  * The draggable board card: the full kind-first face from md up, the 136px
  * mini face in the mobile rows. Done cards dim and stay put.
  */
-export default function TaskCard({
-  task,
-  index,
-  today,
-  habitWeek,
-}: TaskCardProps) {
+export default function TaskCard({task, index, habitWeek}: TaskCardProps) {
   const isDone = task.status === TaskStatus.DONE;
   const {edge} = TASK_KIND_STYLE[getTaskKind(task.type)];
 
@@ -42,10 +36,10 @@ export default function TaskCard({
           } ${snapshot.isDragging ? 'fx-card-lift scale-[1.02] z-50' : ''}`}
         >
           <div className="md:hidden flex h-full flex-col gap-1 px-[9px] py-2">
-            <TaskCardMiniFace task={task} today={today} habitWeek={habitWeek} />
+            <TaskCardMiniFace task={task} habitWeek={habitWeek} />
           </div>
           <div className="hidden md:flex flex-col gap-1.5 px-3 py-2.5">
-            <TaskCardFace task={task} today={today} habitWeek={habitWeek} />
+            <TaskCardFace task={task} habitWeek={habitWeek} />
           </div>
         </div>
       )}

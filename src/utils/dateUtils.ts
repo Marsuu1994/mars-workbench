@@ -24,14 +24,6 @@ export function getTodayDate(): Date {
 }
 
 /**
- * Returns yesterday's date at midnight (local time).
- */
-export function getYesterdayDate(): Date {
-  const today = getTodayDate();
-  return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
-}
-
-/**
  * Returns true if `a` and `b` share the same year/month/day.
  * Returns false if `a` is null.
  */
@@ -102,37 +94,11 @@ export function getSundayFromPeriodKey(periodKey: string): Date {
  * to a local-midnight Date with the same calendar date.
  *
  * Without this, a UTC midnight date renders as the previous day in negative-offset
- * timezones (e.g. PST/UTC-8), causing incorrect rollover detection and display.
+ * timezones (e.g. PST/UTC-8), placing a daily task on the wrong day (habit dots, sorting).
  */
 export function normalizeForDate(date: Date): Date {
   const d = new Date(date);
   return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
-}
-
-/**
- * Formats a date as a short human-readable string, e.g. "Mon, Feb 23".
- * Used for the rollover date on task cards.
- * Uses timeZone: "UTC" so that Prisma DATE values (stored as UTC midnight)
- * display the correct calendar date regardless of the client's local offset.
- */
-export function formatShortDate(date: Date): string {
-  return new Date(date).toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    timeZone: 'UTC',
-  });
-}
-
-/**
- * Formats a date as its short weekday, e.g. "Mon" — the rollover marker on
- * the 136px mobile card. UTC for the same reason as formatShortDate.
- */
-export function formatShortWeekday(date: Date): string {
-  return new Date(date).toLocaleDateString('en-US', {
-    weekday: 'short',
-    timeZone: 'UTC',
-  });
 }
 
 /**

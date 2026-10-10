@@ -27,7 +27,6 @@ import {TaskStatus, TaskType} from '@/utils/enums';
 import {getTaskKind} from '@/utils/taskUtils';
 import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
 import {
-  TODAY,
   SIZE_FIXTURES,
   TYPE_FIXTURES,
   SUGGESTION_CHIPS,
@@ -112,7 +111,7 @@ export const DomainTab = () => {
   const renderTaskCards = () => (
     <Section
       title="TaskCard"
-      description="The board's kind-first card, every kind in every place it sits: kind + context (plan line, ↩ date, quadrant), the title, then the kind's signal (habit week dots) and a neutral size. No risk. Below md the same card shows its 136px mini face (next section)."
+      description="The board's kind-first card, every kind in every place it sits: kind + context (plan line, quadrant), the title, then the kind's signal and a neutral size — a habit's week dots in order, filled when done, with the card's own dot ringed. No risk. Below md the same card shows its 136px mini face (next section)."
     >
       <DragDropContext onDragEnd={() => undefined}>
         <Droppable droppableId="gallery-cards">
@@ -128,7 +127,6 @@ export const DomainTab = () => {
                     <TaskCard
                       task={fixture.task}
                       index={index}
-                      today={TODAY}
                       habitWeek={fixture.habitWeek}
                     />
                   </div>
@@ -145,7 +143,7 @@ export const DomainTab = () => {
   const renderMiniFaces = () => (
     <Section
       title="TaskCardMiniFace"
-      description="The 136px face TaskCard shows in the mobile board rows: kind label, a two-line title, then dots — or ↩ and the day for a rollover — and the size. Shown here in the card's mobile frame."
+      description="The 136px face TaskCard shows in the mobile board rows: kind label, a two-line title, then the week dots (the card's own ringed) and the size. Shown here in the card's mobile frame."
     >
       <Row>
         {MINI_CARD_FIXTURES.map(({label, task, habitWeek}) => (
@@ -155,11 +153,7 @@ export const DomainTab = () => {
                 TASK_KIND_STYLE[getTaskKind(task.type)].edge
               }`}
             >
-              <TaskCardMiniFace
-                task={task}
-                today={TODAY}
-                habitWeek={habitWeek}
-              />
+              <TaskCardMiniFace task={task} habitWeek={habitWeek} />
             </div>
           </Variant>
         ))}
@@ -177,7 +171,6 @@ export const DomainTab = () => {
           <MobileBacklogCard
             key={task.id}
             task={{...task, status: TaskStatus.BACKLOG}}
-            today={TODAY}
             habitWeek={habitWeek}
             onPull={() => undefined}
           />
@@ -196,7 +189,6 @@ export const DomainTab = () => {
           <BoardColumn
             status={BOARD_COLUMN_STATUS}
             tasks={BOARD_COLUMN_TASKS}
-            today={TODAY}
             habitWeeks={BOARD_COLUMN_HABIT_WEEKS}
           />
         </div>
