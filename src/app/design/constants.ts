@@ -53,7 +53,6 @@ export const SCENARIO_HREFS = {
 
 // ── Shared fixtures ──────────────────────────────────────────────────────────
 export const TODAY = new Date();
-const YESTERDAY = new Date(TODAY.getTime() - 24 * 60 * 60 * 1000);
 
 /** Every TaskSize in display order, paired with its Fibonacci points. */
 export const SIZE_FIXTURES: {size: TaskSize; points: number}[] = [
@@ -185,25 +184,38 @@ const xs = {
   points: SIZE_TO_POINTS[TaskSize.EXTRA_SMALL],
 };
 
-/** Habit plan lines + this week's dots, as KanbanBoard computes them. */
-const LEETCODE_WEEK: HabitWeek = {
-  type: TaskType.WEEKLY,
-  frequency: 3,
-  done: 1,
-  target: 3,
-};
-const WORKOUT_WEEK: HabitWeek = {
-  type: TaskType.DAILY,
-  frequency: 1,
-  done: 2,
-  target: 5,
-};
-const READ_WEEK: HabitWeek = {
-  type: TaskType.WEEKLY,
-  frequency: 2,
-  done: 0,
-  target: 2,
-};
+/** A habit's week as KanbanBoard computes it: its slots in order (true =
+    done) and the slot each fixture card holds. */
+const habitWeek = (
+  type: TaskType,
+  frequency: number,
+  slots: boolean[],
+  slotByTaskId: Record<string, number>,
+): HabitWeek => ({
+  type,
+  frequency,
+  slots,
+  slotByTaskId: new Map(Object.entries(slotByTaskId)),
+  done: slots.filter(Boolean).length,
+  target: slots.length,
+});
+
+// LeetCode 3× / week: #1 done, the Todo card is #2.
+const LEETCODE_WEEK = habitWeek(TaskType.WEEKLY, 3, [true, false, false], {
+  't-habit': 1,
+});
+// Workout daily (NORMAL): Mon and Wed done, Tue missed; the Todo card is
+// Thursday's, the Done card Wednesday's.
+const WORKOUT_WEEK = habitWeek(
+  TaskType.DAILY,
+  1,
+  [true, false, true, false, false],
+  {'t-daily': 3, 't-habit-done': 2},
+);
+// Read 2× / week, both still in the backlog; the card is #1.
+const READ_WEEK = habitWeek(TaskType.WEEKLY, 2, [false, false], {
+  't-backlog': 0,
+});
 
 export interface TaskCardFixture {
   label: string;
@@ -215,7 +227,7 @@ export interface TaskCardFixture {
     backlog — Track This Week sends it straight to Todo). */
 export const TASK_CARD_FIXTURES: TaskCardFixture[] = [
   {
-    label: 'Habit · Todo',
+    label: 'Habit · Todo (weekly)',
     task: baseTask({
       id: 't-habit',
       templateId: 'tpl-leetcode',
@@ -227,13 +239,13 @@ export const TASK_CARD_FIXTURES: TaskCardFixture[] = [
     habitWeek: LEETCODE_WEEK,
   },
   {
-    label: 'Habit · rollover',
+    label: 'Habit · Todo (daily)',
     task: baseTask({
-      id: 't-rollover',
+      id: 't-daily',
       templateId: 'tpl-workout',
       title: 'Workout',
       description: '45 min — gym or run',
-      forDate: YESTERDAY,
+      forDate: TODAY,
       ...xs,
     }),
     habitWeek: WORKOUT_WEEK,
@@ -289,7 +301,7 @@ export const TASK_CARD_FIXTURES: TaskCardFixture[] = [
   },
 ];
 
-/** The 136px mobile-row faces: dots, a rollover's ↩ day, and a one-off. */
+/** The 136px mobile-row faces: a weekly and a daily habit, and a one-off. */
 export const MINI_CARD_FIXTURES: TaskCardFixture[] = [
   TASK_CARD_FIXTURES[0],
   TASK_CARD_FIXTURES[1],

@@ -4,20 +4,13 @@ import type {ReactNode} from 'react';
 import {useTranslations} from 'next-intl';
 import type {TaskItem} from '@/lib/db/tasks';
 import {TaskStatus, TaskType} from '@/utils/enums';
-import {
-  getTaskKind,
-  isRolloverTask,
-  TaskKind,
-  type HabitWeek,
-} from '@/utils/taskUtils';
-import {formatShortDate} from '@/utils/dateUtils';
+import {getTaskKind, TaskKind, type HabitWeek} from '@/utils/taskUtils';
 import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {TaskCardHead} from './TaskCardHead';
 import {HabitSignal} from './HabitSignal';
 
 interface TaskCardFaceProps {
   task: TaskItem;
-  today: Date;
   /** The habit's plan line and week dots; absent for other kinds */
   habitWeek?: HabitWeek;
   /** Optional action beside the title (the mobile sheet's ↑ Todo) */
@@ -29,12 +22,7 @@ interface TaskCardFaceProps {
  * mobile backlog sheet. Line 1: kind + context. Then the title (and its
  * description until done). Last line: the kind's signal and a neutral size.
  */
-export const TaskCardFace = ({
-  task,
-  today,
-  habitWeek,
-  action,
-}: TaskCardFaceProps) => {
+export const TaskCardFace = ({task, habitWeek, action}: TaskCardFaceProps) => {
   const tCard = useTranslations('Board.Card');
   const kind = getTaskKind(task.type);
   const isDone = task.status === TaskStatus.DONE;
@@ -47,13 +35,6 @@ export const TaskCardFace = ({
   const renderContext = (): ReactNode => {
     switch (kind) {
       case TaskKind.HABIT:
-        if (isRolloverTask(task, today)) {
-          return (
-            <span className="text-base-content/60">
-              ↩ {formatShortDate(task.forDate!)}
-            </span>
-          );
-        }
         return habitWeek ? renderPlanLine(habitWeek) : null;
       case TaskKind.ONE_OFF:
         return task.quadrant ? tCard(`Quadrant.${task.quadrant}`) : null;
@@ -85,7 +66,11 @@ export const TaskCardFace = ({
 
       <div className="flex flex-wrap items-center gap-2 min-h-[18px]">
         {kind === TaskKind.HABIT && habitWeek && (
-          <HabitSignal habitWeek={habitWeek} variant="card" />
+          <HabitSignal
+            habitWeek={habitWeek}
+            currentSlot={habitWeek.slotByTaskId.get(task.id)}
+            variant="card"
+          />
         )}
         <SizeChip size={task.size} points={task.points} className="ml-auto" />
       </div>

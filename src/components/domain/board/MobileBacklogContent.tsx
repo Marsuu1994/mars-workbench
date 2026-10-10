@@ -7,7 +7,6 @@ import MobileBacklogCard from './MobileBacklogCard';
 
 interface MobileBacklogContentProps {
   tasks: TaskItem[];
-  today: Date;
   /** Per-template habit context + dots, keyed by templateId */
   habitWeeks: Map<string, HabitWeek>;
   onPull: (taskId: string) => void;
@@ -21,7 +20,6 @@ interface MobileBacklogContentProps {
  */
 export const MobileBacklogContent = ({
   tasks,
-  today,
   habitWeeks,
   onPull,
 }: MobileBacklogContentProps) => {
@@ -41,7 +39,6 @@ export const MobileBacklogContent = ({
         <MobileBacklogCard
           key={task.id}
           task={task}
-          today={today}
           habitWeek={
             task.templateId ? habitWeeks.get(task.templateId) : undefined
           }

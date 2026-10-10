@@ -32,7 +32,8 @@ Open [http://localhost:3000](http://localhost:3000)
 ### Board
 
 - Two-column kanban (Todo · Done; work in progress stays in Todo): drag-and-drop with optimistic UI, fibonacci task sizing (XS–XL), per-column accents
-- **Kind-first cards**: each card opens with its kind — habit or one-off — in a fixed colour, then its context (a habit's plan line or ↩ rollover date, a one-off's quadrant); a habit's week dots and a neutral size close the card. Risk is switched off until per-kind rules return
+- **Kind-first cards**: each card opens with its kind — habit or one-off — in a fixed colour, then its context (a habit's plan line, a one-off's quadrant); a neutral size closes the card. A habit's week dots show each instance in order, filled when done, with the card's own dot ringed. Risk is switched off until per-kind rules return
+- **Missed days expire**: a habit instance not done by the end of its day expires and stays an empty dot
 - **Backlog** stages template-generated instances and pulls them onto the board — right-edge drag panel on desktop, bottom sheet on mobile (from a peeking "Backlog" pill); backlog tasks count toward the week projection, not Today
 - **Progress dashboard**: Today ring, stat metrics, Week Progress bar
 - One-off (`AD_HOC`) tasks are created only from the priority matrix and reach the board via Track This Week
@@ -88,6 +89,10 @@ Open items: see [design/tracker.md](./design/tracker.md).
 ## Update Log
 
 ### 2026-10-09
+- **Habit dots per card, rollover removed** (follow-up to Phase 1 PR 2; the spike had rollover removal in Phase 2):
+  - **Each habit card shows its own place in the week.** The dots are the week's instances in order: weekly lines by instance, daily lines by day and then instance. A dot fills when its instance is done, and the card's own dot is ringed in the habit colour. Before, every card of a habit showed the same `n / N`. Up to 10 dots, then the count alone.
+  - **Rollover is gone.** The daily sync expires every unfinished daily task from before today; it used to keep yesterday's for one extra day. Yesterday's undone instance leaves the board and stays an empty dot. The ↩ date, the rollover sort group and the unused date helpers are removed. Without rollover the board components no longer need `today`, so that prop is gone from the whole card chain.
+  - `computeHabitWeeks(tasks, plan)` reads the plan's week (`periodKey`) to place daily instances. The gallery and board scenario fixtures now show a missed day and a ringed dot on every habit card.
 - **AGENTS.md: branch names say what the PR does** — `claude/<feature>-<change>` in kebab-case, with the step for a multi-PR project (`pr2`); a remote session whose assigned branch is a random name opens a descriptive branch for its PR instead.
 - **Week model Phase 1, PR 3 of 5: project data layer** (no UI yet):
   - **Migrations, additive only**: `TaskType.PROJECT` in its own migration, then a `projects` table, `tasks.project_id` with a no-cascade FK and an index on `(project_id, instance_index)`. A step's order reuses `instance_index` as its 1-based step number.

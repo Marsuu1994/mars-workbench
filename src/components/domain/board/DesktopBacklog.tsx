@@ -16,7 +16,6 @@ import TaskCard from './TaskCard';
 
 interface DesktopBacklogProps {
   tasks: TaskItem[];
-  today: Date;
   /** Per-template habit context + dots, keyed by templateId */
   habitWeeks: Map<string, HabitWeek>;
 }
@@ -28,7 +27,6 @@ interface DesktopBacklogProps {
  */
 export default function DesktopBacklog({
   tasks,
-  today,
   habitWeeks,
 }: DesktopBacklogProps) {
   const t = useTranslations('Board.Backlog');
@@ -101,7 +99,6 @@ export default function DesktopBacklog({
               key={task.id}
               task={task}
               index={index}
-              today={today}
               habitWeek={
                 task.templateId ? habitWeeks.get(task.templateId) : undefined
               }
