@@ -1,21 +1,12 @@
 'use client';
 
 import {useTranslations} from 'next-intl';
+import type {BoardProgress} from '@/types/board';
 import {StatBlock} from '@/components/ui/StatBlock';
 import {ProgressBar} from '@/components/ui/ProgressBar';
 import {SectionLabel} from '@/components/ui/SectionLabel';
 
-interface ProgressDashboardProps {
-  todayDoneCount: number;
-  todayTotalCount: number;
-  todayDonePoints: number;
-  todayTotalPoints: number;
-  weekDoneCount: number;
-  weekProjectedCount: number;
-  weekDonePoints: number;
-  weekProjectedPoints: number;
-  daysElapsed: number;
-}
+type ProgressDashboardProps = BoardProgress;
 
 const RADIUS = 22;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS; // ≈ 138.23

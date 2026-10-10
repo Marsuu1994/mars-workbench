@@ -17,21 +17,5 @@ export default async function KanbanPage() {
     );
   }
 
-  return (
-    <BoardScreen
-      plan={board.plan}
-      progress={{
-        todayDoneCount: board.todayDoneCount,
-        todayTotalCount: board.todayTotalCount,
-        todayDonePoints: board.todayDonePoints,
-        todayTotalPoints: board.todayTotalPoints,
-        weekDoneCount: board.weekDoneCount,
-        weekProjectedCount: board.weekProjectedCount,
-        weekDonePoints: board.weekDonePoints,
-        weekProjectedPoints: board.weekProjectedPoints,
-        daysElapsed: board.daysElapsed,
-      }}
-      tasks={board.tasks}
-    />
-  );
+  return <BoardScreen {...board} />;
 }

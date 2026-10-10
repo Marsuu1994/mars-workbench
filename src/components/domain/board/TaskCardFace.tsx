@@ -2,19 +2,20 @@
 
 import type {ReactNode} from 'react';
 import {useTranslations} from 'next-intl';
-import type {TaskItem} from '@/lib/db/tasks';
 import {TaskStatus, TaskType} from '@/utils/enums';
-import {getTaskKind, TaskKind, type HabitWeek} from '@/utils/taskUtils';
+import {TaskKind, type HabitWeek} from '@/utils/taskUtils';
+import type {BoardCard} from '@/utils/boardCardUtils';
 import {SizeChip} from '@/components/domain/shared/SizeChip';
+import {cn} from '@/components/ui/cn';
 import {TaskCardHead} from './TaskCardHead';
 import {HabitSignal} from './HabitSignal';
 
 interface TaskCardFaceProps {
-  task: TaskItem;
-  /** The habit's plan line and week dots; absent for other kinds */
-  habitWeek?: HabitWeek;
+  card: BoardCard;
   /** Optional action beside the title (the mobile sheet's ↑ Todo) */
   action?: ReactNode;
+  /** Visibility from the host card (TaskCard swaps faces at md) */
+  className?: string;
 }
 
 /**
@@ -22,9 +23,9 @@ interface TaskCardFaceProps {
  * mobile backlog sheet. Line 1: kind + context. Then the title (and its
  * description until done). Last line: the kind's signal and a neutral size.
  */
-export const TaskCardFace = ({task, habitWeek, action}: TaskCardFaceProps) => {
+export const TaskCardFace = ({card, action, className}: TaskCardFaceProps) => {
   const tCard = useTranslations('Board.Card');
-  const kind = getTaskKind(task.type);
+  const {task} = card;
   const isDone = task.status === TaskStatus.DONE;
 
   const renderPlanLine = ({type, frequency}: HabitWeek) =>
@@ -33,9 +34,9 @@ export const TaskCardFace = ({task, habitWeek, action}: TaskCardFaceProps) => {
       : tCard('planLineWeekly', {frequency});
 
   const renderContext = (): ReactNode => {
-    switch (kind) {
+    switch (card.kind) {
       case TaskKind.HABIT:
-        return habitWeek ? renderPlanLine(habitWeek) : null;
+        return card.habitWeek ? renderPlanLine(card.habitWeek) : null;
       case TaskKind.ONE_OFF:
         return task.quadrant ? tCard(`Quadrant.${task.quadrant}`) : null;
       default:
@@ -43,9 +44,24 @@ export const TaskCardFace = ({task, habitWeek, action}: TaskCardFaceProps) => {
     }
   };
 
+  const renderSignal = (): ReactNode => {
+    switch (card.kind) {
+      case TaskKind.HABIT:
+        return card.habitWeek ? (
+          <HabitSignal
+            habitWeek={card.habitWeek}
+            currentSlot={card.currentSlot}
+            variant="card"
+          />
+        ) : null;
+      default:
+        return null;
+    }
+  };
+
   return (
-    <>
-      <TaskCardHead kind={kind} variant="card" context={renderContext()} />
+    <div className={cn('flex flex-col gap-1.5 px-3 py-2.5', className)}>
+      <TaskCardHead kind={card.kind} variant="card" context={renderContext()} />
 
       <div className="flex items-start gap-2.5">
         <h3
@@ -65,15 +81,9 @@ export const TaskCardFace = ({task, habitWeek, action}: TaskCardFaceProps) => {
       )}
 
       <div className="flex flex-wrap items-center gap-2 min-h-[18px]">
-        {kind === TaskKind.HABIT && habitWeek && (
-          <HabitSignal
-            habitWeek={habitWeek}
-            currentSlot={habitWeek.slotByTaskId.get(task.id)}
-            variant="card"
-          />
-        )}
+        {renderSignal()}
         <SizeChip size={task.size} points={task.points} className="ml-auto" />
       </div>
-    </>
+    </div>
   );
 };

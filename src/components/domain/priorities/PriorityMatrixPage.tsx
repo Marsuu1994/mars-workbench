@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useEffect, useMemo} from 'react';
+import {useState, useMemo} from 'react';
 import {DragDropContext, type DropResult} from '@hello-pangea/dnd';
 import {useTranslations} from 'next-intl';
 import Link from 'next/link';
@@ -15,6 +15,7 @@ import type {TaskItem} from '@/lib/db/tasks';
 import {PriorityQuadrant} from '@/utils/enums';
 import type {TrackTargetStatus} from '@/schemas';
 import type {MatrixActivePlan} from '@/services/matrixService';
+import {useOptimisticTasks} from '@/hooks/useOptimisticTasks';
 import {
   updateTaskQuadrantAction,
   trackTaskAction,
@@ -63,7 +64,8 @@ export default function PriorityMatrixPage({
 }: PriorityMatrixPageProps) {
   const t = useTranslations('Priorities');
   const tQuadrant = useTranslations('Enums.PriorityQuadrant');
-  const [localTasks, setLocalTasks] = useState<TaskItem[]>(tasks);
+  const {localTasks, setLocalTasks, runOptimisticTaskUpdate} =
+    useOptimisticTasks(tasks);
   const [openPopoverTaskId, setOpenPopoverTaskId] = useState<string | null>(
     null,
   );
@@ -76,10 +78,6 @@ export default function PriorityMatrixPage({
     null,
   );
   const [undoToast, setUndoToast] = useState<UndoToastState | null>(null);
-
-  useEffect(() => {
-    setLocalTasks(tasks);
-  }, [tasks]);
 
   const activePlanId = activePlan?.id ?? null;
   const isTrackedTask = (task: TaskItem) =>
@@ -102,32 +100,6 @@ export default function PriorityMatrixPage({
 
   const totalCount = localTasks.length;
   const trackedCount = localTasks.filter(isTrackedTask).length;
-
-  // Optimistically patch one task and fire the server action; on failure only
-  // that task's previous value is restored — restoring a whole-list snapshot
-  // would clobber concurrent optimistic updates that landed in between.
-  function runOptimisticTaskUpdate(
-    taskId: string,
-    patch: Partial<TaskItem>,
-    action: () => Promise<{error?: unknown}>,
-    errorLabel: string,
-  ) {
-    const previous = localTasks.find(task => task.id === taskId);
-    if (!previous) return;
-
-    setLocalTasks(prev =>
-      prev.map(task => (task.id === taskId ? {...task, ...patch} : task)),
-    );
-
-    action().then(result => {
-      if (result.error) {
-        console.error(errorLabel, result.error);
-        setLocalTasks(prev =>
-          prev.map(task => (task.id === taskId ? previous : task)),
-        );
-      }
-    });
-  }
 
   function handleDragEnd(result: DropResult) {
     const {destination, source, draggableId} = result;

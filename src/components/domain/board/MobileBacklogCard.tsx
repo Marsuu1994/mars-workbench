@@ -2,15 +2,12 @@
 
 import {useTranslations} from 'next-intl';
 import {ArrowUpIcon} from '@heroicons/react/24/outline';
-import type {TaskItem} from '@/lib/db/tasks';
-import {getTaskKind, type HabitWeek} from '@/utils/taskUtils';
+import type {BoardCard} from '@/utils/boardCardUtils';
 import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
 import {TaskCardFace} from './TaskCardFace';
 
 interface MobileBacklogCardProps {
-  task: TaskItem;
-  /** The habit's plan line and week dots; absent for other kinds */
-  habitWeek?: HabitWeek;
+  card: BoardCard;
   onPull: (taskId: string) => void;
 }
 
@@ -20,12 +17,12 @@ interface MobileBacklogCardProps {
  * action beside the title.
  */
 export default function MobileBacklogCard({
-  task,
-  habitWeek,
+  card,
   onPull,
 }: MobileBacklogCardProps) {
   const t = useTranslations('Board.Backlog');
-  const {edge} = TASK_KIND_STYLE[getTaskKind(task.type)];
+  const {kind, task} = card;
+  const {edge} = TASK_KIND_STYLE[kind];
 
   const renderPullButton = () => (
     <button
@@ -38,14 +35,8 @@ export default function MobileBacklogCard({
   );
 
   return (
-    <div
-      className={`card bg-base-100 border border-base-content/10 flex flex-col gap-1.5 px-3 py-2.5 ${edge}`}
-    >
-      <TaskCardFace
-        task={task}
-        habitWeek={habitWeek}
-        action={renderPullButton()}
-      />
+    <div className={`card bg-base-100 border border-base-content/10 ${edge}`}>
+      <TaskCardFace card={card} action={renderPullButton()} />
     </div>
   );
 }

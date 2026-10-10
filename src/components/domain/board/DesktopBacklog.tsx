@@ -1,6 +1,6 @@
 'use client';
 
-import {useState} from 'react';
+import {useState, type ReactNode} from 'react';
 import {Droppable} from '@hello-pangea/dnd';
 import {useTranslations} from 'next-intl';
 import {
@@ -9,34 +9,27 @@ import {
   ChevronRightIcon,
   ArrowLeftIcon,
 } from '@heroicons/react/24/outline';
-import type {TaskItem} from '@/lib/db/tasks';
 import {TaskStatus} from '@/utils/enums';
-import type {HabitWeek} from '@/utils/taskUtils';
-import TaskCard from './TaskCard';
+import {BacklogCountBadge} from './BacklogCountBadge';
 
 interface DesktopBacklogProps {
-  tasks: TaskItem[];
-  /** Per-template habit context + dots, keyed by templateId */
-  habitWeeks: Map<string, HabitWeek>;
+  /** Staged cards — the count pill and the empty state */
+  count: number;
+  /** The staged cards, rendered by KanbanBoard */
+  children: ReactNode;
 }
 
 /**
  * Desktop-only collapsible right-edge backlog that stages BACKLOG tasks. The
  * user drags a card onto the Todo column to pull it onto the board
- * (BACKLOG → TODO). Rendered inside KanbanBoard's DragDropContext.
+ * (BACKLOG → TODO). Rendered inside KanbanBoard's DragDropContext, which also
+ * renders the cards into it.
  */
-export default function DesktopBacklog({
-  tasks,
-  habitWeeks,
-}: DesktopBacklogProps) {
+export default function DesktopBacklog({count, children}: DesktopBacklogProps) {
   const t = useTranslations('Board.Backlog');
   const [isOpen, setIsOpen] = useState(false);
 
-  const countPill = (
-    <span className="badge badge-primary badge-sm font-bold">
-      {tasks.length}
-    </span>
-  );
+  const countPill = <BacklogCountBadge count={count} />;
 
   const renderCollapsed = () => (
     <button
@@ -89,21 +82,12 @@ export default function DesktopBacklog({
           {...provided.droppableProps}
           className="flex-1 overflow-y-auto p-3 flex flex-col gap-2"
         >
-          {tasks.length === 0 && (
+          {count === 0 && (
             <p className="text-center text-xs text-base-content/40 mt-6 px-4">
               {t('emptyState')}
             </p>
           )}
-          {tasks.map((task, index) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              index={index}
-              habitWeek={
-                task.templateId ? habitWeeks.get(task.templateId) : undefined
-              }
-            />
-          ))}
+          {children}
           {provided.placeholder}
         </div>
       )}

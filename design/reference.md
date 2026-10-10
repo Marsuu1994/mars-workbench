@@ -77,7 +77,7 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | Function | Purpose |
 | --- | --- |
 | **`boardService.ts`** | |
-| `fetchBoard` | Board data + metrics for the active plan (null = no active plan) |
+| `fetchBoard` | The board page's inputs for the active plan: `{plan, tasks, progress}` — plan narrowed to `BoardPlan`, metrics as `progress` (null = no active plan) |
 | `getEmptyBoardState` | Resolve the no-active-plan state (new user vs. finished-plan recap) |
 | **`planService.ts`** | |
 | `createPlan` | Create a plan from the plan form (templates, mode, ad-hoc and project-step links) |

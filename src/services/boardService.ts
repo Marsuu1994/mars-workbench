@@ -4,9 +4,8 @@ import {
   getBoardTasksByPlanId,
   getPlanTemplateStats,
 } from '@/lib/db/tasks';
-import type {PlanWithTemplates} from '@/lib/db/plans';
-import type {TaskItem} from '@/lib/db/tasks';
 import type {OverallStats} from '@/types/aiChat';
+import type {BoardData} from '@/types/board';
 import {rollUpOverall} from '@/utils/statsUtils';
 import {
   PlanMode,
@@ -22,20 +21,6 @@ import {
 } from '@/utils/dateUtils';
 import {sizeToPoints} from '@/utils/sizeUtils';
 import {ensureSynced} from '@/services/syncService';
-
-export type BoardData = {
-  plan: PlanWithTemplates;
-  tasks: TaskItem[];
-  todayDoneCount: number;
-  todayTotalCount: number;
-  todayDonePoints: number;
-  todayTotalPoints: number;
-  weekDoneCount: number;
-  weekProjectedCount: number;
-  weekDonePoints: number;
-  weekProjectedPoints: number;
-  daysElapsed: number;
-};
 
 /**
  * The empty-board state when there is no ACTIVE plan: a brand-new user vs. a
@@ -60,8 +45,9 @@ export async function getEmptyBoardState(
 }
 
 /**
- * Fetch the board for the kanban page.
- * Checks if period has ended or daily sync is needed before running.
+ * Fetch the board for the kanban page, shaped for its screen: the plan
+ * narrowed to what the board reads, the tasks (the client's state) and the
+ * metrics. Checks if period has ended or daily sync is needed before running.
  */
 export async function fetchBoard(userId: string): Promise<BoardData | null> {
   // End-of-period + daily sync live in syncService (shared with the matrix
@@ -147,17 +133,29 @@ export async function fetchBoard(userId: string): Promise<BoardData | null> {
     Math.max(1, Math.floor(diffMs / 86400000) + 1),
   );
 
+  const {periodKey, mode, planTemplates} = planWithTemplates;
+
   return {
-    plan: planWithTemplates,
+    plan: {
+      periodKey,
+      mode,
+      planTemplates: planTemplates.map(({templateId, type, frequency}) => ({
+        templateId,
+        type,
+        frequency,
+      })),
+    },
     tasks: boardTasks,
-    todayDoneCount,
-    todayTotalCount,
-    todayDonePoints,
-    todayTotalPoints,
-    weekDoneCount,
-    weekProjectedCount,
-    weekDonePoints,
-    weekProjectedPoints,
-    daysElapsed,
+    progress: {
+      todayDoneCount,
+      todayTotalCount,
+      todayDonePoints,
+      todayTotalPoints,
+      weekDoneCount,
+      weekProjectedCount,
+      weekDonePoints,
+      weekProjectedPoints,
+      daysElapsed,
+    },
   };
 }

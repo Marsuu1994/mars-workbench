@@ -2,13 +2,12 @@ import {BoardScreen} from '@/components/domain/board/BoardScreen';
 import EmptyBoard from '@/components/domain/board/EmptyBoard';
 import {ScenarioTabs, type ScenarioTab} from '../ScenarioTabs';
 import {ScenarioPage} from '../ScenarioPage';
-import {MobileBacklogPanel} from './MobileBacklogPanel';
+import {MobileBacklogSheetFrame} from './MobileBacklogSheetFrame';
 import {
   MID_WEEK_TASKS,
   MID_WEEK_PROGRESS,
   SCENARIO_PLAN,
-  BACKLOG_TASKS,
-  SCENARIO_HABIT_WEEKS,
+  BACKLOG_CARDS,
 } from './fixtures';
 
 const BOARD_SCENARIOS: ScenarioTab[] = [
@@ -66,12 +65,7 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
     title: 'Backlog (mobile)',
     note: 'The mobile backlog bottom sheet — staged habit instances on the full card face with a tap-to-pull action — shown inline (not as a top-layer modal).',
     display: 'fit',
-    content: (
-      <MobileBacklogPanel
-        tasks={BACKLOG_TASKS}
-        habitWeeks={SCENARIO_HABIT_WEEKS}
-      />
-    ),
+    content: <MobileBacklogSheetFrame cards={BACKLOG_CARDS} />,
   },
 ];
 
