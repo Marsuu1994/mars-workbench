@@ -499,6 +499,8 @@ export const PILL_SIZES = ['xs', 'sm', 'md'] as const;
 export const HEADER_DEMO_TITLE = 'Staged tasks';
 export const HEADER_DEMO_CLOSE = 'Close';
 export const HEADER_DEMO_BADGE = '3';
+export const HEADER_DEMO_SUBTITLE_TITLE = 'Add Step';
+export const HEADER_DEMO_SUBTITLE = 'Biomedical course · becomes step 4';
 
 // ── OverlayShell demo fixtures ───────────────────────────────────────────────
 export const SHELL_DEMO_OPEN = 'Open modal shell';
@@ -633,6 +635,38 @@ export const EMPTY_STATE_DEMO_DESC =
 export const EMPTY_STATE_DEMO_CTA = 'Run scan';
 
 export const TABBAR_DEMO_LABELS = ['Overview', 'Telemetry', 'Logs'];
+
+/** LinkTabBar specimen: two pages (in-page anchors, so a click stays put). */
+export const LINK_TABS_DEMO = [
+  {label: 'This week', href: '#this-week'},
+  {label: 'Projects', href: '#projects'},
+];
+export const LINK_TABS_DEMO_LABEL = 'Plan hub demo';
+
+/** EmptyState inline specimen. */
+export const EMPTY_STATE_INLINE_DEMO_TITLE = 'No steps yet';
+export const EMPTY_STATE_INLINE_DEMO_DESC =
+  'A project is a path of small steps, about 1–3 hours each.';
+export const EMPTY_STATE_INLINE_DEMO_CTA = 'Add the first step';
+
+/** Banner specimens — one per tone, with and without an action. */
+export const BANNER_DEMO_INTRO =
+  'Projects are a goal plus ordered steps — steps go onto a week one at a time and never expire.';
+export const BANNER_DEMO_DONE =
+  "All steps done. Add the next steps, or archive the project when you're finished.";
+export const BANNER_DEMO_WARNING =
+  'No plan for this week yet — + This week needs one.';
+export const BANNER_DEMO_LINK = 'Create plan';
+
+/** InlineConfirmButton specimens. */
+export const INLINE_CONFIRM_DEMO_LABEL = 'Archive';
+export const INLINE_CONFIRM_DEMO_CONFIRM = 'Archive?';
+export const INLINE_CONFIRM_DEMO_HINT = 'Unfinished steps leave this week';
+
+/** ModalFormFooter specimens. */
+export const FOOTER_DEMO_CANCEL = 'Cancel';
+export const FOOTER_DEMO_SUBMIT = 'Save changes';
+export const FOOTER_DEMO_ERROR = 'Title is required';
 
 export const POPOVER_DEMO_ANCHOR = 'Anchor';
 export const POPOVER_DEMO_TITLE = 'Move to';

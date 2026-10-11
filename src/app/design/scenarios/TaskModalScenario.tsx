@@ -2,28 +2,27 @@
 
 import type {TaskTemplateItem} from '@/lib/db/taskTemplates';
 import type {PriorityQuadrant} from '@/utils/enums';
-import {TaskModalPanel} from '@/components/domain/shared/task-modal/TaskModal';
+import {
+  TaskModalPanel,
+  type TaskModalMode,
+} from '@/components/domain/shared/task-modal/TaskModalPanel';
+import {ModalPanelFrame} from './ModalPanelFrame';
 
 const NOOP = () => undefined;
 
 interface TaskModalScenarioProps {
-  mode: 'create' | 'edit' | 'adhoc';
+  mode: TaskModalMode;
   template?: TaskTemplateItem | null;
   quadrant?: PriorityQuadrant;
 }
 
-/**
- * The real TaskModalPanel rendered inline (the live modal's OverlayShell is
- * a top-layer <dialog> that would escape the scenario frame), inside a
- * hand-rolled stand-in for the modal box. The dimmed backdrop and centering
- * come from the frame's overlay mode.
- */
+/** The real TaskModalPanel rendered inline in a modal-box stand-in. */
 export const TaskModalScenario = ({
   mode,
   template,
   quadrant,
 }: TaskModalScenarioProps) => (
-  <div className="fx-panel-solid rounded-box md:fx-corners w-full max-w-lg p-0">
+  <ModalPanelFrame>
     <TaskModalPanel
       mode={mode}
       template={template}
@@ -31,5 +30,5 @@ export const TaskModalScenario = ({
       onClose={NOOP}
       onSaved={NOOP}
     />
-  </div>
+  </ModalPanelFrame>
 );

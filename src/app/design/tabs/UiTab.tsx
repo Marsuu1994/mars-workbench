@@ -5,11 +5,19 @@ import {
   InboxStackIcon,
   CheckIcon,
   SignalIcon,
+  MapIcon,
+  CheckCircleIcon,
+  InformationCircleIcon,
+  PlusIcon,
 } from '@heroicons/react/24/outline';
 
 import {Pill} from '@/components/ui/Pill';
 import {EmptyState} from '@/components/ui/EmptyState';
 import {TabBar} from '@/components/ui/TabBar';
+import {LinkTabBar} from '@/components/ui/LinkTabBar';
+import {Banner} from '@/components/ui/Banner';
+import {InlineConfirmButton} from '@/components/ui/InlineConfirmButton';
+import {ModalFormFooter} from '@/components/ui/form/ModalFormFooter';
 import {StatBlock} from '@/components/ui/StatBlock';
 import {ProgressBar} from '@/components/ui/ProgressBar';
 import {SectionLabel} from '@/components/ui/SectionLabel';
@@ -33,6 +41,23 @@ import {
   EMPTY_STATE_DEMO_DESC,
   EMPTY_STATE_DEMO_CTA,
   TABBAR_DEMO_LABELS,
+  LINK_TABS_DEMO,
+  LINK_TABS_DEMO_LABEL,
+  EMPTY_STATE_INLINE_DEMO_TITLE,
+  EMPTY_STATE_INLINE_DEMO_DESC,
+  EMPTY_STATE_INLINE_DEMO_CTA,
+  BANNER_DEMO_INTRO,
+  BANNER_DEMO_DONE,
+  BANNER_DEMO_WARNING,
+  BANNER_DEMO_LINK,
+  INLINE_CONFIRM_DEMO_LABEL,
+  INLINE_CONFIRM_DEMO_CONFIRM,
+  INLINE_CONFIRM_DEMO_HINT,
+  FOOTER_DEMO_CANCEL,
+  FOOTER_DEMO_SUBMIT,
+  FOOTER_DEMO_ERROR,
+  HEADER_DEMO_SUBTITLE_TITLE,
+  HEADER_DEMO_SUBTITLE,
   POPOVER_DEMO_ANCHOR,
   POPOVER_DEMO_TITLE,
   POPOVER_DEMO_BODY,
@@ -219,19 +244,38 @@ export const UiTab = () => {
   const renderEmptyState = () => (
     <Section
       title="EmptyState"
-      description="Generic centered zero state: icon + title + description + CTA. EmptyBoard composes this with board copy and the recap stats."
+      description="Generic centered zero state: icon + title + description + CTA. page — a whole screen's zero state (EmptyBoard composes it with board copy and the recap stats); inline — a dashed box for an empty list inside a section."
     >
-      <div className="rounded-lg border border-base-content/10 bg-base-200/40 py-10">
-        <EmptyState
-          icon={<SignalIcon className="size-14 text-base-content/20" />}
-          title={EMPTY_STATE_DEMO_TITLE}
-          description={EMPTY_STATE_DEMO_DESC}
-          action={
-            <button type="button" className="btn btn-primary btn-sm">
-              {EMPTY_STATE_DEMO_CTA}
-            </button>
-          }
-        />
+      <div className="flex flex-col gap-6">
+        <Variant label="page">
+          <div className="w-full rounded-lg border border-base-content/10 bg-base-200/40 py-10">
+            <EmptyState
+              icon={<SignalIcon className="size-14 text-base-content/20" />}
+              title={EMPTY_STATE_DEMO_TITLE}
+              description={EMPTY_STATE_DEMO_DESC}
+              action={
+                <button type="button" className="btn btn-primary btn-sm">
+                  {EMPTY_STATE_DEMO_CTA}
+                </button>
+              }
+            />
+          </div>
+        </Variant>
+        <Variant label="inline">
+          <EmptyState
+            variant="inline"
+            className="w-full max-w-md"
+            icon={<MapIcon className="size-5" />}
+            title={EMPTY_STATE_INLINE_DEMO_TITLE}
+            description={EMPTY_STATE_INLINE_DEMO_DESC}
+            action={
+              <button type="button" className="btn btn-primary btn-sm">
+                <PlusIcon className="size-4" />
+                {EMPTY_STATE_INLINE_DEMO_CTA}
+              </button>
+            }
+          />
+        </Variant>
       </div>
     </Section>
   );
@@ -247,6 +291,153 @@ export const UiTab = () => {
         activeIndex={demoTab}
         onChange={setDemoTab}
       />
+    </Section>
+  );
+
+  const renderLinkTabBar = () => (
+    <Section
+      title="LinkTabBar"
+      description="Tabs that switch pages: a segmented rail of links, the current page's tab tinted primary and marked aria-current. TabBar switches panels inside one page."
+    >
+      <LinkTabBar
+        ariaLabel={LINK_TABS_DEMO_LABEL}
+        tabs={LINK_TABS_DEMO}
+        activeHref={LINK_TABS_DEMO[1].href}
+      />
+    </Section>
+  );
+
+  const renderBanner = () => (
+    <Section
+      title="Banner"
+      description="An inline message on a tinted wash, one per tone. Inside a form it sits plain (what the form creates); on a page it is outlined, with an optional action at the end."
+    >
+      <div className="flex max-w-xl flex-col gap-4">
+        <Variant label="secondary · plain (form intro)">
+          <Banner
+            tone="secondary"
+            className="w-full"
+            icon={<MapIcon className="size-4.5 shrink-0" />}
+          >
+            {BANNER_DEMO_INTRO}
+          </Banner>
+        </Variant>
+        <Variant label="success · outlined + action">
+          <Banner
+            tone="success"
+            outlined
+            className="w-full"
+            icon={<CheckCircleIcon className="size-4.5 shrink-0" />}
+            action={
+              <InlineConfirmButton
+                size="sm"
+                label={INLINE_CONFIRM_DEMO_LABEL}
+                confirmLabel={INLINE_CONFIRM_DEMO_CONFIRM}
+                onConfirm={() => undefined}
+              />
+            }
+          >
+            {BANNER_DEMO_DONE}
+          </Banner>
+        </Variant>
+        <Variant label="warning · outlined + link">
+          <Banner
+            tone="warning"
+            outlined
+            className="w-full"
+            icon={<InformationCircleIcon className="size-4.5 shrink-0" />}
+            action={
+              <a href="#create-plan" className="font-semibold underline">
+                {BANNER_DEMO_LINK}
+              </a>
+            }
+          >
+            {BANNER_DEMO_WARNING}
+          </Banner>
+        </Variant>
+      </div>
+    </Section>
+  );
+
+  const renderInlineConfirmButton = () => (
+    <Section
+      title="InlineConfirmButton"
+      description="Two-click destructive button for a footer or a row: outlined at rest, solid with its confirm label once armed, an optional hint of what happens beside it; the second click runs it. No cancel — leaving is the cancel. The armed specimens are reached by a play step that clicks once."
+    >
+      <Row>
+        <Variant label="rest (click to arm)">
+          <InlineConfirmButton
+            label={INLINE_CONFIRM_DEMO_LABEL}
+            confirmLabel={INLINE_CONFIRM_DEMO_CONFIRM}
+            hint={INLINE_CONFIRM_DEMO_HINT}
+            onConfirm={() => undefined}
+          />
+        </Variant>
+        <Variant label="armed · hint after (play)">
+          <Play steps={[{click: {name: INLINE_CONFIRM_DEMO_LABEL}}]}>
+            <InlineConfirmButton
+              label={INLINE_CONFIRM_DEMO_LABEL}
+              confirmLabel={INLINE_CONFIRM_DEMO_CONFIRM}
+              hint={INLINE_CONFIRM_DEMO_HINT}
+              onConfirm={() => undefined}
+            />
+          </Play>
+        </Variant>
+        <Variant label="armed · sm, hint before (play)">
+          <Play steps={[{click: {name: INLINE_CONFIRM_DEMO_LABEL}}]}>
+            <InlineConfirmButton
+              size="sm"
+              hintSide="start"
+              label={INLINE_CONFIRM_DEMO_LABEL}
+              confirmLabel={INLINE_CONFIRM_DEMO_CONFIRM}
+              hint={INLINE_CONFIRM_DEMO_HINT}
+              onConfirm={() => undefined}
+            />
+          </Play>
+        </Variant>
+      </Row>
+    </Section>
+  );
+
+  const renderModalFormFooter = () => (
+    <Section
+      title="ModalFormFooter"
+      description="A modal form's footer: the submit error, then Cancel + submit (1 : 2 on mobile), with an optional destructive control on the left."
+    >
+      <div className="flex max-w-lg flex-col gap-6">
+        <Variant label="plain">
+          <div className="w-full">
+            <ModalFormFooter
+              error={null}
+              isSubmitting={false}
+              onCancel={() => undefined}
+              cancelLabel={FOOTER_DEMO_CANCEL}
+              submitLabel={FOOTER_DEMO_SUBMIT}
+              submitIcon={<CheckIcon className="size-4" />}
+            />
+          </div>
+        </Variant>
+        <Variant label="leading confirm + error">
+          <div className="w-full">
+            <ModalFormFooter
+              error={FOOTER_DEMO_ERROR}
+              isSubmitting={false}
+              onCancel={() => undefined}
+              cancelLabel={FOOTER_DEMO_CANCEL}
+              submitLabel={FOOTER_DEMO_SUBMIT}
+              submitIcon={<CheckIcon className="size-4" />}
+              leading={
+                <InlineConfirmButton
+                  label={INLINE_CONFIRM_DEMO_LABEL}
+                  confirmLabel={INLINE_CONFIRM_DEMO_CONFIRM}
+                  hint={INLINE_CONFIRM_DEMO_HINT}
+                  onConfirm={() => undefined}
+                />
+              }
+            />
+          </div>
+        </Variant>
+      </div>
     </Section>
   );
 
@@ -378,15 +569,36 @@ export const UiTab = () => {
   const renderOverlayHeader = () => (
     <Section
       title="OverlayHeader"
-      description="The one overlay header: icon/title/badge cluster + the standard close affordance (down-chevron on mobile, ✕ from md up). Every sheet/modal header composes this — never hand-roll one."
+      description="The one overlay header: icon/title/badge cluster, an optional subtitle line (what the overlay acts on), and the standard close affordance (down-chevron on mobile, ✕ from md up). Every sheet/modal header composes this — never hand-roll one."
     >
-      <OverlayHeader
-        icon={<InboxStackIcon className="size-5 text-primary" />}
-        title={HEADER_DEMO_TITLE}
-        badge={<Pill color="primary">{HEADER_DEMO_BADGE}</Pill>}
-        onClose={() => undefined}
-        closeLabel={HEADER_DEMO_CLOSE}
-      />
+      <div className="flex flex-col gap-6">
+        <Variant label="icon + badge">
+          <div className="w-full">
+            <OverlayHeader
+              icon={<InboxStackIcon className="size-5 text-primary" />}
+              title={HEADER_DEMO_TITLE}
+              badge={<Pill color="primary">{HEADER_DEMO_BADGE}</Pill>}
+              onClose={() => undefined}
+              closeLabel={HEADER_DEMO_CLOSE}
+            />
+          </div>
+        </Variant>
+        <Variant label="subtitle">
+          <div className="w-full">
+            <OverlayHeader
+              title={HEADER_DEMO_SUBTITLE_TITLE}
+              subtitle={
+                <>
+                  <MapIcon className="size-3" />
+                  {HEADER_DEMO_SUBTITLE}
+                </>
+              }
+              onClose={() => undefined}
+              closeLabel={HEADER_DEMO_CLOSE}
+            />
+          </div>
+        </Variant>
+      </div>
     </Section>
   );
 
@@ -404,7 +616,10 @@ export const UiTab = () => {
         {renderContentBlocks()}
         {renderEmptyState()}
         {renderTabBar()}
+        {renderLinkTabBar()}
+        {renderBanner()}
         {renderConfirmButton()}
+        {renderInlineConfirmButton()}
       </Zone>
 
       <Zone
@@ -413,6 +628,7 @@ export const UiTab = () => {
       >
         {renderModalShell()}
         {renderOverlayHeader()}
+        {renderModalFormFooter()}
         {renderPopover()}
         {renderToast()}
       </Zone>
