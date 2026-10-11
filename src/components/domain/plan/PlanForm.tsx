@@ -1,6 +1,6 @@
 'use client';
 
-import {useRef, useState} from 'react';
+import {useRef, useState, type ReactNode} from 'react';
 import {useRouter} from 'next/navigation';
 import Link from 'next/link';
 import {useTranslations} from 'next-intl';
@@ -13,14 +13,15 @@ import {
   TaskSize,
 } from '@/utils/enums';
 import {getWeekDateRange} from '@/utils/dateUtils';
-import {SizeChip} from '@/components/domain/shared/SizeChip';
-import {Pill} from '@/components/ui/Pill';
+import {TaskKind} from '@/utils/taskUtils';
+import {Pill, type PillColor} from '@/components/ui/Pill';
 import {FieldRow} from '@/components/ui/form/FieldRow';
 import {ChoicePills} from '@/components/ui/form/ChoicePills';
 import {SubmitButton} from '@/components/ui/form/SubmitButton';
 import {FormErrorAlert} from '@/components/ui/form/FormErrorAlert';
 import {SectionLabel} from '@/components/ui/SectionLabel';
 import type {TaskTemplateItem} from '@/lib/db/taskTemplates';
+import type {PlanStepItem} from '@/lib/db/projects';
 import {sizeToPoints} from '@/utils/enums';
 import {
   createPlanAction,
@@ -28,6 +29,7 @@ import {
   countIncompleteByTemplateAction,
 } from '@/actions/planActions';
 import TemplateItem from './TemplateItem';
+import {PlanTaskRow, type PlanTaskStatus} from './PlanTaskRow';
 import TaskModal from '@/components/domain/shared/task-modal/TaskModal';
 import {ReviewChangesModal} from './ReviewChangesModal';
 import {AiAssistantBanner} from './ai-chat/AiAssistantBanner';
@@ -62,6 +64,9 @@ interface PlanFormProps {
   initialPlanMode?: PlanMode;
   adhocTasks?: AdhocTaskItem[];
   initialAdhocTaskIds?: string[];
+  /** The plan's unfinished project steps — select / deselect only */
+  projectSteps?: PlanStepItem[];
+  initialProjectStepIds?: string[];
   /** Plan whose stats seed the AI assistant's returning-user welcome. */
   aiContextPlanId?: string;
   /** Plan period (edit mode) — shown as the week range in the mobile topbar. */
@@ -105,13 +110,14 @@ export default function PlanForm({
   initialPlanMode = PlanMode.NORMAL,
   adhocTasks = [],
   initialAdhocTaskIds = [],
+  projectSteps = [],
+  initialProjectStepIds = [],
   aiContextPlanId,
   periodKey,
 }: PlanFormProps) {
   const router = useRouter();
   const t = useTranslations('Plan');
   const tMode = useTranslations('Enums.PlanMode');
-  const tStatus = useTranslations('Enums.TaskStatus');
 
   // Map from templateId → {type, frequency} for selected templates
   const [selectedTemplates, setSelectedTemplates] = useState<
@@ -137,6 +143,9 @@ export default function PlanForm({
   >({});
   const [selectedAdhocIds, setSelectedAdhocIds] = useState<Set<string>>(
     new Set(initialAdhocTaskIds),
+  );
+  const [selectedStepIds, setSelectedStepIds] = useState<Set<string>>(
+    new Set(initialProjectStepIds),
   );
 
   // Cache configs when templates are unchecked so re-checking restores them
@@ -173,6 +182,15 @@ export default function PlanForm({
 
   function toggleAdhocTask(id: string) {
     setSelectedAdhocIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleProjectStep(id: string) {
+    setSelectedStepIds(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -241,6 +259,21 @@ export default function PlanForm({
       t => !selectedAdhocIds.has(t.id) && initialAdhocSet.has(t.id),
     );
 
+    // Step diff: the form only lets steps go (back to their project)
+    const initialStepSet = new Set(initialProjectStepIds);
+    const removedSteps = projectSteps
+      .filter(
+        step => !selectedStepIds.has(step.id) && initialStepSet.has(step.id),
+      )
+      .map(({id, title, size, points, projectTitle, instanceIndex}) => ({
+        id,
+        title,
+        size,
+        points,
+        projectTitle,
+        stepNumber: instanceIndex,
+      }));
+
     const modeChanged = planMode !== initialPlanMode;
 
     return {
@@ -249,6 +282,7 @@ export default function PlanForm({
       modified,
       addedAdhoc,
       removedAdhoc,
+      removedSteps,
       modeChanged,
       fromMode: initialPlanMode,
       toMode: planMode,
@@ -260,14 +294,22 @@ export default function PlanForm({
     setError(null);
 
     if (mode === 'edit') {
-      const {added, removed, modified, addedAdhoc, removedAdhoc, modeChanged} =
-        computeDiff();
+      const {
+        added,
+        removed,
+        modified,
+        addedAdhoc,
+        removedAdhoc,
+        removedSteps,
+        modeChanged,
+      } = computeDiff();
       const hasChanges =
         added.length > 0 ||
         removed.length > 0 ||
         modified.length > 0 ||
         addedAdhoc.length > 0 ||
         removedAdhoc.length > 0 ||
+        removedSteps.length > 0 ||
         modeChanged;
       if (hasChanges) {
         // Fetch incomplete task counts for removed + modified templates
@@ -316,6 +358,7 @@ export default function PlanForm({
           mode: planMode,
           templates: templatesPayload,
           adhocTaskIds: Array.from(selectedAdhocIds),
+          projectStepIds: Array.from(selectedStepIds),
         });
         break;
       case 'edit':
@@ -324,6 +367,7 @@ export default function PlanForm({
           mode: planMode,
           templates: templatesPayload,
           adhocTaskIds: Array.from(selectedAdhocIds),
+          projectStepIds: Array.from(selectedStepIds),
         });
         break;
     }
@@ -350,6 +394,7 @@ export default function PlanForm({
           modified: [],
           addedAdhoc: [],
           removedAdhoc: [],
+          removedSteps: [],
           modeChanged: false,
           fromMode: initialPlanMode,
           toMode: planMode,
@@ -374,6 +419,81 @@ export default function PlanForm({
         </span>
       </>
     );
+  };
+
+  /** A section of tasks already on the plan: label, count pill, rows. */
+  const renderCarriedSection = (
+    label: string,
+    countColor: PillColor,
+    countLabel: string,
+    rows: ReactNode,
+  ) => (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-xs font-medium text-base-content/60">
+          {label}
+        </span>
+        <Pill color={countColor} className="rounded-full">
+          {countLabel}
+        </Pill>
+      </div>
+      <div className="flex flex-col gap-2">{rows}</div>
+    </div>
+  );
+
+  const renderAdhocRow = (task: AdhocTaskItem) => (
+    <PlanTaskRow
+      key={task.id}
+      kind={TaskKind.ONE_OFF}
+      title={task.title}
+      size={task.size}
+      points={task.points}
+      status={TaskStatus.TODO}
+      isSelected={selectedAdhocIds.has(task.id)}
+      returnsTo={t('returnsToMatrix')}
+      onToggle={() => toggleAdhocTask(task.id)}
+    />
+  );
+
+  // Unfinished steps on a plan are staged (backlog) or on the board (todo)
+  const toPlanTaskStatus = (status: PlanStepItem['status']): PlanTaskStatus =>
+    status === TaskStatus.BACKLOG ? TaskStatus.BACKLOG : TaskStatus.TODO;
+
+  const renderStepRow = (step: PlanStepItem) => (
+    <PlanTaskRow
+      key={step.id}
+      kind={TaskKind.PROJECT}
+      title={step.title}
+      context={step.projectTitle}
+      size={step.size}
+      points={step.points}
+      status={toPlanTaskStatus(step.status)}
+      isSelected={selectedStepIds.has(step.id)}
+      returnsTo={t('returnsToProject', {
+        project: step.projectTitle,
+        number: step.instanceIndex,
+      })}
+      onToggle={() => toggleProjectStep(step.id)}
+    />
+  );
+
+  // The counts name only the sections the form shows
+  const renderSummary = () => {
+    const templateCount = selectedTemplates.size;
+    const adhocCount = selectedAdhocIds.size;
+    const stepCount = selectedStepIds.size;
+    const hasAdhoc = adhocTasks.length > 0;
+    const hasSteps = projectSteps.length > 0;
+    if (hasAdhoc && hasSteps) {
+      return t('summaryWithAdhocAndSteps', {
+        templateCount,
+        adhocCount,
+        stepCount,
+      });
+    }
+    if (hasSteps) return t('summaryWithSteps', {templateCount, stepCount});
+    if (hasAdhoc) return t('summaryWithAdhoc', {templateCount, adhocCount});
+    return t('summary', {templateCount});
   };
 
   // Heading scrolls with the form on both breakpoints; the page chrome
@@ -489,79 +609,21 @@ export default function PlanForm({
           )}
         </div>
 
-        {/* Ad-hoc Tasks */}
-        {adhocTasks.length > 0 && (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-medium text-base-content/60">
-                {t('adhocTasksLabel')}
-              </span>
-              <Pill color="warning" className="rounded-full">
-                {t('taskCount', {count: adhocTasks.length})}
-              </Pill>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              {adhocTasks.map(task => {
-                const isSelected = selectedAdhocIds.has(task.id);
-                return (
-                  <div
-                    key={task.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => toggleAdhocTask(task.id)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        toggleAdhocTask(task.id);
-                      }
-                    }}
-                    className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
-                      isSelected
-                        ? 'border-info/50 bg-info/5'
-                        : 'border-base-content/10 bg-base-200'
-                    }`}
-                  >
-                    {/* Checkbox */}
-                    <div
-                      className={`flex size-[18px] shrink-0 items-center justify-center rounded border-2 transition-colors ${
-                        isSelected
-                          ? 'border-info bg-info'
-                          : 'border-base-content/30 bg-transparent'
-                      }`}
-                    >
-                      {isSelected && (
-                        <CheckIcon className="size-3 stroke-[3] text-info-content" />
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm">
-                          {task.title}
-                        </span>
-                        <SizeChip
-                          size={task.size as TaskSize}
-                          points={task.points}
-                          className="shrink-0"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Status badge */}
-                    <Pill
-                      color="muted"
-                      className="rounded-full uppercase tracking-wider shrink-0"
-                    >
-                      {tStatus(TaskStatus.TODO)}
-                    </Pill>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        {/* One-off tasks and project steps already on the plan */}
+        {adhocTasks.length > 0 &&
+          renderCarriedSection(
+            t('adhocTasksLabel'),
+            'warning',
+            t('taskCount', {count: adhocTasks.length}),
+            adhocTasks.map(renderAdhocRow),
+          )}
+        {projectSteps.length > 0 &&
+          renderCarriedSection(
+            t('projectStepsLabel'),
+            'secondary',
+            t('stepCount', {count: projectSteps.length}),
+            projectSteps.map(renderStepRow),
+          )}
 
         {/* Error */}
         <FormErrorAlert error={error} />
@@ -569,12 +631,7 @@ export default function PlanForm({
         {/* Summary + Actions — sticky bar above the dock on mobile, inline on desktop */}
         <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4rem)] z-30 flex items-center gap-3 border-t border-base-content/10 bg-base-100 px-4 py-2.5 md:static md:inset-x-auto md:z-auto md:justify-between md:gap-2 md:bg-transparent md:px-0 md:py-0 md:pt-5">
           <div className="flex-1 text-[11px] leading-snug text-base-content/50 md:flex-none md:text-sm">
-            {adhocTasks.length > 0
-              ? t('summaryWithAdhoc', {
-                  templateCount: selectedTemplates.size,
-                  adhocCount: selectedAdhocIds.size,
-                })
-              : t('summary', {templateCount: selectedTemplates.size})}
+            {renderSummary()}
           </div>
           <div className="flex gap-2 shrink-0">
             <Link
@@ -587,7 +644,9 @@ export default function PlanForm({
               isSubmitting={isSubmitting}
               icon={<CheckIcon className="size-4" />}
               disabled={
-                selectedTemplates.size === 0 && selectedAdhocIds.size === 0
+                selectedTemplates.size === 0 &&
+                selectedAdhocIds.size === 0 &&
+                selectedStepIds.size === 0
               }
             >
               {mode === 'create' ? t('startWeek') : t('updatePlan')}
@@ -611,6 +670,7 @@ export default function PlanForm({
         modified={diff.modified}
         addedAdhoc={diff.addedAdhoc}
         removedAdhoc={diff.removedAdhoc}
+        removedSteps={diff.removedSteps}
         incompleteCounts={incompleteCounts}
         isSubmitting={isSubmitting}
         modeChanged={diff.modeChanged}

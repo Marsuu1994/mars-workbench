@@ -40,7 +40,7 @@ User drags a task card to a different column.
 - The board has two columns, Todo · Done; work in progress stays in Todo.
 - Allowed transitions: BACKLOG → TODO → DONE only (no backwards movement). `BACKLOG → TODO` is the backlog pull (drop onto the Todo column); see "Backlog Flow".
 - `DOING` is no longer written; tasks that were `DOING` when the column went were moved to `TODO`.
-- Project steps move like every other task *(designed — Phase 1 pending, PR 4)*.
+- Project steps move like every other task.
 
 ---
 
@@ -161,7 +161,7 @@ Computed client-side on every board render, based on `forDate`, `createdAt`, tas
 - **Desktop (`md+`):** A collapsed backlog strip sits on the right edge of the board. The user clicks it to expand the backlog panel.
 - **Mobile (`< md`):** A peeking "Backlog" pill sits above the bottom tab bar. The user taps it to open a bottom sheet.
 
-The backlog (desktop panel / mobile sheet) holds the plan's template-generated task instances with `status === BACKLOG` — the staging area they land in before reaching the board. It also holds the project steps scheduled this week *(designed — Phase 1 pending, PR 4)*. Ad-hoc tasks never appear in the backlog UI: while off the board they are also `BACKLOG`, but they live on the priority matrix (`planId = null`), outside the plan-scoped backlog query.
+The backlog (desktop panel / mobile sheet) holds the plan's template-generated task instances with `status === BACKLOG` — the staging area they land in before reaching the board. It also holds the project steps scheduled this week. Ad-hoc tasks never appear in the backlog UI: while off the board they are also `BACKLOG`, but they live on the priority matrix (`planId = null`), outside the plan-scoped backlog query.
 
 ### Steps
 

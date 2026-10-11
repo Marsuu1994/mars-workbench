@@ -1,4 +1,5 @@
 import type {TaskItem} from '@/lib/db/tasks';
+import type {BoardProject} from '@/lib/db/projects';
 import {TaskStatus} from '@/utils/enums';
 import {
   computeHabitWeeks,
@@ -24,8 +25,24 @@ export interface HabitCard extends BoardCardBase {
   currentSlot?: number;
 }
 
+/** A step card's context and signal: its project, its number, the path. */
+export interface ProjectStepContext {
+  projectTitle: string;
+  /** The step's number in its project (its instanceIndex) */
+  number: number;
+  /** Steps in the project */
+  count: number;
+  /** One mark per step, in path order; true when that step is done */
+  path: boolean[];
+  /** This step's mark in the path; absent when the lookup doesn't list it */
+  currentSegment?: number;
+}
+
+/** A project step: its project's name, step n of N and the path. */
 export interface ProjectStepCard extends BoardCardBase {
   kind: typeof TaskKind.PROJECT;
+  /** Absent when the project isn't in the lookup */
+  step?: ProjectStepContext;
 }
 
 export interface OneOffCard extends BoardCardBase {
@@ -48,9 +65,33 @@ export type BoardStatus =
 /** What toBoardCards reads besides the tasks. */
 export interface BoardCardInputs {
   plan: BoardPlan;
+  /** The projects behind the step cards (fetchBoard's lookup) */
+  projects: BoardProject[];
 }
 
 // ─── Adapter ───────────────────────────────────────────────────────────────
+
+/**
+ * A step card's context from its project in the lookup. A step's own status
+ * comes from the board's tasks when it is one of them, so a step dragged to
+ * Done fills its mark at once (the lookup only changes on revalidation).
+ */
+function toProjectStepContext(
+  task: TaskItem,
+  {title, steps}: BoardProject,
+  statusByTaskId: Map<string, TaskItem['status']>,
+): ProjectStepContext {
+  const currentSegment = steps.findIndex(step => step.id === task.id);
+  return {
+    projectTitle: title,
+    number: task.instanceIndex,
+    count: steps.length,
+    path: steps.map(
+      step => (statusByTaskId.get(step.id) ?? step.status) === TaskStatus.DONE,
+    ),
+    currentSegment: currentSegment === -1 ? undefined : currentSegment,
+  };
+}
 
 /**
  * The board's adapter: the tasks (client state, in the server's shape) →
@@ -59,9 +100,11 @@ export interface BoardCardInputs {
  */
 export function toBoardCards(
   tasks: TaskItem[],
-  {plan}: BoardCardInputs,
+  {plan, projects}: BoardCardInputs,
 ): Record<BoardStatus, BoardCard[]> {
   const {habitWeekByTemplateId, slotByTaskId} = computeHabitWeeks(tasks, plan);
+  const projectById = new Map(projects.map(project => [project.id, project]));
+  const statusByTaskId = new Map(tasks.map(task => [task.id, task.status]));
 
   const toBoardCard = (task: TaskItem): BoardCard => {
     const kind = getTaskKind(task.type);
@@ -75,8 +118,18 @@ export function toBoardCards(
             : undefined,
           currentSlot: slotByTaskId.get(task.id),
         };
-      case TaskKind.PROJECT:
-        return {kind, task};
+      case TaskKind.PROJECT: {
+        const project = task.projectId
+          ? projectById.get(task.projectId)
+          : undefined;
+        return {
+          kind,
+          task,
+          step: project
+            ? toProjectStepContext(task, project, statusByTaskId)
+            : undefined,
+        };
+      }
       case TaskKind.ONE_OFF:
         return {kind, task};
     }

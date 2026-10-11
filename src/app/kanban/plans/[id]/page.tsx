@@ -2,6 +2,7 @@ import {notFound} from 'next/navigation';
 import {getPlanWithTemplates} from '@/lib/db/plans';
 import {getTaskTemplates} from '@/lib/db/taskTemplates';
 import {getNonDoneAdhocTasks} from '@/lib/db/tasks';
+import {getPlanStepsByPlanId} from '@/lib/db/projects';
 import {ensureSynced} from '@/services/syncService';
 import PlanForm from '@/components/domain/plan/PlanForm';
 import {getCurrentUserId} from '@/lib/auth/getCurrentUserId';
@@ -16,10 +17,11 @@ export default async function EditPlanPage({
   // Keep the plan lifecycle current before reading (see syncService)
   await ensureSynced(userId);
 
-  const [plan, templates, allAdhocTasks] = await Promise.all([
+  const [plan, templates, allAdhocTasks, projectSteps] = await Promise.all([
     getPlanWithTemplates(userId, id),
     getTaskTemplates(userId),
     getNonDoneAdhocTasks(userId),
+    getPlanStepsByPlanId(userId, id),
   ]);
 
   if (!plan) {
@@ -37,6 +39,9 @@ export default async function EditPlanPage({
   const adhocTasks = allAdhocTasks.filter(t => t.planId === id);
   const initialAdhocTaskIds = adhocTasks.map(t => t.id);
 
+  // This week's unfinished steps; deselect → back to their project.
+  const initialProjectStepIds = projectSteps.map(step => step.id);
+
   return (
     <PlanForm
       templates={templates}
@@ -47,6 +52,8 @@ export default async function EditPlanPage({
       initialPlanMode={plan.mode}
       adhocTasks={adhocTasks}
       initialAdhocTaskIds={initialAdhocTaskIds}
+      projectSteps={projectSteps}
+      initialProjectStepIds={initialProjectStepIds}
       periodKey={plan.periodKey}
     />
   );

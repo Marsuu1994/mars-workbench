@@ -6,11 +6,13 @@ import {
   PlanMode,
 } from '@/utils/enums';
 import type {TaskTemplateItem} from '@/lib/db/taskTemplates';
+import type {PlanStepItem} from '@/lib/db/projects';
 import type {AdhocTaskItem} from '@/components/domain/plan/PlanForm';
 import type {
   TemplateChange,
   ModifiedTemplate,
   AdhocTaskChange,
+  ProjectStepChange,
 } from '@/components/domain/plan/ReviewChangesModal';
 
 /* Plan scenario fixtures — the real PlanForm and ReviewChangesPanel fed a
@@ -89,6 +91,31 @@ export const PLAN_ADHOC_TASKS: AdhocTaskItem[] = [
 
 export const PLAN_INITIAL_ADHOC_IDS = ['adhoc-ct'];
 
+/** The plan's unfinished project steps — one on the board, one staged. */
+export const PLAN_PROJECT_STEPS: PlanStepItem[] = [
+  {
+    id: 'step-mol',
+    title: 'Render it with Mol*',
+    size: TaskSize.MEDIUM,
+    points: SIZE_TO_POINTS[TaskSize.MEDIUM],
+    status: TaskStatus.TODO,
+    instanceIndex: 2,
+    projectTitle: 'Protein 3D viewer',
+  },
+  {
+    id: 'step-income',
+    title: 'Income statement overview',
+    size: TaskSize.SMALL,
+    points: SIZE_TO_POINTS[TaskSize.SMALL],
+    status: TaskStatus.BACKLOG,
+    instanceIndex: 1,
+    projectTitle: 'Finance basics',
+  },
+];
+
+/** Every step starts selected: carried over (create) or kept (edit). */
+export const PLAN_INITIAL_STEP_IDS = PLAN_PROJECT_STEPS.map(step => step.id);
+
 export const PLAN_EDIT_DESCRIPTION = 'Interview prep + system design';
 export const PLAN_EDIT_MODE = PlanMode.EXTREME;
 export const SCENARIO_PERIOD_KEY = '2026-W28';
@@ -151,6 +178,17 @@ export const REVIEW_REMOVED_ADHOC: AdhocTaskChange[] = [
     title: 'Renew passport',
     size: TaskSize.SMALL,
     points: SIZE_TO_POINTS[TaskSize.SMALL],
+  },
+];
+
+export const REVIEW_REMOVED_STEPS: ProjectStepChange[] = [
+  {
+    id: 'step-income',
+    title: 'Income statement overview',
+    size: TaskSize.SMALL,
+    points: SIZE_TO_POINTS[TaskSize.SMALL],
+    projectTitle: 'Finance basics',
+    stepNumber: 1,
   },
 ];
 

@@ -12,6 +12,8 @@ import {
 } from '@heroicons/react/24/outline';
 import {TaskType, PlanMode} from '@/utils/enums';
 import type {TaskSize} from '@/utils/enums';
+import {TaskKind} from '@/utils/taskUtils';
+import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
 import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {Pill, type PillColor} from '@/components/ui/Pill';
 import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
@@ -47,6 +49,12 @@ export interface AdhocTaskChange {
   points: number;
 }
 
+/** A project step leaving the week: it returns to its project, same number. */
+export interface ProjectStepChange extends AdhocTaskChange {
+  projectTitle: string;
+  stepNumber: number;
+}
+
 interface ReviewChangesPanelProps {
   onClose: () => void;
   onConfirm: () => void;
@@ -55,6 +63,7 @@ interface ReviewChangesPanelProps {
   modified: ModifiedTemplate[];
   addedAdhoc?: AdhocTaskChange[];
   removedAdhoc?: AdhocTaskChange[];
+  removedSteps?: ProjectStepChange[];
   incompleteCounts: Record<string, number>;
   isSubmitting: boolean;
   modeChanged?: boolean;
@@ -68,7 +77,10 @@ interface ReviewChangesModalProps extends ReviewChangesPanelProps {
 
 /* One accent drives a whole change section — dot, border, heading and
    note all read from here (literal classes so Tailwind can see them). */
-type Accent = Extract<PillColor, 'success' | 'error' | 'warning' | 'info'>;
+type Accent = Extract<
+  PillColor,
+  'success' | 'error' | 'warning' | 'info' | 'secondary'
+>;
 const ACCENT: Record<Accent, {dot: string; border: string; text: string}> = {
   success: {
     dot: 'bg-success',
@@ -82,6 +94,11 @@ const ACCENT: Record<Accent, {dot: string; border: string; text: string}> = {
     text: 'text-warning',
   },
   info: {dot: 'bg-info', border: 'border-info/30', text: 'text-info'},
+  secondary: {
+    dot: 'bg-secondary',
+    border: 'border-secondary/30',
+    text: 'text-secondary',
+  },
 };
 
 /** Section header: icon + uppercase heading + optional count pill. */
@@ -157,6 +174,7 @@ export function ReviewChangesPanel({
   modified,
   addedAdhoc = [],
   removedAdhoc = [],
+  removedSteps = [],
   incompleteCounts,
   isSubmitting,
   modeChanged = false,
@@ -235,12 +253,13 @@ export function ReviewChangesPanel({
     />
   );
 
-  const renderAdhocGroup = (
+  /** A labelled group of one-off or step changes; each row gets its note. */
+  const renderTaskGroup = <Row extends AdhocTaskChange>(
     label: string,
     labelClass: string,
-    rows: AdhocTaskChange[],
+    rows: Row[],
     accent: Accent,
-    note: string,
+    noteFor: (row: Row) => string,
     trailingGap: boolean,
   ) => (
     <>
@@ -248,18 +267,20 @@ export function ReviewChangesPanel({
         {label}
       </div>
       <div className={`flex flex-col gap-1.5${trailingGap ? ' mb-2' : ''}`}>
-        {rows.map(t => (
+        {rows.map(row => (
           <ChangeRow
-            key={t.id}
+            key={row.id}
             accent={accent}
-            title={t.title}
-            meta={sizeMeta(t.size, t.points)}
-            note={note}
+            title={row.title}
+            meta={sizeMeta(row.size, row.points)}
+            note={noteFor(row)}
           />
         ))}
       </div>
     </>
   );
+
+  const ProjectIcon = TASK_KIND_STYLE[TaskKind.PROJECT].Icon;
 
   const renderBody = () => (
     <div className="flex-1 overflow-y-auto px-6 pt-4">
@@ -342,23 +363,45 @@ export function ReviewChangesPanel({
             count={totalAdhocChanges}
           >
             {addedAdhoc.length > 0 &&
-              renderAdhocGroup(
+              renderTaskGroup(
                 tr('addedToBoard'),
                 'text-info',
                 addedAdhoc,
                 'info',
-                tr('adhocAddedNote'),
+                () => tr('adhocAddedNote'),
                 removedAdhoc.length > 0,
               )}
             {removedAdhoc.length > 0 &&
-              renderAdhocGroup(
+              renderTaskGroup(
                 tr('removedFromBoard'),
                 'text-error',
                 removedAdhoc,
                 'error',
-                tr('adhocRemovedNote'),
+                () => tr('adhocRemovedNote'),
                 false,
               )}
+          </ChangeSection>
+        )}
+
+        {removedSteps.length > 0 && (
+          <ChangeSection
+            icon={<ProjectIcon className="size-3.5 text-secondary" />}
+            heading={tr('stepsHeading')}
+            accent="secondary"
+            count={removedSteps.length}
+          >
+            {renderTaskGroup(
+              tr('removedFromBoard'),
+              'text-error',
+              removedSteps,
+              'error',
+              step =>
+                tr('stepRemovedNote', {
+                  project: step.projectTitle,
+                  number: step.stepNumber,
+                }),
+              false,
+            )}
           </ChangeSection>
         )}
 

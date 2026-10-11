@@ -65,7 +65,7 @@ User clicks "Create Plan" on empty board → navigates to `/kanban/plans/new`.
 ### Rules
 
 - Every creation path (plan form, AI approval, MCP) runs the same guard: sync first (a finished week's ACTIVE plan flips to `PENDING_UPDATE`), then refuse while an ACTIVE plan exists.
-- **Project steps** *(designed — Phase 1 pending, PR 4)*:
+- **Project steps**:
   - The form loads the `PENDING_UPDATE` plan's unfinished steps, preselected; they can only be selected or deselected.
   - Selected steps are re-pointed to the new plan and keep their status.
   - Deselected steps return to their project: `planId = null`, `BACKLOG`, `instanceIndex` unchanged.
@@ -99,7 +99,7 @@ User clicks "Edit Plan" on board header → navigates to `/kanban/plans/[id]`.
   - Added templates: generate new instances **as `BACKLOG`** (weekly immediately, daily for today only).
   - Removed templates: delete the template's unfinished (BACKLOG, TODO) instances.
   - Modified templates (type or frequency changed): delete the template's unfinished (BACKLOG, TODO) instances and regenerate (as `BACKLOG`) based on new config.
-- **Project steps** *(designed — Phase 1 pending, PR 4)*:
+- **Project steps**:
   - The form loads this week's steps, which can only be deselected.
   - A deselected step returns to its project.
 

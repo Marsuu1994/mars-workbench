@@ -3,7 +3,7 @@ import BoardHeader from '@/components/domain/shared/BoardHeader';
 import ProgressDashboard from '@/components/domain/board/ProgressDashboard';
 import KanbanBoard from '@/components/domain/board/KanbanBoard';
 
-/** The page's data as fetchBoard shapes it: plan, tasks, progress. */
+/** The page's data as fetchBoard shapes it: plan, tasks, progress, projects. */
 type BoardScreenProps = BoardData;
 
 /**
@@ -13,12 +13,17 @@ type BoardScreenProps = BoardData;
  * never drift apart. The header and the metrics read server data as-is; the
  * board keeps the tasks as state (KanbanBoard is the container).
  */
-export const BoardScreen = ({plan, progress, tasks}: BoardScreenProps) => (
+export const BoardScreen = ({
+  plan,
+  progress,
+  tasks,
+  projects,
+}: BoardScreenProps) => (
   <div className="flex flex-col h-full">
     <BoardHeader periodKey={plan.periodKey} />
     <ProgressDashboard {...progress} />
     <div className="flex-1 min-h-0">
-      <KanbanBoard tasks={tasks} plan={plan} />
+      <KanbanBoard tasks={tasks} plan={plan} projects={projects} />
     </div>
   </div>
 );

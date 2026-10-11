@@ -10,32 +10,56 @@ type TaskCardHeadVariant = 'card' | 'mini';
 interface TaskCardHeadProps {
   kind: TaskKind;
   variant: TaskCardHeadVariant;
-  /** Right-aligned context (plan line, ↩ date, quadrant); full card only */
+  /** Shown in place of the kind label, in normal case — a step's project */
+  name?: string;
+  /** Right-aligned context (plan line, step n/N, quadrant); full card only */
   context?: ReactNode;
 }
 
 // Literal classes only — never interpolate, Tailwind can't see it.
-const VARIANT_STYLE: Record<TaskCardHeadVariant, {row: string; icon: string}> =
-  {
-    card: {row: 'gap-1.5 text-[10px] tracking-[0.1em]', icon: 'size-3'},
-    mini: {row: 'gap-1 text-[8.5px] tracking-[0.08em]', icon: 'size-2.5'},
-  };
+const VARIANT_STYLE: Record<
+  TaskCardHeadVariant,
+  {row: string; icon: string; name: string}
+> = {
+  card: {
+    row: 'gap-1.5 text-[10px] tracking-[0.1em]',
+    icon: 'size-3',
+    name: 'text-[11px]',
+  },
+  mini: {
+    row: 'gap-1 text-[8.5px] tracking-[0.08em]',
+    icon: 'size-2.5',
+    name: 'text-[9.5px]',
+  },
+};
 
 /**
  * A task card's first line: what kind of work this is — icon and label in the
- * kind's colour — plus its context. The kind colour never changes on a card.
+ * kind's colour (a project step names its project instead) — plus its
+ * context. The kind colour never changes on a card.
  */
-export const TaskCardHead = ({kind, variant, context}: TaskCardHeadProps) => {
+export const TaskCardHead = ({
+  kind,
+  variant,
+  name,
+  context,
+}: TaskCardHeadProps) => {
   const tKind = useTranslations('Enums.TaskKind');
   const {text, Icon} = TASK_KIND_STYLE[kind];
-  const {row, icon} = VARIANT_STYLE[variant];
+  const {row, icon, name: nameStyle} = VARIANT_STYLE[variant];
 
   return (
     <div
       className={`flex items-center min-w-0 fx-num font-semibold uppercase ${row} ${text}`}
     >
       <Icon className={`flex-shrink-0 stroke-2 ${icon}`} />
-      <span className="truncate">{tKind(kind)}</span>
+      {name ? (
+        <span className={`truncate normal-case tracking-[0.02em] ${nameStyle}`}>
+          {name}
+        </span>
+      ) : (
+        <span className="truncate">{tKind(kind)}</span>
+      )}
       {context && (
         <span className="ml-auto flex-shrink-0 whitespace-nowrap font-medium normal-case tracking-[0.04em] text-base-content/50">
           {context}

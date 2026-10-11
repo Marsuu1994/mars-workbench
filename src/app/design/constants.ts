@@ -10,7 +10,7 @@ import {
 import type {TaskItem} from '@/lib/db/tasks';
 import type {DumpEntryItem} from '@/lib/db/dumpEntries';
 import {TaskKind, type HabitWeek} from '@/utils/taskUtils';
-import type {BoardCard} from '@/utils/boardCardUtils';
+import type {BoardCard, ProjectStepContext} from '@/utils/boardCardUtils';
 
 // ── Page copy ──────────────────────────────────────────────────────────────
 /** Title halves — the accent word renders with fx-text-gradient (the
@@ -225,6 +225,34 @@ const oneOffCard = (task: TaskItem): BoardCard => ({
   task,
 });
 
+/** A step's path as toBoardCards computes it (true = done); the step's own
+    segment is its number's. */
+const stepContext = (
+  projectTitle: string,
+  number: number,
+  path: boolean[],
+): ProjectStepContext => ({
+  projectTitle,
+  number,
+  count: path.length,
+  path,
+  currentSegment: number - 1,
+});
+
+// Protein 3D viewer: step 1 done, the Todo card is step 2 of 4.
+const PROTEIN_PATH = [true, false, false, false];
+// Biomedical course: Lectures 1–3 done, 4 is staged, 5 not scheduled.
+const BIOMEDICAL_PATH = [true, true, true, false, false];
+
+/** A project step card: its project, number and path. */
+const projectStepCard = (
+  task: TaskItem,
+  step: ProjectStepContext,
+): BoardCard => ({kind: TaskKind.PROJECT, task, step});
+
+const stepTask = (overrides: Partial<TaskItem>): TaskItem =>
+  baseTask({type: TaskType.PROJECT, ...overrides});
+
 export interface TaskCardFixture {
   label: string;
   card: BoardCard;
@@ -296,6 +324,49 @@ export const TASK_CARD_FIXTURES: TaskCardFixture[] = [
     ),
   },
   {
+    label: 'Project step · Todo',
+    card: projectStepCard(
+      stepTask({
+        id: 't-step',
+        projectId: 'prj-pdb',
+        instanceIndex: 2,
+        title: 'Render it with Mol*',
+        description: 'Rotate + zoom works in the page',
+      }),
+      stepContext('Protein 3D viewer', 2, PROTEIN_PATH),
+    ),
+  },
+  {
+    label: 'Project step · Backlog',
+    card: projectStepCard(
+      stepTask({
+        id: 't-step-backlog',
+        projectId: 'prj-bio',
+        instanceIndex: 4,
+        title: 'Lecture 4 — Cell signaling',
+        description: 'Watch + one-page notes',
+        status: TaskStatus.BACKLOG,
+        ...xs,
+      }),
+      stepContext('Biomedical course', 4, BIOMEDICAL_PATH),
+    ),
+  },
+  {
+    label: 'Project step · Done',
+    card: projectStepCard(
+      stepTask({
+        id: 't-step-done',
+        projectId: 'prj-bio',
+        instanceIndex: 3,
+        title: 'Lecture 3 — Membranes',
+        status: TaskStatus.DONE,
+        doneAt: TODAY,
+        ...xs,
+      }),
+      stepContext('Biomedical course', 3, BIOMEDICAL_PATH),
+    ),
+  },
+  {
     label: 'One-off · Todo',
     card: oneOffCard(
       baseTask({
@@ -324,11 +395,41 @@ export const TASK_CARD_FIXTURES: TaskCardFixture[] = [
   },
 ];
 
-/** The 136px mobile-row faces: a weekly and a daily habit, and a one-off. */
+/** The 136px mobile-row faces: a weekly and a daily habit, a project step
+    and a one-off. */
 export const MINI_CARD_FIXTURES: TaskCardFixture[] = [
   TASK_CARD_FIXTURES[0],
   TASK_CARD_FIXTURES[1],
   TASK_CARD_FIXTURES[4],
+  TASK_CARD_FIXTURES[7],
+];
+
+/** StepPath specimens: path lengths and where the card's step sits. */
+export const STEP_PATH_FIXTURES: {label: string; step: ProjectStepContext}[] = [
+  {
+    label: 'Step 2 of 4',
+    step: stepContext('Protein 3D viewer', 2, PROTEIN_PATH),
+  },
+  {
+    label: 'Step 3 of 5 · done',
+    step: stepContext('Biomedical course', 3, BIOMEDICAL_PATH),
+  },
+  {
+    label: 'Step 6 of 12 · done out of order',
+    step: stepContext(
+      'Spanish A1',
+      6,
+      Array.from({length: 12}, (_, index) => index < 4 || index === 7),
+    ),
+  },
+  {
+    label: '30 steps · one bar',
+    step: stepContext(
+      'Anatomy atlas',
+      13,
+      Array.from({length: 30}, (_, index) => index < 12),
+    ),
+  },
 ];
 
 // ── Matrix card fixtures ─────────────────────────────────────────────────────
@@ -449,13 +550,45 @@ export const CONTENT_SECTION_LABELS = [
 /** BoardHeader shows the desktop/mobile accent drift — documented, not fixed. */
 export const BOARD_HEADER_PERIOD = '2026-W28';
 
-/** A Todo column: a weekly habit, a daily habit and a one-off. */
+/** A Todo column: a weekly habit, a daily habit, a project step and a
+    one-off. */
 export const BOARD_COLUMN_STATUS = TaskStatus.TODO;
-export const BOARD_COLUMN_CARDS: BoardCard[] = [
-  TASK_CARD_FIXTURES[0],
-  TASK_CARD_FIXTURES[1],
-  TASK_CARD_FIXTURES[4],
-].map(fixture => fixture.card);
+export const BOARD_COLUMN_CARDS: BoardCard[] = MINI_CARD_FIXTURES.map(
+  fixture => fixture.card,
+);
+
+/** PlanTaskRow — tasks already on the plan the form keeps or lets go. */
+export const PLAN_TASK_ROW_FIXTURES = [
+  {
+    label: 'One-off · selected',
+    kind: TaskKind.ONE_OFF,
+    title: 'File tax report',
+    size: TaskSize.SMALL,
+    status: TaskStatus.TODO,
+    isSelected: true,
+    returnsTo: 'Priorities matrix',
+  },
+  {
+    label: 'Project step · selected',
+    kind: TaskKind.PROJECT,
+    title: 'Render it with Mol*',
+    context: 'Protein 3D viewer',
+    size: TaskSize.MEDIUM,
+    status: TaskStatus.TODO,
+    isSelected: true,
+    returnsTo: 'Protein 3D viewer, step 2',
+  },
+  {
+    label: 'Project step · deselected',
+    kind: TaskKind.PROJECT,
+    title: 'Income statement overview',
+    context: 'Finance basics',
+    size: TaskSize.SMALL,
+    status: TaskStatus.BACKLOG,
+    isSelected: false,
+    returnsTo: 'Finance basics, step 1',
+  },
+] as const;
 
 /** TemplateItem — a single selectable plan-template row. */
 export const TEMPLATE_FIXTURE = {

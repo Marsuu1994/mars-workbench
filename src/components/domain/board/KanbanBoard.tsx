@@ -3,6 +3,7 @@
 import {useState, useMemo} from 'react';
 import {DragDropContext, type DropResult} from '@hello-pangea/dnd';
 import type {TaskItem} from '@/lib/db/tasks';
+import type {BoardProject} from '@/lib/db/projects';
 import {TaskStatus} from '@/utils/enums';
 import type {BoardPlan} from '@/utils/taskUtils';
 import {toBoardCards, type BoardCard} from '@/utils/boardCardUtils';
@@ -19,6 +20,8 @@ interface KanbanBoardProps {
   tasks: TaskItem[];
   /** The active plan — its week, lines and mode drive the habit cards */
   plan: BoardPlan;
+  /** The projects behind the step cards — each card draws its path */
+  projects: BoardProject[];
 }
 
 /**
@@ -27,13 +30,13 @@ interface KanbanBoardProps {
  * frames that know nothing about cards. Moves are optimistic and roll back
  * per task on failure.
  */
-export default function KanbanBoard({tasks, plan}: KanbanBoardProps) {
+export default function KanbanBoard({tasks, plan, projects}: KanbanBoardProps) {
   const {localTasks, runOptimisticTaskUpdate} = useOptimisticTasks(tasks);
   const [isDragging, setIsDragging] = useState(false);
 
   const cardsByStatus = useMemo(
-    () => toBoardCards(localTasks, {plan}),
-    [localTasks, plan],
+    () => toBoardCards(localTasks, {plan, projects}),
+    [localTasks, plan, projects],
   );
   const {
     [TaskStatus.TODO]: todoCards,

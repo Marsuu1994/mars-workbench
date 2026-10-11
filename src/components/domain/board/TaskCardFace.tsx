@@ -9,6 +9,7 @@ import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {cn} from '@/components/ui/cn';
 import {TaskCardHead} from './TaskCardHead';
 import {HabitSignal} from './HabitSignal';
+import {StepPath} from './StepPath';
 
 interface TaskCardFaceProps {
   card: BoardCard;
@@ -20,8 +21,9 @@ interface TaskCardFaceProps {
 
 /**
  * The full kind-first card face — desktop board, desktop backlog and the
- * mobile backlog sheet. Line 1: kind + context. Then the title (and its
- * description until done). Last line: the kind's signal and a neutral size.
+ * mobile backlog sheet. Line 1: kind (a step's project name) + context. Then
+ * the title (and its description until done). Last line: the kind's signal —
+ * a habit's week dots, a step's path — and a neutral size.
  */
 export const TaskCardFace = ({card, action, className}: TaskCardFaceProps) => {
   const tCard = useTranslations('Board.Card');
@@ -33,10 +35,21 @@ export const TaskCardFace = ({card, action, className}: TaskCardFaceProps) => {
       ? tCard('planLineDaily', {frequency})
       : tCard('planLineWeekly', {frequency});
 
+  // A step names its project in place of the kind label
+  const renderName = () =>
+    card.kind === TaskKind.PROJECT ? card.step?.projectTitle : undefined;
+
   const renderContext = (): ReactNode => {
     switch (card.kind) {
       case TaskKind.HABIT:
         return card.habitWeek ? renderPlanLine(card.habitWeek) : null;
+      case TaskKind.PROJECT:
+        return card.step
+          ? tCard('stepContext', {
+              number: card.step.number,
+              count: card.step.count,
+            })
+          : null;
       case TaskKind.ONE_OFF:
         return task.quadrant ? tCard(`Quadrant.${task.quadrant}`) : null;
       default:
@@ -54,6 +67,8 @@ export const TaskCardFace = ({card, action, className}: TaskCardFaceProps) => {
             variant="card"
           />
         ) : null;
+      case TaskKind.PROJECT:
+        return card.step ? <StepPath step={card.step} variant="card" /> : null;
       default:
         return null;
     }
@@ -61,7 +76,12 @@ export const TaskCardFace = ({card, action, className}: TaskCardFaceProps) => {
 
   return (
     <div className={cn('flex flex-col gap-1.5 px-3 py-2.5', className)}>
-      <TaskCardHead kind={card.kind} variant="card" context={renderContext()} />
+      <TaskCardHead
+        kind={card.kind}
+        variant="card"
+        name={renderName()}
+        context={renderContext()}
+      />
 
       <div className="flex items-start gap-2.5">
         <h3
