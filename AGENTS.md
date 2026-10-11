@@ -326,6 +326,7 @@ Only patterns not already covered above. DRY, enum constants, and the component�
 - In both modes, never commit or push directly to `main` — changes land via pull requests.
 - Run `npm run format` before pushing (see **Formatting** — CI's `format:check` fails the PR otherwise).
 - **Branch names say what the PR does**: `claude/<feature>-<change>`, kebab-case, a few words — for a multi-PR project include the step (`pr2`). In remote sessions, when the session's assigned branch is a random name, create a descriptive branch for the PR instead of pushing to the random one. Bad: `claude/quirky-galileo-8ofthc`, `claude/project-data-layer` (which project? which step?). Good: `claude/week-model-pr2-kind-first-cards`, `claude/week-model-pr3-project-data-layer`.
+- **Act on submitted reviews only.** A pending review — comments the reviewer has drafted but not yet submitted — is not final: its comments can still change or be deleted. An agent working with the owner's GitHub access can read the owner's pending review, but it must not reply to, resolve or push commits for those comments; wait until the review is submitted, and at most mention that one is pending. Bad: seeing three comments in the owner's `PENDING` review and pushing fixes for them. Good: "Your review is still pending — I'll address it once you submit."
 
 ## Commands
 
