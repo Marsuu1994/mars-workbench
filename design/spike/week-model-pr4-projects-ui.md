@@ -1,8 +1,19 @@
 # Spike: Week model Phase 1 · PR 4 — Projects UI 的组件设计
 
-**Status: awaiting owner review** · 2026-10-10 · 回答 tracker 条目 *Week model Phase 1 › PR 4*（Plan › Medium）· 上游：`design/spike/week-model-restructure.md`（approved）、`design/flows/projects.md`、`design/spike/board-prop-drilling.md`（Option C3）· Mockups：`design/mockup/future-work/mockup-projects-v2.html`（Projects 页和 4 个 modal）、`mockup-week-model-phase1-v2.html`（step 卡片、plan form）
+**Status: decided** · 2026-10-11（提出 2026-10-10，review 见 PR #54）· 回答 tracker 条目 *Week model Phase 1 › PR 4*（Plan › Medium）· 上游：`design/spike/week-model-restructure.md`（approved）、`design/flows/projects.md`、`design/spike/board-prop-drilling.md`（Option C3）· Mockups：`design/mockup/future-work/mockup-projects-v2.html`（Projects 页和 4 个 modal）、`mockup-week-model-phase1-v2.html`（step 卡片、plan form）
 
 > 语言约定：叙述用中文；产品名词、状态、代码标识保留英文（project / step / backlog / this week、`instanceIndex`、`toBoardCards` …），和代码、mockup、tracker 一一对应。
+
+## Decision · 拍板（2026-10-11）
+
+| 问题 | 结论 | 带来的变化 |
+| --- | --- | --- |
+| Q1 · plan form 上的 hub header | **Option B**：plan form 保留现在的 header，在下面加一行 tabs；Projects 页用 mockup 的 header。统一的 hub header 留到 Phase 2 | tabs 抽成共用的 `PlanHubTabs`（`domain/shared/`）；Projects 页的 header 是 `ProjectsHeader`（`domain/projects/`）。tracker 的 Phase 2 条目记上统一 header |
+| Q2 · 未完成 step 的顺序 | **Option A**：path 顺序（`instanceIndex`），this week 的行原地 tint | `flows/projects.md` Landing 第 4 步在 4d 改写 |
+| Q3 · 拆不拆 PR | **拆**，在 4a / 4b / 4c 之外**再加 4d**：接手 4c 里的收尾（living docs、删 mockup），加上用过之后的调整 | tracker 的 PR 4 换成 4a–4d 四条 sub-bullet |
+| Q4 · mockup 什么时候删 | **Option A**：`mockup-week-model-phase1-v2.html` 在 4d 删；`mockup-projects-v2.html` 留到 PR 5 | tracker 的 PR 5 条目记上删 mockup |
+
+下文已经按结论改写；「待拍板」一节保留当时的选项，选中的那个标了 ✓。
 
 ## Trigger · 起因
 
@@ -44,8 +55,8 @@ PR 4 是 Phase 1 里 UI 最重的一步。画面已经在两份 mockup 里批准
                                           （不存在或不是本人的 → 404；archived → redirect 到列表）
 └ ProjectsScreen (server)                 h-full 外框，把 server inputs 交给 container
   └ ProjectsContainer (client)            localSteps · selectedProjectId · openModal → toProjectsView()
-    ├ PlanHubHeader                       periodKey · activeTab=PROJECTS · thisWeekHref · action=[+ New project]
-    │ └ LinkTabBar (ui)                   This week · Projects
+    ├ ProjectsHeader                      periodKey · thisWeekHref · action=[+ New project]
+    │ └ PlanHubTabs → LinkTabBar (ui)     This week · Projects（activeTab=PROJECTS）
     ├ EmptyState variant=inline (ui)      一个 project 都没有时，取代下面的 panes
     ├ ProjectsPanes (frame)               list · detail · mobilePane
     │ ├ ProjectList (frame)               children · archived · mobileFooter
@@ -79,7 +90,7 @@ fetchBoard → {plan, tasks, progress, projects（新）}
 
 ```text
 /kanban/plans/new · /kanban/plans/[id]   + getPlanStepsByPlanId（pending plan / 这个 plan 的未完成 step）
-└ PlanChrome → PlanHubHeader activeTab=THIS_WEEK（Q1）
+└ PlanChrome                              现有 header 不变，下面一行 PlanHubTabs activeTab=THIS_WEEK（Q1 → B）
   └ PlanForm  + projectSteps · initialProjectStepIds
     ├ One-off Tasks → PlanTaskRow kind=ONE_OFF ×n    现有 inline markup 抽出来
     ├ Project Steps → PlanTaskRow kind=PROJECT ×n    新
@@ -109,26 +120,27 @@ fetchBoard → {plan, tasks, progress, projects（新）}
 
 | 组件 | 改什么 |
 | --- | --- |
-| `AppSidebar`、`BottomTabBar` | Plan 的 active 改用 `isPlanHubPath(pathname)`（`/kanban/plans` 或 `/kanban/projects`）；Plan 链接改用 `getThisWeekHref(activePlanId)`。两个 helper 放进 `utils/planUtils.ts`，`PlanHubHeader` 也用 |
+| `AppSidebar`、`BottomTabBar` | Plan 的 active 改用 `isPlanHubPath(pathname)`（`/kanban/plans` 或 `/kanban/projects`）；Plan 链接改用 `getThisWeekHref(activePlanId)`。两个 helper 放进 `utils/planUtils.ts`，`PlanHubTabs` 也用 |
 | `AppShell` | `SELF_SCROLLING_PREFIXES` 加 `/kanban/projects`：两栏各自滚动，step 列表的 `Droppable` 只能有一个 scroll parent（和 board 同样的约束） |
 
 ### `domain/shared/` — 新增 3 个，改 2 个，删 1 个
 
 | 组件 | 新 / 改 | Props | 说明 |
 | --- | --- | --- | --- |
-| `PlanHubHeader` | 新 | `periodKey` · `activeTab: PlanHubTab` · `thisWeekHref` · `action?` | 标题「Plan」+ `getWeekDateRange`（Week 41 · Oct 5 – Oct 11）+ `LinkTabBar` + 右侧 action（只在 md 以上）。Mobile：标题行下面一行居中的 tabs。不加 `'use client'`、不 async：`PlanChrome`（server）和 `ProjectsContainer`（client）都能渲染它 |
+| `PlanHubTabs` | 新 | `activeTab: PlanHubTab` · `thisWeekHref` | 配好两个 tab 的 `LinkTabBar`：This week → `thisWeekHref`，Projects → `/kanban/projects`。plan form header 下面那一行和 Projects 页的 header 都用它，两边的 tabs 永远一致。不加 `'use client'`、不 async：`PlanChrome`（server）和 `ProjectsHeader`（client 树）都能渲染它 |
 | `task-modal/SizePicker` | 新 | `value` · `onChange` · `splitWarning` | 从 `TaskModalPanel` 抽出来：size pills + effort 提示 + L / XL 拆分提醒。template 和 step 的提醒文案不同（smaller tasks / smaller steps），由调用方传 |
 | `task-modal/TaskModalPanel` | 新文件 | 不变 | 从 `TaskModal.tsx` 拆出来；改用 `SizePicker`、`ModalFormFooter`、`Banner` |
 | `task-modal/TaskModal` | 改 | 不变 | 只剩外壳 |
 | `taskKindStyle.ts` | 改 | + `tint`（行的底色和边框）、`track`（path 的空段） | `Record<TaskKind, …>`，三种 kind 都要加 |
 | `task-modal/TaskModalFooter` | 删 | — | `ModalFormFooter` 取代 |
 
-### `domain/projects/` — 新文件夹，17 个组件
+### `domain/projects/` — 新文件夹，18 个组件
 
 | 组件 | 角色 | Props | 渲染什么 |
 | --- | --- | --- | --- |
 | `ProjectsScreen` | screen | `ProjectsPageData` · `selectedProjectId` · `periodKey` · `thisWeekHref` | `h-full` 的一列，里面只有 container。page 和 scenario 都渲染它，两边不会漂移 |
 | `ProjectsContainer` | container（client） | 同上 | 见「Container 和写入」 |
+| `ProjectsHeader` | 展示 | `periodKey` · `thisWeekHref` · `action` | 标题「Plan」+ `getWeekDateRange`（Week 41 · Oct 5 – Oct 11）+ `PlanHubTabs activeTab=PROJECTS` + 右侧 action（只在 md 以上）。Mobile：标题行下面一行居中的 tabs（mockup 的 header） |
 | `ProjectsPanes` | frame | `list` · `detail` · `mobilePane: 'list' \| 'detail'` | md 以上 `grid-cols-[320px_1fr]`，两栏各自 `overflow-y-auto`；mobile 只显示 `mobilePane` 那一栏 |
 | `ProjectList` | frame | `children` · `archived?` · `mobileFooter?` | active 卡片；`SectionLabel`「Archived」和 archived 行；mobile 的整宽「+ New project」 |
 | `ProjectListItem` | 展示 | `project: ProjectSummary` · `isSelected` · `href` · `onSelect` | Desktop 是卡片：project 色的 kind edge、title + `d/N`、`ProgressBar`、「Next: …」或「✓ All steps done」或「No steps yet」、「n this week」pill。Mobile 是一行：title、`d/N` + Next、›。根元素是 `<Link href>`，desktop 拦下 click 改成 `onSelect`（见「选中」） |
@@ -171,7 +183,7 @@ fetchBoard → {plan, tasks, progress, projects（新）}
 | `PlanTaskRow` | 新 | plan form 里可勾选的一行：kind 色的 checkbox、`[project · ]title`、`SizeChip`、状态 pill（Todo / Backlog）、取消勾选后显示去向（「→ Priorities matrix」/「→ Finance basics, step 1」）。One-off 区块现有的 inline markup 也改用它，同样的行不写两遍 |
 | `PlanForm` | 改 | + `projectSteps` · `initialProjectStepIds`；One-off 下面加 Project Steps 区块（有 step 才渲染）；summary 加 step 数；create / update 都带 `projectStepIds`；「至少选一项」的禁用条件算上 step；diff 加 `removedSteps` |
 | `ReviewChangesModal`（及 Panel） | 改 | + `removedSteps`：Project Steps 一节，每行「Will return to {project} — still step {n}」。Edit 只能取消勾选，所以只有 removed |
-| `PlanChrome` | 改 | header 换成 `PlanHubHeader activeTab=THIS_WEEK`（Q1 选 A 时） |
+| `PlanChrome` | 改 | 现有 header（Kanban Planner + Planning mode）不变，下面加一行 `PlanHubTabs activeTab=THIS_WEEK`（Q1 → B）。`thisWeekHref` 用 active plan 算，和侧栏的 Plan 链接一样 |
 
 ---
 
@@ -350,7 +362,7 @@ Owner 可以逐条否决；没有意见就按这里做。
 
 ---
 
-## 待拍板 · Open questions
+## 待拍板 · Open questions（已拍板，结论见 Decision）
 
 ### Q1 · This week（plan form）上的 hub header
 
@@ -363,7 +375,7 @@ Projects 页的 header 已经批准（mockup：「Plan」+ 周 + This week · Pr
 - Cons：plan form 的 header 变了。原 spike 说 plan form 主体不动，header 在主体之外，但仍然是看得见的变化；tracker「Uniform page header」里「plan keeps its planning-mode header」那句要改。
 - 实现：`PlanChrome` 渲染 `PlanHubHeader`（周 = 当前 ISO week，`thisWeekHref` = 当前 route）；去掉对 `Board.Header` 文案的引用；更新 plan scenario；改 tracker 那一句。
 
-**Option B — 保留 plan form 的 header，在它下面加一行 tabs**
+**Option B — 保留 plan form 的 header，在它下面加一行 tabs** ✓
 
 - 设计：`PlanChrome` 原样，header 下面加一行 `LinkTabBar`；Projects 页用 mockup 的 header。
 - Pros：plan form 一点不变。
@@ -374,7 +386,7 @@ Projects 页的 header 已经批准（mockup：「Plan」+ 周 + This week · Pr
 
 `flows/projects.md` 写的是 detail 里「done（按完成顺序）→ this week → upcoming」。mockup 里这周的 step 恰好都是编号最小的，所以看不出差别。但排期不强制顺序：只排了 step 5、没排 step 4 时，两种排法就不一样了。
 
-**Option A — open steps 按 path 顺序（`instanceIndex`），this week 的行原地 tint（推荐）**
+**Option A — open steps 按 path 顺序（`instanceIndex`），this week 的行原地 tint（推荐）** ✓
 
 - Pros：点「+ This week」只改变行的样子，行不跳；拖动的列表就是 path，拖完的编号和看到的顺序一致；open 区的编号从上到下递增。
 - Cons：这周的 step 可能散在列表中间，不一定聚在一起（靠 tint 和 pill 区分）。
@@ -392,7 +404,7 @@ Projects 页的 header 已经批准（mockup：「Plan」+ 周 + This week · Pr
 
 原 spike 把 PR 4 估成 M–L。按上面的清单，实际约 80 个文件（含 Design Console 和文档）。
 
-**Option A — 拆成 4a / 4b / 4c（推荐）**
+**Option A — 拆成 4a / 4b / 4c（推荐）** ✓（另加 4d，见 Decision）
 
 | PR | 内容 | 大小 |
 | --- | --- | --- |
@@ -413,7 +425,7 @@ Projects 页的 header 已经批准（mockup：「Plan」+ 周 + This week · Pr
 
 原计划是 PR 4 的 scenario 接手后删掉两份。但 PR 5 的 Done when 写的是「在 Claude 里跑通 Projects mockup『07 Draft with Claude』的对话」，这个 tab 是 MCP 的内容，不是 PR 4 落地的 UI。
 
-- **Option A（推荐）**：4c 删 `mockup-week-model-phase1-v2.html`；`mockup-projects-v2.html` 留到 PR 5 合并时删。代价是 Projects 页的画面会同时存在于 scenario 和 mockup 一段时间，以 scenario 为准。
+- **Option A（推荐）** ✓：4c 删 `mockup-week-model-phase1-v2.html`；`mockup-projects-v2.html` 留到 PR 5 合并时删。代价是 Projects 页的画面会同时存在于 scenario 和 mockup 一段时间，以 scenario 为准。
 - **Option B**：4c 两份都删；PR 5 的验收改成以 `flows/projects.md` 的 *Draft Steps with Claude (MCP) Flow* 为准。代价是 PR 5 少了一个可以照着对的对话样例。
 
 ---
@@ -446,9 +458,9 @@ Projects 页的 header 已经批准（mockup：「Plan」+ 周 + This week · Pr
 ### 更新现有的 scenario 和 gallery
 
 - **Board**：`MID_WEEK_TASKS` 加 3 个 step（Todo、Backlog、Done 各一个），fixture 加 `projects`；「Board」tab 的 note 写上 step 卡片。
-- **Plan**：Create tab 带 2 个上周的 step（一个 Todo、一个 Backlog）；Review changes tab 加一个被取消的 step；Q1 选 A 时，两个表单 tab 的 header 变成 hub header。
+- **Plan**：Create tab 带 2 个上周的 step（一个 Todo、一个 Backlog）；Review changes tab 加一个被取消的 step；两个表单 tab 的 header 下面多一行 hub tabs（Q1 → B）。
 - **Gallery · ui**：`LinkTabBar`、`Banner` 的三种 tone、`InlineConfirmButton`（rest / armed，用 `<Play>`）、`EmptyState` inline、带 subtitle 的 `OverlayHeader`、`ModalFormFooter`（有 / 没有 leading）。
-- **Gallery · domain**：`StepPath`（短 path、做到一半、超过 24 段）、`TaskCard` 的 project 面（todo / backlog / done / mini）、`ProjectListItem`（进行中 / All steps done / 没有 step / 选中）、`ArchivedProjectRow`、`ProjectStepRow`（4 种状态 + 不能排的 upcoming）、`PlanTaskRow`（one-off / step × 选中 / 取消）、`PlanHubHeader`。
+- **Gallery · domain**：`StepPath`（短 path、做到一半、超过 24 段）、`TaskCard` 的 project 面（todo / backlog / done / mini）、`ProjectListItem`（进行中 / All steps done / 没有 step / 选中）、`ArchivedProjectRow`、`ProjectStepRow`（4 种状态 + 不能排的 upcoming）、`PlanTaskRow`（one-off / step × 选中 / 取消）、`PlanHubTabs`、`ProjectsHeader`。
 - **Scenario 索引**加一条 Projects。
 
 ## i18n
@@ -461,7 +473,7 @@ Projects 页的 header 已经批准（mockup：「Plan」+ 周 + This week · Pr
 
 ## Executable plan
 
-按 Q3 的推荐。每个 PR 都要：分层按 AGENTS（zod → service → DAL）；copy 进 `en.json`；推送前跑 `npm run format`；`tsc`、`lint`、`format:check`、`check:themes`、`build` 全绿；改写 README Current State，追加 Update Log；tracker 里删掉落地的那一条 sub-bullet。三个 PR 都没有 migration。
+按 Q3 的结论拆成 4a–4d。每个 PR 都要：分层按 AGENTS（zod → service → DAL）；copy 进 `en.json`；推送前跑 `npm run format`；`tsc`、`lint`、`format:check`、`check:themes`、`build` 全绿；改写 README Current State，追加 Update Log；tracker 里删掉落地的那一条 sub-bullet。四个 PR 都没有 migration。
 
 ### PR 4a — Steps on the week
 
@@ -489,11 +501,20 @@ Projects 页的 header 已经批准（mockup：「Plan」+ 周 + This week · Pr
 
 1. Server：`fetchProjectsPage` + `fetchProjectsPageAction`；`utils/projectUtils.ts`（`assignStepNumbers` 等，`reorderProjectSteps` 改用它）；`useOptimisticTasks` 加多 task 的版本。
 2. Routes：`/kanban/projects`、`/kanban/projects/[id]`、`loading.tsx`；`utils/planUtils.ts` 的两个 route helper；sidebar、dock、`AppShell`。
-3. Hub：`PlanHubHeader`；`PlanChrome`（Q1）。
+3. Hub：`PlanHubTabs`、`ProjectsHeader`；`PlanChrome` 在现有 header 下面加 `PlanHubTabs`。
 4. `utils/projectViewUtils.ts`；`domain/projects/` 的全部组件和 4 个 modal。
-5. Design Console：Projects scenario、scenario 索引、domain gallery；plan scenario 的 header（Q1）。
-6. 文档：`flows/projects.md` 的 status 行（Q2 选 A 时改 Landing 第 4 步）；baseline 的 Projects 移到已实现；`reference.md` 加新的 service 和 DAL；`design/README.md` 的 flows 列表；tracker（Q1 选 A 时改 Uniform page header 那一句）；按 Q4 删 mockup。
+5. Design Console：Projects scenario、scenario 索引、domain gallery；plan scenario 的 tabs 行。
+6. living docs 的收尾和删 mockup 留给 4d。
 7. **Done when**：手动跑通原 spike 的路径——建 project → 加 step → 排进这周 → 在 board 上做完 → 下周 carry-over（用 4a 的办法切到下一周）；再跑一遍 edit / delete / reorder / archive / unarchive；在 mobile 宽度下走一遍 list → detail → back。
+
+### PR 4d — Cleanup and adjustments
+
+分支 `claude/week-model-pr4d-cleanup`。
+
+1. Living docs 收尾（从 4c 移过来）：`flows/projects.md` 的 status 行和 Landing 第 4 步（Q2 → A：open steps 按 path 顺序）；baseline 的 Projects 移到已实现；`reference.md` 加新的 service 和 DAL；`design/README.md` 的 flows 列表。
+2. 删 `mockup-week-model-phase1-v2.html`（Q4 → A；`mockup-projects-v2.html` 留到 PR 5）。
+3. Adjustments：owner 用过 4a–4c 之后提的调整（文案、间距、交互细节），以及「默认做法」里被否决的条目。开 PR 前先和 owner 对一遍清单。
+4. **Done when**：living docs 和上线的行为一致；调整清单做完；tracker 里 PR 4 的最后一条 sub-bullet 删掉。
 
 ## 风险
 
@@ -514,6 +535,6 @@ Projects 页的 header 已经批准（mockup：「Plan」+ 周 + This week · Pr
 
 ## 批准之后
 
-1. 按 Q1–Q4 的结论更新 tracker：Q3 选 A 时，PR 4 那一条 sub-bullet 换成 4a / 4b / 4c 三条；链接这份 spike。
-2. 依次开 4a → 4b → 4c。4a 和 4b 互不依赖，可以并行；4c 依赖两者。
+1. ✓ tracker 已按结论更新：PR 4 换成 4a–4d 四条 sub-bullet，链接这份 spike；PR 5 记上删 `mockup-projects-v2.html`；Phase 2 记上统一的 hub header。
+2. 依次开 4a → 4b → 4c → 4d。4a 和 4b 互不依赖，可以并行；4c 依赖两者；4d 在 4c 之后。
 3. 这份 spike 之后不再更新；决定记在 tracker 和 Update Log。
