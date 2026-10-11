@@ -88,6 +88,9 @@ Open items: see [design/tracker.md](./design/tracker.md).
 
 ## Update Log
 
+### 2026-10-11
+- **AGENTS.md: act on submitted reviews only** — an agent working with the owner's GitHub access can read the owner's pending (unsubmitted) review, but those comments aren't final; the new Version Control rule says not to reply to, resolve or push commits for them until the review is submitted.
+
 ### 2026-10-10
 - **Board prop drilling removed — card view model + composition (spike Option C3)**:
   - **Spike** (`design/spike/board-prop-drilling.md`, decided): after #52 removed rollover, `habitWeeks` and `onPull` still threaded from `KanbanBoard` through the columns and backlogs to the card faces, and each leaf re-derived its own kind, plan line and dot. The spike compared a React context, a per-request Zustand store and a card view model (delivered as props, context + container, or children) on the same four examples, and reviewed the route → card component tree. The owner chose the view model with composition and ruled out context + container.
