@@ -18,6 +18,11 @@ import {DumpEntryCard} from '@/components/domain/dump/DumpEntryCard';
 import TemplateItem from '@/components/domain/plan/TemplateItem';
 import {PlanTaskRow} from '@/components/domain/plan/PlanTaskRow';
 import {StepPath} from '@/components/domain/board/StepPath';
+import {PlanHubTab, PlanHubTabs} from '@/components/domain/shared/PlanHubTabs';
+import {ProjectsHeader} from '@/components/domain/projects/ProjectsHeader';
+import {ProjectListItem} from '@/components/domain/projects/ProjectListItem';
+import {ArchivedProjectRow} from '@/components/domain/projects/ArchivedProjectRow';
+import {ProjectStepRow} from '@/components/domain/projects/ProjectStepRow';
 import {ThemePicker} from '@/components/domain/auth/ThemePicker';
 import type {ThemeName} from '@/utils/theme';
 import {BotAvatar, UserAvatar} from '@/components/domain/plan/ai-chat/Avatars';
@@ -25,6 +30,7 @@ import {SuggestionChips} from '@/components/domain/plan/ai-chat/SuggestionChips'
 import {LoadingBubble} from '@/components/domain/plan/ai-chat/LoadingBubble';
 
 import {Zone, Section, Variant, Row} from '../GalleryParts';
+import {InteractionShield} from '../InteractionShield';
 import {SIZE_TO_POINTS, TaskStatus, TaskType} from '@/utils/enums';
 import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
 import {
@@ -44,6 +50,12 @@ import {
   BOARD_COLUMN_CARDS,
   TEMPLATE_FIXTURE,
   SCENARIO_HREFS,
+  PLAN_HUB_PERIOD,
+  PLAN_HUB_THIS_WEEK_HREF,
+  PROJECTS_HEADER_DEMO_ACTION,
+  PROJECT_LIST_ITEM_FIXTURES,
+  ARCHIVED_PROJECT_FIXTURE,
+  PROJECT_STEP_ROW_FIXTURES,
 } from '../constants';
 
 /** Right-aligned Zone action linking a feature group to its scenario page(s). */
@@ -321,6 +333,101 @@ export const DomainTab = () => {
     </Section>
   );
 
+  const renderPlanHubTabs = () => (
+    <Section
+      title="PlanHubTabs"
+      description="The Plan hub's This week · Projects, configured once for the plan form's tabs row and the Projects header. Page links (LinkTabBar), stretched to full width below md."
+    >
+      <InteractionShield className="flex flex-wrap gap-6">
+        {Object.values(PlanHubTab).map(tab => (
+          <Variant key={tab} label={tab}>
+            <PlanHubTabs
+              activeTab={tab}
+              thisWeekHref={PLAN_HUB_THIS_WEEK_HREF}
+            />
+          </Variant>
+        ))}
+      </InteractionShield>
+    </Section>
+  );
+
+  const renderProjectsHeader = () => (
+    <Section
+      title="ProjectsHeader"
+      description="The Projects page header: Plan with the week, the hub's tabs (Projects active) and the page action from md up; on mobile the week number and full-width tabs under the title."
+    >
+      <InteractionShield className="overflow-hidden rounded-lg border border-base-content/10">
+        <ProjectsHeader
+          periodKey={PLAN_HUB_PERIOD}
+          thisWeekHref={PLAN_HUB_THIS_WEEK_HREF}
+          action={
+            <button type="button" className="btn btn-primary btn-sm">
+              {PROJECTS_HEADER_DEMO_ACTION}
+            </button>
+          }
+        />
+      </InteractionShield>
+    </Section>
+  );
+
+  const renderProjectListItems = () => (
+    <Section
+      title="ProjectListItem"
+      description="A project in the list: from md up a card with done/total, the progress bar, the next step (or All steps done / No steps yet) and how many steps are on this week, ringed when selected; below md a row with a chevron. A link — mobile opens the project's page, desktop selects it in place."
+    >
+      <InteractionShield className="flex flex-wrap items-start gap-6">
+        {PROJECT_LIST_ITEM_FIXTURES.map(({label, project, isSelected}) => (
+          <Variant key={project.id} label={label}>
+            <div className="w-72">
+              <ProjectListItem
+                project={project}
+                isSelected={isSelected}
+                href={`#${project.id}`}
+                onSelect={() => undefined}
+              />
+            </div>
+          </Variant>
+        ))}
+      </InteractionShield>
+    </Section>
+  );
+
+  const renderArchivedProjectRow = () => (
+    <Section
+      title="ArchivedProjectRow"
+      description="An archived project at the bottom of the list: title and progress on a dashed row, Unarchive (disabled while it runs)."
+    >
+      <div className="w-72">
+        <ArchivedProjectRow
+          project={ARCHIVED_PROJECT_FIXTURE}
+          onUnarchive={async () => undefined}
+        />
+      </div>
+    </Section>
+  );
+
+  const renderProjectStepRows = () => (
+    <Section
+      title="ProjectStepRow"
+      description="One step of a path, by state: done (locked, with its day), on this week (tinted, its board status; × while still in the backlog), left on last week's plan (muted, no ×), upcoming (size + This week, disabled without a plan). ✎ on every step that isn't done; from md up a drag hint and the description."
+    >
+      <div className="flex max-w-2xl flex-col gap-4">
+        {PROJECT_STEP_ROW_FIXTURES.map(({label, row}) => (
+          <Variant key={label} label={label}>
+            <div className="self-stretch">
+              <ProjectStepRow
+                row={row}
+                onEdit={() => undefined}
+                onSchedule={() => undefined}
+                onTakeBack={() => undefined}
+              />
+            </div>
+          </Variant>
+        ))}
+      </div>
+    </Section>
+  );
+
   const renderChatPrimitives = () => (
     <Section
       title="AI chat primitives"
@@ -372,6 +479,7 @@ export const DomainTab = () => {
         description="domain/shared/ — chips and headers reused across features. The shared TaskModal's states live as tabs in the Plan (templates) and Priorities (add-task) scenarios."
       >
         {renderBoardHeader()}
+        {renderPlanHubTabs()}
         {renderSizeChips()}
         {renderTypeBadges()}
       </Zone>
@@ -420,6 +528,22 @@ export const DomainTab = () => {
         {renderTemplateItem()}
         {renderPlanTaskRows()}
         {renderChatPrimitives()}
+      </Zone>
+
+      <Zone
+        title="Projects"
+        description="The whole page — list + detail, all steps done, no plan / between weeks — and the project and step modals live in the Projects scenarios."
+        action={
+          <ScenarioLink
+            href={SCENARIO_HREFS.projects}
+            label="Projects scenarios"
+          />
+        }
+      >
+        {renderProjectsHeader()}
+        {renderProjectListItems()}
+        {renderArchivedProjectRow()}
+        {renderProjectStepRows()}
       </Zone>
 
       <Zone

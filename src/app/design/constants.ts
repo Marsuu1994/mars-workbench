@@ -11,6 +11,12 @@ import type {TaskItem} from '@/lib/db/tasks';
 import type {DumpEntryItem} from '@/lib/db/dumpEntries';
 import {TaskKind, type HabitWeek} from '@/utils/taskUtils';
 import type {BoardCard, ProjectStepContext} from '@/utils/boardCardUtils';
+import {
+  ProjectStepState,
+  type ArchivedProjectSummary,
+  type ProjectStepRowModel,
+  type ProjectSummary,
+} from '@/utils/projectViewUtils';
 
 // ── Page copy ──────────────────────────────────────────────────────────────
 /** Title halves — the accent word renders with fx-text-gradient (the
@@ -47,6 +53,7 @@ export const SCENARIO_HREFS = {
   board: '/design/scenarios/board',
   priorities: '/design/scenarios/priorities',
   plan: '/design/scenarios/plan',
+  projects: '/design/scenarios/projects',
   aiChat: '/design/scenarios/ai-chat',
   dump: '/design/scenarios/dump',
   auth: '/design/scenarios/auth',
@@ -591,6 +598,175 @@ export const PLAN_TASK_ROW_FIXTURES = [
     returnsTo: 'Finance basics, step 1',
   },
 ] as const;
+
+// ── Projects fixtures ────────────────────────────────────────────────────────
+
+/** The Plan hub specimens' week and This week tab (an in-page anchor, so a
+    click stays put). */
+export const PLAN_HUB_PERIOD = '2026-W41';
+export const PLAN_HUB_THIS_WEEK_HREF = '#this-week';
+/** ProjectsHeader specimen's action (the live page's is New project). */
+export const PROJECTS_HEADER_DEMO_ACTION = 'New project';
+
+/** ProjectListItem — every way a project card reads. */
+export const PROJECT_LIST_ITEM_FIXTURES: {
+  label: string;
+  project: ProjectSummary;
+  isSelected: boolean;
+}[] = [
+  {
+    label: 'In progress · selected',
+    isSelected: true,
+    project: {
+      id: 'gallery-prj-bio',
+      title: 'Biomedical course',
+      doneCount: 2,
+      stepCount: 5,
+      nextStepTitle: 'Lecture 3 — Membranes',
+      isAllStepsDone: false,
+      thisWeekCount: 1,
+    },
+  },
+  {
+    label: 'In progress',
+    isSelected: false,
+    project: {
+      id: 'gallery-prj-pdb',
+      title: 'Protein 3D viewer',
+      doneCount: 1,
+      stepCount: 4,
+      nextStepTitle: 'Render it with Mol*',
+      isAllStepsDone: false,
+      thisWeekCount: 2,
+    },
+  },
+  {
+    label: 'All steps done',
+    isSelected: false,
+    project: {
+      id: 'gallery-prj-fin',
+      title: 'Finance basics',
+      doneCount: 2,
+      stepCount: 2,
+      nextStepTitle: null,
+      isAllStepsDone: true,
+      thisWeekCount: 0,
+    },
+  },
+  {
+    label: 'No steps yet',
+    isSelected: false,
+    project: {
+      id: 'gallery-prj-spa',
+      title: 'Spanish A1',
+      doneCount: 0,
+      stepCount: 0,
+      nextStepTitle: null,
+      isAllStepsDone: false,
+      thisWeekCount: 0,
+    },
+  },
+];
+
+export const ARCHIVED_PROJECT_FIXTURE: ArchivedProjectSummary = {
+  id: 'gallery-prj-home',
+  title: 'Home office setup',
+  doneCount: 2,
+  stepCount: 3,
+};
+
+const lectureStep = (overrides: Partial<TaskItem>): TaskItem =>
+  stepTask({
+    projectId: 'gallery-prj-bio',
+    status: TaskStatus.BACKLOG,
+    ...xs,
+    ...overrides,
+  });
+
+/** ProjectStepRow — every state, plus an upcoming step with no plan to
+    schedule into. */
+export const PROJECT_STEP_ROW_FIXTURES: {
+  label: string;
+  row: ProjectStepRowModel;
+}[] = [
+  {
+    label: 'Done',
+    row: {
+      state: ProjectStepState.DONE,
+      step: lectureStep({
+        id: 'gallery-step-2',
+        title: 'Lecture 2 — Biochemistry basics',
+        instanceIndex: 2,
+        status: TaskStatus.DONE,
+        doneAt: new Date(2026, 9, 6, 18),
+      }),
+    },
+  },
+  {
+    label: 'This week · todo',
+    row: {
+      state: ProjectStepState.THIS_WEEK,
+      canTakeBack: false,
+      step: lectureStep({
+        id: 'gallery-step-3',
+        title: 'Lecture 3 — Membranes',
+        description: 'Watch + one-page notes',
+        instanceIndex: 3,
+        status: TaskStatus.TODO,
+      }),
+    },
+  },
+  {
+    label: 'This week · backlog',
+    row: {
+      state: ProjectStepState.THIS_WEEK,
+      canTakeBack: true,
+      step: lectureStep({
+        id: 'gallery-step-4',
+        title: 'Lecture 4 — Cell signaling',
+        instanceIndex: 4,
+      }),
+    },
+  },
+  {
+    label: 'Last week',
+    row: {
+      state: ProjectStepState.LAST_WEEK,
+      step: lectureStep({
+        id: 'gallery-step-4-last',
+        title: 'Lecture 4 — Cell signaling',
+        instanceIndex: 4,
+        status: TaskStatus.TODO,
+      }),
+    },
+  },
+  {
+    label: 'Upcoming',
+    row: {
+      state: ProjectStepState.UPCOMING,
+      canSchedule: true,
+      step: lectureStep({
+        id: 'gallery-step-5',
+        title: 'Lecture 5 — Genetics I',
+        instanceIndex: 5,
+        planId: null,
+      }),
+    },
+  },
+  {
+    label: 'Upcoming · no plan',
+    row: {
+      state: ProjectStepState.UPCOMING,
+      canSchedule: false,
+      step: lectureStep({
+        id: 'gallery-step-5-no-plan',
+        title: 'Lecture 5 — Genetics I',
+        instanceIndex: 5,
+        planId: null,
+      }),
+    },
+  },
+];
 
 /** TemplateItem — a single selectable plan-template row. */
 export const TEMPLATE_FIXTURE = {

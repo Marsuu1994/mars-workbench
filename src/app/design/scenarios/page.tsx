@@ -8,6 +8,7 @@ import {
   PencilSquareIcon,
   SparklesIcon,
   InboxArrowDownIcon,
+  MapIcon,
   UserCircleIcon,
 } from '@heroicons/react/24/outline';
 
@@ -35,8 +36,14 @@ const SCENARIOS: {
   {
     href: '/design/scenarios/plan',
     title: 'Plan',
-    note: 'Create and edit forms with template configs, the review-changes panel, and the template modal.',
+    note: "Create and edit forms under the Plan hub's tabs, the review-changes panel, and the template modal.",
     icon: PencilSquareIcon,
+  },
+  {
+    href: '/design/scenarios/projects',
+    title: 'Plan — Projects',
+    note: 'No projects, list + detail, one project open, all steps done, no plan / between weeks, and the project and step modals.',
+    icon: MapIcon,
   },
   {
     href: '/design/scenarios/ai-chat',

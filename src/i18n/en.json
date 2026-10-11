@@ -319,5 +319,95 @@
     "globalNote": "Done and Expired tasks are never affected by any change — your completed work is always preserved.",
     "cancel": "Cancel",
     "confirmButton": "Confirm & Regenerate"
+  },
+  "PlanHub": {
+    "title": "Plan",
+    "week": "Week {week}",
+    "tabsLabel": "Plan hub",
+    "thisWeek": "This week",
+    "projects": "Projects"
+  },
+  "Projects": {
+    "newProject": "New project",
+    "Empty": {
+      "title": "No projects yet",
+      "description": "A project is a goal and a path of small steps — like a course, one lecture at a time.",
+      "claudeHint": "or ask Claude to draft one, steps included",
+      "noActiveTitle": "No active projects",
+      "noActiveDescription": "Every project is archived — unarchive one, or start a new one."
+    },
+    "List": {
+      "progress": "{done}/{total}",
+      "next": "Next: <step>{title}</step>",
+      "allStepsDone": "All steps done",
+      "noStepsYet": "No steps yet",
+      "thisWeekCount": "{count} this week",
+      "archived": "Archived",
+      "archivedRow": "{title} · {done}/{total}",
+      "unarchive": "Unarchive"
+    },
+    "Detail": {
+      "allProjects": "All projects",
+      "edit": "Edit",
+      "stepsProgress": "{done} of {total, plural, one {# step} other {# steps}}",
+      "addStep": "Add step",
+      "addFirstStep": "Add the first step",
+      "noStepsTitle": "No steps yet",
+      "noStepsDescription": "A project is a path of small steps, about 1–3 hours each.",
+      "allStepsDone": "<strong>All steps done.</strong> Add the next steps below, or archive the project when you're finished.",
+      "archive": "Archive",
+      "archiveConfirm": "Archive?",
+      "archiveHint": "Moves it to Archived",
+      "noPlan": "No plan for this week yet — + This week needs one.",
+      "createPlan": "Create plan"
+    },
+    "Step": {
+      "thisWeekTodo": "This week · todo",
+      "thisWeekBacklog": "This week · backlog",
+      "lastWeekTodo": "Last week · todo",
+      "lastWeekBacklog": "Last week · backlog",
+      "todo": "todo",
+      "backlog": "backlog",
+      "lastWeek": "Last week",
+      "schedule": "This week",
+      "scheduleShort": "Week",
+      "scheduleLabel": "Put on this week",
+      "takeBackLabel": "Take off this week",
+      "editLabel": "Edit step"
+    },
+    "ProjectModal": {
+      "createTitle": "New Project",
+      "editTitle": "Edit Project",
+      "banner": "Projects are a goal plus ordered steps — steps go onto a week one at a time and never expire.",
+      "titleLabel": "Title",
+      "titlePlaceholder": "e.g. Biomedical course",
+      "goalLabel": "Goal",
+      "optional": "(optional)",
+      "goalPlaceholder": "What does done look like?",
+      "cancel": "Cancel",
+      "create": "Create project",
+      "save": "Save changes",
+      "archive": "Archive",
+      "archiveConfirm": "Archive?",
+      "archiveHint": "Unfinished steps leave this week"
+    },
+    "StepModal": {
+      "addTitle": "Add Step",
+      "editTitle": "Edit Step",
+      "subtitleAdd": "{project} · becomes step {number}",
+      "subtitleEdit": "{project} · step {number}",
+      "titleLabel": "Title",
+      "titlePlaceholder": "e.g. Lecture 4 — Cell signaling",
+      "descriptionLabel": "Description",
+      "optional": "(optional)",
+      "descriptionPlaceholder": "A link, notes, or what done looks like",
+      "sizeLabel": "Size",
+      "sizeWarning": "Consider splitting into smaller steps",
+      "cancel": "Cancel",
+      "add": "Add step",
+      "save": "Save changes",
+      "delete": "Delete step",
+      "deleteConfirm": "Delete step?"
+    }
   }
 }

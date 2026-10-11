@@ -1,4 +1,5 @@
 import PlanForm from '@/components/domain/plan/PlanForm';
+import {getThisWeekHref, NEW_PLAN_HREF} from '@/utils/planUtils';
 import {PlanChrome} from '@/components/domain/plan/PlanChrome';
 import {ScenarioTabs, type ScenarioTab} from '../ScenarioTabs';
 import {ScenarioPage} from '../ScenarioPage';
@@ -29,9 +30,9 @@ export default function PlanScenarioPage() {
     {
       label: 'Create',
       title: 'Create Weekly Plan',
-      note: "Next week's plan form: AI assistant entry, plan-mode toggle, selected templates with their config strips, and last week's one-offs and project steps to carry over (select / deselect only).",
+      note: "Next week's plan form under the Plan hub's tabs (This week active): AI assistant entry, plan-mode toggle, selected templates with their config strips, and last week's one-offs and project steps to carry over (select / deselect only).",
       content: (
-        <PlanChrome>
+        <PlanChrome thisWeekHref={NEW_PLAN_HREF}>
           <PlanForm
             mode="create"
             templates={PLAN_TEMPLATES}
@@ -48,9 +49,9 @@ export default function PlanScenarioPage() {
     {
       label: 'Edit',
       title: 'Update Weekly Plan',
-      note: "Mid-week edit: description prefilled, Extreme mode active, existing template configs, and this week's one-offs and project steps loaded (deselect only).",
+      note: "Mid-week edit under the Plan hub's tabs: description prefilled, Extreme mode active, existing template configs, and this week's one-offs and project steps loaded (deselect only).",
       content: (
-        <PlanChrome>
+        <PlanChrome thisWeekHref={getThisWeekHref('scn-plan')}>
           <PlanForm
             mode="edit"
             planId="scn-plan"

@@ -1,15 +1,23 @@
 import type {ReactNode} from 'react';
 import {getTranslations} from 'next-intl/server';
 import {Pill} from '@/components/ui/Pill';
+import {PlanHubTab, PlanHubTabs} from '@/components/domain/shared/PlanHubTabs';
+
+interface PlanChromeProps {
+  /** The Plan hub's This week tab — the active plan's form, or a new one's */
+  thisWeekHref: string;
+  children: ReactNode;
+}
 
 /**
- * The plans screens' chrome: fixed planning-mode header + the scrollable form
- * body. h-full (not h-screen): fills <main>'s dock-padded box — or a fill
- * scenario frame — exactly, so the header stays put and only the inner form
- * body scrolls (single scrollbar). Shared by the /kanban/plans layout and the
- * plan scenarios so the two can never drift apart.
+ * The plans screens' chrome: fixed planning-mode header, the Plan hub's tabs
+ * row (This week active) + the scrollable form body. h-full (not h-screen):
+ * fills <main>'s dock-padded box — or a fill scenario frame — exactly, so the
+ * header stays put and only the inner form body scrolls (single scrollbar).
+ * Shared by the /kanban/plans layout and the plan scenarios so the two can
+ * never drift apart.
  */
-export const PlanChrome = async ({children}: {children: ReactNode}) => {
+export const PlanChrome = async ({thisWeekHref, children}: PlanChromeProps) => {
   const t = await getTranslations('Board.Header');
 
   return (
@@ -25,6 +33,12 @@ export const PlanChrome = async ({children}: {children: ReactNode}) => {
             {t('planningMode')}
           </Pill>
         </div>
+      </div>
+      <div className="flex px-4 py-2 border-b border-base-content/10">
+        <PlanHubTabs
+          activeTab={PlanHubTab.THIS_WEEK}
+          thisWeekHref={thisWeekHref}
+        />
       </div>
       <div className="flex-1 overflow-y-auto p-4 md:p-8">
         <div className="mx-auto max-w-xl">{children}</div>

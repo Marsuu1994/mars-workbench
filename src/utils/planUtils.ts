@@ -5,6 +5,25 @@ import type {
   PlanTemplatePatchConflicts,
 } from '../types/plan';
 
+// ── Plan hub routes ──────────────────────────────────────────────────────────
+
+const PLANS_PATH = '/kanban/plans';
+export const NEW_PLAN_HREF = `${PLANS_PATH}/new`;
+export const PROJECTS_HREF = '/kanban/projects';
+
+/** This week's tab and the Plan nav item: the active plan's form, or a new
+    plan's when there is none. */
+export const getThisWeekHref = (activePlanId: string | null) =>
+  activePlanId ? `${PLANS_PATH}/${activePlanId}` : NEW_PLAN_HREF;
+
+/** One project's detail page (mobile's detail, a desktop preselect). */
+export const getProjectHref = (projectId: string) =>
+  `${PROJECTS_HREF}/${projectId}`;
+
+/** The Plan nav item stays active on both of the hub's tabs. */
+export const isPlanHubPath = (pathname: string) =>
+  pathname.startsWith(PLANS_PATH) || pathname.startsWith(PROJECTS_HREF);
+
 /** Per-plan template frequency bounds (× per day / week). */
 export const FREQ_MIN = 1;
 export const FREQ_MAX = 10;

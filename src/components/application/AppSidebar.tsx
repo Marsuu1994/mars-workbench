@@ -13,6 +13,7 @@ import {
 } from '@heroicons/react/24/outline';
 import {useSidebarStore} from '@/store/sidebarStore';
 import {useSettingsStore} from '@/store/settingsStore';
+import {getThisWeekHref, isPlanHubPath} from '@/utils/planUtils';
 
 interface AppSidebarProps {
   user: {name: string; email: string} | null;
@@ -51,11 +52,9 @@ export const AppSidebar = ({
 
   const isBoardActive = pathname === '/kanban';
   const isPrioritiesActive = pathname.startsWith('/kanban/priorities');
-  const isPlanActive = pathname.startsWith('/kanban/plans');
+  const isPlanActive = isPlanHubPath(pathname);
   const isDumpActive = pathname.startsWith('/kanban/dump');
-  const planHref = activePlanId
-    ? `/kanban/plans/${activePlanId}`
-    : '/kanban/plans/new';
+  const planHref = getThisWeekHref(activePlanId);
 
   const navItemBase =
     'flex items-center gap-2.5 rounded-lg px-3 py-2 whitespace-nowrap transition-colors';
