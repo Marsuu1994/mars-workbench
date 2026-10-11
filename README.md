@@ -94,6 +94,7 @@ Open items: see [design/tracker.md](./design/tracker.md).
   - **Plan form**: a Project Steps section beside One-off Tasks lists the plan's unfinished steps (the pending plan's when creating, this week's when editing) to keep or let go; a deselected row says where it goes (its project, same step number). Create and update now send `projectStepIds` — before, creating a plan returned every carried-over step to its project. Both sections share one `PlanTaskRow`, coloured by kind.
   - **Review changes**: a Project Steps section — "Will return to Finance basics — still step 1".
   - **Design Console**: the board scenario gains three steps (Todo, Backlog, Done) and their projects; the plan scenario carries steps over and removes one in the review; gallery entries for step cards, `StepPath` and `PlanTaskRow`. Verified on a local Postgres: the lookup, the step context, the optimistic path, and next week's carry-over (kept step moves with its status, deselected one returns with its number).
+  - **Tracker** (owner review): Week model Phase 2 gains a redesign of the Projects page and the Review changes modal, both large as they stand.
 - **AGENTS.md: act on submitted reviews only** — an agent working with the owner's GitHub access can read the owner's pending (unsubmitted) review, but those comments aren't final; the new Version Control rule says not to reply to, resolve or push commits for them until the review is submitted.
 
 ### 2026-10-10
