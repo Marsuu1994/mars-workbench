@@ -16,6 +16,8 @@ import ProgressDashboard from '@/components/domain/board/ProgressDashboard';
 import MatrixTaskCard from '@/components/domain/priorities/MatrixTaskCard';
 import {DumpEntryCard} from '@/components/domain/dump/DumpEntryCard';
 import TemplateItem from '@/components/domain/plan/TemplateItem';
+import {PlanTaskRow} from '@/components/domain/plan/PlanTaskRow';
+import {StepPath} from '@/components/domain/board/StepPath';
 import {ThemePicker} from '@/components/domain/auth/ThemePicker';
 import type {ThemeName} from '@/utils/theme';
 import {BotAvatar, UserAvatar} from '@/components/domain/plan/ai-chat/Avatars';
@@ -23,7 +25,7 @@ import {SuggestionChips} from '@/components/domain/plan/ai-chat/SuggestionChips'
 import {LoadingBubble} from '@/components/domain/plan/ai-chat/LoadingBubble';
 
 import {Zone, Section, Variant, Row} from '../GalleryParts';
-import {TaskStatus, TaskType} from '@/utils/enums';
+import {SIZE_TO_POINTS, TaskStatus, TaskType} from '@/utils/enums';
 import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
 import {
   SIZE_FIXTURES,
@@ -32,6 +34,8 @@ import {
   LOADING_LABEL,
   TASK_CARD_FIXTURES,
   MINI_CARD_FIXTURES,
+  STEP_PATH_FIXTURES,
+  PLAN_TASK_ROW_FIXTURES,
   MATRIX_CARD_FIXTURES,
   DUMP_CARD_FIXTURES,
   PROGRESS_FIXTURE,
@@ -109,7 +113,7 @@ export const DomainTab = () => {
   const renderTaskCards = () => (
     <Section
       title="TaskCard"
-      description="The board's kind-first card, every kind in every place it sits: kind + context (plan line, quadrant), the title, then the kind's signal and a neutral size — a habit's week dots in order, filled when done, with the card's own dot ringed. No risk. Below md the same card shows its 136px mini face (next section)."
+      description="The board's kind-first card, every kind in every place it sits: kind + context (plan line, step n/N, quadrant), the title, then the kind's signal and a neutral size — a habit's week dots in order, filled when done, with the card's own dot ringed; a project step's path, its own step outlined. A step names its project in place of the kind label. No risk. Below md the same card shows its 136px mini face (next section)."
     >
       <DragDropContext onDragEnd={() => undefined}>
         <Droppable droppableId="gallery-cards">
@@ -137,7 +141,7 @@ export const DomainTab = () => {
   const renderMiniFaces = () => (
     <Section
       title="TaskCardMiniFace"
-      description="The 136px face TaskCard shows in the mobile board rows: kind label, a two-line title, then the week dots (the card's own ringed) and the size. Shown here in the card's mobile frame."
+      description="The 136px face TaskCard shows in the mobile board rows: kind label (a step's project name), a two-line title, then the week dots or the path (the card's own mark outlined) and the size. Shown here in the card's mobile frame."
     >
       <Row>
         {MINI_CARD_FIXTURES.map(({label, card}) => (
@@ -148,6 +152,24 @@ export const DomainTab = () => {
               }`}
             >
               <TaskCardMiniFace card={card} />
+            </div>
+          </Variant>
+        ))}
+      </Row>
+    </Section>
+  );
+
+  const renderStepPath = () => (
+    <Section
+      title="StepPath"
+      description="A project step card's signal: one segment per step in path order, filled when done, the card's own step outlined. Past 24 steps the segments give way to one continuous bar."
+    >
+      <Row>
+        {STEP_PATH_FIXTURES.map(({label, step}) => (
+          <Variant key={label} label={label}>
+            <div className="flex flex-col gap-3">
+              <StepPath step={step} variant="card" />
+              <StepPath step={step} variant="mini" />
             </div>
           </Variant>
         ))}
@@ -276,6 +298,29 @@ export const DomainTab = () => {
     </Section>
   );
 
+  const renderPlanTaskRows = () => (
+    <Section
+      title="PlanTaskRow"
+      description="A one-off or project step already on the plan: the form can only keep it or let it go. The checkbox and selected wash take the kind's colour; deselected, the row says where the task goes."
+    >
+      <div className="flex max-w-md flex-col gap-4">
+        {PLAN_TASK_ROW_FIXTURES.map(({label, size, ...row}) => (
+          <Variant key={label} label={label}>
+            {/* Full width, as in the plan form */}
+            <div className="self-stretch">
+              <PlanTaskRow
+                {...row}
+                size={size}
+                points={SIZE_TO_POINTS[size]}
+                onToggle={() => undefined}
+              />
+            </div>
+          </Variant>
+        ))}
+      </div>
+    </Section>
+  );
+
   const renderChatPrimitives = () => (
     <Section
       title="AI chat primitives"
@@ -340,6 +385,7 @@ export const DomainTab = () => {
       >
         {renderTaskCards()}
         {renderMiniFaces()}
+        {renderStepPath()}
         {renderMobileBacklogCard()}
         {renderBoardColumn()}
         {renderProgress()}
@@ -372,6 +418,7 @@ export const DomainTab = () => {
         }
       >
         {renderTemplateItem()}
+        {renderPlanTaskRows()}
         {renderChatPrimitives()}
       </Zone>
 

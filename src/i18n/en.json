@@ -11,6 +11,7 @@
       "WEEKLY": "WEEKLY"
     },
     "TaskStatus": {
+      "BACKLOG": "Backlog",
       "TODO": "Todo",
       "DONE": "Done"
     },
@@ -56,6 +57,7 @@
     "Card": {
       "planLineDaily": "{frequency, plural, one {Daily} other {#× / day}}",
       "planLineWeekly": "{frequency}× / week",
+      "stepContext": "{number}/{count}",
       "Quadrant": {
         "DO_FIRST": "Do first",
         "SCHEDULE": "Schedule",
@@ -269,8 +271,14 @@
     "noTemplates": "No templates yet. Create a template to get started.",
     "adhocTasksLabel": "One-off Tasks",
     "taskCount": "{count, plural, one {# task} other {# tasks}}",
+    "projectStepsLabel": "Project Steps",
+    "stepCount": "{count, plural, one {# step} other {# steps}}",
+    "returnsToMatrix": "Priorities matrix",
+    "returnsToProject": "{project}, step {number}",
     "summary": "{templateCount, plural, one {# template} other {# templates}} selected",
     "summaryWithAdhoc": "{templateCount, plural, one {# template} other {# templates}}, {adhocCount, plural, one {# one-off task} other {# one-off tasks}} selected",
+    "summaryWithSteps": "{templateCount, plural, one {# template} other {# templates}}, {stepCount, plural, one {# project step} other {# project steps}} selected",
+    "summaryWithAdhocAndSteps": "{templateCount, plural, one {# template} other {# templates}}, {adhocCount, plural, one {# one-off task} other {# one-off tasks}}, {stepCount, plural, one {# project step} other {# project steps}} selected",
     "cancel": "Cancel",
     "startWeek": "Start Week",
     "updatePlan": "Update Plan",
@@ -304,6 +312,8 @@
     "adhocAddedNote": "Will appear on the board",
     "removedFromBoard": "Removed from board",
     "adhocRemovedNote": "Will return to the Priorities matrix",
+    "stepsHeading": "Project Steps",
+    "stepRemovedNote": "Will return to {project} — still step {number}",
     "modeChangedHeading": "Mode Changed",
     "modeChangedNote": "{description} — change applies to future daily tasks only",
     "globalNote": "Done and Expired tasks are never affected by any change — your completed work is always preserved.",

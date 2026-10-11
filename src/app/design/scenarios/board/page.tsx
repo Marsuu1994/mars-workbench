@@ -7,6 +7,7 @@ import {
   MID_WEEK_TASKS,
   MID_WEEK_PROGRESS,
   SCENARIO_PLAN,
+  SCENARIO_PROJECTS,
   BACKLOG_CARDS,
 } from './fixtures';
 
@@ -38,24 +39,26 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
   {
     label: 'Board',
     title: 'Board — active plan',
-    note: 'Todo · Done with kind-first cards: habits with their plan line and week dots (each card rings its own dot; Workout shows a missed day), one-offs with their quadrant. Backlog collapsed.',
+    note: "Todo · Done with kind-first cards: habits with their plan line and week dots (each card rings its own dot; Workout shows a missed day), project steps with their project, step n/N and the path (the card's own step outlined), one-offs with their quadrant. Backlog collapsed.",
     content: (
       <BoardScreen
         plan={SCENARIO_PLAN}
         progress={MID_WEEK_PROGRESS}
         tasks={MID_WEEK_TASKS}
+        projects={SCENARIO_PROJECTS}
       />
     ),
   },
   {
     label: 'Board — backlog open (desktop)',
     title: 'Board — backlog open (desktop)',
-    note: 'A play step opens the backlog: habit instances staged, ready to pull onto the board.',
+    note: 'A play step opens the backlog: habit instances and a scheduled project step staged, ready to pull onto the board.',
     content: (
       <BoardScreen
         plan={SCENARIO_PLAN}
         progress={MID_WEEK_PROGRESS}
         tasks={MID_WEEK_TASKS}
+        projects={SCENARIO_PROJECTS}
       />
     ),
     play: [{click: {label: 'Board.Backlog.openLabel'}}],
@@ -63,7 +66,7 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
   {
     label: 'Backlog (mobile)',
     title: 'Backlog (mobile)',
-    note: 'The mobile backlog bottom sheet — staged habit instances on the full card face with a tap-to-pull action — shown inline (not as a top-layer modal).',
+    note: 'The mobile backlog bottom sheet — staged habit instances and a project step on the full card face with a tap-to-pull action — shown inline (not as a top-layer modal).',
     display: 'fit',
     content: <MobileBacklogSheetFrame cards={BACKLOG_CARDS} />,
   },

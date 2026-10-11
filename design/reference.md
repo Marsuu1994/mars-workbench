@@ -77,7 +77,7 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | Function | Purpose |
 | --- | --- |
 | **`boardService.ts`** | |
-| `fetchBoard` | The board page's inputs for the active plan: `{plan, tasks, progress}` — plan narrowed to `BoardPlan`, metrics as `progress` (null = no active plan) |
+| `fetchBoard` | The board page's inputs for the active plan: `{plan, tasks, progress, projects}` — plan narrowed to `BoardPlan`, metrics as `progress`, the step cards' projects as a path lookup (null = no active plan) |
 | `getEmptyBoardState` | Resolve the no-active-plan state (new user vs. finished-plan recap) |
 | **`planService.ts`** | |
 | `createPlan` | Create a plan from the plan form (templates, mode, ad-hoc and project-step links) |
@@ -179,6 +179,8 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `linkProjectStepsToPlan` | Batch link unfinished steps to a plan (status kept) |
 | `unlinkUnfinishedStepsByProjectId` | Archive: return a project's unfinished steps from any plan |
 | `getUnfinishedStepIdsByPlanId` | A plan's unfinished steps (carry-over candidates) |
+| `getProjectPathsByIds` | The board step cards' projects: title + every step's status and number (the path) |
+| `getPlanStepsByPlanId` | A plan's unfinished steps with their project's title (the plan form's Project Steps) |
 | **`taskTemplates.ts`** | |
 | `getTaskTemplates` | Non-archived templates for a user, newest first |
 | `getTaskTemplateTitlesByIds` | Map template ids → titles (includes archived, for stats labels) |

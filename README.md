@@ -32,9 +32,9 @@ Open [http://localhost:3000](http://localhost:3000)
 ### Board
 
 - Two-column kanban (Todo · Done; work in progress stays in Todo): drag-and-drop with optimistic UI, fibonacci task sizing (XS–XL), per-column accents
-- **Kind-first cards**: each card opens with its kind — habit or one-off — in a fixed colour, then its context (a habit's plan line, a one-off's quadrant); a neutral size closes the card. A habit's week dots show each instance in order, filled when done, with the card's own dot ringed. Risk is switched off until per-kind rules return
+- **Kind-first cards**: each card opens with its kind — habit, project step or one-off — in a fixed colour, then its context (a habit's plan line, a step's project and number of N, a one-off's quadrant); a neutral size closes the card. A habit's week dots and a step's project path show where the card sits, its own mark outlined. Risk is switched off until per-kind rules return
 - **Missed days expire**: a habit instance not done by the end of its day expires and stays an empty dot
-- **Backlog** stages template-generated instances and pulls them onto the board — right-edge drag panel on desktop, bottom sheet on mobile (from a peeking "Backlog" pill); backlog tasks count toward the week projection, not Today
+- **Backlog** stages template-generated instances and this week's project steps, and pulls them onto the board — right-edge drag panel on desktop, bottom sheet on mobile (from a peeking "Backlog" pill); backlog tasks count toward the week projection, not Today
 - **Progress dashboard**: Today ring, stat metrics, Week Progress bar
 - One-off (`AD_HOC`) tasks are created only from the priority matrix and reach the board via Track This Week
 - **Sync** (`syncService.ensureSynced`): daily + end-of-period sync awaited by every kanban page — idempotent, page-visit order never matters
@@ -42,7 +42,7 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ### Plan
 
-- Create/edit plans with inline per-template type/frequency config, Plan Mode (NORMAL/EXTREME), and a review-changes diff before committing edits; templates are reusable and preselected from the previous plan
+- Create/edit plans with inline per-template type/frequency config, Plan Mode (NORMAL/EXTREME), and a review-changes diff before committing edits; templates are reusable and preselected from the previous plan, and last week's unfinished one-offs and project steps carry over unless deselected (a step goes back to its project)
 - **AI-assisted plan creation**: a chat modal drafts a structured plan via OpenAI (`gpt-5-nano`) calibrated from last period's per-template stats; refine → approve creates the plan atomically (completes the prior plan, carries over one-off tasks). Chats are durable — they resume across close/reload/restart (scoped to the current period) and auto-resume an interrupted generation; the composer is IME-safe
 - Fully mobile-adapted: bottom-sheet modals, compact AI banner, docked summary/submit footer
 - **Plan with Claude (MCP)**: add Mars Workbench to Claude as a custom connector (`/api/mcp`; sign-in and consent through Supabase's OAuth server) and Claude reads your week, then creates or patches the plan once you agree
@@ -89,6 +89,12 @@ Open items: see [design/tracker.md](./design/tracker.md).
 ## Update Log
 
 ### 2026-10-11
+- **Project steps on the week (Week model PR 4a)** — a scheduled step now shows on the board and in the plan form:
+  - **Step cards**: the kind-first card's project face names the project in place of the kind label, shows step n of N, and draws the project's path as its signal — one segment per step, filled when done, the card's own step outlined (past 24 steps, one continuous bar). `fetchBoard` adds a lookup of the step cards' projects; `toBoardCards` builds each step's context from it, reading the board's own tasks first so a step dragged to Done fills its segment at once.
+  - **Plan form**: a Project Steps section beside One-off Tasks lists the plan's unfinished steps (the pending plan's when creating, this week's when editing) to keep or let go; a deselected row says where it goes (its project, same step number). Create and update now send `projectStepIds` — before, creating a plan returned every carried-over step to its project. Both sections share one `PlanTaskRow`, coloured by kind.
+  - **Review changes**: a Project Steps section — "Will return to Finance basics — still step 1".
+  - **Design Console**: the board scenario gains three steps (Todo, Backlog, Done) and their projects; the plan scenario carries steps over and removes one in the review; gallery entries for step cards, `StepPath` and `PlanTaskRow`. Verified on a local Postgres: the lookup, the step context, the optimistic path, and next week's carry-over (kept step moves with its status, deselected one returns with its number).
+  - **Tracker** (owner review): Week model Phase 2 gains a redesign of the Projects page and the Review changes modal, both large as they stand.
 - **AGENTS.md: act on submitted reviews only** — an agent working with the owner's GitHub access can read the owner's pending (unsubmitted) review, but those comments aren't final; the new Version Control rule says not to reply to, resolve or push commits for them until the review is submitted.
 
 ### 2026-10-10

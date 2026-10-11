@@ -9,6 +9,8 @@ import {
   PLAN_INITIAL_TEMPLATES,
   PLAN_ADHOC_TASKS,
   PLAN_INITIAL_ADHOC_IDS,
+  PLAN_PROJECT_STEPS,
+  PLAN_INITIAL_STEP_IDS,
   PLAN_EDIT_DESCRIPTION,
   PLAN_EDIT_MODE,
   SCENARIO_PERIOD_KEY,
@@ -18,6 +20,7 @@ import {
   REVIEW_MODIFIED,
   REVIEW_ADDED_ADHOC,
   REVIEW_REMOVED_ADHOC,
+  REVIEW_REMOVED_STEPS,
   REVIEW_INCOMPLETE_COUNTS,
 } from './fixtures';
 
@@ -26,7 +29,7 @@ export default function PlanScenarioPage() {
     {
       label: 'Create',
       title: 'Create Weekly Plan',
-      note: 'First-plan form: AI assistant entry, plan-mode toggle, selected templates with their config strips, and the one-off task checklist.',
+      note: "Next week's plan form: AI assistant entry, plan-mode toggle, selected templates with their config strips, and last week's one-offs and project steps to carry over (select / deselect only).",
       content: (
         <PlanChrome>
           <PlanForm
@@ -35,6 +38,8 @@ export default function PlanScenarioPage() {
             initialPlanTemplates={PLAN_INITIAL_TEMPLATES}
             adhocTasks={PLAN_ADHOC_TASKS}
             initialAdhocTaskIds={PLAN_INITIAL_ADHOC_IDS}
+            projectSteps={PLAN_PROJECT_STEPS}
+            initialProjectStepIds={PLAN_INITIAL_STEP_IDS}
             aiContextPlanId="scn-plan"
           />
         </PlanChrome>
@@ -43,7 +48,7 @@ export default function PlanScenarioPage() {
     {
       label: 'Edit',
       title: 'Update Weekly Plan',
-      note: 'Mid-week edit: description prefilled, Extreme mode active, existing template configs and one-off selections loaded.',
+      note: "Mid-week edit: description prefilled, Extreme mode active, existing template configs, and this week's one-offs and project steps loaded (deselect only).",
       content: (
         <PlanChrome>
           <PlanForm
@@ -55,6 +60,8 @@ export default function PlanScenarioPage() {
             initialPlanMode={PLAN_EDIT_MODE}
             adhocTasks={PLAN_ADHOC_TASKS}
             initialAdhocTaskIds={PLAN_INITIAL_ADHOC_IDS}
+            projectSteps={PLAN_PROJECT_STEPS}
+            initialProjectStepIds={PLAN_INITIAL_STEP_IDS}
             periodKey={SCENARIO_PERIOD_KEY}
           />
         </PlanChrome>
@@ -63,7 +70,7 @@ export default function PlanScenarioPage() {
     {
       label: 'Review changes',
       title: 'Review Plan Changes',
-      note: 'Every change section at once: added / removed / modified templates with incomplete-task impact notes, one-off board changes, and a mode switch.',
+      note: 'Every change section at once: added / removed / modified templates with incomplete-task impact notes, one-off board changes, a project step returning to its project, and a mode switch.',
       display: 'fit',
       overlay: true,
       content: (
@@ -73,6 +80,7 @@ export default function PlanScenarioPage() {
           modified={REVIEW_MODIFIED}
           addedAdhoc={REVIEW_ADDED_ADHOC}
           removedAdhoc={REVIEW_REMOVED_ADHOC}
+          removedSteps={REVIEW_REMOVED_STEPS}
           incompleteCounts={REVIEW_INCOMPLETE_COUNTS}
         />
       ),

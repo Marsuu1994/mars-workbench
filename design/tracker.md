@@ -17,8 +17,7 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### Medium
 
-- [ ] Week model Phase 1 — Projects MVP: projects (a goal + ordered steps that never expire) under a Plan hub, kind-first cards with risk off, a Todo · Done board, and MCP project tools. Spike `design/spike/week-model-restructure.md` (approved); flows `design/flows/projects.md` + the *Phase 1 pending* notes in `baseline.md` and `flows/`; mockups `design/mockup/future-work/mockup-week-model-phase1-v2.html` + `mockup-projects-v2.html`
-  - [ ] PR 4a — Steps on the week: step cards on the board (project name, n/N, path), the plan form's Project Steps section (sends `projectStepIds`), review changes. Component design for 4a–4d: spike `design/spike/week-model-pr4-projects-ui.md` (decided)
+- [ ] Week model Phase 1 — Projects MVP: projects (a goal + ordered steps that never expire) under a Plan hub, kind-first cards with risk off, a Todo · Done board, and MCP project tools. Spike `design/spike/week-model-restructure.md` (approved), PR 4 component design `design/spike/week-model-pr4-projects-ui.md` (decided); flows `design/flows/projects.md` + the *Phase 1 pending* notes in `baseline.md` and `flows/`; mockups `design/mockup/future-work/mockup-week-model-phase1-v2.html` + `mockup-projects-v2.html`
   - [ ] PR 4b — Shared modal parts, refactor only: the new `ui/` primitives, `SizePicker`, `TaskModal` split onto the shared parts
   - [ ] PR 4c — Projects page: routes, Plan hub tabs, list + detail, the four modals, schedule / reorder / archive, Projects scenario
   - [ ] PR 4d — Cleanup and adjustments: living docs (flows, baseline, reference), delete `mockup-week-model-phase1-v2.html`, adjustments after using 4a–4c
@@ -29,6 +28,7 @@ Single source of truth for open ideas and todos across the app — open items on
 
 - [ ] Week model Phase 2 (not planned yet) — habits own their cadence (Daily = every day, or N× per week; Plan Mode dropped) with a Plan › Habits page; a three-step Plan week replaces the plan form, with one Plan hub header for This week · Habits · Projects (Phase 1 keeps the plan form's header with a tabs row under it); the in-app AI chat is removed (AI planning goes through Claude + MCP); Done becomes the week's day-grouped log and cards get a ✓; cleanup of `DOING` and `Plan.mode`. Exploration `design/mockup/future-work/mockup-week-model-phase2-v2.html`
   - [ ] Plan page follows the board's data split (AGENTS.md › Layers, *Server shapes inputs, the client derives the view*): the loader returns inputs, the page's container keeps them as state and derives the view with a pure adapter — done alongside the Plan week rebuild
+  - [ ] Redesign the Projects page and the Review changes modal — both are large as they stand; rework them with the Plan week
 - [ ] Habit-level days — let each habit run on weekdays, every day or custom days (after Phase 2 drops Plan Mode, Daily means every day)
 - [ ] Explore entry points for habits and projects — whether they get their own sidebar item / dock tab instead of living under the Plan hub (Phase 1 adds no new nav items)
 

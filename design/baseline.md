@@ -8,9 +8,9 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 
 ### Implemented
 
-1. **Kanban board** — Two columns (Todo · Done) displaying task instances for the active plan; work in progress stays in Todo. Tasks are ordered by type (daily first, then weekly) and creation time within each column. Cards are kind-first: each opens with its kind (habit, project step, one-off) in a fixed colour, then its context (a habit's plan line, a one-off's quadrant), the title, and the kind's signal beside a neutral size. A habit's signal is its week: one dot per instance in order, filled when done, with the card's own dot ringed.
+1. **Kanban board** — Two columns (Todo · Done) displaying task instances for the active plan; work in progress stays in Todo. Tasks are ordered by type (daily first, then weekly) and creation time within each column. Cards are kind-first: each opens with its kind (habit, project step, one-off) in a fixed colour — a step names its project instead — then its context (a habit's plan line, a step's number of N, a one-off's quadrant), the title, and the kind's signal beside a neutral size. A habit's signal is its week: one dot per instance in order, filled when done, with the card's own dot ringed. A step's is its project's path: one segment per step, filled when done, with the card's own step outlined.
 2. **Drag and drop** — User can move tasks between columns: Todo -> Done. Optimistic UI update + backend persistence.
-3. **Plan creation** — User creates a weekly plan by selecting task templates. First-time users create new templates; returning users can load templates from their last plan.
+3. **Plan creation** — User creates a weekly plan by selecting task templates. First-time users create new templates; returning users can load templates from their last plan, and keep or let go last week's unfinished one-offs and project steps (a step let go returns to its project).
 4. **Task templates** — Reusable blueprints with title, description, and size (`TaskSize` enum: XS/S/M/L/XL). Type and frequency are configured per-plan in PlanTemplate.
 5. **Auto-generation** — After plan creation, generate all necessary task instances. Daily tasks are regenerated each day.
 6. **Daily status recompute** — On the first kanban page load each day (any page — board, priorities, plan create/edit — via the shared `syncService.ensureSynced` entry point), expire unfinished daily tasks from earlier days and generate today's daily tasks. Idempotent. See the **Shared** flows in `./flows/shared.md`.
@@ -44,8 +44,7 @@ Approved in [`spike/week-model-restructure.md`](./spike/week-model-restructure.m
    - Steps go onto the week one at a time and move across the board like any task.
    - A project whose steps are all done shows "All steps done" until the user archives it.
    - See `./flows/projects.md`.
-2. **Project step cards** — the kind-first card's project face (project name, step n of N, the path as its signal).
-3. **MCP for projects** — Claude reads projects, creates and edits them, and puts steps on the week.
+2. **MCP for projects** — Claude reads projects, creates and edits them, and puts steps on the week.
 
 Roadmap and open ideas live in [tracker.md](./tracker.md).
 

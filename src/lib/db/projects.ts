@@ -365,3 +365,82 @@ export async function getUnfinishedStepIdsByPlanId(
   });
   return steps.map(step => step.id);
 }
+
+// ── Reads for the board and the plan form ────────────────────────────────────
+
+/** A project as a board step card reads it: its title and its path. */
+export type BoardProject = {
+  id: string;
+  title: string;
+  /** Every step, in path order */
+  steps: {id: string; status: TaskStatus; instanceIndex: number}[];
+};
+
+/**
+ * The projects behind the board's step cards, with every step's status and
+ * number (the card's path) — one query, only the fields the path needs.
+ */
+export async function getProjectPathsByIds(
+  userId: string,
+  projectIds: string[],
+): Promise<BoardProject[]> {
+  if (projectIds.length === 0) return [];
+  const projects = await prisma.project.findMany({
+    where: {userId, id: {in: projectIds}},
+    select: {
+      id: true,
+      title: true,
+      tasks: {
+        where: {type: TaskType.PROJECT},
+        orderBy: [{instanceIndex: 'asc'}, {createdAt: 'asc'}],
+        select: {id: true, status: true, instanceIndex: true},
+      },
+    },
+  });
+  return projects.map(({tasks, ...project}) => ({...project, steps: tasks}));
+}
+
+/** A plan's unfinished step as the plan form lists it. */
+export type PlanStepItem = {
+  id: string;
+  title: string;
+  size: TaskSize;
+  points: number;
+  status: TaskStatus;
+  /** The step number in its project */
+  instanceIndex: number;
+  projectTitle: string;
+};
+
+/**
+ * A plan's unfinished steps with their project's title — the plan form's
+ * Project Steps (the pending plan's when creating, this plan's when editing).
+ * Grouped by project, newest project first, then in path order.
+ */
+export async function getPlanStepsByPlanId(
+  userId: string,
+  planId: string,
+): Promise<PlanStepItem[]> {
+  const steps = await prisma.task.findMany({
+    where: {
+      userId,
+      planId,
+      type: TaskType.PROJECT,
+      status: {not: TaskStatus.DONE},
+    },
+    orderBy: [{project: {createdAt: 'desc'}}, {instanceIndex: 'asc'}],
+    select: {
+      id: true,
+      title: true,
+      size: true,
+      points: true,
+      status: true,
+      instanceIndex: true,
+      project: {select: {title: true}},
+    },
+  });
+  return steps.map(({project, ...step}) => ({
+    ...step,
+    projectTitle: project?.title ?? '',
+  }));
+}

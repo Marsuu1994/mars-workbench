@@ -1,6 +1,7 @@
 import {getTaskTemplates} from '@/lib/db/taskTemplates';
 import {getPlanByStatus, getPlanWithTemplates} from '@/lib/db/plans';
 import {getNonDoneAdhocTasks} from '@/lib/db/tasks';
+import {getPlanStepsByPlanId} from '@/lib/db/projects';
 import {PlanStatus} from '@/generated/prisma/client';
 import {ensureSynced} from '@/services/syncService';
 import PlanForm from '@/components/domain/plan/PlanForm';
@@ -19,15 +20,19 @@ export default async function NewPlanPage() {
     getNonDoneAdhocTasks(userId),
   ]);
 
-  const initialPlanTemplates = pendingPlan
-    ? ((await getPlanWithTemplates(userId, pendingPlan.id))?.planTemplates.map(
-        pt => ({
-          templateId: pt.templateId,
-          type: pt.type,
-          frequency: pt.frequency,
-        }),
-      ) ?? [])
-    : [];
+  const [pendingPlanWithTemplates, projectSteps] = pendingPlan
+    ? await Promise.all([
+        getPlanWithTemplates(userId, pendingPlan.id),
+        getPlanStepsByPlanId(userId, pendingPlan.id),
+      ])
+    : [null, []];
+
+  const initialPlanTemplates =
+    pendingPlanWithTemplates?.planTemplates.map(pt => ({
+      templateId: pt.templateId,
+      type: pt.type,
+      frequency: pt.frequency,
+    })) ?? [];
 
   // Only the pending plan's ad-hoc tasks are offered for carry-over
   // (preselected). Unassigned tasks live on the priority matrix and reach
@@ -37,6 +42,10 @@ export default async function NewPlanPage() {
     : [];
   const initialAdhocTaskIds = adhocTasks.map(t => t.id);
 
+  // The pending plan's unfinished project steps carry over unless deselected
+  // (deselected ones return to their project at the same step number).
+  const initialProjectStepIds = projectSteps.map(step => step.id);
+
   return (
     <PlanForm
       templates={templates}
@@ -45,6 +54,8 @@ export default async function NewPlanPage() {
       initialPlanMode={pendingPlan?.mode}
       adhocTasks={adhocTasks}
       initialAdhocTaskIds={initialAdhocTaskIds}
+      projectSteps={projectSteps}
+      initialProjectStepIds={initialProjectStepIds}
       aiContextPlanId={pendingPlan?.id}
     />
   );

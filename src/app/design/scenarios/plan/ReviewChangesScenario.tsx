@@ -6,6 +6,7 @@ import {
   type TemplateChange,
   type ModifiedTemplate,
   type AdhocTaskChange,
+  type ProjectStepChange,
 } from '@/components/domain/plan/ReviewChangesModal';
 
 const NOOP = () => undefined;
@@ -16,6 +17,7 @@ interface ReviewChangesScenarioProps {
   modified: ModifiedTemplate[];
   addedAdhoc: AdhocTaskChange[];
   removedAdhoc: AdhocTaskChange[];
+  removedSteps: ProjectStepChange[];
   incompleteCounts: Record<string, number>;
 }
 

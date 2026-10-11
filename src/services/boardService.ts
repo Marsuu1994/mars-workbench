@@ -1,4 +1,5 @@
 import {getPlanByStatus, getPlanWithTemplates} from '@/lib/db/plans';
+import {getProjectPathsByIds} from '@/lib/db/projects';
 import {
   getBoardMetricsByPlanId,
   getBoardTasksByPlanId,
@@ -135,6 +136,12 @@ export async function fetchBoard(userId: string): Promise<BoardData | null> {
 
   const {periodKey, mode, planTemplates} = planWithTemplates;
 
+  // The projects behind the board's step cards: each card draws its path
+  const stepProjectIds = new Set(
+    boardTasks.flatMap(task => (task.projectId ? [task.projectId] : [])),
+  );
+  const projects = await getProjectPathsByIds(userId, [...stepProjectIds]);
+
   return {
     plan: {
       periodKey,
@@ -146,6 +153,7 @@ export async function fetchBoard(userId: string): Promise<BoardData | null> {
       })),
     },
     tasks: boardTasks,
+    projects,
     progress: {
       todayDoneCount,
       todayTotalCount,
