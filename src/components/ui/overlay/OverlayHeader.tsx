@@ -10,6 +10,8 @@ interface OverlayHeaderProps {
   title: ReactNode;
   /** Trailing decoration next to the title (count badge, beta pill, …) */
   badge?: ReactNode;
+  /** A small line under the title (what the overlay acts on) */
+  subtitle?: ReactNode;
   onClose: () => void;
   /** Accessible close label — copy comes from the caller's namespace */
   closeLabel?: string;
@@ -29,30 +31,47 @@ export const OverlayHeader = ({
   icon,
   title,
   badge,
+  subtitle,
   onClose,
   closeLabel,
   className,
-}: OverlayHeaderProps) => (
-  <div
-    className={cn(
-      'flex flex-shrink-0 items-center justify-between border-b border-base-content/10 pt-4 pb-3 md:pt-5 md:pb-4',
-      className,
-    )}
-  >
+}: OverlayHeaderProps) => {
+  const renderTitleRow = () => (
     <div className="fx-display flex items-center gap-2 text-base font-bold md:text-lg">
       {icon}
       {title}
       {badge}
     </div>
-    <button
-      type="button"
-      onClick={onClose}
-      aria-label={closeLabel}
-      title={closeLabel}
-      className="btn btn-ghost btn-sm btn-square text-base-content/60"
+  );
+
+  return (
+    <div
+      className={cn(
+        'flex flex-shrink-0 justify-between border-b border-base-content/10 pt-4 pb-3 md:pt-5 md:pb-4',
+        subtitle ? 'items-start' : 'items-center',
+        className,
+      )}
     >
-      <ChevronDownIcon className="size-5 md:hidden" />
-      <XMarkIcon className="hidden size-5 md:block" />
-    </button>
-  </div>
-);
+      {subtitle ? (
+        <div className="min-w-0">
+          {renderTitleRow()}
+          <div className="fx-num mt-0.5 flex items-center gap-1.5 text-[11px] text-base-content/50">
+            {subtitle}
+          </div>
+        </div>
+      ) : (
+        renderTitleRow()
+      )}
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label={closeLabel}
+        title={closeLabel}
+        className="btn btn-ghost btn-sm btn-square text-base-content/60"
+      >
+        <ChevronDownIcon className="size-5 md:hidden" />
+        <XMarkIcon className="hidden size-5 md:block" />
+      </button>
+    </div>
+  );
+};
