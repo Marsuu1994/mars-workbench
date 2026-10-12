@@ -6,7 +6,7 @@ import {getTranslations} from 'next-intl/server';
 import {ServiceWorkerRegistrar} from '@/components/application/ServiceWorkerRegistrar';
 import {BreakpointProvider} from '@/components/application/BreakpointProvider';
 import {AppShell} from '@/components/application/AppShell';
-import {createClient} from '@/lib/supabase/server';
+import {getSessionClaims} from '@/lib/auth/getSessionClaims';
 import {getActivePlan} from '@/lib/db/plans';
 import {resolveTheme, THEME_COOKIE} from '@/utils/theme';
 import './globals.css';
@@ -67,19 +67,18 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = await createClient();
-  const {
-    data: {user},
-  } = await supabase.auth.getUser();
+  // Null on the sign-in page; the token's name and email can lag a profile
+  // change until the session's next refresh
+  const claims = await getSessionClaims();
 
-  const userInfo = user
+  const userInfo = claims
     ? {
-        name: (user.user_metadata?.full_name as string) ?? user.email ?? '',
-        email: user.email ?? '',
+        name: (claims.user_metadata?.full_name as string) ?? claims.email ?? '',
+        email: claims.email ?? '',
       }
     : null;
 
-  const activePlan = user ? await getActivePlan(user.id) : null;
+  const activePlan = claims ? await getActivePlan(claims.sub) : null;
 
   const cookieStore = await cookies();
   const theme = resolveTheme(cookieStore.get(THEME_COOKIE)?.value);
