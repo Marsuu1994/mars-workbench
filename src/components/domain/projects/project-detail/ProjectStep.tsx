@@ -17,7 +17,7 @@ import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
 import {Pill} from '@/components/ui/Pill';
 import {cn} from '@/components/ui/cn';
-import {ROW_ACTION_BUTTON, ROW_ICON_BUTTON} from './constants';
+import {ROW_ACTION_BUTTON, ROW_ICON_BUTTON} from '../constants';
 
 interface ProjectStepProps {
   step: TaskItem;

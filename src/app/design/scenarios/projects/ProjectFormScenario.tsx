@@ -3,7 +3,7 @@
 import {
   ProjectFormPanel,
   type ProjectFormPanelProps,
-} from '@/components/domain/projects/ProjectFormPanel';
+} from '@/components/domain/projects/project-modal/ProjectFormPanel';
 import {ModalPanelFrame} from '../ModalPanelFrame';
 
 const NOOP = () => undefined;

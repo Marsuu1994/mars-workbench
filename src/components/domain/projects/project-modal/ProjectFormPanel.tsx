@@ -21,7 +21,7 @@ import {FieldRow} from '@/components/ui/form/FieldRow';
 import {FormErrorAlert} from '@/components/ui/form/FormErrorAlert';
 import {ModalFormFooter} from '@/components/ui/form/ModalFormFooter';
 import {OverlayHeader} from '@/components/ui/overlay/OverlayHeader';
-import {DANGER_OUTLINE_BUTTON} from './constants';
+import {DANGER_OUTLINE_BUTTON} from '../constants';
 
 export type ProjectFormMode = 'create' | 'edit';
 

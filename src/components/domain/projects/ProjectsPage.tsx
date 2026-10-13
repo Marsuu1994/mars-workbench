@@ -21,10 +21,10 @@ import {
 import {useOptimisticTasks} from '@/hooks/useOptimisticTasks';
 import {EmptyState} from '@/components/ui/EmptyState';
 import {cn} from '@/components/ui/cn';
-import {ProjectDetail} from './ProjectDetail';
-import {ProjectList} from './ProjectList';
-import {ProjectModal} from './ProjectModal';
-import {StepModal, type StepModalTarget} from './StepModal';
+import {ProjectDetail} from './project-detail/ProjectDetail';
+import {ProjectList} from './project-list/ProjectList';
+import {ProjectModal} from './project-modal/ProjectModal';
+import {StepModal, type StepModalTarget} from './step-modal/StepModal';
 import {getProjectHref, PROJECTS_HREF} from './constants';
 
 /** Which modal is open, and on what. */

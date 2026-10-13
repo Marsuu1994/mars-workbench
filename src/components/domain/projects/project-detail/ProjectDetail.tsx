@@ -32,7 +32,7 @@ import {
   CREATE_PLAN_HREF,
   OUTLINE_BUTTON,
   STEP_LIST_DROPPABLE_ID,
-} from './constants';
+} from '../constants';
 
 interface ProjectDetailProps {
   project: ProjectItem;

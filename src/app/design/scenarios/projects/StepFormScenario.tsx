@@ -3,7 +3,7 @@
 import {
   StepFormPanel,
   type StepFormPanelProps,
-} from '@/components/domain/projects/StepFormPanel';
+} from '@/components/domain/projects/step-modal/StepFormPanel';
 import {ModalPanelFrame} from '../ModalPanelFrame';
 
 const NOOP = () => undefined;

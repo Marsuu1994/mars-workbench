@@ -1,0 +1,85 @@
+'use client';
+
+import {useTranslations} from 'next-intl';
+import {PlusIcon} from '@heroicons/react/24/outline';
+import type {ProjectItem} from '@/lib/db/projects';
+import type {TaskItem} from '@/lib/db/tasks';
+import {SectionLabel} from '@/components/ui/SectionLabel';
+import {ArchivedProjectRow} from './ArchivedProjectRow';
+import {ProjectCard} from './ProjectCard';
+
+interface ProjectListProps {
+  /** Every project, archived ones included (listed apart at the bottom) */
+  projects: ProjectItem[];
+  stepsByProjectId: ReadonlyMap<string, TaskItem[]>;
+  activePlanId: string | null;
+  /** The project shown in the detail pane */
+  selectedProjectId: string | undefined;
+  onSelect: (projectId: string) => void;
+  /** Resolves once the project is back (the row waits on it) */
+  onUnarchive: (projectId: string) => Promise<void>;
+  /** Mobile's New project, under the active projects */
+  onNewProject: () => void;
+}
+
+const NO_STEPS: TaskItem[] = [];
+
+/**
+ * The list pane: the active projects (from md up a card — done/total, the
+ * progress bar, the next step, how many are on this week, ringed when
+ * selected; on mobile a row with a chevron), mobile's New project, then the
+ * Archived section with Unarchive.
+ */
+export const ProjectList = ({
+  projects,
+  stepsByProjectId,
+  activePlanId,
+  selectedProjectId,
+  onSelect,
+  onUnarchive,
+  onNewProject,
+}: ProjectListProps) => {
+  const t = useTranslations('Projects');
+  const stepsOf = (projectId: string) =>
+    stepsByProjectId.get(projectId) ?? NO_STEPS;
+  const activeProjects = projects.filter(({isArchived}) => !isArchived);
+  const archivedProjects = projects.filter(({isArchived}) => isArchived);
+
+  return (
+    <div className="flex flex-col gap-2 p-3.5">
+      {activeProjects.map(project => (
+        <ProjectCard
+          key={project.id}
+          project={project}
+          steps={stepsOf(project.id)}
+          activePlanId={activePlanId}
+          isSelected={project.id === selectedProjectId}
+          onSelect={() => onSelect(project.id)}
+        />
+      ))}
+      <button
+        type="button"
+        onClick={onNewProject}
+        className="btn btn-primary w-full md:hidden"
+      >
+        <PlusIcon className="size-4" />
+        {t('newProject')}
+      </button>
+      {archivedProjects.length > 0 && (
+        <>
+          <SectionLabel className="mt-2 px-0.5">
+            {t('List.archived')}
+          </SectionLabel>
+          {archivedProjects.map(project => (
+            <ArchivedProjectRow
+              key={project.id}
+              project={project}
+              steps={stepsOf(project.id)}
+              onUnarchive={() => onUnarchive(project.id)}
+            />
+          ))}
+        </>
+      )}
+    </div>
+  );
+};

@@ -396,7 +396,7 @@ export const UiTab = () => {
   const renderConfirmBar = () => (
     <Section
       title="ConfirmBar"
-      description="A destructive action's confirm row on the error channel: the question — and, when it isn't obvious, what happens — with Cancel and Confirm at the end, which drop under the message below md when it doesn't fit. ConfirmButton's armed state, and the row a form footer turns into while its destructive action awaits a yes (Edit Project's Archive)."
+      description="A destructive action's confirm row on the error channel: the question — and, when it isn't obvious, what happens — with Cancel and Confirm at the end. With a detail line, below md the icon and question share a row, the detail sits under the question and the buttons take the last row. ConfirmButton's armed state, and the row a form footer turns into while its destructive action awaits a yes (Edit Project's Archive)."
     >
       <div className="flex max-w-lg flex-col gap-4">
         <Variant label="prompt only (ConfirmButton armed)">
