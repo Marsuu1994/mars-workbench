@@ -320,14 +320,8 @@
     "cancel": "Cancel",
     "confirmButton": "Confirm & Regenerate"
   },
-  "PlanHub": {
-    "title": "Plan",
-    "week": "Week {week}",
-    "tabsLabel": "Plan hub",
-    "thisWeek": "This week",
-    "projects": "Projects"
-  },
   "Projects": {
+    "title": "Projects",
     "newProject": "New project",
     "Empty": {
       "title": "No projects yet",

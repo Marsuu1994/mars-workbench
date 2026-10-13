@@ -601,10 +601,6 @@ export const PLAN_TASK_ROW_FIXTURES = [
 
 // ── Projects fixtures ────────────────────────────────────────────────────────
 
-/** The Plan hub specimens' week and This week tab (an in-page anchor, so a
-    click stays put). */
-export const PLAN_HUB_PERIOD = '2026-W41';
-export const PLAN_HUB_THIS_WEEK_HREF = '#this-week';
 /** ProjectsHeader specimen's action (the live page's is New project). */
 export const PROJECTS_HEADER_DEMO_ACTION = 'New project';
 
@@ -811,13 +807,6 @@ export const EMPTY_STATE_DEMO_DESC =
 export const EMPTY_STATE_DEMO_CTA = 'Run scan';
 
 export const TABBAR_DEMO_LABELS = ['Overview', 'Telemetry', 'Logs'];
-
-/** LinkTabBar specimen: two pages (in-page anchors, so a click stays put). */
-export const LINK_TABS_DEMO = [
-  {label: 'This week', href: '#this-week'},
-  {label: 'Projects', href: '#projects'},
-];
-export const LINK_TABS_DEMO_LABEL = 'Plan hub demo';
 
 /** EmptyState inline specimen. */
 export const EMPTY_STATE_INLINE_DEMO_TITLE = 'No steps yet';

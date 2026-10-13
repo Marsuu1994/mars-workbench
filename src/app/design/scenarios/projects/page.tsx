@@ -9,13 +9,12 @@ import {
   EDIT_STEP,
   EDIT_STEP_PROJECT,
   FINANCE_ID,
-  NEXT_PERIOD_KEY,
   PROTEIN_ID,
   SCENARIO_ACTIVE_PLAN_ID,
-  SCENARIO_PERIOD_KEY,
   SCENARIO_PROJECTS,
   SCENARIO_STEPS,
   STEP_MODAL_PROJECT,
+  projectsLedBy,
   UNSCHEDULED_STEPS,
 } from './fixtures';
 
@@ -29,8 +28,6 @@ const PROJECTS_SCENARIOS: ScenarioTab[] = [
         projects={[]}
         steps={[]}
         activePlanId={SCENARIO_ACTIVE_PLAN_ID}
-        selectedProjectId={null}
-        periodKey={SCENARIO_PERIOD_KEY}
       />
     ),
   },
@@ -43,22 +40,6 @@ const PROJECTS_SCENARIOS: ScenarioTab[] = [
         projects={SCENARIO_PROJECTS}
         steps={SCENARIO_STEPS}
         activePlanId={SCENARIO_ACTIVE_PLAN_ID}
-        selectedProjectId={null}
-        periodKey={SCENARIO_PERIOD_KEY}
-      />
-    ),
-  },
-  {
-    label: 'Project open (/[id])',
-    title: 'One project open — /kanban/projects/[id]',
-    note: "Protein 3D viewer: a done step, this week's steps tinted with their board status (the one still in the backlog has ×), an upcoming step with + This week. Mobile shows this detail alone, with ‹ All projects.",
-    content: (
-      <ProjectsScreen
-        projects={SCENARIO_PROJECTS}
-        steps={SCENARIO_STEPS}
-        activePlanId={SCENARIO_ACTIVE_PLAN_ID}
-        selectedProjectId={PROTEIN_ID}
-        periodKey={SCENARIO_PERIOD_KEY}
       />
     ),
   },
@@ -68,11 +49,9 @@ const PROJECTS_SCENARIOS: ScenarioTab[] = [
     note: 'Every step of Finance basics is done: the card says so in place of Next, and the detail offers the two ways on — add the next steps, or Archive.',
     content: (
       <ProjectsScreen
-        projects={SCENARIO_PROJECTS}
+        projects={projectsLedBy(FINANCE_ID)}
         steps={SCENARIO_STEPS}
         activePlanId={SCENARIO_ACTIVE_PLAN_ID}
-        selectedProjectId={FINANCE_ID}
-        periodKey={SCENARIO_PERIOD_KEY}
       />
     ),
   },
@@ -82,11 +61,9 @@ const PROJECTS_SCENARIOS: ScenarioTab[] = [
     note: "A play step clicks the banner's Archive: it turns into Archive? with what it does beside it; a second click archives.",
     content: (
       <ProjectsScreen
-        projects={SCENARIO_PROJECTS}
+        projects={projectsLedBy(FINANCE_ID)}
         steps={SCENARIO_STEPS}
         activePlanId={SCENARIO_ACTIVE_PLAN_ID}
-        selectedProjectId={FINANCE_ID}
-        periodKey={SCENARIO_PERIOD_KEY}
       />
     ),
     play: [{click: {label: 'Projects.Detail.archive'}}],
@@ -100,22 +77,18 @@ const PROJECTS_SCENARIOS: ScenarioTab[] = [
         projects={SCENARIO_PROJECTS}
         steps={UNSCHEDULED_STEPS}
         activePlanId={null}
-        selectedProjectId={null}
-        periodKey={SCENARIO_PERIOD_KEY}
       />
     ),
   },
   {
     label: 'Between weeks',
     title: 'Between weeks — last week not planned over yet',
-    note: "Week 42 has no plan yet, so last week's unfinished steps still sit on last week's plan: muted Last week pills, no × — the next plan carries them over or returns them.",
+    note: "The new week has no plan yet, so last week's unfinished steps still sit on last week's plan: muted Last week pills, no × — the next plan carries them over or returns them.",
     content: (
       <ProjectsScreen
-        projects={SCENARIO_PROJECTS}
+        projects={projectsLedBy(PROTEIN_ID)}
         steps={SCENARIO_STEPS}
         activePlanId={null}
-        selectedProjectId={PROTEIN_ID}
-        periodKey={NEXT_PERIOD_KEY}
       />
     ),
   },

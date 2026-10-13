@@ -18,7 +18,6 @@ import {DumpEntryCard} from '@/components/domain/dump/DumpEntryCard';
 import TemplateItem from '@/components/domain/plan/TemplateItem';
 import {PlanTaskRow} from '@/components/domain/plan/PlanTaskRow';
 import {StepPath} from '@/components/domain/board/StepPath';
-import {PlanHubTab, PlanHubTabs} from '@/components/domain/shared/PlanHubTabs';
 import {ProjectsHeader} from '@/components/domain/projects/ProjectsHeader';
 import {ProjectListItem} from '@/components/domain/projects/ProjectListItem';
 import {ArchivedProjectRow} from '@/components/domain/projects/ArchivedProjectRow';
@@ -50,8 +49,6 @@ import {
   BOARD_COLUMN_CARDS,
   TEMPLATE_FIXTURE,
   SCENARIO_HREFS,
-  PLAN_HUB_PERIOD,
-  PLAN_HUB_THIS_WEEK_HREF,
   PROJECTS_HEADER_DEMO_ACTION,
   PROJECT_LIST_ITEM_FIXTURES,
   ARCHIVED_PROJECT_FIXTURE,
@@ -333,24 +330,6 @@ export const DomainTab = () => {
     </Section>
   );
 
-  const renderPlanHubTabs = () => (
-    <Section
-      title="PlanHubTabs"
-      description="The Plan hub's This week · Projects, configured once for the plan form's tabs row and the Projects header. Page links (LinkTabBar), stretched to full width below md."
-    >
-      <InteractionShield className="flex flex-wrap gap-6">
-        {Object.values(PlanHubTab).map(tab => (
-          <Variant key={tab} label={tab}>
-            <PlanHubTabs
-              activeTab={tab}
-              thisWeekHref={PLAN_HUB_THIS_WEEK_HREF}
-            />
-          </Variant>
-        ))}
-      </InteractionShield>
-    </Section>
-  );
-
   const renderProjectsHeader = () => (
     <Section
       title="ProjectsHeader"
@@ -358,8 +337,6 @@ export const DomainTab = () => {
     >
       <InteractionShield className="overflow-hidden rounded-lg border border-base-content/10">
         <ProjectsHeader
-          periodKey={PLAN_HUB_PERIOD}
-          thisWeekHref={PLAN_HUB_THIS_WEEK_HREF}
           action={
             <button type="button" className="btn btn-primary btn-sm">
               {PROJECTS_HEADER_DEMO_ACTION}
@@ -479,7 +456,6 @@ export const DomainTab = () => {
         description="domain/shared/ — chips and headers reused across features. The shared TaskModal's states live as tabs in the Plan (templates) and Priorities (add-task) scenarios."
       >
         {renderBoardHeader()}
-        {renderPlanHubTabs()}
         {renderSizeChips()}
         {renderTypeBadges()}
       </Zone>

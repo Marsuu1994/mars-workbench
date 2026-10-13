@@ -1,12 +1,11 @@
 'use client';
 
 import {useMemo, useState} from 'react';
-import {useRouter} from 'next/navigation';
+import {useSearchParams} from 'next/navigation';
 import {useTranslations} from 'next-intl';
 import {DragDropContext, type DropResult} from '@hello-pangea/dnd';
 import {MapIcon, PlusIcon} from '@heroicons/react/24/outline';
 import type {ProjectsPageData} from '@/types/projects';
-import {getProjectHref, PROJECTS_HREF} from '@/utils/planUtils';
 import {assignStepNumbers} from '@/utils/projectUtils';
 import {toProjectsView} from '@/utils/projectViewUtils';
 import {
@@ -17,7 +16,6 @@ import {
   unscheduleProjectStepAction,
 } from '@/actions/projectActions';
 import {useOptimisticTasks} from '@/hooks/useOptimisticTasks';
-import {useBreakpoint} from '@/components/application/BreakpointProvider';
 import {EmptyState} from '@/components/ui/EmptyState';
 import {cn} from '@/components/ui/cn';
 import {AllStepsDoneBanner} from './AllStepsDoneBanner';
@@ -34,14 +32,9 @@ import {ProjectStepRow} from './ProjectStepRow';
 import {ProjectsHeader} from './ProjectsHeader';
 import {ProjectsPanes} from './ProjectsPanes';
 import {StepModal, type StepModalTarget} from './StepModal';
-import {OUTLINE_BUTTON} from './constants';
+import {getProjectHref, OUTLINE_BUTTON, PROJECTS_HREF} from './constants';
 
-interface ProjectsContainerProps extends ProjectsPageData {
-  /** The project the route opens (/kanban/projects/[id]); null on the list */
-  selectedProjectId: string | null;
-  periodKey: string;
-  thisWeekHref: string;
-}
+type ProjectsContainerProps = ProjectsPageData;
 
 /** Which modal is open, and on what. */
 type OpenModal =
@@ -61,20 +54,16 @@ export const ProjectsContainer = ({
   projects,
   steps,
   activePlanId,
-  selectedProjectId: routeProjectId,
-  periodKey,
-  thisWeekHref,
 }: ProjectsContainerProps) => {
   const t = useTranslations('Projects');
-  const router = useRouter();
-  const {isMobile} = useBreakpoint();
+  // The selected project lives in the URL (?project=): refresh keeps it,
+  // back steps through earlier selections; mobile shows its detail
+  const selectedProjectId = useSearchParams().get('project');
   const {
     localTasks: localSteps,
     runOptimisticTaskUpdate,
     runOptimisticTasksUpdate,
   } = useOptimisticTasks(steps);
-  // Desktop picks a project in place; the URL keeps the route's
-  const [selectedProjectId, setSelectedProjectId] = useState(routeProjectId);
   const [openModal, setOpenModal] = useState<OpenModal | null>(null);
 
   const {activeProjects, archivedProjects, selectedProject} = useMemo(
@@ -85,22 +74,17 @@ export const ProjectsContainer = ({
 
   const closeModal = () => setOpenModal(null);
 
-  // Mobile opens a project on its own page; desktop selects it in place
-  const showProject = (projectId: string) => {
-    if (isMobile) router.push(getProjectHref(projectId));
-    else setSelectedProjectId(projectId);
-  };
+  // Client-side only: Next's router follows pushState without a request
+  const showProject = (projectId: string) =>
+    window.history.pushState(null, '', getProjectHref(projectId));
 
   const handleProjectSaved = (projectId: string) => {
     if (openModal?.kind === 'newProject') showProject(projectId);
   };
 
-  // From a project's own page (mobile's detail, a desktop preselect) back to
-  // the list; on the list the first active project takes the selection.
-  const handleArchived = () => {
-    if (routeProjectId !== null) router.push(PROJECTS_HREF);
-    else setSelectedProjectId(null);
-  };
+  // Back to the list: the first active project takes the selection
+  const handleArchived = () =>
+    window.history.replaceState(null, '', PROJECTS_HREF);
 
   const handleArchive = async (projectId: string) => {
     const result = await archiveProjectAction(projectId);
@@ -214,7 +198,7 @@ export const ProjectsContainer = ({
           project={project}
           isSelected={project.id === selectedProject?.header.id}
           href={getProjectHref(project.id)}
-          onSelect={() => setSelectedProjectId(project.id)}
+          onSelect={() => showProject(project.id)}
         />
       ))}
     </ProjectList>
@@ -372,18 +356,16 @@ export const ProjectsContainer = ({
 
   return (
     <>
-      <ProjectsHeader
-        periodKey={periodKey}
-        thisWeekHref={thisWeekHref}
-        action={renderNewProjectButton()}
-      />
+      <ProjectsHeader action={renderNewProjectButton()} />
       {projects.length === 0 ? (
         renderEmptyState()
       ) : (
         <ProjectsPanes
           list={renderList()}
           detail={renderDetail()}
-          mobilePane={routeProjectId === null ? 'list' : 'detail'}
+          mobilePane={
+            selectedProject?.header.id === selectedProjectId ? 'detail' : 'list'
+          }
         />
       )}
       {renderProjectModal()}

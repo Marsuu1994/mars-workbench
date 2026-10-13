@@ -1,15 +1,10 @@
-import {fetchProjectsPageAction} from '@/actions/projectActions';
 import {ProjectsScreen} from '@/components/domain/projects/ProjectsScreen';
-import {getISOWeekKey, getTodayDate} from '@/utils/dateUtils';
+import {getCurrentUserId} from '@/lib/auth/getCurrentUserId';
+import {fetchProjectsPage} from '@/services/projectService';
 
 export default async function ProjectsPage() {
-  const projectsPage = await fetchProjectsPageAction();
+  const userId = await getCurrentUserId();
+  const projectsPage = await fetchProjectsPage(userId);
 
-  return (
-    <ProjectsScreen
-      {...projectsPage}
-      selectedProjectId={null}
-      periodKey={getISOWeekKey(getTodayDate())}
-    />
-  );
+  return <ProjectsScreen {...projectsPage} />;
 }

@@ -16,3 +16,11 @@ export const ROW_ICON_BUTTON =
 
 /** The detail's one drop zone: the open steps. */
 export const STEP_LIST_DROPPABLE_ID = 'project-steps';
+
+export const PROJECTS_HREF = '/kanban/projects';
+export const CREATE_PLAN_HREF = '/kanban/plans/new';
+
+/** A project selected: the list route with `?project=`, changed on the
+    client (history.pushState) so Next's router follows without a request. */
+export const getProjectHref = (projectId: string) =>
+  `${PROJECTS_HREF}?project=${projectId}`;

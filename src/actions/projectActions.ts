@@ -14,7 +14,6 @@ import {
   archiveProject,
   createProject,
   deleteProjectStep,
-  fetchProjectsPage,
   reorderProjectSteps,
   scheduleProjectStep,
   unarchiveProject,
@@ -48,19 +47,13 @@ const errorResult = async (
   return {error: {formErrors: [t(errorKey)], fieldErrors: {}}};
 };
 
-/** The Projects list and every project's detail page (/kanban/projects/[id]). */
-const revalidateProjects = () => revalidatePath(PROJECTS_PATH, 'layout');
+const revalidateProjects = () => revalidatePath(PROJECTS_PATH);
 
 /** Projects page + board: a step on this week is also a board card. */
 const revalidateProjectsAndBoard = () => {
   revalidateProjects();
   revalidatePath(BOARD_PATH);
 };
-
-export async function fetchProjectsPageAction() {
-  const userId = await getCurrentUserId();
-  return fetchProjectsPage(userId);
-}
 
 export async function createProjectAction(
   input: unknown,

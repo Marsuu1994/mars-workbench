@@ -14,7 +14,6 @@ import {
 import {Pill} from '@/components/ui/Pill';
 import {EmptyState} from '@/components/ui/EmptyState';
 import {TabBar} from '@/components/ui/TabBar';
-import {LinkTabBar} from '@/components/ui/LinkTabBar';
 import {Banner} from '@/components/ui/Banner';
 import {InlineConfirmButton} from '@/components/ui/InlineConfirmButton';
 import {ModalFormFooter} from '@/components/ui/form/ModalFormFooter';
@@ -41,8 +40,6 @@ import {
   EMPTY_STATE_DEMO_DESC,
   EMPTY_STATE_DEMO_CTA,
   TABBAR_DEMO_LABELS,
-  LINK_TABS_DEMO,
-  LINK_TABS_DEMO_LABEL,
   EMPTY_STATE_INLINE_DEMO_TITLE,
   EMPTY_STATE_INLINE_DEMO_DESC,
   EMPTY_STATE_INLINE_DEMO_CTA,
@@ -290,19 +287,6 @@ export const UiTab = () => {
         labels={TABBAR_DEMO_LABELS}
         activeIndex={demoTab}
         onChange={setDemoTab}
-      />
-    </Section>
-  );
-
-  const renderLinkTabBar = () => (
-    <Section
-      title="LinkTabBar"
-      description="Tabs that switch pages: a segmented rail of links, the current page's tab tinted primary and marked aria-current. TabBar switches panels inside one page."
-    >
-      <LinkTabBar
-        ariaLabel={LINK_TABS_DEMO_LABEL}
-        tabs={LINK_TABS_DEMO}
-        activeHref={LINK_TABS_DEMO[1].href}
       />
     </Section>
   );
@@ -616,7 +600,6 @@ export const UiTab = () => {
         {renderContentBlocks()}
         {renderEmptyState()}
         {renderTabBar()}
-        {renderLinkTabBar()}
         {renderBanner()}
         {renderConfirmButton()}
         {renderInlineConfirmButton()}

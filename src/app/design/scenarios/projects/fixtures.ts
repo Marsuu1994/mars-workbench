@@ -6,10 +6,6 @@ import type {TaskItem} from '@/lib/db/tasks';
    panels fed a fictional set of projects. Wednesday Oct 7, week 41
    (Mon Oct 5 – Sun Oct 11). */
 
-export const SCENARIO_PERIOD_KEY = '2026-W41';
-/** The week after: last week's plan is waiting for the next one. */
-export const NEXT_PERIOD_KEY = '2026-W42';
-
 /** This week's ACTIVE plan; W40's plan holds the steps done last week. */
 export const SCENARIO_ACTIVE_PLAN_ID = 'scn-plan-w41';
 const LAST_WEEK_PLAN_ID = 'scn-plan-w40';
@@ -76,8 +72,9 @@ export const FINANCE_ID = 'prj-fin';
 const SPANISH_ID = 'prj-spa';
 const HOME_OFFICE_ID = 'prj-home';
 
-/** Newest first, as the DAL lists them; the first is selected on the list
-    route. Spanish A1 has no steps yet, Home office is archived. */
+/** Newest first, as the DAL lists them; the first active one is selected
+    (no ?project= in the console's URL). Spanish A1 has no steps yet, Home
+    office is archived. */
 export const SCENARIO_PROJECTS: ProjectItem[] = [
   project(
     BIOMEDICAL_ID,
@@ -99,6 +96,13 @@ export const SCENARIO_PROJECTS: ProjectItem[] = [
   ),
   project(SPANISH_ID, 'Spanish A1', 'Hold a 5-minute conversation.', 1),
   project(HOME_OFFICE_ID, 'Home office setup', null, 1, true),
+];
+
+/** The same projects with one moved to the front, so the page selects it —
+    how a tab shows a project other than the newest. */
+export const projectsLedBy = (projectId: string): ProjectItem[] => [
+  ...SCENARIO_PROJECTS.filter(({id}) => id === projectId),
+  ...SCENARIO_PROJECTS.filter(({id}) => id !== projectId),
 ];
 
 const BIOMEDICAL_STEPS: TaskItem[] = [

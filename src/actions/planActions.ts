@@ -30,7 +30,7 @@ export async function createPlanAction(input: unknown) {
     // Deselected ad-hoc tasks return to the matrix; carried ones become tracked
     revalidatePath('/kanban/priorities');
     // Carried steps stay on the week, deselected ones return to their project
-    revalidatePath('/kanban/projects', 'layout');
+    revalidatePath('/kanban/projects');
     return {data: result};
   } catch (error) {
     if (error instanceof TemplateNotFoundError) {
@@ -55,7 +55,7 @@ export async function updatePlanAction(planId: string, input: unknown) {
     // Deselected ad-hoc tasks return to the matrix; newly linked ones become tracked
     revalidatePath('/kanban/priorities');
     // Deselected steps return to their project
-    revalidatePath('/kanban/projects', 'layout');
+    revalidatePath('/kanban/projects');
     return {data: {success: true}};
   } catch (error) {
     if (error instanceof TemplateNotFoundError) {

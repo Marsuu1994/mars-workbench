@@ -6,7 +6,6 @@ import {useTranslations} from 'next-intl';
 import {CheckIcon, ChevronRightIcon} from '@heroicons/react/24/outline';
 import type {ProjectSummary} from '@/utils/projectViewUtils';
 import {TaskKind} from '@/utils/taskUtils';
-import {useBreakpoint} from '@/components/application/BreakpointProvider';
 import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
 import {Pill} from '@/components/ui/Pill';
 import {ProgressBar} from '@/components/ui/ProgressBar';
@@ -38,7 +37,6 @@ export const ProjectListItem = ({
   onSelect,
 }: ProjectListItemProps) => {
   const t = useTranslations('Projects.List');
-  const {isMobile} = useBreakpoint();
   const {
     title,
     doneCount,
@@ -48,8 +46,8 @@ export const ProjectListItem = ({
     thisWeekCount,
   } = project;
 
+  // Selection is a client-side URL change (see ProjectsContainer)
   const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
-    if (isMobile) return;
     event.preventDefault();
     onSelect();
   };
