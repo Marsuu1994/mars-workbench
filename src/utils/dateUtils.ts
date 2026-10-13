@@ -79,6 +79,18 @@ export function getWeekDateRange(periodKey: string): string {
   return `Week ${weekStr} · ${monStr} – ${sunStr}`;
 }
 
+const dayLabelFormatter = new Intl.DateTimeFormat('en-US', {
+  timeZone: KANBAN_TZ,
+  weekday: 'short',
+  month: 'short',
+  day: 'numeric',
+});
+
+/** A moment's KANBAN_TZ day as weekday + date, e.g. "Wed, Jul 16". */
+export function formatDayLabel(date: Date): string {
+  return dayLabelFormatter.format(date);
+}
+
 /**
  * Parses a periodKey like "2026-W06" and returns the Sunday of that ISO week.
  */

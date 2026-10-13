@@ -22,7 +22,9 @@ import {
 import type {TaskItem} from '@/lib/db/tasks';
 import {TaskStatus} from '@/generated/prisma/client';
 import {sizeToPoints} from '@/utils/sizeUtils';
+import {assignStepNumbers, getNextStepNumber} from '@/utils/projectUtils';
 import {ensureSynced} from '@/services/syncService';
+import type {ProjectsPageData} from '@/types/projects';
 import type {
   CreateProjectInput,
   CreateProjectStepInput,
@@ -70,6 +72,26 @@ export async function listProjects(
   userId: string,
 ): Promise<ProjectWithSteps[]> {
   return getProjectsWithSteps(userId);
+}
+
+/**
+ * The Projects page's inputs: every project (archived included), their steps
+ * flat — the page keeps those as state for its optimistic writes — and the
+ * plan "+ This week" schedules into (null: no plan this week yet).
+ */
+export async function fetchProjectsPage(
+  userId: string,
+): Promise<ProjectsPageData> {
+  const activePlan = await ensureSynced(userId);
+  const projectsWithSteps = await getProjectsWithSteps(userId);
+
+  const projects: ProjectItem[] = [];
+  const steps: TaskItem[] = [];
+  for (const {steps: projectSteps, ...project} of projectsWithSteps) {
+    projects.push(project);
+    steps.push(...projectSteps);
+  }
+  return {projects, steps, activePlanId: activePlan?.id ?? null};
 }
 
 /** One project with its steps; null when it isn't the user's. */
@@ -160,14 +182,10 @@ export async function addProjectStep(
   return prisma.$transaction(async tx => {
     const project = await getProjectWithStepsById(userId, projectId, tx);
     if (!project) return {error: 'projectNotFound'} as const;
-    const lastIndex = Math.max(
-      0,
-      ...project.steps.map(step => step.instanceIndex),
-    );
     const [step] = await createProjectSteps(
       userId,
       projectId,
-      toStepRows([input], lastIndex + 1),
+      toStepRows([input], getNextStepNumber(project.steps)),
       tx,
     );
     return {step};
@@ -242,10 +260,17 @@ export async function reorderProjectSteps(
       return {error: 'stepOrderMismatch'} as const;
     }
 
-    const stepIndexes = unfinishedSteps
-      .map(step => step.instanceIndex)
-      .sort((left, right) => left - right);
-    await renumberProjectSteps(userId, projectId, stepIds, stepIndexes, tx);
+    const numberByStepId = assignStepNumbers(
+      stepIds,
+      unfinishedSteps.map(step => step.instanceIndex),
+    );
+    await renumberProjectSteps(
+      userId,
+      projectId,
+      [...numberByStepId.keys()],
+      [...numberByStepId.values()],
+      tx,
+    );
 
     const reorderedProject = await getProjectWithStepsById(
       userId,

@@ -5,6 +5,15 @@ import type {
   PlanTemplatePatchConflicts,
 } from '../types/plan';
 
+// ── Routes ───────────────────────────────────────────────────────────────────
+
+const PLANS_PATH = '/kanban/plans';
+
+/** The Plan nav item: the active plan's form, or a new plan's when there is
+    none. */
+export const getPlanHref = (activePlanId: string | null) =>
+  activePlanId ? `${PLANS_PATH}/${activePlanId}` : `${PLANS_PATH}/new`;
+
 /** Per-plan template frequency bounds (× per day / week). */
 export const FREQ_MIN = 1;
 export const FREQ_MAX = 10;

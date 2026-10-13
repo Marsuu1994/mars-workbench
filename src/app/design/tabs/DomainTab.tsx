@@ -18,6 +18,7 @@ import {DumpEntryCard} from '@/components/domain/dump/DumpEntryCard';
 import TemplateItem from '@/components/domain/plan/TemplateItem';
 import {PlanTaskRow} from '@/components/domain/plan/PlanTaskRow';
 import {StepPath} from '@/components/domain/board/StepPath';
+import {ProjectStep} from '@/components/domain/projects/project-detail/ProjectStep';
 import {ThemePicker} from '@/components/domain/auth/ThemePicker';
 import type {ThemeName} from '@/utils/theme';
 import {BotAvatar, UserAvatar} from '@/components/domain/plan/ai-chat/Avatars';
@@ -44,6 +45,7 @@ import {
   BOARD_COLUMN_CARDS,
   TEMPLATE_FIXTURE,
   SCENARIO_HREFS,
+  PROJECT_STEP_FIXTURES,
 } from '../constants';
 
 /** Right-aligned Zone action linking a feature group to its scenario page(s). */
@@ -321,6 +323,29 @@ export const DomainTab = () => {
     </Section>
   );
 
+  const renderProjectSteps = () => (
+    <Section
+      title="ProjectStep"
+      description="One step of a path, by where it sits: done (muted and locked, ✓ and its day), on this week (tinted, its board status; × while still in the backlog), left on last week's plan (muted pill, no ×), upcoming (size + This week, disabled without a plan). ✎ on every step that isn't done; from md up a drag hint and the description. No status mark — the row says it."
+    >
+      <div className="flex max-w-2xl flex-col gap-4">
+        {PROJECT_STEP_FIXTURES.map(({label, step, activePlanId}) => (
+          <Variant key={label} label={label}>
+            <div className="self-stretch">
+              <ProjectStep
+                step={step}
+                activePlanId={activePlanId}
+                onEdit={() => undefined}
+                onSchedule={() => undefined}
+                onTakeBack={() => undefined}
+              />
+            </div>
+          </Variant>
+        ))}
+      </div>
+    </Section>
+  );
+
   const renderChatPrimitives = () => (
     <Section
       title="AI chat primitives"
@@ -420,6 +445,19 @@ export const DomainTab = () => {
         {renderTemplateItem()}
         {renderPlanTaskRows()}
         {renderChatPrimitives()}
+      </Zone>
+
+      <Zone
+        title="Projects"
+        description="The whole page — list + detail, all steps done, no plan / between weeks — and the project and step modals live in the Projects scenarios; the list and detail are rendered there, as the page renders them."
+        action={
+          <ScenarioLink
+            href={SCENARIO_HREFS.projects}
+            label="Projects scenarios"
+          />
+        }
+      >
+        {renderProjectSteps()}
       </Zone>
 
       <Zone

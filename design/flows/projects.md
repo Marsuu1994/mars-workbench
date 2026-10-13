@@ -1,8 +1,8 @@
 # Projects Flows
 
-Flows for the Projects page (`/kanban/projects`; on mobile a project's detail is `/kanban/projects/[id]`). A project is a goal plus an ordered path of steps that never expire. Steps go onto the week one at a time and then move across the board like any other task. Sibling docs: `design/flows/board.md`, `design/flows/plan.md`, `design/flows/priorities.md`, `design/flows/shared.md`, `design/flows/auth.md`.
+Flows for the Projects page (`/kanban/projects`; the selected project is the URL's `?project=`). A project is a goal plus an ordered path of steps that never expire. Steps go onto the week one at a time and then move across the board like any other task. Sibling docs: `design/flows/board.md`, `design/flows/plan.md`, `design/flows/priorities.md`, `design/flows/shared.md`, `design/flows/auth.md`.
 
-> **Status:** the data layer is built (PR 3: projects, steps, scheduling, carry-over); steps show on the board and in the plan form (PR 4a); the Projects page and its modals are *designed — Phase 1 pending (PR 4c)*, and the MCP flow PR 5. Screens: `design/mockup/future-work/mockup-projects-v2.html`, until the Projects scenario page replaces it.
+> **Status:** the data layer is built (PR 3: projects, steps, scheduling, carry-over); steps show on the board and in the plan form (PR 4a); the Projects page and its modals are built (PR 4c; states in `/design/scenarios/projects`); the MCP flow is *designed — Phase 1 pending (PR 5)*.
 
 > **Doc convention:** One flow per `##` heading, separated by `---`. Every flow has two required `###` sections — `Trigger / Entry Point` and `Steps` — plus an optional `### Rules` section for constraints and invariants. Extra `###` sections (e.g. `Metrics`) are allowed only for reference material that fits neither Steps nor Rules.
 
@@ -12,13 +12,13 @@ Flows for the Projects page (`/kanban/projects`; on mobile a project's detail is
 
 ### Trigger / Entry Point
 
-User opens the **Projects** tab of the Plan hub → `/kanban/projects`.
+User opens **Projects** from the sidebar or the mobile dock → `/kanban/projects`.
 
 ### Steps
 
 1. Await `ensureSynced` (see `design/flows/shared.md`).
 2. List the user's non-archived projects, each with its progress (done / total steps), its next step and how many of its steps are on this week.
-3. On desktop, select the first project and show its detail beside the list. On mobile, each project opens `/kanban/projects/[id]`.
+3. On desktop, select the project `?project=` names (else the first) and show its detail beside the list. On mobile, show the list; choosing a project shows its detail instead, and back returns to the list. Selecting never waits on the server, and a reload keeps the selection.
 4. A project's detail shows its path: done steps (in completion order, with their completion date), this week's steps (with their board status), then upcoming steps.
 
 ### Rules

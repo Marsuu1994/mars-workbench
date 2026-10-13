@@ -3,7 +3,7 @@
  * the server action's paging, and the composer/feed UI (textarea maxLength,
  * skeletons, day grouping).
  */
-import {KANBAN_TZ} from './dateUtils';
+import {KANBAN_TZ, formatDayLabel} from './dateUtils';
 
 export const DUMP_PAGE_SIZE = 20;
 export const DUMP_ENTRY_MAX_LENGTH = 10000;
@@ -17,12 +17,6 @@ const dayKeyFmt = new Intl.DateTimeFormat('en-CA', {
   year: 'numeric',
   month: '2-digit',
   day: '2-digit',
-});
-const dayLabelFmt = new Intl.DateTimeFormat('en-US', {
-  timeZone: KANBAN_TZ,
-  weekday: 'short',
-  month: 'short',
-  day: 'numeric',
 });
 const timeFmt = new Intl.DateTimeFormat('en-US', {
   timeZone: KANBAN_TZ,
@@ -38,7 +32,7 @@ export function dumpDayKey(date: Date): string {
 
 /** KANBAN-tz weekday + date label, e.g. "Wed, Jul 16". */
 export function formatDumpDayLabel(date: Date): string {
-  return dayLabelFmt.format(date);
+  return formatDayLabel(date);
 }
 
 /** KANBAN-tz 24h time, e.g. "09:42". */

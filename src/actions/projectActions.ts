@@ -22,6 +22,9 @@ import {
   updateProjectStep,
 } from '../services/projectService';
 import {getCurrentUserId} from '@/lib/auth/getCurrentUserId';
+import type {ProjectItem, ProjectWithSteps} from '@/lib/db/projects';
+import type {TaskItem} from '@/lib/db/tasks';
+import type {FlattenedFormError} from '@/utils/formErrors';
 
 const PROJECTS_PATH = '/kanban/projects';
 const BOARD_PATH = '/kanban';
@@ -29,29 +32,46 @@ const BOARD_PATH = '/kanban';
 type ProjectErrorKey =
   'projectNotFound' | 'stepNotFound' | 'stepOrderMismatch' | 'noActivePlan';
 
-const errorResult = async (errorKey: ProjectErrorKey) => {
+/**
+ * What a project action returns: its data, or the error a form's banner reads
+ * (zod's flatten() shape). Both members declare both keys, so callers can
+ * test `result.error` and read `result.data` after it.
+ */
+type ProjectActionResult<T> =
+  {data: T; error?: undefined} | {error: FlattenedFormError; data?: undefined};
+
+const errorResult = async (
+  errorKey: ProjectErrorKey,
+): Promise<ProjectActionResult<never>> => {
   const t = await getTranslations('Errors');
   return {error: {formErrors: [t(errorKey)], fieldErrors: {}}};
 };
 
+const revalidateProjects = () => revalidatePath(PROJECTS_PATH);
+
 /** Projects page + board: a step on this week is also a board card. */
 const revalidateProjectsAndBoard = () => {
-  revalidatePath(PROJECTS_PATH);
+  revalidateProjects();
   revalidatePath(BOARD_PATH);
 };
 
-export async function createProjectAction(input: unknown) {
+export async function createProjectAction(
+  input: unknown,
+): Promise<ProjectActionResult<ProjectWithSteps>> {
   const parsed = createProjectSchema.safeParse(input);
   if (!parsed.success) return {error: parsed.error.flatten()};
 
   const userId = await getCurrentUserId();
   const project = await createProject(userId, parsed.data);
 
-  revalidatePath(PROJECTS_PATH);
+  revalidateProjects();
   return {data: project};
 }
 
-export async function updateProjectAction(projectId: string, input: unknown) {
+export async function updateProjectAction(
+  projectId: string,
+  input: unknown,
+): Promise<ProjectActionResult<ProjectItem>> {
   const parsed = updateProjectSchema.safeParse(input);
   if (!parsed.success) return {error: parsed.error.flatten()};
 
@@ -59,11 +79,13 @@ export async function updateProjectAction(projectId: string, input: unknown) {
   const result = await updateProject(userId, projectId, parsed.data);
   if ('error' in result) return errorResult(result.error);
 
-  revalidatePath(PROJECTS_PATH);
+  revalidateProjects();
   return {data: result.project};
 }
 
-export async function archiveProjectAction(projectId: string) {
+export async function archiveProjectAction(
+  projectId: string,
+): Promise<ProjectActionResult<ProjectItem>> {
   const userId = await getCurrentUserId();
   const result = await archiveProject(userId, projectId);
   if ('error' in result) return errorResult(result.error);
@@ -73,16 +95,21 @@ export async function archiveProjectAction(projectId: string) {
   return {data: result.project};
 }
 
-export async function unarchiveProjectAction(projectId: string) {
+export async function unarchiveProjectAction(
+  projectId: string,
+): Promise<ProjectActionResult<ProjectItem>> {
   const userId = await getCurrentUserId();
   const result = await unarchiveProject(userId, projectId);
   if ('error' in result) return errorResult(result.error);
 
-  revalidatePath(PROJECTS_PATH);
+  revalidateProjects();
   return {data: result.project};
 }
 
-export async function addProjectStepAction(projectId: string, input: unknown) {
+export async function addProjectStepAction(
+  projectId: string,
+  input: unknown,
+): Promise<ProjectActionResult<TaskItem>> {
   const parsed = createProjectStepSchema.safeParse(input);
   if (!parsed.success) return {error: parsed.error.flatten()};
 
@@ -90,11 +117,14 @@ export async function addProjectStepAction(projectId: string, input: unknown) {
   const result = await addProjectStep(userId, projectId, parsed.data);
   if ('error' in result) return errorResult(result.error);
 
-  revalidatePath(PROJECTS_PATH);
+  revalidateProjects();
   return {data: result.step};
 }
 
-export async function updateProjectStepAction(stepId: string, input: unknown) {
+export async function updateProjectStepAction(
+  stepId: string,
+  input: unknown,
+): Promise<ProjectActionResult<TaskItem>> {
   const parsed = updateProjectStepSchema.safeParse(input);
   if (!parsed.success) return {error: parsed.error.flatten()};
 
@@ -106,7 +136,9 @@ export async function updateProjectStepAction(stepId: string, input: unknown) {
   return {data: result.step};
 }
 
-export async function deleteProjectStepAction(stepId: string) {
+export async function deleteProjectStepAction(
+  stepId: string,
+): Promise<ProjectActionResult<TaskItem>> {
   const userId = await getCurrentUserId();
   const result = await deleteProjectStep(userId, stepId);
   if ('error' in result) return errorResult(result.error);
@@ -118,7 +150,7 @@ export async function deleteProjectStepAction(stepId: string) {
 export async function reorderProjectStepsAction(
   projectId: string,
   input: unknown,
-) {
+): Promise<ProjectActionResult<ProjectWithSteps>> {
   const parsed = reorderProjectStepsSchema.safeParse(input);
   if (!parsed.success) return {error: parsed.error.flatten()};
 
@@ -135,7 +167,9 @@ export async function reorderProjectStepsAction(
   return {data: result.project};
 }
 
-export async function scheduleProjectStepAction(stepId: string) {
+export async function scheduleProjectStepAction(
+  stepId: string,
+): Promise<ProjectActionResult<TaskItem>> {
   const userId = await getCurrentUserId();
   const result = await scheduleProjectStep(userId, stepId);
   if ('error' in result) return errorResult(result.error);
@@ -144,7 +178,9 @@ export async function scheduleProjectStepAction(stepId: string) {
   return {data: result.step};
 }
 
-export async function unscheduleProjectStepAction(stepId: string) {
+export async function unscheduleProjectStepAction(
+  stepId: string,
+): Promise<ProjectActionResult<TaskItem>> {
   const userId = await getCurrentUserId();
   const result = await unscheduleProjectStep(userId, stepId);
   if ('error' in result) return errorResult(result.error);

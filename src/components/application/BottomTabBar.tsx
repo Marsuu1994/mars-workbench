@@ -7,9 +7,11 @@ import {
   PencilSquareIcon,
   InboxArrowDownIcon,
   Cog6ToothIcon,
+  MapIcon,
 } from '@heroicons/react/24/outline';
 import {cn} from '@/components/ui/cn';
 import {useSettingsStore} from '@/store/settingsStore';
+import {getPlanHref} from '@/utils/planUtils';
 
 interface BottomTabBarProps {
   user: {name: string; email: string} | null;
@@ -38,6 +40,7 @@ export const BottomTabBar = ({
 
   const isBoard = pathname === '/kanban';
   const isPriorities = pathname.startsWith('/kanban/priorities');
+  const isProjects = pathname.startsWith('/kanban/projects');
   const isPlan = pathname.startsWith('/kanban/plans');
   const isDump = pathname.startsWith('/kanban/dump');
 
@@ -54,10 +57,12 @@ export const BottomTabBar = ({
         <TableCellsIcon className="size-5" />
         <span className="dock-label fx-display">Priorities</span>
       </Link>
+      <Link href="/kanban/projects" className={isProjects ? 'dock-active' : ''}>
+        <MapIcon className="size-5" />
+        <span className="dock-label fx-display">Projects</span>
+      </Link>
       <Link
-        href={
-          activePlanId ? `/kanban/plans/${activePlanId}` : '/kanban/plans/new'
-        }
+        href={getPlanHref(activePlanId)}
         className={isPlan ? 'dock-active' : ''}
       >
         <PencilSquareIcon className="size-5" />

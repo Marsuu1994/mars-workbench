@@ -10,9 +10,11 @@ import {
   TableCellsIcon,
   PencilSquareIcon,
   InboxArrowDownIcon,
+  MapIcon,
 } from '@heroicons/react/24/outline';
 import {useSidebarStore} from '@/store/sidebarStore';
 import {useSettingsStore} from '@/store/settingsStore';
+import {getPlanHref} from '@/utils/planUtils';
 
 interface AppSidebarProps {
   user: {name: string; email: string} | null;
@@ -51,11 +53,10 @@ export const AppSidebar = ({
 
   const isBoardActive = pathname === '/kanban';
   const isPrioritiesActive = pathname.startsWith('/kanban/priorities');
+  const isProjectsActive = pathname.startsWith('/kanban/projects');
   const isPlanActive = pathname.startsWith('/kanban/plans');
   const isDumpActive = pathname.startsWith('/kanban/dump');
-  const planHref = activePlanId
-    ? `/kanban/plans/${activePlanId}`
-    : '/kanban/plans/new';
+  const planHref = getPlanHref(activePlanId);
 
   const navItemBase =
     'flex items-center gap-2.5 rounded-lg px-3 py-2 whitespace-nowrap transition-colors';
@@ -83,6 +84,16 @@ export const AppSidebar = ({
       <span className={`fx-display text-[13px] ${textOpacity}`}>
         Priorities
       </span>
+    </Link>
+  );
+
+  const renderProjectsLink = () => (
+    <Link
+      href="/kanban/projects"
+      className={isProjectsActive ? navItemActive : navItemInactive}
+    >
+      <MapIcon className="h-[18px] w-[18px] flex-shrink-0" />
+      <span className={`fx-display text-[13px] ${textOpacity}`}>Projects</span>
     </Link>
   );
 
@@ -186,6 +197,7 @@ export const AppSidebar = ({
         <nav className="flex flex-col gap-0.5">
           {renderBoardLink()}
           {renderPrioritiesLink()}
+          {renderProjectsLink()}
           {renderPlanLink()}
           {renderDumpLink()}
         </nav>

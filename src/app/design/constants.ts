@@ -47,6 +47,7 @@ export const SCENARIO_HREFS = {
   board: '/design/scenarios/board',
   priorities: '/design/scenarios/priorities',
   plan: '/design/scenarios/plan',
+  projects: '/design/scenarios/projects',
   aiChat: '/design/scenarios/ai-chat',
   dump: '/design/scenarios/dump',
   auth: '/design/scenarios/auth',
@@ -592,6 +593,93 @@ export const PLAN_TASK_ROW_FIXTURES = [
   },
 ] as const;
 
+// ── Projects fixtures ────────────────────────────────────────────────────────
+
+/** The plan this week's step specimens sit on. */
+const GALLERY_ACTIVE_PLAN_ID = 'gallery-plan-w41';
+
+const lectureStep = (overrides: Partial<TaskItem>): TaskItem =>
+  stepTask({
+    projectId: 'gallery-prj-bio',
+    planId: null,
+    status: TaskStatus.BACKLOG,
+    ...xs,
+    ...overrides,
+  });
+
+/** ProjectStep — every place a step sits, plus an upcoming step with no
+    plan to schedule into. */
+export const PROJECT_STEP_FIXTURES: {
+  label: string;
+  step: TaskItem;
+  activePlanId: string | null;
+}[] = [
+  {
+    label: 'Done',
+    activePlanId: GALLERY_ACTIVE_PLAN_ID,
+    step: lectureStep({
+      id: 'gallery-step-2',
+      title: 'Lecture 2 — Biochemistry basics',
+      instanceIndex: 2,
+      planId: GALLERY_ACTIVE_PLAN_ID,
+      status: TaskStatus.DONE,
+      doneAt: new Date(2026, 9, 6, 18),
+    }),
+  },
+  {
+    label: 'This week · todo',
+    activePlanId: GALLERY_ACTIVE_PLAN_ID,
+    step: lectureStep({
+      id: 'gallery-step-3',
+      title: 'Lecture 3 — Membranes',
+      description: 'Watch + one-page notes',
+      instanceIndex: 3,
+      planId: GALLERY_ACTIVE_PLAN_ID,
+      status: TaskStatus.TODO,
+    }),
+  },
+  {
+    label: 'This week · backlog',
+    activePlanId: GALLERY_ACTIVE_PLAN_ID,
+    step: lectureStep({
+      id: 'gallery-step-4',
+      title: 'Lecture 4 — Cell signaling',
+      instanceIndex: 4,
+      planId: GALLERY_ACTIVE_PLAN_ID,
+    }),
+  },
+  {
+    label: 'Last week',
+    // Between weeks: no plan yet, the step still on last week's
+    activePlanId: null,
+    step: lectureStep({
+      id: 'gallery-step-4-last',
+      title: 'Lecture 4 — Cell signaling',
+      instanceIndex: 4,
+      planId: 'gallery-plan-w40',
+      status: TaskStatus.TODO,
+    }),
+  },
+  {
+    label: 'Upcoming',
+    activePlanId: GALLERY_ACTIVE_PLAN_ID,
+    step: lectureStep({
+      id: 'gallery-step-5',
+      title: 'Lecture 5 — Genetics I',
+      instanceIndex: 5,
+    }),
+  },
+  {
+    label: 'Upcoming · no plan',
+    activePlanId: null,
+    step: lectureStep({
+      id: 'gallery-step-5-no-plan',
+      title: 'Lecture 5 — Genetics I',
+      instanceIndex: 5,
+    }),
+  },
+];
+
 /** TemplateItem — a single selectable plan-template row. */
 export const TEMPLATE_FIXTURE = {
   id: 'tmpl-1',
@@ -636,13 +724,6 @@ export const EMPTY_STATE_DEMO_CTA = 'Run scan';
 
 export const TABBAR_DEMO_LABELS = ['Overview', 'Telemetry', 'Logs'];
 
-/** LinkTabBar specimen: two pages (in-page anchors, so a click stays put). */
-export const LINK_TABS_DEMO = [
-  {label: 'This week', href: '#this-week'},
-  {label: 'Projects', href: '#projects'},
-];
-export const LINK_TABS_DEMO_LABEL = 'Plan hub demo';
-
 /** EmptyState inline specimen. */
 export const EMPTY_STATE_INLINE_DEMO_TITLE = 'No steps yet';
 export const EMPTY_STATE_INLINE_DEMO_DESC =
@@ -652,16 +733,28 @@ export const EMPTY_STATE_INLINE_DEMO_CTA = 'Add the first step';
 /** Banner specimens — one per tone, with and without an action. */
 export const BANNER_DEMO_INTRO =
   'Projects are a goal plus ordered steps — steps go onto a week one at a time and never expire.';
+export const BANNER_DEMO_DONE_TITLE = 'All steps done';
 export const BANNER_DEMO_DONE =
-  "All steps done. Add the next steps, or archive the project when you're finished.";
+  "Add the next steps below, or archive the project when you're finished.";
+export const BANNER_DEMO_ACTION = 'Archive';
+export const BANNER_DEMO_SAVED = 'Saved — the board shows the change.';
 export const BANNER_DEMO_WARNING =
   'No plan for this week yet — + This week needs one.';
 export const BANNER_DEMO_LINK = 'Create plan';
 
 /** InlineConfirmButton specimens. */
-export const INLINE_CONFIRM_DEMO_LABEL = 'Archive';
-export const INLINE_CONFIRM_DEMO_CONFIRM = 'Archive?';
-export const INLINE_CONFIRM_DEMO_HINT = 'Unfinished steps leave this week';
+export const INLINE_CONFIRM_DEMO_LABEL = 'Delete step';
+export const INLINE_CONFIRM_DEMO_CONFIRM = 'Delete step?';
+
+/** ConfirmBar specimens: a bare question, and one that says what happens. */
+export const CONFIRM_BAR_DEMO_PROMPT = 'Sign out?';
+export const CONFIRM_BAR_DEMO_CANCEL = 'Cancel';
+export const CONFIRM_BAR_DEMO_CONFIRM = 'Sign out';
+export const CONFIRM_BAR_DEMO_DETAIL_PROMPT = 'Archive Biomedical course?';
+export const CONFIRM_BAR_DEMO_DETAIL =
+  'It moves to Archived; its unfinished steps leave this week.';
+export const CONFIRM_BAR_DEMO_DETAIL_CANCEL = 'Keep';
+export const CONFIRM_BAR_DEMO_DETAIL_CONFIRM = 'Archive';
 
 /** ModalFormFooter specimens. */
 export const FOOTER_DEMO_CANCEL = 'Cancel';

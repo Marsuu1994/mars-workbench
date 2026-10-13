@@ -40,7 +40,7 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 
 Approved in [`spike/week-model-restructure.md`](./spike/week-model-restructure.md) and built in PRs 2–5, which are tracked under Plan in [tracker.md](./tracker.md). Lines marked *(designed — Phase 1 pending)* here and in `./flows/` describe this target until the PR that ships them.
 
-1. **Projects** — a goal plus an ordered path of steps that never expire, on a Projects page under a Plan hub (This week · Projects).
+1. **Projects** — a goal plus an ordered path of steps that never expire, on their own Projects page (`/kanban/projects`, a sidebar item and dock tab before Plan).
    - Steps go onto the week one at a time and move across the board like any task.
    - A project whose steps are all done shows "All steps done" until the user archives it.
    - See `./flows/projects.md`.
