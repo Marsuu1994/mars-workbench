@@ -18,6 +18,7 @@ Single source of truth for open ideas and todos across the app — open items on
 ### Medium
 
 - [ ] Week model Phase 1 — Projects MVP: projects (a goal + ordered steps that never expire) under a Plan hub, kind-first cards with risk off, a Todo · Done board, and MCP project tools. Spike `design/spike/week-model-restructure.md` (approved), PR 4 component design `design/spike/week-model-pr4-projects-ui.md` (decided); flows `design/flows/projects.md` + the *Phase 1 pending* notes in `baseline.md` and `flows/`; mockups `design/mockup/future-work/mockup-week-model-phase1-v2.html` + `mockup-projects-v2.html`
+  - [ ] PR 4c — Projects page (#58), rework before merging: read `design/spike/projects-page-refactor.md` (Decision, 实现入口, Executable plan › PR B) and the mockup `design/mockup/future-work/temp-projects-rework-v2.html`, then implement it on this branch — Projects-only scope; delete the mockup once the Projects scenario covers it
   - [ ] PR 4d — Cleanup and adjustments: living docs (flows, baseline, reference), delete `mockup-week-model-phase1-v2.html`, adjustments after using 4a–4c
   - [ ] PR 5 — MCP for projects: projects in the context, `create_project` / `update_project`, steps in `create_plan` / `update_plan`, and the prompt for finished projects and archiving (finalized in this PR); then delete `mockup-projects-v2.html`
 - [ ] ReviewChangesModal / OverlayShell body height needs tuning on **both** breakpoints — with long change lists the box grows so tall the header ends up out of view; revisit the max-height caps (mobile `max-h-[85vh]`, desktop `md:max-h-[calc(100vh-5em)]`) so the pinned header/footer always stay on screen
@@ -28,7 +29,7 @@ Single source of truth for open ideas and todos across the app — open items on
   - [ ] Plan page follows the board's data split (AGENTS.md › Layers, *Server shapes inputs, the client derives the view*): the loader returns inputs, the page's container keeps them as state and derives the view with a pure adapter — done alongside the Plan week rebuild
   - [ ] Redesign the Projects page and the Review changes modal — both are large as they stand; rework them with the Plan week
 - [ ] Habit-level days — let each habit run on weekdays, every day or custom days (after Phase 2 drops Plan Mode, Daily means every day)
-- [ ] Explore entry points for habits and projects — whether they get their own sidebar item / dock tab instead of living under the Plan hub (Phase 1 adds no new nav items)
+- [ ] Explore an entry point for habits — whether they get their own sidebar item / dock tab instead of living under the Plan hub (projects get their own entry in the Projects page rework)
 
 ## Priorities
 
@@ -83,6 +84,9 @@ Error presentation is unstyled or ad-hoc across the app (the AI chat's red alert
 
 - [ ] `ui/` component-structure lookup in `reference.md` — a lean high-level map for agents (humans use the `/design` gallery); follow-up to the landed component library
 - [ ] Uniform page header across board/priorities/settings on both breakpoints (plan keeps its planning-mode header); also resolves the BoardHeader green-vs-primary accent drift and revisits the mobile header type scale (current mobile header font size reads too large). Along the way (`design/spike/board-prop-drilling.md` Part 2): fold BoardHeader's extra wrapper div, drop the needless `'use client'` from `BoardHeader` / `ProgressDashboard`, and redraw the stale `kanban/loading.tsx` skeleton
+- [ ] Spike: state management — React Query and / or Zustand in place of each page's hand-rolled client copy (`useOptimisticTasks` + effect sync, `revalidatePath` re-renders); also trim server actions (7 of 35 are reads), server ↔ UI shape conversion per fetch / mutate use case, and URL query params as state. First assessment in `design/spike/projects-page-refactor.md`; pairs with the shared server-action handler spike
+- [ ] Spike: config-driven modals — one `useModal` + a registry mapping each modal to its form, schema, action and success effect, since the form modals share one flow (input → server action → transition → close); covers where open state lives (store / context / URL) and the close-then-stale gap `TaskModal` still has. Initial findings (modal inventory, shared flow, a `useModalSubmit` core, why shell and form are split) in `design/spike/projects-page-refactor.md`; pairs with the state management spike
+- [ ] Spike: component structure — re-evaluate app-wide when to split: presentational components only for pure display reused across features (cards, `Banner` + optional action); feature components with their own state and actions take domain data; no slot-only frames; code shaped for production, the Design Console adapts. Projects page is the pilot (`design/spike/projects-page-refactor.md`)
 - [ ] Redesign the point system and metric tracking — how sizes map to points, and what the board's Today / Week / Daily avg metrics count now that a week mixes habits, project steps and one-offs (PR 3 only added a project bucket to the week projection)
 
 ### Future

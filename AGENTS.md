@@ -258,6 +258,7 @@ When adding a new convention, append it to the **end of the relevant subsection 
   ```
 
 - **User-facing copy is sentence case** — capitalize only the first word (plus proper nouns/acronyms); Title Case is reserved for headers (page/section titles, nav labels). Applies to buttons, row actions, chips, hints, empty states — the same action must not flip casing between states. Bad: a rest-state button "Sign Out" whose confirm state reads "Sign out?". Good: "Sign out" / "Sign out?" / "Create task" / "Add task", with headers like "Settings" or "Kanban Planner" keeping their casing.
+- **Status marks must not look like controls.** A state the user can't change by clicking it is never drawn as a control shape — no hollow or filled circles or squares that read as a radio or checkbox. Show it with what the element already has: a tint, a border, a pill, muted text, an inline ✓ glyph beside text. Bad: every project step row led by a circle that fills when the step is on this week — it looks clickable and only repeats the pill. Good: this week's row is tinted with a "This week · todo" pill; a done row reads muted with "✓ Mon, Oct 5" on the right.
 
 ## Code Style
 
