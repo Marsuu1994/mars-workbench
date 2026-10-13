@@ -370,7 +370,7 @@ export const UiTab = () => {
   const renderInlineConfirmButton = () => (
     <Section
       title="InlineConfirmButton"
-      description="Two-click destructive button for a form footer: outlined at rest (quiet full-width text below md), solid with its confirm label once armed; the second click runs it. No cancel — leaving is the cancel. For a confirm that says what happens, use ConfirmBar. The armed specimen is reached by a play step that clicks once."
+      description="Two-click destructive button for a form footer: outlined at rest (full width below md), solid with its confirm label once armed; the second click runs it. No cancel — leaving is the cancel. For a confirm that says what happens, use ConfirmBar. The armed specimen is reached by a play step that clicks once."
     >
       <Row>
         <Variant label="rest (click to arm)">
