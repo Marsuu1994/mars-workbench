@@ -370,7 +370,7 @@ export const UiTab = () => {
   const renderInlineConfirmButton = () => (
     <Section
       title="InlineConfirmButton"
-      description="Two-click destructive button for a footer: outlined at rest, solid with its confirm label once armed; the second click runs it. No cancel — leaving is the cancel. For a confirm that says what happens, use ConfirmBar. The armed specimen is reached by a play step that clicks once."
+      description="Two-click destructive button for a form footer: outlined at rest (quiet full-width text below md), solid with its confirm label once armed; the second click runs it. No cancel — leaving is the cancel. For a confirm that says what happens, use ConfirmBar. The armed specimen is reached by a play step that clicks once."
     >
       <Row>
         <Variant label="rest (click to arm)">
@@ -427,7 +427,7 @@ export const UiTab = () => {
   const renderModalFormFooter = () => (
     <Section
       title="ModalFormFooter"
-      description="A modal form's footer: the submit error, then Cancel + submit (1 : 2 on mobile), with an optional destructive control on the left."
+      description="A modal form's footer: the submit error, then Cancel + submit, with an optional destructive control. From md everything sits on one row, the destructive control on the left. Below md, Cancel (outlined) and submit share a row 1 : 2 and the destructive control takes its own full-width row under a hairline, away from the primary action."
     >
       <div className="flex max-w-lg flex-col gap-6">
         <Variant label="plain">

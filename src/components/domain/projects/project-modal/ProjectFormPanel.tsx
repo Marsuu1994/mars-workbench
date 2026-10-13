@@ -19,9 +19,9 @@ import {Banner} from '@/components/ui/Banner';
 import {ConfirmBar} from '@/components/ui/ConfirmBar';
 import {FieldRow} from '@/components/ui/form/FieldRow';
 import {FormErrorAlert} from '@/components/ui/form/FormErrorAlert';
+import {FOOTER_DANGER_BUTTON} from '@/components/ui/form/constants';
 import {ModalFormFooter} from '@/components/ui/form/ModalFormFooter';
 import {OverlayHeader} from '@/components/ui/overlay/OverlayHeader';
-import {DANGER_OUTLINE_BUTTON} from '../constants';
 
 export type ProjectFormMode = 'create' | 'edit';
 
@@ -160,7 +160,7 @@ export const ProjectFormPanel = ({
             <button
               type="button"
               onClick={() => setIsArchiveArmed(true)}
-              className={DANGER_OUTLINE_BUTTON}
+              className={FOOTER_DANGER_BUTTON}
             >
               {t('archive')}
             </button>

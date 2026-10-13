@@ -2,6 +2,7 @@
 
 import {useState, type ReactNode} from 'react';
 import {cn} from './cn';
+import {FOOTER_DANGER_BUTTON} from './form/constants';
 
 interface InlineConfirmButtonProps {
   /** Rest-state label (e.g. "Delete step") */
@@ -14,9 +15,10 @@ interface InlineConfirmButtonProps {
 }
 
 /**
- * Two-click destructive button that fits a footer: at rest an outlined
- * error button; the first click turns it solid with its confirm label; the
- * second click runs it. There is no cancel — leaving (the surrounding
+ * Two-click destructive button for a form footer (ModalFormFooter's
+ * `leading`): at rest the footer's danger button; the first click turns it
+ * solid with its confirm label; the second click runs it. Below md it fills
+ * its row in both states. There is no cancel — leaving (the surrounding
  * Cancel, closing) is the cancel. For a confirm that needs to say what
  * happens, use ConfirmBar.
  */
@@ -43,10 +45,7 @@ export const InlineConfirmButton = ({
       <button
         type="button"
         onClick={() => setIsArmed(true)}
-        className={cn(
-          'btn border-error/35 bg-transparent text-error hover:border-error hover:bg-transparent',
-          className,
-        )}
+        className={cn(FOOTER_DANGER_BUTTON, className)}
       >
         {label}
       </button>
@@ -58,7 +57,7 @@ export const InlineConfirmButton = ({
       type="button"
       onClick={handleConfirm}
       disabled={isPending}
-      className={cn('btn btn-error', className)}
+      className={cn('btn btn-error max-md:w-full', className)}
     >
       {confirmLabel}
     </button>
