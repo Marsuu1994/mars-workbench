@@ -2,6 +2,7 @@
 
 import {useState, type ReactNode} from 'react';
 import {cn} from './cn';
+import {ConfirmBar} from './ConfirmBar';
 
 interface ConfirmButtonProps {
   /** Leading icon for the rest-state row */
@@ -20,7 +21,7 @@ interface ConfirmButtonProps {
 
 /**
  * Two-step destructive action row: a plain button at rest; the first click
- * triggers an inline confirm (cancel / confirm), the second executes. Parents
+ * turns it into a ConfirmBar (cancel / confirm), the second executes. Parents
  * reset a stale triggered state by remounting (key). Styled on the error
  * channel; theme-agnostic and reusable for any confirm-before-doing action.
  */
@@ -45,17 +46,13 @@ export const ConfirmButton = ({
     }
   };
 
-  const rowBase =
-    'flex w-full items-center gap-2.5 rounded-card border px-3.5 py-3 text-sm font-semibold text-error transition-colors';
-
   if (!isTriggered) {
     return (
       <button
         type="button"
         onClick={() => setIsTriggered(true)}
         className={cn(
-          rowBase,
-          'cursor-pointer justify-center bg-error/5 border-error/25 hover:bg-error/10 hover:border-error',
+          'flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-card border border-error/25 bg-error/5 px-3.5 py-3 text-sm font-semibold text-error transition-colors hover:border-error hover:bg-error/10',
           className,
         )}
       >
@@ -66,27 +63,15 @@ export const ConfirmButton = ({
   }
 
   return (
-    <div className={cn(rowBase, 'bg-error/10 border-error', className)}>
-      {icon}
-      {confirmPrompt}
-      <span className="ml-auto flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setIsTriggered(false)}
-          disabled={isPending}
-          className="cursor-pointer rounded-card border border-base-content/15 px-3 py-1 text-xs font-semibold text-base-content/70 transition-colors hover:border-base-content/40 disabled:opacity-40"
-        >
-          {cancelLabel}
-        </button>
-        <button
-          type="button"
-          onClick={handleConfirm}
-          disabled={isPending}
-          className="cursor-pointer rounded-card bg-error px-3 py-1 text-xs font-semibold text-error-content transition-colors hover:bg-error/85 disabled:opacity-40"
-        >
-          {confirmLabel}
-        </button>
-      </span>
-    </div>
+    <ConfirmBar
+      icon={icon}
+      prompt={confirmPrompt}
+      cancelLabel={cancelLabel}
+      confirmLabel={confirmLabel}
+      onCancel={() => setIsTriggered(false)}
+      onConfirm={handleConfirm}
+      isPending={isPending}
+      className={className}
+    />
   );
 };

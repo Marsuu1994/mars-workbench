@@ -8,12 +8,10 @@ import {
   PlusIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
+import type {TaskItem} from '@/lib/db/tasks';
 import {TaskStatus} from '@/utils/enums';
 import {formatDayLabel} from '@/utils/dateUtils';
-import {
-  ProjectStepState,
-  type ProjectStepRowModel,
-} from '@/utils/projectViewUtils';
+import {getStepState, ProjectStepState} from '@/utils/projectUtils';
 import {TaskKind} from '@/utils/taskUtils';
 import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
@@ -21,8 +19,10 @@ import {Pill} from '@/components/ui/Pill';
 import {cn} from '@/components/ui/cn';
 import {ROW_ACTION_BUTTON, ROW_ICON_BUTTON} from './constants';
 
-interface ProjectStepRowProps {
-  row: ProjectStepRowModel;
+interface ProjectStepProps {
+  step: TaskItem;
+  /** The plan + This week schedules into; null: no plan this week yet */
+  activePlanId: string | null;
   /** ✎ — every step that isn't done */
   onEdit?: () => void;
   /** + This week — an upcoming step */
@@ -31,51 +31,40 @@ interface ProjectStepRowProps {
   onTakeBack?: () => void;
 }
 
-const {tint, fill} = TASK_KIND_STYLE[TaskKind.PROJECT];
+const {tint} = TASK_KIND_STYLE[TaskKind.PROJECT];
 
 /**
- * One step of a project's path, by state: done (locked, with the day it was
- * done), on this week (tinted, with its board status, × while still in the
- * backlog), left on last week's plan, or upcoming (its size and + This
- * week). From md up a drag hint leads the row and the description shows.
+ * One step of a project's path, by where it sits: done (muted, locked, "✓"
+ * and the day it was done), on this week (tinted, its board status; × while
+ * still in the backlog), left on last week's plan, or upcoming (its size and
+ * + This week, disabled without a plan). From md up a drag hint leads the
+ * row and the description shows. No status mark: the row says it.
  */
-export const ProjectStepRow = ({
-  row,
+export const ProjectStep = ({
+  step,
+  activePlanId,
   onEdit,
   onSchedule,
   onTakeBack,
-}: ProjectStepRowProps) => {
+}: ProjectStepProps) => {
   const t = useTranslations('Projects.Step');
-  const {state, step} = row;
   const {title, description, instanceIndex, size, points, status, doneAt} =
     step;
+  const state = getStepState(step, activePlanId);
   const isDone = state === ProjectStepState.DONE;
-  const isThisWeek = state === ProjectStepState.THIS_WEEK;
   const isInBacklog = status === TaskStatus.BACKLOG;
 
-  const renderStatusMark = () => {
-    if (isDone) {
-      return (
-        <span className="grid size-[18px] place-items-center rounded-full border-[1.5px] border-success bg-success text-base-100">
-          <CheckIcon className="size-2.5 stroke-[3]" />
-        </span>
-      );
-    }
-    return (
-      <span
-        className={cn(
-          'grid size-[18px] place-items-center rounded-full border-[1.5px]',
-          isThisWeek ? 'border-secondary' : 'border-base-content/30',
-        )}
-      >
-        {isThisWeek && <span className={cn('size-2 rounded-full', fill)} />}
+  const renderDone = () =>
+    doneAt && (
+      <span className="inline-flex items-center gap-1.5 text-success">
+        <CheckIcon className="size-3 stroke-2" />
+        <span className="text-base-content/50">{formatDayLabel(doneAt)}</span>
       </span>
     );
-  };
 
   // Mobile says less: the board status alone this week, "Last week" before
   const renderWeekPill = () => {
-    switch (row.state) {
+    switch (state) {
       case ProjectStepState.THIS_WEEK:
         return (
           <Pill color={isInBacklog ? 'secondary' : 'primary'}>
@@ -102,13 +91,13 @@ export const ProjectStepRow = ({
   };
 
   const renderSchedule = () =>
-    row.state === ProjectStepState.UPCOMING && (
+    state === ProjectStepState.UPCOMING && (
       <>
         <SizeChip size={size} points={points} className="max-md:hidden" />
         <button
           type="button"
           onClick={onSchedule}
-          disabled={!row.canSchedule}
+          disabled={activePlanId === null}
           title={t('scheduleLabel')}
           className={ROW_ACTION_BUTTON}
         >
@@ -120,8 +109,8 @@ export const ProjectStepRow = ({
     );
 
   const renderTakeBack = () =>
-    row.state === ProjectStepState.THIS_WEEK &&
-    row.canTakeBack && (
+    state === ProjectStepState.THIS_WEEK &&
+    isInBacklog && (
       <button
         type="button"
         onClick={onTakeBack}
@@ -134,7 +123,7 @@ export const ProjectStepRow = ({
     );
 
   const renderSide = () => {
-    if (isDone) return doneAt && formatDayLabel(doneAt);
+    if (isDone) return renderDone();
     return (
       <>
         {renderWeekPill()}
@@ -156,14 +145,13 @@ export const ProjectStepRow = ({
   return (
     <div
       className={cn(
-        'grid grid-cols-[20px_18px_minmax(0,1fr)_auto] items-center gap-2 rounded-lg border p-2 text-[13px] md:grid-cols-[16px_22px_26px_minmax(0,1fr)_auto] md:gap-2.5 md:px-2.5 md:py-[9px] md:text-[13.5px]',
-        isThisWeek ? tint : 'border-transparent',
+        'grid grid-cols-[18px_minmax(0,1fr)_auto] items-center gap-2 rounded-lg border p-2 text-[13px] md:grid-cols-[16px_26px_minmax(0,1fr)_auto] md:gap-2.5 md:px-2.5 md:py-[9px] md:text-[13.5px]',
+        state === ProjectStepState.THIS_WEEK ? tint : 'border-transparent',
       )}
     >
       <span className="hidden text-base-content/25 md:grid">
         {!isDone && <Bars2Icon className="size-3.5" />}
       </span>
-      {renderStatusMark()}
       <span className="fx-num text-[11px] text-base-content/45">
         {instanceIndex}
       </span>

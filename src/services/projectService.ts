@@ -22,7 +22,7 @@ import {
 import type {TaskItem} from '@/lib/db/tasks';
 import {TaskStatus} from '@/generated/prisma/client';
 import {sizeToPoints} from '@/utils/sizeUtils';
-import {assignStepNumbers} from '@/utils/projectUtils';
+import {assignStepNumbers, getNextStepNumber} from '@/utils/projectUtils';
 import {ensureSynced} from '@/services/syncService';
 import type {ProjectsPageData} from '@/types/projects';
 import type {
@@ -182,14 +182,10 @@ export async function addProjectStep(
   return prisma.$transaction(async tx => {
     const project = await getProjectWithStepsById(userId, projectId, tx);
     if (!project) return {error: 'projectNotFound'} as const;
-    const lastIndex = Math.max(
-      0,
-      ...project.steps.map(step => step.instanceIndex),
-    );
     const [step] = await createProjectSteps(
       userId,
       projectId,
-      toStepRows([input], lastIndex + 1),
+      toStepRows([input], getNextStepNumber(project.steps)),
       tx,
     );
     return {step};

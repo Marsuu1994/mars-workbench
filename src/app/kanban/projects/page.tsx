@@ -1,10 +1,10 @@
-import {ProjectsScreen} from '@/components/domain/projects/ProjectsScreen';
+import {ProjectsPage} from '@/components/domain/projects/ProjectsPage';
 import {getCurrentUserId} from '@/lib/auth/getCurrentUserId';
 import {fetchProjectsPage} from '@/services/projectService';
 
-export default async function ProjectsPage() {
+export default async function KanbanProjectsPage() {
   const userId = await getCurrentUserId();
   const projectsPage = await fetchProjectsPage(userId);
 
-  return <ProjectsScreen {...projectsPage} />;
+  return <ProjectsPage {...projectsPage} />;
 }

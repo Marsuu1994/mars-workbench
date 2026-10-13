@@ -1,7 +1,7 @@
 import type {ReactNode} from 'react';
 import {cn} from './cn';
 
-export type BannerTone = 'secondary' | 'success' | 'warning';
+export type BannerTone = 'neutral' | 'secondary' | 'success' | 'warning';
 
 interface BannerProps {
   /** Wash and text colour */
@@ -19,6 +19,12 @@ interface BannerProps {
 
 // Literal classes only — never interpolate, Tailwind can't see it.
 const TONE_STYLE: Record<BannerTone, {wash: string; border: string}> = {
+  // The surface of the cards around it: a quiet next step, not an alert —
+  // the caller colours the icon
+  neutral: {
+    wash: 'bg-base-100/55 text-base-content/70',
+    border: 'border border-base-content/10',
+  },
   secondary: {
     wash: 'bg-secondary/10 text-secondary',
     border: 'border border-secondary/30',

@@ -40,11 +40,15 @@ Open [http://localhost:3000](http://localhost:3000)
 - **Sync** (`syncService.ensureSynced`): daily + end-of-period sync awaited by every kanban page — idempotent, page-visit order never matters
 - Empty board states for new users ("No active plan") vs returning users (last-period recap with stats); installable PWA
 
+### Projects
+
+- **Projects page** (`/kanban/projects`, its own sidebar item and dock tab): a project is a goal plus an ordered path of steps that never expire — the list with progress and next step beside the selected project's path (one or the other on mobile; `?project=` keeps the selection); create, edit and archive projects and add, edit, delete and reorder steps
+- **+ This week** puts a step in the board's backlog (× takes it back); a project with every step done offers a one-click Archive
+
 ### Plan
 
 - Create/edit plans with inline per-template type/frequency config, Plan Mode (NORMAL/EXTREME), and a review-changes diff before committing edits; templates are reusable and preselected from the previous plan, and last week's unfinished one-offs and project steps carry over unless deselected (a step goes back to its project)
 - **AI-assisted plan creation**: a chat modal drafts a structured plan via OpenAI (`gpt-5-nano`) calibrated from last period's per-template stats; refine → approve creates the plan atomically (completes the prior plan, carries over one-off tasks). Chats are durable — they resume across close/reload/restart (scoped to the current period) and auto-resume an interrupted generation; the composer is IME-safe
-- **Projects** (`/kanban/projects`, the Plan hub's tab beside This week): a project is a goal plus an ordered path of steps that never expire — the list with progress and next step beside the selected project's path; create, edit and archive projects and add, edit, delete and reorder steps; **+ This week** puts a step in the board's backlog (× takes it back) and a project with every step done offers Archive. On mobile each project opens on its own page
 - Fully mobile-adapted: bottom-sheet modals, compact AI banner, docked summary/submit footer
 - **Plan with Claude (MCP)**: add Mars Workbench to Claude as a custom connector (`/api/mcp`; sign-in and consent through Supabase's OAuth server) and Claude reads your week, then creates or patches the plan once you agree
 
@@ -61,7 +65,7 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ### Auth
 
-- Supabase Auth (Google OAuth) with route protection (sign-in returns to the page that asked for it; the session token is verified locally, once per request), themed login page, collapsible workspace sidebar (Board / Priorities / Plan) and 4-tab mobile dock. **Settings is a responsive overlay** (dock tab / sidebar user row → same sheet): theme picker (Sora light / Sora dark / P5 dark, cookie-persisted, explicit choice — no time-based auto-switch) + two-step confirm sign-out. Deployed on Vercel
+- Supabase Auth (Google OAuth) with route protection (sign-in returns to the page that asked for it; the session token is verified locally, once per request), themed login page, collapsible workspace sidebar (Board / Priorities / Projects / Plan / Dump) and 6-tab mobile dock. **Settings is a responsive overlay** (dock tab / sidebar user row → same sheet): theme picker (Sora light / Sora dark / P5 dark, cookie-persisted, explicit choice — no time-based auto-switch) + two-step confirm sign-out. Deployed on Vercel
 - **OAuth consent page** (`/oauth/consent`): where Supabase's OAuth server sends you to approve or deny an MCP client (Claude) — who's asking, the approving account, what it can do, and where the browser returns
 
 Open items: see [design/tracker.md](./design/tracker.md).
@@ -90,6 +94,12 @@ Open items: see [design/tracker.md](./design/tracker.md).
 ## Update Log
 
 ### 2026-10-13
+- **Projects page reworked from the spike (PR #58, `design/spike/projects-page-refactor.md` › PR B)**:
+  - **Own route and nav entry**: Projects keeps `/kanban/projects`, now a sidebar item and dock tab placed before Plan (Plan is active only on `/kanban/plans`); the selected project is `?project=`, changed on the client with `pushState` — mobile's list ↔ detail and back make no server request, and a reload keeps the selection. The `/[id]` route, the Plan hub tabs (`PlanHubTabs`, `LinkTabBar`) and `fetchProjectsPageAction` are gone; the plan form, its layout and its scenario are back to `main`'s. The page calls the service directly.
+  - **18 components → 8**: `ProjectsPage` (the client container: steps as optimistic state, the open modal, every write) renders `ProjectList` (cards / mobile rows, archived rows) and `ProjectDetail` (header, no-plan and all-steps-done banners, the path with drag reorder) with `ProjectStep` rows, plus the two modals and their form panels. Frames, the view-model adapter (`projectViewUtils.ts`) and the one-off banners went; the derivations are pure functions in `projectUtils.ts` (`getStepState`, `summarizeProject`, `groupStepsByProjectId`, `getNextStepNumber`).
+  - **Review UI**: Edit Project's Archive turns the action row into a confirm bar — the new `ui/ConfirmBar`, which `ConfirmButton` now renders for its triggered state (Settings' sign-out looks the same); All steps done is a quiet `Banner` (new `neutral` tone) with a green flag and a one-click Archive; step rows lose their status circle (a done step shows "✓ date"); No projects is the board's full-page empty state; `InlineConfirmButton` drops `hint` / `hintSide` / `size`.
+  - **Write gap left for the state spike**: the spike's Option 0 (close the modal in a nested `startTransition` so it closes in the same frame the new data shows) was built and dropped — on Next 16.2.9 / React 19.2 the transition intermittently never committed (in repeated runs of an 8-write sequence), leaving the modal loading although the write landed. The forms await the action and then close, as before; the tracker's state management spike now owns the close-then-stale gap.
+  - **Design Console**: the Projects scenario renders `ProjectsPage` (no projects, projects, all steps done, no plan this week, between weeks, and six modal states); the UI gallery gains `ConfirmBar` and `Banner`'s neutral tone; the domain gallery shows `ProjectStep` in each state. The rework mockup is deleted. AGENTS.md carries the pilot notes and a *production first, the console adapts* principle.
 - **Projects rework spike — Archive confirm picked, All steps done redesigned** (`design/spike/projects-page-refactor.md`, mockup `design/mockup/future-work/temp-projects-rework-v2.html`): the owner chose Option C for Edit Project's Archive — once armed, the action row becomes one confirm bar (what happens, Keep, Archive). It is the triggered row `ConfirmButton` already draws for Settings' sign-out, so the rework pulls that row out as `ConfirmBar` rather than adding a pattern; Delete step keeps its plain inline confirm, and `InlineConfirmButton` loses its unused `hint` / `hintSide` / `size`. The All steps done banner drops its confirm (archiving there is the expected, reversible next step) and the red-on-green button; of three designs drawn (the green banner with a plain button, a quiet neutral notice with a green flag, or Archive moved into the header) the owner picked the quiet notice (D2). With every question settled, the spike gains an implementation entry (what to read, in order) and the tracker's PR 4c line now says to rework #58 from the spike and the mockup; the spike PR targets #58's branch.
 
 ### 2026-10-12

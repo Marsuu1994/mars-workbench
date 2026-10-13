@@ -9,6 +9,9 @@ import {
   CheckCircleIcon,
   InformationCircleIcon,
   PlusIcon,
+  FlagIcon,
+  ArchiveBoxIcon,
+  ArrowRightStartOnRectangleIcon,
 } from '@heroicons/react/24/outline';
 
 import {Pill} from '@/components/ui/Pill';
@@ -26,6 +29,7 @@ import {Stepper} from '@/components/ui/form/Stepper';
 import {SubmitButton} from '@/components/ui/form/SubmitButton';
 import {FormErrorAlert} from '@/components/ui/form/FormErrorAlert';
 import {ConfirmButton} from '@/components/ui/ConfirmButton';
+import {ConfirmBar} from '@/components/ui/ConfirmBar';
 import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
 import {OverlayHeader} from '@/components/ui/overlay/OverlayHeader';
 import {Popover} from '@/components/ui/overlay/Popover';
@@ -44,12 +48,21 @@ import {
   EMPTY_STATE_INLINE_DEMO_DESC,
   EMPTY_STATE_INLINE_DEMO_CTA,
   BANNER_DEMO_INTRO,
+  BANNER_DEMO_DONE_TITLE,
   BANNER_DEMO_DONE,
+  BANNER_DEMO_ACTION,
+  BANNER_DEMO_SAVED,
   BANNER_DEMO_WARNING,
   BANNER_DEMO_LINK,
   INLINE_CONFIRM_DEMO_LABEL,
   INLINE_CONFIRM_DEMO_CONFIRM,
-  INLINE_CONFIRM_DEMO_HINT,
+  CONFIRM_BAR_DEMO_PROMPT,
+  CONFIRM_BAR_DEMO_CANCEL,
+  CONFIRM_BAR_DEMO_CONFIRM,
+  CONFIRM_BAR_DEMO_DETAIL_PROMPT,
+  CONFIRM_BAR_DEMO_DETAIL,
+  CONFIRM_BAR_DEMO_DETAIL_CANCEL,
+  CONFIRM_BAR_DEMO_DETAIL_CONFIRM,
   FOOTER_DEMO_CANCEL,
   FOOTER_DEMO_SUBMIT,
   FOOTER_DEMO_ERROR,
@@ -294,7 +307,7 @@ export const UiTab = () => {
   const renderBanner = () => (
     <Section
       title="Banner"
-      description="An inline message on a tinted wash, one per tone. Inside a form it sits plain (what the form creates); on a page it is outlined, with an optional action at the end."
+      description="An inline message on a wash, one per tone. Inside a form it sits plain (what the form creates); on a page it is outlined, with an optional action at the end. Neutral takes the surface of the cards around it — a quiet next step, with only its icon coloured."
     >
       <div className="flex max-w-xl flex-col gap-4">
         <Variant label="secondary · plain (form intro)">
@@ -306,22 +319,33 @@ export const UiTab = () => {
             {BANNER_DEMO_INTRO}
           </Banner>
         </Variant>
-        <Variant label="success · outlined + action">
+        <Variant label="neutral · outlined + action">
+          <Banner
+            tone="neutral"
+            outlined
+            className="w-full gap-3 px-3.5 py-3"
+            icon={<FlagIcon className="size-5 shrink-0 text-success" />}
+            action={
+              <button type="button" className="btn btn-sm shrink-0">
+                <ArchiveBoxIcon className="size-3.5" />
+                {BANNER_DEMO_ACTION}
+              </button>
+            }
+          >
+            <span className="block text-[13.5px] font-semibold text-base-content">
+              {BANNER_DEMO_DONE_TITLE}
+            </span>
+            <span className="text-[12.5px]">{BANNER_DEMO_DONE}</span>
+          </Banner>
+        </Variant>
+        <Variant label="success · outlined">
           <Banner
             tone="success"
             outlined
             className="w-full"
             icon={<CheckCircleIcon className="size-4.5 shrink-0" />}
-            action={
-              <InlineConfirmButton
-                size="sm"
-                label={INLINE_CONFIRM_DEMO_LABEL}
-                confirmLabel={INLINE_CONFIRM_DEMO_CONFIRM}
-                onConfirm={() => undefined}
-              />
-            }
           >
-            {BANNER_DEMO_DONE}
+            {BANNER_DEMO_SAVED}
           </Banner>
         </Variant>
         <Variant label="warning · outlined + link">
@@ -346,40 +370,57 @@ export const UiTab = () => {
   const renderInlineConfirmButton = () => (
     <Section
       title="InlineConfirmButton"
-      description="Two-click destructive button for a footer or a row: outlined at rest, solid with its confirm label once armed, an optional hint of what happens beside it; the second click runs it. No cancel — leaving is the cancel. The armed specimens are reached by a play step that clicks once."
+      description="Two-click destructive button for a footer: outlined at rest, solid with its confirm label once armed; the second click runs it. No cancel — leaving is the cancel. For a confirm that says what happens, use ConfirmBar. The armed specimen is reached by a play step that clicks once."
     >
       <Row>
         <Variant label="rest (click to arm)">
           <InlineConfirmButton
             label={INLINE_CONFIRM_DEMO_LABEL}
             confirmLabel={INLINE_CONFIRM_DEMO_CONFIRM}
-            hint={INLINE_CONFIRM_DEMO_HINT}
             onConfirm={() => undefined}
           />
         </Variant>
-        <Variant label="armed · hint after (play)">
+        <Variant label="armed (play)">
           <Play steps={[{click: {name: INLINE_CONFIRM_DEMO_LABEL}}]}>
             <InlineConfirmButton
               label={INLINE_CONFIRM_DEMO_LABEL}
               confirmLabel={INLINE_CONFIRM_DEMO_CONFIRM}
-              hint={INLINE_CONFIRM_DEMO_HINT}
-              onConfirm={() => undefined}
-            />
-          </Play>
-        </Variant>
-        <Variant label="armed · sm, hint before (play)">
-          <Play steps={[{click: {name: INLINE_CONFIRM_DEMO_LABEL}}]}>
-            <InlineConfirmButton
-              size="sm"
-              hintSide="start"
-              label={INLINE_CONFIRM_DEMO_LABEL}
-              confirmLabel={INLINE_CONFIRM_DEMO_CONFIRM}
-              hint={INLINE_CONFIRM_DEMO_HINT}
               onConfirm={() => undefined}
             />
           </Play>
         </Variant>
       </Row>
+    </Section>
+  );
+
+  const renderConfirmBar = () => (
+    <Section
+      title="ConfirmBar"
+      description="A destructive action's confirm row on the error channel: the question — and, when it isn't obvious, what happens — with Cancel and Confirm at the end, which drop under the message below md when it doesn't fit. ConfirmButton's armed state, and the row a form footer turns into while its destructive action awaits a yes (Edit Project's Archive)."
+    >
+      <div className="flex max-w-lg flex-col gap-4">
+        <Variant label="prompt only (ConfirmButton armed)">
+          <ConfirmBar
+            icon={<ArrowRightStartOnRectangleIcon className="size-[18px]" />}
+            prompt={CONFIRM_BAR_DEMO_PROMPT}
+            cancelLabel={CONFIRM_BAR_DEMO_CANCEL}
+            confirmLabel={CONFIRM_BAR_DEMO_CONFIRM}
+            onCancel={() => undefined}
+            onConfirm={() => undefined}
+          />
+        </Variant>
+        <Variant label="prompt + detail (a form footer armed)">
+          <ConfirmBar
+            icon={<ArchiveBoxIcon className="size-5 shrink-0" />}
+            prompt={CONFIRM_BAR_DEMO_DETAIL_PROMPT}
+            detail={CONFIRM_BAR_DEMO_DETAIL}
+            cancelLabel={CONFIRM_BAR_DEMO_DETAIL_CANCEL}
+            confirmLabel={CONFIRM_BAR_DEMO_DETAIL_CONFIRM}
+            onCancel={() => undefined}
+            onConfirm={() => undefined}
+          />
+        </Variant>
+      </div>
     </Section>
   );
 
@@ -414,7 +455,6 @@ export const UiTab = () => {
                 <InlineConfirmButton
                   label={INLINE_CONFIRM_DEMO_LABEL}
                   confirmLabel={INLINE_CONFIRM_DEMO_CONFIRM}
-                  hint={INLINE_CONFIRM_DEMO_HINT}
                   onConfirm={() => undefined}
                 />
               }
@@ -523,7 +563,7 @@ export const UiTab = () => {
   const renderConfirmButton = () => (
     <Section
       title="ConfirmButton"
-      description="Two-step destructive action row: rest → first click triggers an inline confirm → second click executes. Parents reset a stale confirm via key remount. The second specimen is armed by a play step that clicks it once."
+      description="Two-step destructive action row: rest → first click turns it into a ConfirmBar → second click executes. Parents reset a stale confirm via key remount. The second specimen is armed by a play step that clicks it once."
     >
       <div className="flex max-w-md flex-col gap-4">
         <Variant label="rest (click to trigger)">
@@ -602,6 +642,7 @@ export const UiTab = () => {
         {renderTabBar()}
         {renderBanner()}
         {renderConfirmButton()}
+        {renderConfirmBar()}
         {renderInlineConfirmButton()}
       </Zone>
 

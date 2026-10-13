@@ -348,10 +348,9 @@
       "addFirstStep": "Add the first step",
       "noStepsTitle": "No steps yet",
       "noStepsDescription": "A project is a path of small steps, about 1–3 hours each.",
-      "allStepsDone": "<strong>All steps done.</strong> Add the next steps below, or archive the project when you're finished.",
+      "allStepsDoneTitle": "All steps done",
+      "allStepsDoneDescription": "Add the next steps below, or archive the project when you're finished.",
       "archive": "Archive",
-      "archiveConfirm": "Archive?",
-      "archiveHint": "Moves it to Archived",
       "noPlan": "No plan for this week yet — + This week needs one.",
       "createPlan": "Create plan"
     },
@@ -382,8 +381,10 @@
       "create": "Create project",
       "save": "Save changes",
       "archive": "Archive",
-      "archiveConfirm": "Archive?",
-      "archiveHint": "Unfinished steps leave this week"
+      "archiveConfirm": "Archive",
+      "archivePrompt": "Archive {title}?",
+      "archiveDetail": "It moves to Archived; its unfinished steps leave this week.",
+      "keep": "Keep"
     },
     "StepModal": {
       "addTitle": "Add Step",

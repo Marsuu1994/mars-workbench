@@ -18,10 +18,7 @@ import {DumpEntryCard} from '@/components/domain/dump/DumpEntryCard';
 import TemplateItem from '@/components/domain/plan/TemplateItem';
 import {PlanTaskRow} from '@/components/domain/plan/PlanTaskRow';
 import {StepPath} from '@/components/domain/board/StepPath';
-import {ProjectsHeader} from '@/components/domain/projects/ProjectsHeader';
-import {ProjectListItem} from '@/components/domain/projects/ProjectListItem';
-import {ArchivedProjectRow} from '@/components/domain/projects/ArchivedProjectRow';
-import {ProjectStepRow} from '@/components/domain/projects/ProjectStepRow';
+import {ProjectStep} from '@/components/domain/projects/ProjectStep';
 import {ThemePicker} from '@/components/domain/auth/ThemePicker';
 import type {ThemeName} from '@/utils/theme';
 import {BotAvatar, UserAvatar} from '@/components/domain/plan/ai-chat/Avatars';
@@ -29,7 +26,6 @@ import {SuggestionChips} from '@/components/domain/plan/ai-chat/SuggestionChips'
 import {LoadingBubble} from '@/components/domain/plan/ai-chat/LoadingBubble';
 
 import {Zone, Section, Variant, Row} from '../GalleryParts';
-import {InteractionShield} from '../InteractionShield';
 import {SIZE_TO_POINTS, TaskStatus, TaskType} from '@/utils/enums';
 import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
 import {
@@ -49,10 +45,7 @@ import {
   BOARD_COLUMN_CARDS,
   TEMPLATE_FIXTURE,
   SCENARIO_HREFS,
-  PROJECTS_HEADER_DEMO_ACTION,
-  PROJECT_LIST_ITEM_FIXTURES,
-  ARCHIVED_PROJECT_FIXTURE,
-  PROJECT_STEP_ROW_FIXTURES,
+  PROJECT_STEP_FIXTURES,
 } from '../constants';
 
 /** Right-aligned Zone action linking a feature group to its scenario page(s). */
@@ -330,70 +323,18 @@ export const DomainTab = () => {
     </Section>
   );
 
-  const renderProjectsHeader = () => (
+  const renderProjectSteps = () => (
     <Section
-      title="ProjectsHeader"
-      description="The Projects page header: Plan with the week, the hub's tabs (Projects active) and the page action from md up; on mobile the week number and full-width tabs under the title."
-    >
-      <InteractionShield className="overflow-hidden rounded-lg border border-base-content/10">
-        <ProjectsHeader
-          action={
-            <button type="button" className="btn btn-primary btn-sm">
-              {PROJECTS_HEADER_DEMO_ACTION}
-            </button>
-          }
-        />
-      </InteractionShield>
-    </Section>
-  );
-
-  const renderProjectListItems = () => (
-    <Section
-      title="ProjectListItem"
-      description="A project in the list: from md up a card with done/total, the progress bar, the next step (or All steps done / No steps yet) and how many steps are on this week, ringed when selected; below md a row with a chevron. A link — mobile opens the project's page, desktop selects it in place."
-    >
-      <InteractionShield className="flex flex-wrap items-start gap-6">
-        {PROJECT_LIST_ITEM_FIXTURES.map(({label, project, isSelected}) => (
-          <Variant key={project.id} label={label}>
-            <div className="w-72">
-              <ProjectListItem
-                project={project}
-                isSelected={isSelected}
-                href={`#${project.id}`}
-                onSelect={() => undefined}
-              />
-            </div>
-          </Variant>
-        ))}
-      </InteractionShield>
-    </Section>
-  );
-
-  const renderArchivedProjectRow = () => (
-    <Section
-      title="ArchivedProjectRow"
-      description="An archived project at the bottom of the list: title and progress on a dashed row, Unarchive (disabled while it runs)."
-    >
-      <div className="w-72">
-        <ArchivedProjectRow
-          project={ARCHIVED_PROJECT_FIXTURE}
-          onUnarchive={async () => undefined}
-        />
-      </div>
-    </Section>
-  );
-
-  const renderProjectStepRows = () => (
-    <Section
-      title="ProjectStepRow"
-      description="One step of a path, by state: done (locked, with its day), on this week (tinted, its board status; × while still in the backlog), left on last week's plan (muted, no ×), upcoming (size + This week, disabled without a plan). ✎ on every step that isn't done; from md up a drag hint and the description."
+      title="ProjectStep"
+      description="One step of a path, by where it sits: done (muted and locked, ✓ and its day), on this week (tinted, its board status; × while still in the backlog), left on last week's plan (muted pill, no ×), upcoming (size + This week, disabled without a plan). ✎ on every step that isn't done; from md up a drag hint and the description. No status mark — the row says it."
     >
       <div className="flex max-w-2xl flex-col gap-4">
-        {PROJECT_STEP_ROW_FIXTURES.map(({label, row}) => (
+        {PROJECT_STEP_FIXTURES.map(({label, step, activePlanId}) => (
           <Variant key={label} label={label}>
             <div className="self-stretch">
-              <ProjectStepRow
-                row={row}
+              <ProjectStep
+                step={step}
+                activePlanId={activePlanId}
                 onEdit={() => undefined}
                 onSchedule={() => undefined}
                 onTakeBack={() => undefined}
@@ -508,7 +449,7 @@ export const DomainTab = () => {
 
       <Zone
         title="Projects"
-        description="The whole page — list + detail, all steps done, no plan / between weeks — and the project and step modals live in the Projects scenarios."
+        description="The whole page — list + detail, all steps done, no plan / between weeks — and the project and step modals live in the Projects scenarios; the list and detail are rendered there, as the page renders them."
         action={
           <ScenarioLink
             href={SCENARIO_HREFS.projects}
@@ -516,10 +457,7 @@ export const DomainTab = () => {
           />
         }
       >
-        {renderProjectsHeader()}
-        {renderProjectListItems()}
-        {renderArchivedProjectRow()}
-        {renderProjectStepRows()}
+        {renderProjectSteps()}
       </Zone>
 
       <Zone

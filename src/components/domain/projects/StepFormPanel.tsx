@@ -83,11 +83,13 @@ export const StepFormPanel = ({
   async function handleDelete() {
     if (!step) return;
     setError(null);
+
     const result = await deleteProjectStepAction(step.id);
     if (result.error) {
       setError(toFormErrorMessage(result.error));
       return;
     }
+
     onClose();
   }
 

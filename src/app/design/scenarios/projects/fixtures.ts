@@ -2,7 +2,7 @@ import {TaskSize, TaskStatus, TaskType, SIZE_TO_POINTS} from '@/utils/enums';
 import type {ProjectItem} from '@/lib/db/projects';
 import type {TaskItem} from '@/lib/db/tasks';
 
-/* Projects scenario fixtures — the real ProjectsScreen and the two modal
+/* Projects scenario fixtures — the real ProjectsPage and the two modal
    panels fed a fictional set of projects. Wednesday Oct 7, week 41
    (Mon Oct 5 – Sun Oct 11). */
 

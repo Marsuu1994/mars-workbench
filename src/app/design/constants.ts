@@ -11,12 +11,6 @@ import type {TaskItem} from '@/lib/db/tasks';
 import type {DumpEntryItem} from '@/lib/db/dumpEntries';
 import {TaskKind, type HabitWeek} from '@/utils/taskUtils';
 import type {BoardCard, ProjectStepContext} from '@/utils/boardCardUtils';
-import {
-  ProjectStepState,
-  type ArchivedProjectSummary,
-  type ProjectStepRowModel,
-  type ProjectSummary,
-} from '@/utils/projectViewUtils';
 
 // ── Page copy ──────────────────────────────────────────────────────────────
 /** Title halves — the accent word renders with fx-text-gradient (the
@@ -601,166 +595,88 @@ export const PLAN_TASK_ROW_FIXTURES = [
 
 // ── Projects fixtures ────────────────────────────────────────────────────────
 
-/** ProjectsHeader specimen's action (the live page's is New project). */
-export const PROJECTS_HEADER_DEMO_ACTION = 'New project';
-
-/** ProjectListItem — every way a project card reads. */
-export const PROJECT_LIST_ITEM_FIXTURES: {
-  label: string;
-  project: ProjectSummary;
-  isSelected: boolean;
-}[] = [
-  {
-    label: 'In progress · selected',
-    isSelected: true,
-    project: {
-      id: 'gallery-prj-bio',
-      title: 'Biomedical course',
-      doneCount: 2,
-      stepCount: 5,
-      nextStepTitle: 'Lecture 3 — Membranes',
-      isAllStepsDone: false,
-      thisWeekCount: 1,
-    },
-  },
-  {
-    label: 'In progress',
-    isSelected: false,
-    project: {
-      id: 'gallery-prj-pdb',
-      title: 'Protein 3D viewer',
-      doneCount: 1,
-      stepCount: 4,
-      nextStepTitle: 'Render it with Mol*',
-      isAllStepsDone: false,
-      thisWeekCount: 2,
-    },
-  },
-  {
-    label: 'All steps done',
-    isSelected: false,
-    project: {
-      id: 'gallery-prj-fin',
-      title: 'Finance basics',
-      doneCount: 2,
-      stepCount: 2,
-      nextStepTitle: null,
-      isAllStepsDone: true,
-      thisWeekCount: 0,
-    },
-  },
-  {
-    label: 'No steps yet',
-    isSelected: false,
-    project: {
-      id: 'gallery-prj-spa',
-      title: 'Spanish A1',
-      doneCount: 0,
-      stepCount: 0,
-      nextStepTitle: null,
-      isAllStepsDone: false,
-      thisWeekCount: 0,
-    },
-  },
-];
-
-export const ARCHIVED_PROJECT_FIXTURE: ArchivedProjectSummary = {
-  id: 'gallery-prj-home',
-  title: 'Home office setup',
-  doneCount: 2,
-  stepCount: 3,
-};
+/** The plan this week's step specimens sit on. */
+const GALLERY_ACTIVE_PLAN_ID = 'gallery-plan-w41';
 
 const lectureStep = (overrides: Partial<TaskItem>): TaskItem =>
   stepTask({
     projectId: 'gallery-prj-bio',
+    planId: null,
     status: TaskStatus.BACKLOG,
     ...xs,
     ...overrides,
   });
 
-/** ProjectStepRow — every state, plus an upcoming step with no plan to
-    schedule into. */
-export const PROJECT_STEP_ROW_FIXTURES: {
+/** ProjectStep — every place a step sits, plus an upcoming step with no
+    plan to schedule into. */
+export const PROJECT_STEP_FIXTURES: {
   label: string;
-  row: ProjectStepRowModel;
+  step: TaskItem;
+  activePlanId: string | null;
 }[] = [
   {
     label: 'Done',
-    row: {
-      state: ProjectStepState.DONE,
-      step: lectureStep({
-        id: 'gallery-step-2',
-        title: 'Lecture 2 — Biochemistry basics',
-        instanceIndex: 2,
-        status: TaskStatus.DONE,
-        doneAt: new Date(2026, 9, 6, 18),
-      }),
-    },
+    activePlanId: GALLERY_ACTIVE_PLAN_ID,
+    step: lectureStep({
+      id: 'gallery-step-2',
+      title: 'Lecture 2 — Biochemistry basics',
+      instanceIndex: 2,
+      planId: GALLERY_ACTIVE_PLAN_ID,
+      status: TaskStatus.DONE,
+      doneAt: new Date(2026, 9, 6, 18),
+    }),
   },
   {
     label: 'This week · todo',
-    row: {
-      state: ProjectStepState.THIS_WEEK,
-      canTakeBack: false,
-      step: lectureStep({
-        id: 'gallery-step-3',
-        title: 'Lecture 3 — Membranes',
-        description: 'Watch + one-page notes',
-        instanceIndex: 3,
-        status: TaskStatus.TODO,
-      }),
-    },
+    activePlanId: GALLERY_ACTIVE_PLAN_ID,
+    step: lectureStep({
+      id: 'gallery-step-3',
+      title: 'Lecture 3 — Membranes',
+      description: 'Watch + one-page notes',
+      instanceIndex: 3,
+      planId: GALLERY_ACTIVE_PLAN_ID,
+      status: TaskStatus.TODO,
+    }),
   },
   {
     label: 'This week · backlog',
-    row: {
-      state: ProjectStepState.THIS_WEEK,
-      canTakeBack: true,
-      step: lectureStep({
-        id: 'gallery-step-4',
-        title: 'Lecture 4 — Cell signaling',
-        instanceIndex: 4,
-      }),
-    },
+    activePlanId: GALLERY_ACTIVE_PLAN_ID,
+    step: lectureStep({
+      id: 'gallery-step-4',
+      title: 'Lecture 4 — Cell signaling',
+      instanceIndex: 4,
+      planId: GALLERY_ACTIVE_PLAN_ID,
+    }),
   },
   {
     label: 'Last week',
-    row: {
-      state: ProjectStepState.LAST_WEEK,
-      step: lectureStep({
-        id: 'gallery-step-4-last',
-        title: 'Lecture 4 — Cell signaling',
-        instanceIndex: 4,
-        status: TaskStatus.TODO,
-      }),
-    },
+    // Between weeks: no plan yet, the step still on last week's
+    activePlanId: null,
+    step: lectureStep({
+      id: 'gallery-step-4-last',
+      title: 'Lecture 4 — Cell signaling',
+      instanceIndex: 4,
+      planId: 'gallery-plan-w40',
+      status: TaskStatus.TODO,
+    }),
   },
   {
     label: 'Upcoming',
-    row: {
-      state: ProjectStepState.UPCOMING,
-      canSchedule: true,
-      step: lectureStep({
-        id: 'gallery-step-5',
-        title: 'Lecture 5 — Genetics I',
-        instanceIndex: 5,
-        planId: null,
-      }),
-    },
+    activePlanId: GALLERY_ACTIVE_PLAN_ID,
+    step: lectureStep({
+      id: 'gallery-step-5',
+      title: 'Lecture 5 — Genetics I',
+      instanceIndex: 5,
+    }),
   },
   {
     label: 'Upcoming · no plan',
-    row: {
-      state: ProjectStepState.UPCOMING,
-      canSchedule: false,
-      step: lectureStep({
-        id: 'gallery-step-5-no-plan',
-        title: 'Lecture 5 — Genetics I',
-        instanceIndex: 5,
-        planId: null,
-      }),
-    },
+    activePlanId: null,
+    step: lectureStep({
+      id: 'gallery-step-5-no-plan',
+      title: 'Lecture 5 — Genetics I',
+      instanceIndex: 5,
+    }),
   },
 ];
 
@@ -817,16 +733,28 @@ export const EMPTY_STATE_INLINE_DEMO_CTA = 'Add the first step';
 /** Banner specimens — one per tone, with and without an action. */
 export const BANNER_DEMO_INTRO =
   'Projects are a goal plus ordered steps — steps go onto a week one at a time and never expire.';
+export const BANNER_DEMO_DONE_TITLE = 'All steps done';
 export const BANNER_DEMO_DONE =
-  "All steps done. Add the next steps, or archive the project when you're finished.";
+  "Add the next steps below, or archive the project when you're finished.";
+export const BANNER_DEMO_ACTION = 'Archive';
+export const BANNER_DEMO_SAVED = 'Saved — the board shows the change.';
 export const BANNER_DEMO_WARNING =
   'No plan for this week yet — + This week needs one.';
 export const BANNER_DEMO_LINK = 'Create plan';
 
 /** InlineConfirmButton specimens. */
-export const INLINE_CONFIRM_DEMO_LABEL = 'Archive';
-export const INLINE_CONFIRM_DEMO_CONFIRM = 'Archive?';
-export const INLINE_CONFIRM_DEMO_HINT = 'Unfinished steps leave this week';
+export const INLINE_CONFIRM_DEMO_LABEL = 'Delete step';
+export const INLINE_CONFIRM_DEMO_CONFIRM = 'Delete step?';
+
+/** ConfirmBar specimens: a bare question, and one that says what happens. */
+export const CONFIRM_BAR_DEMO_PROMPT = 'Sign out?';
+export const CONFIRM_BAR_DEMO_CANCEL = 'Cancel';
+export const CONFIRM_BAR_DEMO_CONFIRM = 'Sign out';
+export const CONFIRM_BAR_DEMO_DETAIL_PROMPT = 'Archive Biomedical course?';
+export const CONFIRM_BAR_DEMO_DETAIL =
+  'It moves to Archived; its unfinished steps leave this week.';
+export const CONFIRM_BAR_DEMO_DETAIL_CANCEL = 'Keep';
+export const CONFIRM_BAR_DEMO_DETAIL_CONFIRM = 'Archive';
 
 /** ModalFormFooter specimens. */
 export const FOOTER_DEMO_CANCEL = 'Cancel';

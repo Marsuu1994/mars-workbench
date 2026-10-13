@@ -1,16 +1,10 @@
 export default function ProjectsLoading() {
   return (
     <div className="flex h-full animate-pulse flex-col">
-      {/* ProjectsHeader skeleton: title + week, the hub tabs, the action */}
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-2.5 border-b border-base-content/10 px-4 py-3 md:px-5 md:py-4">
-        <div className="flex flex-1 items-center justify-between md:flex-initial md:flex-col md:items-start md:gap-1.5">
-          <div className="skeleton h-6 w-16" />
-          <div className="skeleton h-3 w-14 md:w-40" />
-        </div>
-        <div className="flex w-full items-center gap-2.5 md:ml-auto md:w-auto">
-          <div className="skeleton h-9 w-full md:w-44" />
-          <div className="skeleton hidden h-8 w-32 md:block" />
-        </div>
+      {/* Header skeleton: the title and, from md up, New project */}
+      <div className="flex items-center gap-4 border-b border-base-content/10 px-4 py-3 md:px-5 md:py-4">
+        <div className="skeleton h-6 w-28" />
+        <div className="skeleton ml-auto hidden h-8 w-32 md:block" />
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col md:grid md:grid-cols-[320px_minmax(0,1fr)]">

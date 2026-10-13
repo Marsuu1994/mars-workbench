@@ -2,7 +2,12 @@
 
 import {useState, type FormEvent} from 'react';
 import {useTranslations} from 'next-intl';
-import {CheckIcon, MapIcon, PlusIcon} from '@heroicons/react/24/outline';
+import {
+  ArchiveBoxIcon,
+  CheckIcon,
+  MapIcon,
+  PlusIcon,
+} from '@heroicons/react/24/outline';
 import type {ProjectItem} from '@/lib/db/projects';
 import {toFormErrorMessage} from '@/utils/formErrors';
 import {
@@ -11,10 +16,12 @@ import {
   updateProjectAction,
 } from '@/actions/projectActions';
 import {Banner} from '@/components/ui/Banner';
-import {InlineConfirmButton} from '@/components/ui/InlineConfirmButton';
+import {ConfirmBar} from '@/components/ui/ConfirmBar';
 import {FieldRow} from '@/components/ui/form/FieldRow';
+import {FormErrorAlert} from '@/components/ui/form/FormErrorAlert';
 import {ModalFormFooter} from '@/components/ui/form/ModalFormFooter';
 import {OverlayHeader} from '@/components/ui/overlay/OverlayHeader';
+import {DANGER_OUTLINE_BUTTON} from './constants';
 
 export type ProjectFormMode = 'create' | 'edit';
 
@@ -32,9 +39,9 @@ export interface ProjectFormPanelProps {
 /**
  * The New / Edit Project form — header, fields, footer — sans dialog shell:
  * title (required) and an optional goal; a project has no size of its own.
- * Editing adds Archive (two-click) on the footer's left. ProjectModal wraps
- * it in OverlayShell (mounted fresh on each open); design scenarios mount it
- * inline.
+ * Editing adds Archive on the footer's left, which turns the action row
+ * into a confirm bar. ProjectModal wraps it in OverlayShell (mounted fresh
+ * on each open); design scenarios mount it inline.
  */
 export const ProjectFormPanel = ({
   mode,
@@ -46,6 +53,7 @@ export const ProjectFormPanel = ({
   const t = useTranslations('Projects.ProjectModal');
   const [title, setTitle] = useState(project?.title ?? '');
   const [goal, setGoal] = useState(project?.goal ?? '');
+  const [isArchiveArmed, setIsArchiveArmed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -74,11 +82,15 @@ export const ProjectFormPanel = ({
   async function handleArchive() {
     if (!project) return;
     setError(null);
+    setIsSubmitting(true);
+
     const result = await archiveProjectAction(project.id);
     if (result.error) {
       setError(toFormErrorMessage(result.error));
+      setIsSubmitting(false);
       return;
     }
+
     onArchived?.(project.id);
     onClose();
   }
@@ -107,15 +119,56 @@ export const ProjectFormPanel = ({
     </>
   );
 
-  const renderArchive = () =>
-    !isCreate && (
-      <InlineConfirmButton
-        label={t('archive')}
-        confirmLabel={t('archiveConfirm')}
-        hint={t('archiveHint')}
-        onConfirm={handleArchive}
+  // Armed, the action row asks first; Cancel / Save step aside meanwhile
+  const renderArchiveConfirm = (projectTitle: string) => (
+    <>
+      <FormErrorAlert error={error} />
+      <div className="modal-action">
+        <ConfirmBar
+          icon={<ArchiveBoxIcon className="size-5 shrink-0" />}
+          prompt={t('archivePrompt', {title: projectTitle})}
+          detail={t('archiveDetail')}
+          cancelLabel={t('keep')}
+          confirmLabel={t('archiveConfirm')}
+          onCancel={() => setIsArchiveArmed(false)}
+          onConfirm={handleArchive}
+          isPending={isSubmitting}
+        />
+      </div>
+    </>
+  );
+
+  const renderFooter = () => {
+    if (isArchiveArmed && project) return renderArchiveConfirm(project.title);
+    return (
+      <ModalFormFooter
+        error={error}
+        isSubmitting={isSubmitting}
+        onCancel={onClose}
+        cancelLabel={t('cancel')}
+        submitLabel={isCreate ? t('create') : t('save')}
+        submitIcon={
+          isCreate ? (
+            <PlusIcon className="size-4" />
+          ) : (
+            <CheckIcon className="size-4" />
+          )
+        }
+        submitDisabled={title.trim() === ''}
+        leading={
+          !isCreate && (
+            <button
+              type="button"
+              onClick={() => setIsArchiveArmed(true)}
+              className={DANGER_OUTLINE_BUTTON}
+            >
+              {t('archive')}
+            </button>
+          )
+        }
       />
     );
+  };
 
   return (
     <>
@@ -140,23 +193,7 @@ export const ProjectFormPanel = ({
         )}
 
         {renderFields()}
-
-        <ModalFormFooter
-          error={error}
-          isSubmitting={isSubmitting}
-          onCancel={onClose}
-          cancelLabel={t('cancel')}
-          submitLabel={isCreate ? t('create') : t('save')}
-          submitIcon={
-            isCreate ? (
-              <PlusIcon className="size-4" />
-            ) : (
-              <CheckIcon className="size-4" />
-            )
-          }
-          submitDisabled={title.trim() === ''}
-          leading={renderArchive()}
-        />
+        {renderFooter()}
       </form>
     </>
   );

@@ -41,8 +41,8 @@ const SCENARIOS: {
   },
   {
     href: '/design/scenarios/projects',
-    title: 'Plan — Projects',
-    note: 'No projects, list + detail, one project open, all steps done, no plan / between weeks, and the project and step modals.',
+    title: 'Projects',
+    note: 'No projects, list + detail, all steps done, no plan / between weeks, and the project and step modals with their confirms.',
     icon: MapIcon,
   },
   {

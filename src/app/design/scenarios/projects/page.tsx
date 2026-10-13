@@ -1,4 +1,4 @@
-import {ProjectsScreen} from '@/components/domain/projects/ProjectsScreen';
+import {ProjectsPage} from '@/components/domain/projects/ProjectsPage';
 import {ScenarioTabs, type ScenarioTab} from '../ScenarioTabs';
 import {ScenarioPage} from '../ScenarioPage';
 import {ProjectFormScenario} from './ProjectFormScenario';
@@ -22,9 +22,9 @@ const PROJECTS_SCENARIOS: ScenarioTab[] = [
   {
     label: 'No projects',
     title: 'No projects yet',
-    note: 'First visit: the Plan hub header (Projects active) over the empty state — New project, and a pointer to Claude for drafting a whole project.',
+    note: "First visit: the board's full-page empty state under the Projects header — one New project (the header keeps none while the page is empty) and a pointer to Claude for drafting a whole project.",
     content: (
-      <ProjectsScreen
+      <ProjectsPage
         projects={[]}
         steps={[]}
         activePlanId={SCENARIO_ACTIVE_PLAN_ID}
@@ -34,9 +34,9 @@ const PROJECTS_SCENARIOS: ScenarioTab[] = [
   {
     label: 'Projects',
     title: 'Projects — list + detail',
-    note: "/kanban/projects: active projects with progress, the next step and how many are on this week (one in progress, one all done, one with no steps yet), the Archived section below; the first project's path beside the list. Mobile shows the list only — narrow the window.",
+    note: "/kanban/projects: active projects with progress, the next step and how many are on this week (one in progress, one all done, one with no steps yet), the Archived section below; the first active project's path beside the list, since the URL names none. Narrow the window for mobile's list — its detail needs ?project=, which a tab can't pin.",
     content: (
-      <ProjectsScreen
+      <ProjectsPage
         projects={SCENARIO_PROJECTS}
         steps={SCENARIO_STEPS}
         activePlanId={SCENARIO_ACTIVE_PLAN_ID}
@@ -46,34 +46,21 @@ const PROJECTS_SCENARIOS: ScenarioTab[] = [
   {
     label: 'All steps done',
     title: 'All steps done',
-    note: 'Every step of Finance basics is done: the card says so in place of Next, and the detail offers the two ways on — add the next steps, or Archive.',
+    note: 'Every step of Finance basics is done (it leads the fixture list, so it is selected): the card says so in place of Next, and a quiet notice offers the two ways on — add the next steps, or Archive in one click.',
     content: (
-      <ProjectsScreen
+      <ProjectsPage
         projects={projectsLedBy(FINANCE_ID)}
         steps={SCENARIO_STEPS}
         activePlanId={SCENARIO_ACTIVE_PLAN_ID}
       />
     ),
-  },
-  {
-    label: 'All steps done · archive armed',
-    title: 'All steps done — Archive armed',
-    note: "A play step clicks the banner's Archive: it turns into Archive? with what it does beside it; a second click archives.",
-    content: (
-      <ProjectsScreen
-        projects={projectsLedBy(FINANCE_ID)}
-        steps={SCENARIO_STEPS}
-        activePlanId={SCENARIO_ACTIVE_PLAN_ID}
-      />
-    ),
-    play: [{click: {label: 'Projects.Detail.archive'}}],
   },
   {
     label: 'No plan this week',
     title: 'No plan this week',
     note: "Before this week's plan exists: the warning banner with Create plan, and + This week disabled on every upcoming step.",
     content: (
-      <ProjectsScreen
+      <ProjectsPage
         projects={SCENARIO_PROJECTS}
         steps={UNSCHEDULED_STEPS}
         activePlanId={null}
@@ -83,9 +70,9 @@ const PROJECTS_SCENARIOS: ScenarioTab[] = [
   {
     label: 'Between weeks',
     title: 'Between weeks — last week not planned over yet',
-    note: "The new week has no plan yet, so last week's unfinished steps still sit on last week's plan: muted Last week pills, no × — the next plan carries them over or returns them.",
+    note: "The new week has no plan yet, so last week's unfinished steps still sit on last week's plan (Protein 3D viewer leads the list): muted Last week pills, no × — the next plan carries them over or returns them.",
     content: (
-      <ProjectsScreen
+      <ProjectsPage
         projects={projectsLedBy(PROTEIN_ID)}
         steps={SCENARIO_STEPS}
         activePlanId={null}
@@ -111,7 +98,7 @@ const PROJECTS_SCENARIOS: ScenarioTab[] = [
   {
     label: 'Edit project · archive armed',
     title: 'Edit Project — Archive armed',
-    note: 'A play step clicks Archive: Archive? with what it does — unfinished steps leave this week.',
+    note: 'A play step clicks Archive: the action row becomes a confirm bar — what archiving does, Keep to go back, Archive to do it.',
     display: 'fit',
     overlay: true,
     content: <ProjectFormScenario mode="edit" project={EDIT_PROJECT} />,
@@ -168,11 +155,11 @@ export default function ProjectsScenarioPage() {
   return (
     <ScenarioPage
       title="Projects scenarios"
-      description="The real Projects page (Plan hub header + list + detail) fed fixture
-        projects, and its New / Edit Project and Add / Edit Step modals. Screens
-        are responsive — narrow the window for the mobile list, detail and
-        bottom sheets. Dragging a step can't be pinned (the frame swallows
-        drag starts)."
+      description="The real Projects page (header + list + detail) fed fixture
+        projects — the first active project in the list is the selected one —
+        and its New / Edit Project and Add / Edit Step modals. Screens are
+        responsive — narrow the window for the mobile list and bottom sheets.
+        Dragging a step can't be pinned (the frame swallows drag starts)."
     >
       <ScenarioTabs tabs={PROJECTS_SCENARIOS} />
     </ScenarioPage>
