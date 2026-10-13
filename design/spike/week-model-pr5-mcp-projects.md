@@ -1,6 +1,6 @@
 # Spike: Week model Phase 1 · PR 5 — MCP for projects
 
-**Status: awaiting owner review** · 2026-10-13 · 回答 tracker 条目 *Week model Phase 1 › PR 5*（Plan › Medium）· 上游：`design/spike/week-model-restructure.md`（approved，「PR 5 — MCP 支持 projects」一节）、`design/flows/projects.md`（Draft Steps with Claude (MCP) Flow）、`design/flows/plan.md`（Plan with Claude (MCP) Flow）· Mockups：`mockup-projects-v2.html` 的 tab 07、`mockup-week-model-phase1-v2.html` 的 06 Claude (MCP)。两段对话抄在本文「验收」一节，mockup 删掉以后也还在
+**Status: awaiting owner review** · 2026-10-13（rev 2 同日：加入 owner 讨论后的 claude.ai 实测，新增 Q5、Q6；时间预算和并行上限拆到 `design/spike/week-model-phase2-pain-points.md`）· 回答 tracker 条目 *Week model Phase 1 › PR 5*（Plan › Medium）· 上游：`design/spike/week-model-restructure.md`（approved，「PR 5 — MCP 支持 projects」一节）、`design/flows/projects.md`（Draft Steps with Claude (MCP) Flow）、`design/flows/plan.md`（Plan with Claude (MCP) Flow）· Mockups：`mockup-projects-v2.html` 的 tab 07、`mockup-week-model-phase1-v2.html` 的 06 Claude (MCP)。两段对话抄在本文「验收」一节，mockup 删掉以后也还在
 
 > 语言约定：叙述用中文；产品名词、状态、代码标识保留英文（habit / project / step / one-off、`create_project`、`instanceIndex` …），和代码、mockup、tracker 一一对应。**LLM 读的文字**（server instructions、tool descriptions、`.describe()`、错误信息）直接给英文成稿：这些就是要写进代码的原文。
 
@@ -12,7 +12,8 @@
 | 更新 | `get_planning_context` 加 `projects` / `archivedProjects` 和 plan 上的 `projectSteps`；`create_plan` 加 `carryOverProjectStepIds` / `addProjectStepIds`；`update_plan` 加 `addProjectStepIds` / `removeProjectStepIds`；server instructions 重写，tool descriptions 改 3 条、加 2 条 |
 | Prompt | 三种 kind 怎么分（判断标准比 approved 的版本收紧了一点，见「Prompt」）、project 和 step 怎么写、怎么排进这周、All steps done 和 archive 的规则、写之前要告诉用户什么。成稿见「Prompt」一节 |
 | 顺手修 | MCP 的 `create_plan` 现在会把上周没做完的 step **全部**退回 project（发现 1，Q4） |
-| 待拍板 | 4 件，见「待拍板」：Q1 step 的位置怎么表达，Q2 排新一周时对 project 多主动，Q3 「其实是 project」的旧 template，Q4 发现 1 先发 hotfix 还是等 PR 5 |
+| 实测发现 | claude.ai 不把远程 connector 的 server instructions 交给模型，一开始也只给工具名（发现 4）。所以 prompt 要放到 claude.ai 一定读得到的地方（Q6） |
+| 待拍板 | 6 件，见「待拍板」：Q1 step 的位置怎么表达，Q2 排新一周时对 project 多主动，Q3 「其实是 project」的旧 template，Q4 发现 1 先发 hotfix 还是等 PR 5，Q5 新 project 和建 plan 能不能一次写完，Q6 guide 放在哪 |
 
 ## Trigger · 起因
 
@@ -37,11 +38,16 @@ Phase 1 的最后一个 PR。approved spike 只定了 PR 5 的范围（context �
 | `utils/projectUtils.ts`（PR 4c） | `getStepState`（`DONE` / `THIS_WEEK` / `LAST_WEEK` / `UPCOMING`）、`isAllStepsDone`、`assignStepNumbers` | step 的 `state` 直接用 `ProjectStepState` 的值，和 Projects 页同一套判断 |
 | `Task.doneAt` | done 的时间 | context 里 done step 的 `doneOn` |
 
-读代码时发现 3 件事：
+读代码和实测时发现 4 件事：
 
 1. **MCP 的 `create_plan` 现在会把上周没做完的 step 全部退回 project。** `createPlanFromSpec` 调 `createPlanFromEntries` 时没传 `projectStepIds`，`createPlanInTx` 把 `projectStepIds ?? []` 当成「带上哪些」，于是 pending plan 上所有没做完的 step 都被 unlink（`planId = null`、`BACKLOG`）。PR 4a 修了 plan form 的同一个问题，MCP 这条路径没修。不丢数据（step 回到 project 原位，「+ This week」能再排），但用户在 Claude 里建下周 plan 时 step 会悄悄离开这周。下一个跨周点是 **2026-10-19（周一，W43）**。见 Q4。
 2. **`linkProjectStepsToPlan` 不检查 step 在不在别的 plan 上、project 有没有 archive。** Plan form 只渲染 pending plan 上的 step，所以没问题；但 MCP 收的是 LLM 传来的 id，必须在 `planningService` 里先校验（见各工具的「校验」）。
 3. **`projectService` 返回 `{error: 'projectNotFound'}` 这种表单用的形状，不抛错**；单步操作各开各的 transaction，DAL 的 `updateProject` / `updateProjectStep` 没有 `tx` 参数。`update_project` 一个 patch 里有多个操作，要原子，所以要给这两个 DAL 函数加 `tx?`，在新 service 里组合。
+4. **claude.ai 不把远程 connector 的 server instructions 交给模型。** Owner 在 claude.ai 里问：模型只看得到 claude-in-chrome（本地扩展）的 instructions；Mars-Workbench、Gmail、Indeed、Claude Docs 这些远程 connector 的都没有。我们的 server 是对的：`route.ts` 把 `MCP_SERVER_INSTRUCTIONS` 传给了 `createMcpHandler`，而且同一个线上 connector 连进 Claude Code 时，上下文里出现了逐字一致的 instructions（Claude Docs 的也在）。另外，两个客户端都是 deferred loading：一开始模型只看到 connector 名和工具名，description 和参数要加载以后才看到。结果是：
+   - 这份 spike 写得最多的 server instructions，在 owner 主要用的 claude.ai 上读不到；
+   - 「什么时候用这个 connector」只能靠 connector 名、工具名和用户的说法来判断。
+
+   Claude Docs 遇到同样的问题，做法是提供一个 `guide` 工具，description 写「客户端丢掉 instructions 时才需要读」。我们的做法见 Q6；怎么让 Claude 想到用这个 connector，见「Prompt › 被发现」。
 
 ---
 
@@ -49,11 +55,11 @@ Phase 1 的最后一个 PR。approved spike 只定了 PR 5 的范围（context �
 
 | 工具 | 变化 | 一句话 |
 | --- | --- | --- |
-| `get_planning_context` | 改 | 加 `projects`（整条 path，每个 step 带 `state`）、`archivedProjects`（摘要）；`activePlan` / `lastPlan` 加 `projectSteps` |
+| `get_planning_context` | 改 | 加 `guide`（planning 指引全文，Q6）、`projects`（整条 path，每个 step 带 `state`）、`archivedProjects`（摘要）；`activePlan` / `lastPlan` 加 `projectSteps` |
 | `create_project` | 新 | title + goal + 有序 steps，一个 transaction；回 project 和每个 step 的 `stepId` |
 | `update_project` | 新 | patch：title、goal、archive / unarchive，steps 的 add / edit / move / remove；一个 transaction |
-| `create_plan` | 改 | + `carryOverProjectStepIds`（不传 = 全部带上）、+ `addProjectStepIds`（UPCOMING 的 step）；修发现 1 |
-| `update_plan` | 改 | + `addProjectStepIds`、+ `removeProjectStepIds`；结果的 `changes` 加两项 |
+| `create_plan` | 改 | + `carryOverProjectStepIds`（不传 = 全部带上）、+ `addProjectStepIds`（UPCOMING 的 step）、+ `newProjects`（Q5）；修发现 1 |
+| `update_plan` | 改 | + `addProjectStepIds`、+ `removeProjectStepIds`、+ `newProjects`（Q5）；结果的 `changes` 加三项 |
 
 ### `get_planning_context`
 
@@ -61,6 +67,8 @@ Phase 1 的最后一个 PR。approved spike 只定了 PR 5 的范围（context �
 
 ```jsonc
 {
+  // 新（Q6）：planning 指引全文，就是 MCP_SERVER_INSTRUCTIONS 这个常量
+  "guide": "Mars Workbench is the user's weekly kanban planner. …",
   "today": "2026-10-19", "weekday": "Monday", "timeZone": "America/Los_Angeles",
   "week": {"periodKey": "2026-W43", "start": "2026-10-19", "end": "2026-10-25"},
   "activePlan": null,
@@ -101,6 +109,7 @@ Phase 1 的最后一个 PR。approved spike 只定了 PR 5 的范围（context �
 - Board 上的状态（BACKLOG / TODO / DONE）只在 plan 的 `projectSteps` 里出现，project 的 step 上不重复。
 - 实现：`getPlanningContext` 多一次 `getProjectsWithSteps`（和现有读取并行），projects、archived 摘要、两个 plan 的 `projectSteps` 都在内存里从这一次结果算出来。`getPlanContextByPlanId` 也被两个写工具的结果用，所以它自己取一次 projects（或者由调用方传入，实现时按代码量定）。
 - `overall` 不变，仍然只统计 template instance。
+- `guide` 放在第一个字段，模型先读到它（Q6 选 C 时）。
 
 ### `create_project`（新）
 
@@ -169,6 +178,8 @@ Phase 1 的最后一个 PR。approved spike 只定了 PR 5 的范围（context �
 
 **传下去**：`projectStepIds = carryOver ∪ add` 交给 `createPlanFromEntries`，其余逻辑不变。这一步同时修掉发现 1。
 
+**`newProjects`（Q5 选 B 时）**：`[{title, goal?, steps: [{title, description?, size, thisWeek?}]}]`，默认 `[]`。在同一个 transaction 里先建 project 和它的 steps，再把 `thisWeek: true` 的 step 和 `addProjectStepIds` 一起挂到新 plan 上，做法和 `newTemplates` 一样。结果里加 `createdProjects: ProjectContext[]`。`EMPTY_PLAN` 的判断把这些 step 也算进去。
+
 ### `update_plan`（改）
 
 `planPatchSchema` 加两个字段：`addProjectStepIds`（`UPCOMING` 的 step，排进这周，进 backlog）、`removeProjectStepIds`（这周 plan 上没做完的 step，退回 project：`planId = null`、`BACKLOG`、编号不变）。「patch 什么都没改」的 refine 把这两个列表算进去。
@@ -177,11 +188,32 @@ Phase 1 的最后一个 PR。approved spike 只定了 PR 5 的范围（context �
 
 **传下去**：`projectStepIds = （plan 上现在没做完的 step − remove）∪ add`，只在两个列表有一个非空时传，交给 `updatePlanInTx`（和现有 `adhocTaskIds` 的做法一样）。
 
-**结果**：`changes` 加 `addedProjectSteps`、`removedProjectSteps`。
+**`newProjects`**：同 `create_plan`，新 project 里 `thisWeek: true` 的 step 并进 add。
+
+**结果**：`changes` 加 `addedProjectSteps`、`removedProjectSteps`、`createdProjects`。
 
 ---
 
 ## Prompt · LLM 要读的文字
+
+### 写在哪里，模型才读得到（发现 4）
+
+| 位置 | claude.ai | Claude Code | 放什么 |
+| --- | --- | --- | --- |
+| connector 名 + 工具名 | ✓ 一开始就看到 | ✓ | 让模型想到用它（见下面「被发现」） |
+| tool description、`.describe()` | ✓ 调用前加载 | ✓ | 这个工具自己的规则：先调 `get_planning_context`、ids 从哪来、副作用、同意后再写 |
+| `get_planning_context` 的返回值 | ✓ 一定读到 | ✓ | `guide`：planning 指引全文（Q6 推荐 C） |
+| server instructions | ✗ | ✓ | 同一份指引，给会转发的客户端 |
+
+指引全文只维护一份：`MCP_SERVER_INSTRUCTIONS` 这个常量同时用作 server instructions 和 `guide` 字段。每条关键规则（先读 context、同意后再写、archive 只在用户要求时）在 tool description 里再写一遍：模型在读到 `guide` 之前，至少知道第一步做什么。
+
+### 被发现 · Discovery
+
+一开始模型只看到「Mars-Workbench」和几个工具名，所以用户说「plan my week」时命中率最高，「我今天该干嘛」「帮我学西班牙语」就不一定。这一层 server 能做的有限：
+
+- **工具名不改。** `get_planning_context` / `create_plan` / `create_project` 里有 plan、project，加上 connector 名已经够具体；改名反而让已有的对话和文档对不上。
+- **connector 的显示名**是用户在 claude.ai 添加时自己填的。推荐填「Mars Workbench – weekly planner」，写进 README 的接入说明。
+- **最可靠的触发方式在用户那边**：在 claude.ai 的个人偏好或某个 Claude Project 的 instructions 里加一句「讨论这周计划、habit、project 时，用 Mars Workbench connector」。Settings 或 consent 页以后可以给一段能复制的文字（不在这个 PR 里）。
 
 ### 对 approved 判断标准的一处收紧（可否决）
 
@@ -191,9 +223,9 @@ approved spike 写的是「每次内容一样就是 habit，不一样就是 proj
 
 下面的成稿按这个写。
 
-### Server instructions（`src/mcp/prompts/serverInstructions.ts`，整段替换）
+### Guide 全文（`src/mcp/prompts/serverInstructions.ts`，整段替换）
 
-标了 `[Q2]` / `[Q3]` 的两行取决于对应问题的结论（这里写的是推荐选项），落代码时不带标记。
+同时用作 server instructions 和 `get_planning_context` 的 `guide` 字段。标了 `[Q2]` / `[Q3]` / `[Q5]` 的行取决于对应问题的结论（这里写的是推荐选项），落代码时不带标记。
 
 ```text
 Mars Workbench is the user's weekly kanban planner. These tools let you plan the user's week and their projects together with them.
@@ -202,6 +234,9 @@ Mars Workbench is the user's weekly kanban planner. These tools let you plan the
 1. Call get_planning_context first, every time you plan or change a plan or a project. It reflects today's date and catches the week up (a finished week's plan becomes lastPlan). Use only ids it returns or that a write just returned.
 2. No activePlan: propose a new week and create it with create_plan. An activePlan: propose changes and apply them with update_plan, passing activePlan.planId. Projects can be created and changed with or without an activePlan.
 3. Talk every proposal through with the user, and write only after they agree — create_plan, update_plan, create_project and update_project alike. Afterwards, tell them what changed.
+
+# First week
+If there are no templates, no projects and no lastPlan, this is the user's first week. Explain in two sentences how the week works here (habits repeat, projects are paths of steps, one-offs live on the priority matrix), ask what they want to keep doing and what they want to finish, then propose a small first week.
 
 # Three kinds of work
 A week mixes three kinds of work:
@@ -221,6 +256,7 @@ To choose, ask: is there a finite list to get through? Yes → a project, one st
 - create_project writes the whole path at once: ordered steps, each a title, a size (the same scale as templates) and an optional description — a link, notes, what done looks like. Keep each step to one sitting, EXTRA_SMALL to MEDIUM; split anything bigger into several steps.
 - update_project renames a project, changes its goal, adds, edits, moves or removes steps, and archives or unarchives it. Done steps are locked.
 - Writing a project schedules nothing. Put steps on the week with addProjectStepIds — in update_plan for this week's plan, in create_plan for a new one. Any UPCOMING step can go, in any order; it lands in the user's backlog. A step never expires: unfinished at the end of the week, it waits on lastPlan (state LAST_WEEK) until the next plan carries it over or sends it back.
+- [Q5] A brand-new project whose first steps go on the week in the same change: pass it in newProjects of create_plan or update_plan and mark those steps thisWeek, instead of calling create_project first.
 - Every step has a state: UPCOMING (on no week), THIS_WEEK (on activePlan), LAST_WEEK (unfinished on lastPlan), DONE. Its board status is in the plan's projectSteps.
 - A project with allStepsDone: true has nothing left to do but stays open. When you plan a week, or when the user brings it up, ask whether to add its next steps or archive it.
 - Archiving is the user's decision. Archive only when the user asks for it or says yes to that question — never on your own, never to tidy up. Archiving takes the project's unfinished steps off the week.
@@ -243,9 +279,10 @@ To choose, ask: is there a finite list to get through? Yes → a project, one st
 | 段落 | 变化 |
 | --- | --- |
 | 开头、Workflow | 「plan」扩成「plan 和 project」；第 3 条把 4 个写工具都列出来；ids 可以来自写入的结果（`create_project` 回的 `stepId` 要交给 `update_plan`） |
+| First week | 新段。空账号的上手路径：两句话讲清三种 kind，问想坚持什么、想完成什么，起草一个小的第一周 |
 | Three kinds of work | 新段。判断标准（收紧后的版本）+ approved spike 里 Biomedical 的例子换成通用说法；one-off 那句从旧的 How a plan works 挪过来 |
 | Habits | 旧 How a plan works 的内容，原样保留 |
-| Projects | 新段。写法（一次写整条 path、step 的大小、description 的用途）、排期只走 plan 工具、step 的 state、All steps done 和 archive 的规则（approved spike 留到这个 PR 定稿的部分） |
+| Projects | 新段。写法（一次写整条 path、step 的大小、description 的用途）、排期只走 plan 工具（Q5 的 `newProjects` 也是 plan 工具）、step 的 state、All steps done 和 archive 的规则（approved spike 留到这个 PR 定稿的部分） |
 | Planning well | 加 Q2、Q3 两条；calibrate 和 load 两条把 step 算进去 |
 | Tell the user before writing | create_plan 和 update_plan 加上 step 的去向；新增 update_project 一条 |
 
@@ -254,15 +291,15 @@ To choose, ask: is there a finite list to get through? Yes → a project, one st
 ```ts
 export const TOOL_DESCRIPTIONS = {
   GET_PLANNING_CONTEXT:
-    "Read what you need to plan the user's week and projects in Mars Workbench: today's date and week; this week's active plan (its templates with type, frequency and progress so far, plus the one-off tasks and project steps on it); last week's finished plan with per-template completion stats, its project steps (done, and unfinished ones that can carry over) and the one-off tasks that carry over; the user's reusable templates; and their projects, each with its goal, progress and whole path of steps. Call it first whenever you plan or change a plan or a project — the ids the other tools take come from here.",
+    "Read what you need to plan the user's week and projects in Mars Workbench. Its `guide` explains how planning works here — read it before you propose anything. Then: today's date and week; this week's active plan (its templates with type, frequency and progress so far, plus the one-off tasks and project steps on it); last week's finished plan with per-template completion stats, its project steps (done, and unfinished ones that can carry over) and the one-off tasks that carry over; the user's reusable templates; and their projects, each with its goal, progress and whole path of steps. Call it first whenever you plan or change a plan or a project — the ids the other tools take come from here.",
   CREATE_PLAN:
-    "Create this week's plan — only when get_planning_context shows no activePlan. Run existing templates by templateId in `templates`, add brand-new ones in `newTemplates`, and put UPCOMING project steps on the week with `addProjectStepIds`. Completes lastPlan and moves its unfinished one-off tasks and project steps into the new plan (all of them by default). Task instances and steps land in the user's backlog. Agree on the plan with the user before calling.",
+    "Create this week's plan — only when get_planning_context shows no activePlan. Run existing templates by templateId in `templates`, add brand-new ones in `newTemplates`, put UPCOMING project steps on the week with `addProjectStepIds`, and create brand-new projects in `newProjects` (steps marked `thisWeek` go on the week). Completes lastPlan and moves its unfinished one-off tasks and project steps into the new plan (all of them by default). Task instances and steps land in the user's backlog. Agree on the plan with the user before calling.",
   UPDATE_PLAN:
-    "Change this week's active plan; only what you pass changes. Removing a template, or changing its type or frequency, deletes that template's unfinished task instances (backlog, to-do) and regenerates them in the backlog; completed tasks are never touched. `addProjectStepIds` puts UPCOMING project steps in the backlog; `removeProjectStepIds` sends steps back to their project. Agree on the change with the user before calling.",
+    "Change this week's active plan (activePlan.planId from get_planning_context); only what you pass changes. Removing a template, or changing its type or frequency, deletes that template's unfinished task instances (backlog, to-do) and regenerates them in the backlog; completed tasks are never touched. `addProjectStepIds` puts UPCOMING project steps in the backlog; `removeProjectStepIds` sends steps back to their project; `newProjects` creates projects whose `thisWeek` steps go on the week. Agree on the change with the user before calling.",
   CREATE_PROJECT:
-    "Create a project: a goal reached through a finite, ordered path of steps, such as a course or a book (repeating work with no end is a habit template instead). Give its title, an optional goal and its steps in order, each with a title, a size and an optional description. Returns the project with every step's stepId, in order. Schedules nothing: put steps on the week with update_plan or create_plan. Agree on the project and its steps with the user before calling.",
+    "Create a project: a goal reached through a finite, ordered path of steps, such as a course or a book (repeating work with no end is a habit template instead). Give its title, an optional goal and its steps in order, each with a title, a size and an optional description. Check get_planning_context's projects first so you don't create a second one for the same goal. Returns the project with every step's stepId, in order. Schedules nothing: to create a project and put its first steps on the week in one call, use `newProjects` of update_plan or create_plan instead. Agree on the project and its steps with the user before calling.",
   UPDATE_PROJECT:
-    "Change a project; only what you pass changes. Rename it or change its goal; add steps (at the end, or before a given step); edit, move or remove steps that aren't done; archive or unarchive it. Done steps are locked. Removing a step deletes it, and takes it off the board if it is on this week. Archiving takes every unfinished step off the week — archive only when the user asks. Agree on the change with the user before calling.",
+    "Change a project (projectId and stepIds from get_planning_context); only what you pass changes. Rename it or change its goal; add steps (at the end, or before a given step); edit, move or remove steps that aren't done; archive or unarchive it. Done steps are locked. Removing a step deletes it, and takes it off the board if it is on this week. Archiving takes every unfinished step off the week — archive only when the user asks. Agree on the change with the user before calling.",
 };
 ```
 
@@ -278,6 +315,10 @@ addProjectStepIds: 'UPCOMING project steps to put on this week, by stepId from g
 // update_plan
 addProjectStepIds: 'UPCOMING project steps to put on this week; they land in the backlog',
 removeProjectStepIds: 'Project steps on this week to send back to their project',
+
+// create_plan 和 update_plan（Q5）
+newProjects: 'Brand-new projects to create with this change',
+'newProjects[].steps[].thisWeek': 'Put this step on the week now',
 
 // create_project
 title: "The project's name, e.g. 'Spanish A1'",
@@ -346,15 +387,15 @@ STEP_POSITION_INVALID: (stepIds: string[]) =>
 | `src/mcp/tools/updateProject.ts` | 新 | `update_project` → `projectPlanningService.patchProject` |
 | `src/mcp/registerTools.ts` | 改 | 注册两个新工具 |
 | `src/mcp/constants.ts` | 改 | `MCP_SERVER_INFO.version` 0.3.0 → 0.4.0 |
-| `src/mcp/prompts/serverInstructions.ts` | 改 | 整段替换（成稿见上） |
+| `src/mcp/prompts/serverInstructions.ts` | 改 | 整段替换（成稿见上）；同一个常量也是 context 的 `guide` |
 | `src/mcp/prompts/toolDescriptions.ts` | 改 | 改 3 条，加 2 条 |
-| `src/schemas.ts` | 改 | `planSpecSchema` +2 字段；`planPatchSchema` +2 字段和 refine；新 `projectSpecSchema`、`projectPatchSchema`（step 字段复用 `projectStepInputSchema`） |
-| `src/services/planningService.ts` | 改 | context 加 projects / archivedProjects / `projectSteps`；`createPlanFromSpec`、`patchActivePlan` 加 step 校验，算出整份 `projectStepIds` 传下去；修发现 1 |
+| `src/schemas.ts` | 改 | `planSpecSchema` +3 字段；`planPatchSchema` +3 字段和 refine；新 `projectSpecSchema`、`projectPatchSchema`（step 字段复用 `projectStepInputSchema`；`newProjects` 复用 `projectSpecSchema`，step 加 `thisWeek`） |
+| `src/services/planningService.ts` | 改 | context 加 `guide` / projects / archivedProjects / `projectSteps`；`createPlanFromSpec`、`patchActivePlan` 加 step 校验和 `newProjects`（同一个 transaction 里先建 project），算出整份 `projectStepIds` 传下去；修发现 1 |
 | `src/services/projectPlanningService.ts` | 新 | `createProjectFromSpec`、`patchProject`（一个 transaction，抛 `PlanningError`）。不塞进 `planningService.ts`：那个文件已经 392 行，加上 context 和 step 参数会到 500 多 |
 | `src/utils/projectUtils.ts` | 改 | 纯函数 `applyStepPatch`（新 path + conflicts，对应 `applyTemplatePatch`）、`toProjectContext`（project + steps + activePlanId → `ProjectContext`，用 `getStepState`） |
 | `src/lib/db/projects.ts` | 改 | `updateProject`、`updateProjectStep` 加 `tx?`；新增 `deleteProjectSteps`、`renumberProjectPath` |
 | `src/utils/errorMessages.ts` | 改 | 见上 |
-| `src/types/plan.ts` | 改 | `ProjectContext`、`ProjectStepContext`、`ArchivedProjectSummary`、`PlanProjectStepSummary`；`PlanContext.projectSteps`；`PlanningContext.projects` / `archivedProjects`；`PlanPatchResult.changes` +2；`ProjectPatchResult` |
+| `src/types/plan.ts` | 改 | `ProjectContext`、`ProjectStepContext`、`ArchivedProjectSummary`、`PlanProjectStepSummary`；`PlanContext.projectSteps`；`PlanningContext.guide` / `projects` / `archivedProjects`；`PlanPatchResult.changes` +3；`ProjectPatchResult` |
 | `src/mcp/middleware/runTool.ts` | 不改 | project 工具也抛 `PlanningError` |
 
 没有 migration，没有 UI，没有 i18n（全是 LLM 读的文字），Design Console 不动。
@@ -367,7 +408,7 @@ STEP_POSITION_INVALID: (stepIds: string[]) =>
 | `design/flows/projects.md` | 顶部 Status 去掉 MCP 的 pending；Draft Steps with Claude 的第 3、4 步写上 `beforeStepId` 和 `addProjectStepIds`，Rules 加上 Q2 的结论 |
 | `design/baseline.md` | *Designed: Phase 1* 一节去掉第 2 条（MCP for projects）；如果 4d 已经把整节收掉，就不用改 |
 | `design/reference.md` | MCP 表加 2 行、改 3 行；Services 加 `projectPlanningService.ts`；DAL 加 `deleteProjectSteps`、`renumberProjectPath` |
-| `README.md` | Current State 的 *Plan with Claude (MCP)* 改成一行：Claude 也能起草 project、把 step 排进这周；Update Log 追加 |
+| `README.md` | Current State 的 *Plan with Claude (MCP)* 改成一行：Claude 也能起草 project、把 step 排进这周；接入说明加上推荐的 connector 显示名和那句个人偏好；Update Log 追加 |
 | `design/tracker.md` | 删 PR 5 那条 sub-bullet；如果 4d 也已落地，parent 一起删 |
 | `design/mockup/future-work/mockup-projects-v2.html` | 删（PR 4 spike 的 Q4 已定） |
 
@@ -384,11 +425,12 @@ STEP_POSITION_INVALID: (stepIds: string[]) =>
 7. **对 archived project 的 patch 整个拒绝**，除非同一个 patch 里有 `archived: false`。
 8. **archive 和别的改动在同一个 patch 里时，先改，最后 archive。**
 9. **`update_project` 对 THIS_WEEK 的 step 和 UI 一样**：能改，能删（删了 board 上也没了）；DONE 锁定。
-10. **`create_project` 不排期**（approved：排期只走 plan 工具）。「建 project + 排前两步」是两次写入，不原子；第二次失败时 project 已经在了，Claude 重读 context 再排就行。
+10. **`create_project` 不排期**（approved：排期只走 plan 工具）。「先 `create_project` 再排期」是两次写入，不原子；第二次失败时 project 已经在了，Claude 重读 context 再排就行。Q5 选 B 时，新 project 加排期可以用 `newProjects` 一次完成。
 11. **一个 patch 里有任何问题就整个拒绝、什么都不写**，用 `PATCH_REJECTED` 把所有问题一起报出来，和 `update_plan` 一致。
 12. **Plan form 的写入路径不加同样的校验**：它只能写本人的 step，不是安全问题。MCP 的校验放在 `planningService`，因为 LLM 会传错 id。
 13. **`overall` 不混入 step**，仍然只统计 template instance；step 的结果看 `projectSteps` 的 status。
 14. **不建同名 project 的保护只写在 prompt 里**（「先看有没有已经覆盖这个目标的 project」），server 不拒绝同名——UI 也允许同名。
+15. **工具名不改**，connector 显示名和个人偏好那句写进 README 的接入说明（见「Prompt › 被发现」）。
 
 ---
 
@@ -446,6 +488,34 @@ approved spike 的风险一节：Biomedical course 这类按 WEEKLY 跑的 templ
 
 **推荐 B。**
 
+### Q5 · 新 project 和这周的 plan 能不能一次写完
+
+场景：还没有这周的 plan（或者已经有），用户要新建一个 project，并把前两步排进这周。按现在的设计是两次写入：`create_project`，拿到 step id，再 `create_plan` / `update_plan`。
+
+先区分两种「批准」：对话里的同意只需要一次（用户对整个提案说 yes，Claude 接着调两个工具）；claude.ai 的工具权限弹窗是按工具来的，每个写工具第一次调用都会问一次，选 Always allow 以后不再问。所以两次写入的实际代价是：头几次多一个弹窗，以及两次调用之间不原子。
+
+| | 做法 | 好处 | 代价 |
+| --- | --- | --- | --- |
+| A · 维持两次写入 | `create_project` → `update_plan` / `create_plan` | 不改 plan 工具；每个工具只做一件事 | 不原子（中间失败时 project 已经在、step 没排）；头几次多一个弹窗 |
+| **B** · plan 工具加 `newProjects` ✓ | `create_plan` / `update_plan` 收 `newProjects: [{title, goal?, steps: [{…, thisWeek?}]}]`，同一个 transaction 里建 project 并排期 | 一次调用、原子；和现有的 `newTemplates`（建 plan 时顺手建 template）是同一个模式，Claude 一看就懂；排期仍然只走 plan 工具 | 两个 plan 工具的 schema 变大；建 project 有两个入口（`create_project` 保留给「只规划 project、不动这周」） |
+| C · 新工具 `create_plan_with_project` | 专门的组合工具 | 每个工具的 schema 都小 | 组合会越来越多（update_plan + 新 project、多个 project …）；工具数量膨胀 |
+
+**实现**：B 在 `createPlanFromSpec` / `patchActivePlan` 的 transaction 里先用 DAL 的 `createProject` + `createProjectSteps`（都已经接 `tx`）建 project，把 `thisWeek` 的 step id 并进 `projectStepIds`，其余不变。
+
+**推荐 B。**
+
+### Q6 · claude.ai 收不到 server instructions，指引放在哪（发现 4）
+
+| | 做法 | 好处 | 代价 |
+| --- | --- | --- | --- |
+| A · 只靠 tool description | 每个工具的 description 写全它需要的规则 | 调用前一定能看到 | 三种 kind、校准、副作用这些通用知识要在 5 个 description 里各写一遍，很臃肿；description 也只在加载 schema 后才看得到 |
+| B · 单独的 `get_planning_guide` 工具 | Claude Docs 的做法：description 写「客户端丢掉 instructions 时先调它」 | 指引只写一份；有官方 connector 的先例 | 每次对话多一次调用；要靠模型自己记得去调 |
+| **C** · 放进 `get_planning_context` 的返回值 ✓ | 加 `guide` 字段，内容就是 `MCP_SERVER_INSTRUCTIONS` | 不多一次调用；一定会被读到——每个写工具都要 context 里的 id，description 也写了先调它；读到的时机正好在提方案之前 | 每次调 context 多 1–1.5k token；Claude Code 会看到两遍（instructions 一遍，guide 一遍） |
+
+**实现**：C 是 `getPlanningContext` 的返回加一个字段，类型加一行；server instructions 照常下发。A 要把「Guide 全文」拆进 5 个 description。B 是一个新的只读工具，description 写成「Call this first when you have not read Mars Workbench's guide」。
+
+**推荐 C**，配合「写在哪里，模型才读得到」那张表：关键规则在 tool description 里再写一遍。
+
 ---
 
 ## 验收 · Verification
@@ -489,37 +559,42 @@ Claude 连不上 localhost，所以在 preview deployment 上跑（preview 接�
 > *下周一*
 > Claude：`get_planning_context` → lastPlan：Biomedical 做完 2 讲，Lecture 3 没做完。提议带上 Lecture 3、加 Lecture 4–5，同意后 `create_plan({templates, carryOverProjectStepIds: [L3], addProjectStepIds: [L4, L5]})`
 
-**再加两段**，覆盖这个 PR 新定的 prompt：
+**再加三段**，覆盖这个 PR 新定的 prompt：
 
 - **All steps done**：把一个测试 project 的 step 全部拖到 Done，然后请 Claude 排下周 → Claude 问「加下一批，还是 archive？」，没得到同意就不调用 `update_project`。
 - **habit vs project**：「I want to do two LeetCode problems a day」→ Claude 用 template（DAILY × 1 或 × 2），不建 project；「I want to work through *Designing Data-Intensive Applications*, a chapter at a time」→ Claude 提议建 project，每章一个 step。
+- **guide 在 claude.ai 上生效**（发现 4、Q6）：上面几段都**在 claude.ai 上跑**，不只在 Claude Code 里。确认 Claude 遵守了只写在 guide 里的规则（三种 kind 的判断、All steps done 的问法），而不只是 description 里的。
+
+**空账号**（可选）：用第二个 Google 账号登录、加 connector，说「Help me plan my week」→ Claude 先用两句话解释三种 kind，再起草一个小的第一周。
 
 ## Executable plan
 
 一个 PR（M），按下面的顺序 commit（如果 Q4 选 B，第 3 步的修复已经先发了）：
 
 1. 类型、schema、错误信息。
-2. `get_planning_context`：projects、archivedProjects、plan 的 `projectSteps`。
-3. `create_plan` / `update_plan` 的 step 参数和校验（修掉发现 1）。
+2. `get_planning_context`：`guide`、projects、archivedProjects、plan 的 `projectSteps`。
+3. `create_plan` / `update_plan` 的 step 参数、`newProjects` 和校验（修掉发现 1）。
 4. DAL 加 `tx` 和两个新函数；`applyStepPatch`；`projectPlanningService`；两个新工具。
 5. Server instructions、tool descriptions、version。
 6. 文档（见「文档」那张表），删 `mockup-projects-v2.html`。
 
 分支名：`claude/week-model-pr5-mcp-projects`。
 
-**Done when**：上面的 Inspector 清单全过；Claude 里跑通 4 段对话；构建全绿。PR 5 合并后，Phase 1 MVP 完成。
+**Done when**：上面的 Inspector 清单全过；claude.ai 里跑通 5 段对话；构建全绿。PR 5 合并后，Phase 1 MVP 完成。
 
 ## 风险
 
 - **判断错 kind**：Claude 可能把有限清单建成 habit，或者反过来。靠收紧后的判断标准、例子和 tool description 里重复的一句压住；验收里有一段专门测。
 - **提案排得太满**（Q2 选 B 时）：每个 project 都往这周塞 step。靠 calibrate 规则和「数量按上周的节奏」压住，用户也能删。
-- **建 project 和排期之间不原子**（默认做法 10）：中间失败时 project 已经在、step 没排。Claude 重读 context 就能看到并补上。
+- **建 project 和排期之间不原子**（默认做法 10）：中间失败时 project 已经在、step 没排。Claude 重读 context 就能看到并补上；Q5 选 B 后，最常见的「新 project + 前几步」走 `newProjects`，没有这个问题。
 - **验收写进线上数据**：dev 和 prod 共用 Supabase。用测试 project，跑完 archive。
 - **AI chat 审批仍然把 step 退回 project**：按设计（approved spike：AI chat 不改，Phase 2 移除），不在这个 PR 里动。
 
 ## Considered, not proposed · 考虑过但不提议
 
 - **单独的 `schedule_steps` 工具**：approved spike 已经否掉，排期并进 plan 工具。
+- **改工具名让 claude.ai 更容易想到用它**：见「Prompt › 被发现」，收益小，还会让已有的对话和文档对不上。
+- **时间预算、size 的去留、habit / project 的并行上限**：讨论时一起提出，但它们改的是产品定位和数据模型，不是 MCP；拆到 `design/spike/week-model-phase2-pain-points.md`。
 - **`create_project` 带 `scheduleFirst: n`**，建完直接排前 n 步：建和排就原子了，但 project 工具会去碰 plan，排期也就有了两个入口。
 - **`delete_project`**：project 只能 archive，不做硬删除。
 - **单独的 `get_projects` 读取工具**：context 多一次查询、几 KB，换来「先调 `get_planning_context`」这一条规则不变。
@@ -528,5 +603,5 @@ Claude 连不上 localhost，所以在 preview deployment 上跑（preview 接�
 
 ## 批准之后
 
-1. 按拍板结果改写「Prompt」里 `[Q2]` / `[Q3]` 两行和 Q1 的 schema；如果 Q4 选 B，先开 hotfix PR。
+1. 按拍板结果改写「Prompt」里 `[Q2]` / `[Q3]` / `[Q5]` 几行、Q1 的 schema 和 Q5、Q6 涉及的字段；如果 Q4 选 B，先开 hotfix PR。
 2. 开 PR 5。之后的进度记在 tracker 的 Phase 1 条目下，这份 spike 不再更新。
