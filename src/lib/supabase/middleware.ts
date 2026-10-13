@@ -26,11 +26,12 @@ export const updateSession = async (request: NextRequest) => {
     },
   );
 
-  const {
-    data: {user},
-  } = await supabase.auth.getUser();
+  // Refreshes an expiring session (setAll writes the new cookies) and verifies
+  // the token locally against the cached JWKS — no Auth server round trip
+  const {data} = await supabase.auth.getClaims();
+  const claims = data?.claims;
 
-  if (!user && !request.nextUrl.pathname.startsWith('/auth')) {
+  if (!claims && !request.nextUrl.pathname.startsWith('/auth')) {
     // Carry the requested page through sign-in so the visitor lands back on
     // it (e.g. the OAuth consent page with its authorization_id).
     const {pathname, search} = request.nextUrl;
