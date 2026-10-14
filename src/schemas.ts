@@ -14,6 +14,7 @@ import {THEMES} from './utils/theme';
 import {AUTHORIZATION_ID_PATTERN, ConsentDecision} from './utils/oauthConsent';
 import {DUMP_ENTRY_MAX_LENGTH} from './utils/dump';
 import {FREQ_MAX, FREQ_MIN} from './utils/planUtils';
+import {PROJECT_STEP_LIMIT} from './utils/projectUtils';
 // Validation copy is centralized in the i18n catalog. zod messages are set at
 // module load (no React context), so we read the English strings directly from
 // en.json here rather than via useTranslations/getTranslations. Single-locale
@@ -143,7 +144,7 @@ const projectStepInputSchema = z.object({
 export const createProjectSchema = z.object({
   title: z.string().trim().min(1, V.titleRequired),
   goal: z.string().trim().optional(),
-  steps: z.array(projectStepInputSchema).optional(),
+  steps: z.array(projectStepInputSchema).max(PROJECT_STEP_LIMIT).optional(),
 });
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 
@@ -173,13 +174,13 @@ export const updateProjectStepSchema = z
   });
 export type UpdateProjectStepInput = z.infer<typeof updateProjectStepSchema>;
 
-// The project's unfinished steps, every one exactly once, in their new order.
-export const reorderProjectStepsSchema = z.object({
-  stepIds: z.array(z.string().uuid()).min(1),
+// Drag reorder: the step goes right before beforeStepId, or to the end of the
+// path without one.
+export const moveProjectStepSchema = z.object({
+  stepId: z.string().uuid(),
+  beforeStepId: z.string().uuid().optional(),
 });
-export type ReorderProjectStepsInput = z.infer<
-  typeof reorderProjectStepsSchema
->;
+export type MoveProjectStepInput = z.infer<typeof moveProjectStepSchema>;
 
 // ── Dump Schemas ───────────────────────────────────────────────────────
 
@@ -337,6 +338,16 @@ export const planSpecSchema = z.object({
     .describe(
       "Which of lastPlan's one-off tasks move into this plan. Omit to carry all of them over; [] carries none (the rest return to the priority matrix)",
     ),
+  carryOverProjectStepIds: uuidListSchema
+    .optional()
+    .describe(
+      "Which of lastPlan's unfinished project steps (state LAST_WEEK) move into this plan. Omit to carry all of them over; [] carries none (the rest return to their projects)",
+    ),
+  addProjectStepIds: uuidListSchema
+    .default([])
+    .describe(
+      'UPCOMING project steps to put on this week, by stepId from get_planning_context or create_project',
+    ),
 });
 export type PlanSpecInput = z.infer<typeof planSpecSchema>;
 
@@ -381,6 +392,14 @@ export const planPatchSchema = z
     removeAdhocTaskIds: uuidListSchema
       .default([])
       .describe('One-off tasks to send back to the priority matrix'),
+    addProjectStepIds: uuidListSchema
+      .default([])
+      .describe(
+        'UPCOMING project steps to put on this week; they land in the backlog',
+      ),
+    removeProjectStepIds: uuidListSchema
+      .default([])
+      .describe('Project steps on this week to send back to their project'),
   })
   .refine(
     p =>
@@ -392,7 +411,140 @@ export const planPatchSchema = z
         p.updateTemplates,
         p.removeTemplateIds,
         p.removeAdhocTaskIds,
+        p.addProjectStepIds,
+        p.removeProjectStepIds,
       ].some(list => list.length > 0),
     {message: 'The patch changes nothing'},
   );
 export type PlanPatchInput = z.infer<typeof planPatchSchema>;
+
+const sizeSchema = newPlanLineSchema.shape.size;
+
+// update_habit: a template's own fields (how often it runs is the plan's).
+export const habitPatchSchema = z
+  .object({
+    templateId: existingPlanLineSchema.shape.templateId,
+    title: z.string().trim().min(1).optional().describe('A new name'),
+    description: z
+      .string()
+      .trim()
+      .min(1)
+      .optional()
+      .describe('A new description'),
+    size: sizeSchema.optional(),
+  })
+  .refine(
+    ({title, description, size}) =>
+      [title, description, size].some(field => field !== undefined),
+    {message: 'Give a new title, description and/or size'},
+  );
+export type HabitPatchInput = z.infer<typeof habitPatchSchema>;
+
+const projectIdSchema = z
+  .string()
+  .uuid()
+  .describe('A projectId from get_planning_context');
+const stepIdSchema = z
+  .string()
+  .uuid()
+  .describe('A stepId from get_planning_context');
+
+const newProjectStepSchema = z.object({
+  title: projectStepInputSchema.shape.title.describe(
+    "What this step covers, readable on its own, e.g. 'Lesson 3 — Ordering food'",
+  ),
+  description: projectStepInputSchema.shape.description.describe(
+    'A link, notes, or what done looks like',
+  ),
+  size: sizeSchema,
+});
+
+export const projectSpecSchema = z.object({
+  title: createProjectSchema.shape.title.describe(
+    "The project's name, e.g. 'Spanish A1'",
+  ),
+  goal: createProjectSchema.shape.goal.describe(
+    'What finishing the project means, in one sentence',
+  ),
+  steps: z
+    .array(newProjectStepSchema)
+    .max(PROJECT_STEP_LIMIT)
+    .default([])
+    .describe('The path in order, step 1 first'),
+});
+export type ProjectSpecInput = z.infer<typeof projectSpecSchema>;
+
+const beforeStepIdSchema = stepIdSchema.optional();
+
+export const projectPatchSchema = z
+  .object({
+    projectId: projectIdSchema,
+    title: z.string().trim().min(1).optional().describe('A new name'),
+    goal: z
+      .string()
+      .trim()
+      .optional()
+      .describe('A new goal; an empty string clears it'),
+    archived: z
+      .boolean()
+      .optional()
+      .describe(
+        'true archives the project — only when the user asks; false unarchives it',
+      ),
+    addSteps: z
+      .array(
+        newProjectStepSchema.extend({
+          beforeStepId: beforeStepIdSchema.describe(
+            'Insert the new step right before this step; omit to add it at the end of the path',
+          ),
+        }),
+      )
+      .default([])
+      .describe('New steps, in order'),
+    updateSteps: z
+      .array(
+        z
+          .object({
+            stepId: stepIdSchema,
+            title: newProjectStepSchema.shape.title.optional(),
+            description: projectStepInputSchema.shape.description.describe(
+              'A new description; an empty string clears it',
+            ),
+            size: sizeSchema.optional(),
+          })
+          .refine(
+            ({title, description, size}) =>
+              [title, description, size].some(field => field !== undefined),
+            {message: 'Give a new title, description and/or size'},
+          ),
+      )
+      .default([])
+      .describe('A new title, description or size for steps that are not done'),
+    moveSteps: z
+      .array(
+        z.object({
+          stepId: stepIdSchema,
+          beforeStepId: beforeStepIdSchema.describe(
+            'Move the step right before this one; omit to move it to the end',
+          ),
+        }),
+      )
+      .default([])
+      .describe(
+        'Steps that are not done, moved to a new place in the path — only when the user asks',
+      ),
+    removeStepIds: uuidListSchema
+      .default([])
+      .describe('Steps that are not done, to delete'),
+  })
+  .refine(
+    p =>
+      p.title !== undefined ||
+      p.goal !== undefined ||
+      p.archived !== undefined ||
+      [p.addSteps, p.updateSteps, p.moveSteps, p.removeStepIds].some(
+        list => list.length > 0,
+      ),
+    {message: 'The patch changes nothing'},
+  );
+export type ProjectPatchInput = z.infer<typeof projectPatchSchema>;

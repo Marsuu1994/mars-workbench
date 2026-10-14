@@ -2,7 +2,7 @@
 
 Flows for the Projects page (`/kanban/projects`; the selected project is the URL's `?project=`). A project is a goal plus an ordered path of steps that never expire. Steps go onto the week one at a time and then move across the board like any other task. Sibling docs: `design/flows/board.md`, `design/flows/plan.md`, `design/flows/priorities.md`, `design/flows/shared.md`, `design/flows/auth.md`.
 
-> **Status:** the data layer is built (PR 3: projects, steps, scheduling, carry-over); steps show on the board and in the plan form (PR 4a); the Projects page and its modals are built (PR 4c; states in `/design/scenarios/projects`); the MCP flow is *designed — Phase 1 pending (PR 5)*.
+> **Status:** built — the data layer (PR 3), steps on the board and in the plan form (PR 4a), the Projects page and its modals (PR 4c; states in `/design/scenarios/projects`), and Claude over MCP (PR 5).
 
 > **Doc convention:** One flow per `##` heading, separated by `---`. Every flow has two required `###` sections — `Trigger / Entry Point` and `Steps` — plus an optional `### Rules` section for constraints and invariants. Extra `###` sections (e.g. `Metrics`) are allowed only for reference material that fits neither Steps nor Rules.
 
@@ -76,15 +76,16 @@ Adding a step to a project, editing or deleting a step that isn't done, or reord
 
 ### Steps
 
-1. **Add:** open the **Add Step** modal and enter the title (required), description (optional) and size. Saving appends the step to the end of the path as a `PROJECT` task with `planId = null`, `BACKLOG` and `instanceIndex = n`.
+1. **Add:** open the **Add Step** modal and enter the title (required), description (optional) and size. Saving appends the step to the end of the path as a `PROJECT` task with `planId = null`, `BACKLOG` and `instanceIndex = n`; a path that already holds 50 steps refuses it.
 2. **Edit:** open the **Edit Step** modal and change the same fields. Saving updates the step, including its board card when it is on this week.
 3. **Delete:** from the Edit Step modal, after a confirm. The steps after it move up one.
-4. **Reorder:** move a step to a new place in the path. The project's unfinished steps are renumbered in one transaction.
+4. **Reorder:** drag a step right before another one, or to the end of the path. The whole path is renumbered in one transaction — the same rule Claude's `update_project` uses.
 
 ### Rules
 
 - Done steps are locked: they can't be edited, deleted or reordered.
-- `instanceIndex` is the 1-based step number and stays contiguous after any add, delete or reorder.
+- `instanceIndex` is the 1-based step number and stays contiguous after any add, delete or reorder; a done step's number can change when a step moves across it, its place in the path never does.
+- A project holds at most 50 steps.
 - Deleting a step that is on this week also takes it off the board.
 
 ---
@@ -121,17 +122,19 @@ Adding a step to a project, editing or deleting a step that isn't done, or reord
 
 ### Trigger / Entry Point
 
-The user asks Claude, connected to `/api/mcp`, to plan a project.
+The user asks Claude, connected to `/api/mcp`, to start or change a project, or to plan a week that has projects in it.
 
 ### Steps
 
-1. Claude calls `get_planning_context`, which also returns the user's projects (progress, upcoming steps with ids and sizes), this week's scheduled steps with their status, and last week's step results.
-2. Claude proposes the project and this week's steps; nothing is written before the user agrees.
-3. Claude writes the project with `create_project` (a new project with its steps) or `update_project` (a patch: rename, goal, archive, add / edit / remove / reorder steps).
-4. `update_plan` (active plan) or `create_plan` (new week) puts the agreed steps on the week via `projectStepIds`.
+1. Claude reads the guide and calls `get_planning_context`, which returns every project with its whole path (each step's state and, once done, its day), the archived projects, and the steps on this and last week's plans with their status.
+2. Claude confirms what the user wants — a project (a goal with an end) or a habit — and whether it extends an existing project or habit, then proposes the project and this week's steps; nothing is written before the user agrees.
+3. Claude writes the project with `create_project` (a new project with its whole path) or `update_project` (a patch: title, goal, archive / unarchive, add / edit / move / remove steps; new and moved steps go right before a given step, or at the end).
+4. Then `update_plan` (active plan) or `create_plan` (new week) puts the agreed steps on the week via `addProjectStepIds`.
 
 ### Rules
 
+- Planning comes before scheduling: the project tools never put steps on a week, the plan tools never create projects.
 - The tools never create one-offs.
 - Claude archives a project only after the user agrees. For a project whose steps are all done, it asks whether to add the next steps or archive.
-- Steps passed to `create_plan` / `update_plan` must be the user's, unfinished, and not already on this week's plan.
+- Claude keeps a project to about 10 steps, proposing a first milestone when the goal is bigger, and keeps the steps' order unless the user asks.
+- An `update_project` patch is applied whole or not at all: done steps are locked, positions must be steps that stay, an archived project changes only when the same patch unarchives it, and the path stays within 50 steps.

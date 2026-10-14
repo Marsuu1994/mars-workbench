@@ -7,13 +7,14 @@ import {MapIcon, PlusIcon} from '@heroicons/react/24/outline';
 import type {TaskItem} from '@/lib/db/tasks';
 import type {ProjectsPageData} from '@/types/projects';
 import {
-  assignStepNumbers,
+  applyStepPatch,
   getNextStepNumber,
   groupStepsByProjectId,
+  numberStepPath,
 } from '@/utils/projectUtils';
 import {
   archiveProjectAction,
-  reorderProjectStepsAction,
+  moveProjectStepAction,
   scheduleProjectStepAction,
   unarchiveProjectAction,
   unscheduleProjectStepAction,
@@ -39,7 +40,7 @@ const NO_STEPS: TaskItem[] = [];
 /**
  * The Projects page (/kanban/projects): the list beside the selected
  * project's path from md up, one of the two on mobile. Owns the page's
- * state — the steps as client state (+ This week, × and reorder patch them
+ * state — the steps as client state (+ This week, × and moves patch them
  * optimistically), the open modal — and every write. The selected project
  * is the URL's `?project=`, changed on the client: refresh keeps it, back
  * steps through earlier selections, and nothing waits on the server.
@@ -124,29 +125,26 @@ export const ProjectsPage = ({
       'Failed to take step off the week:',
     );
 
-  // The open steps take over the numbers they hold, exactly as the server
-  // renumbers them
-  function handleReorder(orderedStepIds: string[]) {
+  // The path is renumbered by the same applyStepPatch the server runs, so the
+  // optimistic numbers are the ones that land
+  function handleMove(stepId: string, beforeStepId: string | undefined) {
     if (!selectedProject) return;
-    const numberByStepId = new Map(
-      localSteps.map(({id, instanceIndex}) => [id, instanceIndex]),
-    );
-    const newNumberByStepId = assignStepNumbers(
-      orderedStepIds,
-      orderedStepIds.map(stepId => numberByStepId.get(stepId) ?? 0),
-    );
+    const {path} = applyStepPatch(stepsOf(selectedProject.id), {
+      addSteps: [],
+      moveSteps: [{stepId, beforeStepId}],
+      updateStepIds: [],
+      removeStepIds: [],
+    });
+    const {numberByStepId} = numberStepPath(path);
     runOptimisticTasksUpdate(
       Object.fromEntries(
-        [...newNumberByStepId].map(([stepId, number]) => [
-          stepId,
+        [...numberByStepId].map(([pathStepId, number]) => [
+          pathStepId,
           {instanceIndex: number},
         ]),
       ),
-      () =>
-        reorderProjectStepsAction(selectedProject.id, {
-          stepIds: orderedStepIds,
-        }),
-      'Failed to reorder steps:',
+      () => moveProjectStepAction(selectedProject.id, {stepId, beforeStepId}),
+      'Failed to move step:',
     );
   }
 
@@ -236,7 +234,7 @@ export const ProjectsPage = ({
         onEditStep={stepId => setOpenModal({kind: 'editStep', stepId})}
         onSchedule={handleSchedule}
         onTakeBack={handleTakeBack}
-        onReorder={handleReorder}
+        onMove={handleMove}
         onArchive={() => handleArchive(projectId)}
       />
     );

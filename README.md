@@ -50,7 +50,7 @@ Open [http://localhost:3000](http://localhost:3000)
 - Create/edit plans with inline per-template type/frequency config, Plan Mode (NORMAL/EXTREME), and a review-changes diff before committing edits; templates are reusable and preselected from the previous plan, and last week's unfinished one-offs and project steps carry over unless deselected (a step goes back to its project)
 - **AI-assisted plan creation**: a chat modal drafts a structured plan via OpenAI (`gpt-5-nano`) calibrated from last period's per-template stats; refine → approve creates the plan atomically (completes the prior plan, carries over one-off tasks). Chats are durable — they resume across close/reload/restart (scoped to the current period) and auto-resume an interrupted generation; the composer is IME-safe
 - Fully mobile-adapted: bottom-sheet modals, compact AI banner, docked summary/submit footer
-- **Plan with Claude (MCP)**: add Mars Workbench to Claude as a custom connector (`/api/mcp`; sign-in and consent through Supabase's OAuth server) and Claude reads your week, then creates or patches the plan once you agree
+- **Plan with Claude (MCP)**: add Mars Workbench to Claude as a custom connector (`/api/mcp`, named e.g. "Mars Workbench – weekly planner"; sign-in and consent through Supabase's OAuth server). Claude reads the planning guide and your week, recaps it, asks what to keep or change, then writes plans, habits and projects (whole paths, steps onto the week) once you agree
 
 ### Priorities
 
@@ -94,6 +94,28 @@ Open items: see [design/tracker.md](./design/tracker.md).
 ## Update Log
 
 ### 2026-10-14
+- **Week model PR 5 — Claude plans projects over MCP**: the last Phase 1 PR, built from the decided spike (now `design/spike/archived/week-model-pr5-mcp-projects.md`).
+  - **Seven tools**:
+    - `get_planning_guide_before_everything` returns the guide, because claude.ai passes no server instructions from remote connectors to the model. Every other tool's description opens by pointing at it.
+    - `get_planning_context` adds every project with its whole path (each step's state — UPCOMING / THIS_WEEK / LAST_WEEK / DONE — and the day it was done), the archived projects with their goal, and the steps on this and last week's plans with their board status.
+    - New `create_project`, and `update_project`: one all-or-nothing patch of title, goal, archive / unarchive, and steps added, edited, moved or removed. New and moved steps go right before a given step, or at the end.
+    - New `update_habit` (a template's title, description, size).
+    - `create_plan` / `update_plan` take `carryOverProjectStepIds`, `addProjectStepIds` and `removeProjectStepIds`, each validated: carried steps must be last week's, added ones upcoming, removed ones this week's.
+  - **Bug fixed**: creating next week's plan through Claude no longer returns last week's unfinished steps to their projects; they carry over by default, like one-offs.
+  - **The guide**: rewritten around a short Rules list — read the guide first, ask before assuming, plan before scheduling, a focus check at 3 habits and 4 active projects, projects of about 10 steps, keep step order, archiving is the user's call. It adds how to plan a week (recap, ask, check focus, plan, then schedule) and how to start something new (habit or project, overlap with what exists, first milestone for big goals, an empty account's first week).
+  - **Shared with the app**:
+    - One path rule: a dragged step on the Projects page moves through the same `applyStepPatch` as `update_project`, so the optimistic numbers and the server's always match (a done step's number can now shift when a step moves across it).
+    - A project holds at most 50 steps, for Add Step and for Claude.
+  - **Verified** on a local Postgres through the MCP endpoint, 45 checks:
+    - every tool and description;
+    - create, schedule, patch (insert, move, edit, remove), archive and unarchive, with the database checked after each;
+    - every error path writing nothing;
+    - another user's projects and steps out of reach;
+    - two week rollovers: default carry-over keeps a step's status, `[]` returns steps with their numbers;
+    - the step limit for both Add Step and Claude.
+  - **Drag reorder**: optimistic and server numbers match on paths with a done step in the middle, and all 12 drag moves land in the dropped order.
+  - **Checks**: tsc, eslint, prettier, theme check and `next build` are green.
+  - **Docs**: the MCP and projects flows describe what shipped. `reference.md` and baseline are updated, and the Projects mockup is deleted. Conversations in claude.ai on a preview deployment are still to run.
 - **Week model PR 5 spike decided** (`design/spike/week-model-pr5-mcp-projects.md`, owner review on PR #61):
   - **Answers**: steps are placed by anchors (`beforeStepId`), and the Projects page's drag reorder moves onto the same logic, so a drag and Claude's `update_project` number steps identically. Claude always asks first when planning a week: it recaps last week and where each project stands, then asks whether to keep the focus or change it. Project-like templates get one suggestion to become projects. The MCP `create_plan` step bug is fixed inside PR 5 (until then, create next week's plan in the plan form). Planning and scheduling stay separate tools. The guide becomes its own tool, `get_planning_guide_before_everything`, and every other tool's description opens by pointing at it, because claude.ai passes no server instructions to the model.
   - **Added from the owner's notes**:

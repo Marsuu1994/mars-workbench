@@ -45,10 +45,10 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | `updateProjectAction` | Rename a project / change its goal | `projectService.updateProject` |
 | `archiveProjectAction` | Archive a project (its unfinished steps leave the week) | `projectService.archiveProject` |
 | `unarchiveProjectAction` | Unarchive a project | `projectService.unarchiveProject` |
-| `addProjectStepAction` | Append a step to a project's path | `projectService.addProjectStep` |
+| `addProjectStepAction` | Append a step to a project's path (at most 50 steps) | `projectService.addProjectStep` |
 | `updateProjectStepAction` | Edit a step that isn't done | `projectService.updateProjectStep` |
 | `deleteProjectStepAction` | Delete a step that isn't done | `projectService.deleteProjectStep` |
-| `reorderProjectStepsAction` | Reorder a project's unfinished steps | `projectService.reorderProjectSteps` |
+| `moveProjectStepAction` | Move a step right before another one, or to the end (drag reorder) | `projectService.moveProjectStep` |
 | `scheduleProjectStepAction` | Put a step on this week | `projectService.scheduleProjectStep` |
 | `unscheduleProjectStepAction` | Take back a step still in the backlog | `projectService.unscheduleProjectStep` |
 | **`src/actions/settingsActions.ts`** | | |
@@ -66,9 +66,13 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 
 | Tool | Purpose | Calls |
 | --- | --- | --- |
-| `get_planning_context` | Snapshot to plan from: date/week, active or last plan (lines + progress, one-offs, totals), reusable templates | `planningService.getPlanningContext` |
-| `create_plan` | Create this week's plan from existing + new templates, with a carry-over selection | `planningService.createPlanFromSpec` |
-| `update_plan` | Patch this week's active plan (add / new / update / remove templates, drop one-offs, mode, description) | `planningService.patchActivePlan` |
+| `get_planning_guide_before_everything` | The guide (`MCP_SERVER_INSTRUCTIONS`) as a tool result — claude.ai passes no server instructions to the model | — |
+| `get_planning_context` | Snapshot to plan from: date/week, active or last plan (lines + progress, one-offs, project steps, totals), reusable templates, projects with their paths, archived projects | `planningService.getPlanningContext` |
+| `create_plan` | Create this week's plan from existing + new templates, with carry-over selections and upcoming steps to add | `planningService.createPlanFromSpec` |
+| `update_plan` | Patch this week's active plan (add / new / update / remove templates, drop one-offs, add / remove steps, mode, description) | `planningService.patchActivePlan` |
+| `update_habit` | Change a template's title, description or size | `planningService.updateHabit` |
+| `create_project` | Create a project with its whole path | `projectPlanningService.createProjectFromSpec` |
+| `update_project` | Patch a project (title, goal, archive, add / edit / move / remove steps), all or nothing | `projectPlanningService.patchProject` |
 
 ## Services (src/services)
 
@@ -90,9 +94,13 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `createPlanInTx` | Shared transactional plan-creation core reused by `createPlan`/`createPlanFromEntries`; rejects templates the user doesn't own; links the selected one-offs and steps, returns the pending plan's others |
 | `updatePlanInTx` | Transactional plan-update core (template diff + task regeneration, ad-hoc and project-step links, description/mode); returns the applied diff |
 | **`planningService.ts`** | |
-| `getPlanningContext` | MCP read model, synced first: date/week, this week's ACTIVE or last PENDING_UPDATE plan (lines + progress, one-offs, totals), reusable templates |
-| `createPlanFromSpec` | Guarded create from existing + new templates with a validated carry-over selection |
-| `patchActivePlan` | Patch this week's ACTIVE plan only: patch → full template list (conflicts rejected) → `updatePlanInTx`, one transaction with any new templates |
+| `getPlanningContext` | MCP read model, synced first: date/week, this week's ACTIVE or last PENDING_UPDATE plan (lines + progress, one-offs, project steps, totals), reusable templates, projects (one read) |
+| `createPlanFromSpec` | Guarded create from existing + new templates with validated one-off and step selections (steps carried over by default) |
+| `patchActivePlan` | Patch this week's ACTIVE plan only: patch → full template and step lists (conflicts rejected) → `updatePlanInTx`, one transaction with any new templates |
+| `updateHabit` | Change a template's own fields; already generated instances keep theirs |
+| **`projectPlanningService.ts`** | |
+| `createProjectFromSpec` | MCP `create_project`: `projectService.createProject` → the project as the planning tools describe it |
+| `patchProject` | MCP `update_project`: `applyStepPatch` → one transaction (delete, edit, add, renumber, title / goal, archive last); throws `PlanningError` on any conflict or past the step limit |
 | **`matrixService.ts`** | |
 | `fetchPriorityMatrix` | Matrix tasks + active-plan info for `/kanban/priorities` |
 | `trackTaskThisWeek` | Track This Week: pull a matrix task onto the board |
@@ -112,10 +120,10 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `updateProject` | Rename a project or change its goal |
 | `archiveProject` | Archive: unfinished steps return to the project (done steps keep their plan) |
 | `unarchiveProject` | Unarchive: the project returns with its path intact |
-| `addProjectStep` | Append a step to the end of the path |
+| `addProjectStep` | Append a step to the end of the path (refused at the 50-step limit) |
 | `updateProjectStep` | Edit a step that isn't done (size re-derives points) |
 | `deleteProjectStep` | Delete a step that isn't done; later steps move up one |
-| `reorderProjectSteps` | Renumber the unfinished steps into the numbers they hold, in the given order |
+| `moveProjectStep` | Move a step before another one or to the end; renumber the whole path with `applyStepPatch` |
 | `scheduleProjectStep` | `ensureSynced` → put an unscheduled step on the active plan |
 | `unscheduleProjectStep` | Take back a scheduled step still in the backlog |
 | **`oauthConsentService.ts`** | |
@@ -172,8 +180,9 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `createProjectSteps` | Insert numbered steps (off the week, BACKLOG) |
 | `updateProjectStep` | Edit a step that isn't done |
 | `deleteProjectStep` | Delete a step that isn't done |
+| `deleteProjectSteps` | Batch delete a project's steps that aren't done |
 | `shiftStepsAfterIndex` | Move later steps up one after a delete (numbers stay contiguous) |
-| `renumberProjectSteps` | Renumber unfinished steps after a reorder, in one statement |
+| `renumberProjectPath` | Renumber a project's whole path (done steps included), in one statement |
 | `scheduleProjectStep` | Link an unscheduled step of a non-archived project to a plan |
 | `unscheduleProjectStep` | Unlink a scheduled step still in the backlog |
 | `linkProjectStepsToPlan` | Batch link unfinished steps to a plan (status kept) |

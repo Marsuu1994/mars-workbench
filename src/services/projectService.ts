@@ -7,7 +7,7 @@ import {
   getProjectStepById,
   getProjectWithStepsById,
   getProjectsWithSteps,
-  renumberProjectSteps,
+  renumberProjectPath,
   scheduleProjectStep as dalScheduleProjectStep,
   shiftStepsAfterIndex,
   unlinkUnfinishedStepsByProjectId,
@@ -16,54 +16,50 @@ import {
   updateProjectArchived,
   updateProjectStep as dalUpdateProjectStep,
   type ProjectItem,
-  type ProjectStepRow,
   type ProjectWithSteps,
 } from '@/lib/db/projects';
 import type {TaskItem} from '@/lib/db/tasks';
 import {TaskStatus} from '@/generated/prisma/client';
 import {sizeToPoints} from '@/utils/sizeUtils';
-import {assignStepNumbers, getNextStepNumber} from '@/utils/projectUtils';
+import {
+  PROJECT_STEP_LIMIT,
+  applyStepPatch,
+  getNextStepNumber,
+  hasNoStepConflicts,
+  numberStepPath,
+  toNullableText,
+  toProjectStepRow,
+} from '@/utils/projectUtils';
 import {ensureSynced} from '@/services/syncService';
 import type {ProjectsPageData} from '@/types/projects';
 import type {
   CreateProjectInput,
   CreateProjectStepInput,
+  MoveProjectStepInput,
   UpdateProjectInput,
   UpdateProjectStepInput,
 } from '@/schemas';
 
 type ProjectResult = {project: ProjectItem} | {error: 'projectNotFound'};
 type StepResult<E extends string> = {step: TaskItem} | {error: E};
-export type AddProjectStepResult = StepResult<'projectNotFound'>;
+export type AddProjectStepResult = StepResult<
+  'projectNotFound' | 'stepLimitReached'
+>;
 export type ProjectStepResult = StepResult<'stepNotFound'>;
 export type ScheduleProjectStepResult = StepResult<
   'noActivePlan' | 'stepNotFound'
 >;
-export type ReorderProjectStepsResult =
-  | {project: ProjectWithSteps}
-  | {error: 'projectNotFound' | 'stepOrderMismatch'};
+export type MoveProjectStepResult =
+  {project: ProjectWithSteps} | {error: 'projectNotFound' | 'stepNotFound'};
 
 const uuidSchema = z.string().uuid();
 
 /** Malformed ids (e.g. an LLM-invented one) never reach the uuid columns. */
 const isUuid = (id: string) => uuidSchema.safeParse(id).success;
 
-/** Empty optional text clears the field. */
-const toNullableText = (text: string | undefined) =>
-  text === undefined ? undefined : text || null;
-
 /** Step rows numbered from `firstIndex`, with points derived from size. */
-const toStepRows = (
-  steps: CreateProjectStepInput[],
-  firstIndex: number,
-): ProjectStepRow[] =>
-  steps.map(({title, description, size}, offset) => ({
-    title,
-    description: description || undefined,
-    size,
-    points: sizeToPoints(size),
-    instanceIndex: firstIndex + offset,
-  }));
+const toStepRows = (steps: CreateProjectStepInput[], firstIndex: number) =>
+  steps.map((step, offset) => toProjectStepRow(step, firstIndex + offset));
 
 // ── Projects ─────────────────────────────────────────────────────────────────
 
@@ -105,7 +101,8 @@ export async function getProject(
 
 /**
  * Create a project, optionally with its first steps (numbered 1..n in input
- * order) — one transaction, so a project never exists half-written.
+ * order; the schema caps them at PROJECT_STEP_LIMIT) — one transaction, so a
+ * project never exists half-written.
  */
 export async function createProject(
   userId: string,
@@ -172,7 +169,10 @@ export async function unarchiveProject(
 
 // ── Steps ────────────────────────────────────────────────────────────────────
 
-/** Append a step to the end of the path, off the week (planId = null). */
+/**
+ * Append a step to the end of the path, off the week (planId = null). A path
+ * holds at most PROJECT_STEP_LIMIT steps.
+ */
 export async function addProjectStep(
   userId: string,
   projectId: string,
@@ -182,6 +182,9 @@ export async function addProjectStep(
   return prisma.$transaction(async tx => {
     const project = await getProjectWithStepsById(userId, projectId, tx);
     if (!project) return {error: 'projectNotFound'} as const;
+    if (project.steps.length >= PROJECT_STEP_LIMIT) {
+      return {error: 'stepLimitReached'} as const;
+    }
     const [step] = await createProjectSteps(
       userId,
       projectId,
@@ -233,38 +236,31 @@ export async function deleteProjectStep(
 }
 
 /**
- * Reorder the project's unfinished steps. `stepIds` must list exactly those
- * steps, in their new order; they take over the step numbers the unfinished
- * steps already hold (ascending), so done steps keep theirs and the numbers
- * stay contiguous. One transaction.
+ * Move a step that isn't done right before another one, or to the end of the
+ * path; the whole path is renumbered. Uses the same `applyStepPatch` as the
+ * Projects page's optimistic drag and MCP's update_project, so all three
+ * number a path alike. One transaction.
  */
-export async function reorderProjectSteps(
+export async function moveProjectStep(
   userId: string,
   projectId: string,
-  stepIds: string[],
-): Promise<ReorderProjectStepsResult> {
+  {stepId, beforeStepId}: MoveProjectStepInput,
+): Promise<MoveProjectStepResult> {
   if (!isUuid(projectId)) return {error: 'projectNotFound'};
   return prisma.$transaction(async tx => {
     const project = await getProjectWithStepsById(userId, projectId, tx);
     if (!project) return {error: 'projectNotFound'} as const;
 
-    const unfinishedSteps = project.steps.filter(
-      step => step.status !== TaskStatus.DONE,
-    );
-    const unfinishedStepIds = new Set(unfinishedSteps.map(step => step.id));
-    const listsEveryUnfinishedStepOnce =
-      stepIds.length === unfinishedSteps.length &&
-      new Set(stepIds).size === stepIds.length &&
-      stepIds.every(stepId => unfinishedStepIds.has(stepId));
-    if (!listsEveryUnfinishedStepOnce) {
-      return {error: 'stepOrderMismatch'} as const;
-    }
+    const {path, conflicts} = applyStepPatch(project.steps, {
+      addSteps: [],
+      moveSteps: [{stepId, beforeStepId}],
+      updateStepIds: [],
+      removeStepIds: [],
+    });
+    if (!hasNoStepConflicts(conflicts)) return {error: 'stepNotFound'} as const;
 
-    const numberByStepId = assignStepNumbers(
-      stepIds,
-      unfinishedSteps.map(step => step.instanceIndex),
-    );
-    await renumberProjectSteps(
+    const {numberByStepId} = numberStepPath(path);
+    await renumberProjectPath(
       userId,
       projectId,
       [...numberByStepId.keys()],
@@ -272,12 +268,8 @@ export async function reorderProjectSteps(
       tx,
     );
 
-    const reorderedProject = await getProjectWithStepsById(
-      userId,
-      projectId,
-      tx,
-    );
-    return {project: reorderedProject!};
+    const movedProject = await getProjectWithStepsById(userId, projectId, tx);
+    return {project: movedProject!};
   });
 }
 
