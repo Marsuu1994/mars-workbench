@@ -1,10 +1,10 @@
 # Spike: Simplify AGENTS.md
 
-**Status: awaiting owner review** · 2026-10-14 · 回答 tracker 条目 *Spike: simplify AGENTS.md*（Cross-cutting › Medium）· 基于 main `4bbdbd5`（#63）· 来源：owner 让 agent 以 AI judge 的身份 review AGENTS.md，共两轮（2026-10-10 基于 `dad1eac`，2026-10-14 基于 `4bbdbd5`）· 相关：`CLAUDE.md`、`.claude/commands/push.md`、`.claude/skills/`、`design/README.md`、`.github/workflows/ci.yml`、`eslint.config.mjs`
+**Status: awaiting owner review** · 2026-10-14（同日按 #65–#67 更新）· 回答 tracker 条目 *Spike: simplify AGENTS.md*（Cross-cutting › Medium）· 基于 main `6530079`（#67）· 来源：owner 让 agent 以 AI judge 的身份 review AGENTS.md，共两轮（2026-10-10 基于 `dad1eac`，2026-10-14 基于 `4bbdbd5`）· 相关：tracker 的 *Milestone — Quality gate before Phase 2*（Cross-cutting › High）、`CLAUDE.md`、`.claude/commands/push.md`、`.claude/skills/`、`design/README.md`、`.github/workflows/ci.yml`、`eslint.config.mjs`
 
-> 语言约定：叙述用中文；规则名、文件路径、代码标识、ESLint 规则名保留英文（`One file → one component`、`react/no-multi-comp`、`aiPlanChatStore` …），和 AGENTS.md、代码一一对应。文中 `:N` 指 main `4bbdbd5` 上 AGENTS.md 的行号。
+> 语言约定：叙述用中文；规则名、文件路径、代码标识、ESLint 规则名保留英文（`One file → one component`、`react/no-multi-comp`、`aiPlanChatStore` …），和 AGENTS.md、代码一一对应。文中 `:N` 指 AGENTS.md 的行号；`tracker.md:N` 指 main `6530079` 上 tracker 的行号。#65–#67 只改了 tracker、README 和几份 design 文档，AGENTS.md、`.claude/`、CI 和 `src/` 自 `4bbdbd5` 起没有变，所以行号和违规数在两个 commit 上都成立。
 
-这份 spike 分四部分：起因和现状；问题清单，每条都带证据和建议，编号方便逐条回复；三个方案和推荐；待 owner 决定的问题。附录 A 列出 AGENTS.md 每条规则的去向，附录 B 是精简后的目标大纲。
+这份 spike 分五部分：起因和现状；和 Quality gate milestone 的关系；问题清单，每条都带证据和建议，编号方便逐条回复；三个方案和推荐；待 owner 决定的问题。附录 A 列出 AGENTS.md 每条规则的去向，附录 B 是精简后的目标大纲。
 
 ---
 
@@ -73,7 +73,20 @@ review 找到的问题有三个后果：
 | TypeScript | `npx tsc --noEmit`（没有 npm script） | 否 | 通过 |
 | `next build` | `npm run build` | 否 | 本次没跑 |
 
-lint 和 tsc 现在都是绿的，只是没进 CI。现有的 ESLint 配置已经把 `@typescript-eslint/no-explicit-any` 设成 error，所以 `:281`「No `any`」只差进 CI 这一步，就能由工具来执行。
+lint 和 tsc 现在都是绿的，只是没进 CI；Milestone Step 1（`tracker.md:65`）已经计划把它们加进去。现有的 ESLint 配置已经把 `@typescript-eslint/no-explicit-any` 设成 error，所以 `:281`「No `any`」只差进 CI 这一步，就能由工具来执行。
+
+## Quality gate · 和 milestone 的关系
+
+#66 和 #67 在 tracker 里加了 *Milestone — Quality gate before Phase 2*（`tracker.md:64`）。其中四步和这份 spike 有交集：
+
+| Step | milestone 里的内容 | 和这份 spike 的关系 |
+| --- | --- | --- |
+| Step 1（`tracker.md:65`） | ESLint 和 tsc 加进 CI；删 dead code | 就是 Option C 里 PR 2 的 CI 部分。Step 1 先做的话，PR 2 只剩两条 ESLint 规则 |
+| Step 2（`tracker.md:66`） | 删掉 in-app AI chat（`aiPlanChatStore`、`aiChatActions`、`aiChatService`、`prompt/`、`openai`） | D5 的 slice 规则失去对象；D3、D4 的违规数下降；AGENTS.md 有 6 处会过时（D12） |
+| Step 5（`tracker.md:69`） | `/quality-sweep` skill，加一个两周一次的 Routine，查规则文件之间的冲突和过期的临时例外；第一条已知 finding 就是 C4 | 这份 spike 相当于一次手工 sweep。它的分类（D、R、C、P、A、X、E）可以直接用作 sweep checklist 里「规则文件」那一节；防增长（Q7）也可以交给 sweep |
+| Step 8（`tracker.md:82-83`） | component structure 和 config-driven modals | C2、Q5 等它裁决；Projects 的 pilot 例外挪到它下面 |
+
+Step 6（mutation layer）和 Step 8 都会往 AGENTS.md 写新规则。先把 AGENTS.md 精简好，这些新规则就知道该放在哪里，不会再堆到小节末尾（Q11）。
 
 ---
 
@@ -97,15 +110,16 @@ lint 和 tsc 现在都是绿的，只是没进 CI。现有的 ESLint 配置已�
 | --- | --- | --- | --- |
 | D1 | `:278` Named exports only（例外：`page.tsx`、`layout.tsx`） | 16 个组件文件用 `export default`：`domain/board/` 8 个、`domain/priorities/` 3 个、`domain/shared/` 3 个、`domain/plan/` 2 个。例外清单漏了 4 个 `loading.tsx`，Next 要求这类文件用 default export | 保留，例外改成「Next 约定文件」，交给 `import/no-default-export`（Q2a） |
 | D2 | `:279` Components as `const` arrow functions | 17 个文件里有 18 个组件用 `function`（D1 的 16 个文件，加上 `ReviewChangesModal.tsx` 的 2 个）；用 const arrow 的约有 104 个文件。另有 26 个 Next 约定文件（page、layout、loading）都写成 `export default function`，规则没说它们算不算 | 保留，Next 约定文件豁免，交给 `react/function-component-definition`（Q2b） |
-| D3 | `:149` One file → one component | `react/no-multi-comp` 报了 6 个文件：`LoginScreen.tsx`、`ReviewChangesModal.tsx`、`AiPlanChatModal.tsx`、`Avatars.tsx`，以及 Design Console 的 `GalleryParts.tsx`、`tabs/DomainTab.tsx` | 保留，交给 lint（Q2c） |
-| D4 | `:151` 不用缩写和单字母名（例外 `id`、`tx`、`t`） | `id-length`（min 2，例外 `t`、`_`）报 81 处、分布在 33 个文件；另有 `prev` 14 处，属于缩写，`id-length` 抓不到。例外 `t` 还和 `templates.map(t => …)`（`PlanForm.tsx:206`）撞名 | Q2d |
-| D5 | `:312` store 超过约 5 个 action 就用 slice | `aiPlanChatStore` 约有 15 个 action，没有拆。Phase 2 会去掉 in-app AI chat（`tracker.md:27`），这个 store 会跟着删掉 | 删除（Q2e） |
+| D3 | `:149` One file → one component | `react/no-multi-comp` 报了 6 个文件：`LoginScreen.tsx`、`ReviewChangesModal.tsx`、`AiPlanChatModal.tsx`、`Avatars.tsx`，以及 Design Console 的 `GalleryParts.tsx`、`tabs/DomainTab.tsx` | 保留，交给 lint（Q2c）。`AiPlanChatModal.tsx` 和 `Avatars.tsx` 会在 Milestone Step 2 删掉，之后剩 4 个文件、8 处 |
+| D4 | `:151` 不用缩写和单字母名（例外 `id`、`tx`、`t`） | `id-length`（min 2，例外 `t`、`_`）报 81 处、分布在 33 个文件；另有 `prev` 14 处，属于缩写，`id-length` 抓不到。例外 `t` 还和 `templates.map(t => …)`（`PlanForm.tsx:206`）撞名。其中 12 处在 Step 2 会删掉的文件里（`aiChatService.ts`、`aiPlanChatStore.ts`、`useAiPlanChat.ts`、`draftPlanPrompt.ts`、`AiPlanChatModal.tsx`），之后剩 69 处、28 个文件 | Q2d |
+| D5 | `:312` store 超过约 5 个 action 就用 slice | `aiPlanChatStore` 约有 15 个 action，没有拆。Milestone Step 2（`tracker.md:66`）会提前删掉 in-app AI chat，这个 store 跟着删掉 | 删除（Q2e） |
 | D6 | `:299-305` API Conventions | 仓库只有两个 route handler：`api/mcp/route.ts` 和 `.well-known/oauth-protected-resource/api/mcp/route.ts`，都交给 `mcp-handler` 处理。没有用 `NextResponse.json`，也不返回 `{error: string}`：MCP 走 JSON-RPC，错误由 `runTool` 包成 `isError` 结果。所以 `:302`、`:303` 没有适用对象，`:304`、`:305` 重复了 Layers | 压成一行：route handler 只做 route → `src/mcp/` 或 action → service |
 | D7 | `:330` No inline styles | 4 处 `style=`，都是动态值：`ui/ProgressBar.tsx:26` 的宽度百分比、`ui/Toast.tsx:81` 的 `--fx-countdown-ms`、`auth/AuthBackdrop.tsx:11` 和 `:24` 两处读 CSS 变量的渐变 | 加例外：只允许动态值（Q2f） |
 | D8 | `:168` 用 Heroicons，不写 inline SVG | 4 个文件有 `<svg>`：`AppSidebar.tsx`（自绘图形）、`ProgressDashboard.tsx`（进度环，属于图表）、`BrandIcon.tsx`、`LoginScreen.tsx`（品牌标志和 Google 标志） | 限定为「图标」，品牌标志和图表除外 |
 | D9 | `:331` 不写死颜色 token | 7 处 `text-white` 或 `stroke-white`：`AppSidebar.tsx` 4 处，`BrandIcon.tsx`、`LoginScreen.tsx`、`SettingsPanel.tsx` 各 1 处，都在品牌渐变上 | Q2g |
-| D10 | 事实错误 | `:287` 说用的是 "the `gts` config"，但 `.prettierrc.json` 只是手写的 4 个选项，`gts` 也不在依赖里。树里 `lib/` 写的是 `prisma/`，实际是 `lib/prisma.ts`。树里缺 `src/i18n/`。Tech Stack 缺 next-intl（而 `:212` 的 i18n 规则是最长的规则之一）和 React Compiler（`next.config.ts` 里的 `reactCompiler: true`）。树里列了 `scripts/one-time/`，但目录不存在（`tracker.md:22` 计划写第一个脚本） | 直接改 |
-| D11 | `:139` "Every page follows this split" | Plan 页还没迁移（`tracker.md:28`），Projects 页是 pilot 例外 | 改成「目标」，现状交给 tracker（见 C2） |
+| D10 | 事实错误 | `:287` 说用的是 "the `gts` config"，但 `.prettierrc.json` 只是手写的 4 个选项，`gts` 也不在依赖里。树里 `lib/` 写的是 `prisma/`，实际是 `lib/prisma.ts`。树里缺 `src/i18n/`。Tech Stack 缺 next-intl（而 `:212` 的 i18n 规则是最长的规则之一）和 React Compiler（`next.config.ts` 里的 `reactCompiler: true`）。树里列了 `scripts/one-time/`，但目录不存在（`tracker.md:21` 计划写第一个脚本） | 直接改 |
+| D11 | `:139` "Every page follows this split" | Plan 页还没迁移（`tracker.md:27`），Projects 页是 pilot 例外 | 改成「目标」，现状交给 tracker（见 C2） |
+| D12 | Step 2 之后会过时的 6 处 | Milestone Step 2 删掉 in-app AI chat、`prompt/` 和 `openai` 之后，这 6 处就不对了：`:12`「AI-assisted plan creation」（规划改由 Claude 通过 MCP 完成）、`:21` LLM 一行、`:57` 树里的 `prompt/`、`:201` 例子里的 `ai-chat/constants.ts`、`:212` 「Never translated: `prompt/*.ts`」、`:309` 例子里的 `aiPlanChatStore` | Step 2 的 PR 顺手改；如果 PR 1 先做，就直接按 Step 2 之后的状态写（Q11） |
 
 ### R · 重复
 
@@ -129,11 +143,11 @@ lint 和 tsc 现在都是绿的，只是没进 CI。现有的 ESLint 配置已�
 | # | 内容 | 建议 |
 | --- | --- | --- |
 | C1 | `:157` 要求枚举分支用 `switch/case/default`，`:225` 又推荐用 `Record<Key, string>` 做映射。而且 `default` 会吞掉新加的枚举值 | 映射用 `Record<Enum, T>`，编译期就能发现漏项；分支逻辑用 `switch`，在 `default` 里做 `never` 检查（Q3） |
-| C2 | `:97` Screen components 要求每个页面抽出 screen 组件，让 scenario 渲染同一个组件；`:103` Production first 说不要为 console 拆组件。两条方向相反，Projects pilot 就是按后一条去掉了 screen 层。两条都在等 component structure spike（`tracker.md:90`） | 那个 spike 定之前，合成一条「现状 + 待定」，pilot 例外挪到 tracker（Q5） |
+| C2 | `:97` Screen components 要求每个页面抽出 screen 组件，让 scenario 渲染同一个组件；`:103` Production first 说不要为 console 拆组件。两条方向相反，Projects pilot 就是按后一条去掉了 screen 层。两条都在等 component structure spike，现在是 Milestone Step 8（`tracker.md:82-83`） | 那个 spike 定之前，合成一条「现状 + 待定」，pilot 例外挪到 tracker（Q5） |
 | C3 | `:139` 要求 adapter 放在 `useMemo` 里，但 React Compiler 已经打开，编译器会自动 memo（全仓共 9 处 `useMemo` 或 `useCallback`） | 删掉 "inside a `useMemo`"（Q4） |
-| C4 | `push.md` 第 2 步：当天已有条目时，"replace them with a consolidated summary"；AGENTS.md `:124` 和 `:334`：只追加，不改过去的条目。当天的条目算不算"过去"，没有说清楚 | Q8 |
+| C4 | `push.md` 第 2 步：当天已有条目时，"replace them with a consolidated summary"；AGENTS.md `:124` 和 `:334`：只追加，不改过去的条目。当天的条目算不算"过去"，没有说清楚。#67 已经把这条记为 Milestone Step 5 的第一条 finding（`tracker.md:69`） | Q8 |
 | C5 | `push.md` 第 4 步要求每次 push 都更新 tech stack、structure、feature comments；new-feature skill 的 Step 4 要把新 feature 登记到树里的 `features/`，而这个目录不存在；AGENTS.md `:28` 却说树只写目录职责、不列清单 | push.md 改成「规则或目录职责变了才更新」；skill 删掉 Step 4（Q8） |
-| C6 | `:121` 要求 tracker 每项 1–2 行，但 tracker 里有 12 项超过 300 字符（最长的 `:88` 有 745 字符，`:27` 有 592 字符） | 规则不变，收紧 tracker 另开一项（Q10） |
+| C6 | `:121` 要求 tracker 每项 1–2 行。#65 清理之后，仍有 11 项超过 300 字符（最长的是 `:69` Step 5，882 字符；`:26` Phase 2，653 字符；`:65` Step 1，617 字符） | 规则不变，收紧 tracker 另开一项（Q10） |
 | C7 | `:332` 只禁 `console.log`；代码里有 7 处 `console.error`（乐观更新失败回滚、`runTool`、`PlayRunner`），都是有意为之 | lint 用 `no-console`，并 allow `error` 和 `warn` |
 
 ### P · 放错了位置
@@ -143,8 +157,8 @@ lint 和 tsc 现在都是绿的，只是没进 CI。现有的 ESLint 配置已�
 | P1 | `:274` Status marks must not look like controls 是视觉设计原则。它被放进 Coding Conventions › JSX & components，只是因为 `:143` 要求新规则追加到小节末尾 | `design/design-language/README.md` |
 | P2 | 只在编辑对应文档时才用得上的规则：spike 相关的 `:79-89`、`:125`、`:127`，tracker 子项的 `:126`，flow 文档的 `:128` | 分别去 `design/spike/README.md`（新建）、`design/tracker.md` 开头、`design/flows/README.md`（新建） |
 | P3 | 只在写 scenario 时才用得上的规则：`:98` frame modes、`:99` InteractionShield、`:100` 里 play steps 和 `data-time="frozen"` 的细节、`:101` modals render inline、`:102` one tab one state | `src/app/design/README.md`（新建）；AGENTS.md 只留两条硬规则 |
-| P4 | `:139` 有 225 词，内容是一项架构决策 | `design/baseline.md` 的 Architecture Decision；AGENTS.md 留两行；`tracker.md:28` 里的链接跟着改 |
-| P5 | `:320-324` One-Time Scripts | 第一个脚本落地时（`tracker.md:22`）写进 `scripts/one-time/README.md`；在那之前，AGENTS.md 留一行 |
+| P4 | `:139` 有 225 词，内容是一项架构决策 | `design/baseline.md` 的 Architecture Decision；AGENTS.md 留两行；`tracker.md:27` 里的链接跟着改 |
+| P5 | `:320-324` One-Time Scripts | 第一个脚本落地时（`tracker.md:21`）写进 `scripts/one-time/README.md`；在那之前，AGENTS.md 留一行 |
 | P6 | `:162`、`:163`、`:318` 是通用工程常识（先粗查再在内存里过滤；热点用定向查询；按 `EXPLAIN ANALYZE` 加索引） | 删掉。保留项目特有的三条：`:161` 批量写、`:164` `$transaction` 配合 `tx?`、`:317` 用 `select` 选字段 |
 
 ### A · 违反 AGENTS.md 自己的写作规则
@@ -217,7 +231,7 @@ lint 和 tsc 现在都是绿的，只是没进 CI。现有的 ESLint 配置已�
 | Status marks | `design/design-language/README.md` |
 | Server shapes inputs 的详细版 | `design/baseline.md` › Architecture Decision |
 | Design Console 机制 | `src/app/design/README.md`（新建） |
-| Projects pilot 例外 | tracker 里 component structure spike 那一项下面 |
+| Projects pilot 例外 | tracker 的 Milestone Step 8（component structure）下面 |
 | MCP 鉴权细节 | 已在 `reference.md` 和 `flows/auth.md` 里，直接删 |
 | one-time 脚本规范 | 暂时在 AGENTS.md 留一行，第一个脚本落地时挪到 `scripts/one-time/README.md` |
 
@@ -229,7 +243,7 @@ lint 和 tsc 现在都是绿的，只是没进 CI。现有的 ESLint 配置已�
 **代价**：
 - agent 可能不读文档开头就直接改。缓解办法：AGENTS.md 里放「规则在哪」表，Session Start 里写明「编辑前先读开头」。
 - 规则分散在 7 个文件里，想看全貌时要多打开几个文件。
-- 指向「AGENTS.md › …」的链接要更新（`tracker.md:28`、`design/README.md`）。已归档的 spike 是冻结的，不改。
+- 指向「AGENTS.md › …」的链接要更新（`tracker.md:27`、`design/README.md`）。已归档的 spike 是冻结的，不改。
 
 **变体 B′**：用子目录里的 `CLAUDE.md` 让规则自动出现（Claude Code 读到某个子目录的文件时，会加载那里的 `CLAUDE.md`）。缺点是只对 Claude Code 有效，Codex 不一定这样加载；而且会多出一套和 README 并行的文件。不推荐；如果要做，实施前先在两种 agent 上都验证一遍。
 
@@ -239,7 +253,7 @@ lint 和 tsc 现在都是绿的，只是没进 CI。现有的 ESLint 配置已�
 
 **做什么**：B 的全部，再加上：
 
-1. CI 加 `lint` 和 `typecheck` 两个 job。两者在 main 上现在都是绿的。
+1. CI 加 `lint` 和 `typecheck` 两个 job。两者在 main 上现在都是绿的；这一项就是 Milestone Step 1 的 CI 部分。
 2. ESLint 加上 E 表里的规则（`react/forbid-dom-props` 除外），并修掉现有违规。
 3. 已经由 lint 执行的规则，AGENTS.md 里只留一行。
 4. 把 `:143` 换成一条防止增长的规则：新规则放到它所属的地方；能用 lint 或脚本执行的，交给工具；和现有规则重叠时，改现有规则，而不是另加一条（Q7）。
@@ -251,17 +265,17 @@ lint 和 tsc 现在都是绿的，只是没进 CI。现有的 ESLint 配置已�
 
 **代价**：
 - 代码改动量大：default export 改成 named export，要连带改所有调用方的 import（16 个文件，加上调用方）；`function` 改 const arrow 有 18 处，只有 2 处能自动修；要拆 4 个多组件文件；81 处单字母名要手工改。这些都是不改变行为的机械改动，但 diff 大，review 要花时间。
-- 可能和进行中的工作冲突。不过 Phase 1 刚收尾（#63），Phase 2 还没排期，现在是冲突最少的时候。
+- 可能和进行中的工作冲突。不过 Phase 2 要等 Quality gate milestone 做完才开始，这件事放在 milestone 里做，冲突最少（Q11）。如果 Step 2 先做，修代码的量还会少一些（命名 69 处，多组件 4 个文件）。
 
 **实施**：分三个 PR。
 
 | PR | 内容 | 验证 |
 | --- | --- | --- |
 | PR 1 · 文档 | Option B 的全部：重写 AGENTS.md；修正 CLAUDE.md、`push.md`、两个 skill 和 `design/README.md`；新建 `design/spike/README.md`、`design/flows/README.md`、`src/app/design/README.md`；`baseline.md`、`tracker.md` 开头、`design-language/README.md` 接收挪过来的内容 | 附录 A 的每一行都有落点或删除理由；`grep` 确认没有失效链接；`npm run format:check` |
-| PR 2 · CI | `package.json` 加 `"typecheck": "tsc --noEmit"`；`ci.yml` 加 `lint` 和 `typecheck` 两个 job。`typecheck` 前要先跑 `prisma generate`，因为 CI 用 `npm ci --ignore-scripts`，而 `prisma.config.ts` 读 `DIRECT_URL`，所以要给一个假值。ESLint 同时加上 `no-console`（allow `error` 和 `warn`）和 `no-restricted-imports`，这两条现在都是 0 违规 | 本地跑一遍，CI 全绿 |
+| PR 2 · CI（= Milestone Step 1 的 CI 部分） | `package.json` 加 `"typecheck": "tsc --noEmit"`；`ci.yml` 加 `lint` 和 `typecheck` 两个 job。`typecheck` 前要先跑 `prisma generate`，因为 CI 用 `npm ci --ignore-scripts`，而 `prisma.config.ts` 读 `DIRECT_URL`，所以要给一个假值。ESLint 同时加上 `no-console`（allow `error` 和 `warn`）和 `no-restricted-imports`，这两条现在都是 0 违规 | 本地跑一遍，CI 全绿 |
 | PR 3 · 代码 | 按 Q2 的答案加 `import/no-default-export`、`react/function-component-definition`、`react/no-multi-comp`、`id-length`，修掉现有违规，再删掉 AGENTS.md 里对应的文字 | `npm run lint`、`tsc`、`next build` 都通过；Design Console 逐页截图对比无变化（这是纯重构） |
 
-PR 3 可以按规则再拆，比如命名单独一个 PR，看 diff 大小决定。
+PR 3 可以按规则再拆，比如命名单独一个 PR，看 diff 大小决定。如果 Step 1 先做了 CI，PR 2 就只剩两条 ESLint 规则，可以并进 PR 3。
 
 ---
 
@@ -280,7 +294,7 @@ PR 3 可以按规则再拆，比如命名单独一个 PR，看 diff 大小决定
   3. 只管新代码，lint 设成 warn。warn 通常没人看，不推荐。
 
   推荐选项 2。另外，`t` 只留给 next-intl，`templates.map(t => …)` 这类写法改成全称。
-- **Q2e · slice**：推荐删掉这条。`aiPlanChatStore` 会在 Phase 2 和 AI chat 一起删掉，现在拆 slice 是白做。
+- **Q2e · slice**：推荐删掉这条。`aiPlanChatStore` 会在 Milestone Step 2 和 AI chat 一起删掉，现在拆 slice 是白做。
 - **Q2f · inline styles**：推荐加例外「只允许动态值：CSS 变量、计算出来的尺寸」，不上 lint。
 - **Q2g · 品牌渐变上的 `text-white`**（7 处）：有两个选项。
   1. 换成语义 token：在主题里声明一个按角色命名的变量，每个主题都要声明，由 `check:themes` 检查。
@@ -292,25 +306,42 @@ PR 3 可以按规则再拆，比如命名单独一个 PR，看 diff 大小决定
 
 **Q4 · Server shapes inputs 怎么处理？** 推荐把详细版挪到 `baseline.md`，AGENTS.md 留两行；删掉 "inside a `useMemo`"，因为 React Compiler 已经打开。现有的 `useMemo` 不用动。
 
-**Q5 · Screen components 和 Production first 怎么协调？** 推荐在 component structure spike（`tracker.md:90`）定下来之前，先合成一条：「现状：每个页面有 screen 层，Projects 是例外；新页面怎么拆，由那个 spike 决定」。pilot 例外的细节挪到 tracker 那一项下面。spike 定了之后，只留结论。
+**Q5 · Screen components 和 Production first 怎么协调？** 推荐在 component structure spike（Milestone Step 8）定下来之前，先合成一条：「现状：每个页面有 screen 层，Projects 是例外；新页面怎么拆，由那个 spike 决定」。pilot 例外的细节挪到 tracker 那一项下面。spike 定了之后，只留结论。
 
 **Q6 · 文档格式规则要不要挪到各自文档的开头？**（spike、tracker、flow、status marks）推荐挪，AGENTS.md 留一张「规则在哪」表。
 
-**Q7 · 怎么防止再长回去？** 有两个选项，可以都选：
+**Q7 · 怎么防止再长回去？** 有三个选项，可以组合：
 
 1. 把 `:143` 换成放置规则：新规则放到所属的地方；能用工具执行的交给工具；和现有规则重叠时，改现有规则。
 2. CI 加一个体量检查，比如 `scripts/check-agents-size.mjs`，超过 N 词就失败。好处是硬约束；代价是加规则时会被卡住，得先删掉或合并别的规则。
 
-推荐选项 1。选项 2 由你决定；如果要做，预算建议定为 PR 1 之后的词数再加 10%。
+3. 交给 Milestone Step 5 的 quality sweep：sweep checklist 加一项「AGENTS.md 的体量和增长」，超出预算就作为一条 finding 报出来，而不是让 CI 失败。
+
+推荐选项 1 加选项 3。选项 2 由你决定；如果要做，预算建议定为 PR 1 之后的词数再加 10%。
 
 **Q8 · `push.md` 怎么改？** 推荐：
 
 - 第 2 步：去掉 "replace them with a consolidated summary"，改成当天的条目只追加 bullet；AGENTS.md 写明「不改前几天的条目」。
 - 第 4 步：只有规则或目录职责变了，才更新 AGENTS.md 或 CLAUDE.md。
 
+第 2 步的问题已经记为 Milestone Step 5 的第一条 finding；PR 1 直接改掉的话，Step 5 就少一条。
+
 **Q9 · CLAUDE.md 留什么？** 推荐只留 `@AGENTS.md` 和 skill 列表，并注明这些 skill 只能由你用 `/` 触发；删掉对模型的指令和重复内容。
 
-**Q10 · tracker 里的长条目怎么办？**（12 项超过 300 字符）这些不在本 spike 的 PR 里改，因为改写条目内容需要你确认。推荐在 tracker 里另加一项，单独做。
+**Q10 · tracker 里的长条目怎么办？**（#65 清理之后，仍有 11 项超过 300 字符）这些不在本 spike 的 PR 里改，因为改写条目内容需要你确认。推荐交给 Milestone Step 5 的第一次 sweep，它本来就要查 tracker 和代码是否一致。
+
+**Q11 · 这件事要不要并进 Quality gate milestone？** 有两个选项：
+
+1. 保持独立：留在 tracker 的 Cross-cutting › Medium，什么时候做都行。
+2. 并进 milestone：PR 2 并进 Step 1；PR 1（文档）和 PR 3（代码）合成新的一步，排在 Step 2 之后、Step 5 之前。
+
+推荐选项 2，理由有三条：
+
+- 放在 Step 2 之后，D12 的 6 处不用改两遍，命名也少改 12 处。
+- 放在 Step 5 之前，sweep 的「规则文件」checklist 可以直接基于精简后的结构和这份 spike 的分类来写。
+- 放在 Step 6、Step 8 之前，这两步写新规则时，已经有「规则在哪」表可以参照。
+
+milestone 同时也是 planner 里的一个 project，加一步要同步改 project 的 steps，这由你来定。
 
 ---
 

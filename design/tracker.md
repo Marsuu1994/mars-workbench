@@ -91,7 +91,7 @@ Single source of truth for open ideas and todos across the app — open items on
 - [ ] `ui/` component-structure lookup in `reference.md` — a lean high-level map for agents (humans use the `/design` gallery); follow-up to the landed component library
 - [ ] Uniform page header across board / priorities / projects / dump / settings on both breakpoints (plan keeps its planning-mode header until Phase 2's Plan hub header); also resolves the BoardHeader green-vs-primary accent drift and revisits the mobile header type scale (current mobile header font size reads too large). Along the way (`design/spike/archived/board-prop-drilling.md` Part 2): fold BoardHeader's extra wrapper div, drop the needless `'use client'` from `BoardHeader` / `ProgressDashboard`, and redraw the stale `kanban/loading.tsx` skeleton
 - [ ] Redesign the point system and metric tracking — how sizes map to points, and what the board's Today / Week / Daily avg metrics count now that a week mixes habits, project steps and one-offs (PR 3 only added a project bucket to the week projection). Direction proposed in `design/spike/week-model-phase2-pain-points.md` (points → hours of a weekly budget)
-- [ ] Spike: simplify AGENTS.md — dedupe, align rules with the code, move task-only rules next to their docs, hand mechanical rules to ESLint + CI. Spike `design/spike/agents-md-simplification.md` (awaiting owner review)
+- [ ] Spike: simplify AGENTS.md — dedupe, align rules with the code, move task-only rules next to their docs, hand mechanical rules to ESLint + CI; overlaps Quality gate Steps 1, 2, 5, 8. Spike `design/spike/agents-md-simplification.md` (awaiting owner review)
 
 ### Future
 
