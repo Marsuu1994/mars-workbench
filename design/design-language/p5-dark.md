@@ -243,11 +243,11 @@ Hover motion never replaces focus styling.
 ## Open questions / risks
 
 - **Red primary vs rose error adjacency** (hue 29 vs 12): distinct side-by-side in the
-  demo, but audit error next to primary CTAs (board risk is switched off until per-kind
+  exploration, but audit error next to primary CTAs (board risk is switched off until per-kind
   rules return; when it does, re-check its colours here).
   Escape hatch: push error toward magenta (hue ~5) if real screens confuse.
 - **Zero radius** changes daisyUI-styled controls (inputs, toggles, checkboxes)
-  across this theme — the demo covers the main ones; a full `/design` gallery
+  across this theme — the exploration covered the main ones; a full `/design` gallery
   pass in p5-dark is required at implementation.
 - **AA (not AAA) red pairs** — see palette section; accepted here, veto-able.
 - **No P5 light variant is planned** — mars-light remains the only light theme;
@@ -267,6 +267,6 @@ Anton font subset added to the font pipeline next to Geist, and:
 - verification pass: `/design` gallery (every token swatch, fx specimen,
   primitive) and the board/priorities/plan/auth scenarios, all in `p5-dark`,
   both breakpoints;
-- delete `design/mockup/future-work/mockup-p5-design-system.html` once the
-  gallery + scenarios cover the theme (scenario-first rule), and re-run the
-  contrast script against shipped values to refresh this doc's tables.
+- re-run the contrast script against shipped values to refresh this doc's
+  tables (the exploration mockup is retired; the gallery + scenarios cover the
+  theme).
