@@ -94,6 +94,13 @@ Open items: see [design/tracker.md](./design/tracker.md).
 ## Update Log
 
 ### 2026-10-14
+- **Week model PR 4d — Phase 1 closed out**: the living docs stand on their own, the Phase 1 spikes are archived, and two bugs found along the way are fixed.
+  - **Fixed — Edit Plan no longer returns what joined the week while it was open**: the form sent its whole one-off and step selection from when it loaded, so a one-off tracked from the matrix, a step put on the week from the Projects page, or one Claude added in the meantime went back on save. The form now sends only what the user let go (`removeAdhocTaskIds` / `removeProjectStepIds`), and `planService.updatePlan` reads the plan's links at save time. Reproduced on `main`'s code against a local Postgres (both went back), then checked on the fix: kept, let go, a let-go id no longer on the plan, and a step done meanwhile (keeps its plan).
+  - **Fixed — the sidebar and dock on the first visit of a new week**: the root layout read the ACTIVE plan without syncing, so until the next request the Plan link opened last week's plan for editing. It now awaits `ensureSynced`, which `cache()` shares with the page — one sync per request.
+  - **Docs**: the Projects landing flow lists open steps in path order, with this week's and last week's marked in place; baseline lists Projects and Plan with Claude (MCP) as implemented, and its step-numbering note follows PR 5's move rule; `reference.md` gains `fetchProjectsPage`; stale lines fixed — the Dump flow's five-tab dock, AGENTS.md's route list, Update Plan's entry point (the Plan nav item, no longer a board button).
+  - **Archived**: `week-model-restructure.md` and `week-model-pr4-projects-ui.md` move to `design/spike/archived/` with every link updated; the Phase 1 mockup is deleted; the tracker's Phase 1 item goes with its last sub-bullet.
+  - **Tracker**: two new items — remove the dead code (the exports nothing calls and two unused `en.json` keys, listed), and Edit Plan's template list, which still undoes a habit Claude adds or changes while the form is open.
+  - **Checks**: tsc, eslint, prettier, theme check and `next build` are green. The layout change was not run in the app (no signed-in session in this environment); `ensureSynced`'s rollover was checked by script.
 - **Week model PR 5 — Claude plans projects over MCP**: the last Phase 1 PR, built from the decided spike (now `design/spike/archived/week-model-pr5-mcp-projects.md`).
   - **Seven tools**:
     - `get_planning_guide_before_everything` returns the guide, because claude.ai passes no server instructions from remote connectors to the model. Every other tool's description opens by pointing at it.

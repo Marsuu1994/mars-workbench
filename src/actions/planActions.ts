@@ -52,7 +52,7 @@ export async function updatePlanAction(planId: string, input: unknown) {
     if ('error' in result) return result;
 
     revalidatePath('/kanban');
-    // Deselected ad-hoc tasks return to the matrix; newly linked ones become tracked
+    // Deselected ad-hoc tasks return to the matrix
     revalidatePath('/kanban/priorities');
     // Deselected steps return to their project
     revalidatePath('/kanban/projects');

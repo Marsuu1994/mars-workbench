@@ -56,10 +56,11 @@ export const updatePlanSchema = z.object({
   description: z.string().optional(),
   mode: z.nativeEnum(PlanMode).optional(),
   templates: z.array(planTemplateInputSchema).optional(),
-  adhocTaskIds: z.array(z.string().uuid()).optional(),
-  // The week's full step selection: listed steps link, unlisted unfinished
-  // ones return to their projects. Omitted = steps untouched.
-  projectStepIds: z.array(z.string().uuid()).optional(),
+  // What the user let go: these one-offs return to the matrix, these steps to
+  // their projects. Everything else on the plan stays — including what was put
+  // on the week after the form loaded.
+  removeAdhocTaskIds: z.array(z.string().uuid()).optional(),
+  removeProjectStepIds: z.array(z.string().uuid()).optional(),
 });
 export type UpdatePlanInput = z.infer<typeof updatePlanSchema>;
 

@@ -90,7 +90,8 @@ export async function runEndOfPeriodSync(
 
 /**
  * Single entry point for the sync lifecycle: every kanban page (board, matrix,
- * plan create/edit) awaits this before reading plan state, so no page carries
+ * plan create/edit, projects) and the root layout (the sidebar and dock's
+ * plan state) await this before reading plan state, so no page carries
  * its own sync branching and no "which page did the user visit first?" ordering
  * matters. Flips an ended ACTIVE plan to PENDING_UPDATE, runs the daily sync
  * once per day, and returns the current-week ACTIVE plan (or null).

@@ -1,6 +1,6 @@
 # Spike: App pain points for Week model Phase 2
 
-**Status: draft** · 2026-10-13（2026-10-14 加入 owner 的笔记：lifecycle、共用入口、同一套词）· 定稿留到 Phase 2 真正开工时 · 回答 tracker 条目 *Week model Phase 2 › Investigate the app pain points*（Plan › Future）；也回答 *Redesign the point system and metric tracking*（Cross-cutting › Medium）的方向问题 · 来源：PR 5 spike 讨论（PR #61）· 相关：`design/spike/week-model-restructure.md`（Phase 1，approved）、`design/spike/archived/week-model-pr5-mcp-projects.md`（MCP，implemented）· Phase 2 exploration：`design/mockup/future-work/mockup-week-model-phase2-v2.html`
+**Status: draft** · 2026-10-13（2026-10-14 加入 owner 的笔记：lifecycle、共用入口、同一套词）· 定稿留到 Phase 2 真正开工时 · 回答 tracker 条目 *Week model Phase 2 › Investigate the app pain points*（Plan › Future）；也回答 *Redesign the point system and metric tracking*（Cross-cutting › Medium）的方向问题 · 来源：PR 5 spike 讨论（PR #61）· 相关：`design/spike/archived/week-model-restructure.md`（Phase 1，implemented）、`design/spike/archived/week-model-pr5-mcp-projects.md`（MCP，implemented）· Phase 2 exploration：`design/mockup/future-work/mockup-week-model-phase2-v2.html`
 
 > 语言约定：叙述用中文；产品名词、状态、代码标识保留英文（habit / project / step / one-off、size / points、`TaskSize` …），和代码、mockup、tracker 一一对应。
 
@@ -219,7 +219,7 @@ PR 5 不等这份 spike：size 保留为 LLM 的估算单位，context 的形状
 
 ## 拍板之后
 
-1. 方向定了以后，在 Phase 2 规划里把它排进 PR 序列（新的 Phase 2 spike，或者扩写 `week-model-restructure.md` 的 Phase 2 部分）。
+1. 方向定了以后，在 Phase 2 规划里把它排进 PR 序列（新开一份 Phase 2 spike；Phase 1 的 `week-model-restructure.md` 已经归档，不再扩写）。
 2. Tracker：*Redesign the point system and metric tracking* 和 *One entry for habits and projects* 并进 Phase 2 那一条，按结论改写或删掉。
 3. 如果 Q6 选「搭」，PR 5 的 guide 加那一行。
 4. 状态从 draft 改成 awaiting owner review，走 AGENTS 的 spike 流程。

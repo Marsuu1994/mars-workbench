@@ -1,6 +1,6 @@
 # Shared Flows
 
-Cross-page sync lifecycle, centralized in `syncService` (`src/services/syncService.ts`). Every kanban page — board (`design/flows/board.md`), priorities matrix (`design/flows/priorities.md`), plan create/edit (`design/flows/plan.md`), and the Projects page (`design/flows/projects.md`) — awaits `ensureSynced` before reading plan state, so no page carries its own sync branching and page-visit order never matters.
+Cross-page sync lifecycle, centralized in `syncService` (`src/services/syncService.ts`). Every kanban page — board (`design/flows/board.md`), priorities matrix (`design/flows/priorities.md`), plan create/edit (`design/flows/plan.md`), and the Projects page (`design/flows/projects.md`) — and the root layout (the sidebar and dock's Board / Plan state) await `ensureSynced` before reading plan state, so no page carries its own sync branching and page-visit order never matters.
 
 > **Doc convention:** One flow per `##` heading, separated by `---`. Every flow has two required `###` sections — `Trigger / Entry Point` and `Steps` — plus an optional `### Rules` section for constraints and invariants. Extra `###` sections (e.g. `Metrics`) are allowed only for reference material that fits neither Steps nor Rules.
 
@@ -10,7 +10,7 @@ Cross-page sync lifecycle, centralized in `syncService` (`src/services/syncServi
 
 ### Trigger / Entry Point
 
-Awaited by every kanban page's data fetch before reading plan state: board (`fetchBoard`, first line), priorities (`fetchPriorityMatrix` and `trackTaskThisWeek`), and the plan create/edit pages (top of the page loaders). Single implementation: `syncService.ensureSynced(userId)`.
+Awaited by every kanban page's data fetch before reading plan state: board (`fetchBoard`, first line), priorities (`fetchPriorityMatrix` and `trackTaskThisWeek`), the plan create/edit pages (top of the page loaders) and Projects (`fetchProjectsPage`, `scheduleProjectStep`). The root layout awaits it too, for the sidebar and dock's Board / Plan state, so they never point at a week that has ended. Single implementation: `syncService.ensureSynced(userId)`.
 
 ### Steps
 
@@ -22,7 +22,7 @@ Awaited by every kanban page's data fetch before reading plan state: board (`fet
 ### Rules
 
 - Idempotent — safe to call from every page on every load.
-- Wrapped in React `cache()`: concurrent calls within one server render pass dedupe to a single run. Server Actions run in their own request, so mutations re-check fresh state.
+- Wrapped in React `cache()`: concurrent calls within one server render pass (the root layout and the page) dedupe to a single run. Server Actions run in their own request, so mutations re-check fresh state.
 - This is what makes a matrix-first or plan-page-first landing after week rollover behave exactly like a board landing (e.g. the no-plan "Create Plan" CTA never dead-ends on a stale `ACTIVE` plan).
 - `runDailySync` / `runEndOfPeriodSync` remain standalone functions — the long-term home is a scheduled cron job just after midnight in `KANBAN_TZ`, with `ensureSynced` kept as the idempotent page-side fallback (see the Cron-driven sync item in `design/tracker.md`).
 

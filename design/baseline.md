@@ -13,7 +13,7 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 3. **Plan creation** — User creates a weekly plan by selecting task templates. First-time users create new templates; returning users can load templates from their last plan, and keep or let go last week's unfinished one-offs and project steps (a step let go returns to its project).
 4. **Task templates** — Reusable blueprints with title, description, and size (`TaskSize` enum: XS/S/M/L/XL). Type and frequency are configured per-plan in PlanTemplate.
 5. **Auto-generation** — After plan creation, generate all necessary task instances. Daily tasks are regenerated each day.
-6. **Daily status recompute** — On the first kanban page load each day (any page — board, priorities, plan create/edit — via the shared `syncService.ensureSynced` entry point), expire unfinished daily tasks from earlier days and generate today's daily tasks. Idempotent. See the **Shared** flows in `./flows/shared.md`.
+6. **Daily status recompute** — On the first page load each day (every kanban page — board, priorities, projects, plan create/edit — and the app's sidebar and dock await the shared `syncService.ensureSynced` entry point), expire unfinished daily tasks from earlier days and generate today's daily tasks. Idempotent. See the **Shared** flows in `./flows/shared.md`.
 7. **Standardized sizing** — Tasks use a `TaskSize` enum (XS=1pt, S=2pt, M=3pt, L=5pt, XL=8pt) mapped to fibonacci points via `SIZE_TO_POINTS`. Points are denormalized on Task at creation time for efficient DB aggregation. Task cards display a neutral size chip (`M·3`). Template/ad-hoc modals use a full-width pill toggle selector (XS|S|M|L|XL) with effort hint text and L/XL split warning. Progress dashboard aggregates use the denormalized `points` column directly.
 8. **Missed daily tasks expire** — a daily task not done by the end of its day expires; the habit's week dots show that day as an empty dot.
 9. **Risk level visualization** — switched off in Phase 1: cards carry no risk badge, border or clock threshold until per-kind rules return (tracker).
@@ -28,6 +28,8 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 4. **Backlog** — Collapsible right-edge panel (desktop) for staging template-generated task instances (`status = BACKLOG`) before pulling them onto the board via drag-and-drop (`BACKLOG → TODO`); on mobile, a bottom sheet opened from a peeking "Backlog" pill (tap `↑ Todo` to pull). Reduces visual clutter from duplicate (`frequency > 1`) cards. Reuses the board's kind-first card, so a card reads the same before and after the pull. Today ring/points count board tasks only; Week projection includes backlog. See the **Backlog Flow** in `./flows/board.md` and the Board scenarios at `/design/scenarios/board`.
 5. **Priorities page (Eisenhower matrix)** — Full-page 2×2 priority matrix at `/kanban/priorities` (sidebar item + mobile dock tab) for organizing one-off `AD_HOC` tasks by urgency/importance (`Task.quadrant`, unassigned tasks are `BACKLOG` with `planId = null`). Cards drag freely between quadrants (reprioritize); every card's "Move to" chooser (desktop send-button popover / mobile bottom sheet) either tracks the task into the current ACTIVE plan (`BACKLOG → TODO`) or completes it in place (`→ DONE`, linked to the active plan when one exists so the points count for the week, otherwise `planId` stays null — no confirm, a 5 s undo toast instead); quadrant "Add" buttons reuse the ad-hoc task modal to create matrix tasks. Board-side ad-hoc creation is removed; deselecting an ad-hoc task from a plan returns it to the matrix (DONE tasks stay linked to preserve point history). See the **Priorities** flows in `./flows/priorities.md` and the Priorities scenarios at `/design/scenarios/priorities`.
 6. **Dump page** — Friction-free brain dump at `/kanban/dump` (sidebar item + 5th mobile dock tab): plain-text entries (noise, negatives, ideas) save in one action with zero decisions (auto-growing IME-safe composer, ⌘/Ctrl+Enter to dump), and a day-grouped, newest-first feed with cursor-based infinite scroll and a 6-line clamp is the reading view. Deliberately storage-only in V1 — no tags, no categories, no LLM; append-only; `DumpEntry.isProcessed` is reserved for a future LLM batch-processing flow (TBD). See the **Dump** flows in `./flows/dump.md` and the Dump scenarios at `/design/scenarios/dump`.
+7. **Projects** — a goal plus an ordered path of steps (at most 50) that never expire, on their own Projects page (`/kanban/projects`, a sidebar item and dock tab before Plan). Steps go onto the week one at a time — from the Projects page, the plan form's carry-over or Claude — and move across the board like any task; a project whose steps are all done shows "All steps done" until the user archives it. See `./flows/projects.md` and the Projects scenarios at `/design/scenarios/projects`.
+8. **Plan with Claude (MCP)** — Claude, connected to `/api/mcp` as a custom connector, reads the planning guide and the week (plans, habits, projects with their paths) and, once the user agrees, creates or patches the plan, edits habits, and creates or patches projects. See the **Plan with Claude (MCP) Flow** in `./flows/plan.md` and the **Draft Steps with Claude (MCP) Flow** in `./flows/projects.md`.
 
 ### Auth
 
@@ -35,15 +37,6 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 - Route protection — unauthenticated users are redirected to login; authenticated users are redirected away from `/auth/login`.
 - Collapsible app sidebar with sign-out flow (states in the `/design` gallery's Application tab; login + settings in `/design/scenarios/auth`).
 - Theme preference — the user picks one of three themes in the Settings overlay: `mars-light` ("Sora light"), `mars-dark` ("Sora dark", default for new users), `p5-dark` ("P5 dark", per the Calling Card proposal). Persisted in an SSR-readable cookie (no DB schema change; the root layout stamps `data-theme` server-side so there is no theme flash). Explicit choice only — no time- or system-preference auto-switching. Side-effect flow in `./flows/auth.md`.
-
-### Designed: Phase 1 — Projects MVP *(pending)*
-
-Approved in [`spike/week-model-restructure.md`](./spike/week-model-restructure.md) and built in PRs 2–5, which are tracked under Plan in [tracker.md](./tracker.md). Lines marked *(designed — Phase 1 pending)* here and in `./flows/` describe this target until the PR that ships them.
-
-1. **Projects** — a goal plus an ordered path of steps that never expire, on their own Projects page (`/kanban/projects`, a sidebar item and dock tab before Plan).
-   - Steps go onto the week one at a time and move across the board like any task.
-   - A project whose steps are all done shows "All steps done" until the user archives it.
-   - See `./flows/projects.md`.
 
 Roadmap and open ideas live in [tracker.md](./tracker.md).
 
@@ -229,10 +222,12 @@ enum PriorityQuadrant {
 // - PROJECT tasks: projectId is required, templateId / forDate / periodKey /
 //   quadrant are null, planId is optional (null = not on any week). They do not expire, and they carry over
 //   or return like AD_HOC tasks; returning sets planId = null and BACKLOG and keeps the instanceIndex.
-//   instanceIndex stays contiguous (1..n) per project: adding appends n + 1, deleting moves later steps up
-//   one, and reordering renumbers the unfinished steps into the numbers they already hold, in one
-//   transaction (done steps keep theirs). uq_task_daily / uq_task_weekly include templateId, which is
-//   NULL for steps, so renumbering never collides.
+//   instanceIndex stays contiguous (1..n) per project, at most 50 steps: adding appends n + 1, deleting
+//   moves later steps up one, and a move (a drag on the Projects page or Claude's update_project) puts
+//   the step right before another and renumbers the whole path by position in one transaction — a done
+//   step keeps its place in the path, though its number can shift when a step moves across it.
+//   uq_task_daily / uq_task_weekly include templateId, which is NULL for steps, so renumbering never
+//   collides.
 // - INDEX(projectId, instanceIndex) — idx_tasks_project_id_instance_index
 ```
 

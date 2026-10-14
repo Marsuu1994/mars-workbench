@@ -22,7 +22,7 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | `createAdhocTaskAction` | Add an unassigned ad-hoc task to a quadrant | `db/tasks.createTask` |
 | **`src/actions/planActions.ts`** | | |
 | `createPlanAction` | Create a weekly plan from the plan form | `planService.createPlan` |
-| `updatePlanAction` | Update an existing plan (templates, mode, ad-hoc links) | `planService.updatePlan` |
+| `updatePlanAction` | Update an existing plan from the plan form (templates, mode, the one-offs and steps let go) | `planService.updatePlan` |
 | `countIncompleteByTemplateAction` | Per-template removable-task counts for the review modal | `db/tasks.countIncompleteTasksByTemplateId` |
 | **`src/actions/templateActions.ts`** | | |
 | `createTaskTemplateAction` | Create a task template | `db/taskTemplates.createTaskTemplate` |
@@ -85,7 +85,7 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `getEmptyBoardState` | Resolve the no-active-plan state (new user vs. finished-plan recap) |
 | **`planService.ts`** | |
 | `createPlan` | Create a plan from the plan form (templates, mode, ad-hoc and project-step links) |
-| `updatePlan` | Rebuild an existing plan's templates/mode/ad-hoc and project-step links |
+| `updatePlan` | The plan form's update: templates and mode, plus the one-offs and steps let go — the rest of the plan's links are read at save time, so what joined the week meanwhile stays |
 | `getPlanCreationContext` | Guard reads for every creation path: `ensureSynced` → active plan, pending plan, today, period key |
 | `getCarryOverAdhocTaskIds` | The pending plan's non-done ad-hoc tasks (default carry-over when no explicit selection) |
 | `getCarryOverProjectStepIds` | The pending plan's unfinished project steps (carry-over candidates) |
@@ -115,6 +115,7 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `approveDraftPlan` | Approve the latest draft and create the plan |
 | **`projectService.ts`** | |
 | `listProjects` | The user's projects (archived included) with their steps |
+| `fetchProjectsPage` | The Projects page's inputs, synced first: every project, their steps flat, the active plan's id |
 | `getProject` | One project with its steps, owner-scoped |
 | `createProject` | Create a project with optional first steps (one transaction) |
 | `updateProject` | Rename a project or change its goal |

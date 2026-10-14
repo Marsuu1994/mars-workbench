@@ -77,7 +77,7 @@ User clicks "Create Plan" on empty board → navigates to `/kanban/plans/new`.
 
 ### Trigger / Entry Point
 
-User clicks "Edit Plan" on board header → navigates to `/kanban/plans/[id]`.
+User opens **Plan** from the sidebar or the mobile dock while this week has an active plan → `/kanban/plans/[id]`.
 
 ### Steps
 
@@ -102,6 +102,7 @@ User clicks "Edit Plan" on board header → navigates to `/kanban/plans/[id]`.
 - **Project steps**:
   - The form loads this week's steps, which can only be deselected.
   - A deselected step returns to its project.
+- Only what the user deselects leaves the week: the save carries the deselected one-offs and steps, so anything put on the week while the form was open (tracked from the matrix, scheduled from the Projects page, added by Claude) stays.
 
 ---
 

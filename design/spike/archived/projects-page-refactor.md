@@ -1,6 +1,6 @@
 # Spike: Projects page 重构 — 组件按 production 需要拆、写入后不再闪旧数据、独立入口
 
-**Status: decided** · 2026-10-12（rev 2 按 owner 第一轮 review 改写；Q1–Q6 和几处 UI 调整都在 PR #59 的 review 里拍板）· 回答 tracker 条目 *Week model Phase 1 › PR 4c*（Plan › Medium）· 针对 PR #58（`claude/week-model-pr4c-projects-page`，未合并）· 上游：`design/spike/week-model-pr4-projects-ui.md`（decided）、`design/spike/archived/board-prop-drilling.md`（C3）
+**Status: decided** · 2026-10-12（rev 2 按 owner 第一轮 review 改写；Q1–Q6 和几处 UI 调整都在 PR #59 的 review 里拍板）· 回答 tracker 条目 *Week model Phase 1 › PR 4c*（Plan › Medium）· 针对 PR #58（`claude/week-model-pr4c-projects-page`，未合并）· 上游：`design/spike/archived/week-model-pr4-projects-ui.md`（decided）、`design/spike/archived/board-prop-drilling.md`（C3）
 
 > 语言约定：叙述用中文；产品名词、状态和代码标识保留英文（project / step / this week、`useTransition`、`ProjectsContainer` …），和代码、tracker 一一对应。
 

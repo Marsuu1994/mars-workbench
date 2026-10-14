@@ -7,7 +7,7 @@ import {ServiceWorkerRegistrar} from '@/components/application/ServiceWorkerRegi
 import {BreakpointProvider} from '@/components/application/BreakpointProvider';
 import {AppShell} from '@/components/application/AppShell';
 import {getSessionClaims} from '@/lib/auth/getSessionClaims';
-import {getActivePlan} from '@/lib/db/plans';
+import {ensureSynced} from '@/services/syncService';
 import {resolveTheme, THEME_COOKIE} from '@/utils/theme';
 import './globals.css';
 
@@ -78,7 +78,10 @@ export default async function RootLayout({
       }
     : null;
 
-  const activePlan = claims ? await getActivePlan(claims.sub) : null;
+  // Synced like every kanban page (cache() makes it one run per request), so
+  // on the first visit of a new week the Plan link and Board state already
+  // see last week's plan as ended
+  const activePlan = claims ? await ensureSynced(claims.sub) : null;
 
   const cookieStore = await cookies();
   const theme = resolveTheme(cookieStore.get(THEME_COOKIE)?.value);
