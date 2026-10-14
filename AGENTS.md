@@ -80,7 +80,7 @@ Read design docs (repo-root `design/`) only when the task involves logic, data, 
 
 A complex task — several PRs, a data-model change, a new tool surface, or a choice with real tradeoffs — starts with a spike, not code. Its lifecycle:
 
-1. **Spike** — write a self-contained doc in `design/spike/` (see Documentation Style for its shape), headed `Status: awaiting owner review` and linked from the tracker item it answers.
+1. **Spike** — write a self-contained doc in `design/spike/` (see Documentation Style for its shape), headed `Status: awaiting owner review` and linked from the tracker item it answers. An exploration parked until its work is picked up is headed `Status: draft` instead; it moves to awaiting owner review when that work starts.
 2. **Review** — go back and forth with the owner on the spike's PR, editing the spike in place each round.
 3. **Decided** — once every open question is answered, record the answers in a Decision section and mark `Status: decided`. From here the spike is frozen; later decisions land in the tracker and the Update Log.
 4. **Implement** — build what it decided, and update the living design docs (`baseline.md`, `flows/`, `reference.md`, scenarios) so they stand on their own without the spike.

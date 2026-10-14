@@ -19,7 +19,9 @@ Single source of truth for open ideas and todos across the app — open items on
 
 - [ ] Week model Phase 1 — Projects MVP: projects (a goal + ordered steps that never expire) on their own page, kind-first cards with risk off, a Todo · Done board, and MCP project tools. Spike `design/spike/week-model-restructure.md` (approved), PR 4 component design `design/spike/week-model-pr4-projects-ui.md` (decided); flows `design/flows/projects.md` + the *Phase 1 pending* notes in `baseline.md` and `flows/`; mockups `design/mockup/future-work/mockup-week-model-phase1-v2.html` + `mockup-projects-v2.html`
   - [ ] PR 4d — Cleanup and adjustments: living docs (flows, baseline, reference), delete `mockup-week-model-phase1-v2.html`, adjustments after using 4a–4c
-  - [ ] PR 5 — MCP for projects: projects in the context, `create_project` / `update_project`, steps in `create_plan` / `update_plan`, and the prompt for finished projects and archiving; then delete `mockup-projects-v2.html`. Spike `design/spike/week-model-pr5-mcp-projects.md` (awaiting review)
+  - [ ] PR 5 — MCP for projects: a guide tool Claude reads first, projects in the context, `create_project` / `update_project` / `update_habit`, steps in `create_plan` / `update_plan`, the rewritten guide; also the Projects page's drag reorder on the same move logic and a 50-step project limit; then delete `mockup-projects-v2.html`. Spike `design/spike/week-model-pr5-mcp-projects.md` (decided)
+- [ ] Tune the MCP planning guide after 2–3 weeks of using PR 5 — note where Claude went wrong (habit vs project, overlap questions, focus check, step order) and adjust the guide
+- [ ] Clean up stale task templates on the owner's account — a `scripts/one-time/` script; archive or delete is decided when it's picked up (templates used by a plan can't be deleted without its history)
 - [ ] ReviewChangesModal / OverlayShell body height needs tuning on **both** breakpoints — with long change lists the box grows so tall the header ends up out of view; revisit the max-height caps (mobile `max-h-[85vh]`, desktop `md:max-h-[calc(100vh-5em)]`) so the pinned header/footer always stay on screen
 
 ### Future
@@ -27,9 +29,9 @@ Single source of truth for open ideas and todos across the app — open items on
 - [ ] Week model Phase 2 (not planned yet) — habits own their cadence (Daily = every day, or N× per week; Plan Mode dropped) with a Plan › Habits page; a three-step Plan week replaces the plan form, with one Plan hub header for This week · Habits · Projects (Phase 1 keeps the plan form as it was and gives Projects its own page and nav entry); the in-app AI chat is removed (AI planning goes through Claude + MCP); Done becomes the week's day-grouped log and cards get a ✓; cleanup of `DOING` and `Plan.mode`. Exploration `design/mockup/future-work/mockup-week-model-phase2-v2.html`
   - [ ] Plan page follows the board's data split (AGENTS.md › Layers, *Server shapes inputs, the client derives the view*): the loader returns inputs, the page's container keeps them as state and derives the view with a pure adapter — done alongside the Plan week rebuild
   - [ ] Redesign the Projects page and the Review changes modal — both are large as they stand; rework them with the Plan week
-  - [ ] Investigate the app pain points before planning Phase 2 — a weekly time budget the LLM plans into (size as its estimate, points → hours) and focus limits (habits per week, active projects). Spike `design/spike/week-model-phase2-pain-points.md` (awaiting review)
+  - [ ] Investigate the app pain points before planning Phase 2 — a weekly time budget the LLM plans into (size as its estimate, points → hours), focus limits (habits per week, active projects) and one lifecycle for habits and projects (active / paused / completed). Spike `design/spike/week-model-phase2-pain-points.md` (draft)
 - [ ] Habit-level days — let each habit run on weekdays, every day or custom days (after Phase 2 drops Plan Mode, Daily means every day)
-- [ ] Explore an entry point for habits — whether they get their own sidebar item / dock tab instead of living under the Plan hub (projects have their own)
+- [ ] One entry for habits and projects together — a single page (Habits · Projects) with the same lifecycle filters, instead of projects having their own nav item and habits living in the plan form; options in `design/spike/week-model-phase2-pain-points.md`
 
 ## Priorities
 

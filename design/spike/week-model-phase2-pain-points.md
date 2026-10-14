@@ -1,17 +1,18 @@
 # Spike: App pain points for Week model Phase 2
 
-**Status: awaiting owner review** · 2026-10-13 · 回答 tracker 条目 *Week model Phase 2 › Investigate the app pain points*（Plan › Future）；也回答 *Redesign the point system and metric tracking*（Cross-cutting › Medium）的方向问题 · 来源：PR 5 spike 讨论（PR #61）· 相关：`design/spike/week-model-restructure.md`（Phase 1，approved）、`design/spike/week-model-pr5-mcp-projects.md`（MCP，awaiting review）· Phase 2 exploration：`design/mockup/future-work/mockup-week-model-phase2-v2.html`
+**Status: draft** · 2026-10-13（2026-10-14 加入 owner 的笔记：lifecycle、共用入口、同一套词）· 定稿留到 Phase 2 真正开工时 · 回答 tracker 条目 *Week model Phase 2 › Investigate the app pain points*（Plan › Future）；也回答 *Redesign the point system and metric tracking*（Cross-cutting › Medium）的方向问题 · 来源：PR 5 spike 讨论（PR #61）· 相关：`design/spike/week-model-restructure.md`（Phase 1，approved）、`design/spike/week-model-pr5-mcp-projects.md`（MCP，decided）· Phase 2 exploration：`design/mockup/future-work/mockup-week-model-phase2-v2.html`
 
 > 语言约定：叙述用中文；产品名词、状态、代码标识保留英文（habit / project / step / one-off、size / points、`TaskSize` …），和代码、mockup、tracker 一一对应。
 
 ## Trigger · 起因
 
-讨论 PR 5 时，owner 提了两个用下来的痛点：
+讨论 PR 5 时，owner 提了几个用下来的痛点：
 
 1. **Size 越用越多余，定位也模糊了。** Size 最初仿照 agile 的 story point（1 point = 1 天），后来改成 1 point = 1 小时，但实际使用中没有起作用。一个好的工具应该关注用户愿意把多少时间分给 habit 和 project，再给每个小 task 估 effort，合理规划时间；但做得太细会让定位偏移。App 最初的目的是规划要做哪些固定的事，加入 project 之后定位有些模糊。**现在想做到的是：让 LLM 高效地分配我的时间。**
 2. **给 habit 和 project 加规则**，比如一周最多并行 3 个 habit、同时最多 4 个 active project，限制关注点，不要太分散。
+3. **Habit 和 project 的 lifecycle**（owner 的笔记，2026-10-14）：active、archive / pause、complete。Habit 的 pause 表示暂停，类似 project 的 archive；complete 表示这个 habit 已经内化了，不需要再跟踪。Habit 和 project 的入口放在一起；新的规则要让人和 AI 都容易懂。
 
-这份 spike 不排 PR。它把问题和选项整理出来，等 owner 定了方向，再作为 Phase 2 规划的输入。Phase 2 已经有的方向（habit 自带 cadence、三步的 Plan week、去掉 AI chat、Done 改成按天的日志）见 tracker。
+这份 spike 是 **draft**：不排 PR，也不在现在拍板。它把问题和选项整理出来，等 Phase 2 真正开工时再定稿，作为 Phase 2 规划的输入。它把问题和选项整理出来，等 owner 定了方向，再作为 Phase 2 规划的输入。Phase 2 已经有的方向（habit 自带 cadence、三步的 Plan week、去掉 AI chat、Done 改成按天的日志）见 tracker。
 
 ## 现状 · What's there today
 
@@ -90,8 +91,8 @@ Size 本身不是多余的，是放错了位置。现在它做两件事：
   - **手上的**：没有 archive 的 project 数量。管的是你手上有几条线。Owner 说的「同时最多拥有 4 个」是这个。
   - **这周的**：这周有 step 的 project 数量。管的是这一周的注意力。
   - 两个都有意义；可以先只做「手上的」（Q5）。
-- **Archive 会多一层含义。** 有了上限以后，archive 同时表示「做完了收起」和「先停一下」。不需要加字段就能分开显示：archived 且全部 step 都 done 的是「完成」，archived 但还有没做完的 step 的是「暂停」。
-- **Unarchive 也算进上限**：4 个都在的时候，要先收起一个才能恢复另一个。
+- **Archive 会多一层含义。** 有了上限以后，archive 同时表示「做完了收起」和「先停一下」。痛点 3 的 lifecycle 把这两层分开。
+- **Unarchive（恢复）也算进上限**：4 个都在的时候，要先暂停或完成一个才能恢复另一个。
 
 ### 选项
 
@@ -102,7 +103,7 @@ Size 本身不是多余的，是放错了位置。现在它做两件事：
 | C · 软提醒 | UI 显示警告、MCP 结果里带 warning，但都放行 | 不会卡住用户 | 提醒久了会被忽略，起不到限制关注点的作用 |
 | D · UI 软、MCP 硬（或反过来） | 两边规则不同 | — | 不一致，不推荐 |
 
-**推荐 B。**
+**推荐 B。** PR 5 已经先做了 A：guide 里的软提醒（3 个 habit、4 个 active project，暂定），用来试阈值合不合适。
 
 ### B 的实现计划
 
@@ -124,20 +125,72 @@ Size 本身不是多余的，是放错了位置。现在它做两件事：
 
 ---
 
-## 两个痛点的关系
+## 痛点 3 · Habit 和 project 的 lifecycle、入口、用词
 
-- **数量上限控制分散，时间预算控制总量。** 两个一起，LLM 才有东西可以权衡：「你有 4 个 project、10 小时，我建议给 Spanish 3h，Biomedical 这周先停。」
-- **PR 5 的 Q2**（排新一周时默认带上每个 active project 的下一步）有了「最多 4 个」的上限会安全很多，不会把一周塞满。
-- **两者共用一张 `user_preferences` 表**（theme 仍然在 cookie 里，不搬）。
-- **和 Phase 2 的 Plan week 对得上**：预算 → habits（≤ 3）→ projects（≤ 4 active）。
+### Lifecycle：Active / Paused / Completed
 
-## 和 PR 5 的关系
+现在 project 只有「没 archive / archived」两种，template 有一个 `isArchived` 但 UI 里没有入口。按 owner 的方向，两者用同一套三个状态：
 
-PR 5 不等这份 spike：size 保留为 LLM 的估算单位，context 的形状只做加法，以后加 `capacity`、`limits` 不用返工。唯一可能搭车的是 B0 那一行 prompt（Q6）。
+| | Active | Paused | Completed |
+| --- | --- | --- | --- |
+| Project | 进行中，step 往这周排 | 先停一下，path 原样保留，可以恢复 | 收尾了：step 全部 done，或者用户宣布完成 |
+| Habit | 每周在跟踪 | 暂时不跟踪，以后可能回来 | 已经内化，不再需要跟踪；历史保留 |
+
+- **只有 Active 计入上限**（痛点 2）。想开新的，就先暂停或完成一个：这正是上限的出口。
+- **从 Paused / Completed 都能回到 Active**，回来时受上限约束。
+- **Habit 的 Completed 是一个正向的结束**，不是失败；回顾时可以单独列出「这段时间内化了哪些 habit」。
+
+### 选项：状态怎么存
+
+| | 做法 | 好处 | 代价 |
+| --- | --- | --- | --- |
+| A · 推导 | 不改 schema。Project：archived 且全部 done = Completed，archived 但有没做完的 = Paused；Habit：`isArchived` = Paused，没有 Completed | 不用迁移 | Habit 表达不了 Completed；project 的「全部 done 但还想留着当 Active」和「宣布完成但还有没做的 step」都表达不了 |
+| **B** · 存一个 `status` 枚举 ✓ | Project 和 template 都把 `isArchived` 换成 `status`（`ACTIVE` / `PAUSED` / `COMPLETED`） | 两种东西一套词；用户的意图直接存下来；查询和上限检查都简单 | 一次迁移：project 全部 done 的转成 COMPLETED、其余 archived 的转成 PAUSED；template 的 `isArchived` 转成 PAUSED |
+| C · 只给 project 做 | Habit 继续只有 archive | 改动小 | 两种东西的规则不一样，违背「同一套词」 |
+
+**推荐 B。** 实现计划：
+
+1. 新枚举 `LifecycleStatus`；`projects.status`、`task_templates.status` 两个列，一次迁移把 `is_archived` 转过去（规则见上），之后删掉 `is_archived`。
+2. Service：`pauseProject` / `completeProject` / `resumeProject`，habit 同样三个；暂停 project 时把没做完的 step 退出这周（和现在的 archive 一样），暂停 habit 时从之后的 plan 里拿掉。
+3. MCP：`update_project` / `update_habit` 的 `archived` 换成 `status`；guide 的 Rules 和 *Tell the user* 跟着改。
+4. UI：Projects 页的 Archived 区分成 Paused 和 Completed；All steps done 的 banner 给「Complete」和「Add next steps」。
+
+### 入口：habit 和 project 放在一起
+
+现在 project 有自己的侧栏和 dock 入口；habit 还在 plan form 里。Owner 的方向是两者放在同一个入口。
+
+- **A · 一个页面、两个 tab**（Habits · Projects），同一套 lifecycle 筛选（Active / Paused / Completed），上限显示在页头（「3 of 3 habits · 2 of 4 projects」）。
+- **B · 一个列表混排**，用 kind 区分。
+- 这个页面也是 Phase 2 三步 Plan week 的前一站：先在这里定 focus，再排这周。
+
+先倾向 A：两种东西的字段不同（habit 有 cadence，project 有 path），混排会让每一行都很杂。具体在 Phase 2 的 mockup 里定。
+
+### 同一套词，人和 AI 都容易懂
+
+- UI、文档、给 LLM 的文字用同一套词：habit / project / one-off；active / paused / completed。不在 UI 上叫「Archive」、在 guide 里叫「pause」。
+- 规则写成一小块编号清单（PR 5 的 guide 开头已经有 *Rules*），app 里（Settings 或帮助页）展示的也是同一份文字，改规则只改一处。
+- 代码里的旧名字（`template`、`isArchived`、`instanceIndex`）在 Phase 2 cleanup 时按这套词改，或者至少不再出现在给人和 LLM 看的文字里。
+
+### 痛点 3 的待拍板
+
+见「待拍板」的 Q7、Q8。
 
 ---
 
-## 待拍板 · Open questions
+## 三个痛点的关系
+
+- **数量上限控制分散，时间预算控制总量，lifecycle 给上限一个出口。** 三个一起，LLM 才有东西可以权衡：「你有 4 个 project、10 小时，我建议给 Spanish 3h，Biomedical 这周先暂停。」
+- **PR 5 的 Q2**（排新一周时先回顾、再问意图）在有上限和 lifecycle 之后，问的问题会更具体：「Biomedical 要暂停还是继续？」
+- **预算和上限共用一张 `user_preferences` 表**（theme 仍然在 cookie 里，不搬）。
+- **和 Phase 2 的 Plan week 对得上**：focus（habits ≤ 3、projects ≤ 4 active）→ 预算 → 这周的 habits 和 steps。
+
+## 和 PR 5 的关系
+
+PR 5 不等这份 spike：size 保留为 LLM 的估算单位，context 的形状只做加法，以后加 `capacity`、`limits`、`status` 不用返工。PR 5 已经做了的：guide 里的 focus 软提醒（3 / 4，暂定）、`update_habit`、Rules 清单。唯一可能搭车的是 B0 那一行 prompt（Q6）。
+
+---
+
+## 待拍板 · Open questions（Phase 2 开工时再定）
 
 | # | 问题 | 选项 | 推荐 |
 | --- | --- | --- | --- |
@@ -147,6 +200,8 @@ PR 5 不等这份 spike：size 保留为 LLM 的估算单位，context 的形状
 | Q4 | 上限是硬还是软 | A 只写在 prompt · B 硬限制、可在 Settings 改 · C 软提醒 | **B** |
 | Q5 | Active project 怎么数 | a 手上的（没 archive 的）· b 这周有 step 的 · c 两个都要 | **先 a**，就是 owner 说的「同时最多拥有 4 个」；b 等用一阵再看 |
 | Q6 | B0 实验要不要搭 PR 5 | 搭（guide 里加一行「先问这周有几小时」）· 不搭（单独一个小 PR，或者等 Phase 2） | **搭**：一行 prompt，不改 schema，PR 5 合并后就能开始试 |
+| Q7 | Lifecycle 怎么存 | A 推导 · B `status` 枚举 · C 只给 project 做 | **B** |
+| Q8 | Habit 和 project 的共用入口 | A 一个页面两个 tab · B 一个列表混排 | **A**，在 Phase 2 mockup 里定 |
 
 ## 风险
 
@@ -158,12 +213,13 @@ PR 5 不等这份 spike：size 保留为 LLM 的估算单位，context 的形状
 ## Considered, not proposed · 考虑过但不提议
 
 - **日历式排程**（选项 C）：偏离「决定这周做什么」的定位。
-- **超过上限时自动 archive**：archive 是用户的决定（Phase 1 已定），系统不替用户收起。
+- **超过上限时自动暂停**：暂停和完成都是用户的决定（Phase 1 已定 archive 只由用户发起），系统不替用户收起。
 - **按天的容量**（工作日 / 周末不同）：等周预算用过一阵再说；Phase 2 的 habit cadence 已经会区分工作日。
 - **把 points 留作游戏化的分数**：owner 说实际没起作用，换成小时更直接。
 
 ## 拍板之后
 
 1. 方向定了以后，在 Phase 2 规划里把它排进 PR 序列（新的 Phase 2 spike，或者扩写 `week-model-restructure.md` 的 Phase 2 部分）。
-2. Tracker：*Redesign the point system and metric tracking* 并进 Phase 2 那一条，按结论改写或删掉。
+2. Tracker：*Redesign the point system and metric tracking* 和 *One entry for habits and projects* 并进 Phase 2 那一条，按结论改写或删掉。
 3. 如果 Q6 选「搭」，PR 5 的 guide 加那一行。
+4. 状态从 draft 改成 awaiting owner review，走 AGENTS 的 spike 流程。
