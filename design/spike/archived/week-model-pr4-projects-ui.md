@@ -1,6 +1,6 @@
 # Spike: Week model Phase 1 · PR 4 — Projects UI 的组件设计
 
-**Status: decided** · 2026-10-11（提出 2026-10-10，review 见 PR #54）· 回答 tracker 条目 *Week model Phase 1 › PR 4*（Plan › Medium）· 上游：`design/spike/week-model-restructure.md`（approved）、`design/flows/projects.md`、`design/spike/archived/board-prop-drilling.md`（Option C3）· Mockups：`design/mockup/future-work/mockup-projects-v2.html`（Projects 页和 4 个 modal）、`mockup-week-model-phase1-v2.html`（step 卡片、plan form）
+**Status: decided** · 2026-10-11（提出 2026-10-10，review 见 PR #54）· 回答 tracker 条目 *Week model Phase 1 › PR 4*（Plan › Medium）· 上游：`design/spike/archived/week-model-restructure.md`（approved）、`design/flows/projects.md`、`design/spike/archived/board-prop-drilling.md`（Option C3）· Mockups：`design/mockup/future-work/mockup-projects-v2.html`（Projects 页和 4 个 modal）、`mockup-week-model-phase1-v2.html`（step 卡片、plan form）
 
 > 语言约定：叙述用中文；产品名词、状态、代码标识保留英文（project / step / backlog / this week、`instanceIndex`、`toBoardCards` …），和代码、mockup、tracker 一一对应。
 

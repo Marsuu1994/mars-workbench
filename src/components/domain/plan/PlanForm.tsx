@@ -362,12 +362,18 @@ export default function PlanForm({
         });
         break;
       case 'edit':
+        // Only what the user let go: whatever else is on the week by now
+        // (tracked, scheduled or added by Claude meanwhile) stays
         result = await updatePlanAction(planId!, {
           description: description.trim() || undefined,
           mode: planMode,
           templates: templatesPayload,
-          adhocTaskIds: Array.from(selectedAdhocIds),
-          projectStepIds: Array.from(selectedStepIds),
+          removeAdhocTaskIds: initialAdhocTaskIds.filter(
+            taskId => !selectedAdhocIds.has(taskId),
+          ),
+          removeProjectStepIds: initialProjectStepIds.filter(
+            stepId => !selectedStepIds.has(stepId),
+          ),
         });
         break;
     }

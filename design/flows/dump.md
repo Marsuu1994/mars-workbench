@@ -12,7 +12,7 @@ Flows for the dump page (`/kanban/dump`) — friction-free brain dump of whateve
 
 ### Trigger / Entry Point
 
-User navigates to `/kanban/dump` via the "Dump" sidebar item (desktop) or the "Dump" dock tab (mobile — the dock grows to 5 tabs: Board · Priorities · Plan · Dump · Settings).
+User navigates to `/kanban/dump` via the "Dump" sidebar item (desktop) or the "Dump" dock tab (mobile).
 
 ### Steps
 

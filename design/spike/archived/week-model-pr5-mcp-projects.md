@@ -1,6 +1,6 @@
 # Spike: Week model Phase 1 · PR 5 — MCP for projects
 
-**Status: decided** · 2026-10-14（提出 2026-10-13；review 和讨论见 PR #61）· 回答 tracker 条目 *Week model Phase 1 › PR 5*（Plan › Medium）· 上游：`design/spike/week-model-restructure.md`（approved，「PR 5 — MCP 支持 projects」一节）、`design/flows/projects.md`（Draft Steps with Claude (MCP) Flow）、`design/flows/plan.md`（Plan with Claude (MCP) Flow）· 拆出去的：时间预算、并行上限的硬限制、habit / project 的 lifecycle → `design/spike/week-model-phase2-pain-points.md`（draft）· Mockups：`mockup-projects-v2.html` 的 tab 07、`mockup-week-model-phase1-v2.html` 的 06 Claude (MCP)。两段对话抄在本文「验收」一节，mockup 删掉以后也还在
+**Status: decided** · 2026-10-14（提出 2026-10-13；review 和讨论见 PR #61）· 回答 tracker 条目 *Week model Phase 1 › PR 5*（Plan › Medium）· 上游：`design/spike/archived/week-model-restructure.md`（approved，「PR 5 — MCP 支持 projects」一节）、`design/flows/projects.md`（Draft Steps with Claude (MCP) Flow）、`design/flows/plan.md`（Plan with Claude (MCP) Flow）· 拆出去的：时间预算、并行上限的硬限制、habit / project 的 lifecycle → `design/spike/week-model-phase2-pain-points.md`（draft）· Mockups：`mockup-projects-v2.html` 的 tab 07、`mockup-week-model-phase1-v2.html` 的 06 Claude (MCP)。两段对话抄在本文「验收」一节，mockup 删掉以后也还在
 
 > 语言约定：叙述用中文；产品名词、状态、代码标识保留英文（habit / project / step / one-off、`create_project`、`instanceIndex` …），和代码、mockup、tracker 一一对应。**LLM 读的文字**（guide、tool descriptions、`.describe()`、错误信息）直接给英文成稿：这些就是要写进代码的原文。
 

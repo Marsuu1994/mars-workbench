@@ -50,7 +50,19 @@ import type {
 import type {createPlanSchema, updatePlanSchema} from '@/schemas';
 
 type CreatePlanData = z.infer<typeof createPlanSchema>;
-type UpdatePlanData = z.infer<typeof updatePlanSchema>;
+type UpdatePlanInput = z.infer<typeof updatePlanSchema>;
+/**
+ * The update core's input: each list is the plan's full new selection —
+ * listed one-offs and steps link, the plan's other unfinished ones leave — and
+ * an omitted field is left untouched.
+ */
+type UpdatePlanData = Pick<
+  UpdatePlanInput,
+  'description' | 'mode' | 'templates'
+> & {
+  adhocTaskIds?: string[];
+  projectStepIds?: string[];
+};
 type FormError = {
   error: {formErrors: string[]; fieldErrors: Record<string, never>};
 };
@@ -535,18 +547,48 @@ export async function updatePlanInTx(
   return diff;
 }
 
+/**
+ * The plan form's update. The form sends only the one-offs and steps the user
+ * let go, so the plan's selection is read here, at save time: whatever else is
+ * on the week by now stays — including what the matrix, the Projects page or
+ * Claude put on it while the form was open.
+ */
 export async function updatePlan(
   userId: string,
   planId: string,
-  data: UpdatePlanData,
+  input: UpdatePlanInput,
 ): Promise<FormError | {diff: PlanTemplateDiff}> {
-  const {description, mode, templates, adhocTaskIds, projectStepIds} = data;
+  const {
+    description,
+    mode,
+    templates,
+    removeAdhocTaskIds = [],
+    removeProjectStepIds = [],
+  } = input;
 
   // Ownership gate: loading the owned plan authorizes every downstream mutation.
   const ownedPlan = await getPlanWithTemplates(userId, planId);
   if (!ownedPlan) {
     return {error: {formErrors: ['Plan not found'], fieldErrors: {}}};
   }
+
+  const [adhocTaskIds, projectStepIds] = await Promise.all([
+    removeAdhocTaskIds.length > 0
+      ? getNonDoneAdhocTasks(userId).then(adhocTasks =>
+          adhocTasks
+            .filter(
+              ({id, planId: taskPlanId}) =>
+                taskPlanId === planId && !removeAdhocTaskIds.includes(id),
+            )
+            .map(({id}) => id),
+        )
+      : undefined,
+    removeProjectStepIds.length > 0
+      ? getUnfinishedStepIdsByPlanId(userId, planId).then(stepIds =>
+          stepIds.filter(stepId => !removeProjectStepIds.includes(stepId)),
+        )
+      : undefined,
+  ]);
 
   if (
     templates !== undefined ||
@@ -555,7 +597,13 @@ export async function updatePlan(
   ) {
     const today = getTodayDate();
     const diff = await prisma.$transaction(tx =>
-      updatePlanInTx(tx, userId, ownedPlan, data, today),
+      updatePlanInTx(
+        tx,
+        userId,
+        ownedPlan,
+        {description, mode, templates, adhocTaskIds, projectStepIds},
+        today,
+      ),
     );
     return {diff};
   }
