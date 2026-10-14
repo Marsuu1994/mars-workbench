@@ -28,7 +28,7 @@ owner 在 PR #64 上逐条 review，加上三条 note；没有评论的问题按
 | Q8 · `push.md` | 第 4 步按推荐：规则或目录职责变了，才改 AGENTS.md。第 2 步按 owner 的 note：**Update Log 以天为单位**，前几天的不动；同一天先追加，再把当天整节重构成一份 summary。另外，owner 问这个清单能不能成为本地和云端 session 的默认动作：可以。把清单搬进 AGENTS.md › Version Control 的「推送前」一条，Claude Code 和 Codex、本地和云端都会读到；然后删掉 `.claude/commands/push.md` | AGENTS.md 的 `:124` 和 `:334` 合成这一条（R1 只留一处）；C4 不再是冲突，tracker Step 6 里那条「已知 finding」删掉 |
 | Q9 · CLAUDE.md | 三个 skill 删掉之后，只留 `@AGENTS.md` | — |
 | Q10 · tracker 长条目 | 现有的先不动；规则改成「每项写成简洁的一行，细节拆成子 bullet」（owner），写进 `tracker.md` 开头 | Step 6 的 sweep 可以把长条目报出来 |
-| Q11 · 并进 milestone | **选项 2**：新增 Step 3「Simplify AGENTS.md」，排在 Step 2 之后，原 Step 3–9 顺延成 4–10；CI 和两条 0 违规的 ESLint 规则并进 Step 1 | tracker 已改；planner 里对应的 project 要同步，等 owner 确认 |
+| Q11 · 并进 milestone | **选项 2**：新增 Step 3「Simplify AGENTS.md」，排在 Step 2 之后，原 Step 3–9 顺延成 4–10；CI 和两条 0 违规的 ESLint 规则并进 Step 1 | tracker 已改；planner 里的 project *Mars Workbench — Phase 2 前的代码质量* 已同步：新增第 3 步，后面顺延成 10 步；第 1、6、7、9 步的描述也已对齐 |
 | 讨论中加的 · skills | `new-flow`、`new-feature`、`design-explore` 三个 skill **全部删掉**（owner：做 design 时没用上）。留下有用的两点：flow 的格式（Trigger / Steps / Rules）进 `design/flows/README.md`；mockup 的命名规则（迭代时叫 `temp-<area>-v2.html`，批准后改名 `mockup-<area>-v2.html`，tracker 链过去，`temp-*` 删掉）进 `design/README.md` | X1–X3 从「修」变成「删」；AGENTS.md `:107` 和 `design/README.md:21` 里的 `/design-explore` 一起删 |
 
 下文保留 review 时的分析和选项，选中的选项标了 ✓；和结论不一致的地方，以本节为准。下文的 Step 编号和 `tracker.md` 行号都是 review 时的：当时的 Step 5、6、8，现在是 Step 6、7、9。附录 A 已按结论改过，文档 PR 可以直接照着做。
