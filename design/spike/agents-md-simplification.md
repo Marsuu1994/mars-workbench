@@ -1,10 +1,47 @@
 # Spike: Simplify AGENTS.md
 
-**Status: awaiting owner review** · 2026-10-14（同日按 #65–#67 更新）· 回答 tracker 条目 *Spike: simplify AGENTS.md*（Cross-cutting › Medium）· 基于 main `6530079`（#67）· 来源：owner 让 agent 以 AI judge 的身份 review AGENTS.md，共两轮（2026-10-10 基于 `dad1eac`，2026-10-14 基于 `4bbdbd5`）· 相关：tracker 的 *Milestone — Quality gate before Phase 2*（Cross-cutting › High）、`CLAUDE.md`、`.claude/commands/push.md`、`.claude/skills/`、`design/README.md`、`.github/workflows/ci.yml`、`eslint.config.mjs`
+**Status: decided** · 2026-10-14（提出同日，同日按 #65–#67 更新；owner review 见 PR #64）· 回答 tracker 条目 *Milestone — Quality gate before Phase 2 › Step 3*（Cross-cutting › High；review 时是 Cross-cutting › Medium 的 *Spike: simplify AGENTS.md*）· 基于 main `6530079`（#67）· 来源：owner 让 agent 以 AI judge 的身份 review AGENTS.md，共两轮（2026-10-10 基于 `dad1eac`，2026-10-14 基于 `4bbdbd5`）· 相关：tracker 的 *Milestone — Quality gate before Phase 2*（Cross-cutting › High）、`CLAUDE.md`、`.claude/commands/push.md`、`.claude/skills/`、`design/README.md`、`.github/workflows/ci.yml`、`eslint.config.mjs`
 
-> 语言约定：叙述用中文；规则名、文件路径、代码标识、ESLint 规则名保留英文（`One file → one component`、`react/no-multi-comp`、`aiPlanChatStore` …），和 AGENTS.md、代码一一对应。文中 `:N` 指 AGENTS.md 的行号；`tracker.md:N` 指 main `6530079` 上 tracker 的行号。#65–#67 只改了 tracker、README 和几份 design 文档，AGENTS.md、`.claude/`、CI 和 `src/` 自 `4bbdbd5` 起没有变，所以行号和违规数在两个 commit 上都成立。
+> 语言约定：叙述用中文；规则名、文件路径、代码标识、ESLint 规则名保留英文（`One file → one component`、`react/no-multi-comp`、`aiPlanChatStore` …），和 AGENTS.md、代码一一对应。文中 `:N` 指 AGENTS.md 的行号；`tracker.md:N` 在 Decision 一节里指本 PR 改过之后的 tracker，在下文里指 main `6530079` 上的 tracker。#65–#67 只改了 tracker、README 和几份 design 文档，AGENTS.md、`.claude/`、CI 和 `src/` 自 `4bbdbd5` 起没有变，所以行号和违规数在两个 commit 上都成立。
 
-这份 spike 分五部分：起因和现状；和 Quality gate milestone 的关系；问题清单，每条都带证据和建议，编号方便逐条回复；三个方案和推荐；待 owner 决定的问题。附录 A 列出 AGENTS.md 每条规则的去向，附录 B 是精简后的目标大纲。
+这份 spike 分五部分：起因和现状；和 Quality gate milestone 的关系；问题清单，每条都带证据和建议，编号方便逐条回复；三个方案和推荐；待 owner 决定的问题。附录 A 列出 AGENTS.md 每条规则的去向，附录 B 是精简后的目标大纲。结论在最前面的 Decision 一节。
+
+## Decision · 拍板（2026-10-14）
+
+owner 在 PR #64 上逐条 review，加上三条 note；没有评论的问题按推荐执行。
+
+| 问题 | 结论 | 带来的变化 |
+| --- | --- | --- |
+| Q1 · 范围 | **C**：文档、CI、代码三部分都做，放进 Quality gate milestone（Q11） | 见下面的实施计划 |
+| Q2a · Named exports | 保留；Next 约定文件（`page`、`layout`、`loading`、`not-found`、`error`、`route` 等）例外；交给 `import/no-default-export` | 修 16 个文件 |
+| Q2b · const arrow | 保留；Next 约定文件例外，其余全部改成 arrow | 修 18 处 / 17 个文件；交给 `react/function-component-definition` |
+| Q2c · One file → one component，以及新 lint 的范围 | 新加的 ESLint 规则**只管生产代码**，Design Console（`src/app/design/**`）不管。现有的 lint 和 tsc 仍然跑全仓：它们今天就是绿的，`next build` 也会检查全仓的类型 | Step 2 之后，只剩 `LoginScreen.tsx` 和 `ReviewChangesModal.tsx` 两个文件要拆 |
+| Q2d · 命名 | **选项 2**：单字母交给 `id-length`；业界通行的短名保留。例外清单：`id`、`tx`、`t`（只给 next-intl）、`prev`（setState updater）、`_`（不用的参数）、`i` / `j`（下标循环）、`a` / `b`（sort comparator）、`T` / `K` / `V`（类型参数）。`e` 不在例外里：它可能是 event，也可能是 error，要写全称 | 生产代码在 Step 2 之后约 57 处 / 22 个文件；`templates.map(t => …)` 这类改成全称 |
+| Q2e · slice | 删掉这条 | — |
+| Q2f · inline styles | 加例外：只允许动态值（CSS 变量、计算出来的尺寸）；不上 lint | — |
+| Q2g · 品牌渐变上的白色 | **选项 1**：换成按角色命名的主题变量，每个主题都声明，由 `check:themes` 检查 | 放进代码 PR，或者单独一个 PR |
+| Q3 · 枚举 | 映射用 `Record<Enum, T>`；分支逻辑用 `switch`，在 `default` 里做 `never` 检查 | 改写 `:157` |
+| Q4 · Server shapes inputs | **拆成两半**。owner 建议先标 pending，因为之后上 React Query，这部分怎么变还不知道。和 state 库无关的两条不变量现在就定：service 返回 inputs（DAL 形状的 rows、聚合、lookup），不返回 UI model；UI 形状由 `src/utils/` 里的纯 adapter 推导，推导出来的数据不进 state。换成 React Query 之后这两条照样成立：query 返回 rows，view 仍由 adapter 推导（可以放在 query 的 `select` 里）。其余部分标 **pending**：container 怎么持有 rows、怎么做 optimistic patch，等 Step 7（mutation layer）定；frames 是否通过 `children` 渲染，等 Step 9（component structure）定。`useMemo` 这一句删掉（React Compiler） | AGENTS.md 留两行不变量，加一句「pending：Step 7、Step 9」；详细版和 Board 现在的做法挪到 `baseline.md` › Architecture Decision；tracker 的 Step 7、Step 9 已注明 |
+| Q5 · Screen components vs Production first | 按推荐：合成一条「现状 + 待定」，由 Step 9 裁决；Projects 的 pilot 例外挪到 tracker 的 Step 9 | tracker 已改 |
+| Q6 · 文档格式规则 | 挪到各自文档的开头。AGENTS.md 只保留**一层薄的 index**，细节放在各个 README 里，用到时才读（owner） | 「规则在哪」表 |
+| Q7 · 防增长 | **选项 1 + 3**：`:143` 换成放置规则；体量和增长交给 Step 6 的 quality sweep；不做 CI 体量检查 | tracker 的 Step 6 加上「AGENTS.md 的体量和增长，以及 index 和它指向的 README 是否一致」 |
+| Q8 · `push.md` | 第 4 步按推荐：规则或目录职责变了，才改 AGENTS.md。第 2 步按 owner 的 note：**Update Log 以天为单位**，前几天的不动；同一天先追加，再把当天整节重构成一份 summary。另外，owner 问这个清单能不能成为本地和云端 session 的默认动作：可以。把清单搬进 AGENTS.md › Version Control 的「推送前」一条，Claude Code 和 Codex、本地和云端都会读到；然后删掉 `.claude/commands/push.md` | AGENTS.md 的 `:124` 和 `:334` 合成这一条（R1 只留一处）；C4 不再是冲突，tracker Step 6 里那条「已知 finding」删掉 |
+| Q9 · CLAUDE.md | 三个 skill 删掉之后，只留 `@AGENTS.md` | — |
+| Q10 · tracker 长条目 | 现有的先不动；规则改成「每项写成简洁的一行，细节拆成子 bullet」（owner），写进 `tracker.md` 开头 | Step 6 的 sweep 可以把长条目报出来 |
+| Q11 · 并进 milestone | **选项 2**：新增 Step 3「Simplify AGENTS.md」，排在 Step 2 之后，原 Step 3–9 顺延成 4–10；CI 和两条 0 违规的 ESLint 规则并进 Step 1 | tracker 已改；planner 里对应的 project 要同步，等 owner 确认 |
+| 讨论中加的 · skills | `new-flow`、`new-feature`、`design-explore` 三个 skill **全部删掉**（owner：做 design 时没用上）。留下有用的两点：flow 的格式（Trigger / Steps / Rules）进 `design/flows/README.md`；mockup 的命名规则（迭代时叫 `temp-<area>-v2.html`，批准后改名 `mockup-<area>-v2.html`，tracker 链过去，`temp-*` 删掉）进 `design/README.md` | X1–X3 从「修」变成「删」；AGENTS.md `:107` 和 `design/README.md:21` 里的 `/design-explore` 一起删 |
+
+下文保留 review 时的分析和选项，选中的选项标了 ✓；和结论不一致的地方，以本节为准。下文的 Step 编号和 `tracker.md` 行号都是 review 时的：当时的 Step 5、6、8，现在是 Step 6、7、9。附录 A 已按结论改过，文档 PR 可以直接照着做。
+
+### 实施计划
+
+| milestone 步骤 | 做什么 | 验证 |
+| --- | --- | --- |
+| Step 1（已有，`tracker.md:65-66`） | CI 加 `lint` 和 `typecheck` 两个 job：`package.json` 加 `"typecheck": "tsc --noEmit"`；`typecheck` 之前先跑 `prisma generate`，给一个假的 `DIRECT_URL`。ESLint 加 `no-console`（allow `error` / `warn`）和 `no-restricted-imports`（限制 server-only 模块；`@/lib/db/*` 只允许 type import） | 两条规则今天都是 0 违规；CI 全绿 |
+| Step 2（已有，`tracker.md:67`） | 删掉 in-app AI chat；顺手改 D12 的 6 处 | — |
+| Step 3 · 文档 PR（新增，`tracker.md:68-69`） | 按附录 A 重写 AGENTS.md：一层薄 index，加上每条规则的落点。新建 `design/spike/README.md`、`design/flows/README.md`、`src/app/design/README.md`；`tracker.md` 开头、`design-language/README.md`、`baseline.md`、`design/README.md` 接收挪过来的内容。删掉三个 skill 和 `.claude/commands/push.md`；CLAUDE.md 只留 `@AGENTS.md` | 附录 A 每一行都有落点或删除理由；`grep` 确认没有失效链接；`format:check` 通过 |
+| Step 3 · 代码 PR（新增，`tracker.md:70`） | 加 4 条只管生产代码的 ESLint 规则：`import/no-default-export`、`react/function-component-definition`、`react/no-multi-comp`、`id-length`（用 Q2d 的例外清单）。修掉违规：16 个文件的 default export、18 处 `function` 组件、2 个多组件文件、约 57 处命名。然后删掉 AGENTS.md 里对应的文字。品牌渐变上的白色换成主题变量（也可以单独做） | lint、tsc、`next build` 都通过；Design Console 逐页截图对比无变化 |
+| Step 6（已有，`tracker.md:73`） | sweep 的 checklist 加上 AGENTS.md 的体量和增长，以及 index 和 README 是否一致 | — |
 
 ---
 
@@ -249,7 +286,7 @@ Step 6（mutation layer）和 Step 8 都会往 AGENTS.md 写新规则。先把 A
 
 **实施**：一个 PR，只改文档。
 
-### Option C — B，再交给工具（推荐）
+### Option C — B，再交给工具（推荐）✓
 
 **做什么**：B 的全部，再加上：
 
@@ -279,7 +316,7 @@ PR 3 可以按规则再拆，比如命名单独一个 PR，看 diff 大小决定
 
 ---
 
-## Open questions · 待 owner 决定
+## Open questions · 待拍板（已拍板，结论见 Decision）
 
 **Q1 · 范围选 A、B 还是 C？** 推荐 C，分三个 PR。如果只想先止血，B 是单个 PR 能做到的上限。
 
@@ -290,14 +327,14 @@ PR 3 可以按规则再拆，比如命名单独一个 PR，看 diff 大小决定
 - **Q2c · One file → one component**（6 个文件）：推荐 lint 只管 `src/components/**`，Design Console 的 `GalleryParts.tsx` 和 `DomainTab.tsx` 豁免，它们是 console 自己的脚手架，不是生产组件。另一个选项是全仓都管，一起拆。
 - **Q2d · 命名**（81 处单字母，14 处 `prev`）：有三个选项。
   1. 完全严格：上 `id-length`，改掉 81 处，`prev` 也改成全称。
-  2. 单字母交给 `id-length` 并修掉；`prev` 是 React setState 的惯用写法，加进例外（例外变成 `id`、`tx`、`t`、`prev`）。
+  2. ✓ 单字母交给 `id-length` 并修掉；`prev` 是 React setState 的惯用写法，加进例外（例外变成 `id`、`tx`、`t`、`prev`）。
   3. 只管新代码，lint 设成 warn。warn 通常没人看，不推荐。
 
   推荐选项 2。另外，`t` 只留给 next-intl，`templates.map(t => …)` 这类写法改成全称。
 - **Q2e · slice**：推荐删掉这条。`aiPlanChatStore` 会在 Milestone Step 2 和 AI chat 一起删掉，现在拆 slice 是白做。
 - **Q2f · inline styles**：推荐加例外「只允许动态值：CSS 变量、计算出来的尺寸」，不上 lint。
 - **Q2g · 品牌渐变上的 `text-white`**（7 处）：有两个选项。
-  1. 换成语义 token：在主题里声明一个按角色命名的变量，每个主题都要声明，由 `check:themes` 检查。
+  1. ✓ 换成语义 token：在主题里声明一个按角色命名的变量，每个主题都要声明，由 `check:themes` 检查。
   2. 在规则里写明「品牌渐变上可以用白色」。
 
   推荐选项 1。但它要改主题文件，建议放到 PR 3 或者单独做。
@@ -312,10 +349,10 @@ PR 3 可以按规则再拆，比如命名单独一个 PR，看 diff 大小决定
 
 **Q7 · 怎么防止再长回去？** 有三个选项，可以组合：
 
-1. 把 `:143` 换成放置规则：新规则放到所属的地方；能用工具执行的交给工具；和现有规则重叠时，改现有规则。
+1. ✓ 把 `:143` 换成放置规则：新规则放到所属的地方；能用工具执行的交给工具；和现有规则重叠时，改现有规则。
 2. CI 加一个体量检查，比如 `scripts/check-agents-size.mjs`，超过 N 词就失败。好处是硬约束；代价是加规则时会被卡住，得先删掉或合并别的规则。
 
-3. 交给 Milestone Step 5 的 quality sweep：sweep checklist 加一项「AGENTS.md 的体量和增长」，超出预算就作为一条 finding 报出来，而不是让 CI 失败。
+3. ✓ 交给 Milestone Step 5 的 quality sweep：sweep checklist 加一项「AGENTS.md 的体量和增长」，超出预算就作为一条 finding 报出来，而不是让 CI 失败。
 
 推荐选项 1 加选项 3。选项 2 由你决定；如果要做，预算建议定为 PR 1 之后的词数再加 10%。
 
@@ -333,7 +370,7 @@ PR 3 可以按规则再拆，比如命名单独一个 PR，看 diff 大小决定
 **Q11 · 这件事要不要并进 Quality gate milestone？** 有两个选项：
 
 1. 保持独立：留在 tracker 的 Cross-cutting › Medium，什么时候做都行。
-2. 并进 milestone：PR 2 并进 Step 1；PR 1（文档）和 PR 3（代码）合成新的一步，排在 Step 2 之后、Step 5 之前。
+2. ✓ 并进 milestone：PR 2 并进 Step 1；PR 1（文档）和 PR 3（代码）合成新的一步，排在 Step 2 之后、Step 5 之前。
 
 推荐选项 2，理由有三条：
 
@@ -365,11 +402,11 @@ milestone 同时也是 planner 里的一个 project，加一步要同步改 proj
 | `:101` | Modals render inline | 挪到 → `src/app/design/README.md` |
 | `:102` | One tab, one state | 挪到 → `src/app/design/README.md` |
 | `:103` | Production first | 合并 → `:100` |
-| `:107` | Designing New UI | 保留 |
+| `:107` | Designing New UI | 改写：删掉 `/design-explore`；mockup 命名规则挪到 `design/README.md` |
 | `:111` | Implementing UI | 保留，并入 `:115`，写成两句 |
 | `:115` | Keeping Scenarios in Sync | 合并 → `:111` |
 | `:119-123` | 文档要写短（开头段、altitude、length、in place） | 合成一段（R9）；各文档自己的 altitude 挪到各文档开头 |
-| `:124` | Update Log | 保留（R1 只留这一处） |
+| `:124` | Update Log | 改写：以天为单位，前几天的不动，同一天先追加、再重构成一份 summary（Q8）；R1 只留这一处 |
 | `:125` | Spike 文档结构 | 挪到 → `design/spike/README.md`（R7） |
 | `:126` | tracker 多 PR 用子项 | 挪到 → `design/tracker.md` 开头 |
 | `:127` | Spike 用中文写 | 挪到 → `design/spike/README.md` |
@@ -378,13 +415,13 @@ milestone 同时也是 planner 里的一个 project，加一步要同步改 proj
 | `:136` | server-only 模块 | 保留，并加 lint（`no-restricted-imports`） |
 | `:137` | 组件可以直接调 server action | 保留，删掉例子 |
 | `:138` | Component placement | 保留 |
-| `:139` | Server shapes inputs | 挪到 → `baseline.md`；AGENTS.md 留两行；删掉 `useMemo`（C3、P4） |
+| `:139` | Server shapes inputs | 拆两半：两条不变量留在 AGENTS.md，其余标 pending（Step 7、Step 9）；详细版挪到 → `baseline.md`；删掉 `useMemo`（Q4） |
 | `:143` | 新规则追加到小节末尾 | 删除，换成放置规则（Q7） |
 | `:147` | domain helpers 放 `utils/`；不要重复逻辑 | 前半句保留；后半句合并 → DRY |
 | `:148` | 改名时文件名对应组件名 | 删除（`:149` 已经包含） |
-| `:149` | One file → one component | 保留，并加 lint |
+| `:149` | One file → one component | 保留，并加 lint（只管生产代码） |
 | `:150` | Destructure | 保留 |
-| `:151` | Name things plainly | 保留，按 Q2d 改例外，并加 lint |
+| `:151` | Name things plainly | 保留，例外改成 Q2d 的清单，并加 `id-length` |
 | `:152` | LLM-facing error messages | 保留 |
 | `:156` | 用枚举常量 | 保留 |
 | `:157` | `switch/case/default` | 改写（C1、Q3） |
@@ -405,7 +442,7 @@ milestone 同时也是 planner 里的一个 project，加一步要同步改 proj
 | `:273` | Sentence case | 保留 |
 | `:274` | Status marks | 挪到 → `design/design-language/README.md`（P1） |
 | `:278` | Named exports | lint，文字缩成一行（D1） |
-| `:279` | const arrow | lint，文字缩成一行（D2） |
+| `:279` | const arrow | lint，Next 约定文件例外，其余改成 arrow（D2） |
 | `:280` | props 显式类型，优先用 interface | 保留 |
 | `:281` | No `any` | lint（已经开启），删掉文字 |
 | `:282-283` | Server Components、`'use client'` | 合成一行（R5） |
@@ -422,7 +459,7 @@ milestone 同时也是 planner 里的一个 project，加一步要同步改 proj
 | `:332` | 不留 `console.log` | lint（`no-console`），删掉文字 |
 | `:333` | 不加重复的 action 或 route | 保留 |
 | `:334` | Update Log 只追加 | 删除（R1，`:124` 已有） |
-| `:338-340` | 本地 session、远程 session、不推 main | 保留，缩短 |
+| `:338-340` | 本地 session、远程 session、不推 main | 保留，缩短；加一条「推送前」清单（原 `.claude/commands/push.md`，Q8） |
 | `:341` | 推送前跑 format | 合并 → 推送前检查 |
 | `:342` | Branch names | 保留，缩短 |
 | `:343` | Act on submitted reviews only | 保留，缩成两句 |
@@ -442,6 +479,8 @@ milestone 同时也是 planner 里的一个 project，加一步要同步改 proj
 | Coding Conventions | General（一个文件一个组件、解构、命名、错误信息、DRY）· Enums · Themes · JSX（render function、constants、i18n、sentence case） | 50 |
 | Tooling | ESLint 和 Prettier 各管什么；推送前跑 `format`、`lint`、`typecheck` | 5 |
 | Data · State | DAL、`$transaction`、批量写、`select`；Zustand 三条 | 8 |
-| Version Control | 本地和远程 session、不推 main、分支名、只处理已提交的 review | 8 |
+| Version Control | 本地和远程 session、不推 main、推送前清单（原 `push.md`）、分支名、只处理已提交的 review | 12 |
 | Commands | | 13 |
-| 合计 | | 约 180 |
+| 合计 | | 约 185 |
+
+CLAUDE.md 只剩 `@AGENTS.md`；`.claude/skills/` 和 `.claude/commands/` 都删掉。
