@@ -5,6 +5,7 @@ import type {
   TaskType,
 } from '@/generated/prisma/client';
 import type {PlanItem} from '@/lib/db/plans';
+import type {ProjectStepState} from '@/utils/projectUtils';
 
 /** An existing template linked to a plan, with its per-plan type and frequency. */
 export type PlanTemplateInput = {
@@ -102,6 +103,49 @@ export type AdhocTaskSummary = {
   status: TaskStatus;
 };
 
+/** A project step as its project's path lists it for the planning tools. */
+export type ProjectStepContext = {
+  stepId: string;
+  stepNumber: number;
+  title: string;
+  description: string | null;
+  size: TaskSize;
+  points: number;
+  /** Where the step sits on the weeks */
+  state: ProjectStepState;
+  /** YYYY-MM-DD in the planner's time zone; null until done */
+  doneOn: string | null;
+};
+
+/** A project with its whole path, as the planning tools describe it. */
+export type ProjectContext = {
+  projectId: string;
+  title: string;
+  goal: string | null;
+  doneCount: number;
+  stepCount: number;
+  /** At least one step, every one DONE (derived, never stored) */
+  allStepsDone: boolean;
+  /** In path order */
+  steps: ProjectStepContext[];
+};
+
+/** An archived project, listed so the user can bring it back. */
+export type ArchivedProjectSummary = Pick<
+  ProjectContext,
+  'projectId' | 'title' | 'goal' | 'doneCount' | 'stepCount'
+>;
+
+/** A project step on a plan, with its board status. */
+export type PlanProjectStepSummary = Pick<
+  ProjectStepContext,
+  'stepId' | 'stepNumber' | 'title' | 'size' | 'points'
+> & {
+  projectId: string;
+  projectTitle: string;
+  status: TaskStatus;
+};
+
 /** One plan as the planning tools describe it (see getPlanContextByPlanId). */
 export type PlanContext = {
   planId: string;
@@ -111,6 +155,8 @@ export type PlanContext = {
   templates: PlanTemplateWithProgress[];
   /** Non-done one-off tasks attached to the plan */
   adhocTasks: AdhocTaskSummary[];
+  /** Project steps on the plan, done ones included */
+  projectSteps: PlanProjectStepSummary[];
   /** Totals over every template instance of the plan */
   overall: TaskProgress & {
     /** completionRate over DAILY instances only (habit signal) */
@@ -134,9 +180,12 @@ export type PlanningContext = {
   lastPlan: PlanContext | null;
   /** Non-archived templates, newest first */
   templates: TaskTemplateSummary[];
+  /** Non-archived projects, newest first */
+  projects: ProjectContext[];
+  archivedProjects: ArchivedProjectSummary[];
 };
 
-/** A template or one-off task named in a change summary. */
+/** A template, one-off task or project step named in a change summary. */
 export type PlanChangeRef = {id: string; title: string};
 
 /** What a patch changed, plus the plan as it stands afterwards. */
@@ -146,6 +195,21 @@ export type PlanPatchResult = {
     modifiedTemplates: PlanChangeRef[];
     removedTemplates: PlanChangeRef[];
     removedAdhocTasks: PlanChangeRef[];
+    addedProjectSteps: PlanChangeRef[];
+    removedProjectSteps: PlanChangeRef[];
   };
   plan: PlanContext;
+};
+
+/** What a project patch changed, plus the project as it stands afterwards. */
+export type ProjectPatchResult = {
+  changes: {
+    addedSteps: PlanChangeRef[];
+    updatedSteps: PlanChangeRef[];
+    movedSteps: PlanChangeRef[];
+    removedSteps: PlanChangeRef[];
+    /** Present when the patch archived (true) or unarchived (false) it */
+    archived?: boolean;
+  };
+  project: ProjectContext;
 };

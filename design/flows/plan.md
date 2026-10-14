@@ -206,25 +206,24 @@ All data is fetched server-side and injected into the LLM system prompt as conte
 
 ### Trigger / Entry Point
 
-The user asks Claude, connected to the `/api/mcp` server, to plan or adjust their week.
+The user asks Claude, connected to the `/api/mcp` server, to plan or adjust their week, a habit or a project.
 
 ### Steps
 
-1. Claude calls `get_planning_context`: sync first (`ensureSynced`), then today and the week, this week's ACTIVE plan (template lines with progress so far, attached unfinished one-offs) or last period's PENDING_UPDATE plan (per-template stats, the one-offs that carry over), and the reusable templates.
-2. Claude proposes a plan or a change in conversation; the server instructions require the user's agreement before any write.
-3. No active plan → `create_plan`: existing templates by id plus brand-new ones, mode, description, and `carryOverAdhocTaskIds` (omitted = all of the last plan's unfinished one-offs). Runs the shared creation guard, then one transaction — create the new templates, then the Create Plan Flow's steps 6–10 (links/returns one-offs, generates BACKLOG instances, completes the pending plan).
-4. Active plan → `update_plan` with a patch: add existing / create new / update type or frequency / remove templates, remove one-offs, mode, description. The patch is applied to the plan's current links, and the resulting full list runs through the Update Plan Flow's regeneration in one transaction with any new templates.
-5. Each write returns the plan as it now stands (`update_plan` also lists what changed) for Claude to report back.
+1. Claude reads the guide with `get_planning_guide_before_everything` (the server instructions, returned as a tool result because claude.ai doesn't pass them to the model).
+2. Claude calls `get_planning_context`: sync first (`ensureSynced`), then today and the week; this week's ACTIVE plan (template lines with progress so far, attached unfinished one-offs, its project steps with their status) or last period's PENDING_UPDATE plan (per-template stats, the one-offs that carry over, its project steps — done, and unfinished ones that carry over); the reusable templates; the projects with their whole paths (each step's state: `UPCOMING` / `THIS_WEEK` / `LAST_WEEK` / `DONE`); and the archived projects.
+3. Claude recaps last week, asks what the user wants to keep or change, and proposes; nothing is written before the user agrees.
+4. Projects and habits are settled first: `create_project` / `update_project` (see "Draft Steps with Claude (MCP) Flow" in `design/flows/projects.md`) and `update_habit` (a template's title, description, size).
+5. No active plan → `create_plan`: existing templates by id plus brand-new ones, mode, description, `carryOverAdhocTaskIds` and `carryOverProjectStepIds` (each omitted = all of the last plan's unfinished one-offs / steps), and `addProjectStepIds` (upcoming steps). Runs the shared creation guard, then one transaction — create the new templates, then the Create Plan Flow's steps 6–10 (links or returns one-offs and steps, generates BACKLOG instances, completes the pending plan).
+6. Active plan → `update_plan` with a patch: add existing / create new / update type or frequency / remove templates, remove one-offs, add or remove project steps, mode, description. The patch is applied to the plan's current links, and the resulting full list runs through the Update Plan Flow's regeneration in one transaction with any new templates.
+7. Each write returns what it changed and the plan, project or habit as it now stands, for Claude to report back.
 
 ### Rules
 
 - `update_plan` only changes this week's ACTIVE plan; a plan id read before a week rollover is rejected.
 - A patch that adds a template already in the plan, updates or removes one that isn't, or names an id twice is rejected whole; nothing is written.
 - Carried-over or removed one-offs must be unfinished one-off tasks of that plan — the tools never create one-offs or pull them from the priority matrix.
+- Project steps: a carried-over step must be an unfinished step of the last plan; an added step must be upcoming (the user's, unfinished, on no plan, of a project that isn't archived); a removed step must be an unfinished step of this plan and returns to its project (`planId = null`, `BACKLOG`, step number unchanged).
+- `update_habit` changes the template only: instances already generated keep their title and size.
 - Identity: tool calls act for the user whose Supabase OAuth access token the request carries (see OAuth Consent Flow in `design/flows/auth.md`); local development without a token acts as `MCP_DEV_USER_ID`.
 - Errors the model can act on (active plan exists, stale plan id, patch conflicts, unknown ids, invalid input) come back as `isError` results; unexpected errors are logged and reported generically.
-- **Projects** *(designed — Phase 1 pending, PR 5)*:
-  - `get_planning_context` adds projects (progress, upcoming steps with ids and sizes), this week's scheduled steps with their status, and last week's step results.
-  - New tools `create_project` and `update_project` (see "Draft Steps with Claude (MCP) Flow" in `design/flows/projects.md`).
-  - `create_plan` takes `carryOverProjectStepIds` (omitted = all of the last plan's unfinished steps, like one-offs) and `projectStepIds`. `update_plan` can add and remove steps.
-  - A scheduled step must be the user's, unfinished, and not already on this week's plan.

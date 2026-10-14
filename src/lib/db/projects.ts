@@ -102,8 +102,10 @@ export async function updateProject(
   userId: string,
   projectId: string,
   data: {title?: string; goal?: string | null},
+  tx?: Prisma.TransactionClient,
 ): Promise<ProjectItem | null> {
-  const [project] = await prisma.project.updateManyAndReturn({
+  const db = tx ?? prisma;
+  const [project] = await db.project.updateManyAndReturn({
     where: {id: projectId, userId},
     data,
     select: projectSelect,
@@ -180,8 +182,10 @@ export async function updateProjectStep(
     size?: TaskSize;
     points?: number;
   },
+  tx?: Prisma.TransactionClient,
 ): Promise<TaskItem | null> {
-  const [step] = await prisma.task.updateManyAndReturn({
+  const db = tx ?? prisma;
+  const [step] = await db.task.updateManyAndReturn({
     where: {
       id: stepId,
       userId,
@@ -211,6 +215,26 @@ export async function deleteProjectStep(
   });
 }
 
+/** Delete several steps of a project that aren't done; count of deleted. */
+export async function deleteProjectSteps(
+  userId: string,
+  projectId: string,
+  stepIds: string[],
+  tx?: Prisma.TransactionClient,
+): Promise<{count: number}> {
+  if (stepIds.length === 0) return {count: 0};
+  const db = tx ?? prisma;
+  return db.task.deleteMany({
+    where: {
+      id: {in: stepIds},
+      userId,
+      projectId,
+      type: TaskType.PROJECT,
+      status: {not: TaskStatus.DONE},
+    },
+  });
+}
+
 /** Move every step after `deletedIndex` up one, keeping the numbers contiguous. */
 export async function shiftStepsAfterIndex(
   userId: string,
@@ -231,29 +255,30 @@ export async function shiftStepsAfterIndex(
 }
 
 /**
- * Renumber a project's unfinished steps in one statement: stepIds[i] gets
- * stepIndexes[i]. Scoped to the owner, the project and non-DONE steps.
- * uq_task_daily / uq_task_weekly include templateId, which is NULL for steps,
- * so no intermediate numbering can collide.
+ * Renumber a project's path in one statement: stepIds[i] gets stepNumbers[i].
+ * Done steps are renumbered too (they keep their place in the path; only the
+ * numbers close up). Scoped to the owner and the project. uq_task_daily /
+ * uq_task_weekly include templateId, which is NULL for steps, so no
+ * intermediate numbering can collide.
  */
-export async function renumberProjectSteps(
+export async function renumberProjectPath(
   userId: string,
   projectId: string,
   stepIds: string[],
-  stepIndexes: number[],
+  stepNumbers: number[],
   tx?: Prisma.TransactionClient,
 ): Promise<number> {
+  if (stepIds.length === 0) return 0;
   const db = tx ?? prisma;
   return db.$executeRaw`
     UPDATE tasks AS task
-    SET instance_index = renumbered.step_index, updated_at = now()
-    FROM unnest(${stepIds}::uuid[], ${stepIndexes}::int[])
-      AS renumbered(step_id, step_index)
+    SET instance_index = renumbered.step_number, updated_at = now()
+    FROM unnest(${stepIds}::uuid[], ${stepNumbers}::int[])
+      AS renumbered(step_id, step_number)
     WHERE task.id = renumbered.step_id
       AND task.user_id = ${userId}::uuid
       AND task.project_id = ${projectId}::uuid
       AND task.type = 'PROJECT'
-      AND task.status <> 'DONE'
   `;
 }
 

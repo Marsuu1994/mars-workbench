@@ -3,7 +3,7 @@
  * the server action's paging, and the composer/feed UI (textarea maxLength,
  * skeletons, day grouping).
  */
-import {KANBAN_TZ, formatDayLabel} from './dateUtils';
+import {KANBAN_TZ, formatDayLabel, formatKanbanISODate} from './dateUtils';
 
 export const DUMP_PAGE_SIZE = 20;
 export const DUMP_ENTRY_MAX_LENGTH = 10000;
@@ -12,12 +12,6 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
 
 // All feed dates are rendered in the app's canonical timezone so day grouping
 // and "Today"/"Yesterday" are stable regardless of the client's local offset.
-const dayKeyFmt = new Intl.DateTimeFormat('en-CA', {
-  timeZone: KANBAN_TZ,
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-});
 const timeFmt = new Intl.DateTimeFormat('en-US', {
   timeZone: KANBAN_TZ,
   hour: '2-digit',
@@ -25,9 +19,9 @@ const timeFmt = new Intl.DateTimeFormat('en-US', {
   hour12: false,
 });
 
-/** KANBAN-tz calendar day key, e.g. "2026-07-16" (en-CA yields ISO order). */
+/** KANBAN-tz calendar day key, e.g. "2026-07-16". */
 export function dumpDayKey(date: Date): string {
-  return dayKeyFmt.format(date);
+  return formatKanbanISODate(date);
 }
 
 /** KANBAN-tz weekday + date label, e.g. "Wed, Jul 16". */
@@ -42,7 +36,7 @@ export function formatDumpTime(date: Date): string {
 
 /** Today's day key in KANBAN tz (compared against group keys for the header). */
 export function dumpTodayKey(): string {
-  return dayKeyFmt.format(new Date());
+  return formatKanbanISODate(new Date());
 }
 
 /** Shift a "YYYY-MM-DD" key by whole days — DST-immune calendar arithmetic. */

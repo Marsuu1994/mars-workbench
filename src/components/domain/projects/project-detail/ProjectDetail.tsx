@@ -46,8 +46,8 @@ interface ProjectDetailProps {
   onEditStep: (stepId: string) => void;
   onSchedule: (stepId: string) => void;
   onTakeBack: (stepId: string) => void;
-  /** The open steps' ids in their new order */
-  onReorder: (orderedStepIds: string[]) => void;
+  /** A dragged step goes right before `beforeStepId`, or last without one */
+  onMove: (stepId: string, beforeStepId: string | undefined) => void;
   /** All steps done's Archive — one click; resolves once it's archived */
   onArchive: () => Promise<void>;
 }
@@ -75,7 +75,7 @@ export const ProjectDetail = ({
   onEditStep,
   onSchedule,
   onTakeBack,
-  onReorder,
+  onMove,
   onArchive,
 }: ProjectDetailProps) => {
   const t = useTranslations('Projects.Detail');
@@ -92,13 +92,13 @@ export const ProjectDetail = ({
   }
 
   // Synchronous: the dnd library needs the new order in onDragEnd or the
-  // row springs back first
+  // row springs back first. The step lands before whichever open step takes
+  // the drop index once it's lifted out; past the last one it goes last
   function handleDragEnd({source, destination}: DropResult) {
     if (!destination || destination.index === source.index) return;
-    const orderedStepIds = openSteps.map(({id}) => id);
-    const [movedStepId] = orderedStepIds.splice(source.index, 1);
-    orderedStepIds.splice(destination.index, 0, movedStepId);
-    onReorder(orderedStepIds);
+    const otherOpenSteps = [...openSteps];
+    const [movedStep] = otherOpenSteps.splice(source.index, 1);
+    onMove(movedStep.id, otherOpenSteps[destination.index]?.id);
   }
 
   const renderNoPlanBanner = () =>

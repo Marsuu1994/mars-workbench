@@ -5,7 +5,7 @@ import {getTranslations} from 'next-intl/server';
 import {
   createProjectSchema,
   createProjectStepSchema,
-  reorderProjectStepsSchema,
+  moveProjectStepSchema,
   updateProjectSchema,
   updateProjectStepSchema,
 } from '../schemas';
@@ -14,7 +14,7 @@ import {
   archiveProject,
   createProject,
   deleteProjectStep,
-  reorderProjectSteps,
+  moveProjectStep,
   scheduleProjectStep,
   unarchiveProject,
   unscheduleProjectStep,
@@ -30,7 +30,7 @@ const PROJECTS_PATH = '/kanban/projects';
 const BOARD_PATH = '/kanban';
 
 type ProjectErrorKey =
-  'projectNotFound' | 'stepNotFound' | 'stepOrderMismatch' | 'noActivePlan';
+  'projectNotFound' | 'stepNotFound' | 'stepLimitReached' | 'noActivePlan';
 
 /**
  * What a project action returns: its data, or the error a form's banner reads
@@ -147,19 +147,15 @@ export async function deleteProjectStepAction(
   return {data: result.step};
 }
 
-export async function reorderProjectStepsAction(
+export async function moveProjectStepAction(
   projectId: string,
   input: unknown,
 ): Promise<ProjectActionResult<ProjectWithSteps>> {
-  const parsed = reorderProjectStepsSchema.safeParse(input);
+  const parsed = moveProjectStepSchema.safeParse(input);
   if (!parsed.success) return {error: parsed.error.flatten()};
 
   const userId = await getCurrentUserId();
-  const result = await reorderProjectSteps(
-    userId,
-    projectId,
-    parsed.data.stepIds,
-  );
+  const result = await moveProjectStep(userId, projectId, parsed.data);
   if ('error' in result) return errorResult(result.error);
 
   // Same-project steps on the board sort by step number

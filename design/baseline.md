@@ -44,7 +44,6 @@ Approved in [`spike/week-model-restructure.md`](./spike/week-model-restructure.m
    - Steps go onto the week one at a time and move across the board like any task.
    - A project whose steps are all done shows "All steps done" until the user archives it.
    - See `./flows/projects.md`.
-2. **MCP for projects** — Claude reads projects, creates and edits them, and puts steps on the week.
 
 Roadmap and open ideas live in [tracker.md](./tracker.md).
 

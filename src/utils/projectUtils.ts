@@ -1,5 +1,19 @@
+import type {ProjectStepRow, ProjectWithSteps} from '@/lib/db/projects';
 import type {TaskItem} from '@/lib/db/tasks';
+import type {CreateProjectStepInput} from '../schemas';
+import type {ProjectContext, ProjectStepContext} from '../types/plan';
+import type {
+  StepPathEntry,
+  StepPathPatch,
+  StepPathPatchConflicts,
+} from '../types/projects';
 import {TaskStatus} from './enums';
+import {formatKanbanISODate} from './dateUtils';
+import {findRepeatedIds} from './planUtils';
+import {sizeToPoints} from './sizeUtils';
+
+/** The most steps a project's path holds — the app and Claude alike. */
+export const PROJECT_STEP_LIMIT = 50;
 
 /** The one field a step's progress reads. */
 interface StepStatus {
@@ -19,26 +33,122 @@ export const countDoneSteps = (steps: readonly StepStatus[]) =>
 export const isAllStepsDone = (steps: readonly StepStatus[]) =>
   steps.length > 0 && steps.every(isStepDone);
 
+const listUnique = (ids: Iterable<string>) => [...new Set(ids)];
+
 /**
- * Renumber a project's unfinished steps after a reorder: they take over the
- * step numbers they already hold, ascending, in their new order — so done
- * steps keep theirs and the numbers stay contiguous. Shared by the server's
- * reorder and the Projects page's optimistic one, so the two always agree.
+ * Apply a path patch to a project's steps (in path order): the new path —
+ * removed steps out, moves in list order, then new steps where they go — plus
+ * the ids the patch cannot apply. A placement goes right before its
+ * `beforeStepId`, or at the end without one. Pure, so the Projects page's
+ * optimistic reorder and the server number a path the same way; the caller
+ * rejects the patch when any conflict list is non-empty.
  */
-export function assignStepNumbers(
-  orderedStepIds: readonly string[],
-  currentNumbers: readonly number[],
-): Map<string, number> {
-  const ascendingNumbers = [...currentNumbers].sort(
-    (left, right) => left - right,
+export function applyStepPatch(
+  steps: readonly Pick<TaskItem, 'id' | 'status'>[],
+  {addSteps, moveSteps, updateStepIds, removeStepIds}: StepPathPatch,
+): {path: StepPathEntry[]; conflicts: StepPathPatchConflicts} {
+  const stepById = new Map(steps.map(step => [step.id, step]));
+  const removedStepIds = new Set(removeStepIds);
+  const movedStepIds = moveSteps.map(({stepId}) => stepId);
+  const positionStepIds = [...addSteps, ...moveSteps].flatMap(
+    ({beforeStepId}) => (beforeStepId === undefined ? [] : [beforeStepId]),
   );
-  return new Map(
-    orderedStepIds.map((stepId, position) => [
-      stepId,
-      ascendingNumbers[position],
+  const namedStepIds = [
+    ...updateStepIds,
+    ...movedStepIds,
+    ...removeStepIds,
+    ...positionStepIds,
+  ];
+
+  const conflicts: StepPathPatchConflicts = {
+    notInProject: listUnique(
+      namedStepIds.filter(stepId => !stepById.has(stepId)),
+    ),
+    done: listUnique(
+      namedStepIds.filter(stepId => {
+        const step = stepById.get(stepId);
+        return step !== undefined && isStepDone(step);
+      }),
+    ),
+    removedAndChanged: listUnique(
+      [...updateStepIds, ...movedStepIds].filter(stepId =>
+        removedStepIds.has(stepId),
+      ),
+    ),
+    repeated: listUnique([
+      ...findRepeatedIds(updateStepIds),
+      ...findRepeatedIds(movedStepIds),
+      ...findRepeatedIds(removeStepIds),
     ]),
+    invalidPositions: listUnique([
+      ...positionStepIds.filter(stepId => removedStepIds.has(stepId)),
+      ...moveSteps
+        .filter(({stepId, beforeStepId}) => stepId === beforeStepId)
+        .map(({stepId}) => stepId),
+    ]),
+  };
+
+  const path: StepPathEntry[] = steps
+    .filter(({id}) => !removedStepIds.has(id))
+    .map(({id}) => ({stepId: id}));
+  const findStepPosition = (stepId: string) =>
+    path.findIndex(entry => 'stepId' in entry && entry.stepId === stepId);
+  const placeEntry = (entry: StepPathEntry, beforeStepId?: string) => {
+    const position =
+      beforeStepId === undefined ? -1 : findStepPosition(beforeStepId);
+    if (position === -1) path.push(entry);
+    else path.splice(position, 0, entry);
+  };
+
+  for (const {stepId, beforeStepId} of moveSteps) {
+    const position = findStepPosition(stepId);
+    if (position === -1) continue;
+    const [movedEntry] = path.splice(position, 1);
+    placeEntry(movedEntry, beforeStepId);
+  }
+  addSteps.forEach(({beforeStepId}, addedStepIndex) =>
+    placeEntry({addedStepIndex}, beforeStepId),
   );
+
+  return {path, conflicts};
 }
+
+/** True when a path patch's conflict lists are all empty. */
+export const hasNoStepConflicts = (conflicts: StepPathPatchConflicts) =>
+  Object.values(conflicts).every(stepIds => stepIds.length === 0);
+
+/**
+ * The step numbers of a patched path (1-based, contiguous): existing steps by
+ * id, and each new step's number in the patch's order.
+ */
+export function numberStepPath(path: readonly StepPathEntry[]): {
+  numberByStepId: Map<string, number>;
+  addedStepNumbers: number[];
+} {
+  const numberByStepId = new Map<string, number>();
+  const addedStepNumbers: number[] = [];
+  path.forEach((entry, position) => {
+    if ('stepId' in entry) numberByStepId.set(entry.stepId, position + 1);
+    else addedStepNumbers[entry.addedStepIndex] = position + 1;
+  });
+  return {numberByStepId, addedStepNumbers};
+}
+
+/** Empty optional text clears the field (a goal, a step's description). */
+export const toNullableText = (text: string | undefined) =>
+  text === undefined ? undefined : text || null;
+
+/** A new step's row at `instanceIndex`, with points derived from its size. */
+export const toProjectStepRow = (
+  {title, description, size}: CreateProjectStepInput,
+  instanceIndex: number,
+): ProjectStepRow => ({
+  title,
+  description: description || undefined,
+  size,
+  points: sizeToPoints(size),
+  instanceIndex,
+});
 
 /** The number a new step gets: the end of the path. */
 export const getNextStepNumber = (
@@ -114,5 +224,38 @@ export function summarizeProject(
     thisWeekCount: openSteps.filter(
       step => getStepState(step, activePlanId) === ProjectStepState.THIS_WEEK,
     ).length,
+  };
+}
+
+const toProjectStepContext = (
+  step: TaskItem,
+  activePlanId: string | null,
+): ProjectStepContext => {
+  const {id, instanceIndex, title, description, size, points, doneAt} = step;
+  return {
+    stepId: id,
+    stepNumber: instanceIndex,
+    title,
+    description,
+    size,
+    points,
+    state: getStepState(step, activePlanId),
+    doneOn: doneAt ? formatKanbanISODate(doneAt) : null,
+  };
+};
+
+/** A project with its path (in step order) as the planning tools list it. */
+export function toProjectContext(
+  {id, title, goal, steps}: ProjectWithSteps,
+  activePlanId: string | null,
+): ProjectContext {
+  return {
+    projectId: id,
+    title,
+    goal,
+    doneCount: countDoneSteps(steps),
+    stepCount: steps.length,
+    allStepsDone: isAllStepsDone(steps),
+    steps: steps.map(step => toProjectStepContext(step, activePlanId)),
   };
 }

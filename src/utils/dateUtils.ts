@@ -122,6 +122,19 @@ export function formatISODate(date: Date): string {
   return `${date.getFullYear()}-${month}-${day}`;
 }
 
+// en-CA yields ISO order (YYYY-MM-DD)
+const kanbanDayFormatter = new Intl.DateTimeFormat('en-CA', {
+  timeZone: KANBAN_TZ,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+/** A moment's KANBAN_TZ calendar day as "YYYY-MM-DD", e.g. a task's doneAt. */
+export function formatKanbanISODate(date: Date): string {
+  return kanbanDayFormatter.format(date);
+}
+
 /**
  * Returns true if the given date falls on a Saturday or Sunday.
  */
