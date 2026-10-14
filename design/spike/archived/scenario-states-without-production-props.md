@@ -1,6 +1,6 @@
 # Spike: Pin scenario states without production props
 
-**Status: decided — Option A, implemented** · 2026-10-02 · Related: `design/spike/design-console-vs-storybook.md` (the Panel/Shell split is a separate tax and stays out of scope here)
+**Status: decided — Option A, implemented** · 2026-10-02 · Related: the Design Console vs Storybook spike, since dropped (in git history; the Panel/Shell split is a separate tax and stays out of scope here)
 
 ## Trigger
 
