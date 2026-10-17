@@ -93,6 +93,15 @@ Open items: see [design/tracker.md](./design/tracker.md).
 
 ## Update Log
 
+### 2026-10-17
+- **Quality gate Step 1 — CI now checks lint, types and unused code; dead code removed**:
+  - **CI**: three jobs join Prettier and the theme check — ESLint, TypeScript (`npm run typecheck`, after `prisma generate` with a placeholder `DIRECT_URL`) and knip (`npm run knip`), which fails on unused files, exports and dependencies. Knip joins CI (the step's open question): an export its own file uses doesn't count, and `knip.jsonc` lists the three known false positives (`public/sw.js`, `@prisma/client`, `postcss`). It is pinned to 5.88.1, the last 5.x, because every 6.x needs zod ≥ 4.4 and would bump the app's runtime zod.
+  - **ESLint**: `no-console` in `src/` (`console.error` / `warn` allowed), and `@typescript-eslint/no-restricted-imports` in components, hooks and stores — no services, DAL, Prisma client, generated client or `statsUtils` there, type imports allowed. Both had zero violations; a probe file confirmed each fires, relative paths included.
+  - **Dead code removed**: the tracker's list — `projectService.listProjects` / `getProject`, seven `tasks.ts` exports, `deletePlanTemplatesByPlanId`, `sameDay`, `getTemplateStatsAction` (with its schema), `DUMP_HREF`, and the `en.json` keys `Review.templateCount` / `Dump.loadingMore` — plus what knip found besides: 13 unused schema input types and an unused auth fixture id. `reference.md` and the plan flow drop the removed names.
+  - **Small fixes knip surfaced**: `planService` imports the plan input types from `schemas.ts` instead of re-deriving them; the consent page reads its query param through `AUTHORIZATION_ID_PARAM`; `@/lib/prisma` keeps only its named export (it had both named and default).
+  - **Tracker**: Step 1 is done and leaves the milestone.
+  - **Checks**: prettier, theme check, eslint, tsc, knip and `next build` are green.
+
 ### 2026-10-14
 - **Week model PR 4d — Phase 1 closed out**: the living docs stand on their own, the Phase 1 spikes are archived, and two bugs found along the way are fixed.
   - **Fixed — Edit Plan no longer returns what joined the week while it was open**: the form sent its whole one-off and step selection from when it loaded, so a one-off tracked from the matrix, a step put on the week from the Projects page, or one Claude added in the meantime went back on save. The form now sends only what the user let go (`removeAdhocTaskIds` / `removeProjectStepIds`), and `planService.updatePlan` reads the plan's links at save time. Reproduced on `main`'s code against a local Postgres (both went back), then checked on the fix: kept, let go, a let-go id no longer on the plan, and a step done meanwhile (keeps its plan).

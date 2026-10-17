@@ -28,7 +28,6 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | `createTaskTemplateAction` | Create a task template | `db/taskTemplates.createTaskTemplate` |
 | `updateTaskTemplateAction` | Edit a task template | `db/taskTemplates.updateTaskTemplate` |
 | **`src/actions/aiChatActions.ts`** | | |
-| `getTemplateStatsAction` | Last-plan per-template stats for the AI chat | `aiChatService.getTemplateStats` |
 | `createAiChatAction` | Start a new AI plan-creation chat | `aiChatService.createAiChat` |
 | `getActiveAiChatAction` | Load the resumable in-progress chat for rehydration | `aiChatService.getActiveAiChat` |
 | `generateDraftPlanAction` | Send a user message, generate/revise a draft plan | `aiChatService.generateDraftPlan` |
@@ -114,9 +113,7 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `resumeDraftPlan` | Regenerate after an interrupted LLM call (no new turn) |
 | `approveDraftPlan` | Approve the latest draft and create the plan |
 | **`projectService.ts`** | |
-| `listProjects` | The user's projects (archived included) with their steps |
 | `fetchProjectsPage` | The Projects page's inputs, synced first: every project, their steps flat, the active plan's id |
-| `getProject` | One project with its steps, owner-scoped |
 | `createProject` | Create a project with optional first steps (one transaction) |
 | `updateProject` | Rename a project or change its goal |
 | `archiveProject` | Archive: unfinished steps return to the project (done steps keep their plan) |
@@ -148,10 +145,8 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `updatePlanStatus` | Transition a plan's status, owner-scoped |
 | `updateLastSyncDate` | Set `lastSyncDate` (daily-sync short-circuit) |
 | **`tasks.ts`** | |
-| `getTasksByPlanId` | All tasks for a plan, ordered by creation time |
 | `getBoardTasksByPlanId` | Board-visible tasks for a plan (excludes EXPIRED) |
 | `getBoardMetricsByPlanId` | All board metrics in one SQL aggregate query |
-| `getTasksByPlanIdAndStatus` | Tasks for a plan filtered by statuses |
 | `createTask` | Create one task instance (planId null = unassigned matrix task) |
 | `createManyTasks` | Bulk create task instances with `skipDuplicates` (idempotent) |
 | `updateTaskStatus` | Set a task's status (+`doneAt` on DONE); returns updated row or null |
@@ -161,16 +156,12 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `revertAdhocCompletion` | Put a DONE AD_HOC task back to its pre-complete status (clear `doneAt`, optional plan detach), guarded on DONE |
 | `expireStaleDailyTasks` | Expire non-DONE daily tasks older than the cutoff (1-day rollover buffer) |
 | `expireAllNonDoneTasks` | End-of-period cleanup: expire all non-done template instances (one-offs and steps never expire) |
-| `getDailyTasksForDate` | Daily tasks for a specific date (idempotency check) |
-| `taskExists` | Existence + ownership check |
 | `deleteIncompleteTasksByTemplateIds` | Delete unfinished (BACKLOG/TODO) tasks for given templates in a plan |
-| `countTasksByTemplateIds` | Total incomplete-task count for given templates |
 | `countIncompleteTasksByTemplateId` | Incomplete-task counts grouped by templateId |
 | `getNonDoneAdhocTasks` | All non-DONE AD_HOC tasks (matrix data source) |
 | `updateTasksPlanId` | Batch link ad-hoc tasks to a plan, owner-scoped |
 | `unlinkTasksFromPlan` | Return a plan's unkept one-offs (to the matrix) or steps (to their project) — DONE tasks stay |
 | `getPlanTemplateStats` | Per-template performance aggregates (LLM signal + recap stats) |
-| `isValidTaskStatus` | TaskStatus type guard (with `VALID_TASK_STATUSES` const) |
 | **`projects.ts`** | |
 | `getProjectsWithSteps` | All of a user's projects with their steps (ordered by step number) |
 | `getProjectWithStepsById` | One project with its steps; null return doubles as the ownership gate |
@@ -203,7 +194,6 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `getPlanTemplatesByPlanId` | All plan-template links for a plan |
 | `createManyPlanTemplates` | Bulk link templates to a plan with per-plan type/frequency |
 | `updatePlanTemplate` | Update a link's type and frequency |
-| `deletePlanTemplatesByPlanId` | Delete all links for a plan (plan rebuild) |
 | **`chats.ts`** | |
 | `createChat` | Create a chat (optional plan link + initial metadata snapshot) |
 | `getChatById` | Chat by id, owner-scoped |

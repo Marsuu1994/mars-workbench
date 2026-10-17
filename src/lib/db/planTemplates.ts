@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma';
+import {prisma} from '@/lib/prisma';
 import {Prisma, TaskType} from '@/generated/prisma/client';
 
 export type PlanTemplateItem = {
@@ -64,18 +64,5 @@ export async function updatePlanTemplate(
     where: {id},
     data,
     select: planTemplateSelect,
-  });
-}
-
-/**
- * Bulk delete all plan-template links for a plan (used for plan rebuild)
- */
-export async function deletePlanTemplatesByPlanId(
-  planId: string,
-  tx?: Prisma.TransactionClient,
-): Promise<void> {
-  const db = tx ?? prisma;
-  await db.planTemplate.deleteMany({
-    where: {planId},
   });
 }

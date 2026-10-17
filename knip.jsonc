@@ -1,0 +1,13 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  // An export its own file still uses isn't dead code.
+  "ignoreExportsUsedInFile": true,
+  // Registered by URL (ServiceWorkerRegistrar), never imported.
+  "ignore": ["public/sw.js"],
+  "ignoreDependencies": [
+    // Runtime of the generated client in src/generated/prisma (gitignored).
+    "@prisma/client",
+    // postcss.config.mjs is loaded by Next's own bundled PostCSS.
+    "postcss",
+  ],
+}

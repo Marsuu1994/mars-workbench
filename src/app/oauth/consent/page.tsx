@@ -6,9 +6,10 @@ import {
 import {ConsentInvalidScreen} from '@/components/domain/auth/ConsentInvalidScreen';
 import {ConsentScreen} from '@/components/domain/auth/ConsentScreen';
 import {authorizationIdSchema} from '@/schemas';
+import {AUTHORIZATION_ID_PARAM} from '@/utils/oauthConsent';
 
 interface ConsentPageProps {
-  searchParams: Promise<{authorization_id?: string | string[]}>;
+  searchParams: Promise<{[AUTHORIZATION_ID_PARAM]?: string | string[]}>;
 }
 
 /**
@@ -17,7 +18,7 @@ interface ConsentPageProps {
  * through login and back here. See OAuth Consent Flow.
  */
 export default async function ConsentPage({searchParams}: ConsentPageProps) {
-  const {authorization_id: authorizationIdParam} = await searchParams;
+  const {[AUTHORIZATION_ID_PARAM]: authorizationIdParam} = await searchParams;
   const {success, data: authorizationId} =
     authorizationIdSchema.safeParse(authorizationIdParam);
   if (!success) {

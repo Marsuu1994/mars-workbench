@@ -7,8 +7,6 @@ export const SCENARIO_USER = {
   email: 'liang@example.com',
 };
 
-export const SCENARIO_PLAN_ID = 'scn-plan';
-
 export const SCENARIO_CONSENT_REQUEST: OAuthConsentRequest = {
   authorizationId: 'scn-authorization',
   clientName: 'Claude',

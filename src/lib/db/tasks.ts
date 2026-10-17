@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma';
+import {prisma} from '@/lib/prisma';
 import {
   Prisma,
   PriorityQuadrant,
@@ -69,20 +69,6 @@ export const taskSelect = {
   updatedAt: true,
   doneAt: true,
 } as const;
-
-/**
- * Get all of a user's tasks for a plan ordered by creation time
- */
-export async function getTasksByPlanId(
-  userId: string,
-  planId: string,
-): Promise<TaskItem[]> {
-  return prisma.task.findMany({
-    where: {userId, planId},
-    orderBy: [{createdAt: 'asc'}, {id: 'asc'}],
-    select: taskSelect,
-  });
-}
 
 /**
  * Get all board-visible tasks for a user's plan (excludes EXPIRED)
@@ -201,21 +187,6 @@ export async function getBoardMetricsByPlanId(
     projectCount: toNumber(row.projectCount),
     projectPoints: toNumber(row.projectPoints),
   };
-}
-
-/**
- * Get tasks for a plan filtered by statuses
- */
-export async function getTasksByPlanIdAndStatus(
-  userId: string,
-  planId: string,
-  statuses: TaskStatus[],
-): Promise<TaskItem[]> {
-  return prisma.task.findMany({
-    where: {userId, planId, status: {in: statuses}},
-    orderBy: [{createdAt: 'asc'}, {id: 'asc'}],
-    select: taskSelect,
-  });
 }
 
 /**
@@ -441,35 +412,6 @@ export async function expireAllNonDoneTasks(
 }
 
 /**
- * Get daily tasks for a specific date (idempotency check)
- */
-export async function getDailyTasksForDate(
-  userId: string,
-  planId: string,
-  templateId: string,
-  forDate: Date,
-): Promise<TaskItem[]> {
-  return prisma.task.findMany({
-    where: {userId, planId, templateId, forDate},
-    select: taskSelect,
-  });
-}
-
-/**
- * Check if a task exists and is owned by the user
- */
-export async function taskExists(
-  userId: string,
-  taskId: string,
-): Promise<boolean> {
-  const task = await prisma.task.findFirst({
-    where: {id: taskId, userId},
-    select: {id: true},
-  });
-  return task !== null;
-}
-
-/**
  * Delete incomplete tasks (TODO, DOING) for specific templates in a plan
  */
 export async function deleteIncompleteTasksByTemplateIds(
@@ -487,25 +429,6 @@ export async function deleteIncompleteTasksByTemplateIds(
       status: {in: ['BACKLOG', 'TODO', 'DOING']},
     },
   });
-}
-
-/**
- * Count incomplete (removable) tasks for specific templates (total)
- */
-export async function countTasksByTemplateIds(
-  userId: string,
-  planId: string,
-  templateIds: string[],
-): Promise<{removeCount: number}> {
-  const removeCount = await prisma.task.count({
-    where: {
-      userId,
-      planId,
-      templateId: {in: templateIds},
-      status: {in: ['BACKLOG', 'TODO', 'DOING']},
-    },
-  });
-  return {removeCount};
 }
 
 /**
@@ -663,21 +586,4 @@ export async function getPlanTemplateStats(
     completionRate: e.total > 0 ? e.completed / e.total : 0,
     pointsEarned: e.pointsEarned,
   }));
-}
-
-/**
- * Valid task statuses for validation
- */
-export const VALID_TASK_STATUSES: TaskStatus[] = [
-  'TODO',
-  'DOING',
-  'DONE',
-  'EXPIRED',
-];
-
-/**
- * Check if a status string is a valid TaskStatus
- */
-export function isValidTaskStatus(status: string): status is TaskStatus {
-  return VALID_TASK_STATUSES.includes(status as TaskStatus);
 }

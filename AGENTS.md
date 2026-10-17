@@ -347,7 +347,9 @@ Only patterns not already covered above. DRY, enum constants, and the componentâ
 ```bash
 npm run dev      # Start dev server
 npm run build    # Production build
-npm run lint     # Lint
+npm run lint     # Lint (used in CI)
+npm run typecheck    # tsc --noEmit (used in CI; needs the generated Prisma client)
+npm run knip         # Unused files, exports and dependencies (used in CI; config in knip.jsonc)
 npm run format       # Format all code with Prettier (Google style)
 npm run format:check # Verify formatting (used in CI)
 npm run check:themes # Every theme declares the same CSS variables (used in CI)

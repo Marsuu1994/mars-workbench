@@ -1,5 +1,4 @@
-/** Dump feature UI constants (route href, layout tuning). */
-export const DUMP_HREF = '/kanban/dump';
+/** Dump feature UI constants (layout tuning). */
 
 /** Prefetch margin for the feed's infinite-scroll sentinel — load the next
  *  page before the sentinel is actually on screen. */
