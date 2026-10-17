@@ -27,12 +27,6 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | **`src/actions/templateActions.ts`** | | |
 | `createTaskTemplateAction` | Create a task template | `db/taskTemplates.createTaskTemplate` |
 | `updateTaskTemplateAction` | Edit a task template | `db/taskTemplates.updateTaskTemplate` |
-| **`src/actions/aiChatActions.ts`** | | |
-| `createAiChatAction` | Start a new AI plan-creation chat | `aiChatService.createAiChat` |
-| `getActiveAiChatAction` | Load the resumable in-progress chat for rehydration | `aiChatService.getActiveAiChat` |
-| `generateDraftPlanAction` | Send a user message, generate/revise a draft plan | `aiChatService.generateDraftPlan` |
-| `resumeDraftPlanAction` | Regenerate after an interrupted LLM call (no new turn) | `aiChatService.resumeDraftPlan` |
-| `approveDraftPlanAction` | Approve the latest draft and create the plan | `aiChatService.approveDraftPlan` |
 | **`src/actions/matrixActions.ts`** | | |
 | `fetchPriorityMatrixAction` | Load matrix tasks + active-plan info for `/kanban/priorities` | `matrixService.fetchPriorityMatrix` |
 | `updateTaskQuadrantAction` | Move a task between Eisenhower quadrants | `db/tasks.updateTaskQuadrant` |
@@ -89,7 +83,7 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `getCarryOverAdhocTaskIds` | The pending plan's non-done ad-hoc tasks (default carry-over when no explicit selection) |
 | `getCarryOverProjectStepIds` | The pending plan's unfinished project steps (carry-over candidates) |
 | `resolvePlanEntries` | Resolve existing + new (`templateId: null`) entries to template links, creating the new templates in the caller's transaction |
-| `createPlanFromEntries` | Create a plan from entries mixing existing templates and new ones (`templateId: null`) — AI approval, MCP |
+| `createPlanFromEntries` | Create a plan from entries mixing existing templates and new ones (`templateId: null`) — MCP |
 | `createPlanInTx` | Shared transactional plan-creation core reused by `createPlan`/`createPlanFromEntries`; rejects templates the user doesn't own; links the selected one-offs and steps, returns the pending plan's others |
 | `updatePlanInTx` | Transactional plan-update core (template diff + task regeneration, ad-hoc and project-step links, description/mode); returns the applied diff |
 | **`planningService.ts`** | |
@@ -105,13 +99,6 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `trackTaskThisWeek` | Track This Week: pull a matrix task onto the board |
 | `completeMatrixTask` | Complete a matrix task in place: `ensureSynced` → active plan id or null → DAL |
 | `undoCompleteMatrixTask` | Undo a matrix completion: validated pre-complete snapshot → DAL |
-| **`aiChatService.ts`** | |
-| `getTemplateStats` | Last-plan per-template stats for the AI chat |
-| `createAiChat` | Start a new AI plan-creation chat |
-| `getActiveAiChat` | Load the resumable in-progress chat for rehydration |
-| `generateDraftPlan` | Send a user message, generate/revise a draft plan |
-| `resumeDraftPlan` | Regenerate after an interrupted LLM call (no new turn) |
-| `approveDraftPlan` | Approve the latest draft and create the plan |
 | **`projectService.ts`** | |
 | `fetchProjectsPage` | The Projects page's inputs, synced first: every project, their steps flat, the active plan's id |
 | `createProject` | Create a project with optional first steps (one transaction) |
@@ -161,7 +148,7 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `getNonDoneAdhocTasks` | All non-DONE AD_HOC tasks (matrix data source) |
 | `updateTasksPlanId` | Batch link ad-hoc tasks to a plan, owner-scoped |
 | `unlinkTasksFromPlan` | Return a plan's unkept one-offs (to the matrix) or steps (to their project) — DONE tasks stay |
-| `getPlanTemplateStats` | Per-template performance aggregates (LLM signal + recap stats) |
+| `getPlanTemplateStats` | Per-template performance aggregates (MCP planning context + recap stats) |
 | **`projects.ts`** | |
 | `getProjectsWithSteps` | All of a user's projects with their steps (ordered by step number) |
 | `getProjectWithStepsById` | One project with its steps; null return doubles as the ownership gate |
@@ -184,25 +171,14 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `getPlanStepsByPlanId` | A plan's unfinished steps with their project's title (the plan form's Project Steps) |
 | **`taskTemplates.ts`** | |
 | `getTaskTemplates` | Non-archived templates for a user, newest first |
-| `getTaskTemplateTitlesByIds` | Map template ids → titles (includes archived, for stats labels) |
 | `getOwnedTemplateIds` | The subset of ids the user owns (template-ownership check) |
 | `getTaskTemplateById` | Single template, owner-scoped |
 | `createTaskTemplate` | Create a task template |
 | `createManyTaskTemplates` | Batch-create templates; returned ids preserve input order |
 | `updateTaskTemplate` | Update a template, owner-scoped (count 0 = not found) |
 | **`planTemplates.ts`** | |
-| `getPlanTemplatesByPlanId` | All plan-template links for a plan |
 | `createManyPlanTemplates` | Bulk link templates to a plan with per-plan type/frequency |
 | `updatePlanTemplate` | Update a link's type and frequency |
-| **`chats.ts`** | |
-| `createChat` | Create a chat (optional plan link + initial metadata snapshot) |
-| `getChatById` | Chat by id, owner-scoped |
-| `getLatestInProgressChat` | Most recent chat with `planId` null (the resumable draft chat) |
-| `updateChatMetadata` | Overwrite chat metadata (single-slot latest-draft clipboard) |
-| `updateChatPlanId` | Link a chat to its plan after approval |
-| **`messages.ts`** | |
-| `getMessagesByChatId` | All messages for a chat in creation order (LLM history) |
-| `createMessage` | Persist one message and touch the chat's `updatedAt` |
 | **`dumpEntries.ts`** | |
 | `createDumpEntry` | Insert one dump entry (isProcessed defaults false) |
 | `getDumpEntriesPage` | One owner-scoped feed page, (createdAt, id) DESC, cursor + take |

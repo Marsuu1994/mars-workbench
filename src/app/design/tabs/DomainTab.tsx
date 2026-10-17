@@ -6,7 +6,6 @@ import {DragDropContext, Droppable} from '@hello-pangea/dnd';
 import {ArrowRightIcon} from '@heroicons/react/24/outline';
 
 import {SizeChip} from '@/components/domain/shared/SizeChip';
-import {TaskTypeBadge} from '@/components/domain/shared/TaskTypeBadge';
 import BoardHeader from '@/components/domain/shared/BoardHeader';
 import TaskCard from '@/components/domain/board/TaskCard';
 import {TaskCardMiniFace} from '@/components/domain/board/TaskCardMiniFace';
@@ -21,18 +20,12 @@ import {StepPath} from '@/components/domain/board/StepPath';
 import {ProjectStep} from '@/components/domain/projects/project-detail/ProjectStep';
 import {ThemePicker} from '@/components/domain/auth/ThemePicker';
 import type {ThemeName} from '@/utils/theme';
-import {BotAvatar, UserAvatar} from '@/components/domain/plan/ai-chat/Avatars';
-import {SuggestionChips} from '@/components/domain/plan/ai-chat/SuggestionChips';
-import {LoadingBubble} from '@/components/domain/plan/ai-chat/LoadingBubble';
 
 import {Zone, Section, Variant, Row} from '../GalleryParts';
 import {SIZE_TO_POINTS, TaskStatus, TaskType} from '@/utils/enums';
 import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
 import {
   SIZE_FIXTURES,
-  TYPE_FIXTURES,
-  SUGGESTION_CHIPS,
-  LOADING_LABEL,
   TASK_CARD_FIXTURES,
   MINI_CARD_FIXTURES,
   STEP_PATH_FIXTURES,
@@ -91,21 +84,6 @@ export const DomainTab = () => {
         {SIZE_FIXTURES.map(({size, points}) => (
           <Variant key={size} label={size}>
             <SizeChip size={size} points={points} />
-          </Variant>
-        ))}
-      </Row>
-    </Section>
-  );
-
-  const renderTypeBadges = () => (
-    <Section
-      title="TaskTypeBadge"
-      description="Semantic badge for a template's recurrence type — used by the AI plan draft cards; board cards show their kind instead."
-    >
-      <Row>
-        {TYPE_FIXTURES.map(type => (
-          <Variant key={type} label={type}>
-            <TaskTypeBadge type={type} />
           </Variant>
         ))}
       </Row>
@@ -346,33 +324,6 @@ export const DomainTab = () => {
     </Section>
   );
 
-  const renderChatPrimitives = () => (
-    <Section
-      title="AI chat primitives"
-      description="Building blocks of the plan-assistant conversation."
-    >
-      <div className="flex flex-col gap-6">
-        <Row>
-          <Variant label="Bot avatar">
-            <BotAvatar />
-          </Variant>
-          <Variant label="User avatar">
-            <UserAvatar />
-          </Variant>
-        </Row>
-        <Variant label="Loading bubble">
-          <LoadingBubble label={LOADING_LABEL} />
-        </Variant>
-        <Variant label="Suggestion chips">
-          <SuggestionChips
-            chips={SUGGESTION_CHIPS}
-            onSelect={() => undefined}
-          />
-        </Variant>
-      </div>
-    </Section>
-  );
-
   const renderThemePicker = () => (
     <Section
       title="ThemePicker"
@@ -398,7 +349,6 @@ export const DomainTab = () => {
       >
         {renderBoardHeader()}
         {renderSizeChips()}
-        {renderTypeBadges()}
       </Zone>
 
       <Zone
@@ -431,20 +381,13 @@ export const DomainTab = () => {
 
       <Zone
         title="Plan"
-        description="The create/edit forms, review panel and template modal live in the Plan scenarios; the assistant's full lifecycle in the AI plan creation scenarios."
+        description="The create/edit forms, review panel and template modal live in the Plan scenarios."
         action={
-          <span className="flex items-center gap-3">
-            <ScenarioLink href={SCENARIO_HREFS.plan} label="Plan scenarios" />
-            <ScenarioLink
-              href={SCENARIO_HREFS.aiChat}
-              label="AI plan creation scenarios"
-            />
-          </span>
+          <ScenarioLink href={SCENARIO_HREFS.plan} label="Plan scenarios" />
         }
       >
         {renderTemplateItem()}
         {renderPlanTaskRows()}
-        {renderChatPrimitives()}
       </Zone>
 
       <Zone

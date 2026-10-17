@@ -9,7 +9,7 @@ This document is the common rulebook for all AI agents working in this repositor
 
 ## Project Overview
 
-A Next.js application centered on a Kanban Period Planner, with AI-assisted plan creation. Deployed on Vercel.
+A Next.js application centered on a Kanban Period Planner; AI planning goes through Claude over MCP. Deployed on Vercel.
 
 ## Tech Stack
 
@@ -18,7 +18,6 @@ A Next.js application centered on a Kanban Period Planner, with AI-assisted plan
 - State: Zustand
 - Database: PostgreSQL (Supabase) + Prisma ORM
 - Auth: Supabase Auth (Google OAuth); its OAuth 2.1 Server authorizes MCP clients through the app's consent page (`/oauth/consent`)
-- LLM: OpenAI (`gpt-5-nano`) for AI-assisted plan creation — non-streaming structured output (`zodResponseFormat`)
 - MCP: `mcp-handler` + `@modelcontextprotocol/server` (v2) — remote MCP endpoint at `/api/mcp` (Streamable HTTP) where Claude reads planning context and creates/updates plans; every request carries a Supabase OAuth access token (verified against the project's JWKS), which clients find through the protected-resource metadata under `/.well-known/`; local dev may act as `MCP_DEV_USER_ID` instead
 - Icons: Heroicons
 - Language: TypeScript
@@ -54,11 +53,10 @@ src/
 │   ├── tools/                     #   one file per tool: schema + annotations → service
 │   ├── prompts/                   #   LLM-facing text: server instructions, tool descriptions — never translated
 │   └── middleware/                #   identity (auth) + result/error shaping (runTool)
-├── prompt/                        # LLM prompt builders for the in-app AI chat — never translated
 ├── types/                         # Shared domain types
 ├── utils/                         # Domain helpers (client-safe) — except statsUtils.ts (server-only)
 ├── schemas.ts                     # All zod schemas
-├── lib/                           # Infrastructure only: prisma/, llm/, supabase/, auth/, db/ (DAL)
+├── lib/                           # Infrastructure only: prisma/, supabase/, auth/, db/ (DAL)
 └── components/                    # Three top-level layers (see "Component placement" in Layers)
     ├── ui/                        # Design-system primitives only — zero domain imports
     ├── application/               # App frame + providers (shell, tab bar, sidebar, contexts)
@@ -198,7 +196,7 @@ When adding a new convention, append it to the **end of the relevant subsection 
 - Extract fixed, **non-user-facing** literals — routes/hrefs, magic numbers, thresholds, durations, style tokens, config values — into a dedicated `constants.ts` colocated with the component (or a feature `constants/` folder), `export` them, and import where used — no inline magic literals. (User-facing *copy* never lives here — see the i18n rule below.) Bad: `maxLength={280}` and `href="/kanban/plans/new"` inline in JSX. Good:
 
   ```ts
-  // ai-chat/constants.ts
+  // <feature>/constants.ts
   export const MESSAGE_MAX_LENGTH = 280;
   export const CREATE_PLAN_HREF = "/kanban/plans/new";
   ```
@@ -209,7 +207,7 @@ When adding a new convention, append it to the **end of the relevant subsection 
   <Link href={CREATE_PLAN_HREF} />
   ```
 
-- All **user-facing copy** app-wide is internationalized with `next-intl` — it lives in `src/i18n/en.json` and is read via `useTranslations` (Client Components) or `getTranslations` (Server Components / Server Actions / `generateMetadata`). Add each string under a namespace; use ICU for plurals/interpolation, `Enums.*` keys for enum→label display, and `t.rich` when part of a string needs inline markup. Keep decorative glyphs/emoji and presentational symbols in the JSX, not in the message. Never translated: `prompt/*.ts` LLM instructions and internal `throw new Error(...)` messages. Bad: `export const TITLE = "Create Weekly Plan";` (copy in a `constants.ts`). Good:
+- All **user-facing copy** app-wide is internationalized with `next-intl` — it lives in `src/i18n/en.json` and is read via `useTranslations` (Client Components) or `getTranslations` (Server Components / Server Actions / `generateMetadata`). Add each string under a namespace; use ICU for plurals/interpolation, `Enums.*` keys for enum→label display, and `t.rich` when part of a string needs inline markup. Keep decorative glyphs/emoji and presentational symbols in the JSX, not in the message. Never translated: LLM-facing text (`mcp/prompts/`, `utils/errorMessages.ts`) and internal `throw new Error(...)` messages. Bad: `export const TITLE = "Create Weekly Plan";` (copy in a `constants.ts`). Good:
 
   ```json
   // src/i18n/en.json
@@ -306,7 +304,7 @@ When adding a new convention, append it to the **end of the relevant subsection 
 
 ## State Management (Zustand)
 
-- One store per domain at `src/store/[domain]Store.ts` (e.g. `aiPlanChatStore`, `sidebarStore`).
+- One store per domain at `src/store/[domain]Store.ts` (e.g. `settingsStore`, `sidebarStore`).
 - No direct DB/fetch calls inside stores; use hooks/actions as bridge.
 - Keep state flat.
 - Use slice pattern when store grows beyond about five actions.

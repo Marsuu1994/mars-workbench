@@ -199,53 +199,6 @@ export const fetchDumpEntriesSchema = z.object({
   cursor: z.string().min(1).optional(),
 });
 
-// ── AI Chat Schemas ────────────────────────────────────────────────────
-
-export const createAiChatSchema = z.object({
-  planId: z.string().uuid().optional(),
-});
-
-// ── AI Draft Plan (LLM structured output) ──────────────────────────────
-
-// Shape the LLM must return. Passed to zodResponseFormat for strict json_schema
-// output, so every field is required and templateId is nullable (not optional).
-// type is constrained to DAILY | WEEKLY — AD_HOC is never a plan-line.
-export const draftTemplateOutputSchema = z.object({
-  templateId: z.string().nullable(),
-  title: z.string(),
-  description: z.string(),
-  type: z.enum([TaskType.DAILY, TaskType.WEEKLY]),
-  frequency: z.number().int().min(1),
-  size: z.enum([
-    TaskSize.EXTRA_SMALL,
-    TaskSize.SMALL,
-    TaskSize.MEDIUM,
-    TaskSize.LARGE,
-    TaskSize.EXTRA_LARGE,
-  ]),
-});
-
-export const draftPlanResponseSchema = z.object({
-  message: z.string(),
-  description: z.string(), // short summary of the week's focus, used as Plan.description
-  draftTemplates: z.array(draftTemplateOutputSchema),
-  followUp: z.string(),
-});
-export type DraftPlanResponse = z.infer<typeof draftPlanResponseSchema>;
-
-export const generateDraftPlanSchema = z.object({
-  chatId: z.string().uuid(),
-  message: z.string().min(1),
-});
-
-export const approveDraftPlanSchema = z.object({
-  chatId: z.string().uuid(),
-});
-
-export const resumeDraftPlanSchema = z.object({
-  chatId: z.string().uuid(),
-});
-
 export const updateThemeSchema = z.object({theme: z.enum(THEMES)});
 
 // ── OAuth Consent Schemas ──────────────────────────────────────────────

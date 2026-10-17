@@ -2,7 +2,7 @@
 
 ## Goal
 
-A tool to plan and track tasks within defined periods (e.g., weekly). It visualizes task progress on a drag-and-drop kanban board, helping users understand what's done, what's still to do, and what's been missed. Authentication via Supabase Google OAuth identifies users and gates access to features, enabling per-user data isolation (each user sees only their own plans, chats, and tasks).
+A tool to plan and track tasks within defined periods (e.g., weekly). It visualizes task progress on a drag-and-drop kanban board, helping users understand what's done, what's still to do, and what's been missed. Authentication via Supabase Google OAuth identifies users and gates access to features, enabling per-user data isolation (each user sees only their own plans, projects, and tasks).
 
 ## Features
 
@@ -24,12 +24,11 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 
 1. **Mobile Kanban + PWA app** — PWA manifest, service worker, mobile board layout, bottom tab bar dock, safe-area insets for iOS/Android standalone mode.
 2. **Workspace sidebar** — Sidebar redesigned from feature-level nav (Chat/Kanban) to kanban workspace nav (Board/Plan). Board disabled with tooltip when no active plan; Plan shows "New" nudge badge. Edit Plan button removed from board header (Plan entry in sidebar).
-3. **LLM-assisted plan creation** — AI drafts a plan via non-streaming structured JSON output. User approves the batch (commit-as-is, the latest `DRAFT_PLAN` message is the approval source of truth) or rejects with text feedback to re-generate; no per-card editing. Static no-LLM welcome + suggestion chips. The chat is durable (DB-backed): it resumes the most recent unapproved chat across modal close / reload / restart and auto-resumes a generation interrupted mid-run. Approval atomically creates new TaskTemplates + the plan, completes the prior `PENDING_UPDATE` plan, and carries over ad-hoc tasks. See **AI Assisted Plan Creation Flow** in `./flows/plan.md`.
-4. **Backlog** — Collapsible right-edge panel (desktop) for staging template-generated task instances (`status = BACKLOG`) before pulling them onto the board via drag-and-drop (`BACKLOG → TODO`); on mobile, a bottom sheet opened from a peeking "Backlog" pill (tap `↑ Todo` to pull). Reduces visual clutter from duplicate (`frequency > 1`) cards. Reuses the board's kind-first card, so a card reads the same before and after the pull. Today ring/points count board tasks only; Week projection includes backlog. See the **Backlog Flow** in `./flows/board.md` and the Board scenarios at `/design/scenarios/board`.
-5. **Priorities page (Eisenhower matrix)** — Full-page 2×2 priority matrix at `/kanban/priorities` (sidebar item + mobile dock tab) for organizing one-off `AD_HOC` tasks by urgency/importance (`Task.quadrant`, unassigned tasks are `BACKLOG` with `planId = null`). Cards drag freely between quadrants (reprioritize); every card's "Move to" chooser (desktop send-button popover / mobile bottom sheet) either tracks the task into the current ACTIVE plan (`BACKLOG → TODO`) or completes it in place (`→ DONE`, linked to the active plan when one exists so the points count for the week, otherwise `planId` stays null — no confirm, a 5 s undo toast instead); quadrant "Add" buttons reuse the ad-hoc task modal to create matrix tasks. Board-side ad-hoc creation is removed; deselecting an ad-hoc task from a plan returns it to the matrix (DONE tasks stay linked to preserve point history). See the **Priorities** flows in `./flows/priorities.md` and the Priorities scenarios at `/design/scenarios/priorities`.
-6. **Dump page** — Friction-free brain dump at `/kanban/dump` (sidebar item + 5th mobile dock tab): plain-text entries (noise, negatives, ideas) save in one action with zero decisions (auto-growing IME-safe composer, ⌘/Ctrl+Enter to dump), and a day-grouped, newest-first feed with cursor-based infinite scroll and a 6-line clamp is the reading view. Deliberately storage-only in V1 — no tags, no categories, no LLM; append-only; `DumpEntry.isProcessed` is reserved for a future LLM batch-processing flow (TBD). See the **Dump** flows in `./flows/dump.md` and the Dump scenarios at `/design/scenarios/dump`.
-7. **Projects** — a goal plus an ordered path of steps (at most 50) that never expire, on their own Projects page (`/kanban/projects`, a sidebar item and dock tab before Plan). Steps go onto the week one at a time — from the Projects page, the plan form's carry-over or Claude — and move across the board like any task; a project whose steps are all done shows "All steps done" until the user archives it. See `./flows/projects.md` and the Projects scenarios at `/design/scenarios/projects`.
-8. **Plan with Claude (MCP)** — Claude, connected to `/api/mcp` as a custom connector, reads the planning guide and the week (plans, habits, projects with their paths) and, once the user agrees, creates or patches the plan, edits habits, and creates or patches projects. See the **Plan with Claude (MCP) Flow** in `./flows/plan.md` and the **Draft Steps with Claude (MCP) Flow** in `./flows/projects.md`.
+3. **Backlog** — Collapsible right-edge panel (desktop) for staging template-generated task instances (`status = BACKLOG`) before pulling them onto the board via drag-and-drop (`BACKLOG → TODO`); on mobile, a bottom sheet opened from a peeking "Backlog" pill (tap `↑ Todo` to pull). Reduces visual clutter from duplicate (`frequency > 1`) cards. Reuses the board's kind-first card, so a card reads the same before and after the pull. Today ring/points count board tasks only; Week projection includes backlog. See the **Backlog Flow** in `./flows/board.md` and the Board scenarios at `/design/scenarios/board`.
+4. **Priorities page (Eisenhower matrix)** — Full-page 2×2 priority matrix at `/kanban/priorities` (sidebar item + mobile dock tab) for organizing one-off `AD_HOC` tasks by urgency/importance (`Task.quadrant`, unassigned tasks are `BACKLOG` with `planId = null`). Cards drag freely between quadrants (reprioritize); every card's "Move to" chooser (desktop send-button popover / mobile bottom sheet) either tracks the task into the current ACTIVE plan (`BACKLOG → TODO`) or completes it in place (`→ DONE`, linked to the active plan when one exists so the points count for the week, otherwise `planId` stays null — no confirm, a 5 s undo toast instead); quadrant "Add" buttons reuse the ad-hoc task modal to create matrix tasks. Board-side ad-hoc creation is removed; deselecting an ad-hoc task from a plan returns it to the matrix (DONE tasks stay linked to preserve point history). See the **Priorities** flows in `./flows/priorities.md` and the Priorities scenarios at `/design/scenarios/priorities`.
+5. **Dump page** — Friction-free brain dump at `/kanban/dump` (sidebar item + 5th mobile dock tab): plain-text entries (noise, negatives, ideas) save in one action with zero decisions (auto-growing IME-safe composer, ⌘/Ctrl+Enter to dump), and a day-grouped, newest-first feed with cursor-based infinite scroll and a 6-line clamp is the reading view. Deliberately storage-only in V1 — no tags, no categories, no LLM; append-only; `DumpEntry.isProcessed` is reserved for a future LLM batch-processing flow (TBD). See the **Dump** flows in `./flows/dump.md` and the Dump scenarios at `/design/scenarios/dump`.
+6. **Projects** — a goal plus an ordered path of steps (at most 50) that never expire, on their own Projects page (`/kanban/projects`, a sidebar item and dock tab before Plan). Steps go onto the week one at a time — from the Projects page, the plan form's carry-over or Claude — and move across the board like any task; a project whose steps are all done shows "All steps done" until the user archives it. See `./flows/projects.md` and the Projects scenarios at `/design/scenarios/projects`.
+7. **Plan with Claude (MCP)** — Claude, connected to `/api/mcp` as a custom connector, reads the planning guide and the week (plans, habits, projects with their paths) and, once the user agrees, creates or patches the plan, edits habits, and creates or patches projects. See the **Plan with Claude (MCP) Flow** in `./flows/plan.md` and the **Draft Steps with Claude (MCP) Flow** in `./flows/projects.md`.
 
 ### Auth
 
@@ -57,8 +56,7 @@ Roadmap and open ideas live in [tracker.md](./tracker.md).
   - Weekly task: has `periodKey`, generated once at plan creation
   - Ad hoc task: can be generated anytime as needed, does not expire with time, does not associate with any task template, optional for associated with a plan. Lives on the priority matrix (`quadrant`, `planId = null`) until tracked onto the board
   - Project step: one step of a Project (`type = PROJECT`, `projectId` set, no template). Follows the ad-hoc lifecycle: off the week it has `planId = null`, it never expires, the next plan carries it over or returns it, and once DONE it keeps its plan link. `instanceIndex` is its 1-based step number.
-- **Chat** — A conversation session between the user and LLM for AI-assisted plan creation (and future edit). Each chat belongs to one plan. A plan can have multiple chats over its lifecycle. `Chat.metadata` stores the last plan stats snapshot (captured at creation) and `latestDraft` — the single-slot approval clipboard, overwritten on each generation. Every draft is also persisted as a `DRAFT_PLAN` message for history/rendering.
-- **Message** — A single message from either the LLM or the user. Each message has a `type` field: `TEXT` for plain text (welcome messages, user input) or `DRAFT_PLAN` for structured draft responses (content is JSON with `{ message, description, draftTemplates, followUp }`). `DRAFT_PLAN` messages are rendered in the chat and replayed to the LLM as conversation history; the latest draft is also mirrored to `Chat.metadata.latestDraft` for approval.
+- **Chat / Message** *(legacy)* — The removed in-app AI chat's conversations. Nothing reads or writes them; the tables are dropped in Phase 2 cleanup.
 - **Project** — A goal plus an ordered path of steps (Tasks with `type = PROJECT`). It has a title and an optional goal, and no size: its size is the sum of its steps. Projects are only ever archived (by the user), never hard-deleted. "All steps done" is derived from the steps and is not stored.
 - **DumpEntry** *(designed — V1 pending)* — One dumped plain-text note (noise, a worry, an idea). Append-only in V1 — no edit, no delete, no categorization. `isProcessed` (default false, never surfaced in the UI) is reserved so a future LLM batch-processing job can mark entries it has handled.
 
@@ -79,7 +77,7 @@ model Plan {
   updatedAt    DateTime       @updatedAt
   mode         PlanMode     @default(NORMAL)
 
-  chats        Chat[]
+  chats        Chat[]        // legacy, see Chat / Message
 }
 
 enum PeriodType {
@@ -100,7 +98,6 @@ enum PlanStatus {
 // Constraints:
 // - userId references auth.users (Supabase Auth)
 // - At most one ACTIVE or PENDING_UPDATE plan per user
-// One Plan can have multiple chats (creation, future edits)
 ```
 
 ### TaskTemplate
@@ -254,116 +251,9 @@ model Project {
 // - "All steps done" = at least one step and every step DONE; derived in the UI, not stored
 ```
 
-### Chat
+### Chat / Message (legacy)
 
-Reuse schema from chatbot, extended with `planId` for kanban integration.
-
-```
-model Chat {
-  id        String    @id @default(uuid()) @db.Uuid
-  userId    String?   @map("user_id") @db.Uuid
-  planId    String?   @map("plan_id") @db.Uuid
-  title     String?
-  metadata  Json?     // Stores lastPlanStats snapshot (at creation)
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
-  messages  Message[]
-  plan      Plan?     @relation(fields: [planId], references: [id])
-
-  @@map("chats")
-}
-```
-
-metadata shape for kanban AI chat:
-```json
-{
-  "lastPlanStats": {
-    "overall": {
-      "completionRate": 0.75,
-      "completedCount": 12,
-      "totalCount": 16,
-      "totalPoints": 47,
-      "dailyCompletionRate": 0.90
-    },
-    "perTemplate": [
-      {
-        "templateId": "uuid",
-        "title": "Solve 3 LeetCode problems",
-        "type": "DAILY",
-        "frequency": 1,
-        "completed": 18,
-        "expired": 2,
-        "total": 20,
-        "completionRate": 0.90,
-        "pointsEarned": 54
-      }
-    ]
-  },
-  "latestDraft": {
-    "description": "short summary of the week's focus",
-    "draftTemplates": [
-      {
-        "templateId": "uuid" | null,
-        "title": "string",
-        "description": "string",
-        "type": "DAILY" | "WEEKLY",
-        "frequency": 1,
-        "size": "MEDIUM"
-      }
-    ]
-  }
-}
-```
-
-`latestDraft` is the single-slot approval clipboard, overwritten on each draft
-generation (commit-as-is). The full draft is also persisted as a `DRAFT_PLAN`
-message for chat history/rendering; `metadata.latestDraft` is what the approval
-action reads (it's already loaded with the chat, so no extra message query).
-
-### Message
-
-Reuse schema from chatbot, extended with `type` for structured message rendering.
-
-```
-model Message {
-  id        BigInt        @id @default(autoincrement())
-  chatId    String        @map("chat_id") @db.Uuid
-  role      MessageRole
-  type      MessageType   @default(TEXT)
-  content   String
-  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz
-  chat      Chat          @relation(fields: [chatId], references: [id], onDelete: Cascade)
-
-  @@index([chatId, createdAt], name: "idx_messages_chat_id_created_at")
-  @@map("messages")
-}
-
-enum MessageType {
-  TEXT          // Plain text (welcome messages, user input)
-  DRAFT_PLAN   // Structured draft: content is JSON { message, description, draftTemplates, followUp }
-}
-```
-
-When `type = DRAFT_PLAN`, content shape:
-```json
-{
-  "message": "Here's a structured plan...",
-  "description": "short summary of the week's focus (used as Plan.description on approval)",
-  "draftTemplates": [
-    {
-      "templateId": "uuid" | null,
-      "title": "string",
-      "description": "string",
-      "type": "DAILY" | "WEEKLY",
-      "frequency": 1,
-      "size": "MEDIUM"
-    }
-  ],
-  "followUp": "Want me to adjust?"
-}
-```
-
-UI rendering: the latest `DRAFT_PLAN` message renders expanded with template cards. All prior `DRAFT_PLAN` messages render collapsed with an expand toggle.
+The removed in-app AI chat's history: `chats` (`metadata` held a last-plan stats snapshot and the latest draft) and `messages` (`role` / `type` enums `MessageRole` / `MessageType`; a `DRAFT_PLAN` message held a draft as JSON). Kept in `schema.prisma` with no code reading or writing them, until Phase 2 cleanup drops them.
 
 ### DumpEntry
 
@@ -402,4 +292,5 @@ model DumpEntry {
   - A separate step table was rejected: it would store each step twice and keep two statuses in sync.
   - Step order reuses `instanceIndex` rather than a mostly-NULL `position` column. Renaming the Prisma field to something neutral is left to Phase 2 cleanup.
 * **Kind is derived from `TaskType`** — habit = `DAILY` / `WEEKLY`, project step = `PROJECT`, one-off = `AD_HOC`. There is no kind column. Each kind has one fixed colour (habit success, project step secondary, one-off info); warning and error stay free for per-kind risk.
+* **AI planning goes through Claude over MCP only** — the in-app AI chat (an OpenAI-drafted plan the user approved in a modal) was removed before Phase 2, so the plan form has no AI entry and the app has no LLM dependency.
 * **Dump is storage-only** *(designed)* — capture is a single insert with zero side effects; anything smarter (categorization, summaries, extraction) is deferred to a future LLM **batch-processing** flow that walks `isProcessed = false` entries when it gets designed. The flag ships in V1 so that flow needs no migration later.

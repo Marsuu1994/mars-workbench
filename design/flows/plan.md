@@ -1,6 +1,6 @@
 # Plan Flows
 
-Flows for the plan pages (`/kanban/plans/new`, `/kanban/plans/[id]`) — task template management, plan create/update, AI-assisted plan creation, and planning with Claude over MCP. Sibling docs: `design/flows/board.md`, `design/flows/priorities.md`, `design/flows/projects.md`, `design/flows/shared.md`, `design/flows/auth.md`.
+Flows for the plan pages (`/kanban/plans/new`, `/kanban/plans/[id]`) — task template management, plan create/update, and planning with Claude over MCP. Sibling docs: `design/flows/board.md`, `design/flows/priorities.md`, `design/flows/projects.md`, `design/flows/shared.md`, `design/flows/auth.md`.
 
 > **Doc convention:** One flow per `##` heading, separated by `---`. Every flow has two required `###` sections — `Trigger / Entry Point` and `Steps` — plus an optional `### Rules` section for constraints and invariants. Extra `###` sections (e.g. `Metrics`) are allowed only for reference material that fits neither Steps nor Rules.
 
@@ -64,7 +64,7 @@ User clicks "Create Plan" on empty board → navigates to `/kanban/plans/new`.
 
 ### Rules
 
-- Every creation path (plan form, AI approval, MCP) runs the same guard: sync first (a finished week's ACTIVE plan flips to `PENDING_UPDATE`), then refuse while an ACTIVE plan exists.
+- Every creation path (plan form, MCP) runs the same guard: sync first (a finished week's ACTIVE plan flips to `PENDING_UPDATE`), then refuse while an ACTIVE plan exists.
 - **Project steps**:
   - The form loads the `PENDING_UPDATE` plan's unfinished steps, preselected; they can only be selected or deselected.
   - Selected steps are re-pointed to the new plan and keep their status.
@@ -103,103 +103,6 @@ User opens **Plan** from the sidebar or the mobile dock while this week has an a
   - The form loads this week's steps, which can only be deselected.
   - A deselected step returns to its project.
 - Only what the user deselects leaves the week: the save carries the deselected one-offs and steps, so anything put on the week while the form was open (tracked from the matrix, scheduled from the Projects page, added by Claude) stays.
-
----
-
-## AI Assisted Plan Creation Flow
-
-### Trigger / Entry Point
-
-User clicks the AI assistant button inside create plan page.
-
-### Steps
-
-1. **Open AI panel → resume or create Chat**
-   - **Resume-or-create (persistence):** the chat is durable — the DB chat row is the source of truth. On open, if the in-memory store already holds a `chatId` (same session), just reveal the modal. Otherwise (fresh load / restart) call `getActiveAiChatAction`, which returns the user's most recent **unapproved** chat (`planId IS NULL`) via `getLatestInProgressChat`; rehydrate its messages + draft from the DB. Only when none exists do we create a new Chat. Approval sets `planId`, so the next fresh open starts a brand-new chat.
-   - Create a new Chat record linked to the target plan (planId on Chat). If no plan exists yet (new user), planId is null until plan creation.
-   - Fetch **per-template performance stats** from the `PENDING_UPDATE` plan (if exists) via `aiChatService.getTemplateStats` (backed by the `getPlanTemplateStats(planId)` DAL query — a single `GROUP BY templateId, status` over `Task`): per template `completed` / `expired` / `total` instances, `completionRate`, `pointsEarned`, and `type`. Roll these up into `overall` aggregates (overall + daily-only completion rate, total points) for the welcome message — overall completion alone is weak signal, so the per-template breakdown is what the LLM uses to decide which templates to keep, ease, or drop.
-   - Fetch all non-archived task templates for the user (reuse list for `templateId` matching — kept **separate** from `perTemplate`, since it includes templates never used in a plan).
-   - Persist the stats snapshot in `Chat.metadata.lastPlanStats` (`{ overall, perTemplate }`). **Decision: yes, persist as a snapshot** — computed once at chat creation and reused by both the static welcome (`overall`) and every `generateDraftPlanAction` prompt (`perTemplate`), avoiding re-aggregation on each iteration. The `PENDING_UPDATE` plan is not mutated during the chat, so the snapshot stays consistent for the whole session.
-
-2. **Generate welcome message** (handled by `createAiChatAction` from step 1 — chat creation + static welcome are one action)
-
-   **Update: No LLM for the first message to avoid latency**
-
-   - New user (no PENDING_UPDATE plan): Brief welcome explaining how the planner works and prompting the user to describe their goals.
-   - Returning user: A friendly summary of last week's performance, built by interpolating `lastPlanStats.overall` into a static template (e.g. "You completed 12 of 16 tasks (75%) and earned 47 points. Your daily habits hit 90%."), then asks about goals for the coming week. No LLM.
-   - ~~Inject stats + existing templates into the system prompt as context (no tool calling).~~
-   - ~~Persist as the first assistant Message. No streaming — regular request/response.~~
-   - **Suggestion chips:** Displayed below the welcome message as quick-start prompts. These are **static hardcoded templates**, not LLM-generated, to avoid extra latency and ensure instant rendering.
-     - New user set: `["I'm preparing for tech interviews", "Help me build a fitness routine", "I want to learn a new skill"]`
-     - Returning user set: `["Keep the same plan", "Adjust difficulty", "Try something new"]`
-     - Swap set based on whether a `PENDING_UPDATE` plan exists.
-     - Clicking a chip populates the input field and submits as a user message (step 3).
-     - Future: contextual chips derived from stats (e.g., "Focus on low-completion tasks").
-
-3. **User inputs requirements/from suggestions chip**
-
-   - User describes their goals in natural language.
-   - Persist as a user Message.
-
-4. **Generate draft plan** (`generateDraftPlanAction`)
-   - Call LLM with structured output (`response_format: json_schema`). The **static** system prompt includes: per-template performance (`lastPlanStats.perTemplate`, with `frequency` snapshotted) so the model keeps high-completion templates and eases/drops abandoned (high `expired`) ones, plus existing task templates (reuse list). Prior drafts are **not** injected into the prompt — they reach the model through the replayed message history (each `DRAFT_PLAN` turn's full JSON content), with the user's rejection as the following turn.
-   - LLM returns structured JSON:
-
-   ```json
-   {
-     "message": "Here's a structured plan for your FAANG prep...",
-     "draftTemplates": [
-       {
-         "templateId": "uuid-or-null",
-         "title": "Solve 3 LeetCode problems",
-         "description": "Focus on medium-level DP, graph, and sliding window problems.",
-         "type": "DAILY",
-         "frequency": 1,
-         "size": "MEDIUM"
-       }
-     ],
-     "followUp": "That's 5 templates totaling ~16 points/day. Want me to adjust?"
-   }
-   ```
-
-   - Persist full structured JSON as assistant Message content with `type = DRAFT_PLAN` (rendered in the chat + replayed to the LLM as history). Also overwrite `Chat.metadata.latestDraft` with `{ description, draftTemplates }` — the single-slot approval clipboard (commit-as-is), read directly off the already-loaded chat at approval time.
-   - No streaming — show loading state, render full response at once.
-   - UI renders the latest `DRAFT_PLAN` message expanded: plain text → read-only template cards → follow-up text. Prior `DRAFT_PLAN` messages render collapsed with expand toggle.
-
-5. **Iterate or approve**
-   - **Reject:** User provides text feedback → persist as user Message → redo step 4. The LLM sees prior drafts and the rejection through the full message history (no separate metadata read).
-   - **Approve:** User clicks "Approve & Create Plan" → proceed to step 6.
-   - V1: static wizard only. User cannot select/unselect or edit individual cards.
-
-6. **Post-approval: create plan** (`approveDraftPlanAction({ chatId })` → `approveDraftPlan` service)
-   - Read the draft from `Chat.metadata.latestDraft` (already loaded with the chat).
-   - In **one transaction** (atomic), via `planService.createPlanFromEntries(tx, ...)`: batch-create the new templates (entries where `templateId` is null) with `createManyTaskTemplates`, resolve all entries to `{ templateId, type, frequency }[]`, then run the shared `createPlanInTx` core with the draft's `description` as `Plan.description` and `mode = NORMAL`. The core also completes the prior `PENDING_UPDATE` plan and links/moves ad-hoc tasks.
-   - **Ad-hoc carry-over (V1):** the pending plan's non-done `AD_HOC` tasks are passed as `adhocTaskIds`, so they move to the new plan.
-   - **Project steps:** the approval carries one-offs only; the pending plan's unfinished steps return to their projects.
-
-   **Error handling:** If the LLM returns an error or unusable output, show an error message in the chat bubble. No retry logic for V1.
-
-### Chat Persistence & Resume
-
-The conversation survives modal close/reopen, page reloads, and app restarts — until a plan is approved (which sets `Chat.planId`, ending the in-progress chat).
-
-- **Source of truth = DB.** No client storage. On a fresh open the client calls `getActiveAiChatAction` and rebuilds `UiMessage[]` from the persisted rows (`reconstructMessages`): first assistant TEXT → welcome (chips recomputed from `lastPlanStats` presence), later TEXT → clarifying replies, `DRAFT_PLAN` → parsed draft cards. The approvable `latestDraft` is derived from the most recent `DRAFT_PLAN` message.
-- **Same-session reopen** keeps the in-memory chat (no reload), so an in-flight generation finishes into the store and dismissing the modal mid-generation loses nothing.
-- **Interrupted generation (app closed mid-run).** Each `generateDraftPlan` persists the user turn before calling the LLM. On rehydrate, if the last stored turn is an unanswered user message (`pendingGeneration`), the client auto-calls `resumeDraftPlanAction` → `resumeDraftPlan`, which regenerates from existing history **without** appending a new user turn (no duplicate). If the generation had actually completed server-side, the `DRAFT_PLAN` is already persisted and is shown instead.
-
-### LLM Configuration
-
-#### Prompt Strategy
-
-All data is fetched server-side and injected into the LLM system prompt as context. No tool calling.
-
-- **Stats from last plan:** Per-template performance (completed / expired / total, completion rate, points earned, type) fetched at chat creation via `aiChatService.getTemplateStats` (backed by the `getPlanTemplateStats` DAL query), rolled up to `overall` aggregates. Stored as a snapshot in `Chat.metadata.lastPlanStats` (`{ overall, perTemplate }`). `overall` drives the static welcome; `perTemplate` is the LLM's signal for which templates to keep, ease, or drop.
-- **Existing task templates:** All non-archived templates for the user, so LLM can reuse existing ones (returning `templateId`) or suggest new ones (`templateId: null`).
-- **Prior drafts:** Replayed as conversation history (each `DRAFT_PLAN` message's full JSON content), so the model sees its previous proposals and the user's rejection feedback in order — no separate "last draft" injection into the system prompt.
-
-#### LLM Calls
-
-- `generateDraftPlanAction`: Generates a draft plan. Input: user message + stats + templates + last draft. Output: structured JSON (`message`, `draftTemplates`, `followUp`). Called multiple times during iteration.
 
 ---
 

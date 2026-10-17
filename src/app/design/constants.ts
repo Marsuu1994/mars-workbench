@@ -48,7 +48,6 @@ export const SCENARIO_HREFS = {
   priorities: '/design/scenarios/priorities',
   plan: '/design/scenarios/plan',
   projects: '/design/scenarios/projects',
-  aiChat: '/design/scenarios/ai-chat',
   dump: '/design/scenarios/dump',
   auth: '/design/scenarios/auth',
 } as const;
@@ -64,20 +63,6 @@ export const SIZE_FIXTURES: {size: TaskSize; points: number}[] = [
   TaskSize.LARGE,
   TaskSize.EXTRA_LARGE,
 ].map(size => ({size, points: SIZE_TO_POINTS[size]}));
-
-/** Each task type rendered through the badge. */
-export const TYPE_FIXTURES: string[] = [
-  TaskType.DAILY,
-  TaskType.WEEKLY,
-  TaskType.AD_HOC,
-];
-
-/** Quick-start chips shown under the assistant welcome message. */
-export const SUGGESTION_CHIPS: string[] = [
-  'Plan my week',
-  'Add a daily habit',
-  'Break down a big task',
-];
 
 export const LOADING_LABEL = 'Drafting your plan…';
 
@@ -151,7 +136,7 @@ export const LED_STATES: {label: string; className: string; pulse: boolean}[] =
   ];
 
 /** Raw fx-chip specimens — generic channel names, deliberately NOT the
-    TaskType mapping (the real TaskTypeBadge has its own section below). */
+    TaskType mapping. */
 export const CHIP_SPECIMENS: {label: string; className: string}[] = [
   {label: 'DATALINK', className: 'text-info'},
   {label: 'AI', className: 'text-secondary'},

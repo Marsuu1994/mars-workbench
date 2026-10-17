@@ -169,8 +169,8 @@ async function generateTasksForTemplates(
 }
 
 /**
- * Guard reads shared by every plan-creation entry point (plan form, AI draft
- * approval, MCP) and the MCP planning context. Syncs first, so an ACTIVE plan
+ * Guard reads shared by every plan-creation entry point (plan form, MCP) and
+ * the MCP planning context. Syncs first, so an ACTIVE plan
  * from a finished week has already flipped to PENDING_UPDATE and does not block
  * creation. Runs before the transaction to keep connection hold time short.
  */
@@ -185,7 +185,7 @@ export async function getPlanCreationContext(
 
 /**
  * The pending plan's non-done ad-hoc tasks: carried over to the new plan when
- * the caller has no explicit selection (AI approval, MCP).
+ * the caller has no explicit selection (MCP).
  */
 export async function getCarryOverAdhocTaskIds(
   userId: string,
@@ -210,7 +210,7 @@ export async function getCarryOverProjectStepIds(
 
 /**
  * Core plan-creation steps, running inside a caller-provided transaction. Lets
- * other flows (e.g. AI draft approval, which first creates new TaskTemplates)
+ * other flows (e.g. createPlanFromEntries, which first creates new TaskTemplates)
  * compose plan creation into one atomic transaction. Guard reads (active plan,
  * pending plan) are the caller's responsibility — see getPlanCreationContext.
  * Throws TemplateNotFoundError when a template is not the user's.
@@ -331,8 +331,8 @@ export async function resolvePlanEntries(
  * Create a plan from template entries that mix existing templates (by id) and
  * brand-new ones (`templateId: null`), inside a caller-provided transaction.
  * Resolves the entries (creating the new templates), then runs the shared
- * plan-creation core — so new templates + plan are atomic. Used by AI draft
- * approval (a DraftTemplate is a PlanEntry) and the MCP tools.
+ * plan-creation core — so new templates + plan are atomic. Used by the MCP
+ * tools.
  */
 export async function createPlanFromEntries(
   tx: Prisma.TransactionClient,

@@ -6,7 +6,6 @@ import {
   Squares2X2Icon,
   TableCellsIcon,
   PencilSquareIcon,
-  SparklesIcon,
   InboxArrowDownIcon,
   MapIcon,
   UserCircleIcon,
@@ -44,12 +43,6 @@ const SCENARIOS: {
     title: 'Projects',
     note: 'No projects, list + detail, all steps done, no plan / between weeks, and the project and step modals with their confirms.',
     icon: MapIcon,
-  },
-  {
-    href: '/design/scenarios/ai-chat',
-    title: 'Plan — AI assist plan creation',
-    note: 'The plan assistant across its lifecycle: welcome, generating, drafts, created, errors.',
-    icon: SparklesIcon,
   },
   {
     href: '/design/scenarios/dump',

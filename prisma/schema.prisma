@@ -10,6 +10,10 @@ datasource db {
   provider = "postgresql"
 }
 
+// ── Legacy: the removed in-app AI chat ────────────────────────────────
+// No longer read or written (AI planning goes through Claude + MCP); the
+// chats / messages tables are dropped in Phase 2 cleanup.
+
 enum MessageRole {
   user
   assistant

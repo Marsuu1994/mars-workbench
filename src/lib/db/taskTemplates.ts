@@ -37,23 +37,6 @@ export async function getTaskTemplates(
 }
 
 /**
- * Map a set of template IDs to their titles, scoped to the owner. Used to join
- * titles onto per-template stats. Includes archived templates so historical
- * stats stay labelled.
- */
-export async function getTaskTemplateTitlesByIds(
-  userId: string,
-  ids: string[],
-): Promise<Map<string, string>> {
-  if (ids.length === 0) return new Map();
-  const rows = await prisma.taskTemplate.findMany({
-    where: {id: {in: ids}, userId},
-    select: {id: true, title: true},
-  });
-  return new Map(rows.map(r => [r.id, r.title]));
-}
-
-/**
  * The subset of `ids` that are templates owned by the user (archived included).
  * Callers must pass well-formed UUIDs — the id column is `uuid`.
  */

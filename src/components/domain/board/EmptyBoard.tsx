@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import {useTranslations} from 'next-intl';
 import {ClockIcon, PlusIcon, Squares2X2Icon} from '@heroicons/react/24/outline';
-import type {OverallStats} from '@/types/aiChat';
+import type {OverallStats} from '@/types/plan';
 import {EmptyState} from '@/components/ui/EmptyState';
 import {StatBlock} from '@/components/ui/StatBlock';
 import {CREATE_PLAN_HREF} from './emptyBoardConstants';
