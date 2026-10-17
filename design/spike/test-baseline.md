@@ -1,6 +1,6 @@
 # Spike: Test baseline
 
-**Status: draft** · 2026-10-17 · 回答 tracker 条目 *Milestone — Quality gate before Phase 2 › Step 5*（Cross-cutting › High）· 基于 main `09ec7e4`（#72）· 起因：Step 4 的 spike review（PR #73）中，owner 问「用本地 DB 测 service 算不算 e2e」· 相关：`design/spike/dev-environment.md`（Step 4，decided）、`src/utils/`、`src/services/`、`src/lib/db/`、`src/actions/`、`.github/workflows/ci.yml`
+**Status: draft** · 2026-10-17 · 回答 tracker 条目 *Milestone — Quality gate before Phase 2 › Step 5*（Cross-cutting › High）· 基于 main `09ec7e4`（#72）· 起因：Step 4 的 spike review（PR #73）中，owner 问「用本地 DB 测 service 算不算 e2e」· 相关：`design/spike/archived/dev-environment.md`（Step 4，已实施）、`src/utils/`、`src/services/`、`src/lib/db/`、`src/actions/`、`.github/workflows/ci.yml`
 
 > 语言约定：叙述用中文；工具名、测试术语和代码标识保留英文（Vitest、Playwright、unit / integration / e2e、`toBoardCards`、`services: postgres`），和代码、tracker 一一对应。
 

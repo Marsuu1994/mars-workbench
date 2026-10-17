@@ -25,7 +25,8 @@ Directory responsibilities only — for concrete file and component names, read 
 ```text
 public/                            # PWA manifest, service worker, icons
 prisma/                            # schema.prisma + migrations/
-scripts/                           # Repo checks run in CI (check-theme-vars.mjs)
+supabase/                          # Local Supabase stack config (Postgres + Auth in Docker)
+scripts/                           # Repo checks run in CI; the local stack's setup, seed and dev session
 design/                            # Design docs — index in design/README.md
 ├── baseline.md                    # The one app-wide baseline: goal, entities, schema, architecture decisions
 ├── design-language/               # Per-theme visual specs + the shared fx-* skeleton
@@ -67,6 +68,8 @@ Read the design docs only when the task involves logic, data or new flows; skip 
 - `design/flows/<feature>.md`: flow changes or additions
 - `design/reference.md`: server action, service or DAL changes
 - `src/app/design/scenarios/<feature>/`: the feature's screen states
+
+A task that needs the database or a signed-in page runs `npm run db:setup` first (it starts Docker in a cloud container, then the local Supabase stack, migrations and seed), and `npm run dev:session` to sign in as the seeded dev user without Google.
 
 ### Where the rules live
 
@@ -171,6 +174,7 @@ A complex task — several PRs, a data-model change, a new tool surface, or a ch
 
 ## Data & State
 
+- **Local work never touches production.** `.env.local` points at the local Supabase stack, and `next dev` and the local scripts refuse any other database or Supabase URL. Production credentials live only in `.env.prod`, used by `npm run db:deploy:prod` and only when the owner asks.
 - Prefer batch writes (`createMany`, `updateMany`) over per-row loops.
 - ACID-critical multi-step writes run in `prisma.$transaction()`; DAL writes take `tx?: Prisma.TransactionClient`.
 - Use focused `select` fields unless the full model is needed.
@@ -203,8 +207,13 @@ npm run knip         # Unused files, exports and dependencies (CI; config in kni
 npm run format       # Format all code with Prettier
 npm run format:check # Verify formatting (CI)
 npm run check:themes # Every theme declares the same CSS variables (CI)
+npm run db:setup     # Start the local Supabase stack, migrate, seed (safe to rerun)
+npm run db:reset     # Wipe the local stack, migrate, seed
+npm run db:stop      # Stop the local stack (data kept)
+npm run dev:session  # Sign in as the seeded dev user: Playwright storageState + Cookie header
+npm run db:deploy:prod  # Apply migrations to production (.env.prod) — only when the owner asks
 npx @modelcontextprotocol/inspector --cli http://localhost:3000/api/mcp --transport http --method tools/list  # MCP smoke test (or drop --cli for the UI)
 npx prisma studio
-npx prisma migrate dev
+npx prisma migrate dev  # Against the local stack, like every Prisma command but db:deploy:prod
 npx prisma generate
 ```

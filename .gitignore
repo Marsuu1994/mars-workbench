@@ -54,6 +54,9 @@ Thumbs.db
 # logs
 *.log
 
+# Local dev session cookies (npm run dev:session)
+/.auth/
+
 # Prisma generated client
 src/generated/prisma
 
