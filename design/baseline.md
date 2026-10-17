@@ -23,7 +23,7 @@ A tool to plan and track tasks within defined periods (e.g., weekly). It visuali
 ### Implemented: V2
 
 1. **Mobile Kanban + PWA app** — PWA manifest, service worker, mobile board layout, bottom tab bar dock, safe-area insets for iOS/Android standalone mode.
-2. **Workspace sidebar** — Sidebar redesigned from feature-level nav (Chat/Kanban) to kanban workspace nav (Board/Plan). Board disabled with tooltip when no active plan; Plan shows "New" nudge badge. Edit Plan button removed from board header (Plan entry in sidebar).
+2. **Workspace sidebar** — Kanban workspace nav (Board/Plan). Board disabled with tooltip when no active plan; Plan shows "New" nudge badge. Edit Plan button removed from board header (Plan entry in sidebar).
 3. **Backlog** — Collapsible right-edge panel (desktop) for staging template-generated task instances (`status = BACKLOG`) before pulling them onto the board via drag-and-drop (`BACKLOG → TODO`); on mobile, a bottom sheet opened from a peeking "Backlog" pill (tap `↑ Todo` to pull). Reduces visual clutter from duplicate (`frequency > 1`) cards. Reuses the board's kind-first card, so a card reads the same before and after the pull. Today ring/points count board tasks only; Week projection includes backlog. See the **Backlog Flow** in `./flows/board.md` and the Board scenarios at `/design/scenarios/board`.
 4. **Priorities page (Eisenhower matrix)** — Full-page 2×2 priority matrix at `/kanban/priorities` (sidebar item + mobile dock tab) for organizing one-off `AD_HOC` tasks by urgency/importance (`Task.quadrant`, unassigned tasks are `BACKLOG` with `planId = null`). Cards drag freely between quadrants (reprioritize); every card's "Move to" chooser (desktop send-button popover / mobile bottom sheet) either tracks the task into the current ACTIVE plan (`BACKLOG → TODO`) or completes it in place (`→ DONE`, linked to the active plan when one exists so the points count for the week, otherwise `planId` stays null — no confirm, a 5 s undo toast instead); quadrant "Add" buttons reuse the ad-hoc task modal to create matrix tasks. Board-side ad-hoc creation is removed; deselecting an ad-hoc task from a plan returns it to the matrix (DONE tasks stay linked to preserve point history). See the **Priorities** flows in `./flows/priorities.md` and the Priorities scenarios at `/design/scenarios/priorities`.
 5. **Dump page** — Friction-free brain dump at `/kanban/dump` (sidebar item + 5th mobile dock tab): plain-text entries (noise, negatives, ideas) save in one action with zero decisions (auto-growing IME-safe composer, ⌘/Ctrl+Enter to dump), and a day-grouped, newest-first feed with cursor-based infinite scroll and a 6-line clamp is the reading view. Deliberately storage-only in V1 — no tags, no categories, no LLM; append-only; `DumpEntry.isProcessed` is reserved for a future LLM batch-processing flow (TBD). See the **Dump** flows in `./flows/dump.md` and the Dump scenarios at `/design/scenarios/dump`.
@@ -56,7 +56,6 @@ Roadmap and open ideas live in [tracker.md](./tracker.md).
   - Weekly task: has `periodKey`, generated once at plan creation
   - Ad hoc task: can be generated anytime as needed, does not expire with time, does not associate with any task template, optional for associated with a plan. Lives on the priority matrix (`quadrant`, `planId = null`) until tracked onto the board
   - Project step: one step of a Project (`type = PROJECT`, `projectId` set, no template). Follows the ad-hoc lifecycle: off the week it has `planId = null`, it never expires, the next plan carries it over or returns it, and once DONE it keeps its plan link. `instanceIndex` is its 1-based step number.
-- **Chat / Message** *(legacy)* — The removed in-app AI chat's conversations. Nothing reads or writes them; the tables are dropped in Phase 2 cleanup.
 - **Project** — A goal plus an ordered path of steps (Tasks with `type = PROJECT`). It has a title and an optional goal, and no size: its size is the sum of its steps. Projects are only ever archived (by the user), never hard-deleted. "All steps done" is derived from the steps and is not stored.
 - **DumpEntry** *(designed — V1 pending)* — One dumped plain-text note (noise, a worry, an idea). Append-only in V1 — no edit, no delete, no categorization. `isProcessed` (default false, never surfaced in the UI) is reserved so a future LLM batch-processing job can mark entries it has handled.
 
@@ -76,8 +75,6 @@ model Plan {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   mode         PlanMode     @default(NORMAL)
-
-  chats        Chat[]        // legacy, see Chat / Message
 }
 
 enum PeriodType {
@@ -107,7 +104,7 @@ model TaskTemplate {
   id          String       @id @default(uuid())
   userId      String
   title       String
-  description String       // Detailed description used for LLM prompt for task generation
+  description String       // Detailed description; Claude reads it over MCP when planning
   size      	TaskSize
   isArchived  Boolean      @default(false)  // Future: soft-delete
   createdAt   DateTime     @default(now())
@@ -251,10 +248,6 @@ model Project {
 // - "All steps done" = at least one step and every step DONE; derived in the UI, not stored
 ```
 
-### Chat / Message (legacy)
-
-The removed in-app AI chat's history: `chats` (`metadata` held a last-plan stats snapshot and the latest draft) and `messages` (`role` / `type` enums `MessageRole` / `MessageType`; a `DRAFT_PLAN` message held a draft as JSON). Kept in `schema.prisma` with no code reading or writing them, until Phase 2 cleanup drops them.
-
 ### DumpEntry
 
 ```prisma
@@ -292,5 +285,5 @@ model DumpEntry {
   - A separate step table was rejected: it would store each step twice and keep two statuses in sync.
   - Step order reuses `instanceIndex` rather than a mostly-NULL `position` column. Renaming the Prisma field to something neutral is left to Phase 2 cleanup.
 * **Kind is derived from `TaskType`** — habit = `DAILY` / `WEEKLY`, project step = `PROJECT`, one-off = `AD_HOC`. There is no kind column. Each kind has one fixed colour (habit success, project step secondary, one-off info); warning and error stay free for per-kind risk.
-* **AI planning goes through Claude over MCP only** — the in-app AI chat (an OpenAI-drafted plan the user approved in a modal) was removed before Phase 2, so the plan form has no AI entry and the app has no LLM dependency.
+* **LLM-assisted plan creation is deprecated; AI planning goes through Claude over MCP only** — the in-app flow (an OpenAI-drafted plan approved in a chat modal) and its `chats` / `messages` tables were removed, so the app has no LLM dependency of its own.
 * **Dump is storage-only** *(designed)* — capture is a single insert with zero side effects; anything smarter (categorization, summaries, extraction) is deferred to a future LLM **batch-processing** flow that walks `isProcessed = false` entries when it gets designed. The flag ships in V1 so that flow needs no migration later.

@@ -8,7 +8,7 @@ interface OverlayHeaderProps {
   /** Leading decoration before the title (icon, icon chip, …) */
   icon?: ReactNode;
   title: ReactNode;
-  /** Trailing decoration next to the title (count badge, beta pill, …) */
+  /** Trailing decoration next to the title (count badge, …) */
   badge?: ReactNode;
   /** A small line under the title (what the overlay acts on) */
   subtitle?: ReactNode;

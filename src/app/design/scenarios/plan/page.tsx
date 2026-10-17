@@ -87,7 +87,7 @@ export default function PlanScenarioPage() {
     {
       label: 'New template',
       title: 'Create task template',
-      note: 'Blank template form (opened from the plan form): AI-hinted description, size pills defaulting to M.',
+      note: 'Blank template form (opened from the plan form): description with its Claude hint, size pills defaulting to M.',
       display: 'fit',
       overlay: true,
       content: <TaskModalScenario mode="create" />,

@@ -58,7 +58,7 @@ script method — see README).
 ### Channel continuity
 
 The channel *semantics* are theme-invariant (README) — only the voice changes.
-Orange stays targeting (drag & drop), violet stays AI **and project steps**,
+Orange stays targeting (drag & drop), violet stays project steps,
 blue stays one-offs/datalink, green stays go/done/habits, gold stays
 stars/caution (`text-warning` star convention unchanged). Board column accents
 keep the app's map (`BoardColumn`): Todo = info, Done = success. The one structural change vs the mars
@@ -74,7 +74,7 @@ all phantom red.
 | base-300 (ink well) | 0.115 0.004 20 | `#060505` | — | base-content 18.0 |
 | base-content (paper white) | 0.96 0.005 20 | `#f5f0f0` | — | — |
 | primary (phantom red) | 0.63 0.255 29 | `#ff0c0b` | 4.73 / 4.98 / 5.15 | 5.09 |
-| secondary (metaverse violet · AI) | 0.74 0.15 295 | `#b296ff` | 7.75 / 8.16 / 8.43 | 7.84 |
+| secondary (metaverse violet · project steps) | 0.74 0.15 295 | `#b296ff` | 7.75 / 8.16 / 8.43 | 7.84 |
 | accent (heist orange · targeting) | 0.74 0.17 55 | `#fa8927` | 7.73 / 8.13 / 8.41 | 7.52 |
 | info (royal blue) | 0.78 0.12 235 | `#61c3f9` | 9.52 / 10.02 / 10.35 | 9.35 |
 | success (all-clear green) | 0.8 0.17 150 | `#5edb81` | 10.63 / 11.18 / 11.56 | 10.42 |
@@ -99,7 +99,6 @@ are p5-dark's, and the mars themes declare token-derived equivalents:
 | --- | --- | --- | --- | --- |
 | `--fx-field` | 0.53 0.2 26 | `#c51d24` | Large red *fields*: CTA fills, header wedges, rails, calling-card surfaces | Payload on it is always paper white (5.2:1, AA) or larger display type; never body copy in any other color |
 | `--fx-depth` | 0.36 0.13 25 | `#721216` | The flat *depth layer* — hard offset shadows behind panels/cards (P5 fakes depth with a darker flat red behind the shape) | Decoration only; never carries text, 1.6:1 on bases is fine because it is never information |
-| `--fx-depth-ai` | ≈0.29 0.09 290 | `#2c2151` | The AI channel's depth layer (offset shadow behind the AI chat panel) | Decoration only |
 | `--fx-card-bg` | 0.17 0.008 20 | `#191313` | Raised task-card surface between base-100 and neutral | Signals stay body-grade on it: primary 4.64:1, error 4.69:1, others ≥ 11:1 |
 
 The reds derive from the research palette (fan-sampled P5 fields cluster around
@@ -133,9 +132,7 @@ which is the P5 shape language (the calling cards are newspaper cutouts). Pills
 **API contract: every existing `fx-*` class name and its usage sites survive**
 (README). Only the skin changes, so adoption is CSS-first (markup exceptions
 flagged ⚠ below). All utilities keep deriving from daisyUI tokens via
-`color-mix()`. Loops still animate opacity/transform only — with **one
-sanctioned exception**: the AI thinking bubble's stop-motion clip-path wiggle (a
-single small element; reduced-motion disables it).
+`color-mix()`. Loops still animate opacity/transform only.
 
 **Scoping:** `fx-*` classes are theme-shared — only `--fx-*` *variables* fork
 per theme. The geometry changes below (offset shadows, clip cuts, diamond LEDs,
@@ -161,7 +158,6 @@ did.
 | `fx-num` | Mono tabular numerals | Unchanged |
 | `fx-led` (+`fx-led-pulse`) | Glowing dot | **Diamond stud**: 7px square rotated 45°, flat `currentColor`, 1px ink outline, no glow. Pulse stays opacity-only |
 | `fx-rule` / `fx-hairline-top` | Luminous gradient hairlines | **Slash rules**: flat 2px `--fx-field` strip with parallelogram-clipped ends; `fx-hairline-top` = flat 2px red top strip. No gradients |
-| `fx-holo` | Conic holo border (AI live) | **Spray border**: 2px violet dashed border; "thinking" adds the stop-motion clip-path wiggle (1s linear — the one sanctioned clip-path loop). The AI panel's depth shadow is `--fx-depth-ai`. ⚠ visual metaphor changes from hologram to stencil spray |
 | `fx-orbit` | Rotating conic tail | **Comet tick**: flat red arc segment (border-slice, no gradient) rotating — still transform-only on a masked layer; reduced-motion off |
 | `fx-glow-pulse` | Breathing halo (login icon) | Breathing **double offset**: red + blood-red stacked hard shadows, opacity loop on pseudo-element |
 | `fx-text-gradient` | Cyan→violet gradient text | ⚠ **Replaced by `fx-tile`** in this theme (gradients banned): one word sits in an inverted tile — paper bg + ink text, or the red variant (field-red bg + paper text), tilted −2.5° to −4° — the ransom-note "one inverted letter/word" treatment. Restraint rule unchanged: one tile per heading |
@@ -212,10 +208,9 @@ shape, it may speak Anton; if it is *content*, it must not.
   structural · 240ms `fx-boot-in` (HUD: 150/240/420).
 - Hover kicks are transform-only: `translate(-2px,-2px)` + shadow offset growth —
   never blur, never color fades on large surfaces.
-- Ambient loops stay rare: LED pulse 2.4s · hazard pulse 1.6s · comet 2s · AI
-  thinking wiggle 1s (the one clip-path loop, sanctioned because it is a single
-  small focal element — everywhere else stays opacity/transform). The halftone
-  field and speed-lines **never move** (except the login crawl).
+- Ambient loops stay rare: LED pulse 2.4s · hazard pulse 1.6s · comet 2s, all
+  opacity/transform. The halftone field and speed-lines **never move** (except
+  the login crawl).
 - `prefers-reduced-motion` disables all loops and entrance animations, as today.
 
 ## Focus & keyboard

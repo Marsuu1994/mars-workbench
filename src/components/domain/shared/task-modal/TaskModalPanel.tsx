@@ -165,7 +165,7 @@ export const TaskModalPanel = ({
       {/* Description */}
       <FieldRow
         label={t('descriptionLabel')}
-        labelHint={!isAdhoc ? t('descriptionAiHint') : undefined}
+        labelHint={!isAdhoc ? t('descriptionClaudeHint') : undefined}
       >
         <textarea
           className="textarea textarea-bordered w-full"

@@ -18,7 +18,7 @@ Ask the user to describe:
 
 - **Purpose** — what does this feature do?
 - **Key flows** — what are the main user interactions? (list names, details come later)
-- **Route** — what URL path will this feature live at? (e.g., `/kanban`, `/chat`)
+- **Route** — what URL path will this feature live at? (e.g., `/kanban`, `/kanban/dump`)
 - **Entities** — any new database models needed?
 
 ## Step 2 — Scaffold Folder Structure
