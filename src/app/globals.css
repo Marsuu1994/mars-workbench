@@ -161,6 +161,10 @@
      ui/Pill's size presets. */
   --text-2xs: 0.6875rem; /* 11px */
   --text-3xs: 0.625rem; /* 10px */
+
+  /* Ink on gradient fills: `text-on-gradient` / `stroke-on-gradient` read
+     each theme's --fx-on-gradient (inline, so the per-theme value applies). */
+  --color-on-gradient: var(--fx-on-gradient);
 }
 
 /* Card-surface radius — the rounded-[10px] family (matrix cards, Move-to
@@ -255,6 +259,8 @@ body {
   );
   --fx-depth: var(--color-base-300);
   --fx-card-bg: var(--color-base-100);
+  /* Ink on gradient fills — brand tiles, badges, avatars (text-on-gradient) */
+  --fx-on-gradient: oklch(1 0 0); /* white */
   /* Geometry */
   --radius-card: 0.625rem; /* 10px */
 }
@@ -313,6 +319,8 @@ body {
   );
   --fx-depth: var(--color-base-300);
   --fx-card-bg: var(--color-base-100);
+  /* Ink on gradient fills — brand tiles, badges, avatars (text-on-gradient) */
+  --fx-on-gradient: oklch(1 0 0); /* white */
   /* Geometry */
   --radius-card: 0.625rem; /* 10px */
 }
@@ -372,6 +380,8 @@ body {
   --fx-field: oklch(0.53 0.2 26); /* large red fields   #c51d24 */
   --fx-depth: oklch(0.36 0.13 25); /* depth layer       #721216 */
   --fx-card-bg: oklch(0.17 0.008 20); /* raised card     #191313 */
+  /* Ink on gradient fills — brand tiles, badges, avatars (text-on-gradient) */
+  --fx-on-gradient: oklch(1 0 0); /* white */
   /* Geometry — P5 has no rounded corners */
   --radius-card: 0;
 }

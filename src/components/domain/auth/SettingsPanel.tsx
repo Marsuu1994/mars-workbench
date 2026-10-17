@@ -47,7 +47,7 @@ export const SettingsPanel = ({
 
   const renderIdentity = () => (
     <div className="flex items-center gap-3 rounded-card border border-base-content/10 bg-base-200 px-3.5 py-3">
-      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-info to-secondary text-sm font-bold text-white">
+      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-info to-secondary text-sm font-bold text-on-gradient">
         {initials}
       </div>
       <div className="min-w-0 flex-1">

@@ -105,7 +105,7 @@ export const AppSidebar = ({
       <PencilSquareIcon className="h-[18px] w-[18px] flex-shrink-0" />
       <span className={`fx-display text-[13px] ${textOpacity}`}>Plan</span>
       {!hasPlan && !collapsed && (
-        <span className="ml-auto text-[9px] font-bold uppercase tracking-wide bg-gradient-to-r from-primary to-info text-white px-1.5 py-0.5 rounded-full">
+        <span className="ml-auto text-[9px] font-bold uppercase tracking-wide bg-gradient-to-r from-primary to-info text-on-gradient px-1.5 py-0.5 rounded-full">
           New
         </span>
       )}
@@ -139,11 +139,11 @@ export const AppSidebar = ({
         >
           <div className="fx-glow flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-info">
             {collapsed && isLogoHovered ? (
-              <ChevronRightIcon className="h-4 w-4 text-white" />
+              <ChevronRightIcon className="h-4 w-4 text-on-gradient" />
             ) : (
               <svg
                 viewBox="0 0 24 24"
-                className="h-4 w-4 fill-none stroke-white"
+                className="h-4 w-4 fill-none stroke-on-gradient"
                 strokeWidth={1.5}
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -212,7 +212,7 @@ export const AppSidebar = ({
         onClick={openSettings}
         className="mt-auto border-t border-base-content/10 flex items-center gap-2.5 pl-[17px] pr-3 py-3 overflow-hidden text-left transition-colors hover:bg-base-200 cursor-pointer"
       >
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-warning to-error text-white text-xs font-bold flex-shrink-0">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-warning to-error text-on-gradient text-xs font-bold flex-shrink-0">
           {initials}
         </div>
 
