@@ -1,6 +1,5 @@
 'use client';
 
-import type {ReactNode} from 'react';
 import {useTranslations} from 'next-intl';
 import {
   ArrowPathIcon,
@@ -15,10 +14,11 @@ import type {TaskSize} from '@/utils/enums';
 import {TaskKind} from '@/utils/taskUtils';
 import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
 import {SizeChip} from '@/components/domain/shared/SizeChip';
-import {Pill, type PillColor} from '@/components/ui/Pill';
-import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
 import {OverlayHeader} from '@/components/ui/overlay/OverlayHeader';
 import {SubmitButton} from '@/components/ui/form/SubmitButton';
+import {ChangeRow} from './ChangeRow';
+import {ChangeSection} from './ChangeSection';
+import type {Accent} from './constants';
 
 /** Shared identity for any template referenced in the review. */
 interface TemplateRef {
@@ -55,7 +55,7 @@ export interface ProjectStepChange extends AdhocTaskChange {
   stepNumber: number;
 }
 
-interface ReviewChangesPanelProps {
+export interface ReviewChangesPanelProps {
   onClose: () => void;
   onConfirm: () => void;
   added: TemplateChange[];
@@ -71,102 +71,12 @@ interface ReviewChangesPanelProps {
   toMode?: PlanMode;
 }
 
-interface ReviewChangesModalProps extends ReviewChangesPanelProps {
-  isOpen: boolean;
-}
-
-/* One accent drives a whole change section — dot, border, heading and
-   note all read from here (literal classes so Tailwind can see them). */
-type Accent = Extract<
-  PillColor,
-  'success' | 'error' | 'warning' | 'info' | 'secondary'
->;
-const ACCENT: Record<Accent, {dot: string; border: string; text: string}> = {
-  success: {
-    dot: 'bg-success',
-    border: 'border-success/30',
-    text: 'text-success',
-  },
-  error: {dot: 'bg-error', border: 'border-error/30', text: 'text-error'},
-  warning: {
-    dot: 'bg-warning',
-    border: 'border-warning/30',
-    text: 'text-warning',
-  },
-  info: {dot: 'bg-info', border: 'border-info/30', text: 'text-info'},
-  secondary: {
-    dot: 'bg-secondary',
-    border: 'border-secondary/30',
-    text: 'text-secondary',
-  },
-};
-
-/** Section header: icon + uppercase heading + optional count pill. */
-const ChangeSection = ({
-  icon,
-  heading,
-  accent,
-  count,
-  children,
-}: {
-  icon: ReactNode;
-  heading: string;
-  accent: Accent;
-  count?: number;
-  children: ReactNode;
-}) => (
-  <div>
-    <div className="flex items-center gap-2 mb-2">
-      {icon}
-      <span
-        className={`text-[11px] font-bold uppercase tracking-widest ${ACCENT[accent].text}`}
-      >
-        {heading}
-      </span>
-      {count !== undefined && (
-        <Pill color={accent} className="rounded-full font-bold">
-          {count}
-        </Pill>
-      )}
-    </div>
-    {children}
-  </div>
-);
-
-/** One change entry: accent dot + title + meta line + italic note. */
-const ChangeRow = ({
-  accent,
-  title,
-  meta,
-  note,
-}: {
-  accent: Accent;
-  title: ReactNode;
-  meta?: ReactNode;
-  note: ReactNode;
-}) => (
-  <div
-    className={`flex items-start gap-2.5 px-3 py-2.5 bg-base-300 border ${ACCENT[accent].border} rounded-lg`}
-  >
-    <div
-      className={`size-[7px] rounded-full ${ACCENT[accent].dot} shrink-0 mt-[5px]`}
-    />
-    <div>
-      <div className="text-sm font-medium text-base-content">{title}</div>
-      {meta}
-      <div className={`text-[11px] italic ${ACCENT[accent].text} mt-1`}>
-        {note}
-      </div>
-    </div>
-  </div>
-);
-
 /**
  * The review's header + change sections + footer, sans dialog shell. The
  * live modal wraps it in OverlayShell; design scenarios mount it inline so
  * the review renders inside a frame instead of the browser top layer.
  */
-export function ReviewChangesPanel({
+export const ReviewChangesPanel = ({
   onClose,
   onConfirm,
   added,
@@ -180,7 +90,7 @@ export function ReviewChangesPanel({
   modeChanged = false,
   fromMode,
   toMode,
-}: ReviewChangesPanelProps) {
+}: ReviewChangesPanelProps) => {
   const tr = useTranslations('Review');
   const tMode = useTranslations('Enums.PlanMode');
 
@@ -192,11 +102,11 @@ export function ReviewChangesPanel({
       ? tr('freqPerDay', {count: frequency})
       : tr('freqPerWeek', {count: frequency});
 
-  const modeLabel = (m: PlanMode) =>
-    m === PlanMode.NORMAL ? tMode('NORMAL') : tMode('EXTREME');
+  const modeLabel = (mode: PlanMode) =>
+    mode === PlanMode.NORMAL ? tMode('NORMAL') : tMode('EXTREME');
 
-  const modeDescription = (m: PlanMode) =>
-    m === PlanMode.NORMAL
+  const modeDescription = (mode: PlanMode) =>
+    mode === PlanMode.NORMAL
       ? tr('normalModeDescription')
       : tr('extremeModeDescription');
 
@@ -231,15 +141,16 @@ export function ReviewChangesPanel({
       : tr('removedNoteNoTasks');
   };
 
-  const modifiedMeta = (t: ModifiedTemplate) => (
+  const modifiedMeta = (template: ModifiedTemplate) => (
     <div className="flex items-center gap-1 text-xs mt-0.5">
       <span className="text-base-content/30 line-through">
-        {typeLabel(t.fromType)} &middot;{' '}
-        {freqLabel(t.fromType, t.fromFrequency)}
+        {typeLabel(template.fromType)} &middot;{' '}
+        {freqLabel(template.fromType, template.fromFrequency)}
       </span>
       <span className="text-warning mx-0.5">&rarr;</span>
       <span className="text-warning">
-        {typeLabel(t.toType)} &middot; {freqLabel(t.toType, t.toFrequency)}
+        {typeLabel(template.toType)} &middot;{' '}
+        {freqLabel(template.toType, template.toFrequency)}
       </span>
     </div>
   );
@@ -293,14 +204,19 @@ export function ReviewChangesPanel({
             count={added.length}
           >
             <div className="flex flex-col gap-1.5">
-              {added.map(t => (
+              {added.map(template => (
                 <ChangeRow
-                  key={t.templateId}
+                  key={template.templateId}
                   accent="success"
-                  title={t.title}
-                  meta={templateMeta(t.size, t.points, t.type, t.frequency)}
+                  title={template.title}
+                  meta={templateMeta(
+                    template.size,
+                    template.points,
+                    template.type,
+                    template.frequency,
+                  )}
                   note={tr('addedNote', {
-                    type: typeLabel(t.type).toLowerCase(),
+                    type: typeLabel(template.type).toLowerCase(),
                   })}
                 />
               ))}
@@ -316,13 +232,18 @@ export function ReviewChangesPanel({
             count={removed.length}
           >
             <div className="flex flex-col gap-1.5">
-              {removed.map(t => (
+              {removed.map(template => (
                 <ChangeRow
-                  key={t.templateId}
+                  key={template.templateId}
                   accent="error"
-                  title={t.title}
-                  meta={templateMeta(t.size, t.points, t.type, t.frequency)}
-                  note={removedNote(t.templateId)}
+                  title={template.title}
+                  meta={templateMeta(
+                    template.size,
+                    template.points,
+                    template.type,
+                    template.frequency,
+                  )}
+                  note={removedNote(template.templateId)}
                 />
               ))}
             </div>
@@ -337,17 +258,19 @@ export function ReviewChangesPanel({
             count={modified.length}
           >
             <div className="flex flex-col gap-1.5">
-              {modified.map(t => (
+              {modified.map(template => (
                 <ChangeRow
-                  key={t.templateId}
+                  key={template.templateId}
                   accent="warning"
-                  title={t.title}
-                  meta={modifiedMeta(t)}
+                  title={template.title}
+                  meta={modifiedMeta(template)}
                   note={tr('modifiedNote', {
                     hasTasks:
-                      (incompleteCounts[t.templateId] ?? 0) > 0 ? 'yes' : 'no',
-                    count: t.toFrequency,
-                    type: typeLabel(t.toType).toLowerCase(),
+                      (incompleteCounts[template.templateId] ?? 0) > 0
+                        ? 'yes'
+                        : 'no',
+                    count: template.toFrequency,
+                    type: typeLabel(template.toType).toLowerCase(),
                   })}
                 />
               ))}
@@ -469,25 +392,4 @@ export function ReviewChangesPanel({
       {renderFooter()}
     </>
   );
-}
-
-export function ReviewChangesModal({
-  isOpen,
-  ...panelProps
-}: ReviewChangesModalProps) {
-  const tr = useTranslations('Review');
-
-  return (
-    // Tall sheet on mobile: header + footer pinned, sections scroll between.
-    // A read-only review (no text input) → backdrop tap dismisses = Cancel.
-    <OverlayShell
-      variant="responsive"
-      isOpen={isOpen}
-      onClose={panelProps.onClose}
-      closeLabel={tr('cancel')}
-      boxClassName="max-w-lg flex flex-col overflow-hidden max-h-[85vh] p-0 md:max-h-[calc(100vh-5em)]"
-    >
-      <ReviewChangesPanel {...panelProps} />
-    </OverlayShell>
-  );
-}
+};

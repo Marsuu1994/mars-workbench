@@ -12,14 +12,14 @@ interface TaskModalProps extends Omit<TaskModalPanelProps, 'mode'> {
   mode?: TaskModalMode;
 }
 
-export default function TaskModal({
+export const TaskModal = ({
   isOpen,
   onClose,
   onSaved,
   mode: modeProp,
   template,
   quadrant,
-}: TaskModalProps) {
+}: TaskModalProps) => {
   const mode: TaskModalMode = modeProp ?? (template ? 'edit' : 'create');
 
   return (
@@ -45,4 +45,4 @@ export default function TaskModal({
       )}
     </OverlayShell>
   );
-}
+};

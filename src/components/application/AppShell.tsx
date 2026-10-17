@@ -47,8 +47,8 @@ export const AppShell = ({
   children,
 }: AppShellProps) => {
   const pathname = usePathname();
-  const isSidebarCollapsed = useSidebarStore(s => s.isCollapsed);
-  const isSettingsOpen = useSettingsStore(s => s.isOpen);
+  const isSidebarCollapsed = useSidebarStore(state => state.isCollapsed);
+  const isSettingsOpen = useSettingsStore(state => state.isOpen);
   const isChromeless = CHROMELESS_PREFIXES.some(prefix =>
     pathname.startsWith(prefix),
   );

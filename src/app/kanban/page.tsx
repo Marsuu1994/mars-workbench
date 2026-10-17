@@ -2,7 +2,7 @@ import {
   fetchBoardAction,
   getEmptyBoardStateAction,
 } from '@/actions/boardActions';
-import EmptyBoard from '@/components/domain/board/EmptyBoard';
+import {EmptyBoard} from '@/components/domain/board/EmptyBoard';
 import {BoardScreen} from '@/components/domain/board/BoardScreen';
 
 export default async function KanbanPage() {

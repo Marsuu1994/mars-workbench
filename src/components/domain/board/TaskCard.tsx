@@ -17,7 +17,7 @@ type TaskCardProps = {
  * The draggable board card: the full kind-first face from md up, the 136px
  * mini face in the mobile rows. Done cards dim and stay put.
  */
-export default function TaskCard({card, index}: TaskCardProps) {
+export const TaskCard = ({card, index}: TaskCardProps) => {
   const {kind, task} = card;
   const isDone = task.status === TaskStatus.DONE;
   const {edge} = TASK_KIND_STYLE[kind];
@@ -39,4 +39,4 @@ export default function TaskCard({card, index}: TaskCardProps) {
       )}
     </Draggable>
   );
-}
+};

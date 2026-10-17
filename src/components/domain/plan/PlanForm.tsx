@@ -28,10 +28,10 @@ import {
   updatePlanAction,
   countIncompleteByTemplateAction,
 } from '@/actions/planActions';
-import TemplateItem from './TemplateItem';
+import {TemplateItem} from './TemplateItem';
 import {PlanTaskRow, type PlanTaskStatus} from './PlanTaskRow';
-import TaskModal from '@/components/domain/shared/task-modal/TaskModal';
-import {ReviewChangesModal} from './ReviewChangesModal';
+import {TaskModal} from '@/components/domain/shared/task-modal/TaskModal';
+import {ReviewChangesModal} from './review-changes/ReviewChangesModal';
 
 interface PlanTemplateConfig {
   type: TaskType;
@@ -97,7 +97,7 @@ const PLAN_MODE_OPTIONS: {
   },
 ];
 
-export default function PlanForm({
+export const PlanForm = ({
   templates,
   mode,
   planId,
@@ -109,7 +109,7 @@ export default function PlanForm({
   projectSteps = [],
   initialProjectStepIds = [],
   periodKey,
-}: PlanFormProps) {
+}: PlanFormProps) => {
   const router = useRouter();
   const t = useTranslations('Plan');
   const tMode = useTranslations('Enums.PlanMode');
@@ -198,10 +198,14 @@ export default function PlanForm({
     const initialMap = new Map(
       initialPlanTemplates.map(pt => [pt.templateId, pt]),
     );
-    const templateTitleMap = new Map(templates.map(t => [t.id, t.title]));
-    const templateSizeMap = new Map(templates.map(t => [t.id, t.size]));
+    const templateTitleMap = new Map(
+      templates.map(template => [template.id, template.title]),
+    );
+    const templateSizeMap = new Map(
+      templates.map(template => [template.id, template.size]),
+    );
     const templatePointsMap = new Map(
-      templates.map(t => [t.id, sizeToPoints(t.size)]),
+      templates.map(template => [template.id, sizeToPoints(template.size)]),
     );
 
     const added = Array.from(selectedTemplates.entries())
@@ -248,10 +252,10 @@ export default function PlanForm({
     // Ad-hoc diff
     const initialAdhocSet = new Set(initialAdhocTaskIds);
     const addedAdhoc = adhocTasks.filter(
-      t => selectedAdhocIds.has(t.id) && !initialAdhocSet.has(t.id),
+      task => selectedAdhocIds.has(task.id) && !initialAdhocSet.has(task.id),
     );
     const removedAdhoc = adhocTasks.filter(
-      t => !selectedAdhocIds.has(t.id) && initialAdhocSet.has(t.id),
+      task => !selectedAdhocIds.has(task.id) && initialAdhocSet.has(task.id),
     );
 
     // Step diff: the form only lets steps go (back to their project)
@@ -284,8 +288,8 @@ export default function PlanForm({
     };
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
     setError(null);
 
     if (mode === 'edit') {
@@ -309,8 +313,8 @@ export default function PlanForm({
       if (hasChanges) {
         // Fetch incomplete task counts for removed + modified templates
         const affectedIds = [
-          ...removed.map(t => t.templateId),
-          ...modified.map(t => t.templateId),
+          ...removed.map(template => template.templateId),
+          ...modified.map(template => template.templateId),
         ];
         if (affectedIds.length > 0) {
           const counts = await countIncompleteByTemplateAction(
@@ -402,21 +406,21 @@ export default function PlanForm({
         };
 
   const modeOptionLabel = (
-    o: (typeof PLAN_MODE_OPTIONS)[number],
+    option: (typeof PLAN_MODE_OPTIONS)[number],
     selected: boolean,
   ) => {
-    const Icon = o.icon;
-    const accent = selected ? o.accentText : 'text-base-content/30';
+    const Icon = option.icon;
+    const accent = selected ? option.accentText : 'text-base-content/30';
     return (
       <>
         <Icon className={`size-4 ${accent}`} />
         <span className={`text-[13px] font-semibold tracking-wide ${accent}`}>
-          {tMode(o.labelKey)}
+          {tMode(option.labelKey)}
         </span>
         <span
           className={`text-[11px] ${selected ? 'text-base-content/60' : 'text-base-content/30'}`}
         >
-          {t(o.descKey)}
+          {t(option.descKey)}
         </span>
       </>
     );
@@ -537,7 +541,7 @@ export default function PlanForm({
             className="input input-bordered w-full"
             placeholder={t('descriptionPlaceholder')}
             value={description}
-            onChange={e => setDescription(e.target.value)}
+            onChange={event => setDescription(event.target.value)}
           />
         </FieldRow>
 
@@ -552,10 +556,10 @@ export default function PlanForm({
               className="gap-0"
               value={planMode}
               onChange={setPlanMode}
-              options={PLAN_MODE_OPTIONS.map(o => ({
-                value: o.value,
-                selectedClass: o.selectedClass,
-                label: (selected: boolean) => modeOptionLabel(o, selected),
+              options={PLAN_MODE_OPTIONS.map(option => ({
+                value: option.value,
+                selectedClass: option.selectedClass,
+                label: (selected: boolean) => modeOptionLabel(option, selected),
               }))}
               pillClass="flex flex-col items-center gap-0.5 rounded-md px-3 py-2.5"
               unselectedClass="border-transparent"
@@ -582,16 +586,16 @@ export default function PlanForm({
           </div>
 
           <div className="flex flex-col gap-2">
-            {templates.map(t => (
+            {templates.map(template => (
               <TemplateItem
-                key={t.id}
-                template={t}
-                isSelected={selectedTemplates.has(t.id)}
-                config={selectedTemplates.get(t.id)}
-                onToggle={() => toggleTemplate(t.id)}
-                onConfigChange={cfg => updateConfig(t.id, cfg)}
+                key={template.id}
+                template={template}
+                isSelected={selectedTemplates.has(template.id)}
+                config={selectedTemplates.get(template.id)}
+                onToggle={() => toggleTemplate(template.id)}
+                onConfigChange={cfg => updateConfig(template.id, cfg)}
                 onEdit={() => {
-                  setEditingTemplate(t);
+                  setEditingTemplate(template);
                   setIsModalOpen(true);
                 }}
               />
@@ -675,4 +679,4 @@ export default function PlanForm({
       />
     </>
   );
-}
+};

@@ -1,6 +1,6 @@
 import type {ComponentProps} from 'react';
-import BoardHeader from '@/components/domain/shared/BoardHeader';
-import PriorityMatrixPage from '@/components/domain/priorities/PriorityMatrixPage';
+import {BoardHeader} from '@/components/domain/shared/BoardHeader';
+import {PriorityMatrixPage} from '@/components/domain/priorities/PriorityMatrixPage';
 
 type MatrixProps = ComponentProps<typeof PriorityMatrixPage>;
 

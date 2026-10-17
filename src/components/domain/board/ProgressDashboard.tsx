@@ -11,7 +11,7 @@ type ProgressDashboardProps = BoardProgress;
 const RADIUS = 22;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS; // ≈ 138.23
 
-export default function ProgressDashboard({
+export const ProgressDashboard = ({
   todayDoneCount,
   todayTotalCount,
   todayDonePoints,
@@ -21,7 +21,7 @@ export default function ProgressDashboard({
   weekDonePoints,
   weekProjectedPoints,
   daysElapsed,
-}: ProgressDashboardProps) {
+}: ProgressDashboardProps) => {
   const t = useTranslations('Board.Dashboard');
   const todayPct =
     todayTotalCount > 0
@@ -190,4 +190,4 @@ export default function ProgressDashboard({
       </div>
     </>
   );
-}
+};

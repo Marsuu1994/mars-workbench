@@ -66,18 +66,20 @@ export function useDumpFeed(initial: DumpFeedInit) {
         createdAt: new Date(),
       };
       setEntries(prev => [temp, ...prev]);
-      setTotalCount(c => c + 1);
+      setTotalCount(prev => prev + 1);
       setCaptureError(null);
 
       const result = await createDumpEntryAction({content: trimmed});
       if ('error' in result) {
-        setEntries(prev => prev.filter(e => e.id !== temp.id));
-        setTotalCount(c => c - 1);
+        setEntries(prev => prev.filter(entry => entry.id !== temp.id));
+        setTotalCount(prev => prev - 1);
         setCaptureError(extractError(result.error, genericError));
         return {ok: false};
       }
       // Reconcile the optimistic row with the persisted entry (real id + time).
-      setEntries(prev => prev.map(e => (e.id === temp.id ? result.data : e)));
+      setEntries(prev =>
+        prev.map(entry => (entry.id === temp.id ? result.data : entry)),
+      );
       return {ok: true};
     },
     [genericError],

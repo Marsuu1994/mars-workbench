@@ -7,7 +7,7 @@ import type {TaskItem} from '@/lib/db/tasks';
 import {PriorityQuadrant} from '@/utils/enums';
 import type {TrackTargetStatus} from '@/schemas';
 import {QUADRANT_CONFIG} from './constants';
-import MatrixTaskCard from './MatrixTaskCard';
+import {MatrixTaskCard} from './MatrixTaskCard';
 
 interface QuadrantCellProps {
   quadrant: PriorityQuadrant;
@@ -26,7 +26,7 @@ interface QuadrantCellProps {
  * count), a droppable scrollable card list with a drop-hint banner while
  * hovered, and a desktop-only dashed Add button pinned to the bottom.
  */
-export default function QuadrantCell({
+export const QuadrantCell = ({
   quadrant,
   tasks,
   activePlanId,
@@ -36,7 +36,7 @@ export default function QuadrantCell({
   onComplete,
   onCardTap,
   onAdd,
-}: QuadrantCellProps) {
+}: QuadrantCellProps) => {
   const t = useTranslations('Priorities');
   const tQuadrant = useTranslations('Enums.PriorityQuadrant');
   const tQuadrantShort = useTranslations('Priorities.QuadrantShort');
@@ -135,4 +135,4 @@ export default function QuadrantCell({
       )}
     </Droppable>
   );
-}
+};

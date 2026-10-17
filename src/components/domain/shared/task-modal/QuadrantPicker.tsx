@@ -19,7 +19,7 @@ interface QuadrantPickerProps {
  * task modal when no source quadrant is preset (the mobile top-bar "+"
  * entry — desktop per-quadrant Add buttons preset it instead).
  */
-export default function QuadrantPicker({value, onChange}: QuadrantPickerProps) {
+export const QuadrantPicker = ({value, onChange}: QuadrantPickerProps) => {
   const t = useTranslations('TaskModal');
   const tQuadrant = useTranslations('Enums.PriorityQuadrant');
 
@@ -46,4 +46,4 @@ export default function QuadrantPicker({value, onChange}: QuadrantPickerProps) {
       />
     </FieldRow>
   );
-}
+};

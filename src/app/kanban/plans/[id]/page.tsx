@@ -4,7 +4,7 @@ import {getTaskTemplates} from '@/lib/db/taskTemplates';
 import {getNonDoneAdhocTasks} from '@/lib/db/tasks';
 import {getPlanStepsByPlanId} from '@/lib/db/projects';
 import {ensureSynced} from '@/services/syncService';
-import PlanForm from '@/components/domain/plan/PlanForm';
+import {PlanForm} from '@/components/domain/plan/PlanForm';
 import {getCurrentUserId} from '@/lib/auth/getCurrentUserId';
 
 export default async function EditPlanPage({
@@ -36,8 +36,8 @@ export default async function EditPlanPage({
 
   // Only this plan's ad-hoc tasks are editable here (deselect → back to the
   // matrix). Unassigned tasks are tracked from the priority matrix instead.
-  const adhocTasks = allAdhocTasks.filter(t => t.planId === id);
-  const initialAdhocTaskIds = adhocTasks.map(t => t.id);
+  const adhocTasks = allAdhocTasks.filter(task => task.planId === id);
+  const initialAdhocTaskIds = adhocTasks.map(task => task.id);
 
   // This week's unfinished steps; deselect → back to their project.
   const initialProjectStepIds = projectSteps.map(step => step.id);

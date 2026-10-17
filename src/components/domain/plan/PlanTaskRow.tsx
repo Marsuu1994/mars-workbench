@@ -51,9 +51,9 @@ export const PlanTaskRow = ({
       tabIndex={0}
       aria-pressed={isSelected}
       onClick={onToggle}
-      onKeyDown={e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
+      onKeyDown={event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
           onToggle();
         }
       }}

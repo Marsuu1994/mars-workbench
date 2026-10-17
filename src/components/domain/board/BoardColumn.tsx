@@ -30,12 +30,12 @@ const STATUS_STYLE: Record<
  * One kanban column: the header (LED, label, count) and a droppable list. A
  * frame only — KanbanBoard renders the cards into it.
  */
-export default function BoardColumn({
+export const BoardColumn = ({
   status,
   count,
   children,
   isDragActive = false,
-}: BoardColumnProps) {
+}: BoardColumnProps) => {
   const {isMobile} = useBreakpoint();
   const tStatus = useTranslations('Enums.TaskStatus');
   const {accent, ledColor} = STATUS_STYLE[status];
@@ -92,4 +92,4 @@ export default function BoardColumn({
       )}
     </Droppable>
   );
-}
+};

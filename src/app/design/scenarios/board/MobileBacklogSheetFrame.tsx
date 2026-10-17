@@ -2,7 +2,7 @@
 
 import type {BoardCard} from '@/utils/boardCardUtils';
 import {MobileBacklogPanel} from '@/components/domain/board/MobileBacklogPanel';
-import MobileBacklogCard from '@/components/domain/board/MobileBacklogCard';
+import {MobileBacklogCard} from '@/components/domain/board/MobileBacklogCard';
 
 interface MobileBacklogSheetFrameProps {
   /** The staged cards, as toBoardCards derives them from the fixtures */

@@ -31,7 +31,7 @@ export const SettingsPanel = ({
 
   const initials = user.name
     .split(' ')
-    .map(n => n[0])
+    .map(namePart => namePart[0])
     .join('')
     .toUpperCase()
     .slice(0, 2);

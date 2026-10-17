@@ -78,7 +78,7 @@ export const updateTemplateSchema = z
     description: z.string().min(1).optional(),
     size: z.nativeEnum(TaskSize).optional(),
   })
-  .refine(data => Object.values(data).some(v => v !== undefined), {
+  .refine(data => Object.values(data).some(value => value !== undefined), {
     message: V.atLeastOneField,
   });
 
@@ -150,7 +150,7 @@ export const updateProjectSchema = z
     title: z.string().trim().min(1, V.titleRequired).optional(),
     goal: z.string().trim().optional(),
   })
-  .refine(data => Object.values(data).some(v => v !== undefined), {
+  .refine(data => Object.values(data).some(value => value !== undefined), {
     message: V.atLeastOneField,
   });
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
@@ -165,7 +165,7 @@ export const updateProjectStepSchema = z
     description: z.string().trim().optional(),
     size: z.nativeEnum(TaskSize).optional(),
   })
-  .refine(data => Object.values(data).some(v => v !== undefined), {
+  .refine(data => Object.values(data).some(value => value !== undefined), {
     message: V.atLeastOneField,
   });
 export type UpdateProjectStepInput = z.infer<typeof updateProjectStepSchema>;
@@ -312,9 +312,13 @@ export const planPatchSchema = z
             type: planLineFields.type.optional(),
             frequency: planLineFields.frequency.optional(),
           })
-          .refine(u => u.type !== undefined || u.frequency !== undefined, {
-            message: 'Give a new type and/or frequency',
-          }),
+          .refine(
+            update =>
+              update.type !== undefined || update.frequency !== undefined,
+            {
+              message: 'Give a new type and/or frequency',
+            },
+          ),
       )
       .default([])
       .describe(
@@ -336,17 +340,17 @@ export const planPatchSchema = z
       .describe('Project steps on this week to send back to their project'),
   })
   .refine(
-    p =>
-      p.description !== undefined ||
-      p.mode !== undefined ||
+    input =>
+      input.description !== undefined ||
+      input.mode !== undefined ||
       [
-        p.addTemplates,
-        p.newTemplates,
-        p.updateTemplates,
-        p.removeTemplateIds,
-        p.removeAdhocTaskIds,
-        p.addProjectStepIds,
-        p.removeProjectStepIds,
+        input.addTemplates,
+        input.newTemplates,
+        input.updateTemplates,
+        input.removeTemplateIds,
+        input.removeAdhocTaskIds,
+        input.addProjectStepIds,
+        input.removeProjectStepIds,
       ].some(list => list.length > 0),
     {message: 'The patch changes nothing'},
   );
@@ -472,13 +476,16 @@ export const projectPatchSchema = z
       .describe('Steps that are not done, to delete'),
   })
   .refine(
-    p =>
-      p.title !== undefined ||
-      p.goal !== undefined ||
-      p.archived !== undefined ||
-      [p.addSteps, p.updateSteps, p.moveSteps, p.removeStepIds].some(
-        list => list.length > 0,
-      ),
+    input =>
+      input.title !== undefined ||
+      input.goal !== undefined ||
+      input.archived !== undefined ||
+      [
+        input.addSteps,
+        input.updateSteps,
+        input.moveSteps,
+        input.removeStepIds,
+      ].some(list => list.length > 0),
     {message: 'The patch changes nothing'},
   );
 export type ProjectPatchInput = z.infer<typeof projectPatchSchema>;

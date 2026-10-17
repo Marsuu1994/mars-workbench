@@ -451,7 +451,7 @@ export async function countIncompleteTasksByTemplateId(
     },
     _count: true,
   });
-  return new Map(counts.map(c => [c.templateId!, c._count]));
+  return new Map(counts.map(group => [group.templateId!, group._count]));
 }
 
 /**
@@ -577,13 +577,13 @@ export async function getPlanTemplateStats(
     byTemplate.set(templateId, entry);
   }
 
-  return Array.from(byTemplate, ([templateId, e]) => ({
+  return Array.from(byTemplate, ([templateId, stats]) => ({
     templateId,
-    type: e.type,
-    completed: e.completed,
-    expired: e.expired,
-    total: e.total,
-    completionRate: e.total > 0 ? e.completed / e.total : 0,
-    pointsEarned: e.pointsEarned,
+    type: stats.type,
+    completed: stats.completed,
+    expired: stats.expired,
+    total: stats.total,
+    completionRate: stats.total > 0 ? stats.completed / stats.total : 0,
+    pointsEarned: stats.pointsEarned,
   }));
 }

@@ -118,9 +118,9 @@ A complex task — several PRs, a data-model change, a new tool surface, or a ch
 
 - Domain helpers live in `src/utils/`.
 - **DRY — one definition per piece of logic, markup or type.** Markup that repeats with only data or color differences becomes one parameterized sub-component; a semantic color difference comes from a `Record<Key, string>` of literal Tailwind classes (never `` `bg-${accent}` `` — Tailwind can't see it). Identical type shapes collapse to one, and shapes sharing a core extend a base. Bad: five near-identical added / removed / modified sections, each hand-writing the same dot + title + note row; `AddedTemplate` and `RemovedTemplate` declared as identical interfaces. Good: one `ChangeRow` driven by `ACCENT: Record<Accent, {dot: string; border: string}>`; `TemplateChange extends TemplateRef`.
-- **One file → one component**, and the file name is the component name. A sibling — a shell-free `*Panel` extracted from a modal, a card or row it renders — gets its own file, exported or not (a one-off block that needs the parent's scope is a render function instead). Components that belong together share a kebab-case folder named for the group. Bad: `SettingsSheet.tsx` exporting both `SettingsPanel` and `SettingsSheet`; `ProjectList.tsx` defining a private `ProjectCard`. Good: `SettingsPanel.tsx` + `SettingsSheet.tsx`; `projects/project-list/` holding `ProjectList.tsx`, `ProjectCard.tsx` and `ArchivedProjectRow.tsx`.
+- **Components that belong together share a kebab-case folder** named for the group, each in a file named after it (one component per file is linted; a one-off block that needs the parent's scope is a render function instead). Good: `projects/project-list/` holding `ProjectList.tsx`, `ProjectCard.tsx` and `ArchivedProjectRow.tsx`.
 - **Destructure** when two or more properties of the same object are used, instead of repeating `obj.a`, `obj.b`; a single one-off access can stay. Bad: `const feed = useDumpFeed(...); … feed.entries … feed.hasMore`. Good: `const {entries, capture, hasMore} = useDumpFeed(...);` (for a nullish source: `const {entries, nextCursor} = result ?? {entries: [], nextCursor: null};`).
-- **Name things plainly — clear and boring beats short or clever.** A function says what it returns or does, including what it looks up by; a variable or parameter — callback parameters included — says what it holds. Full words only. Allowed short names: `id`, `tx` (Prisma transaction), `t` (next-intl only), `prev` (setState updater), `_` (unused parameter), `i` / `j` (index loops), `a` / `b` (sort comparators), `T` / `K` / `V` (type parameters); not `e` — write `event` or `error`. Bad: `getPlanningPlan(userId, planId)`, `templates.map(t => …)`, `runTool(ctx, body)`. Good: `getPlanContextByPlanId(userId, planId)`, `templates.map(template => …)`, `runTool(context, toolFunction)`.
+- **Name things plainly — clear and boring beats short or clever.** A function says what it returns or does, including what it looks up by; a variable or parameter — callback parameters included — says what it holds. Full words only: `id`, `tx` (Prisma transaction) and `prev` (setState updater) are fine, single letters are linted (allowed ones in `eslint.config.mjs`), and `t` is next-intl's alone. Bad: `getPlanningPlan(userId, planId)`, `templates.map(t => …)`, `runTool(ctx, body)`. Good: `getPlanContextByPlanId(userId, planId)`, `templates.map(template => …)`, `runTool(context, toolFunction)`.
 - **LLM-facing error messages live in `src/utils/errorMessages.ts`**, one UPPER_SNAKE object per surface (`PLANNING_ERROR`, `MCP_ERROR`); a message with dynamic parts is a function of them. Bad: `` throw new PlanningError(`This week already has an active plan (${id})…`) ``. Good: `throw new PlanningError(PLANNING_ERROR.ACTIVE_PLAN_EXISTS(activePlan.id))`.
 
 ### Enums
@@ -161,14 +161,12 @@ A complex task — several PRs, a data-model change, a new tool surface, or a ch
 
 ## Code Style
 
-- Named exports only, except Next.js convention files (`page`, `layout`, `loading`, `not-found`, `error`, `route`, …).
-- Components are `const` arrow functions (Next.js convention files excepted).
 - Props are explicitly typed, preferably with an `interface`.
 - Server Components by default; add `'use client'` only when interactivity requires it.
 
 ## Tooling
 
-- **Prettier owns formatting** (`.prettierrc.json`; code only — Markdown and `design/` are ignored); don't hand-tune spacing or quotes against it. ESLint owns correctness and already enforces no `any`, no `console.log` (`console.error` / `warn` allowed) and the server-only import boundary.
+- **Prettier owns formatting** (`.prettierrc.json`; code only — Markdown and `design/` are ignored); don't hand-tune spacing or quotes against it. **ESLint owns correctness** and enforces no `any`, no `console.log` (`console.error` / `warn` allowed) and the server-only import boundary. In production code (`src/` outside the Design Console) it also enforces named exports and `const` arrow components (Next.js convention files excepted), one component per file, and no single-letter names.
 - CI runs `format:check`, `lint`, `typecheck`, `knip` and `check:themes` — run them before pushing (Version Control).
 
 ## Data & State

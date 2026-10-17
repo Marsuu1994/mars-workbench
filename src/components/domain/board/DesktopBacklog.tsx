@@ -25,7 +25,7 @@ interface DesktopBacklogProps {
  * (BACKLOG → TODO). Rendered inside KanbanBoard's DragDropContext, which also
  * renders the cards into it.
  */
-export default function DesktopBacklog({count, children}: DesktopBacklogProps) {
+export const DesktopBacklog = ({count, children}: DesktopBacklogProps) => {
   const t = useTranslations('Board.Backlog');
   const [isOpen, setIsOpen] = useState(false);
 
@@ -114,4 +114,4 @@ export default function DesktopBacklog({count, children}: DesktopBacklogProps) {
       </div>
     </div>
   );
-}
+};

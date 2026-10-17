@@ -38,7 +38,7 @@ interface MatrixTaskCardProps {
  * (mobile: ★), keep the send button (Done is still a valid move) and stay
  * draggable — dragging only reprioritizes, never touches status/plan.
  */
-export default function MatrixTaskCard({
+export const MatrixTaskCard = ({
   task,
   index,
   isTracked,
@@ -48,7 +48,7 @@ export default function MatrixTaskCard({
   onTrack,
   onComplete,
   onTap,
-}: MatrixTaskCardProps) {
+}: MatrixTaskCardProps) => {
   const t = useTranslations('Priorities');
   const {isMobile} = useBreakpoint();
 
@@ -69,8 +69,8 @@ export default function MatrixTaskCard({
     <button
       type="button"
       aria-label={t('sendLabel')}
-      onClick={e => {
-        e.stopPropagation();
+      onClick={event => {
+        event.stopPropagation();
         onSendToggle(isPopoverOpen ? null : task.id);
       }}
       className={`hidden flex-shrink-0 size-[22px] rounded-[5px] items-center justify-center cursor-pointer transition-colors ${
@@ -173,4 +173,4 @@ export default function MatrixTaskCard({
       )}
     </Draggable>
   );
-}
+};

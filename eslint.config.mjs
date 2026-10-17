@@ -36,6 +36,46 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+  // Code style for production code (AGENTS.md → Tooling). The Design Console
+  // is the console's own scaffolding, so it is left out.
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/app/design/**', 'src/generated/**'],
+    rules: {
+      'import/no-default-export': 'error',
+      'react/function-component-definition': [
+        'error',
+        {
+          namedComponents: 'arrow-function',
+          unnamedComponents: 'arrow-function',
+        },
+      ],
+      'react/no-multi-comp': ['error', {ignoreStateless: false}],
+      'id-length': [
+        'error',
+        {
+          min: 2,
+          properties: 'never',
+          // id / tx are long enough already; t is next-intl's, _ an unused
+          // parameter, i / j index loops, a / b sort comparators, T / K / V
+          // type parameters.
+          exceptions: ['t', '_', 'i', 'j', 'a', 'b', 'T', 'K', 'V'],
+        },
+      ],
+    },
+  },
+  // Next.js convention files (and next-intl's request config) must default
+  // export, and are written as function declarations.
+  {
+    files: [
+      'src/app/**/{page,layout,loading,not-found,error,global-error,template,default,route}.{ts,tsx}',
+      'src/i18n/request.ts',
+    ],
+    rules: {
+      'import/no-default-export': 'off',
+      'react/function-component-definition': 'off',
+    },
+  },
   // Disable ESLint rules that conflict with Prettier formatting.
   // Keep this last so it overrides stylistic rules from the configs above.
   prettier,

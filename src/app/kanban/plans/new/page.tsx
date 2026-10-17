@@ -4,7 +4,7 @@ import {getNonDoneAdhocTasks} from '@/lib/db/tasks';
 import {getPlanStepsByPlanId} from '@/lib/db/projects';
 import {PlanStatus} from '@/generated/prisma/client';
 import {ensureSynced} from '@/services/syncService';
-import PlanForm from '@/components/domain/plan/PlanForm';
+import {PlanForm} from '@/components/domain/plan/PlanForm';
 import {getCurrentUserId} from '@/lib/auth/getCurrentUserId';
 
 export default async function NewPlanPage() {
@@ -38,9 +38,9 @@ export default async function NewPlanPage() {
   // (preselected). Unassigned tasks live on the priority matrix and reach
   // the board via its Track This Week flow instead.
   const adhocTasks = pendingPlan
-    ? allAdhocTasks.filter(t => t.planId === pendingPlan.id)
+    ? allAdhocTasks.filter(task => task.planId === pendingPlan.id)
     : [];
-  const initialAdhocTaskIds = adhocTasks.map(t => t.id);
+  const initialAdhocTaskIds = adhocTasks.map(task => task.id);
 
   // The pending plan's unfinished project steps carry over unless deselected
   // (deselected ones return to their project at the same step number).

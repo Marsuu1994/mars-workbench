@@ -24,14 +24,14 @@ interface TemplateItemProps {
   onEdit: () => void;
 }
 
-export default function TemplateItem({
+export const TemplateItem = ({
   template,
   isSelected,
   config,
   onToggle,
   onConfigChange,
   onEdit,
-}: TemplateItemProps) {
+}: TemplateItemProps) => {
   const t = useTranslations('Plan');
   const tType = useTranslations('Enums.TaskType');
   return (
@@ -39,9 +39,9 @@ export default function TemplateItem({
       role="button"
       tabIndex={0}
       onClick={onToggle}
-      onKeyDown={e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
+      onKeyDown={event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
           onToggle();
         }
       }}
@@ -83,8 +83,8 @@ export default function TemplateItem({
           type="button"
           title={t('editTemplateTitle')}
           className="btn btn-ghost btn-xs btn-square shrink-0 opacity-0 group-hover:opacity-100 transition-opacity mt-0.5"
-          onClick={e => {
-            e.stopPropagation();
+          onClick={event => {
+            event.stopPropagation();
             onEdit();
           }}
         >
@@ -96,8 +96,8 @@ export default function TemplateItem({
       {isSelected && config && (
         <div
           className="flex items-center gap-2 border-t border-base-content/10 mt-2.5 pt-2.5"
-          onClick={e => e.stopPropagation()}
-          onKeyDown={e => e.stopPropagation()}
+          onClick={event => event.stopPropagation()}
+          onKeyDown={event => event.stopPropagation()}
         >
           {/* Type label */}
           <span className="text-[11px] text-base-content/50 shrink-0">
@@ -153,4 +153,4 @@ export default function TemplateItem({
       )}
     </div>
   );
-}
+};

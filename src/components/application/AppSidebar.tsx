@@ -31,8 +31,8 @@ export const AppSidebar = ({
   pathname,
   collapsed,
 }: AppSidebarProps) => {
-  const toggleSidebar = useSidebarStore(s => s.toggleSidebar);
-  const openSettings = useSettingsStore(s => s.open);
+  const toggleSidebar = useSidebarStore(state => state.toggleSidebar);
+  const openSettings = useSettingsStore(state => state.open);
   const [isLogoHovered, setIsLogoHovered] = useState(false);
 
   if (!user || pathname.startsWith('/auth')) {
@@ -41,7 +41,7 @@ export const AppSidebar = ({
 
   const initials = user.name
     .split(' ')
-    .map(n => n[0])
+    .map(namePart => namePart[0])
     .join('')
     .toUpperCase()
     .slice(0, 2);

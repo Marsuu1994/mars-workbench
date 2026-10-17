@@ -1,7 +1,7 @@
 import type {BoardData} from '@/types/board';
-import BoardHeader from '@/components/domain/shared/BoardHeader';
-import ProgressDashboard from '@/components/domain/board/ProgressDashboard';
-import KanbanBoard from '@/components/domain/board/KanbanBoard';
+import {BoardHeader} from '@/components/domain/shared/BoardHeader';
+import {ProgressDashboard} from '@/components/domain/board/ProgressDashboard';
+import {KanbanBoard} from '@/components/domain/board/KanbanBoard';
 
 /** The page's data as fetchBoard shapes it: plan, tasks, progress, projects. */
 type BoardScreenProps = BoardData;

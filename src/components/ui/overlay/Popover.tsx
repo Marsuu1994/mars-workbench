@@ -41,7 +41,7 @@ export const Popover = ({
         align === 'right' && '-translate-x-full',
         className,
       )}
-      onClick={e => e.stopPropagation()}
+      onClick={event => event.stopPropagation()}
     >
       <span
         className={cn(

@@ -51,7 +51,7 @@ export async function getOwnedTemplateIds(
     where: {id: {in: ids}, userId},
     select: {id: true},
   });
-  return new Set(rows.map(r => r.id));
+  return new Set(rows.map(row => row.id));
 }
 
 /**

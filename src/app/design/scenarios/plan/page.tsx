@@ -1,4 +1,4 @@
-import PlanForm from '@/components/domain/plan/PlanForm';
+import {PlanForm} from '@/components/domain/plan/PlanForm';
 import {PlanChrome} from '@/components/domain/plan/PlanChrome';
 import {ScenarioTabs, type ScenarioTab} from '../ScenarioTabs';
 import {ScenarioPage} from '../ScenarioPage';

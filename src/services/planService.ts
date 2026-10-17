@@ -193,7 +193,9 @@ export async function getCarryOverAdhocTaskIds(
 ): Promise<string[]> {
   if (!pendingPlan) return [];
   const adhoc = await getNonDoneAdhocTasks(userId);
-  return adhoc.filter(t => t.planId === pendingPlan.id).map(t => t.id);
+  return adhoc
+    .filter(task => task.planId === pendingPlan.id)
+    .map(task => task.id);
 }
 
 /**
@@ -244,7 +246,7 @@ export async function createPlanInTx(
   await assertTemplatesOwned(
     tx,
     userId,
-    templates.map(t => t.templateId),
+    templates.map(template => template.templateId),
   );
 
   const newPlan = await dalCreatePlan(
@@ -304,15 +306,15 @@ export async function resolvePlanEntries(
   entries: PlanEntry[],
 ): Promise<PlanTemplateInput[]> {
   const newEntries = entries.filter(
-    (e): e is NewPlanEntry => e.templateId === null,
+    (entry): entry is NewPlanEntry => entry.templateId === null,
   );
   const createdIds = newEntries.length
     ? await createManyTaskTemplates(
-        newEntries.map(e => ({
+        newEntries.map(entry => ({
           userId,
-          title: e.title,
-          description: e.description,
-          size: e.size,
+          title: entry.title,
+          description: entry.description,
+          size: entry.size,
         })),
         tx,
       )
@@ -320,10 +322,10 @@ export async function resolvePlanEntries(
 
   // Zip freshly-created ids back to the null entries (input order preserved).
   let nextNew = 0;
-  return entries.map(e => ({
-    templateId: e.templateId ?? createdIds[nextNew++].id,
-    type: e.type,
-    frequency: e.frequency,
+  return entries.map(entry => ({
+    templateId: entry.templateId ?? createdIds[nextNew++].id,
+    type: entry.type,
+    frequency: entry.frequency,
   }));
 }
 
@@ -443,13 +445,15 @@ export async function updatePlanInTx(
     await assertTemplatesOwned(
       tx,
       userId,
-      added.map(t => t.templateId),
+      added.map(template => template.templateId),
     );
 
     const periodKey = getISOWeekKey(today);
     // Resolve effective mode: use new mode if changed, otherwise the owned plan's current mode
     const effectiveMode = mode ?? ownedPlan.mode;
-    const linkByTemplateId = new Map(currentLinks.map(l => [l.templateId, l]));
+    const linkByTemplateId = new Map(
+      currentLinks.map(currentLink => [currentLink.templateId, currentLink]),
+    );
 
     // Removed: delete BACKLOG/TODO/DOING tasks + remove PlanTemplate links
     if (removed.length > 0) {
@@ -461,17 +465,17 @@ export async function updatePlanInTx(
     }
 
     // Modified: delete BACKLOG/TODO/DOING tasks, update PlanTemplate, regenerate
-    for (const t of modified) {
+    for (const template of modified) {
       await deleteIncompleteTasksByTemplateIds(
         userId,
         planId,
-        [t.templateId],
+        [template.templateId],
         tx,
       );
-      const link = linkByTemplateId.get(t.templateId)!;
+      const link = linkByTemplateId.get(template.templateId)!;
       await updatePlanTemplate(
         link.id,
-        {type: t.type, frequency: t.frequency},
+        {type: template.type, frequency: template.frequency},
         tx,
       );
     }

@@ -9,11 +9,11 @@ import type {BoardPlan} from '@/utils/taskUtils';
 import {toBoardCards, type BoardCard} from '@/utils/boardCardUtils';
 import {updateTaskStatusAction} from '@/actions/taskActions';
 import {useOptimisticTasks} from '@/hooks/useOptimisticTasks';
-import BoardColumn from './BoardColumn';
-import DesktopBacklog from './DesktopBacklog';
-import MobileBacklog from './MobileBacklog';
-import MobileBacklogCard from './MobileBacklogCard';
-import TaskCard from './TaskCard';
+import {BoardColumn} from './BoardColumn';
+import {DesktopBacklog} from './DesktopBacklog';
+import {MobileBacklog} from './MobileBacklog';
+import {MobileBacklogCard} from './MobileBacklogCard';
+import {TaskCard} from './TaskCard';
 
 interface KanbanBoardProps {
   /** The board's state, in the server's shape — moves patch these */
@@ -30,7 +30,7 @@ interface KanbanBoardProps {
  * frames that know nothing about cards. Moves are optimistic and roll back
  * per task on failure.
  */
-export default function KanbanBoard({tasks, plan, projects}: KanbanBoardProps) {
+export const KanbanBoard = ({tasks, plan, projects}: KanbanBoardProps) => {
   const {localTasks, runOptimisticTaskUpdate} = useOptimisticTasks(tasks);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -123,4 +123,4 @@ export default function KanbanBoard({tasks, plan, projects}: KanbanBoardProps) {
       </MobileBacklog>
     </DragDropContext>
   );
-}
+};

@@ -25,8 +25,8 @@ interface SettingsSheetProps {
 export const SettingsSheet = ({user, initialTheme}: SettingsSheetProps) => {
   const router = useRouter();
   const t = useTranslations('Settings');
-  const isOpen = useSettingsStore(s => s.isOpen);
-  const close = useSettingsStore(s => s.close);
+  const isOpen = useSettingsStore(state => state.isOpen);
+  const close = useSettingsStore(state => state.close);
   const [theme, setTheme] = useState<ThemeName>(initialTheme);
 
   if (!user) {
