@@ -9,6 +9,6 @@ One doc per feature — `board.md`, `plan.md`, `priorities.md`, `projects.md`, `
 
 ## Facts, not UI detail or decisions
 
-A flow says what triggers it, what happens (to the data, and what the user sees next) and the rules that hold. UI detail — modal anatomy, controls and their placement, copy, breakpoint presentation — belongs in the Design Console (scenarios and gallery), or in the mockup until the UI ships. Decisions and their reasons belong in the spike and in `baseline.md`'s Architecture Decision.
+A flow says what triggers it, what happens (to the data, and what the user sees next) and the rules that hold. UI detail — modal anatomy, controls and their placement, copy, breakpoint presentation — belongs in the Design Console (scenarios and gallery), or in the mockup until the design is fully implemented. Decisions and their reasons belong in the spike and in `baseline.md`'s Architecture Decision.
 
 Bad: "Open the New Project modal — the TaskModal shell (header with ×, a banner, Title / Goal, Cancel / Create project)", or "There is no new nav item: the sidebar's Plan item stays active." Good: "Open the New Project modal: title (required) and goal (optional). On create, validate via Zod and persist the Project."

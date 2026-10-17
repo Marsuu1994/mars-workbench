@@ -12,16 +12,16 @@ Centralized design documentation for Mars Workbench. Code is organized layer-fir
 | [reference.md](./reference.md) | Lean lookup tables for server actions, services, and DAL functions. |
 | [flows/](./flows/README.md) | Per-feature flow docs: `shared.md`, `board.md`, `plan.md`, `priorities.md`, `projects.md`, `dump.md`, `auth.md`. Format and rules in its README. |
 | [spike/](./spike/README.md) | Point-in-time spike docs for open questions; lifecycle and shape in its README. Implemented spikes move to [spike/archived/](./spike/archived/). |
-| [mockup/future-work/](./mockup/future-work/) | Self-contained HTML explorations of **unbuilt** designs only (see Mockups below). Implemented UI is documented by the live scenario pages instead. |
+| [mockup/](./mockup/) | Self-contained HTML mockups of designs **not yet fully implemented** (see Mockups below). Implemented UI is documented by the Design Console instead. |
 | `/design` (in-app) | The Design Console (`src/app/design/`, how it works in [its README](../src/app/design/README.md)): component gallery tabbed by layer, plus per-feature **scenario pages** (`/design/scenarios`) — real page components + fixture data, the screen-level source of truth. |
 
 ## Mockups
 
-An exploration is self-contained HTML — inline styles, no shared stylesheets — showing the current state (Before) next to the proposed design (After), plus updated mockups for any other flow the design cascades into.
+A file in `mockup/` is a design that isn't fully implemented yet. A mockup is self-contained HTML — inline styles, no shared stylesheets — typically showing the current state (Before) next to the proposed design (After), plus the screens of any other flow the design cascades into.
 
-- While iterating, name it `mockup/future-work/temp-<area>-v2.html`.
-- Once the owner approves it, rename it to `mockup-<area>-v2.html`, link it from the tracker item it belongs to, and delete any `temp-*` files.
-- When the design ships, the feature's scenario page takes over and the mockup is deleted (AGENTS.md › UI Workflow).
+- While iterating, name it `mockup/temp-<area>.html`.
+- Once the owner approves it, rename it to `mockup-<area>.html`, link it from the tracker item it belongs to, and delete any `temp-*` files.
+- A design built over several PRs keeps its mockup until the last one lands. Once it is fully implemented, the mockup is deleted and the Design Console's scenario pages are its source of truth (AGENTS.md › UI Workflow).
 
 ## App README
 

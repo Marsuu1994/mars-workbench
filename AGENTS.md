@@ -33,7 +33,7 @@ design/                            # Design docs — index in design/README.md
 ├── reference.md                   # Lookup tables: server actions, services, DAL
 ├── flows/                         # Per-feature flow docs
 ├── spike/                         # Spike docs for open questions; archived/ = implemented
-└── mockup/future-work/            # Self-contained HTML explorations of unbuilt designs
+└── mockup/                        # Self-contained HTML mockups of designs not yet fully implemented
 src/
 ├── proxy.ts                       # Route protection (Supabase session check)
 ├── app/                           # App Router routes, api/mcp/ and its OAuth metadata, the Design Console (design/)
@@ -78,7 +78,7 @@ A rule that only one kind of file needs lives with that file. Read it before you
 | `design/tracker.md` | its Conventions section |
 | a flow doc (`design/flows/`) | `design/flows/README.md` |
 | the Design Console — scenarios, gallery (`src/app/design/`) | `src/app/design/README.md` |
-| a mockup (`design/mockup/future-work/`) | `design/README.md` |
+| a mockup (`design/mockup/`) | `design/README.md` |
 | themes, `globals.css`, visual patterns | `design/design-language/README.md` |
 | how a page's data flows from server to client | `design/baseline.md` › Architecture Decision |
 
@@ -95,8 +95,8 @@ A complex task — several PRs, a data-model change, a new tool surface, or a ch
 - **The Design Console is the source of truth for implemented UI.** `/design` renders the real components: a gallery tabbed by layer (`ui/` · `application/` · `domain/`) and per-feature scenario pages (`/design/scenarios/<feature>/`) with pinned fixture states.
 - **Production first, the console adapts.** Components are shaped by what production needs. A production component never carries a prop, branch or comment that only the console uses, and nothing is split or restructured so the console can show it: the console reaches a state the way a user would, or skips it. Bad: `initialUndoToastTaskId` on `PriorityMatrixPage`. Good: a scenario tab's `play` step clicking the real control.
 - **Screen components — today's pattern, pending Quality gate Step 9.** Each page's presentational layout is a screen component in `domain/<feature>/` (`BoardScreen`, `PrioritiesScreen`, `PlanChrome`) that the route and its scenario both render; the Projects page is a pilot exception (tracker › Step 9). The component structure spike decides how new pages split.
-- **New UI starts as an exploration.** Unbuilt or unapproved designs are explored as self-contained HTML mockups in `design/mockup/future-work/`; get the owner's approval before code changes.
-- **Build it exactly, then sync the console.** Implement the approved exploration exactly (layout, spacing, text, colors, icons, states); if something can't be built as-is, raise it and update the exploration first. Once the UI lands, add or update the feature's scenario page and gallery entries so the pinned states match production, then delete the exploration. A scenario that no longer matches production is a bug.
+- **New UI starts as a mockup.** A design that isn't built yet is drawn as a self-contained HTML mockup in `design/mockup/`; get the owner's approval before code changes.
+- **Build it exactly, then sync the console.** Implement the approved mockup exactly (layout, spacing, text, colors, icons, states); if something can't be built as-is, raise it and update the mockup first. As the UI lands, add or update the feature's scenario page and gallery entries so the pinned states match production. Once the design is fully implemented, delete its mockup: from then on the Design Console is the source of truth. A scenario that no longer matches production is a bug.
 
 ## Documentation Style
 

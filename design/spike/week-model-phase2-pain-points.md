@@ -1,6 +1,6 @@
 # Spike: App pain points for Week model Phase 2
 
-**Status: draft** · 2026-10-13（2026-10-14 加入 owner 的笔记：lifecycle、共用入口、同一套词）· 定稿留到 Phase 2 真正开工时 · 回答 tracker 条目 *Week model Phase 2 › Investigate the app pain points*（Plan › Future）；也回答 *Redesign the point system and metric tracking*（Cross-cutting › Medium）的方向问题 · 来源：PR 5 spike 讨论（PR #61）· 相关：`design/spike/archived/week-model-restructure.md`（Phase 1，implemented）、`design/spike/archived/week-model-pr5-mcp-projects.md`（MCP，implemented）· Phase 2 exploration：`design/mockup/future-work/mockup-week-model-phase2-v2.html`
+**Status: draft** · 2026-10-13（2026-10-14 加入 owner 的笔记：lifecycle、共用入口、同一套词）· 定稿留到 Phase 2 真正开工时 · 回答 tracker 条目 *Week model Phase 2 › Investigate the app pain points*（Plan › Future）；也回答 *Redesign the point system and metric tracking*（Cross-cutting › Medium）的方向问题 · 来源：PR 5 spike 讨论（PR #61）· 相关：`design/spike/archived/week-model-restructure.md`（Phase 1，implemented）、`design/spike/archived/week-model-pr5-mcp-projects.md`（MCP，implemented）· Phase 2 exploration：`design/mockup/mockup-week-model-phase2.html`
 
 > 语言约定：叙述用中文；产品名词、状态、代码标识保留英文（habit / project / step / one-off、size / points、`TaskSize` …），和代码、mockup、tracker 一一对应。
 
