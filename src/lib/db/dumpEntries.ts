@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma';
+import {prisma} from '@/lib/prisma';
 
 // Feed item — isProcessed is intentionally excluded (dormant flag, never
 // surfaced in V1) and updatedAt is omitted (append-only: always === createdAt).

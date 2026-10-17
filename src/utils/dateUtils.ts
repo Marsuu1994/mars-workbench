@@ -24,17 +24,6 @@ export function getTodayDate(): Date {
 }
 
 /**
- * Returns true if `a` and `b` share the same year/month/day.
- * Returns false if `a` is null.
- */
-export function sameDay(a: Date | null, b: Date): boolean {
-  if (!a) return false;
-  const az = new Date(a.getFullYear(), a.getMonth(), a.getDate());
-  const bz = new Date(b.getFullYear(), b.getMonth(), b.getDate());
-  return az.getTime() === bz.getTime();
-}
-
-/**
  * Parses a periodKey like "2026-W06" and returns the Monday of that ISO week.
  */
 export function getMondayFromPeriodKey(periodKey: string): Date {

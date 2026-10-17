@@ -71,7 +71,6 @@ export const createTemplateSchema = z.object({
   description: z.string().min(1, V.descriptionRequired),
   size: z.nativeEnum(TaskSize),
 });
-export type CreateTemplateInput = z.infer<typeof createTemplateSchema>;
 
 export const updateTemplateSchema = z
   .object({
@@ -82,7 +81,6 @@ export const updateTemplateSchema = z
   .refine(data => Object.values(data).some(v => v !== undefined), {
     message: V.atLeastOneField,
   });
-export type UpdateTemplateInput = z.infer<typeof updateTemplateSchema>;
 
 // ── Task Schemas ───────────────────────────────────────────────────────
 
@@ -92,7 +90,6 @@ const mutableTaskStatuses = [TaskStatus.TODO, TaskStatus.DONE] as const;
 export const updateTaskStatusSchema = z.object({
   status: z.enum(mutableTaskStatuses),
 });
-export type UpdateTaskStatusInput = z.infer<typeof updateTaskStatusSchema>;
 
 // Matrix creation only ("Add Priority Task" flow): tasks are born unassigned
 // (planId = null, status = BACKLOG) in the source quadrant and reach the board
@@ -103,12 +100,10 @@ export const createAdhocTaskSchema = z.object({
   size: z.nativeEnum(TaskSize),
   quadrant: z.nativeEnum(PriorityQuadrant),
 });
-export type CreateAdhocTaskInput = z.infer<typeof createAdhocTaskSchema>;
 
 export const updateTaskQuadrantSchema = z.object({
   quadrant: z.nativeEnum(PriorityQuadrant),
 });
-export type UpdateTaskQuadrantInput = z.infer<typeof updateTaskQuadrantSchema>;
 
 // Track This Week target: Todo only
 export const trackTaskSchema = z.object({
@@ -196,7 +191,6 @@ export const createDumpEntrySchema = z.object({
     .min(1, V.contentRequired)
     .max(DUMP_ENTRY_MAX_LENGTH, V.contentTooLong),
 });
-export type CreateDumpEntryInput = z.infer<typeof createDumpEntrySchema>;
 
 // The feed cursor is an opaque token on the wire: the client stores and echoes
 // nextCursor verbatim and never constructs or inspects its contents. The
@@ -204,19 +198,12 @@ export type CreateDumpEntryInput = z.infer<typeof createDumpEntrySchema>;
 export const fetchDumpEntriesSchema = z.object({
   cursor: z.string().min(1).optional(),
 });
-export type FetchDumpEntriesInput = z.infer<typeof fetchDumpEntriesSchema>;
 
 // ── AI Chat Schemas ────────────────────────────────────────────────────
-
-export const getTemplateStatsSchema = z.object({
-  planId: z.string().uuid(),
-});
-export type GetTemplateStatsInput = z.infer<typeof getTemplateStatsSchema>;
 
 export const createAiChatSchema = z.object({
   planId: z.string().uuid().optional(),
 });
-export type CreateAiChatInput = z.infer<typeof createAiChatSchema>;
 
 // ── AI Draft Plan (LLM structured output) ──────────────────────────────
 
@@ -250,20 +237,16 @@ export const generateDraftPlanSchema = z.object({
   chatId: z.string().uuid(),
   message: z.string().min(1),
 });
-export type GenerateDraftPlanInput = z.infer<typeof generateDraftPlanSchema>;
 
 export const approveDraftPlanSchema = z.object({
   chatId: z.string().uuid(),
 });
-export type ApproveDraftPlanInput = z.infer<typeof approveDraftPlanSchema>;
 
 export const resumeDraftPlanSchema = z.object({
   chatId: z.string().uuid(),
 });
-export type ResumeDraftPlanInput = z.infer<typeof resumeDraftPlanSchema>;
 
 export const updateThemeSchema = z.object({theme: z.enum(THEMES)});
-export type UpdateThemeInput = z.infer<typeof updateThemeSchema>;
 
 // ── OAuth Consent Schemas ──────────────────────────────────────────────
 
@@ -273,9 +256,6 @@ export const submitConsentDecisionSchema = z.object({
   authorizationId: authorizationIdSchema,
   decision: z.nativeEnum(ConsentDecision),
 });
-export type SubmitConsentDecisionInput = z.infer<
-  typeof submitConsentDecisionSchema
->;
 
 // ── MCP Tool Schemas ───────────────────────────────────────────────────
 

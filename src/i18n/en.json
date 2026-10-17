@@ -249,7 +249,6 @@
     "yesterday": "Yesterday",
     "showMore": "Show more",
     "showLess": "Show less",
-    "loadingMore": "Loading older entries…",
     "emptyTitle": "Nothing here yet",
     "emptyDesc": "Write anything — a thought, a worry, an idea. Dump it and move on."
   },
@@ -301,7 +300,6 @@
     "addedHeading": "Added",
     "removedHeading": "Removed",
     "modifiedHeading": "Modified",
-    "templateCount": "{count, plural, one {# template} other {# templates}}",
     "taskCount": "{count, plural, one {# task} other {# tasks}}",
     "addedNote": "New {type} tasks will be generated starting today",
     "removedNoteWithTasks": "{count, plural, one {# unfinished task} other {# unfinished tasks}} will be deleted from the board",

@@ -27,6 +27,80 @@ jobs:
       - name: Check formatting
         run: npm run format:check
 
+  lint:
+    name: ESLint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # ESLint needs no generated Prisma client, so lifecycle scripts stay off.
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Lint
+        run: npm run lint
+
+  typecheck:
+    name: TypeScript
+    runs-on: ubuntu-latest
+    env:
+      # prisma.config.ts requires DIRECT_URL even though generate never
+      # connects; a placeholder is enough.
+      DIRECT_URL: postgresql://ci:ci@localhost:5432/ci
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      # The code imports types from the generated client (gitignored).
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Typecheck
+        run: npm run typecheck
+
+  knip:
+    name: Unused code (knip)
+    runs-on: ubuntu-latest
+    env:
+      # Knip loads prisma.config.ts, which requires DIRECT_URL; a placeholder
+      # is enough.
+      DIRECT_URL: postgresql://ci:ci@localhost:5432/ci
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      # Imports of the generated client must resolve, or knip reports them.
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Find unused files, exports and dependencies
+        run: npm run knip
+
   themes:
     name: Theme variable contract
     runs-on: ubuntu-latest

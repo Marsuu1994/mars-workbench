@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma';
+import {prisma} from '@/lib/prisma';
 import {MessageRole, MessageType} from '@/generated/prisma/client';
 
 // Serialized message (BigInt id -> string for client transport).

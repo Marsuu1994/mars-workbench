@@ -1,7 +1,7 @@
 import {getTranslations} from 'next-intl/server';
 import {zodResponseFormat} from 'openai/helpers/zod';
 import type {ChatCompletionMessageParam} from 'openai/resources/chat/completions';
-import prisma from '@/lib/prisma';
+import {prisma} from '@/lib/prisma';
 import {getPlanTemplateStats, type PlanTemplateStatRow} from '@/lib/db/tasks';
 import {
   getTaskTemplateTitlesByIds,

@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma';
+import {prisma} from '@/lib/prisma';
 import {Prisma} from '@/generated/prisma/client';
 
 // Minimal chat record used by the kanban AI plan-creation flow.

@@ -1,5 +1,5 @@
 import {z} from 'zod';
-import prisma from '@/lib/prisma';
+import {prisma} from '@/lib/prisma';
 import {
   createProject as dalCreateProject,
   createProjectSteps,
@@ -63,13 +63,6 @@ const toStepRows = (steps: CreateProjectStepInput[], firstIndex: number) =>
 
 // ── Projects ─────────────────────────────────────────────────────────────────
 
-/** All of the user's projects with their steps (archived included). */
-export async function listProjects(
-  userId: string,
-): Promise<ProjectWithSteps[]> {
-  return getProjectsWithSteps(userId);
-}
-
 /**
  * The Projects page's inputs: every project (archived included), their steps
  * flat — the page keeps those as state for its optimistic writes — and the
@@ -88,15 +81,6 @@ export async function fetchProjectsPage(
     steps.push(...projectSteps);
   }
   return {projects, steps, activePlanId: activePlan?.id ?? null};
-}
-
-/** One project with its steps; null when it isn't the user's. */
-export async function getProject(
-  userId: string,
-  projectId: string,
-): Promise<ProjectWithSteps | null> {
-  if (!isUuid(projectId)) return null;
-  return getProjectWithStepsById(userId, projectId);
 }
 
 /**

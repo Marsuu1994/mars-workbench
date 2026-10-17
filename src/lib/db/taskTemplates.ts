@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma';
+import {prisma} from '@/lib/prisma';
 import type {Prisma, TaskSize} from '@/generated/prisma/client';
 
 export type TaskTemplateItem = {

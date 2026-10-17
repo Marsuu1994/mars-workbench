@@ -34,7 +34,7 @@ import {
   TaskStatus,
   PlanStatus,
 } from '@/generated/prisma/client';
-import prisma from '@/lib/prisma';
+import {prisma} from '@/lib/prisma';
 import {getTodayDate, getISOWeekKey, isWeekend} from '@/utils/dateUtils';
 import {sizeToPoints} from '@/utils/sizeUtils';
 import {diffPlanTemplates} from '@/utils/planUtils';
@@ -47,10 +47,8 @@ import type {
   PlanTemplateDiff,
   PlanTemplateInput,
 } from '../types/plan';
-import type {createPlanSchema, updatePlanSchema} from '@/schemas';
+import type {CreatePlanInput, UpdatePlanInput} from '@/schemas';
 
-type CreatePlanData = z.infer<typeof createPlanSchema>;
-type UpdatePlanInput = z.infer<typeof updatePlanSchema>;
 /**
  * The update core's input: each list is the plan's full new selection —
  * listed one-offs and steps link, the plan's other unfinished ones leave — and
@@ -379,7 +377,7 @@ export async function createPlanFromEntries(
 
 export async function createPlan(
   userId: string,
-  data: CreatePlanData,
+  data: CreatePlanInput,
 ): Promise<PlanItem | FormError> {
   const {
     periodType,
