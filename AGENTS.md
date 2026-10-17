@@ -1,11 +1,6 @@
-# Mars Workbench Agent Guide (Shared)
+# Mars Workbench Agent Guide
 
-This document is the common rulebook for all AI agents working in this repository.
-
-## Scope
-
-- Apply these rules to all agent sessions unless a tool-specific addendum says otherwise.
-- Use [CLAUDE.md](./CLAUDE.md) only for Claude Code-specific behavior (skills and slash workflows).
+The shared rulebook every agent session loads (Claude Code imports it through `CLAUDE.md`; Codex reads it directly). It holds the rules every task needs, plus an index of where the rest live (Workflow › Where the rules live).
 
 ## Project Overview
 
@@ -13,51 +8,50 @@ A Next.js application centered on a Kanban Period Planner; AI planning goes thro
 
 ## Tech Stack
 
-- Framework: Next.js 16 (App Router)
-- UI: React 19, Tailwind CSS 4, daisyUI 5 (custom themes + `fx-*` FX utility layer — see `design/design-language/`: `mars-dark` / `mars-light` / `p5-dark`, one shared variable contract)
+- Framework: Next.js 16 (App Router), React Compiler on
+- UI: React 19, Tailwind CSS 4, daisyUI 5 with custom themes and an `fx-*` utility layer (`design/design-language/`)
+- i18n: next-intl
 - State: Zustand
 - Database: PostgreSQL (Supabase) + Prisma ORM
-- Auth: Supabase Auth (Google OAuth); its OAuth 2.1 Server authorizes MCP clients through the app's consent page (`/oauth/consent`)
-- MCP: `mcp-handler` + `@modelcontextprotocol/server` (v2) — remote MCP endpoint at `/api/mcp` (Streamable HTTP) where Claude reads planning context and creates/updates plans; every request carries a Supabase OAuth access token (verified against the project's JWKS), which clients find through the protected-resource metadata under `/.well-known/`; local dev may act as `MCP_DEV_USER_ID` instead
+- Auth: Supabase Auth (Google OAuth); its OAuth 2.1 Server also authorizes MCP clients
+- MCP: `mcp-handler` + `@modelcontextprotocol/server` (v2) — the remote endpoint at `/api/mcp`, where Claude reads planning context and writes plans
 - Icons: Heroicons
 - Language: TypeScript
 
 ## Project Structure
 
-Directory responsibilities only — for concrete file/component names, read the code. Keep this tree about *where things go*, not an inventory.
+Directory responsibilities only — for concrete file and component names, read the code.
 
 ```text
 public/                            # PWA manifest, service worker, icons
 prisma/                            # schema.prisma + migrations/
 scripts/                           # Repo checks run in CI (check-theme-vars.mjs)
-scripts/one-time/                  # Ad-hoc/manual scripts (see One-Time Scripts section)
-design/                            # Centralized design docs (see design/README.md for the index)
-├── baseline.md                    # The ONE app-wide baseline (goal, entities, schema, decisions)
-├── design-language/               # Per-theme visual specs (mars-dark, mars-light, p5-dark) + shared fx-* skeleton (README)
-├── tracker.md                     # Consolidated roadmap — open items only
-├── reference.md                   # Lean lookup tables: server actions, services, DAL
+design/                            # Design docs — index in design/README.md
+├── baseline.md                    # The one app-wide baseline: goal, entities, schema, architecture decisions
+├── design-language/               # Per-theme visual specs + the shared fx-* skeleton
+├── tracker.md                     # Roadmap — open items only
+├── reference.md                   # Lookup tables: server actions, services, DAL
 ├── flows/                         # Per-feature flow docs
-├── spike/                         # Spike docs for open questions (see Workflow › Spike first); archived/ = implemented
-└── mockup/future-work/            # Self-contained HTML explorations of unbuilt designs only
+├── spike/                         # Spike docs for open questions; archived/ = implemented
+└── mockup/                        # Self-contained HTML mockups of designs not yet fully implemented
 src/
 ├── proxy.ts                       # Route protection (Supabase session check)
-├── app/                           # App Router: auth/, kanban/ (board, priorities, projects, plans, dump), api/mcp/,
-│                                  #   .well-known/ (api/mcp's OAuth metadata), oauth/ (MCP client consent),
-│                                  #   design/ (Design Console: layer-tabbed gallery + scenarios/), layout.tsx, globals.css
+├── app/                           # App Router routes, api/mcp/ and its OAuth metadata, the Design Console (design/)
+├── i18n/                          # next-intl request config + en.json (all user-facing copy)
 ├── generated/prisma/              # Generated Prisma client (gitignored)
-├── actions/                       # ALL server actions ('use server') — thin validate → service → revalidate
-├── services/                      # ALL business logic (no 'use server'); syncService.ensureSynced entry point
+├── actions/                       # ALL server actions ('use server')
+├── services/                      # ALL business logic (no 'use server')
+├── mcp/                           # MCP server, thin like actions/
+│   ├── tools/                     #   one file per tool: schema + annotations → service
+│   ├── prompts/                   #   LLM-facing text: server instructions, tool descriptions
+│   └── middleware/                #   identity (auth) + result/error shaping (runTool)
 ├── store/                         # Zustand stores, one per domain
 ├── hooks/                         # Store ↔ server-action bridges
-├── mcp/                           # MCP server — thin validate → service, like actions/
-│   ├── tools/                     #   one file per tool: schema + annotations → service
-│   ├── prompts/                   #   LLM-facing text: server instructions, tool descriptions — never translated
-│   └── middleware/                #   identity (auth) + result/error shaping (runTool)
 ├── types/                         # Shared domain types
-├── utils/                         # Domain helpers (client-safe) — except statsUtils.ts (server-only)
+├── utils/                         # Domain helpers (client-safe, except statsUtils.ts)
 ├── schemas.ts                     # All zod schemas
-├── lib/                           # Infrastructure only: prisma/, supabase/, auth/, db/ (DAL)
-└── components/                    # Three top-level layers (see "Component placement" in Layers)
+├── lib/                           # Infrastructure only: prisma.ts, supabase/, auth/, db/ (DAL)
+└── components/                    # Three layers (see Layers › Component placement)
     ├── ui/                        # Design-system primitives only — zero domain imports
     ├── application/               # App frame + providers (shell, tab bar, sidebar, contexts)
     └── domain/                    # All business components — shared/ + one folder per feature
@@ -65,123 +59,91 @@ src/
 
 ## Workflow
 
-### Session Start
+### Session start
 
-Read design docs (repo-root `design/`) only when the task involves logic, data, or new flows. Skip for pure styling/copy/UI-only tweaks.
+Read the design docs only when the task involves logic, data or new flows; skip them for pure styling, copy or UI-only tweaks.
 
 - `design/baseline.md`: schema or entity changes
 - `design/flows/<feature>.md`: flow changes or additions
-- `design/reference.md`: REST/server action/DAL changes
-- `src/app/design/scenarios/<feature>/`: flow-specific screen states (real components + fixtures)
+- `design/reference.md`: server action, service or DAL changes
+- `src/app/design/scenarios/<feature>/`: the feature's screen states
+
+### Where the rules live
+
+A rule that only one kind of file needs lives with that file. Read it before you edit:
+
+| Before you edit… | Read first |
+| --- | --- |
+| a spike (`design/spike/`) | `design/spike/README.md` |
+| `design/tracker.md` | its Conventions section |
+| a flow doc (`design/flows/`) | `design/flows/README.md` |
+| the Design Console — scenarios, gallery (`src/app/design/`) | `src/app/design/README.md` |
+| a mockup (`design/mockup/`) | `design/README.md` |
+| themes, `globals.css`, visual patterns | `design/design-language/README.md` |
+| how a page's data flows from server to client | `design/baseline.md` › Architecture Decision |
+
+### Adding a rule
+
+A new rule goes where it belongs: a rule for one kind of file goes into that file's README or Conventions section; a rule a linter or script can check goes into the tool, with at most one line here; a rule that overlaps an existing one rewrites that rule instead of adding a second. Only rules every task needs live in this file.
 
 ### Spike first for complex tasks
 
-A complex task — several PRs, a data-model change, a new tool surface, or a choice with real tradeoffs — starts with a spike, not code. Its lifecycle:
-
-1. **Spike** — write a self-contained doc in `design/spike/` (see Documentation Style for its shape), headed `Status: awaiting owner review` and linked from the tracker item it answers. An exploration parked until its work is picked up is headed `Status: draft` instead; it moves to awaiting owner review when that work starts.
-2. **Review** — go back and forth with the owner on the spike's PR, editing the spike in place each round.
-3. **Decided** — once every open question is answered, record the answers in a Decision section and mark `Status: decided`. From here the spike is frozen; later decisions land in the tracker and the Update Log.
-4. **Implement** — build what it decided, and update the living design docs (`baseline.md`, `flows/`, `reference.md`, scenarios) so they stand on their own without the spike.
-5. **Archive** — in the PR that finishes step 4, `git mv` the spike to `design/spike/archived/` and fix every link to it.
-
-Bad: a decided spike whose last PR landed still sitting in `design/spike/` next to open ones. Good: `design/spike/archived/board-prop-drilling.md`, moved once PR #53 shipped Option C3 — its leftover follow-ups live on as tracker items.
+A complex task — several PRs, a data-model change, a new tool surface, or a choice with real tradeoffs — starts with a spike in `design/spike/`, not code. Lifecycle and shape: `design/spike/README.md`.
 
 ## UI Workflow
 
-### Source of Truth
-
-Implemented UI is documented in-app by the Design Console (`/design`): a component gallery tabbed by layer (`ui/` · `application/` · `domain/`) and per-feature **scenario pages** (`/design/scenarios/<feature>/`) rendering the real components with pinned fixture states.
-
-- **Screen components, not copied chrome**: each page's presentational layout is a screen-layer component in `domain/<feature>/` (`BoardScreen`, `PrioritiesScreen`, `PlanChrome`); the route renders it after data fetching, its scenario renders it with fixtures — pages and scenarios cannot drift. New pages follow this split. Pilot exception: the Projects page has no screen layer — its route and its scenario render the same client `ProjectsPage` (`design/spike/archived/projects-page-refactor.md`); whether that becomes the rule is the component structure spike's call (tracker).
-- **Frame modes**: `fill` (default) is for screen-level tabs only — a 1:1 viewport-bounded stand-in for the page inside AppShell's `<main>`. Everything standalone (empty states, sheets, inline modal panels) is `fit` — content height + padding — and/or `overlay` for a dimmed modal backdrop.
-- **Live-feel, no side effects**: frames wrap content in an `InteractionShield` — hover and scroll stay live; clicks/submits/drag-starts are swallowed so wired handlers can never fire against fixture ids.
-- **No console-only props**: a production component never carries a prop, branch or comment that only the Design Console uses. A scenario reaches an interaction state the way a user would — the tab's `play` steps click the real control through the shield (gallery specimens wrap in `<Play>`) — or, when the state needs a side effect, composes it from genuine pieces (the matrix's Done-toast tabs: post-completion fixtures + the shared `MatrixUndoToast`). Time freezes at the frame: `data-time="frozen"` holds `fx-countdown` clocks. Bad: `initialUndoToastTaskId` on `PriorityMatrixPage`. Good: `play: [{click: {within: matrixCard(id), label: 'Priorities.sendLabel'}}]`.
-- **Modals render inline** via their extracted `*Panel`/`*Content` components (the live `OverlayShell` top-layer dialog would escape the frame's clipping).
-- **One tab, one state**: each scenario tab pins exactly one fixture/state of the rendered component (e.g. the settings overlay at rest vs with its sign-out confirm triggered) — never compose multiple states into one tab. Breakpoint presentations are not states: mobile and desktop render the same component, so they share a tab rather than getting siblings.
-- **Production first, the console adapts.** Components are shaped by what production needs; the Design Console renders whatever states that shape reaches and skips the rest — never split a component, add a prop or pick a structure so the console can show something. Bad: a slot-only frame or a view-model type introduced so a gallery specimen can render a piece in isolation. Good: the Projects scenario selects a project by leading the fixture list with it (the page picks the first active one), and drops the mobile detail tab because `?project=` is URL state a tab can't pin.
-
-### Designing New UI
-
-Future or unapproved designs are explored as **self-contained** HTML mockups (no shared CSS) in `design/mockup/future-work/` — see `/design-explore`. Get user approval on the exploration before code changes.
-
-### Implementing UI
-
-Implement the approved exploration exactly (layout, spacing, text, colors, icons, states); raise blockers and update the exploration first if something can't be built as-is. After the UI lands: add or extend the feature's scenario page (and gallery entries for new reusable components), then delete the exploration mockup — the scenario page takes over as source of truth.
-
-### Keeping Scenarios in Sync
-
-After completing a UI task, update the affected scenario/gallery fixtures so the pinned states match the shipped UI (new states, changed copy, new badges). A scenario that no longer matches production is a bug.
+- **The Design Console is the source of truth for implemented UI.** `/design` renders the real components: a gallery tabbed by layer (`ui/` · `application/` · `domain/`) and per-feature scenario pages (`/design/scenarios/<feature>/`) with pinned fixture states.
+- **Production first, the console adapts.** Components are shaped by what production needs. A production component never carries a prop, branch or comment that only the console uses, and nothing is split or restructured so the console can show it: the console reaches a state the way a user would, or skips it. Bad: `initialUndoToastTaskId` on `PriorityMatrixPage`. Good: a scenario tab's `play` step clicking the real control.
+- **Screen components — today's pattern, pending Quality gate Step 9.** Each page's presentational layout is a screen component in `domain/<feature>/` (`BoardScreen`, `PrioritiesScreen`, `PlanChrome`) that the route and its scenario both render; the Projects page is a pilot exception (tracker › Step 9). The component structure spike decides how new pages split.
+- **New UI starts as a mockup.** A design that isn't built yet is drawn as a self-contained HTML mockup in `design/mockup/`; get the owner's approval before code changes.
+- **Build it exactly, then sync the console.** Implement the approved mockup exactly (layout, spacing, text, colors, icons, states); if something can't be built as-is, raise it and update the mockup first. As the UI lands, add or update the feature's scenario page and gallery entries so the pinned states match production. Once the design is fully implemented, delete its mockup: from then on the Design Console is the source of truth. A scenario that no longer matches production is a bug.
 
 ## Documentation Style
 
-The living docs — README **Current State**, `design/tracker.md`, and everything under `design/` — are read by the human owner to re-orient; they are **not the agent's work record**. Write them as "what the product is now / what's still open", never as "everything that was done". Completeness has two sanctioned homes — the append-only README **Update Log** and PR descriptions — so nothing is lost by keeping living docs lean: omitted detail stays recoverable in git; buried signal is gone.
-
-- **Write at the doc's altitude, not the work's.** Every doc has a declared altitude — `tracker.md`: open items, 1–2 lines each; `reference.md`: lean lookup tables; `baseline.md`: entities + decisions; `flows/`: step contracts; README Current State: product capabilities (a skimmable tour, 1–2 lines per bullet). Implementation inventory (file/component/key names, sub-change lists) lives in the code, the diff, and `reference.md` — not in living-doc prose. Bad: a tracker item kept checked `[x]` with a phase-by-phase inventory of every component that landed. Good: the finished work summarized in one Update Log entry; only the open follow-ups remain in the tracker.
-- **Length must not scale with diff size.** A bigger change earns a *higher-level* summary, not a longer one — a Current State bullet stays 1–2 lines even as the feature behind it grows.
-- **Edit living docs in place; don't append.** Rewrite the sentence that is now wrong instead of adding a paragraph; an edit keeps the doc's size roughly flat.
-- **Update Log is the pressure valve**: append-only (see Anti-Patterns) and detail-tolerated — record the day's work at whatever length it needs, just lead each bullet with the outcome rather than the operation.
-- **Open questions get a spike doc, not a chat log or a premature refactor.** When a design/tooling question has real tradeoffs and no owner decision yet, write a self-contained doc in `design/spike/` — trigger, options with honest pros/cons, and a concrete implementation plan per option — headed `Status: awaiting owner review` and linked from the tracker item it answers. Spikes are point-in-time proposals, not living docs: they are not updated after the decision; the decision lands in the tracker/Update Log instead, and once implemented they move to `design/spike/archived/` (see Workflow › Spike first for complex tasks).
-- **A multi-PR project is one tracker item with a sub-bullet per step.** The parent line names the goal and links the spike and mockups; each sub-bullet is one PR or step, kept to one line. Delete a sub-bullet when its PR lands (the Update Log records it), and the parent goes with the last one. Bad: five unrelated top-level items ("Projects PR 1", "Projects PR 2", …), or one parent whose prose lists every PR in a paragraph. Good: `- [ ] Week model Phase 1 — Projects MVP: … Spike … (approved)` followed by `  - [ ] PR 1 — Phase 1 docs: …`, `  - [ ] PR 2 — kind-first cards, risk off, …`.
-- **Spike docs are written in Chinese with English terms.** The narrative is Chinese; product nouns, states and code identifiers stay in English (habit / project / step / one-off / backlog, `instanceIndex`, `create_plan`), so every term matches the code, the mockups and the tracker one-to-one. Say so in a one-line language note under the header. Reference: `design/spike/archived/week-model-restructure.md`. Bad: "项目步骤的生命周期和临时任务一样" (translated terms) or an all-English spike. Good: "Project step 的生命周期和 one-off（`AD_HOC`）一样".
-- **Flow docs state facts, not UI detail or decisions.** A flow says what triggers it, what happens (to the data and to what the user sees next) and the rules that hold. UI detail — modal anatomy, controls and their placement, copy, breakpoint presentation — belongs in the Design Console (scenarios and gallery), or in the mockup until the UI ships. Decisions and their reasons belong in the spike and in `baseline.md`'s Architecture Decision, not in a flow. Bad: "Open the New Project modal — the TaskModal shell (header with ×, a banner, Title / Goal, Cancel / Create project)", or "There is no new nav item: the sidebar's Plan item stays active." Good: "Open the New Project modal: title (required) and goal (optional). On create, validate via Zod and persist the Project."
+- **Living docs are for the owner to re-orient, not the agent's work record.** README Current State, `design/tracker.md` and everything under `design/` say what the product is now and what's still open. Write at the doc's altitude (each doc states it at its top); length doesn't scale with diff size — a bigger change earns a higher-level summary, not a longer one; rewrite the sentence that is now wrong instead of appending a paragraph. Implementation inventory (file, component and key names, sub-change lists) lives in the code, the diff and `reference.md`; completeness lives in PR descriptions and the Update Log.
+- **The README Update Log is kept per day.** Earlier days' sections are never edited. On the current day, add the new entry, then rewrite the day's section into one summary of the day's work. Detail is welcome there; lead each bullet with the outcome, not the operation.
 
 ## Layers
 
-- Actions (`src/actions/`): `'use server'`, thin layer (validate with Zod -> call service -> `revalidatePath`)
-- Services (`src/services/`): business logic, no `'use server'`. `syncService.ensureSynced` is the single sync entry point awaited by every kanban page.
-- DAL (`src/lib/db/`): all Prisma queries
-- If an action requires multiple DAL calls or conditional orchestration, extract to service.
-- Server-only modules — everything in `src/services/` plus `src/utils/statsUtils.ts` (imports the generated Prisma client) — must never be imported from `'use client'` code. `src/utils/` is otherwise client-safe (`enums`, `dateUtils`, `sizeUtils`, …), as is `src/schemas.ts`.
-- Components in `src/components/` may invoke server actions directly (e.g. the shared `TaskModal` calls `templateActions` and `createAdhocTaskAction`) — server actions behave like endpoints, this is not a layering violation. Direct service/DAL imports from components remain forbidden.
-- **Component placement** — `src/components/` has three layers, decided by imports (checked in order): a component that imports a domain type/enum/schema/DAL row is **domain** → `domain/<feature>/`, or `domain/shared/` when reused by ≥2 features; the once-rendered app frame (shell, tab bar, sidebar) and providers are **application**; everything else — generic primitives reusable in any app — is **ui**. Hard rule: nothing in `ui/` may import a domain type. Bad: a `WeeklyPointsChip` importing `TaskType` dropped into `ui/`. Good: the same chip in `domain/shared/`, composing the generic `Pill` from `ui/`.
-- **Server shapes inputs, the client derives the view.** A page's service returns the minimal, serializable inputs its screen needs — rows in their DAL shape (narrowed by `select`), server-only aggregates, lookups — never finished UI models. The page's **container** (the top-level client component that owns the interaction) keeps the rows it mutates as state in that same server shape, so optimistic patches, action results and revalidated props always match; it derives the UI shape with a pure adapter in `src/utils/` inside a `useMemo`, and renders the result into layout frames (columns, lists, sheets) through `children`, so frames take no model props and presentational components take exactly the model they render. Derived data never becomes state. Every page follows this split; pages not yet migrated are tracked in `design/tracker.md`. Pilot exception: the Projects page keeps the inputs → client state split but skips the frames and the view-model tree — `ProjectsPage` owns the state and its feature components (`ProjectList`, `ProjectDetail`, `ProjectStep`) take domain rows and derive what they show with pure helpers in `utils/projectUtils.ts` (`design/spike/archived/projects-page-refactor.md`); the app-wide rule waits on the component structure spike. Bad: `fetchBoard` returns finished card models, the client keeps them as state, and a drag handler patches every sibling card's dots by hand. Good: `fetchBoard` returns `{plan, tasks, progress}`; `KanbanBoard` keeps `tasks` as state, runs `toBoardCards(localTasks, {plan})`, and renders `<BoardColumn count={todoCards.length}>{renderDraggableCards(todoCards)}</BoardColumn>`.
+- **Actions** (`src/actions/`): `'use server'`, thin — validate with Zod → call a service → `revalidatePath`. **MCP tools** (`src/mcp/tools/`) have the same shape: validate → service, wrapped by `runTool`.
+- **Services** (`src/services/`): all business logic, no `'use server'`; an action that needs several DAL calls or conditional orchestration moves it into a service. `syncService.ensureSynced` is the single sync entry point every kanban page awaits.
+- **DAL** (`src/lib/db/`): all Prisma queries — nothing else imports Prisma. Route handlers stay thin: they hand off to `src/mcp/` or infrastructure in `src/lib/`, with no business logic or queries of their own.
+- **Server-only modules** — `src/services/`, the DAL, the Prisma clients and `src/utils/statsUtils.ts` — never reach `'use client'` code (ESLint checks components, hooks and stores; `import type` is fine). The rest of `src/utils/` and `src/schemas.ts` are client-safe. Components may call server actions directly: actions behave like endpoints.
+- **Component placement** — `src/components/` has three layers, decided by imports (checked in order): a component that imports a domain type/enum/schema/DAL row is **domain** → `domain/<feature>/`, or `domain/shared/` when reused by ≥2 features; the once-rendered app frame (shell, tab bar, sidebar) and providers are **application**; everything else — generic primitives reusable in any app — is **ui**. Hard rule: nothing in `ui/` imports a domain type. Bad: a `WeeklyPointsChip` importing `TaskType` in `ui/`. Good: the same chip in `domain/shared/`, composing the generic `Pill` from `ui/`.
+- **Server shapes inputs, the client derives the view.** A page's service returns inputs — rows in their DAL shape (narrowed by `select`), server-only aggregates, lookups — never finished UI models. A pure adapter in `src/utils/` derives the UI shape, and derived data never becomes state. Pending: how a page's container holds and patches its rows (Quality gate Step 7) and how layout frames take their content (Step 9). The Board's pattern today: `design/baseline.md` › Architecture Decision.
 
 ## Coding Conventions
 
-When adding a new convention, append it to the **end of the relevant subsection below** (not the middle), with concrete bad/good examples.
-
 ### General
 
-- Keep domain helpers in `src/utils/`. Do not duplicate logic.
-- Keep file names aligned with component names when renaming.
-- **One file → one component**, and the file name maps to the component name. When a component grows a sibling — a shell-free `*Panel` extracted from a modal, or a card or row it renders — the sibling gets its own file: never two components in one file, exported or not (a one-off block that needs the parent's scope is a render function instead). Components that belong together share a kebab-case folder named for the group. Bad: `SettingsSheet.tsx` exporting both `SettingsPanel` and `SettingsSheet`; `ProjectList.tsx` defining a private `ProjectCard`. Good: `SettingsPanel.tsx` + `SettingsSheet.tsx`, the sheet importing the panel; `projects/project-list/` holding `ProjectList.tsx`, `ProjectCard.tsx` and `ArchivedProjectRow.tsx`.
-- **Destructure objects instead of repeated member access.** When two or more properties of the same object are used — a hook's return value, a data record, a nested result — pull them out with a destructuring binding up front rather than repeating `obj.a`, `obj.b` at each use. A single one-off access can stay as `obj.a`. Bad: `const feed = useDumpFeed(...); … feed.entries … feed.capture … feed.hasMore`. Good: `const {entries, capture, hasMore} = useDumpFeed(...);`. (For a possibly-nullish source, destructure off a fallback: `const {entries, nextCursor} = result ?? {entries: [], nextCursor: null};`.)
-- **Name things plainly — clear and boring beats short or clever.** Anyone should understand a name without opening its definition. A function says what it returns or does, including what it looks up by; a variable or parameter says what it holds — callback parameters included. Full words only: no abbreviations or one-letter names, except the established `id`, `tx` (Prisma transaction) and next-intl's `t`. Bad: `getPlanningPlan(userId, planId)`, `const [templates, active, last] = …`, `runTool(ctx, body)`, `rows.map(r => r.expired)`. Good: `getPlanContextByPlanId(userId, planId)`, `const [existingTaskTemplates, activePlanContext, pendingPlanContext] = …`, `runTool(context, toolFunction)`, `templateStats.map(stats => stats.expired)`.
-- **LLM-facing error messages live in `src/utils/errorMessages.ts`**, one UPPER_SNAKE object per surface (`PLANNING_ERROR`, `MCP_ERROR`); a message with dynamic parts is a function of them. Bad: `` throw new PlanningError(`This week already has an active plan (${id})…`) `` inline in a service. Good: `throw new PlanningError(PLANNING_ERROR.ACTIVE_PLAN_EXISTS(activePlan.id))`. (User-facing copy still goes through `en.json`.)
+- Domain helpers live in `src/utils/`.
+- **DRY — one definition per piece of logic, markup or type.** Markup that repeats with only data or color differences becomes one parameterized sub-component; a semantic color difference comes from a `Record<Key, string>` of literal Tailwind classes (never `` `bg-${accent}` `` — Tailwind can't see it). Identical type shapes collapse to one, and shapes sharing a core extend a base. Bad: five near-identical added / removed / modified sections, each hand-writing the same dot + title + note row; `AddedTemplate` and `RemovedTemplate` declared as identical interfaces. Good: one `ChangeRow` driven by `ACCENT: Record<Accent, {dot: string; border: string}>`; `TemplateChange extends TemplateRef`.
+- **One file → one component**, and the file name is the component name. A sibling — a shell-free `*Panel` extracted from a modal, a card or row it renders — gets its own file, exported or not (a one-off block that needs the parent's scope is a render function instead). Components that belong together share a kebab-case folder named for the group. Bad: `SettingsSheet.tsx` exporting both `SettingsPanel` and `SettingsSheet`; `ProjectList.tsx` defining a private `ProjectCard`. Good: `SettingsPanel.tsx` + `SettingsSheet.tsx`; `projects/project-list/` holding `ProjectList.tsx`, `ProjectCard.tsx` and `ArchivedProjectRow.tsx`.
+- **Destructure** when two or more properties of the same object are used, instead of repeating `obj.a`, `obj.b`; a single one-off access can stay. Bad: `const feed = useDumpFeed(...); … feed.entries … feed.hasMore`. Good: `const {entries, capture, hasMore} = useDumpFeed(...);` (for a nullish source: `const {entries, nextCursor} = result ?? {entries: [], nextCursor: null};`).
+- **Name things plainly — clear and boring beats short or clever.** A function says what it returns or does, including what it looks up by; a variable or parameter — callback parameters included — says what it holds. Full words only. Allowed short names: `id`, `tx` (Prisma transaction), `t` (next-intl only), `prev` (setState updater), `_` (unused parameter), `i` / `j` (index loops), `a` / `b` (sort comparators), `T` / `K` / `V` (type parameters); not `e` — write `event` or `error`. Bad: `getPlanningPlan(userId, planId)`, `templates.map(t => …)`, `runTool(ctx, body)`. Good: `getPlanContextByPlanId(userId, planId)`, `templates.map(template => …)`, `runTool(context, toolFunction)`.
+- **LLM-facing error messages live in `src/utils/errorMessages.ts`**, one UPPER_SNAKE object per surface (`PLANNING_ERROR`, `MCP_ERROR`); a message with dynamic parts is a function of them. Bad: `` throw new PlanningError(`This week already has an active plan (${id})…`) ``. Good: `throw new PlanningError(PLANNING_ERROR.ACTIVE_PLAN_EXISTS(activePlan.id))`.
 
 ### Enums
 
-- Always use enum constants (for example `TaskType.WEEKLY`), not raw strings.
-- Prefer `switch/case/default` for enum branching.
+- Use enum constants (`TaskType.WEEKLY`), never raw strings.
+- **Maps are `Record<Enum, T>`; branching is a `switch` whose `default` asserts `never`.** Either way a new enum value fails to compile until it is handled. Bad: `default: return 'neutral';` silently covering a new `TaskType`. Good: `TASK_KIND_STYLE: Record<TaskKind, TaskKindStyle>`; `` default: {const unhandled: never = type; throw new Error(`Unhandled type: ${unhandled}`);} ``.
 
-### Database queries
+### Styling
 
-- Prefer batch DB operations (`createMany`, `updateMany`) over per-row loops when possible.
-- Prefer one broad query + in-memory filtering for small/moderate datasets.
-- Use targeted DAL queries or DB aggregates for high-cardinality or known hotspots.
-- For ACID-critical multi-step writes, use `prisma.$transaction()` with `tx?: Prisma.TransactionClient` in DAL writes.
-
-### Icons & tokens
-
-- Use Heroicons JSX imports, not inline SVG.
-- Use `text-warning` for star/points icons.
+- Heroicons JSX imports for icons, not inline SVG (brand marks and charts may draw their own SVG).
+- Tailwind utility classes, no inline styles — `style` only carries dynamic values (a CSS variable, a computed width).
+- Semantic daisyUI tokens, never hardcoded colors like `text-yellow-400`; what each channel means is in `design/design-language/README.md`.
 
 ### Themes
 
-- **One theme per page.** The theme lives only on `<html data-theme>`: the server renders it from the cookie, the settings sheet re-stamps it, and the Design Console previews by re-stamping it (restoring the app's theme on exit). Never nest a `data-theme` scope — theme-gated rules like `[data-theme='p5-dark'] .fx-card` match through any ancestor, so a nested scope cannot switch them off. Bad: `<div data-theme="mars-light">` around a preview. Good: `document.documentElement.setAttribute('data-theme', next)`.
-- **One variable contract.** Every theme declares the same custom properties in `globals.css` — its daisyUI block plus its `[data-theme='…']` block, in the same section order. A new variable lands in every theme in the same change and is named by role, not by one theme's palette; `npm run check:themes` (CI) fails otherwise. Bad: `--fx-blood-red` declared by p5-dark alone. Good: `--fx-depth` declared by every theme, p5's value being its blood red.
+- **One theme per page.** The theme lives only on `<html data-theme>`: the server renders it from the cookie, the settings sheet and the Design Console re-stamp it. Never nest a `data-theme` scope — theme-gated rules like `[data-theme='p5-dark'] .fx-card` match through any ancestor. Bad: `<div data-theme="mars-light">` around a preview. Good: `document.documentElement.setAttribute('data-theme', next)`.
+- **One variable contract.** Every theme declares the same custom properties in `globals.css`, in the same section order; a new variable lands in every theme in the same change, named by role rather than one theme's palette (`npm run check:themes`, CI). Bad: `--fx-blood-red` declared by p5-dark alone. Good: `--fx-depth` in every theme, p5's value being its blood red.
 
 ### JSX & components
 
-- Split very large JSX components into focused sub-components.
-- Extract conditional/complex JSX into named render functions (e.g. `renderBoardLink()`) within the component to keep the return statement scannable. Reserve sub-components for reusable pieces; use render functions for one-off blocks that need access to component scope.
-- For modal/dialog-like components, split the structural regions (header, body, footer) into named render functions (or sub-components if reusable) so the top-level return reads as an outline. Bad: a single 120-line `return (<dialog>…</dialog>)` mixing header markup, a message loop, error markup, and footer branching. Good:
+- **Keep the return statement an outline.** Conditional or complex JSX becomes a named render function (`renderBoardLink()`) with access to the component's scope; reusable pieces become sub-components. Modals split their header, body and footer this way, and a render prop or option label longer than a couple of lines is a named function, not inlined at the call site. Good:
 
   ```tsx
-  const renderHeader = () => ( /* … */ );
-  const renderBody = () => ( /* … */ );
-  const renderFooter = () => ( /* … */ );
-
   return (
     <dialog ref={dialogRef} className="modal">
       <div className="modal-box …">
@@ -193,164 +155,56 @@ When adding a new convention, append it to the **end of the relevant subsection 
   );
   ```
 
-- Extract fixed, **non-user-facing** literals — routes/hrefs, magic numbers, thresholds, durations, style tokens, config values — into a dedicated `constants.ts` colocated with the component (or a feature `constants/` folder), `export` them, and import where used — no inline magic literals. (User-facing *copy* never lives here — see the i18n rule below.) Bad: `maxLength={280}` and `href="/kanban/plans/new"` inline in JSX. Good:
-
-  ```ts
-  // <feature>/constants.ts
-  export const MESSAGE_MAX_LENGTH = 280;
-  export const CREATE_PLAN_HREF = "/kanban/plans/new";
-  ```
-
-  ```tsx
-  import { MESSAGE_MAX_LENGTH, CREATE_PLAN_HREF } from "./constants";
-  <textarea maxLength={MESSAGE_MAX_LENGTH} />
-  <Link href={CREATE_PLAN_HREF} />
-  ```
-
-- All **user-facing copy** app-wide is internationalized with `next-intl` — it lives in `src/i18n/en.json` and is read via `useTranslations` (Client Components) or `getTranslations` (Server Components / Server Actions / `generateMetadata`). Add each string under a namespace; use ICU for plurals/interpolation, `Enums.*` keys for enum→label display, and `t.rich` when part of a string needs inline markup. Keep decorative glyphs/emoji and presentational symbols in the JSX, not in the message. Never translated: LLM-facing text (`mcp/prompts/`, `utils/errorMessages.ts`) and internal `throw new Error(...)` messages. Bad: `export const TITLE = "Create Weekly Plan";` (copy in a `constants.ts`). Good:
-
-  ```json
-  // src/i18n/en.json
-  { "Plan": { "createTitle": "Create Weekly Plan", "taskCount": "{count, plural, one {# task} other {# tasks}}" } }
-  ```
-
-  ```tsx
-  const t = useTranslations("Plan");
-  <h1>{t("createTitle")}</h1>
-  <span>{t("taskCount", { count })}</span>
-  ```
-
-- **DRY repeated JSX blocks.** When the same markup repeats with only data/color differences (list rows, change sections, cards), extract ONE parameterized sub-component instead of copy-pasting the block per case. If the only difference is a semantic color, drive it from a `Record<Key, string>` of literal Tailwind classes. Bad: five near-identical `added`/`removed`/`modified` sections each hand-writing the same dot + title + meta + note row. Good:
-
-  ```tsx
-  // Literal classes only — never interpolate `bg-${accent}`, Tailwind can't see it.
-  const ACCENT: Record<Accent, {dot: string; border: string}> = {
-    success: {dot: "bg-success", border: "border-success/30"},
-    error: {dot: "bg-error", border: "border-error/30"},
-    warning: {dot: "bg-warning", border: "border-warning/30"},
-  };
-  const ChangeRow = ({accent, title, children}: ChangeRowProps) => (
-    <div className={`… border ${ACCENT[accent].border}`}>
-      <div className={`size-[7px] rounded-full ${ACCENT[accent].dot} …`} />
-      <div>
-        <div className="text-sm font-medium">{title}</div>
-        {children}
-      </div>
-    </div>
-  );
-  ```
-
-- **Don't inline long render functions as prop values.** A render-prop or option-label callback longer than a couple of lines belongs in a named function (or a `const` element list), not inlined at the call site — the call site should read as an outline. Bad: a `ChoicePills options={[{value, label: selected => (<>…12 lines…</>)}, …]}` with the whole label body inlined. Good:
-
-  ```tsx
-  const renderModeOption = (mode: PlanMode) => (selected: boolean) => ( /* … */ );
-  <ChoicePills options={MODES.map(m => ({value: m, label: renderModeOption(m)}))} />
-  ```
-
-- **DRY applies to type shapes too, not just JSX.** Identical `interface`/`type` definitions must collapse to one; shapes that share a common core extend a base instead of re-listing the shared fields. Bad: `AddedTemplate` and `RemovedTemplate` declared as byte-for-byte identical interfaces, and `ModifiedTemplate` re-listing the same `templateId`/`title`. Good:
-
-  ```ts
-  interface TemplateRef {
-    templateId: string;
-    title: string;
-  }
-  // added & removed share one shape…
-  interface TemplateChange extends TemplateRef {
-    size: TaskSize;
-    points: number;
-    type: TaskType;
-    frequency: number;
-  }
-  // …and the diverging one still reuses the shared core.
-  interface ModifiedTemplate extends TemplateRef {
-    fromType: TaskType;
-    toType: TaskType;
-  }
-  ```
-
-- **User-facing copy is sentence case** — capitalize only the first word (plus proper nouns/acronyms); Title Case is reserved for headers (page/section titles, nav labels). Applies to buttons, row actions, chips, hints, empty states — the same action must not flip casing between states. Bad: a rest-state button "Sign Out" whose confirm state reads "Sign out?". Good: "Sign out" / "Sign out?" / "Create task" / "Add task", with headers like "Settings" or "Kanban Planner" keeping their casing.
-- **Status marks must not look like controls.** A state the user can't change by clicking it is never drawn as a control shape — no hollow or filled circles or squares that read as a radio or checkbox. Show it with what the element already has: a tint, a border, a pill, muted text, an inline ✓ glyph beside text. Bad: every project step row led by a circle that fills when the step is on this week — it looks clickable and only repeats the pill. Good: this week's row is tinted with a "This week · todo" pill; a done row reads muted with "✓ Mon, Oct 5" on the right.
+- **No magic literals.** Fixed, non-user-facing literals — routes, numbers, thresholds, durations, style tokens, config values — go into an exported constant in a `constants.ts` next to the component (or a feature `constants/` folder). Bad: `maxLength={280}`, `href="/kanban/plans/new"` inline. Good: `MESSAGE_MAX_LENGTH`, `CREATE_PLAN_HREF` imported from `./constants`.
+- **All user-facing copy goes through `next-intl`**: strings live under a namespace in `src/i18n/en.json`, read with `useTranslations` (client) or `getTranslations` (server components, actions, `generateMetadata`). Use ICU for plurals and interpolation, `Enums.*` keys for enum labels, and `t.rich` for inline markup; decorative glyphs and emoji stay in the JSX. Never translated: LLM-facing text (`mcp/prompts/`, `utils/errorMessages.ts`) and internal `throw new Error(...)` messages. Bad: `export const TITLE = 'Create Weekly Plan';`. Good: `{"Plan": {"taskCount": "{count, plural, one {# task} other {# tasks}}"}}` read as `t('taskCount', {count})`.
+- **User-facing copy is sentence case**; Title Case is for headers only (page and section titles, nav labels). The same action keeps its casing across states. Bad: "Sign Out" whose confirm reads "Sign out?". Good: "Sign out" / "Sign out?" / "Create task", with headers like "Settings" keeping theirs.
 
 ## Code Style
 
-- Named exports only (except Next.js `page.tsx` and `layout.tsx` defaults).
-- Components as `const` arrow functions.
-- Explicitly typed props, prefer `interface`.
-- No `any`; use proper types or `unknown`.
-- Prefer async Server Components where no client interactivity is needed.
-- Add `'use client'` only when required.
+- Named exports only, except Next.js convention files (`page`, `layout`, `loading`, `not-found`, `error`, `route`, …).
+- Components are `const` arrow functions (Next.js convention files excepted).
+- Props are explicitly typed, preferably with an `interface`.
+- Server Components by default; add `'use client'` only when interactivity requires it.
 
-## Formatting (Prettier)
+## Tooling
 
-- All code formatting is handled by Prettier using Google's style (the `gts`
-  config: single quotes, no bracket spacing, trailing commas, `arrow` parens
-  avoided, 2-space indent, 80-col, semicolons). Config lives in
-  `.prettierrc.json`; do not hand-tune spacing/quotes against it.
-- Run `npm run format` before finishing a task so every agent leaves the same
-  style. CI runs `npm run format:check` and fails on any unformatted file.
-- Prettier is scoped to code (TS/TSX/JS/JSON/CSS). Markdown docs and `design/`
-  assets are ignored (see `.prettierignore`) — the README Update Logs are
-  append-only and must not be reflowed.
-- ESLint is layered with `eslint-config-prettier`, so lint rules never fight
-  Prettier; use ESLint for correctness, Prettier for formatting.
+- **Prettier owns formatting** (`.prettierrc.json`; code only — Markdown and `design/` are ignored); don't hand-tune spacing or quotes against it. ESLint owns correctness and already enforces no `any`, no `console.log` (`console.error` / `warn` allowed) and the server-only import boundary.
+- CI runs `format:check`, `lint`, `typecheck`, `knip` and `check:themes` — run them before pushing (Version Control).
 
-## API Conventions
+## Data & State
 
-- API handlers live in `app/api/[resource]/route.ts` (exception: `app/.well-known/*` metadata, whose paths the OAuth RFCs fix).
-- Return via `NextResponse.json()`.
-- Use consistent error shape: `{ error: string }`.
-- Validate/parse request body before DB layer.
-- Do not import Prisma directly in route handlers; go through DAL.
-
-## State Management (Zustand)
-
-- One store per domain at `src/store/[domain]Store.ts` (e.g. `settingsStore`, `sidebarStore`).
-- No direct DB/fetch calls inside stores; use hooks/actions as bridge.
-- Keep state flat.
-- Use slice pattern when store grows beyond about five actions.
-
-## Database / Prisma
-
-- Keep Prisma queries in `src/lib/db/`.
-- Use focused `select` fields unless full model is required.
-- Prefer measured indexing based on query plans (`EXPLAIN ANALYZE`), not speculative index growth.
-
-## One-Time Scripts
-
-- Put one-time / ad-hoc scripts (testing resets, data backfills, manual fixes) in `scripts/one-time/`.
-- These are not part of the app build or migrations; they are run manually against the DB/env as needed.
-- Make them safe to review: parameterize identifiers (e.g. email) at the top, wrap DB writes in a transaction, and include a sanity-check `SELECT` plus a `ROLLBACK` dry-run option before `COMMIT`.
-
-## Anti-Patterns to Avoid
-
-Only patterns not already covered above. DRY, enum constants, and the component→service/DAL boundary live in **Coding Conventions** / **Layers** — they are not repeated here.
-
-- No inline styles; use Tailwind utility classes.
-- No hardcoded color tokens like `text-yellow-400`; prefer semantic daisyUI tokens.
-- No leftover `console.log` in committed code.
-- No redundant actions/routes when existing handlers can be extended.
-- Never modify past Update Log entries in README files. Update logs are append-only history.
+- Prefer batch writes (`createMany`, `updateMany`) over per-row loops.
+- ACID-critical multi-step writes run in `prisma.$transaction()`; DAL writes take `tx?: Prisma.TransactionClient`.
+- Use focused `select` fields unless the full model is needed.
+- Extend an existing action or route instead of adding a redundant one.
+- One Zustand store per domain at `src/store/<domain>Store.ts` (`settingsStore`, `sidebarStore`), state kept flat; stores never fetch or touch the DB — hooks and actions bridge them.
+- One-time scripts (resets, backfills, manual fixes) go in `scripts/one-time/`, outside the build: parameterize identifiers at the top, wrap writes in a transaction, and include a sanity-check `SELECT` and a `ROLLBACK` dry run before `COMMIT`. The first script moves these rules into `scripts/one-time/README.md`.
 
 ## Version Control
 
-- **Local sessions (running on the user's machine): do NOT commit or push without explicit permission from the user.** The user reviews work before it is committed. Make and stage changes, summarize what changed, and wait for the user to approve before running `git commit`, `git push`, or any other outward-facing or hard-to-reverse VCS action.
-- **Remote sessions (managed cloud environments — e.g. Claude Code on the web / GitHub integration, where the repo is cloned fresh into an ephemeral container): no permission needed for commit/push/PR.** Work on a new branch (or the session's designated working branch when its name describes the work — see branch names below), commit with clear messages, push with `git push -u origin <branch>`, and open a pull request directly.
-- In both modes, never commit or push directly to `main` — changes land via pull requests.
-- Run `npm run format` before pushing (see **Formatting** — CI's `format:check` fails the PR otherwise).
-- **Branch names say what the PR does**: `claude/<feature>-<change>`, kebab-case, a few words — for a multi-PR project include the step (`pr2`). In remote sessions, when the session's assigned branch is a random name, create a descriptive branch for the PR instead of pushing to the random one. Bad: `claude/quirky-galileo-8ofthc`, `claude/project-data-layer` (which project? which step?). Good: `claude/week-model-pr2-kind-first-cards`, `claude/week-model-pr3-project-data-layer`.
-- **Act on submitted reviews only.** A pending review — comments the reviewer has drafted but not yet submitted — is not final: its comments can still change or be deleted. An agent working with the owner's GitHub access can read the owner's pending review, but it must not reply to, resolve or push commits for those comments; wait until the review is submitted, and at most mention that one is pending. Bad: seeing three comments in the owner's `PENDING` review and pushing fixes for them. Good: "Your review is still pending — I'll address it once you submit."
+- **Local sessions** (on the owner's machine): never commit, push or take another outward-facing VCS action without explicit permission — make and stage the changes, summarize them, and wait for approval.
+- **Remote sessions** (cloud containers such as Claude Code on the web): commit, push with `git push -u origin <branch>` and open the PR without asking.
+- Never commit or push to `main`; changes land through pull requests.
+- **Branch names say what the PR does**: `claude/<feature>-<change>`, kebab-case, a few words, with the step for a multi-PR project. A remote session whose assigned branch is a random name creates a descriptive branch instead. Bad: `claude/quirky-galileo-8ofthc`, `claude/project-data-layer`. Good: `claude/week-model-pr3-project-data-layer`.
+- **Before every push**:
+  1. `design/tracker.md`: delete finished items and sub-bullets.
+  2. README Update Log: today's entry (Documentation Style).
+  3. README Current State: rewrite the sections the change touches.
+  4. AGENTS.md, or a README it indexes: only when a rule or a directory's responsibility changed.
+  5. Run `npm run format`, then `lint`, `typecheck` and `knip` (and `check:themes` when CSS variables changed).
+- **Act on submitted reviews only.** A pending review — comments drafted but not yet submitted — can still change: don't reply to, resolve or push for its comments; at most mention that one is pending.
 
 ## Commands
 
 ```bash
-npm run dev      # Start dev server
-npm run build    # Production build
-npm run lint     # Lint (used in CI)
-npm run typecheck    # tsc --noEmit (used in CI; needs the generated Prisma client)
-npm run knip         # Unused files, exports and dependencies (used in CI; config in knip.jsonc)
-npm run format       # Format all code with Prettier (Google style)
-npm run format:check # Verify formatting (used in CI)
-npm run check:themes # Every theme declares the same CSS variables (used in CI)
+npm run dev          # Start dev server
+npm run build        # Production build
+npm run lint         # ESLint (CI)
+npm run typecheck    # tsc --noEmit (CI; needs the generated Prisma client)
+npm run knip         # Unused files, exports and dependencies (CI; config in knip.jsonc)
+npm run format       # Format all code with Prettier
+npm run format:check # Verify formatting (CI)
+npm run check:themes # Every theme declares the same CSS variables (CI)
 npx @modelcontextprotocol/inspector --cli http://localhost:3000/api/mcp --transport http --method tools/list  # MCP smoke test (or drop --cli for the UI)
 npx prisma studio
 npx prisma migrate dev

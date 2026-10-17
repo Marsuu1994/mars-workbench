@@ -2,8 +2,6 @@
 
 Flows for the kanban board page (`/kanban`) — landing, drag and drop, progress tracking, risk visuals (switched off), and the backlog. Sibling docs: `design/flows/shared.md` (sync lifecycle), `design/flows/plan.md`, `design/flows/priorities.md`, `design/flows/projects.md`, `design/flows/auth.md`.
 
-> **Doc convention:** One flow per `##` heading, separated by `---`. Every flow has two required `###` sections — `Trigger / Entry Point` and `Steps` — plus an optional `### Rules` section for constraints and invariants. Extra `###` sections (e.g. `Metrics`) are allowed only for reference material that fits neither Steps nor Rules.
-
 ---
 
 ## Landing Flow

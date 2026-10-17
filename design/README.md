@@ -1,25 +1,28 @@
 # Design Docs
 
-Centralized design documentation for Mars Workbench. Code is organized layer-first under `src/` (`actions/`, `services/`, `utils/`, `components/<page>/`, …); the design source of truth lives here.
+Centralized design documentation for Mars Workbench. Code is organized layer-first under `src/` (`actions/`, `services/`, `utils/`, and `components/` with its `ui/` · `application/` · `domain/` layers); the design source of truth lives here.
 
 ## What Lives Where
 
 | Path | Purpose |
 | --- | --- |
 | [baseline.md](./baseline.md) | The one app-wide design baseline: goal, implemented features, entities, full Prisma schema, architecture decisions. |
-| [design-language/](./design-language/README.md) | Per-theme visual specs (`mars-dark` · `mars-light` · `p5-dark`, one md per theme) + the shared skeleton: `fx-*` utility API, voices, motion, contrast method, sync points. |
-| [tracker.md](./tracker.md) | Consolidated roadmap — open items and ideas only (closed work moves to feature Update Logs). |
+| [design-language/](./design-language/README.md) | Per-theme visual specs (`mars-dark` · `mars-light` · `p5-dark`, one md per theme) + the shared skeleton: `fx-*` utility API, voices, motion, contrast method, sync points, visual rules. |
+| [tracker.md](./tracker.md) | Consolidated roadmap — open items only; closed work is recorded in the root README's Update Log. Its format rules are in its Conventions section. |
 | [reference.md](./reference.md) | Lean lookup tables for server actions, services, and DAL functions. |
-| [flows/](./flows/) | Per-page flow docs: `shared.md`, `board.md`, `plan.md`, `priorities.md`, `projects.md`, `dump.md`, `auth.md`. |
-| [spike/](./spike/) | Point-in-time spike docs for open questions: trigger, options with pros/cons, implementation plans. `Status: awaiting owner review` until decided; linked from the tracker. Spikes whose decisions are built and reflected in the living docs move to [spike/archived/](./spike/archived/). |
-| [mockup/future-work/](./mockup/future-work/) | Self-contained HTML explorations of **unbuilt** designs only. Implemented UI is documented by the live scenario pages instead. |
-| `/design` (in-app) | The Design Console (`src/app/design/`): component gallery tabbed by layer, plus per-feature **scenario pages** (`/design/scenarios`) — real page components + fixture data, the screen-level source of truth. |
+| [flows/](./flows/README.md) | Per-feature flow docs: `shared.md`, `board.md`, `plan.md`, `priorities.md`, `projects.md`, `dump.md`, `auth.md`. Format and rules in its README. |
+| [spike/](./spike/README.md) | Point-in-time spike docs for open questions; lifecycle and shape in its README. Implemented spikes move to [spike/archived/](./spike/archived/). |
+| [mockup/](./mockup/) | Self-contained HTML mockups of designs **not yet fully implemented** (see Mockups below). Implemented UI is documented by the Design Console instead. |
+| `/design` (in-app) | The Design Console (`src/app/design/`, how it works in [its README](../src/app/design/README.md)): component gallery tabbed by layer, plus per-feature **scenario pages** (`/design/scenarios`) — real page components + fixture data, the screen-level source of truth. |
 
-## UI Design Workflow
+## Mockups
 
-- Scenario pages are the source of truth for implemented UI — each feature's screens render the real components with fixture states; interaction states are reached by `play` steps that click the real controls, never by scenario-only props. After a UI change, update the affected scenario/gallery fixtures so the pinned states stay accurate.
-- Future or unapproved designs are explored as self-contained HTML mockups in `mockup/future-work/` (see `/design-explore`). Once a design ships, extend the feature's scenario page and delete the exploration mockup.
+A file in `mockup/` is a design that isn't fully implemented yet. A mockup is self-contained HTML — inline styles, no shared stylesheets — typically showing the current state (Before) next to the proposed design (After), plus the screens of any other flow the design cascades into.
+
+- While iterating, name it `mockup/temp-<area>.html`.
+- Once the owner approves it, rename it to `mockup-<area>.html`, link it from the tracker item it belongs to, and delete any `temp-*` files.
+- A design built over several PRs keeps its mockup until the last one lands. Once it is fully implemented, the mockup is deleted and the Design Console's scenario pages are its source of truth (AGENTS.md › UI Workflow).
 
 ## App README
 
-The repo-root [README.md](../README.md) holds the app-wide **Current State** (per-page sections) and the append-only **Update Log**.
+The repo-root [README.md](../README.md) holds the app-wide **Current State** (per-page sections) and the per-day **Update Log**.

@@ -2,8 +2,6 @@
 
 Flows for the priority matrix page (`/kanban/priorities`) — Eisenhower-matrix organization of Ad-hoc tasks, tracking them into the current week's plan or completing them in place. Sibling docs: `design/flows/board.md`, `design/flows/plan.md`, `design/flows/projects.md`, `design/flows/shared.md`, `design/flows/auth.md`.
 
-> **Doc convention:** One flow per `##` heading, separated by `---`. Every flow has two required `###` sections — `Trigger / Entry Point` and `Steps` — plus an optional `### Rules` section for constraints and invariants. Extra `###` sections (e.g. `Metrics`) are allowed only for reference material that fits neither Steps nor Rules.
-
 ---
 
 ## Priorities Landing Flow

@@ -87,6 +87,16 @@ disables them.
   measured. Decorative glyphs (`·`, `↩`, `★`) stay in JSX per the i18n rule.
 - p5-dark adds a third, theme-scoped **display voice** (Anton) — see its spec.
 
+## Visual rules
+
+- **Status marks must not look like controls.** A state the user can't change by
+  clicking it is never drawn as a control shape — no hollow or filled circles or
+  squares that read as a radio or checkbox. Show it with what the element already
+  has: a tint, a border, a pill, muted text, an inline ✓ glyph beside text. Bad:
+  every project step row led by a circle that fills when the step is on this week —
+  it looks clickable and only repeats the pill. Good: this week's row is tinted with
+  a "This week · todo" pill; a done row reads muted with "✓ Mon, Oct 5" on the right.
+
 ## Motion (shared baseline)
 
 One easing: `cubic-bezier(0.2, 0, 0, 1)` ("console snap"). HUD timings: 150ms

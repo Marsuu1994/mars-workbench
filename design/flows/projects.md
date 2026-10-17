@@ -4,8 +4,6 @@ Flows for the Projects page (`/kanban/projects`; the selected project is the URL
 
 > **Status:** built — the data layer (PR 3), steps on the board and in the plan form (PR 4a), the Projects page and its modals (PR 4c; states in `/design/scenarios/projects`), and Claude over MCP (PR 5).
 
-> **Doc convention:** One flow per `##` heading, separated by `---`. Every flow has two required `###` sections — `Trigger / Entry Point` and `Steps` — plus an optional `### Rules` section for constraints and invariants. Extra `###` sections (e.g. `Metrics`) are allowed only for reference material that fits neither Steps nor Rules.
-
 ---
 
 ## Projects Landing Flow

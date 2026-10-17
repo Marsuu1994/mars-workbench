@@ -2,8 +2,6 @@
 
 Flows for the plan pages (`/kanban/plans/new`, `/kanban/plans/[id]`) — task template management, plan create/update, and planning with Claude over MCP. Sibling docs: `design/flows/board.md`, `design/flows/priorities.md`, `design/flows/projects.md`, `design/flows/shared.md`, `design/flows/auth.md`.
 
-> **Doc convention:** One flow per `##` heading, separated by `---`. Every flow has two required `###` sections — `Trigger / Entry Point` and `Steps` — plus an optional `### Rules` section for constraints and invariants. Extra `###` sections (e.g. `Metrics`) are allowed only for reference material that fits neither Steps nor Rules.
-
 ---
 
 ## Create Task Template Flow
