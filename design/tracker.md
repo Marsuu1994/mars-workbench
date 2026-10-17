@@ -57,10 +57,6 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ## Auth
 
-### Medium
-
-- [ ] Bug: on the login page the brand logo (`BrandIcon`, whose halo is the `fx-glow-pulse` loop) flickers a few times — owner report, not yet reproduced or diagnosed
-
 ### Future
 
 - [ ] Connected apps in Settings — list and revoke the user's OAuth grants (Supabase `listGrants` / `revokeGrant`); today a grant can only be revoked from the Supabase dashboard, so the consent page doesn't promise revocation
