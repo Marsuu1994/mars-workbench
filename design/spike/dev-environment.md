@@ -1,12 +1,31 @@
 # Spike: Separate dev environment
 
-**Status: awaiting owner review** · 2026-10-17 · 回答 tracker 条目 *Milestone — Quality gate before Phase 2 › Step 4*（Cross-cutting › High）· 基于 main `09ec7e4`（#72）· planner 里对应 project *Mars Workbench — Phase 2 前的代码质量* 第 4 步「独立的 dev 环境：本地 DB + seed，不再连 prod」· 相关：`prisma.config.ts`、`.env.example`、`src/lib/prisma.ts`、`src/lib/supabase/`、`src/mcp/middleware/auth.ts`、`design/flows/auth.md`、`src/app/design/README.md` › Local access
+**Status: decided** · 2026-10-17（提出和拍板同日，owner review 见 PR #73）· 回答 tracker 条目 *Milestone — Quality gate before Phase 2 › Step 4*（Cross-cutting › High）· 基于 main `09ec7e4`（#72）· planner 里对应 project *Mars Workbench — Phase 2 前的代码质量* 第 4 步「独立的 dev 环境：本地 DB + seed，不再连 prod」· 相关：`prisma.config.ts`、`.env.example`、`src/lib/prisma.ts`、`src/lib/supabase/`、`src/mcp/middleware/auth.ts`、`design/flows/auth.md`、`src/app/design/README.md` › Local access
 
 > 语言约定：叙述用中文；产品名词、工具名、env 变量、命令和代码标识保留英文（Supabase CLI、`DIRECT_URL`、`MCP_DEV_USER_ID`、`prisma migrate deploy`、`getClaims()`），和代码、tracker 一一对应。
 
-这份 spike 分五部分：起因和现状；目标；四个方案和对比（方案 A 附本次在云端容器里的验证结果）；推荐方案的实施计划；待 owner 决定的问题，编号方便逐条回复。
+这份 spike 分五部分：起因和现状；目标；四个方案和对比（方案 A 附本次在云端容器里的验证结果）；推荐方案的实施计划；待 owner 决定的问题，编号方便逐条回复。结论在下面的 Decision 一节。
 
 **结论先行**：推荐方案 A。用 Supabase CLI 在 Docker 里跑一份本地 Supabase，只开 Postgres 和 Auth。Prisma 继续管 migration，seed 脚本直接调 services。`.env.local` 默认指向本地；prod 凭据挪到只有显式命令才会读的 `.env.prod`。方案 A 的关键路径都在云端容器里跑通了：migration、登录、MCP、seed、OAuth server。生产代码不用改。
+
+## Decision · 拍板（2026-10-17）
+
+owner 在对话里逐条回复了 Q1–Q9。
+
+| 问题 | 结论 | 带来的变化 |
+| --- | --- | --- |
+| Q1 · 方案 | **A**：Supabase CLI 本地栈 | 按下面的实施计划做，一个 PR |
+| Q2 · 本地登录 | **(a) + b1**：脚本用 password dev user（`dev:session`）；owner 在浏览器里本地也用 Google。owner 现在本地就是用 Google 登录，只是 Auth 连的是 prod | `config.toml` 打开 `[auth.external.google]`，client id 和 secret 从不提交的 `supabase/.env` 读。Google Cloud Console 加 redirect URI 由 owner 在 Mac 上验证时做（Step 11） |
+| Q3 · Seed | **(a) 合成数据**，按「今天」生成；不拷 prod 数据，上周的 plan 第一版不做 | `prisma/seed.ts` 调 services |
+| Q4 · prod 凭据 | **`.env.prod`**：`.env.local` 只放本地值，prod 凭据只由显式命令读取 | owner 只回复了文件拆分；`predev` 防误连检查按推荐一起加，不要的话在实施 PR 里删掉 |
+| Q5 · prod migration | **(a) 手动**：merge 之后跑 `npm run db:deploy:prod` | 新 npm script |
+| Q6 · 云端 agent session | **(a) 按需**：需要 DB 或要登录看真实页面时才跑 `npm run db:setup` | AGENTS.md 加一行。另外 owner 给 Step 5 加了一条探索：agent 自己起 Chrome 验证到底有没有必要、大概花多少 token、能不能用 c2c 加 owner 验收代替（见 `test-baseline.md`） |
+| Q7 · Vercel preview | 继续连 prod，不开 tracker 条目 | — |
+| Q8 · Postgres 版本 | prod 是 **PostgreSQL 17.6**（owner 在 Supabase 里跑 `select version()`） | `[db] major_version = 17`；本地镜像 17.11，同一个大版本 |
+| Q9 · Mac 上的 Docker | 还没装，owner 现在不在家 | 实施和验证先在云端容器里完成；owner 回家后装 OrbStack 在 Mac 上验证，即 planner 新加的第 11 步（tracker 的 Step 11） |
+| review 中提出 · 实施计划第 8 条 | service 测试用 mock 还是连真实 DB，不在这一步定 | 第 8 条改成「Step 4 提供 DB，用法由 Step 5 决定」；mock / integration / e2e 的分析记进 Step 5 的 spike 草稿 `design/spike/test-baseline.md` |
+
+下文保留 review 时的分析和选项；和结论不一致的地方，以本节为准。
 
 ## 起因和现状
 
@@ -141,7 +160,7 @@
    - `src/app/design/README.md` 的占位变量换成本地真实值；
    - tracker 删掉 Step 4，写 Update Log；
    - spike 归档。
-8. **给 Step 5 的铺垫**：Vitest 的 service 测试连本地栈的 DB；CI 里也可以用 `services: postgres`，因为 service 测试只要 DB，不要 Auth。Playwright 用 `dev:session` 生成的 storageState 登录。需要登录的 CI job 先 `supabase start` 再 `db:reset`。
+8. **和 Step 5 的边界**：Step 4 只提供一个可以随时清空的 DB 和一种不经过 Google 的登录方式（`dev:session`）。service 测试用 mock 还是连真实 DB、CI 里起什么，由 Step 5 决定（spike 草稿 `design/spike/test-baseline.md`）。
 
 ## 待 owner 决定的问题
 
