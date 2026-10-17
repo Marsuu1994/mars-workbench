@@ -1,6 +1,6 @@
 # Spike: Separate dev environment
 
-**Status: decided** · 2026-10-17（提出和拍板同日，owner review 见 PR #73）· 回答 tracker 条目 *Milestone — Quality gate before Phase 2 › Step 4*（Cross-cutting › High）· 基于 main `09ec7e4`（#72）· planner 里对应 project *Mars Workbench — Phase 2 前的代码质量* 第 4 步「独立的 dev 环境：本地 DB + seed，不再连 prod」· 相关：`prisma.config.ts`、`.env.example`、`src/lib/prisma.ts`、`src/lib/supabase/`、`src/mcp/middleware/auth.ts`、`design/flows/auth.md`、`src/app/design/README.md` › Local access
+**Status: decided** · 2026-10-17（提出和拍板同日，owner review 见 PR #74）· 回答 tracker 条目 *Milestone — Quality gate before Phase 2 › Step 4*（Cross-cutting › High）· 基于 main `09ec7e4`（#72）· planner 里对应 project *Mars Workbench — Phase 2 前的代码质量* 第 4 步「独立的 dev 环境：本地 DB + seed，不再连 prod」· 相关：`prisma.config.ts`、`.env.example`、`src/lib/prisma.ts`、`src/lib/supabase/`、`src/mcp/middleware/auth.ts`、`design/flows/auth.md`、`src/app/design/README.md` › Local access
 
 > 语言约定：叙述用中文；产品名词、工具名、env 变量、命令和代码标识保留英文（Supabase CLI、`DIRECT_URL`、`MCP_DEV_USER_ID`、`prisma migrate deploy`、`getClaims()`），和代码、tracker 一一对应。
 
@@ -19,7 +19,7 @@ owner 在对话里逐条回复了 Q1–Q9。
 | Q3 · Seed | **(a) 合成数据**，按「今天」生成；不拷 prod 数据，上周的 plan 第一版不做 | `prisma/seed.ts` 调 services |
 | Q4 · prod 凭据 | **`.env.prod`**：`.env.local` 只放本地值，prod 凭据只由显式命令读取 | owner 只回复了文件拆分；`predev` 防误连检查按推荐一起加，不要的话在实施 PR 里删掉 |
 | Q5 · prod migration | **(a) 手动**：merge 之后跑 `npm run db:deploy:prod` | 新 npm script |
-| Q6 · 云端 agent session | **(a) 按需**：需要 DB 或要登录看真实页面时才跑 `npm run db:setup` | AGENTS.md 加一行。另外 owner 给 Step 5 加了一条探索：agent 自己起 Chrome 验证到底有没有必要、大概花多少 token、能不能用 c2c 加 owner 验收代替（见 `test-baseline.md`） |
+| Q6 · 云端 agent session | **(a) 按需**：需要 DB 或要登录看真实页面时才跑 `npm run db:setup` | AGENTS.md 加一行。另外 owner 给 Step 5 加了一条探索：agent 自己起 Chrome 验证到底有没有必要、大概花多少 token、能不能用 e2e 加 owner 验收代替（见 `test-baseline.md`） |
 | Q7 · Vercel preview | 继续连 prod，不开 tracker 条目 | — |
 | Q8 · Postgres 版本 | prod 是 **PostgreSQL 17.6**（owner 在 Supabase 里跑 `select version()`） | `[db] major_version = 17`；本地镜像 17.11，同一个大版本 |
 | Q9 · Mac 上的 Docker | 还没装，owner 现在不在家 | 实施和验证先在云端容器里完成；owner 回家后装 OrbStack 在 Mac 上验证，即 planner 新加的第 11 步（tracker 的 Step 11） |

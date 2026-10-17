@@ -187,6 +187,7 @@ A complex task — several PRs, a data-model change, a new tool surface, or a ch
 - **Local sessions** (on the owner's machine): never commit, push or take another outward-facing VCS action without explicit permission — make and stage the changes, summarize them, and wait for approval.
 - **Remote sessions** (cloud containers such as Claude Code on the web): commit, push with `git push -u origin <branch>` and open the PR without asking.
 - Never commit or push to `main`; changes land through pull requests.
+- **One task, one branch, one PR.** Everything a session's task produces — its spike, the decision, the implementation, the docs and any follow-ups the owner adds along the way — goes on one branch into one PR. A second branch or PR only when the owner asks for one. Bad: a spike PR plus a stacked implementation PR from the same session. Good: the spike, its Decision and the code it decided, all in one PR.
 - **Branch names say what the PR does**: `claude/<feature>-<change>`, kebab-case, a few words, with the step for a multi-PR project. A remote session whose assigned branch is a random name creates a descriptive branch instead. Bad: `claude/quirky-galileo-8ofthc`, `claude/project-data-layer`. Good: `claude/week-model-pr3-project-data-layer`.
 - **Before every push**:
   1. `design/tracker.md`: delete finished items and sub-bullets.

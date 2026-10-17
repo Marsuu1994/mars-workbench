@@ -1,6 +1,6 @@
 # Spike: Test baseline
 
-**Status: draft** · 2026-10-17 · 回答 tracker 条目 *Milestone — Quality gate before Phase 2 › Step 5*（Cross-cutting › High）· 基于 main `09ec7e4`（#72）· 起因：Step 4 的 spike review（PR #73）中，owner 问「用本地 DB 测 service 算不算 e2e」· 相关：`design/spike/archived/dev-environment.md`（Step 4，已实施）、`src/utils/`、`src/services/`、`src/lib/db/`、`src/actions/`、`.github/workflows/ci.yml`
+**Status: draft** · 2026-10-17 · 回答 tracker 条目 *Milestone — Quality gate before Phase 2 › Step 5*（Cross-cutting › High）· 基于 main `09ec7e4`（#72）· 起因：Step 4 的 spike review（PR #74）中，owner 问「用本地 DB 测 service 算不算 e2e」· 相关：`design/spike/archived/dev-environment.md`（Step 4，已实施）、`src/utils/`、`src/services/`、`src/lib/db/`、`src/actions/`、`.github/workflows/ci.yml`
 
 > 语言约定：叙述用中文；工具名、测试术语和代码标识保留英文（Vitest、Playwright、unit / integration / e2e、`toBoardCards`、`services: postgres`），和代码、tracker 一一对应。
 
@@ -52,11 +52,11 @@ CI 成本：前两层不碰 Supabase 镜像。只有 e2e job 要拉约 4 GB 镜�
 
 1. **有没有必要。** 哪些改动值得 agent 自己看一眼（布局、交互状态），哪些靠 lint、tsc、Design Console 的 scenario 和 e2e smoke 就够了。
 2. **大概花多少 token。** 估算方法：一张截图约 宽 × 高 ÷ 750 个 token，比如 1280 × 800 约 1.4k；再加上起 server、写脚本、读日志的上下文。一次验证来回几张到十几张截图，估计在 1 万到几万 token 之间。开工时挑两三个真实任务实测。
-3. **能不能用 c2c 加 owner 验收代替 agent 自己验证。** 即 agent 不自己看，交给 c2c 和 owner 验收（「c2c」具体指什么，开工时和 owner 确认后补上）。
+3. **能不能用 e2e 加 owner 验收代替 agent 自己验证。** 即 agent 不自己起浏览器看，交给 Playwright 的 e2e smoke（CI 里跑）和 owner 验收。
 
 ## 待定问题（开工时补全）
 
 1. 三层的比例和范围，按上面的初步建议？
 2. service integration test 怎么隔离：每个 test 清表，还是每个 Vitest worker 一个 schema？
 3. e2e smoke 在每个 PR 都跑，还是只在 main 上跑？
-4. agent 验证的结论：保留、按改动类型取舍，还是交给 c2c 加 owner 验收？
+4. agent 验证的结论：保留、按改动类型取舍，还是交给 e2e 加 owner 验收？
