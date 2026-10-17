@@ -116,6 +116,7 @@ Open items: see [design/tracker.md](./design/tracker.md).
   - **Code brought in line, no behaviour change**: 16 components move from default to named exports and 18 `function` components become `const` arrows; `ReviewChangesModal.tsx` splits into `plan/review-changes/` (modal, panel, `ChangeSection`, `ChangeRow`, constants) and `GoogleLogo` leaves `LoginScreen.tsx`; 84 short names get full ones — the 56 single letters the rule flags plus 28 `t`s that weren't next-intl's (`templates.map(template => …)`), renamed through the TypeScript language service so every reference follows.
   - **No more hardcoded white (Q2g)**: ink on gradient fills — the brand tiles, the sidebar's "New" badge and the avatars — reads a new role variable, `--fx-on-gradient` (`text-on-gradient` / `stroke-on-gradient`), which every theme declares and `check:themes` checks; it is white in all three themes, so nothing changes on screen yet. The Google sign-in button sits on a solid `bg-neutral`, so it takes daisyUI's `text-neutral-content` — a near-white that differs slightly per theme.
   - **Tracker**: Step 3 leaves the milestone, and the Projects pilot exception moves under Step 9.
+- **Bug logged — the login page's brand logo flickers a few times**: a new Auth › Medium tracker item, not yet reproduced.
 
 ### 2026-10-14
 - **Week model PR 4d — Phase 1 closed out**: the living docs stand on their own, the Phase 1 spikes are archived, and two bugs found along the way are fixed.
