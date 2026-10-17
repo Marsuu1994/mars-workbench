@@ -56,7 +56,6 @@ export default async function NewPlanPage() {
       initialAdhocTaskIds={initialAdhocTaskIds}
       projectSteps={projectSteps}
       initialProjectStepIds={initialProjectStepIds}
-      aiContextPlanId={pendingPlan?.id}
     />
   );
 }

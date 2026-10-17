@@ -13,7 +13,7 @@ interface DumpComposerProps {
 }
 
 /** The capture console: an auto-growing, IME-safe textarea. Enter inserts a
- *  newline; ⌘/Ctrl+Enter dumps (inverse of the AI chat composer). */
+ *  newline; ⌘/Ctrl+Enter dumps. */
 export const DumpComposer = ({captureError, onCapture}: DumpComposerProps) => {
   const t = useTranslations('Dump');
   const [content, setContent] = useState('');

@@ -48,7 +48,6 @@ export const SCENARIO_HREFS = {
   priorities: '/design/scenarios/priorities',
   plan: '/design/scenarios/plan',
   projects: '/design/scenarios/projects',
-  aiChat: '/design/scenarios/ai-chat',
   dump: '/design/scenarios/dump',
   auth: '/design/scenarios/auth',
 } as const;
@@ -65,22 +64,6 @@ export const SIZE_FIXTURES: {size: TaskSize; points: number}[] = [
   TaskSize.EXTRA_LARGE,
 ].map(size => ({size, points: SIZE_TO_POINTS[size]}));
 
-/** Each task type rendered through the badge. */
-export const TYPE_FIXTURES: string[] = [
-  TaskType.DAILY,
-  TaskType.WEEKLY,
-  TaskType.AD_HOC,
-];
-
-/** Quick-start chips shown under the assistant welcome message. */
-export const SUGGESTION_CHIPS: string[] = [
-  'Plan my week',
-  'Add a daily habit',
-  'Break down a big task',
-];
-
-export const LOADING_LABEL = 'Drafting your plan…';
-
 // ── Design-system specimens ──────────────────────────────────────────────────
 /** Semantic color tokens; classes are literal so Tailwind can see them. */
 export const TOKEN_SWATCHES: {name: string; swatch: string; role: string}[] = [
@@ -92,7 +75,7 @@ export const TOKEN_SWATCHES: {name: string; swatch: string; role: string}[] = [
   {
     name: 'secondary',
     swatch: 'bg-secondary text-secondary-content',
-    role: 'Violet — the AI channel, project steps',
+    role: 'Violet — project steps',
   },
   {
     name: 'accent',
@@ -147,14 +130,14 @@ export const LED_STATES: {label: string; className: string; pulse: boolean}[] =
     {label: 'On track', className: 'text-success', pulse: false},
     {label: 'At risk', className: 'text-warning', pulse: false},
     {label: 'Overdue', className: 'text-error', pulse: false},
-    {label: 'AI live', className: 'text-secondary', pulse: true},
+    {label: 'Live', className: 'text-secondary', pulse: true},
   ];
 
 /** Raw fx-chip specimens — generic channel names, deliberately NOT the
-    TaskType mapping (the real TaskTypeBadge has its own section below). */
+    TaskType mapping. */
 export const CHIP_SPECIMENS: {label: string; className: string}[] = [
   {label: 'DATALINK', className: 'text-info'},
-  {label: 'AI', className: 'text-secondary'},
+  {label: 'UPLINK', className: 'text-secondary'},
   {label: 'CAUTION', className: 'text-warning'},
   {label: 'GO', className: 'text-success'},
 ];
@@ -512,7 +495,7 @@ export const SHELL_DEMO_CLOSE_ACTION = 'Close';
 
 // ── Form-kit demo fixtures ───────────────────────────────────────────────────
 export const FORM_DEMO_FIELD_LABEL = 'Task title';
-export const FORM_DEMO_FIELD_HINT = '(used by the AI assistant)';
+export const FORM_DEMO_FIELD_HINT = '(read by Claude when planning)';
 export const FORM_DEMO_FIELD_PLACEHOLDER = 'e.g. Review pull requests';
 export const FORM_DEMO_CHOICE_LABEL = 'Recurrence';
 export const FORM_DEMO_CHOICES = [

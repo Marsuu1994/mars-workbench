@@ -1,6 +1,6 @@
 # Mars Workbench
 
-A kanban-first personal productivity app: a weekly period planner built around a drag-and-drop kanban board, an Eisenhower priority matrix, and AI-assisted plan creation. Next.js + Supabase (Google OAuth) + Prisma, deployed on Vercel.
+A kanban-first personal productivity app: a weekly period planner built around a drag-and-drop kanban board, an Eisenhower priority matrix, and weekly planning with Claude over MCP. Next.js + Supabase (Google OAuth) + Prisma, deployed on Vercel.
 
 ## Getting Started
 
@@ -25,8 +25,8 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ### Design System
 
-- **"Mission Control HUD"** (`design/design-language/` — `mars-dark.md` / `mars-light.md` + shared skeleton in its README): two custom daisyUI themes — `mars-dark` (default, night ops deck) / `mars-light` ("dawn on Mars" — warm sand, not white) — on seven OKLCH hues with verified contrast, plus the token-derived `fx-*` utility layer (cosmic shell, console chips, status LEDs, telemetry type, glow CTAs, AI holo). Palette changes must follow the sync points listed in the design doc. All themes declare one shared variable contract (`npm run check:themes`, CI) and a page carries a single theme scope on `<html>`
-- **Design Console** (`/design`): component gallery tabbed by layer (Tokens & FX · UI · Application · Domain) plus per-feature scenario pages (`/design/scenarios`: board, priorities, plan, projects, AI-assisted plan creation, dump, auth) rendering the same screen components as the live pages with fixture states (interaction states reached by scripted clicks, never by scenario-only props) — the source of truth for implemented UI, structurally unable to drift from production; unbuilt designs are explored in `design/mockup/future-work/`
+- **"Mission Control HUD"** (`design/design-language/` — `mars-dark.md` / `mars-light.md` + shared skeleton in its README): two custom daisyUI themes — `mars-dark` (default, night ops deck) / `mars-light` ("dawn on Mars" — warm sand, not white) — on seven OKLCH hues with verified contrast, plus the token-derived `fx-*` utility layer (cosmic shell, console chips, status LEDs, telemetry type, glow CTAs). Palette changes must follow the sync points listed in the design doc. All themes declare one shared variable contract (`npm run check:themes`, CI) and a page carries a single theme scope on `<html>`
+- **Design Console** (`/design`): component gallery tabbed by layer (Tokens & FX · UI · Application · Domain) plus per-feature scenario pages (`/design/scenarios`: board, priorities, plan, projects, dump, auth) rendering the same screen components as the live pages with fixture states (interaction states reached by scripted clicks, never by scenario-only props) — the source of truth for implemented UI, structurally unable to drift from production; unbuilt designs are explored in `design/mockup/future-work/`
 - **`p5-dark` ("P5 dark")**: third theme, **full Calling Card skin** — flat-depth geometry fork (halftone shell, sticker cards, hazard targets, parallelogram chips, diamond LEDs, white-flip nav, pop-shadow CTAs with the paper/ink hover flip), Anton display voice on fixed chrome labels, and five opt-in utilities (`fx-display/tile/cut/slash/burst`). Spec `design/design-language/p5-dark.md`
 
 ### Board
@@ -48,8 +48,7 @@ Open [http://localhost:3000](http://localhost:3000)
 ### Plan
 
 - Create/edit plans with inline per-template type/frequency config, Plan Mode (NORMAL/EXTREME), and a review-changes diff before committing edits; templates are reusable and preselected from the previous plan, and last week's unfinished one-offs and project steps carry over unless deselected (a step goes back to its project)
-- **AI-assisted plan creation**: a chat modal drafts a structured plan via OpenAI (`gpt-5-nano`) calibrated from last period's per-template stats; refine → approve creates the plan atomically (completes the prior plan, carries over one-off tasks). Chats are durable — they resume across close/reload/restart (scoped to the current period) and auto-resume an interrupted generation; the composer is IME-safe
-- Fully mobile-adapted: bottom-sheet modals, compact AI banner, docked summary/submit footer
+- Fully mobile-adapted: bottom-sheet modals, docked summary/submit footer
 - **Plan with Claude (MCP)**: add Mars Workbench to Claude as a custom connector (`/api/mcp`, named e.g. "Mars Workbench – weekly planner"; sign-in and consent through Supabase's OAuth server). Claude reads the planning guide and your week, recaps it, asks what to keep or change, then writes plans, habits and projects (whole paths, steps onto the week) once you agree
 
 ### Priorities
@@ -100,6 +99,13 @@ Open items: see [design/tracker.md](./design/tracker.md).
   - **Dead code removed**: the tracker's list — `projectService.listProjects` / `getProject`, seven `tasks.ts` exports, `deletePlanTemplatesByPlanId`, `sameDay`, `getTemplateStatsAction` (with its schema), `DUMP_HREF`, and the `en.json` keys `Review.templateCount` / `Dump.loadingMore` — plus what knip found besides: 13 unused schema input types and an unused auth fixture id. `reference.md` and the plan flow drop the removed names.
   - **Small fixes knip surfaced**: `planService` imports the plan input types from `schemas.ts` instead of re-deriving them; the consent page reads its query param through `AUTHORIZATION_ID_PARAM`; `@/lib/prisma` keeps only its named export (it had both named and default).
   - **Tracker**: Step 1 is done and leaves the milestone.
+  - **Checks**: prettier, theme check, eslint, tsc, knip and `next build` are green.
+- **Quality gate Step 2 — LLM-assisted plan creation is deprecated; AI planning goes through Claude + MCP only**:
+  - **Removed from the app**: the plan form's AI assistant banner and chat modal, with everything behind them — 5 server actions, `aiChatService`, the chat store and bridge hook, the `prompt/` builders, the OpenAI client and the `openai` dependency (`OPENAI_API_KEY` leaves `.env.example`), the chat/message DAL, the AI chat schemas, `AiChat` copy and its two error keys, the ai-chat scenario page and gallery section, and `TaskTypeBadge` (the draft cards were its only production use). `OverallStats` moves to `types/plan.ts`.
+  - **Database**: migration `20261017000000_drop_chats_and_messages` drops the `chats` and `messages` tables and the `MessageRole` / `MessageType` enums (their rows go with them); verified on a fresh Postgres — every migration applies and the result matches `schema.prisma`.
+  - **Themes**: the AI channel is gone from the design language — `fx-holo` (and p5's spray-border wiggle, the one clip-path loop) and `--fx-depth-ai` are removed from all three themes; violet (secondary) now means project steps only. The gallery's AI specimens are renamed or dropped.
+  - **Copy**: the template description hint now reads "(read by Claude when planning)".
+  - **Docs**: one Architecture Decision in `baseline.md` records the deprecation; AGENTS.md, the design-language docs, the plan flow, `reference.md` and the tracker (Step 2 leaves the milestone) drop every other mention.
   - **Checks**: prettier, theme check, eslint, tsc, knip and `next build` are green.
 
 ### 2026-10-14

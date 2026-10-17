@@ -70,6 +70,16 @@ export type PlanTemplatePatchConflicts = {
   repeated: string[];
 };
 
+/** A plan's template instances rolled up into totals (see rollUpOverall). */
+export type OverallStats = {
+  completionRate: number;
+  completedCount: number;
+  totalCount: number;
+  totalPoints: number;
+  /** completionRate over DAILY instances only (habit signal) */
+  dailyCompletionRate: number;
+};
+
 // ── Planning context (MCP) ─────────────────────────────────────────────
 
 /** A reusable template as the planning tools list it. */

@@ -1,12 +1,7 @@
 'use client';
 
 import {Section, Variant, Row} from '../GalleryParts';
-import {
-  TOKEN_SWATCHES,
-  LED_STATES,
-  CHIP_SPECIMENS,
-  LOADING_LABEL,
-} from '../constants';
+import {TOKEN_SWATCHES, LED_STATES, CHIP_SPECIMENS} from '../constants';
 
 /**
  * The visual foundation — OKLCH palette and the fx-* skin utilities every
@@ -40,7 +35,7 @@ export const TokensFxTab = () => {
   const renderHudPrimitives = () => (
     <Section
       title="HUD primitives"
-      description="The fx-* utility layer: console chips, status LEDs, telemetry type, glow actions, holo borders, reticle framing."
+      description="The fx-* utility layer: console chips, status LEDs, telemetry type, glow actions, reticle framing."
     >
       <div className="flex flex-col gap-6">
         <Row>
@@ -89,14 +84,6 @@ export const TokensFxTab = () => {
               >
                 Abort
               </button>
-            </div>
-          </Variant>
-          <Variant label="AI holo border (fx-holo)">
-            <div className="fx-holo rounded-xl px-4 py-2.5">
-              <span className="flex items-center gap-2 text-xs text-base-content/60">
-                <span className="fx-led fx-led-pulse text-secondary" />
-                {LOADING_LABEL}
-              </span>
             </div>
           </Variant>
         </Row>

@@ -38,9 +38,7 @@
 
   --color-primary: oklch(0.83 0.135 205); /* phosphor cyan  #2ce0f1 */
   --color-primary-content: oklch(0.2 0.04 225);
-  --color-secondary: oklch(
-    0.74 0.15 295
-  ); /* telemetry violet — the AI channel */
+  --color-secondary: oklch(0.74 0.15 295); /* telemetry violet */
   --color-secondary-content: oklch(0.18 0.045 295);
   --color-accent: oklch(0.76 0.155 55); /* mars signal orange #fb9344 */
   --color-accent-content: oklch(0.2 0.045 55);
@@ -126,7 +124,7 @@
 
   --color-primary: oklch(0.63 0.255 29); /* phantom red  #ff0c0b */
   --color-primary-content: oklch(0.13 0.02 20); /* near-ink #0e0505 */
-  --color-secondary: oklch(0.74 0.15 295); /* metaverse violet — AI */
+  --color-secondary: oklch(0.74 0.15 295); /* metaverse violet */
   --color-secondary-content: oklch(0.18 0.045 295);
   --color-accent: oklch(0.74 0.17 55); /* heist orange — targeting */
   --color-accent-content: oklch(0.2 0.045 55);
@@ -256,11 +254,6 @@ body {
     var(--color-base-100)
   );
   --fx-depth: var(--color-base-300);
-  --fx-depth-ai: color-mix(
-    in oklab,
-    var(--color-secondary) 30%,
-    var(--color-base-300)
-  );
   --fx-card-bg: var(--color-base-100);
   /* Geometry */
   --radius-card: 0.625rem; /* 10px */
@@ -319,11 +312,6 @@ body {
     var(--color-base-100)
   );
   --fx-depth: var(--color-base-300);
-  --fx-depth-ai: color-mix(
-    in oklab,
-    var(--color-secondary) 30%,
-    var(--color-base-300)
-  );
   --fx-card-bg: var(--color-base-100);
   /* Geometry */
   --radius-card: 0.625rem; /* 10px */
@@ -383,7 +371,6 @@ body {
      instead of glows; surface-only, never text (design-language/p5-dark.md) */
   --fx-field: oklch(0.53 0.2 26); /* large red fields   #c51d24 */
   --fx-depth: oklch(0.36 0.13 25); /* depth layer       #721216 */
-  --fx-depth-ai: oklch(0.29 0.09 290); /* AI depth layer #2c2151 */
   --fx-card-bg: oklch(0.17 0.008 20); /* raised card     #191313 */
   /* Geometry — P5 has no rounded corners */
   --radius-card: 0;
@@ -656,8 +643,8 @@ body {
   }
 
   /* ── Status LED: <span class="fx-led text-success" /> ──
-   success = on-track · warning = at-risk · error = overdue ·
-   secondary = AI live. Pulse animates opacity only (composited).     */
+   success = on-track · warning = at-risk · error = overdue.
+   Pulse animates opacity only (composited).                          */
   .fx-led {
     display: inline-block;
     width: 0.375rem;
@@ -672,8 +659,8 @@ body {
   }
 
   /* ── Luminous gradient hairlines ──
-   .fx-rule: standalone 1px divider (sidebar sections, chat groups).
-   .fx-hairline-top: multi-hue top edge for dock / AI bubbles.        */
+   .fx-rule: standalone 1px divider (sidebar sections).
+   .fx-hairline-top: multi-hue top edge for the dock.                 */
   .fx-rule {
     height: 1px;
     border: 0;
@@ -704,26 +691,6 @@ body {
       color-mix(in oklab, var(--color-accent) 45%, transparent) 85%,
       transparent
     );
-  }
-
-  /* ── Holo border: the AI "thinking / live" state ──
-   Static conic gradient border (padding-box/border-box trick),
-   token-derived. Violet-led — the AI channel.                        */
-  .fx-holo {
-    border: 1px solid transparent;
-    border-radius: var(--radius-box);
-    background:
-      linear-gradient(var(--fx-panel-bg-solid), var(--fx-panel-bg-solid))
-        padding-box,
-      conic-gradient(
-          from 140deg,
-          color-mix(in oklab, var(--color-secondary) 55%, transparent),
-          color-mix(in oklab, var(--color-primary) 40%, transparent),
-          color-mix(in oklab, var(--color-secondary) 20%, transparent),
-          color-mix(in oklab, var(--color-accent) 35%, transparent),
-          color-mix(in oklab, var(--color-secondary) 55%, transparent)
-        )
-        border-box;
   }
 
   /* ── Progress ring flourish ── */
@@ -1046,15 +1013,6 @@ body {
   background: var(--fx-field);
 }
 
-/* ── AI spray border: dashed violet + stop-motion wiggle (the one
-   sanctioned clip-path loop — a single small focal element) ── */
-[data-theme='p5-dark'] .fx-holo {
-  background: var(--fx-panel-bg-solid);
-  border: 2px dashed var(--color-secondary);
-  border-radius: 0;
-  animation: fx-p5-wiggle 1s linear infinite;
-}
-
 /* ── Comet tick: flat red arc (hard stops), still transform-only ── */
 [data-theme='p5-dark'] .fx-orbit::before {
   background: conic-gradient(
@@ -1238,26 +1196,7 @@ body {
     transform: translate(0, 0) rotate(0) scale(1);
   }
 }
-@keyframes fx-p5-wiggle {
-  0%,
-  100% {
-    clip-path: polygon(0 2%, 99% 0, 100% 98%, 1% 100%);
-  }
-  25% {
-    clip-path: polygon(1% 0, 100% 3%, 98% 100%, 0 97%);
-  }
-  50% {
-    clip-path: polygon(0 4%, 98% 1%, 100% 96%, 2% 99%);
-  }
-  75% {
-    clip-path: polygon(2% 1%, 100% 0, 99% 99%, 0 96%);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  [data-theme='p5-dark'] .fx-holo {
-    animation: none;
-  }
   [data-theme='p5-dark'] .btn-primary,
   [data-theme='p5-dark'] .fx-card {
     transition: none;

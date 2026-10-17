@@ -9,14 +9,14 @@
 Your week is a flight plan; the app is the console you fly it from — at night. A
 night ops deck: near-black blue console panels over a faint telemetry dot-field,
 phosphor-cyan telemetry as the primary voice, mars signal-orange for targeting
-(drag & drop), violet for the AI channel.
+(drag & drop), violet for project steps.
 
 Two rules carry the HUD identity (both mars themes):
 
 1. **Sans for humans, mono for telemetry.** Geist Sans speaks prose and titles;
    Geist Mono renders everything the console *measures* — micro-labels
    (`fx-label`), numerals/dates/counts (`fx-num`), badges (`fx-chip`).
-2. **Color by channel, not decoration.** Cyan = action/telemetry, violet = AI,
+2. **Color by channel, not decoration.** Cyan = action/telemetry, violet = project steps,
    orange = targeting (drop zones) & signature accents, blue = datalink stats,
    green = go, amber = caution, red = abort.
 
@@ -30,7 +30,7 @@ Seven OKLCH hue-wheel stops (25 error · 55 accent · 85 warning · 155 success 
 | base-100 / 200 / 300 | 0.19/0.155/0.125 C≈0.03 H265 | `#0d1321` `#070c18` `#030610` | base-content ≥ 14.6:1 |
 | base-content | 0.92 0.016 210 | `#d9e8ea` | — |
 | primary (phosphor cyan) | 0.83 0.135 205 | `#2ce0f1` | 11.2 |
-| secondary (violet · AI) | 0.74 0.15 295 | `#b296ff` | 7.8 |
+| secondary (violet · project steps) | 0.74 0.15 295 | `#b296ff` | 7.8 |
 | accent (signal orange) | 0.76 0.155 55 | `#fb9344` | 8.1 |
 | info (datalink blue) | 0.79 0.115 235 | `#69c6fa` | 9.7 |
 | success (go-green) | 0.8 0.165 155 | `#50dc8e` | 10.4 |

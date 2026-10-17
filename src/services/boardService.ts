@@ -5,7 +5,7 @@ import {
   getBoardTasksByPlanId,
   getPlanTemplateStats,
 } from '@/lib/db/tasks';
-import type {OverallStats} from '@/types/aiChat';
+import type {OverallStats} from '@/types/plan';
 import type {BoardData} from '@/types/board';
 import {rollUpOverall} from '@/utils/statsUtils';
 import {

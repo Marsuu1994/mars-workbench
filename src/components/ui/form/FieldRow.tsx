@@ -5,7 +5,7 @@ interface FieldRowProps {
   label: ReactNode;
   /** Renders the red asterisk after the label */
   required?: boolean;
-  /** Muted inline note after the label (e.g. "used by the AI assistant") */
+  /** Muted inline note after the label (e.g. "optional") */
   labelHint?: ReactNode;
   className?: string;
   labelClassName?: string;

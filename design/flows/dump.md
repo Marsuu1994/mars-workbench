@@ -48,5 +48,5 @@ User types into the composer and dumps — desktop: ⌘/Ctrl+Enter or the "Dump"
 ### Rules
 
 - Capture is **zero-decision**: no title, no category, no size — plain text only.
-- Multi-line entries: Enter inserts a newline; ⌘/Ctrl+Enter dumps (desktop). Composer is IME-safe like the AI chat composer (Enter committing a composition never submits).
+- Multi-line entries: Enter inserts a newline; ⌘/Ctrl+Enter dumps (desktop). Composer is IME-safe (Enter committing a composition never submits).
 - Entries are append-only in V1 — no edit, no delete (tracker: Future).

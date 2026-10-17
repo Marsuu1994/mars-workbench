@@ -1,6 +1,6 @@
 import {TaskType} from '@/generated/prisma/client';
 import type {PlanTemplateStatRow} from '@/lib/db/tasks';
-import type {OverallStats} from '../types/aiChat';
+import type {OverallStats} from '../types/plan';
 
 /** The subset of per-template fields the overall rollup reads. */
 type RollUpInput = Pick<
@@ -11,7 +11,7 @@ type RollUpInput = Pick<
 /**
  * Roll per-template rows up into overall aggregates. Daily completion rate is
  * computed over DAILY templates only (habit signal). Accepts any rows carrying
- * the counted fields — raw `PlanTemplateStatRow[]` or enriched `PerTemplateStat[]`.
+ * the counted fields.
  */
 export function rollUpOverall(perTemplate: RollUpInput[]): OverallStats {
   let completedCount = 0;

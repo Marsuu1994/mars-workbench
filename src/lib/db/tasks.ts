@@ -515,9 +515,9 @@ export async function unlinkTasksFromPlan(
 }
 
 /**
- * Per-template performance aggregates for a plan, used as LLM signal in the
- * AI plan-creation flow. Scoped to the owner + plan, templateId NOT NULL
- * (ad-hoc tasks excluded). Template titles are joined separately in the service.
+ * Per-template performance aggregates for a plan: the MCP planning context's
+ * per-template progress and the empty board's recap. Scoped to the owner +
+ * plan, templateId NOT NULL (ad-hoc tasks excluded).
  */
 export type PlanTemplateStatRow = {
   templateId: string;

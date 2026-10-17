@@ -20,18 +20,6 @@ const planTemplateSelect = {
 } as const;
 
 /**
- * Get all plan-template links for a plan
- */
-export async function getPlanTemplatesByPlanId(
-  planId: string,
-): Promise<PlanTemplateItem[]> {
-  return prisma.planTemplate.findMany({
-    where: {planId},
-    select: planTemplateSelect,
-  });
-}
-
-/**
  * Bulk link multiple templates to a plan with their per-plan type and frequency
  */
 export async function createManyPlanTemplates(

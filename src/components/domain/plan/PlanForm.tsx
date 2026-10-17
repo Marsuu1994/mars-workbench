@@ -32,8 +32,6 @@ import TemplateItem from './TemplateItem';
 import {PlanTaskRow, type PlanTaskStatus} from './PlanTaskRow';
 import TaskModal from '@/components/domain/shared/task-modal/TaskModal';
 import {ReviewChangesModal} from './ReviewChangesModal';
-import {AiAssistantBanner} from './ai-chat/AiAssistantBanner';
-import {AiPlanChatModal} from './ai-chat/AiPlanChatModal';
 
 interface PlanTemplateConfig {
   type: TaskType;
@@ -67,8 +65,6 @@ interface PlanFormProps {
   /** The plan's unfinished project steps — select / deselect only */
   projectSteps?: PlanStepItem[];
   initialProjectStepIds?: string[];
-  /** Plan whose stats seed the AI assistant's returning-user welcome. */
-  aiContextPlanId?: string;
   /** Plan period (edit mode) — shown as the week range in the mobile topbar. */
   periodKey?: string;
 }
@@ -112,7 +108,6 @@ export default function PlanForm({
   initialAdhocTaskIds = [],
   projectSteps = [],
   initialProjectStepIds = [],
-  aiContextPlanId,
   periodKey,
 }: PlanFormProps) {
   const router = useRouter();
@@ -546,11 +541,6 @@ export default function PlanForm({
           />
         </FieldRow>
 
-        {/* AI Assistant entry (create mode only) */}
-        {mode === 'create' && (
-          <AiAssistantBanner contextPlanId={aiContextPlanId} />
-        )}
-
         {/* Plan Mode */}
         <div className="rounded-lg border border-base-content/10 bg-base-200 p-3.5">
           <SectionLabel className="block mb-2">
@@ -683,7 +673,6 @@ export default function PlanForm({
         fromMode={diff.fromMode}
         toMode={diff.toMode}
       />
-      {mode === 'create' && <AiPlanChatModal />}
     </>
   );
 }

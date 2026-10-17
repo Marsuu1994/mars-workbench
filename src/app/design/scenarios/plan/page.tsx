@@ -29,7 +29,7 @@ export default function PlanScenarioPage() {
     {
       label: 'Create',
       title: 'Create Weekly Plan',
-      note: "Next week's plan form: AI assistant entry, plan-mode toggle, selected templates with their config strips, and last week's one-offs and project steps to carry over (select / deselect only).",
+      note: "Next week's plan form: plan-mode toggle, selected templates with their config strips, and last week's one-offs and project steps to carry over (select / deselect only).",
       content: (
         <PlanChrome>
           <PlanForm
@@ -40,7 +40,6 @@ export default function PlanScenarioPage() {
             initialAdhocTaskIds={PLAN_INITIAL_ADHOC_IDS}
             projectSteps={PLAN_PROJECT_STEPS}
             initialProjectStepIds={PLAN_INITIAL_STEP_IDS}
-            aiContextPlanId="scn-plan"
           />
         </PlanChrome>
       ),
@@ -88,7 +87,7 @@ export default function PlanScenarioPage() {
     {
       label: 'New template',
       title: 'Create task template',
-      note: 'Blank template form (opened from the plan form): AI-hinted description, size pills defaulting to M.',
+      note: 'Blank template form (opened from the plan form): description with its Claude hint, size pills defaulting to M.',
       display: 'fit',
       overlay: true,
       content: <TaskModalScenario mode="create" />,

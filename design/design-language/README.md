@@ -21,8 +21,8 @@ A theme is a **skin over a shared skeleton**, never a fork of components:
 
 - **daisyUI semantic tokens** (`--color-primary`, `text-warning`, `border-l-error`, …)
   carry all color; components only ever reference semantics.
-- **Channel semantics are theme-invariant**: primary = action/brand · secondary = AI
-  and project steps · accent = targeting/drop zones · info = one-offs/datalink/Todo ·
+- **Channel semantics are theme-invariant**: primary = action/brand · secondary =
+  project steps · accent = targeting/drop zones · info = one-offs/datalink/Todo ·
   success = go/done/habits · warning = stars/caution · error = abort/urgent. The three
   kinds of work each own one colour (habit success, project step secondary, one-off
   info) that never changes on a card; sizes are neutral. A theme may change *what
@@ -37,7 +37,7 @@ A theme is a **skin over a shared skeleton**, never a fork of components:
   daisyUI block plus its `[data-theme='…']` block in `globals.css`, in the same section
   order (star chart · art · blooms · bracket · panels · edges · shadows · glows ·
   surface & depth · geometry). Variables are named by role (`--fx-field`, `--fx-depth`,
-  `--fx-depth-ai`, `--fx-card-bg`, `--radius-card`); a theme with no use for one still
+  `--fx-card-bg`, `--radius-card`); a theme with no use for one still
   declares its equivalent. `npm run check:themes` enforces it in CI, and a theme added
   to `THEMES` is held to it automatically.
 - **One theme scope per page**: the theme lives only on `<html data-theme>`; nothing
@@ -65,12 +65,11 @@ disables them.
 | `fx-pip` | One round mark of a card's progress signal; colour and size come from utilities | habit week dots |
 | `fx-target` | Drop-zone highlight, mars-orange channel; pulse = pseudo-element opacity (`@utility`, composes as `md:fx-target`) | board columns, gallery |
 | `fx-glow` / `fx-glow-accent` | Powered-up CTA halo | primary CTAs, sidebar logo |
-| `fx-chip` | Console chip from `currentColor` (border 28% / fill 10% / inset highlight) — pair with any `text-*` token | `SizeChip`, `TaskTypeBadge`, date pill, beta pill |
+| `fx-chip` | Console chip from `currentColor` (border 28% / fill 10% / inset highlight) — pair with any `text-*` token | `SizeChip`, date pill |
 | `fx-label` (+`-bright`) | 11px mono uppercase 0.14em micro-label | column headers, quadrant titles, stat labels, "Workspace" |
 | `fx-num` | Mono tabular numerals | points, counts, %, dates, card kind lines |
-| `fx-led` (+`fx-led-pulse`) | Status LED dot from `currentColor` | column status, quadrant headers, AI live |
-| `fx-rule` / `fx-hairline-top` | Luminous gradient hairlines (single / multi-hue top edge) | dock top edge, AI modal header |
-| `fx-holo` | Conic holo border — the AI thinking/live state | `LoadingBubble` |
+| `fx-led` (+`fx-led-pulse`) | Status LED dot from `currentColor` | column status, quadrant headers |
+| `fx-rule` / `fx-hairline-top` | Luminous gradient hairlines (single / multi-hue top edge) | dock top edge |
 | `fx-orbit` | Rotating conic tail behind the progress ring — continuous by deliberate product choice (transform-only on a tiny masked layer; reduced-motion disables it); the ring's halo is a static SVG under-circle, not a CSS filter | `ProgressDashboard` |
 | `fx-glow-pulse` | Breathing brand halo — pre-composited shadow on a pseudo-element, opacity-only loop | login `BrandIcon` |
 | `fx-text-gradient` | Cyan→violet headline gradient. Restraint rule: first word only | gallery title, login "Mars" |

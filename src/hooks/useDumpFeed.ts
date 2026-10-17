@@ -13,8 +13,8 @@ type ActionError = {
   fieldErrors: Record<string, string[] | undefined>;
 };
 
-// Mirror the error-flattening used across the app's hooks/forms (see
-// useAiPlanChat). `fallback` is the translated generic message (hooks own i18n).
+// Mirror the error-flattening used across the app's hooks/forms. `fallback` is
+// the translated generic message (hooks own i18n).
 function extractError(error: ActionError | unknown, fallback: string): string {
   if (error && typeof error === 'object' && 'formErrors' in error) {
     const {formErrors, fieldErrors} = error as ActionError;
