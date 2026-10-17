@@ -88,8 +88,8 @@ export const MoveToRows = ({
       key={status}
       type="button"
       disabled={!hasActivePlan}
-      onClick={e => {
-        e.stopPropagation();
+      onClick={event => {
+        event.stopPropagation();
         onTrack(status);
       }}
       className={rowClass}
@@ -103,8 +103,8 @@ export const MoveToRows = ({
   const renderCompleteRow = () => (
     <button
       type="button"
-      onClick={e => {
-        e.stopPropagation();
+      onClick={event => {
+        event.stopPropagation();
         onComplete();
       }}
       className={rowClass}

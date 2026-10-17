@@ -13,7 +13,7 @@ import type {
   ModifiedTemplate,
   AdhocTaskChange,
   ProjectStepChange,
-} from '@/components/domain/plan/ReviewChangesModal';
+} from '@/components/domain/plan/review-changes/ReviewChangesPanel';
 
 /* Plan scenario fixtures — the real PlanForm and ReviewChangesPanel fed a
    fictional template library and a change set touching every review section. */

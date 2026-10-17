@@ -39,7 +39,7 @@ export const DumpEntryCard = ({entry}: DumpEntryCardProps) => {
       {(overflows || expanded) && (
         <button
           type="button"
-          onClick={() => setExpanded(v => !v)}
+          onClick={() => setExpanded(prev => !prev)}
           className="mt-1 text-xs font-semibold text-primary hover:underline"
         >
           {expanded ? t('showLess') : t('showMore')}

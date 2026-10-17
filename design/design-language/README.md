@@ -27,6 +27,9 @@ A theme is a **skin over a shared skeleton**, never a fork of components:
   kinds of work each own one colour (habit success, project step secondary, one-off
   info) that never changes on a card; sizes are neutral. A theme may change *what
   color* a channel is, never *what it means*.
+- **Ink on gradient fills** — the brand tiles, the "New" badge and the avatars —
+  is `--fx-on-gradient` (`text-on-gradient` / `stroke-on-gradient`), white in every
+  theme today; a solid daisyUI fill takes its own `*-content` token instead.
 - **`fx-*` utility class names are the API** — usage sites never change per theme.
   Their looks come from per-theme `--fx-*` variable blocks (`[data-theme='…']`),
   plus theme-gated skin rules where geometry differs (see p5-dark).
@@ -36,7 +39,7 @@ A theme is a **skin over a shared skeleton**, never a fork of components:
 - **One variable contract**: every theme declares the same custom properties — its
   daisyUI block plus its `[data-theme='…']` block in `globals.css`, in the same section
   order (star chart · art · blooms · bracket · panels · edges · shadows · glows ·
-  surface & depth · geometry). Variables are named by role (`--fx-field`, `--fx-depth`,
+  surface & depth · ink on gradients · geometry). Variables are named by role (`--fx-field`, `--fx-depth`,
   `--fx-card-bg`, `--radius-card`); a theme with no use for one still
   declares its equivalent. `npm run check:themes` enforces it in CI, and a theme added
   to `THEMES` is held to it automatically.

@@ -22,10 +22,10 @@ import {
   completeTaskAction,
   undoCompleteTaskAction,
 } from '@/actions/matrixActions';
-import TaskModal from '@/components/domain/shared/task-modal/TaskModal';
+import {TaskModal} from '@/components/domain/shared/task-modal/TaskModal';
 import {Toast} from '@/components/ui/Toast';
 import {MatrixUndoToast} from './MatrixUndoToast';
-import QuadrantCell from './QuadrantCell';
+import {QuadrantCell} from './QuadrantCell';
 import {MobileMoveToSheet} from './MobileMoveToSheet';
 import {
   QUADRANT_ORDER,
@@ -58,10 +58,10 @@ const insertTaskAt = (list: TaskItem[], index: number, task: TaskItem) => [
   ...list.slice(index),
 ];
 
-export default function PriorityMatrixPage({
+export const PriorityMatrixPage = ({
   tasks,
   activePlan,
-}: PriorityMatrixPageProps) {
+}: PriorityMatrixPageProps) => {
   const t = useTranslations('Priorities');
   const tQuadrant = useTranslations('Enums.PriorityQuadrant');
   const {localTasks, setLocalTasks, runOptimisticTaskUpdate} =
@@ -377,4 +377,4 @@ export default function PriorityMatrixPage({
       />
     </DragDropContext>
   );
-}
+};

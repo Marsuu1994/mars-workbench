@@ -32,7 +32,7 @@ export const BottomTabBar = ({
   settingsOpen,
   className,
 }: BottomTabBarProps) => {
-  const openSettings = useSettingsStore(s => s.open);
+  const openSettings = useSettingsStore(state => state.open);
 
   if (!user || !pathname.startsWith('/kanban')) {
     return null;

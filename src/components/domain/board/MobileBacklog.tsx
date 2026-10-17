@@ -22,7 +22,7 @@ interface MobileBacklogProps {
  * desktop equivalent is DesktopBacklog (drag-based); at md and up this
  * renders nothing.
  */
-export default function MobileBacklog({count, children}: MobileBacklogProps) {
+export const MobileBacklog = ({count, children}: MobileBacklogProps) => {
   const t = useTranslations('Board.Backlog');
   const {isMobile} = useBreakpoint();
   const [isOpen, setIsOpen] = useState(false);
@@ -64,4 +64,4 @@ export default function MobileBacklog({count, children}: MobileBacklogProps) {
       </OverlayShell>
     </>
   );
-}
+};

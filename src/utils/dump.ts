@@ -8,7 +8,7 @@ import {KANBAN_TZ, formatDayLabel, formatKanbanISODate} from './dateUtils';
 export const DUMP_PAGE_SIZE = 20;
 export const DUMP_ENTRY_MAX_LENGTH = 10000;
 
-const pad2 = (n: number) => String(n).padStart(2, '0');
+const pad2 = (value: number) => String(value).padStart(2, '0');
 
 // All feed dates are rendered in the app's canonical timezone so day grouping
 // and "Today"/"Yesterday" are stable regardless of the client's local offset.
@@ -41,8 +41,8 @@ export function dumpTodayKey(): string {
 
 /** Shift a "YYYY-MM-DD" key by whole days — DST-immune calendar arithmetic. */
 export function shiftDayKey(key: string, days: number): string {
-  const [y, m, d] = key.split('-').map(Number);
-  const dt = new Date(Date.UTC(y, m - 1, d + days));
+  const [year, month, day] = key.split('-').map(Number);
+  const dt = new Date(Date.UTC(year, month - 1, day + days));
   return `${dt.getUTCFullYear()}-${pad2(dt.getUTCMonth() + 1)}-${pad2(dt.getUTCDate())}`;
 }
 

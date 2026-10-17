@@ -1,5 +1,5 @@
 import {BoardScreen} from '@/components/domain/board/BoardScreen';
-import EmptyBoard from '@/components/domain/board/EmptyBoard';
+import {EmptyBoard} from '@/components/domain/board/EmptyBoard';
 import {ScenarioTabs, type ScenarioTab} from '../ScenarioTabs';
 import {ScenarioPage} from '../ScenarioPage';
 import {MobileBacklogSheetFrame} from './MobileBacklogSheetFrame';

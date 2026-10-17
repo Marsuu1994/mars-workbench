@@ -27,19 +27,22 @@ export function diffPlanTemplates(
   current: readonly PlanTemplateInput[],
   next: readonly PlanTemplateInput[],
 ): PlanTemplateDiff {
-  const currentById = new Map(current.map(t => [t.templateId, t]));
-  const nextIds = new Set(next.map(t => t.templateId));
+  const currentById = new Map(
+    current.map(template => [template.templateId, template]),
+  );
+  const nextIds = new Set(next.map(template => template.templateId));
 
   return {
-    added: next.filter(t => !currentById.has(t.templateId)),
+    added: next.filter(template => !currentById.has(template.templateId)),
     removed: current
-      .filter(t => !nextIds.has(t.templateId))
-      .map(t => t.templateId),
-    modified: next.filter(t => {
-      const before = currentById.get(t.templateId);
+      .filter(template => !nextIds.has(template.templateId))
+      .map(template => template.templateId),
+    modified: next.filter(template => {
+      const before = currentById.get(template.templateId);
       return (
         before !== undefined &&
-        (before.type !== t.type || before.frequency !== t.frequency)
+        (before.type !== template.type ||
+          before.frequency !== template.frequency)
       );
     }),
   };

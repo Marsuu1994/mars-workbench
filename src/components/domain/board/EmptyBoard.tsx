@@ -13,7 +13,7 @@ interface EmptyBoardProps {
   stats?: OverallStats;
 }
 
-export default function EmptyBoard({stats}: EmptyBoardProps) {
+export const EmptyBoard = ({stats}: EmptyBoardProps) => {
   const t = useTranslations('Board.Empty');
 
   const renderCta = (label: string) => (
@@ -79,4 +79,4 @@ export default function EmptyBoard({stats}: EmptyBoardProps) {
       </div>
     </div>
   );
-}
+};

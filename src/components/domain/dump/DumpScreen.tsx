@@ -1,6 +1,6 @@
 'use client';
 
-import BoardHeader from '@/components/domain/shared/BoardHeader';
+import {BoardHeader} from '@/components/domain/shared/BoardHeader';
 import type {DumpEntryItem} from '@/lib/db/dumpEntries';
 import {useDumpFeed} from '@/hooks/useDumpFeed';
 import {DUMP_COLUMN_MAX_W} from './constants';

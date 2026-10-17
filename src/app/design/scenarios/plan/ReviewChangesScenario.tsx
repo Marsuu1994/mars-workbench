@@ -7,7 +7,7 @@ import {
   type ModifiedTemplate,
   type AdhocTaskChange,
   type ProjectStepChange,
-} from '@/components/domain/plan/ReviewChangesModal';
+} from '@/components/domain/plan/review-changes/ReviewChangesPanel';
 
 const NOOP = () => undefined;
 

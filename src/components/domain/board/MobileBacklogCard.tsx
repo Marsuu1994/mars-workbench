@@ -16,10 +16,7 @@ interface MobileBacklogCardProps {
  * kind-first face on a plain (non-draggable) card, with a tap "↑ Todo" pull
  * action beside the title.
  */
-export default function MobileBacklogCard({
-  card,
-  onPull,
-}: MobileBacklogCardProps) {
+export const MobileBacklogCard = ({card, onPull}: MobileBacklogCardProps) => {
   const t = useTranslations('Board.Backlog');
   const {kind, task} = card;
   const {edge} = TASK_KIND_STYLE[kind];
@@ -39,4 +36,4 @@ export default function MobileBacklogCard({
       <TaskCardFace card={card} action={renderPullButton()} />
     </div>
   );
-}
+};

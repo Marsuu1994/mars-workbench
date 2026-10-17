@@ -57,6 +57,10 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ## Auth
 
+### Medium
+
+- [ ] Bug: on the login page the brand logo (`BrandIcon`, whose halo is the `fx-glow-pulse` loop) flickers a few times — owner report, not yet reproduced or diagnosed
+
 ### Future
 
 - [ ] Connected apps in Settings — list and revoke the user's OAuth grants (Supabase `listGrants` / `revokeGrant`); today a grant can only be revoked from the Supabase dashboard, so the consent page doesn't promise revocation
@@ -68,13 +72,11 @@ Single source of truth for open ideas and todos across the app — open items on
 ### High
 
 - [ ] Milestone — Quality gate before Phase 2: settle the mutation layer, tests and component structure before Phase 2 and Daily rhythm start, so their new pages are built the new way. One sub-bullet per step of the planner project *Mars Workbench — Phase 2 前的代码质量*
-  - [ ] Step 3 — Simplify AGENTS.md: a thin index that every session loads, with the details in the READMEs they govern. Spike `design/spike/agents-md-simplification.md` (decided)
-    - Code PR — ESLint for production code only (no default exports, arrow components, one component per file, `id-length`), then fix what they flag
   - [ ] Step 4 — Separate dev environment, including the DB: local dev currently shares the production Supabase project (data, Auth config, single Site URL); set up a dev Supabase project or branch (or a local Postgres + seed) + env vars so local work, tests and write-tool testing never touch prod data
   - [ ] Step 5 — Test baseline: none exists today. Vitest for the pure adapters and services (`toBoardCards`, `toProjectsView`, `applyStepPatch`, the sync date logic) and one Playwright smoke per page, both in CI
   - [ ] Step 6 — Quality sweep: a `/quality-sweep` skill (the checklist, versioned in the repo, also run by hand at each milestone's end) and a Routine that runs it every two weeks in a fresh session. It covers only what CI can't: docs vs code (tracker, README Current State, `reference.md`, flows, scenarios), conflicts between rule files (AGENTS.md and the READMEs it indexes) and stale temporary exceptions, AGENTS.md's size and growth and its index matching the READMEs it points to, stale PRs / spikes / mockups, duplicated logic and drifting patterns, dependency updates and `npm audit`, growing hotspot files. It opens one PR with tracker edits and a short report of at most 5–10 findings, each ending as fixed, a tracker item, a new CI rule, or dismissed with a reason; findings a machine can check become CI rules.
   - [ ] Step 7 — Mutation layer: one spike for the three below, then a pilot page, then the remaining pages
-    - State management — React Query and / or Zustand in place of each page's hand-rolled client copy (`useOptimisticTasks` + effect sync, `revalidatePath` re-renders); also trim server actions (6 of 29 are reads), server ↔ UI shape conversion per fetch / mutate use case, URL query params as state, and the close-then-stale gap (a form modal closes once its action resolves, but the new data shows only after the `revalidatePath` re-render lands — Projects tried closing in a nested transition (spike Option 0) and dropped it: on Next 16.2.9 / React 19.2 it sometimes never commits, leaving the modal loading). First assessment in `design/spike/archived/projects-page-refactor.md`; also decides the pending half of AGENTS.md › *Server shapes inputs*: how a page's container holds and patches its rows (spike `agents-md-simplification.md`, Q4)
+    - State management — React Query and / or Zustand in place of each page's hand-rolled client copy (`useOptimisticTasks` + effect sync, `revalidatePath` re-renders); also trim server actions (6 of 29 are reads), server ↔ UI shape conversion per fetch / mutate use case, URL query params as state, and the close-then-stale gap (a form modal closes once its action resolves, but the new data shows only after the `revalidatePath` re-render lands — Projects tried closing in a nested transition (spike Option 0) and dropped it: on Next 16.2.9 / React 19.2 it sometimes never commits, leaving the modal loading). First assessment in `design/spike/archived/projects-page-refactor.md`; also decides the pending half of AGENTS.md › *Server shapes inputs*: how a page's container holds and patches its rows (spike `archived/agents-md-simplification.md`, Q4)
     - Shared server-action handler — most actions repeat parse → `getCurrentUserId` → service → `revalidatePath` → map errors to `Errors.*`; explore a config-driven wrapper (schema, revalidate paths, error map)
     - Error-handling plumbing — PR #32's spike (`design/spike/error-handling.md`, awaiting review, written before Phase 1): services mix returned `{error}` shapes with thrown errors (`TemplateNotFoundError`, plain `Error`); one typed-error pattern mapped per surface (forms, MCP)
   - [ ] Step 8 — Error presentation: one error language (tone, copy, placement, visual treatment) applied per flow, from PR #32's mockups as the Step 7 spike decides

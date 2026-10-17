@@ -20,13 +20,13 @@ export function rollUpOverall(perTemplate: RollUpInput[]): OverallStats {
   let dailyCompleted = 0;
   let dailyTotal = 0;
 
-  for (const t of perTemplate) {
-    completedCount += t.completed;
-    totalCount += t.total;
-    totalPoints += t.pointsEarned;
-    if (t.type === TaskType.DAILY) {
-      dailyCompleted += t.completed;
-      dailyTotal += t.total;
+  for (const templateStats of perTemplate) {
+    completedCount += templateStats.completed;
+    totalCount += templateStats.total;
+    totalPoints += templateStats.pointsEarned;
+    if (templateStats.type === TaskType.DAILY) {
+      dailyCompleted += templateStats.completed;
+      dailyTotal += templateStats.total;
     }
   }
 

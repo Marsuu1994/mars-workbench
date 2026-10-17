@@ -16,7 +16,7 @@ import {
 } from '@/actions/templateActions';
 import {createAdhocTaskAction} from '@/actions/taskActions';
 import {FALLBACK_QUADRANT} from '@/components/domain/priorities/constants';
-import QuadrantPicker from './QuadrantPicker';
+import {QuadrantPicker} from './QuadrantPicker';
 import {SizePicker} from './SizePicker';
 
 export type TaskModalMode = 'create' | 'edit' | 'adhoc';
@@ -105,8 +105,8 @@ export const TaskModalPanel = ({
     setIsSubmitting(false);
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
     setError(null);
     setIsSubmitting(true);
 
@@ -157,7 +157,7 @@ export const TaskModalPanel = ({
             isAdhoc ? t('titlePlaceholderAdhoc') : t('titlePlaceholderTemplate')
           }
           value={title}
-          onChange={e => setTitle(e.target.value)}
+          onChange={event => setTitle(event.target.value)}
           required
         />
       </FieldRow>
@@ -176,7 +176,7 @@ export const TaskModalPanel = ({
               : t('descriptionPlaceholderTemplate')
           }
           value={description}
-          onChange={e => setDescription(e.target.value)}
+          onChange={event => setDescription(event.target.value)}
         />
       </FieldRow>
 

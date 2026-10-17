@@ -8,7 +8,7 @@ interface BoardHeaderProps {
   periodKey: string;
 }
 
-export default function BoardHeader({periodKey}: BoardHeaderProps) {
+export const BoardHeader = ({periodKey}: BoardHeaderProps) => {
   const t = useTranslations('Board.Header');
   const dateRange = getWeekDateRange(periodKey);
 
@@ -33,4 +33,4 @@ export default function BoardHeader({periodKey}: BoardHeaderProps) {
       </div>
     </div>
   );
-}
+};

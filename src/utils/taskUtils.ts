@@ -160,31 +160,32 @@ export function computeHabitWeeks(
  */
 export function sortTasks(tasks: TaskItem[]): TaskItem[] {
   // A task's group: its template, or its project for a project step.
-  const groupKey = (t: TaskItem): string | null => t.templateId ?? t.projectId;
+  const groupKey = (task: TaskItem): string | null =>
+    task.templateId ?? task.projectId;
 
   // Earliest createdAt per group — the group's sort rank, so all of a group's
   // tasks sort together regardless of per-task createdAt.
   const groupCreatedRank = new Map<string, number>();
-  for (const t of tasks) {
-    const key = groupKey(t);
+  for (const task of tasks) {
+    const key = groupKey(task);
     if (!key) continue;
-    const created = new Date(t.createdAt).getTime();
+    const created = new Date(task.createdAt).getTime();
     const existing = groupCreatedRank.get(key);
     if (existing === undefined || created < existing) {
       groupCreatedRank.set(key, created);
     }
   }
 
-  const priority = (t: TaskItem): number =>
-    t.type === TaskTypeEnum.DAILY ? 0 : 1;
+  const priority = (task: TaskItem): number =>
+    task.type === TaskTypeEnum.DAILY ? 0 : 1;
 
   // Grouped tasks rank by their group's earliest createdAt; ad-hoc tasks
   // (no group) rank by their own createdAt.
-  const groupRank = (t: TaskItem): number => {
-    const key = groupKey(t);
+  const groupRank = (task: TaskItem): number => {
+    const key = groupKey(task);
     return key
       ? (groupCreatedRank.get(key) ?? 0)
-      : new Date(t.createdAt).getTime();
+      : new Date(task.createdAt).getTime();
   };
 
   return [...tasks].sort((a, b) => {

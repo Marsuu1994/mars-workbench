@@ -3,7 +3,7 @@ export const BrandIcon = () => (
   <div className="fx-glow-pulse flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-primary to-secondary">
     <svg
       viewBox="0 0 24 24"
-      className="h-7 w-7 fill-none stroke-white"
+      className="h-7 w-7 fill-none stroke-on-gradient"
       strokeWidth={1.5}
       strokeLinecap="round"
       strokeLinejoin="round"

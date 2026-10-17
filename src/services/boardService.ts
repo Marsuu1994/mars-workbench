@@ -73,11 +73,16 @@ export async function fetchBoard(userId: string): Promise<BoardData | null> {
   // — Today metrics —
   // Backlog tasks are staged off-board (backlog), so they are excluded from the
   // Today ring/points. Week projection (from the DB aggregate) still counts them.
-  const onBoardTasks = boardTasks.filter(t => t.status !== TaskStatus.BACKLOG);
+  const onBoardTasks = boardTasks.filter(
+    task => task.status !== TaskStatus.BACKLOG,
+  );
   const todayDoneCount = boardMetrics.todayDoneCount;
   const todayTotalCount = onBoardTasks.length;
   const todayDonePoints = boardMetrics.todayDonePoints;
-  const todayTotalPoints = onBoardTasks.reduce((sum, t) => sum + t.points, 0);
+  const todayTotalPoints = onBoardTasks.reduce(
+    (sum, task) => sum + task.points,
+    0,
+  );
 
   // — Week Projected (Option C: past instances + future projection + weekly instances) —
   const dailyPastPoints = boardMetrics.dailyPastPoints;
@@ -93,16 +98,19 @@ export async function fetchBoard(userId: string): Promise<BoardData | null> {
         );
 
   const currentDailyTemplates = planWithTemplates.planTemplates.filter(
-    pt => pt.type === TaskType.DAILY,
+    planTemplate => planTemplate.type === TaskType.DAILY,
   );
   const dailyFuturePoints =
     currentDailyTemplates.reduce(
-      (s, pt) => s + sizeToPoints(pt.template.size) * pt.frequency,
+      (sum, planTemplate) =>
+        sum + sizeToPoints(planTemplate.template.size) * planTemplate.frequency,
       0,
     ) * remainingDays;
   const dailyFutureCount =
-    currentDailyTemplates.reduce((s, pt) => s + pt.frequency, 0) *
-    remainingDays;
+    currentDailyTemplates.reduce(
+      (sum, planTemplate) => sum + planTemplate.frequency,
+      0,
+    ) * remainingDays;
 
   const weeklyPoints = boardMetrics.weeklyPoints;
   const weeklyCount = boardMetrics.weeklyCount;

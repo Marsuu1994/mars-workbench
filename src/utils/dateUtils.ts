@@ -17,9 +17,9 @@ const tzFormatter = new Intl.DateTimeFormat('en-US', {
  */
 export function getTodayDate(): Date {
   const parts = tzFormatter.formatToParts(new Date());
-  const year = Number(parts.find(p => p.type === 'year')!.value);
-  const month = Number(parts.find(p => p.type === 'month')!.value) - 1;
-  const day = Number(parts.find(p => p.type === 'day')!.value);
+  const year = Number(parts.find(part => part.type === 'year')!.value);
+  const month = Number(parts.find(part => part.type === 'month')!.value) - 1;
+  const day = Number(parts.find(part => part.type === 'day')!.value);
   return new Date(year, month, day);
 }
 
@@ -98,8 +98,12 @@ export function getSundayFromPeriodKey(periodKey: string): Date {
  * timezones (e.g. PST/UTC-8), placing a daily task on the wrong day (habit dots, sorting).
  */
 export function normalizeForDate(date: Date): Date {
-  const d = new Date(date);
-  return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+  const dateCopy = new Date(date);
+  return new Date(
+    dateCopy.getUTCFullYear(),
+    dateCopy.getUTCMonth(),
+    dateCopy.getUTCDate(),
+  );
 }
 
 /**
@@ -160,11 +164,11 @@ export function isPeriodCurrent(periodKey: string, today: Date): boolean {
  * Returns the ISO week key for a given date, e.g. "2026-W07".
  */
 export function getISOWeekKey(date: Date): string {
-  const d = new Date(date);
-  d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-  const yearStart = new Date(d.getFullYear(), 0, 1);
+  const thursday = new Date(date);
+  thursday.setDate(thursday.getDate() + 4 - (thursday.getDay() || 7));
+  const yearStart = new Date(thursday.getFullYear(), 0, 1);
   const weekNo = Math.ceil(
-    ((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7,
+    ((thursday.getTime() - yearStart.getTime()) / 86400000 + 1) / 7,
   );
-  return `${d.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+  return `${thursday.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
 }
