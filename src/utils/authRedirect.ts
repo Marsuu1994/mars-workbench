@@ -1,6 +1,12 @@
 /** Where protected routes send a visitor who has no session. */
 export const LOGIN_PATH = '/auth/login';
 
+/**
+ * The Design Console. It renders fixtures only, so local dev serves it without
+ * a session (see the proxy) for agents and the owner to browse and verify.
+ */
+export const DESIGN_CONSOLE_PATH = '/design';
+
 /** Where Supabase returns after Google sign-in to exchange the code. */
 export const AUTH_CALLBACK_PATH = '/auth/callback';
 

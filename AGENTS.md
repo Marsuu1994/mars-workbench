@@ -92,7 +92,7 @@ A complex task — several PRs, a data-model change, a new tool surface, or a ch
 
 ## UI Workflow
 
-- **The Design Console is the source of truth for implemented UI.** `/design` renders the real components: a gallery tabbed by layer (`ui/` · `application/` · `domain/`) and per-feature scenario pages (`/design/scenarios/<feature>/`) with pinned fixture states.
+- **The Design Console is the source of truth for implemented UI.** `/design` renders the real components: a gallery tabbed by layer (`ui/` · `application/` · `domain/`) and per-feature scenario pages (`/design/scenarios/<feature>/`) with pinned fixture states. `npm run dev` serves it without signing in, so verify UI changes there (`src/app/design/README.md` › Local access).
 - **Production first, the console adapts.** Components are shaped by what production needs. A production component never carries a prop, branch or comment that only the console uses, and nothing is split or restructured so the console can show it: the console reaches a state the way a user would, or skips it. Bad: `initialUndoToastTaskId` on `PriorityMatrixPage`. Good: a scenario tab's `play` step clicking the real control.
 - **Screen components — today's pattern, pending Quality gate Step 9.** Each page's presentational layout is a screen component in `domain/<feature>/` (`BoardScreen`, `PrioritiesScreen`, `PlanChrome`) that the route and its scenario both render; the Projects page is a pilot exception (tracker › Step 9). The component structure spike decides how new pages split.
 - **New UI starts as a mockup.** A design that isn't built yet is drawn as a self-contained HTML mockup in `design/mockup/`; get the owner's approval before code changes.

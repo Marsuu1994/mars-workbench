@@ -8,6 +8,8 @@ Flows for authentication (`/auth/*`, `/oauth/consent`, `/api/mcp` tokens) — ro
 
 **Mechanism:** The Next.js proxy (`src/proxy.ts`, delegating to `updateSession` in `src/lib/supabase/middleware.ts`) checks the session. If no valid session exists, redirect to `/auth/login?next=<requested path + query>` (no `next` for `/`), so sign-in returns the visitor to the page that asked for it.
 
+Rules: local dev (`npm run dev`) serves the Design Console (`/design` and below) without a session, since it renders fixtures only; production builds keep the gate on every route.
+
 ## Login Flow
 
 **Trigger:** User navigates to `/auth/login`

@@ -59,7 +59,7 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### Medium
 
-- [ ] Bug: on the login page the brand logo (`BrandIcon`, whose halo is the `fx-glow-pulse` loop) flickers a few times — owner report, not yet reproduced or diagnosed
+- [ ] Bug: on the login page the brand logo (`BrandIcon`, whose halo is the `fx-glow-pulse` loop) flickers a few times — owner report; doesn't reproduce in headless Chromium (three themes, desktop and phone viewports, login page and Auth scenario: one mount, a clean fade-in, a smooth breathe), so the next step needs the device and browser it happens on
 
 ### Future
 

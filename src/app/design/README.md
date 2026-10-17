@@ -2,6 +2,14 @@
 
 `/design` documents implemented UI with the real components: a gallery tabbed by layer (Tokens & FX · UI · Application · Domain) and per-feature scenario pages (`/design/scenarios/<feature>/`) that render each screen with pinned fixture states. AGENTS.md › UI Workflow holds the rules every session needs — the console is the source of truth, and production comes first; this file is how the console works.
 
+## Local access
+
+`npm run dev` serves `/design` and its scenario pages without signing in, so agents and the owner can browse, screenshot and debug UI straight away; production builds (Vercel previews included) keep the auth gate. The console renders fixtures only and never reads Supabase or the database, so a machine without the project's `.env.local` — a cloud agent's container — only needs placeholder Supabase variables to boot:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=placeholder npm run dev
+```
+
 ## Frames
 
 - **Frame modes**: `fill` (the default) is for screen-level tabs only — a 1:1, viewport-bounded stand-in for the page inside AppShell's `<main>`. Everything standalone (empty states, sheets, inline modal panels) is `fit` — content height plus padding — and/or `overlay` for a dimmed modal backdrop.

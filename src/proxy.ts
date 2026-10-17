@@ -1,7 +1,22 @@
-import {type NextRequest} from 'next/server';
+import {NextResponse, type NextRequest} from 'next/server';
 import {updateSession} from '@/lib/supabase/middleware';
+import {DESIGN_CONSOLE_PATH} from '@/utils/authRedirect';
+
+/** True for the Design Console and its scenario pages. */
+const isDesignConsolePath = (pathname: string) =>
+  pathname === DESIGN_CONSOLE_PATH ||
+  pathname.startsWith(`${DESIGN_CONSOLE_PATH}/`);
 
 export const proxy = async (request: NextRequest) => {
+  // Local dev only: the Design Console needs no session, so agents can browse
+  // and screenshot it without signing in. NODE_ENV is inlined at build time,
+  // so production builds (Vercel previews included) keep the auth gate.
+  if (
+    process.env.NODE_ENV === 'development' &&
+    isDesignConsolePath(request.nextUrl.pathname)
+  ) {
+    return NextResponse.next();
+  }
   return await updateSession(request);
 };
 
