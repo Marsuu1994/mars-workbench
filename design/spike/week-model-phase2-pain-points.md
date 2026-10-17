@@ -222,4 +222,4 @@ PR 5 不等这份 spike：size 保留为 LLM 的估算单位，context 的形状
 1. 方向定了以后，在 Phase 2 规划里把它排进 PR 序列（新开一份 Phase 2 spike；Phase 1 的 `week-model-restructure.md` 已经归档，不再扩写）。
 2. Tracker：*Redesign the point system and metric tracking* 和 *One entry for habits and projects* 并进 Phase 2 那一条，按结论改写或删掉。
 3. 如果 Q6 选「搭」，PR 5 的 guide 加那一行。
-4. 状态从 draft 改成 awaiting owner review，走 AGENTS 的 spike 流程。
+4. 状态从 draft 改成 awaiting owner review，走 `design/spike/README.md` 的 spike 流程。

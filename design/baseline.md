@@ -1,5 +1,7 @@
 # Baseline Design
 
+The one app-wide baseline: the product's goal, its entities and schema, and the architecture decisions with their reasons. Implementation detail lives in the code and `reference.md`.
+
 ## Goal
 
 A tool to plan and track tasks within defined periods (e.g., weekly). It visualizes task progress on a drag-and-drop kanban board, helping users understand what's done, what's still to do, and what's been missed. Authentication via Supabase Google OAuth identifies users and gates access to features, enabling per-user data isolation (each user sees only their own plans, projects, and tasks).
@@ -276,6 +278,12 @@ model DumpEntry {
 ## Architecture Decision
 
 * Uses **Server Actions** for mutations and **direct DAL calls from Server Components** for data fetching. No REST API routes — besides the auth callback, Route Handlers serve only MCP: `/api/mcp`, the endpoint external AI clients (Claude) call with a Supabase OAuth access token, and its protected-resource metadata under `/.well-known/`. Inputs are validated at the boundary with **Zod** schemas.
+* **Server shapes inputs, the client derives the view** — a page's service returns the minimal, serializable inputs its screen needs: rows in their DAL shape (narrowed by `select`), server-only aggregates, lookups; never finished UI models. A pure adapter in `src/utils/` derives the UI shape, and derived data never becomes state. The Board is the pattern today:
+  - `fetchBoard` returns `{plan, tasks, progress, projects}`, and the page passes it straight to `BoardScreen`.
+  - `KanbanBoard` is the page's container (the top-level client component that owns the interaction). It keeps `tasks` as state in the server's shape, so optimistic patches, action results and revalidated props always match, and derives the cards with `toBoardCards(localTasks, {plan, projects})`.
+  - The cards render into layout frames through `children` (`<BoardColumn count={todoCards.length}>{renderDraggableCards(todoCards)}</BoardColumn>`), so frames take no model props and presentational components take exactly the model they render.
+  - Rejected: `fetchBoard` returning finished card models that the client keeps as state, with a drag handler patching every sibling card's dots by hand.
+  - Still open: how a container holds and patches its rows (tracker › Quality gate Step 7, mutation layer) and whether frames take their content through `children` (Step 9, component structure). The Plan page hasn't moved to this split yet, and the Projects page is a pilot exception (both in the tracker).
 * Ad-hoc tasks are not associated with any TaskTemplate.  They are optionally associated with a plan (planId = null means unassigned backlog).
 * **Size system** — `TaskSize` enum (EXTRA_SMALL → EXTRA_LARGE) replaces free-form integer points. Points are derived from size via `SIZE_TO_POINTS` constant and denormalized on the Task record at creation time. This keeps the raw SQL `SUM(points)` aggregation unchanged while the user-facing input is now a constrained enum. `TaskTemplate` stores only `size` (no `points` column); `Task` stores both `size` and `points`.
 * **Size UI** — Task cards and template items display a shared `SizeChip` component (neutral chip: `M·3` — green belongs to the habit kind). Template and ad-hoc creation modals use a full-width pill toggle selector with effort description text ("~3 hours of effort") and a warning hint for L/XL sizes. Client-safe enums (`TaskSize`, `SIZE_TO_POINTS`, `SIZE_LABELS`, `SIZE_EFFORT`) live in `src/utils/enums.ts` for use in `"use client"` components; server-side code uses `src/utils/sizeUtils.ts`.

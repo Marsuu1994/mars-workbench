@@ -19,9 +19,11 @@ Open [http://localhost:3000](http://localhost:3000)
   - [flows/](./design/flows) — per-page flow docs
   - [mockup/future-work/](./design/mockup/future-work) — explorations of unbuilt designs
 - Implemented UI is documented in-app at `/design` — layer-tabbed component gallery + per-feature scenario pages
-- This README holds the app-wide **Current State** and the append-only **Update Log**
+- This README holds the app-wide **Current State** and the per-day **Update Log**
 
 ## Current State
+
+What the product does today, page by page — a skimmable tour, 1–2 lines per bullet.
 
 ### Design System
 
@@ -93,20 +95,23 @@ Open items: see [design/tracker.md](./design/tracker.md).
 ## Update Log
 
 ### 2026-10-17
-- **Quality gate Step 1 — CI now checks lint, types and unused code; dead code removed**:
+- **Quality gate: Steps 1 and 2 done, Step 3's docs half landed** — CI now checks lint, types and unused code; AI planning goes through Claude + MCP only, with the in-app LLM flow removed; AGENTS.md is a thin index every session loads, with the details in the READMEs they govern. Prettier, the theme check, ESLint, tsc and knip are green after each step, and `next build` after Steps 1 and 2 (Step 3's half is docs only).
+- **Step 1 — CI checks lint, types and unused code; dead code removed**:
   - **CI**: three jobs join Prettier and the theme check — ESLint, TypeScript (`npm run typecheck`, after `prisma generate` with a placeholder `DIRECT_URL`) and knip (`npm run knip`), which fails on unused files, exports and dependencies. Knip joins CI (the step's open question): an export its own file uses doesn't count, and `knip.jsonc` lists the three known false positives (`public/sw.js`, `@prisma/client`, `postcss`). It is pinned to 5.88.1, the last 5.x, because every 6.x needs zod ≥ 4.4 and would bump the app's runtime zod.
   - **ESLint**: `no-console` in `src/` (`console.error` / `warn` allowed), and `@typescript-eslint/no-restricted-imports` in components, hooks and stores — no services, DAL, Prisma client, generated client or `statsUtils` there, type imports allowed. Both had zero violations; a probe file confirmed each fires, relative paths included.
   - **Dead code removed**: the tracker's list — `projectService.listProjects` / `getProject`, seven `tasks.ts` exports, `deletePlanTemplatesByPlanId`, `sameDay`, `getTemplateStatsAction` (with its schema), `DUMP_HREF`, and the `en.json` keys `Review.templateCount` / `Dump.loadingMore` — plus what knip found besides: 13 unused schema input types and an unused auth fixture id. `reference.md` and the plan flow drop the removed names.
   - **Small fixes knip surfaced**: `planService` imports the plan input types from `schemas.ts` instead of re-deriving them; the consent page reads its query param through `AUTHORIZATION_ID_PARAM`; `@/lib/prisma` keeps only its named export (it had both named and default).
-  - **Tracker**: Step 1 is done and leaves the milestone.
-  - **Checks**: prettier, theme check, eslint, tsc, knip and `next build` are green.
-- **Quality gate Step 2 — LLM-assisted plan creation is deprecated; AI planning goes through Claude + MCP only**:
+- **Step 2 — LLM-assisted plan creation is deprecated; AI planning goes through Claude + MCP only**:
   - **Removed from the app**: the plan form's AI assistant banner and chat modal, with everything behind them — 5 server actions, `aiChatService`, the chat store and bridge hook, the `prompt/` builders, the OpenAI client and the `openai` dependency (`OPENAI_API_KEY` leaves `.env.example`), the chat/message DAL, the AI chat schemas, `AiChat` copy and its two error keys, the ai-chat scenario page and gallery section, and `TaskTypeBadge` (the draft cards were its only production use). `OverallStats` moves to `types/plan.ts`.
   - **Database**: migration `20261017000000_drop_chats_and_messages` drops the `chats` and `messages` tables and the `MessageRole` / `MessageType` enums (their rows go with them); verified on a fresh Postgres — every migration applies and the result matches `schema.prisma`.
   - **Themes**: the AI channel is gone from the design language — `fx-holo` (and p5's spray-border wiggle, the one clip-path loop) and `--fx-depth-ai` are removed from all three themes; violet (secondary) now means project steps only. The gallery's AI specimens are renamed or dropped.
   - **Copy**: the template description hint now reads "(read by Claude when planning)".
   - **Docs**: one Architecture Decision in `baseline.md` records the deprecation; AGENTS.md, the design-language docs, the plan flow, `reference.md` and the tracker (Step 2 leaves the milestone) drop every other mention.
-  - **Checks**: prettier, theme check, eslint, tsc, knip and `next build` are green.
+- **Step 3, docs half — AGENTS.md simplified** (spike `design/spike/agents-md-simplification.md`):
+  - **AGENTS.md**: 358 → 212 lines, 4765 → about 2740 words. It keeps the rules every task needs; a *Where the rules live* table points to the rest, and a placement rule replaces "append new rules to the end of the subsection". Facts fixed (next-intl and React Compiler in the stack, `lib/prisma.ts`, `src/i18n/`, no `gts`); duplicates merged (DRY, render functions, keeping docs short, the Update Log, Prisma in the DAL); the decided rule changes are written in — naming's allowed short names, enum maps vs an exhaustive `switch`, inline styles for dynamic values only, Heroicons for icons only, and *Server shapes inputs* cut to its two invariants, the rest pending Steps 7 and 9.
+  - **Rules moved next to what they govern**: new `design/spike/README.md` (lifecycle, shape, language), `design/flows/README.md` (format and the facts-only rule, replacing the convention note repeated in six flow docs) and `src/app/design/README.md` (frames, tabs, `play` steps); the tracker gains a Conventions section; status marks move to the design-language README; the Board's data split moves to `baseline.md` › Architecture Decision; mockup naming moves to `design/README.md`, whose stale facts are fixed. `baseline.md` and README Current State state their altitude at the top.
+  - **Workflow**: the `new-flow`, `new-feature` and `design-explore` skills and the `/push` command are deleted; the push checklist is now AGENTS.md › Version Control › *Before every push*, for every session, local or cloud. CLAUDE.md is just `@AGENTS.md`. The Update Log is kept per day — same-day entries are consolidated into one summary, as this day's is.
+  - **Tracker**: Step 3 keeps only its Code PR (ESLint for production code, then the fixes); the Projects pilot exception moves under Step 9.
 
 ### 2026-10-14
 - **Week model PR 4d — Phase 1 closed out**: the living docs stand on their own, the Phase 1 spikes are archived, and two bugs found along the way are fixed.

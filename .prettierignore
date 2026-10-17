@@ -17,7 +17,7 @@ package-lock.json
 prisma/migrations/
 
 # Markdown docs & design assets are hand-authored; Prettier is scoped to code
-# only (README Update Logs are append-only — see AGENTS.md).
+# only (earlier days of the README Update Log are never edited — see AGENTS.md).
 # Anchored to the repo root: an unanchored design/ also swallowed
 # src/app/design/ (the gallery), which is code and must be formatted.
 **/*.md

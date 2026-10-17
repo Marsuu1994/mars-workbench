@@ -4,8 +4,6 @@ Flows for the dump page (`/kanban/dump`) — friction-free brain dump of whateve
 
 > **Status: shipped (V1).** Screen-level source of truth: the Dump scenarios at `/design/scenarios/dump` (populated feed + empty state). Schema in `design/baseline.md` (DumpEntry). Backend/UI reference rows in `design/reference.md`.
 
-> **Doc convention:** One flow per `##` heading, separated by `---`. Every flow has two required `###` sections — `Trigger / Entry Point` and `Steps` — plus an optional `### Rules` section for constraints and invariants. Extra `###` sections are allowed only for reference material that fits neither Steps nor Rules.
-
 ---
 
 ## Dump Landing Flow (View)
