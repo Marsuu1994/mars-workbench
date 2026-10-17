@@ -4,10 +4,10 @@
 
 ## Local access
 
-`npm run dev` serves `/design` and its scenario pages without signing in, so agents and the owner can browse, screenshot and debug UI straight away; production builds (Vercel previews included) keep the auth gate. The console renders fixtures only and never reads Supabase or the database, so a machine without the project's `.env.local` — a cloud agent's container — only needs placeholder Supabase variables to boot:
+`npm run dev` serves `/design` and its scenario pages without signing in, so agents and the owner can browse, screenshot and debug UI straight away; production builds (Vercel previews included) keep the auth gate. The console renders fixtures only and never reads Supabase or the database, so it boots without the local Supabase stack running — a machine without `.env.local` (a cloud agent's container) only needs the local defaults:
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=placeholder npm run dev
+cp .env.example .env.local && npm run dev
 ```
 
 ## Frames

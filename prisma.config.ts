@@ -1,8 +1,9 @@
 import {config} from 'dotenv';
 import {defineConfig, env} from 'prisma/config';
 
-// Load from .env.local for Next.js compatibility
-config({path: '.env.local'});
+// The local stack's .env.local, like Next.js; `npm run db:deploy:prod` points
+// this at .env.prod instead, the only way a Prisma command reaches production.
+config({path: process.env.PRISMA_ENV_FILE ?? '.env.local'});
 
 export default defineConfig({
   schema: 'prisma/schema.prisma',
