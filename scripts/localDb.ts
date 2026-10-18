@@ -10,7 +10,9 @@
  * points at the local stack.
  */
 import {spawn, spawnSync} from 'node:child_process';
-import {existsSync} from 'node:fs';
+import {existsSync, openSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {setTimeout as sleep} from 'node:timers/promises';
 import {config} from 'dotenv';
 import {SUPABASE_CLI, assertLocalServices} from './localEnv';
@@ -18,6 +20,7 @@ import {SUPABASE_CLI, assertLocalServices} from './localEnv';
 const ENV_FILE = '.env.local';
 const DOCKER_START_TIMEOUT_MS = 60_000;
 const DOCKER_POLL_INTERVAL_MS = 1_000;
+const DOCKERD_LOG = join(tmpdir(), 'mars-workbench-dockerd.log');
 
 /** Run a command with inherited output; throws when it fails. */
 const run = (command: string, args: string[], env = process.env) => {
@@ -33,6 +36,25 @@ const runSupabase = (args: string[], env = process.env) =>
 const isDockerRunning = () =>
   spawnSync('docker', ['info'], {stdio: 'ignore'}).status === 0;
 
+/** Containers the daemon restarted on boot whose health checks haven't passed. */
+const hasStartingContainers = () =>
+  spawnSync('docker', ['ps', '--quiet', '--filter', 'health=starting'], {
+    encoding: 'utf8',
+  }).stdout.trim() !== '';
+
+/** Poll until `isDone` holds; throws `failure` after DOCKER_START_TIMEOUT_MS. */
+const waitUntil = async (isDone: () => boolean, failure: string) => {
+  for (
+    let waited = 0;
+    waited < DOCKER_START_TIMEOUT_MS;
+    waited += DOCKER_POLL_INTERVAL_MS
+  ) {
+    if (isDone()) return;
+    await sleep(DOCKER_POLL_INTERVAL_MS);
+  }
+  throw new Error(failure);
+};
+
 const canStartDockerDaemon = () =>
   process.platform === 'linux' &&
   process.getuid?.() === 0 &&
@@ -41,7 +63,9 @@ const canStartDockerDaemon = () =>
 /**
  * Docker must be up for `supabase start`. A cloud agent's container ships
  * dockerd but doesn't run it, so it is started here; on a Mac, OrbStack or
- * Docker Desktop runs it.
+ * Docker Desktop runs it. A daemon started here also restarts the stack's
+ * containers from before, and `supabase start` fails rather than waits while
+ * they are still starting, so their health checks are awaited too.
  */
 const ensureDocker = async () => {
   if (isDockerRunning()) return;
@@ -50,17 +74,17 @@ const ensureDocker = async () => {
       'Docker is not running: start OrbStack or Docker Desktop, then rerun.',
     );
   }
-  console.log('Starting the Docker daemon…');
-  spawn('dockerd', [], {detached: true, stdio: 'ignore'}).unref();
-  for (
-    let waited = 0;
-    waited < DOCKER_START_TIMEOUT_MS;
-    waited += DOCKER_POLL_INTERVAL_MS
-  ) {
-    if (isDockerRunning()) return;
-    await sleep(DOCKER_POLL_INTERVAL_MS);
-  }
-  throw new Error('The Docker daemon did not start within a minute.');
+  console.log(`Starting the Docker daemon (log: ${DOCKERD_LOG})…`);
+  const log = openSync(DOCKERD_LOG, 'a');
+  spawn('dockerd', [], {detached: true, stdio: ['ignore', log, log]}).unref();
+  await waitUntil(
+    isDockerRunning,
+    `The Docker daemon did not start within a minute; see ${DOCKERD_LOG}.`,
+  );
+  await waitUntil(
+    () => !hasStartingContainers(),
+    'Containers restarted with the Docker daemon are still starting after a minute.',
+  );
 };
 
 /** Prisma migrations, then the seed. */
