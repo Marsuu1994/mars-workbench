@@ -7,15 +7,14 @@ A kanban-first personal productivity app: a weekly period planner built around a
 Local development runs against a local Supabase stack — Postgres and Auth in Docker (OrbStack or Docker Desktop on a Mac) — never production.
 
 ```bash
-npm run setup   # .env.local from .env.example, npm install, then the stack: start, migrate, seed (safe to rerun)
-npm run dev
+npm run up   # .env.local, npm install, the stack (start, migrate, seed), then the dev server
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+One command from a fresh checkout and every day after: it skips what is already done (an up-to-date install, a running stack, applied migrations, existing seed data). Open [http://localhost:3000](http://localhost:3000).
 
 - **Sign in with Google**: copy `supabase/.env.example` to `supabase/.env` and fill in the Google OAuth client's id and secret (its authorized redirect URIs include `http://127.0.0.1:54321/auth/v1/callback`), then `npm run db:stop && npm run db:setup`. To land on the seeded data, set `SEED_EMAIL` to your Gmail in `.env.local` and `npm run db:reset`.
 - **Without Google** (scripts, agents, Playwright): `npm run dev:session` signs in as the seeded dev user and writes its cookies.
-- **Day to day**: `npm run db:stop` / `db:setup`; `npm run db:reset` wipes and reseeds. `npx prisma migrate dev` works against the stack.
+- **Day to day**: `npm run up`; `npm run db:stop` stops the stack (data kept), `npm run db:reset` wipes and reseeds, `npm run setup` does everything but the dev server. `npx prisma migrate dev` works against the stack.
 - **Production**: its credentials live only in `.env.prod`. Once a migration is merged, `npm run db:deploy:prod` applies it.
 
 ## Docs
@@ -103,7 +102,7 @@ Open items: see [design/tracker.md](./design/tracker.md).
 ## Update Log
 
 ### 2026-10-18
-- **One command sets up a fresh checkout: `npm run setup`** (owner review on PR #74). Getting Started was four steps; `npm run setup` now copies `.env.example` to `.env.local` when missing, runs `npm install` and then `db:setup`, and is safe to rerun. It is a dependency-free Node script, so it runs before anything is installed; `--no-db` stops after the install for work that needs neither the database nor a signed-in page. `db:setup` no longer creates `.env.local` itself and points to `npm run setup` when it is missing. README, AGENTS.md and the Design Console README use the one command.
+- **One command starts everything: `npm run up`** (owner review on PR #74). Getting Started was four steps; `npm run up` copies `.env.example` to `.env.local` when missing, runs `npm install` (skipped while `node_modules` is newer than the manifests), runs `db:setup` (start the stack, migrate, seed — each a no-op once done), then starts the dev server, so it serves a fresh checkout and every day after. It is a dependency-free Node script, so it runs before anything is installed. `npm run setup` does the same without the dev server, and `--no-db` stops it after the install for work that needs neither the database nor a signed-in page. `db:setup` no longer creates `.env.local` itself and points to `npm run setup` when it is missing. README, AGENTS.md and the Design Console README use the new commands.
 - **`db:setup` survives a cold Docker daemon**: a cloud container that restarts loses its daemon, and a daemon started by `db:setup` restarts the stack's old containers — `supabase start` then failed (`StatusDbNotReadyError`) instead of waiting for them. It now waits for their health checks, and dockerd's output goes to a log file named in any error. From a stopped daemon, `npm run setup` reaches a migrated, seeded stack in about 36 s (twice in a row).
 
 ### 2026-10-17

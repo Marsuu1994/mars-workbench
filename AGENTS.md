@@ -208,7 +208,8 @@ npm run knip         # Unused files, exports and dependencies (CI; config in kni
 npm run format       # Format all code with Prettier
 npm run format:check # Verify formatting (CI)
 npm run check:themes # Every theme declares the same CSS variables (CI)
-npm run setup        # Fresh checkout → .env.local, npm install, db:setup (`-- --no-db` stops after install)
+npm run up           # One-click start: setup, then the dev server (fresh checkout or any day)
+npm run setup        # .env.local, npm install, db:setup — no dev server (`-- --no-db` stops after install)
 npm run db:setup     # Start the local Supabase stack, migrate, seed (safe to rerun)
 npm run db:reset     # Wipe the local stack, migrate, seed
 npm run db:stop      # Stop the local stack (data kept)
