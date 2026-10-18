@@ -6,16 +6,16 @@
  * - `npm run db:reset` — wipe it (app tables and Auth users), migrate and seed.
  * - `npm run db:stop` — stop it; the data is kept for the next `db:setup`.
  *
- * Setup and reset refuse to run unless `.env.local` points at the local stack.
+ * Setup and reset refuse to run unless `.env.local` (created by `npm run setup`)
+ * points at the local stack.
  */
 import {spawn, spawnSync} from 'node:child_process';
-import {copyFileSync, existsSync} from 'node:fs';
+import {existsSync} from 'node:fs';
 import {setTimeout as sleep} from 'node:timers/promises';
 import {config} from 'dotenv';
 import {SUPABASE_CLI, assertLocalServices} from './localEnv';
 
 const ENV_FILE = '.env.local';
-const ENV_TEMPLATE = '.env.example';
 const DOCKER_START_TIMEOUT_MS = 60_000;
 const DOCKER_POLL_INTERVAL_MS = 1_000;
 
@@ -69,13 +69,17 @@ const migrateAndSeed = () => {
   run('npm', ['run', 'db:seed']);
 };
 
-const setup = async () => {
+/** Load `.env.local` and refuse anything but the local stack. */
+const loadLocalEnv = (context: string) => {
   if (!existsSync(ENV_FILE)) {
-    copyFileSync(ENV_TEMPLATE, ENV_FILE);
-    console.log(`Created ${ENV_FILE} from ${ENV_TEMPLATE}.`);
+    throw new Error(`${context}: no ${ENV_FILE} yet — run npm run setup.`);
   }
   config({path: ENV_FILE, quiet: true});
-  assertLocalServices('db:setup');
+  assertLocalServices(context);
+};
+
+const setup = async () => {
+  loadLocalEnv('db:setup');
   await ensureDocker();
   // The CLI pulls from public.ecr.aws by default, which refuses anonymous
   // pulls past its data limit from shared cloud IPs; Docker Hub serves the
@@ -89,8 +93,7 @@ const setup = async () => {
 };
 
 const reset = () => {
-  config({path: ENV_FILE, quiet: true});
-  assertLocalServices('db:reset');
+  loadLocalEnv('db:reset');
   runSupabase(['db', 'reset']);
   migrateAndSeed();
 };

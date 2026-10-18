@@ -7,7 +7,7 @@
 `npm run dev` serves `/design` and its scenario pages without signing in, so agents and the owner can browse, screenshot and debug UI straight away; production builds (Vercel previews included) keep the auth gate. The console renders fixtures only and never reads Supabase or the database, so it boots without the local Supabase stack running — a machine without `.env.local` (a cloud agent's container) only needs the local defaults:
 
 ```bash
-cp .env.example .env.local && npm run dev
+npm run setup -- --no-db && npm run dev
 ```
 
 ## Frames

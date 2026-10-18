@@ -69,7 +69,7 @@ Read the design docs only when the task involves logic, data or new flows; skip 
 - `design/reference.md`: server action, service or DAL changes
 - `src/app/design/scenarios/<feature>/`: the feature's screen states
 
-A fresh checkout copies `.env.example` to `.env.local` before `npm install` (its postinstall `prisma generate` needs `DIRECT_URL`). A task that needs the database or a signed-in page runs `npm run db:setup` first (it starts Docker in a cloud container, then the local Supabase stack, migrations and seed), and `npm run dev:session` to sign in as the seeded dev user without Google.
+A fresh checkout runs `npm run setup` (`.env.local` from `.env.example`, `npm install`, then the local Supabase stack with migrations and seed — starting Docker first in a cloud container); a task that needs neither the database nor a signed-in page runs `npm run setup -- --no-db` instead. `npm run dev:session` signs in as the seeded dev user without Google.
 
 ### Where the rules live
 
@@ -208,6 +208,7 @@ npm run knip         # Unused files, exports and dependencies (CI; config in kni
 npm run format       # Format all code with Prettier
 npm run format:check # Verify formatting (CI)
 npm run check:themes # Every theme declares the same CSS variables (CI)
+npm run setup        # Fresh checkout → .env.local, npm install, db:setup (`-- --no-db` stops after install)
 npm run db:setup     # Start the local Supabase stack, migrate, seed (safe to rerun)
 npm run db:reset     # Wipe the local stack, migrate, seed
 npm run db:stop      # Stop the local stack (data kept)

@@ -45,7 +45,7 @@ export const assertLocalServices = (context: string) => {
   if (remoteVars.length === 0) return;
   throw new Error(
     `${context} refuses to run: ${remoteVars.join(', ')} point${remoteVars.length === 1 ? 's' : ''} off this machine. ` +
-      'Copy .env.example to .env.local for the local Supabase stack (npm run db:setup); production credentials belong in .env.prod.',
+      'Point .env.local at the local Supabase stack (npm run setup creates it from .env.example); production credentials belong in .env.prod.',
   );
 };
 

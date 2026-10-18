@@ -16,6 +16,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check:themes": "node scripts/check-theme-vars.mjs",
+    "setup": "node scripts/setup.mjs",
     "db:setup": "tsx scripts/localDb.ts setup",
     "db:reset": "tsx scripts/localDb.ts reset",
     "db:stop": "tsx scripts/localDb.ts stop",
