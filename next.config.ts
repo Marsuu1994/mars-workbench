@@ -1,5 +1,7 @@
 import type {NextConfig} from 'next';
+import {PHASE_DEVELOPMENT_SERVER} from 'next/constants';
 import createNextIntlPlugin from 'next-intl/plugin';
+import {assertLocalServices} from './scripts/localEnv';
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -23,4 +25,17 @@ const nextConfig: NextConfig = {
 // Defaults to ./src/i18n/request.ts for the per-request i18n config.
 const withNextIntl = createNextIntlPlugin();
 
-export default withNextIntl(nextConfig);
+// `next dev` runs against the local Supabase stack only, so local work never
+// writes production data by accident; ALLOW_REMOTE_SUPABASE=1 lets a
+// deliberate session through.
+const getNextConfig = (phase: string) => {
+  if (
+    phase === PHASE_DEVELOPMENT_SERVER &&
+    process.env.ALLOW_REMOTE_SUPABASE !== '1'
+  ) {
+    assertLocalServices('next dev (ALLOW_REMOTE_SUPABASE=1 overrides)');
+  }
+  return withNextIntl(nextConfig);
+};
+
+export default getNextConfig;

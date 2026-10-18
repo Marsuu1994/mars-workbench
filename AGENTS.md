@@ -25,7 +25,8 @@ Directory responsibilities only — for concrete file and component names, read 
 ```text
 public/                            # PWA manifest, service worker, icons
 prisma/                            # schema.prisma + migrations/
-scripts/                           # Repo checks run in CI (check-theme-vars.mjs)
+supabase/                          # Local Supabase stack config (Postgres + Auth in Docker)
+scripts/                           # Repo checks run in CI; the local stack's setup, seed and dev session
 design/                            # Design docs — index in design/README.md
 ├── baseline.md                    # The one app-wide baseline: goal, entities, schema, architecture decisions
 ├── design-language/               # Per-theme visual specs + the shared fx-* skeleton
@@ -67,6 +68,8 @@ Read the design docs only when the task involves logic, data or new flows; skip 
 - `design/flows/<feature>.md`: flow changes or additions
 - `design/reference.md`: server action, service or DAL changes
 - `src/app/design/scenarios/<feature>/`: the feature's screen states
+
+A fresh checkout runs `npm run setup` (`.env.local` from `.env.example`, `npm install`, then the local Supabase stack with migrations and seed — starting Docker first in a cloud container); a task that needs neither the database nor a signed-in page runs `npm run setup -- --no-db` instead. `npm run dev:session` signs in as the seeded dev user without Google.
 
 ### Where the rules live
 
@@ -171,6 +174,7 @@ A complex task — several PRs, a data-model change, a new tool surface, or a ch
 
 ## Data & State
 
+- **Local work never touches production.** `.env.local` points at the local Supabase stack, and `next dev` and the local scripts refuse any other database or Supabase URL. Production credentials live only in `.env.prod`, used by `npm run db:deploy:prod` and only when the owner asks.
 - Prefer batch writes (`createMany`, `updateMany`) over per-row loops.
 - ACID-critical multi-step writes run in `prisma.$transaction()`; DAL writes take `tx?: Prisma.TransactionClient`.
 - Use focused `select` fields unless the full model is needed.
@@ -183,6 +187,7 @@ A complex task — several PRs, a data-model change, a new tool surface, or a ch
 - **Local sessions** (on the owner's machine): never commit, push or take another outward-facing VCS action without explicit permission — make and stage the changes, summarize them, and wait for approval.
 - **Remote sessions** (cloud containers such as Claude Code on the web): commit, push with `git push -u origin <branch>` and open the PR without asking.
 - Never commit or push to `main`; changes land through pull requests.
+- **One task, one branch, one PR.** Everything a session's task produces — its spike, the decision, the implementation, the docs and any follow-ups the owner adds along the way — goes on one branch into one PR. A second branch or PR only when the owner asks for one. Bad: a spike PR plus a stacked implementation PR from the same session. Good: the spike, its Decision and the code it decided, all in one PR.
 - **Branch names say what the PR does**: `claude/<feature>-<change>`, kebab-case, a few words, with the step for a multi-PR project. A remote session whose assigned branch is a random name creates a descriptive branch instead. Bad: `claude/quirky-galileo-8ofthc`, `claude/project-data-layer`. Good: `claude/week-model-pr3-project-data-layer`.
 - **Before every push**:
   1. `design/tracker.md`: delete finished items and sub-bullets.
@@ -203,8 +208,15 @@ npm run knip         # Unused files, exports and dependencies (CI; config in kni
 npm run format       # Format all code with Prettier
 npm run format:check # Verify formatting (CI)
 npm run check:themes # Every theme declares the same CSS variables (CI)
+npm run up           # One-click start: setup, then the dev server (fresh checkout or any day)
+npm run setup        # .env.local, npm install, db:setup — no dev server (`-- --no-db` stops after install)
+npm run db:setup     # Start the local Supabase stack, migrate, seed (safe to rerun)
+npm run db:reset     # Wipe the local stack, migrate, seed
+npm run db:stop      # Stop the local stack (data kept)
+npm run dev:session  # Sign in as the seeded dev user: Playwright storageState + Cookie header
+npm run db:deploy:prod  # Apply migrations to production (.env.prod) — only when the owner asks
 npx @modelcontextprotocol/inspector --cli http://localhost:3000/api/mcp --transport http --method tools/list  # MCP smoke test (or drop --cli for the UI)
 npx prisma studio
-npx prisma migrate dev
+npx prisma migrate dev  # Against the local stack, like every Prisma command but db:deploy:prod
 npx prisma generate
 ```

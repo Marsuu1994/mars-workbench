@@ -2,6 +2,9 @@
   "name": "mars-workbench",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "NODE_OPTIONS='--inspect' next dev",
     "build": "next build",
@@ -12,7 +15,15 @@
     "knip": "knip",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check:themes": "node scripts/check-theme-vars.mjs"
+    "check:themes": "node scripts/check-theme-vars.mjs",
+    "up": "node scripts/setup.mjs --dev",
+    "setup": "node scripts/setup.mjs",
+    "db:setup": "tsx scripts/localDb.ts setup",
+    "db:reset": "tsx scripts/localDb.ts reset",
+    "db:stop": "tsx scripts/localDb.ts stop",
+    "db:seed": "tsx --env-file=.env.local scripts/seed.ts",
+    "db:deploy:prod": "PRISMA_ENV_FILE=.env.prod prisma migrate deploy",
+    "dev:session": "tsx --env-file=.env.local scripts/devSession.ts"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
@@ -48,6 +59,7 @@
     "prettier": "3.9.4",
     "prisma": "^7.1.0",
     "tailwindcss": "^4.1.17",
+    "tsx": "4.23.15",
     "typescript": "^5"
   },
   "browserslist": "> 1%"
