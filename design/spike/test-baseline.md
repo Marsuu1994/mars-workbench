@@ -1,6 +1,6 @@
 # Spike: Test baseline
 
-**Status: awaiting owner review**（Q1–Q10 已回复，见 Decision；Q11–Q12 待定）· 2026-10-18（2026-10-17 起草，2026-10-21 按 owner review 更新）· 回答 tracker 条目 *Milestone — Quality gate before Phase 2 › Step 5*（Cross-cutting › High）· 基于 main `67dd8a3`（#77）· 起因：Step 4 的 review（PR #74）中 owner 问「用本地 DB 测 service 算不算 e2e」，并加了一条探索：agent 自己起浏览器验 UI 有没有必要、花多少 token、能不能用 CI 加 owner 验收代替 · 相关：`src/utils/`、`src/services/`、`src/lib/db/`、`src/mcp/`、`scripts/`（Step 4 的本地栈）、`src/app/design/`、`.github/workflows/ci.yml`
+**Status: decided** · 2026-10-18（2026-10-17 起草，2026-10-21 拍板，owner review 见 PR #75）· 回答 tracker 条目 *Milestone — Quality gate before Phase 2 › Step 5*（Cross-cutting › High）· 基于 main `67dd8a3`（#77）· 起因：Step 4 的 review（PR #74）中 owner 问「用本地 DB 测 service 算不算 e2e」，并加了一条探索：agent 自己起浏览器验 UI 有没有必要、花多少 token、能不能用 CI 加 owner 验收代替 · 相关：`src/utils/`、`src/services/`、`src/lib/db/`、`src/mcp/`、`scripts/`（Step 4 的本地栈）、`src/app/design/`、`.github/workflows/ci.yml`
 
 > 语言约定：叙述用中文；工具名、测试术语和代码标识保留英文（Vitest、Playwright、unit / integration / e2e、`toBoardCards`、`services: postgres`、cache read），和代码、tracker 一一对应。
 
@@ -14,9 +14,9 @@
 4. **agent 验收**：大部分可以交给 CI + owner 在 Vercel preview 上验收 + 返工，能省 token。但省下的主要不是截图（一张约 1.4k token），而是在大上下文里多出来的调用：每次调用都要把整个上下文再读一遍，同样一轮自验，在 45 万 token 的上下文里比在 10 万里贵 4 倍多。按改动类型分级；需要开浏览器的，交给一个上下文固定的 subagent 去验，主 agent 只读它的文字结论。
 5. **本次验证**：在云端容器里用 Vitest 5.0.5 和容器自带的 Postgres 16 跑通了原型，三类测试共 25 个，1 秒内跑完：unit、service integration、直接调 `/api/mcp` 的 route handler。空库跑完 19 个 migration 用 1.6 秒。
 
-## Decision · 已拍板（2026-10-21）
+## Decision · 拍板（2026-10-21）
 
-owner 在 PR #75 的 review 里逐条回复了 Q1–Q10，另外追问了两件事：本地和 CI 的「真实 DB」各是什么、测试数据怎么建怎么清；agent 验收能不能交给上下文固定的 subagent。
+owner 在 PR #75 的 review 里逐条回复了 Q1–Q10，另外追问了两件事：本地和 CI 的「真实 DB」各是什么、测试数据怎么建怎么清；agent 验收能不能交给上下文固定的 subagent。追问的答案写成了两节新内容和 Q11、Q12，owner 在对话里回复了这两个问题。
 
 | 问题 | 结论 | 带来的变化 |
 | --- | --- | --- |
@@ -29,6 +29,8 @@ owner 在 PR #75 的 review 里逐条回复了 Q1–Q10，另外追问了两件�
 | Q7 · coverage 门槛 | 按建议：`utils` lines 90% / branches 80%，services + DAL lines 80%，其余不设，只升不降 | — |
 | Q8 + Q9 · agent 验收 | 分级表照用；需要开浏览器的几行，交给一个上下文固定的 subagent 去验，主 agent 只读它的结论再决定 | 新增「用 subagent 验收」一节和 Q12；`.claude/agents/ui-verifier.md` 进实施计划 |
 | Q10 · 组件测试和视觉回归 | 这一步不做；UI 组件测试记进 Phase 2 的 tracker | tracker 的 Week model Phase 2 下加一条 |
+| Q11 · 测试数据 | **(a) + (a)**：integration 用单独的 `mars_test` 库，每个 test 自己造数据；e2e 用 dev 的库和独立的 e2e user，本地复用正在跑的 `npm run dev`；只在运行前清 | — |
+| Q12 · ui-verifier 的模型 | **(a)** 沿用主 session 的模型。owner 先问了换便宜模型能省多少：省的是钱不是 token；Sonnet 5.5 的输入和输出是 Opus 5.5 的一半，但 cache read 同为每百万 token $0.20，而这正是大头，估算整轮只省约两成，还要冒判断变弱、多返工的风险 | — |
 | review 中提出 · Node 版本 | main 已经升到 Node 24（#76），`@types/node` 是 `^24`，满足 Vitest 5 的要求（Node `^22.12 \|\| ^24`，`@types/node` `^22 \|\| >=24`） | 实施计划去掉「升 `@types/node`」 |
 
 下文保留 review 时的分析和选项；和结论不一致的地方，以本节为准。
@@ -266,7 +268,7 @@ AGENTS.md › UI Workflow 让 agent 在 Design Console 里验 UI 改动。实际
 
 从这些数据能看出四点：
 
-- **钱主要花在重读上下文上。** 每次调用都要把整个上下文再读一遍。这部分走 prompt cache，按 cache read 计费。以表里最后一行为例：cache read 363 万 token，新写入 7 千，输出 6 千；按金额算，cache read 约占九成。所以，一次调用的成本 ≈ 上下文大小 × cache read 单价；从记录反推，单价约每百万 token $0.25–0.28。上下文 10 万时一次调用约 $0.03，45 万时约 $0.13。
+- **钱主要花在重读上下文上。** 每次调用都要把整个上下文再读一遍。这部分走 prompt cache，按 cache read 计费。以表里最后一行为例：cache read 363 万 token，新写入 7 千，输出 6 千；按 Opus 5.5 的官方价目（输入每百万 token $4、输出 $20、cache read $0.20），这一轮的费用里 cache read 约占七成，输出（含 thinking）约一成多。所以，一次调用的成本 ≈ 上下文大小 × $0.20 / 百万，再加上这一步的输出。实测平均：上下文 10 万时一次调用约 $0.04，45 万时约 $0.13。
 - **截图本身便宜，但会留在上下文里。** 1280 × 800 的截图约 1.4k token，手机尺寸约 0.4k。它之后每次调用都会被再读一遍：10 张 desktop 截图约 1.4 万 token，如果后面还有 200 次调用，就是约 280 万 token 的重读。
 - **同样一轮自验，session 越往后越贵。** 一轮自验通常 6–12 次调用：起 server、等编译、写脚本、跑、读图、调整、再跑。上下文 10 万时，这一轮约 60–120 万 token（$0.2–0.4）；45 万时约 270–540 万 token（$0.8–1.6），贵 4 倍多。
 - **headless Chromium 看不到的问题，agent 验不出来。** logo 闪烁只在 WebKit 上出现（iOS 的 Safari 和 Chrome 都是 WebKit）。表里第二行那一轮，专门为复现闪烁做的浏览器探测至少有 7 次，每次的上下文约 39–41 万，合计约 280 万 token（约 $0.8），都没复现。owner 的一张手机截图到手后，第三行那一轮 11 次调用就修好了。
@@ -369,7 +371,7 @@ owner 在 review 里问：既然成本来自不断变大的上下文，能不能
 
 ## 待 owner 决定的问题
 
-### 还待回复
+全部已回复，结论见 Decision。下面保留问题原文。
 
 **Q11 · 测试数据的分法和清理时机。** 按「测试数据：dev、integration、e2e 各用什么」那张表：
 
@@ -384,8 +386,6 @@ owner 在 review 里问：既然成本来自不断变大的上下文，能不能
 
 - **(a)** 沿用主 session 的模型（推荐）：先保证判断质量，实测 token 之后再说。
 - **(b)** 固定用更便宜的模型（比如 Sonnet）：每 token 单价更低，但看图和判断「这样算不算对齐」可能弱一些。
-
-### 已回复（结论见 Decision）
 
 **Q1 · 工具和测试文件的位置。** 工具用 Vitest 5 + Playwright？测试文件放哪：
 
