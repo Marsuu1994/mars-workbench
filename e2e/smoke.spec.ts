@@ -11,7 +11,10 @@ import {
 } from '../test/seedData';
 import {PLAN_LINK, expect, openPage, test} from './fixtures';
 
-/** The text where it shows: pages also render it in hidden mobile or desktop parts. */
+/**
+ * The text where it shows. A page can hold a hidden copy too: its other
+ * layout, or a streamed Suspense chunk React hasn't swapped in yet.
+ */
 const expectToSee = (page: Page, text: string) =>
   expect(page.getByText(text).filter({visible: true}).first()).toBeVisible();
 
@@ -50,7 +53,7 @@ test('the dump shows its entries and the composer', async ({page}) => {
   await expect(
     page.getByRole('textbox', {name: "What's on your mind?"}),
   ).toBeVisible();
-  await expect(page.getByText(SEED_DUMP_ENTRIES[0])).toBeVisible();
+  await expectToSee(page, SEED_DUMP_ENTRIES[0]);
 });
 
 test('settings open from the navigation', async ({page}) => {
