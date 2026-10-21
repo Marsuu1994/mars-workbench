@@ -8,93 +8,19 @@
 import {createDumpEntry} from '@/lib/db/dumpEntries';
 import {getBoardTasksByPlanId} from '@/lib/db/tasks';
 import {completeMatrixTask, trackTaskThisWeek} from '@/services/matrixService';
-import {
-  PlanMode,
-  PriorityQuadrant,
-  TaskSize,
-  TaskStatus,
-  TaskType,
-} from '@/utils/enums';
+import {PlanMode, TaskStatus} from '@/utils/enums';
 import {
   createOneOff,
   createProjectWithSteps,
   createWeek,
   moveTasks,
-  newHabit,
 } from './factories';
-
-export const SEED_ONE_OFFS = [
-  {
-    title: 'Renew passport',
-    size: TaskSize.SMALL,
-    quadrant: PriorityQuadrant.DO_FIRST,
-  },
-  {
-    title: 'Book dentist appointment',
-    size: TaskSize.EXTRA_SMALL,
-    quadrant: PriorityQuadrant.DO_FIRST,
-  },
-  {
-    title: 'Set up a retirement account',
-    size: TaskSize.MEDIUM,
-    quadrant: PriorityQuadrant.SCHEDULE,
-  },
-  {
-    title: 'Reply to the landlord',
-    size: TaskSize.EXTRA_SMALL,
-    quadrant: PriorityQuadrant.SQUEEZE_IN,
-  },
-  {
-    title: 'Sort old photos',
-    size: TaskSize.LARGE,
-    quadrant: PriorityQuadrant.MAYBE_LATER,
-  },
-];
-
-export const SEED_HABITS = {
-  run: {
-    ...newHabit('Morning run', TaskType.DAILY),
-    description: '30 minutes, easy pace',
-  },
-  flashcards: {
-    ...newHabit('Flashcards', TaskType.DAILY, 1, TaskSize.EXTRA_SMALL),
-    description: '20 Spanish cards',
-  },
-  review: {
-    ...newHabit('Weekly review', TaskType.WEEKLY, 2),
-    description: 'Look back at the week and tidy the matrix',
-  },
-};
-
-export const SEED_PROJECTS = {
-  course: {
-    title: 'Spanish A2 course',
-    goal: 'Finish the A2 units and pass the end-of-course quiz',
-    steps: [
-      {title: 'Unit 1 — Daily routines', size: TaskSize.SMALL},
-      {title: 'Unit 2 — Past tense', size: TaskSize.MEDIUM},
-      {title: 'Unit 3 — Travel', size: TaskSize.SMALL},
-      {title: 'Unit 4 — Health', size: TaskSize.SMALL},
-      {title: 'Unit 5 — Work', size: TaskSize.MEDIUM},
-      {title: 'End-of-course quiz', size: TaskSize.EXTRA_SMALL},
-    ],
-  },
-  book: {
-    title: 'Read Deep Work',
-    goal: 'Read it and keep one page of notes',
-    steps: [
-      {title: 'Part 1 — The idea', size: TaskSize.SMALL},
-      {title: 'Part 2 — The rules', size: TaskSize.MEDIUM},
-      {title: 'One page of notes', size: TaskSize.EXTRA_SMALL},
-    ],
-  },
-};
-
-const SEED_DUMP_ENTRIES = [
-  'Maybe the board needs a weekly review ritual on Sundays.',
-  'Worried the course is too much on top of work this month.',
-  'Idea: a reading list project once the book is done.',
-];
+import {
+  SEED_DUMP_ENTRIES,
+  SEED_HABITS,
+  SEED_ONE_OFFS,
+  SEED_PROJECTS,
+} from './seedData';
 
 const seedProjects = async (userId: string) => {
   const {course, book} = SEED_PROJECTS;

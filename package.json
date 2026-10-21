@@ -27,7 +27,8 @@
     "db:stop": "tsx scripts/localDb.ts stop",
     "db:seed": "tsx --env-file=.env.local scripts/seed.ts",
     "db:deploy:prod": "PRISMA_ENV_FILE=.env.prod prisma migrate deploy",
-    "dev:session": "tsx --env-file=.env.local scripts/devSession.ts"
+    "dev:session": "tsx --env-file=.env.local scripts/devSession.ts",
+    "e2e:session": "tsx --env-file=.env.local scripts/e2eSession.ts"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
