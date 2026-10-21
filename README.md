@@ -12,7 +12,7 @@ npm run up   # .env.local, npm install, the stack (start, migrate, seed), then t
 
 One command from a fresh checkout and every day after: it skips what is already done (an up-to-date install, a running stack, applied migrations, existing seed data). Open [http://localhost:3000](http://localhost:3000).
 
-- **Sign in with Google**: copy `supabase/.env.example` to `supabase/.env` and fill in the Google OAuth client's id and secret (its authorized redirect URIs include `http://127.0.0.1:54321/auth/v1/callback`), then `npm run db:stop && npm run db:setup`. To land on the seeded data, set `SEED_EMAIL` to your Gmail in `.env.local` and `npm run db:reset`.
+- **Sign in with Google**: copy `supabase/.env.example` to `supabase/.env` and fill in the Google OAuth client's id and secret (its authorized redirect URIs include `http://127.0.0.1:54321/auth/v1/callback`), then `npm run db:stop && npm run db:setup`. To land on the seeded data, uncomment `SEED_EMAIL` in `.env.local` and set it to your Gmail, then `npm run db:reset` and sign in again. The reset also removes the separate, empty user an earlier Google sign-in created, and the seed prints the address it used.
 - **Without Google** (scripts, agents, Playwright): `npm run dev:session` signs in as the seeded dev user and writes its cookies.
 - **Day to day**: `npm run up`; `npm run db:stop` stops the stack (data kept), `npm run db:reset` wipes and reseeds, `npm run setup` does everything but the dev server. `npx prisma migrate dev` works against the stack.
 - **Production**: its credentials live only in `.env.prod`. Once a migration is merged, `npm run db:deploy:prod` applies it.
@@ -100,6 +100,16 @@ Open items: see [design/tracker.md](./design/tracker.md).
 - [x] Deploy app on Vercel
 
 ## Update Log
+
+### 2026-10-21
+- **Quality gate Step 11 done: the local Supabase stack works on the owner's Mac, Google sign-in included, and the project runs on Node 24.** Step 4's last open checks — local Google sign-in landing on the seeded week, MCP writes going to the local database — pass, and production was untouched throughout.
+- **Verified on the owner's Mac** (OrbStack, Node 24.11.1):
+  - **Production credentials moved out**: the old `.env.local`, which held only production values, became `.env.prod`, the file `npm run db:deploy:prod` reads. A fresh `.env.local` comes from `.env.example`.
+  - **Google sign-in**: the production Google OAuth client gained the local redirect URI `http://127.0.0.1:54321/auth/v1/callback`, and its id and secret went into `supabase/.env`. With `SEED_EMAIL` set to the owner's Gmail, a local Google sign-in links to the seeded dev user and lands on the seeded week. This was the first real test of that link: Supabase Auth attaches a Google identity whose email is verified to the existing user with the same email (GoTrue's `DetermineAccountLinking`).
+  - **The one snag**: the first `npm run up` ran with `SEED_EMAIL` still commented out, so the seed used `dev@mars.local` and the Google sign-in created a second, empty user. Uncommenting it and running `npm run db:reset` (which also removes that user) fixed it. Getting Started and `.env.example` now say to uncomment the line.
+  - **MCP**: `create_project` through the MCP Inspector, with no token, acts as the dev user; the project shows on the local Projects page, and production shows neither it nor the seed data.
+- **The project runs on Node 24** (PR #76; the owner's Mac already ran it): Node 22 left active LTS a year ago and reaches end of life on 2027-04-30, while 24 is supported until 2028-04-30 and is Vercel's default. `package.json` pins `24.x` (`engines`, which Vercel follows over its project setting, so production moved to 24 with the merge), CI's five jobs run 24, a new `.nvmrc` lets nvm pick it up, and `@types/node` moves from 20 to 24. Cloud agent containers ship Node 22 only; npm there warns about the engine but runs, until the cloud environment's setup script installs 24. Verified on Node 24.22.0: `npm ci`, Prettier, ESLint, tsc, knip, the theme check and `next build` pass, and `next dev` serves the Design Console.
+- **Tracker**: Step 11 leaves the Quality gate milestone.
 
 ### 2026-10-18
 - **Quality gate: the local stack starts with one command, and Step 5's test spike is up for review** — `npm run up` replaces Getting Started's four steps and `db:setup` survives a cold Docker daemon (both from PR #74's review); the test-baseline spike proposes the tools, what each layer tests, coverage floors, and which UI checks agents can leave to CI and the owner.
