@@ -1,18 +1,37 @@
 # Spike: Test baseline
 
-**Status: awaiting owner review** · 2026-10-18（2026-10-17 起草）· 回答 tracker 条目 *Milestone — Quality gate before Phase 2 › Step 5*（Cross-cutting › High）· 基于 main `045568a`（#74）· 起因：Step 4 的 review（PR #74）中 owner 问「用本地 DB 测 service 算不算 e2e」，并加了一条探索：agent 自己起浏览器验 UI 有没有必要、花多少 token、能不能用 CI 加 owner 验收代替 · 相关：`src/utils/`、`src/services/`、`src/lib/db/`、`src/mcp/`、`scripts/`（Step 4 的本地栈）、`src/app/design/`、`.github/workflows/ci.yml`
+**Status: awaiting owner review**（Q1–Q10 已回复，见 Decision；Q11–Q12 待定）· 2026-10-18（2026-10-17 起草，2026-10-21 按 owner review 更新）· 回答 tracker 条目 *Milestone — Quality gate before Phase 2 › Step 5*（Cross-cutting › High）· 基于 main `67dd8a3`（#77）· 起因：Step 4 的 review（PR #74）中 owner 问「用本地 DB 测 service 算不算 e2e」，并加了一条探索：agent 自己起浏览器验 UI 有没有必要、花多少 token、能不能用 CI 加 owner 验收代替 · 相关：`src/utils/`、`src/services/`、`src/lib/db/`、`src/mcp/`、`scripts/`（Step 4 的本地栈）、`src/app/design/`、`.github/workflows/ci.yml`
 
 > 语言约定：叙述用中文；工具名、测试术语和代码标识保留英文（Vitest、Playwright、unit / integration / e2e、`toBoardCards`、`services: postgres`、cache read），和代码、tracker 一一对应。
 
-这份 spike 分八部分：现状；三种测试的边界；选型（runner、integration 用的 DB、e2e，以及这一步不做的）；本次在云端容器里的验证；每层测什么；coverage 目标；agent 验收能不能交给 CI + owner 验收 + 返工（附从 session 记录里取的 token 数据）；实施计划和待 owner 决定的问题，问题编号方便逐条回复。
+这份 spike 分八部分：现状；三种测试的边界；选型（runner、integration 用的 DB 和测试数据、e2e，以及这一步不做的）；本次在云端容器里的验证；每层测什么；coverage 目标；agent 验收能不能交给 CI + owner 验收 + 返工（附从 session 记录里取的 token 数据，以及用 subagent 验收的做法）；实施计划和待 owner 决定的问题，问题编号方便逐条回复。已拍板的部分见下面的 Decision 一节。
 
 **结论先行**：
 
 1. **工具**：Vitest 5 跑 unit 和 integration，Playwright 跑 e2e，三样都进 CI。
 2. **分层**：纯函数的 unit test 数量最多；service 和 MCP 工具连真实 Postgres 做 integration test，不 mock DAL；e2e 只做每页一个 smoke、Design Console smoke 和 4 条关键路径。e2e 是唯一要登录、要起 Supabase 栈的一层。
 3. **Coverage**：不设全局数字，因为组件和路由占了代码的约 2/3，不在 unit 的范围内。门槛按目录设：`src/utils` lines ≥ 90%，services + DAL lines ≥ 80%；落地时按实测值写进配置，之后只升不降。
-4. **agent 验收**：大部分可以交给 CI + owner 在 Vercel preview 上验收 + 返工，能省 token。但省下的主要不是截图（一张约 1.4k token），而是在大上下文里多出来的调用：每次调用都要把整个上下文再读一遍，同样一轮自验，在 45 万 token 的上下文里比在 10 万里贵 4 倍多。推荐按改动类型分级，不一刀切。
+4. **agent 验收**：大部分可以交给 CI + owner 在 Vercel preview 上验收 + 返工，能省 token。但省下的主要不是截图（一张约 1.4k token），而是在大上下文里多出来的调用：每次调用都要把整个上下文再读一遍，同样一轮自验，在 45 万 token 的上下文里比在 10 万里贵 4 倍多。按改动类型分级；需要开浏览器的，交给一个上下文固定的 subagent 去验，主 agent 只读它的文字结论。
 5. **本次验证**：在云端容器里用 Vitest 5.0.5 和容器自带的 Postgres 16 跑通了原型，三类测试共 25 个，1 秒内跑完：unit、service integration、直接调 `/api/mcp` 的 route handler。空库跑完 19 个 migration 用 1.6 秒。
+
+## Decision · 已拍板（2026-10-21）
+
+owner 在 PR #75 的 review 里逐条回复了 Q1–Q10，另外追问了两件事：本地和 CI 的「真实 DB」各是什么、测试数据怎么建怎么清；agent 验收能不能交给上下文固定的 subagent。
+
+| 问题 | 结论 | 带来的变化 |
+| --- | --- | --- |
+| Q1 · 工具和文件位置 | Vitest 5 + Playwright；**(a)** 测试和源码放在一起，e2e 在根目录 `e2e/`，共用 helper 和测试约定的 README 在根目录 `test/` | — |
+| Q2 · service 测试 | **方案 A**：连真实 Postgres，不 mock DAL | 追问的答案见「测试数据：dev、integration、e2e 各用什么」一节，新增 Q11 |
+| Q3 · 云端 agent 的 Postgres | **(b)**：本地栈没在跑时，用容器预装的 Postgres 16，优先快 | integration 的 global setup 按这个顺序找 DB |
+| Q4 · 时区 | unit 和 integration 都在 `UTC` 和 `America/Los_Angeles` 各跑一遍 | — |
+| Q5 · e2e 的范围 | 按建议：每页 smoke（两个视口）+ Design Console smoke + 4 条关键路径，独立的 e2e user | — |
+| Q6 · e2e 什么时候跑 | **(a)** 每个 PR 都跑 | — |
+| Q7 · coverage 门槛 | 按建议：`utils` lines 90% / branches 80%，services + DAL lines 80%，其余不设，只升不降 | — |
+| Q8 + Q9 · agent 验收 | 分级表照用；需要开浏览器的几行，交给一个上下文固定的 subagent 去验，主 agent 只读它的结论再决定 | 新增「用 subagent 验收」一节和 Q12；`.claude/agents/ui-verifier.md` 进实施计划 |
+| Q10 · 组件测试和视觉回归 | 这一步不做；UI 组件测试记进 Phase 2 的 tracker | tracker 的 Week model Phase 2 下加一条 |
+| review 中提出 · Node 版本 | main 已经升到 Node 24（#76），`@types/node` 是 `^24`，满足 Vitest 5 的要求（Node `^22.12 \|\| ^24`，`@types/node` `^22 \|\| >=24`） | 实施计划去掉「升 `@types/node`」 |
+
+下文保留 review 时的分析和选项；和结论不一致的地方，以本节为准。
 
 ## 现状
 
@@ -23,7 +42,7 @@
   - seed：按「今天」生成一周数据，走 services；
   - `dev:session`：不经 Google 登录，输出 Playwright 的 storageState。
 - agent 现在怎么验 UI：AGENTS.md › UI Workflow 让 agent 在 Design Console 里验。实际做法是起 `next dev`，用 Playwright 驱动 Chromium 截图或者量 DOM（见下文实测）。之后 owner 在 Vercel preview 上再看一遍。
-- 依赖上的一个前提：Vitest 5 要求 `@types/node` ≥ 22，项目还是 `^20`。`engines` 已经是 Node 22.x，实施时一起升。
+- 依赖上的前提已经满足：Vitest 5 要求 Node `^22.12 || ^24` 和 `@types/node` `^22 || >=24`；main 在 #76 升到了 Node 24 和 `@types/node` `^24`。
 
 ## 三种测试
 
@@ -68,6 +87,50 @@
 - **隔离：每个 test 一个随机 `userId`。** app 表只存 `user_id`，没有指向 `auth.users` 的外键，DAL 的每条查询都按 `userId` 过滤。所以不同 test 的数据互相看不见：不用每个 test 都清表，不用每个 worker 一个 schema，测试文件之间可以并行。global setup 在每次运行前清一次表，免得测试库越积越大。用事务回滚隔离行不通：services 自己开 `$transaction`，Prisma 不支持从外面再套一层。
 - **时间：只 fake `Date`。** services 里的「今天」来自 `getTodayDate()`，也就是 `new Date()`。测试用 `vi.useFakeTimers({toFake: ['Date']})` 加 `vi.setSystemTime(...)` 把时间拨到某个周三或下周一；pg 的连接不受影响（本次验证）。
 - **mock 只用于两处外部边界**：Supabase Auth（MCP 的 `getClaims`）和时间。
+
+### 测试数据：dev、integration、e2e 各用什么
+
+owner 在 review 里追问：方案 A 的「真实 DB」是不是 Step 4 的本地 Supabase 容器？CI 也用它吗？能不能建一个 test user、seed 好数据、测完清掉？e2e 起的 server 是不是和它用同一个 user、同一份数据？
+
+一句话回答：**本地用的是同一个 Supabase 容器里的 Postgres，但三种用途各用各的**。
+
+- dev 用默认的 `postgres` 库和 dev user。
+- integration 用同一个容器里单独的 `mars_test` 库，每个 test 一个临时 user。
+- e2e 用 dev 的那个库，但换一个独立的 e2e user。
+- CI 里 integration 不起 Supabase，只起一个普通的 Postgres 17。
+
+| | Postgres 在哪 | 库 | 用户 | 数据怎么来 | 什么时候清 |
+| --- | --- | --- | --- | --- | --- |
+| dev（owner 和 agent 看真实页面） | 本地栈（Docker，端口 54322） | `postgres` | dev user | `db:seed`，按「今天」生成一周 | 手动 `db:reset` |
+| integration · Mac | 同一个本地栈 | `mars_test`（单独的库） | 每个 test 一个随机 `userId`，不进 Auth | 每个 test 自己调 factory helper，造它需要的数据 | 每次运行前清表 |
+| integration · 云端 agent | 栈在跑就用栈；没在跑就起容器预装的 Postgres 16（Q3） | `mars_test` | 同上 | 同上 | 同上 |
+| integration · CI | `services: postgres:17` | 新建的库 | 同上 | 同上 | runner 用完即丢 |
+| e2e · 本地 | 本地栈（Postgres + Auth） | `postgres`（和 dev 同一个库） | 独立的 e2e user，Auth 里真有这个用户 | global setup：删掉 e2e user 的数据，用同一套 helper 重建，再登录写出 storageState | 每次运行前重置 |
+| e2e · CI | `npm run setup` 起的完整栈 | `postgres` | e2e user | 同上 | runner 用完即丢 |
+
+为什么这样分：
+
+- **integration 不共用一个「test user + seed」，而是每个 test 自己造数据。**
+  - 每个 test 要的起点不一样：新用户、周三有 active plan、上周的 plan 等着 carry over、所有 step 都 done 的 project。一份 seed 满足不了全部。而且一个 test 改了共用的数据，后面的 test 就跟着变，结果取决于执行顺序。
+  - integration 会把时间冻结在固定的日子（某个周三、下周一）来测跨天和跨周；seed 按真实的「今天」生成，日期对不上。每个 test 在冻结的时钟下调 helper，造出来的数据日期自然对得上。
+  - seed 的代码不浪费：`scripts/seed.ts` 里建 habit、plan、project 的几段抽成 factory helper（比如 `createTestWeek({habits, steps})`），seed、integration、e2e 都调它。
+- **integration 用单独的库，不和 dev 共用 `postgres`。**
+  - 单独的库可以直接清空所有表。和 dev 共用的话只能按 `userId` 删，一次跑崩就会留下残余数据。
+  - `db:reset` 和跑测试互不干扰。
+  - 代价只是 global setup 里一次 `CREATE DATABASE` 加 `migrate deploy`（1.6 秒）。Step 4 验证过 `migrate dev` 能建 shadow DB，说明栈里的 `postgres` 用户有建库权限。
+- **CI 的 integration 不起 Supabase。**
+  - integration 只要 Postgres，不要 Auth。Supabase 栈要拉约 4 GB 镜像、等几分钟；`postgres:17` 约 150 MB，几秒就起来。
+  - migration 没用到 Supabase 特有的扩展、角色或 RLS（Step 4 查过），所以普通的 Postgres 17 和栈里的那个对这些表没有区别。
+  - e2e 那个 job 本来就要起完整的栈；两个 job 并行，integration 的结果不用等栈起来。
+- **e2e 和 dev 共用一个库，但换一个 user。**
+  - e2e 要登录，所以这个 user 必须真的在 Supabase Auth 里，而 Auth 只有栈里有。
+  - 本地跑 e2e 时，Playwright 直接复用正在跑的 `npm run dev`（`reuseExistingServer`），不再起第二个 server。这个 server 连的是 dev 的库，所以 e2e 必须换一个 user；否则拖卡、删 habit 这些路径会改掉 owner 的 dev 数据。
+  - 数据按 `userId` 隔离，dev user 看不到 e2e user 的任何东西。
+  - CI 里没有现成的 dev server，Playwright 自己跑 `next build` 和 `next start`。
+- **清理放在运行前，不放在运行后。**
+  - 运行前清，能保证每次都从已知的状态开始；上一次跑崩了也不影响这一次。
+  - 跑完先留着，失败时可以用 Prisma Studio 看，或者以 e2e user 登录看现场。这些数据要么在单独的库里，要么在一个独立的 user 名下，dev user 看不到。
+  - 如果还是想跑完就清，global teardown 里加几行就行（Q11）。
 
 ### e2e：Playwright ✓
 
@@ -224,14 +287,37 @@ AGENTS.md › UI Workflow 让 agent 在 Design Console 里验 UI 改动。实际
 | --- | --- | --- |
 | 逻辑、数据、MCP（services、utils、schemas、DAL） | `npm test` + CI | 不开 |
 | 样式、文案、小的视觉调整 | CI 的 smoke + owner 在 preview 上看 | 不开 |
-| 布局改动（换行、溢出、断点、浮层层级），或者新增、修改了 scenario tab 或 play step | CI + owner；agent 只看改到的 scenario tab，desktop 和 mobile 各一张视口截图；能用 DOM 测量（宽高、是否溢出）回答的问题就不截图 | 开，只开一轮 |
+| 布局改动（换行、溢出、断点、浮层层级），或者新增、修改了 scenario tab 或 play step | CI + owner；浏览器检查交给 ui-verifier（见下节）：只看改到的 scenario tab，desktop 和 mobile 各一张视口截图；能用 DOM 测量（宽高、是否溢出）回答的问题就不截图 | 主 agent 不开，交给 ui-verifier |
 | 只在设备上出现的问题（iOS / WebKit、PWA） | 先请 owner 发截图或录屏 | 不先自己复现 |
-| owner 点名要 agent 看 | — | 开 |
+| owner 点名要 agent 看 | ui-verifier | 主 agent 不开，交给 ui-verifier |
 
-另外两点：
+定下来之后，AGENTS.md › UI Workflow 里的 "verify UI changes there" 改成上表的规则。Design Console 仍然是 owner 和 agent 查看已实现 UI 的地方。
 
-- 真要看图时，尽量放在 session 前段做；或者交给一个新开的 subagent，只给它任务说明，让它返回文字结论。这样截图和脚本输出不会留在主上下文里被反复重读。subagent 能省多少，是按「上下文小、每次调用便宜」推出来的，还没实测（Q9）。
-- 定下来之后，AGENTS.md › UI Workflow 里的 "verify UI changes there" 改成上表的规则。Design Console 仍然是 owner 和 agent 查看已实现 UI 的地方。
+### 用 subagent 验收：上下文固定，主 agent 只读结论
+
+owner 在 review 里问：既然成本来自不断变大的上下文，能不能让 subagent 拿一份固定的上下文去验，主 agent 只根据它的结论判断验收过没过？这样多轮来回时，就不用每一轮都带着整个对话。
+
+可以，这就是 Claude Code subagent 的用法。分成固定的部分和每次变的部分：
+
+- **固定的部分写进仓库**：`.claude/agents/ui-verifier.md`，Claude Code 的项目级 subagent 定义。
+  - 内容是每次都一样的说明：怎么起或复用 dev server、Design Console 的地址、Playwright 脚本模板（desktop 1280 × 800、mobile 390 × 844、关掉动画、收集控制台 error）、能用 DOM 测量回答的就不截图、最多截几张，以及固定的输出格式。
+  - 工具只给 Bash、Read、Glob、Grep，不给 Edit：它只验，不改代码。
+- **每次变的部分是一份简短的任务说明**，由主 agent 写：
+  - 改了什么（哪些组件、文件）；
+  - 看哪些 scenario 页和 tab；
+  - 每一条要验的点，写成能检查的句子，比如「390 宽下 badge 那一行换行，size 标签靠右，页面没有横向滚动」。
+- **subagent 返回固定格式的结论**：每一条验收点标 PASS、FAIL 或 UNSURE，附上证据（测到的尺寸、控制台 error）和截图的文件路径。主 agent 只读这段文字，几百 token；只有结论是 UNSURE、或者 owner 要看时，才打开某一张截图。
+- **多轮返工**：主 agent 改完代码，用同一份任务说明再叫一次 ui-verifier。新开的 ui-verifier 上下文仍然只有固定的那一小份，主 agent 每一轮只多花两次调用：发出任务、读结论。
+- **估算，还没实测**：
+  - ui-verifier 起步的上下文约 2–3 万 token（系统提示、工具定义、agent 说明、任务说明）。一轮 8–12 次调用，加上截图和脚本输出，合计约 30–40 万 token。
+  - 主 agent 在 45 万的上下文里自己验同样一轮，约 360–540 万 token。交出去之后，主 agent 只剩 2 次调用，约 90 万；加上 ui-verifier 的约 35 万，合计约 125 万，大约是原来的 1/3。
+  - 主上下文越大，省得越多。主上下文只有 10 万时，大约省一半。
+- **限制**：
+  - ui-verifier 只知道任务说明里写的东西。说明写得含糊，它就验得浅；所以验收点要写成能检查的句子。
+  - 它检查的是事实：溢出、对齐、换行、报错。「好不好看」仍然由 owner 在 preview 上判断。
+  - 只在 WebKit 上出现的问题它一样看不到，这一类仍然先请 owner 发截图。
+  - Codex 也读 AGENTS.md，但没有这种 subagent。它按同一张分级表执行，只是不委派。
+- **实测**：实施后的前两三个 UI 任务，从 session 记录里对比主 agent 和 ui-verifier 各花多少 token，结果记进 Update Log；和估算差得多，再回来调整。
 
 ## CI 和本地怎么跑
 
@@ -249,8 +335,11 @@ AGENTS.md › UI Workflow 让 agent 在 Design Console 里验 UI 改动。实际
 
 **本地和云端 agent**：
 
-- integration 用本地栈 Postgres 里一个单独的库 `mars_test`。global setup 负责：库不存在就建，跑 `migrate deploy`，清表。不碰 dev 的 seed 数据。和 `scripts/localEnv.ts` 一样，拒绝非本机地址。
-- 云端容器里，栈没起时可以退回容器预装的 Postgres 16（Q3）。
+- integration 用一个单独的库 `mars_test`，不碰 dev 的 seed 数据。global setup 负责：
+  - 找 Postgres：设了 `TEST_DATABASE_URL` 就用它；本地栈在跑就用栈；都没有、又在云端容器里，就起容器预装的 Postgres 16（Q3）。
+  - 库不存在就建，跑 `migrate deploy`，清表。
+  - 和 `scripts/localEnv.ts` 一样，拒绝非本机的地址。
+- e2e 用 dev 的库和一个独立的 e2e user，见「测试数据」一节。
 
 **AGENTS.md**：
 
@@ -263,21 +352,40 @@ AGENTS.md › UI Workflow 让 agent 在 Design Console 里验 UI 改动。实际
 
 一个 PR，就是这个 spike 的 PR（AGENTS.md › *One task, one branch, one PR*），按下面的顺序提交：
 
-1. **依赖**：`vitest`、`@vitest/coverage-v8`、`@playwright/test` 固定版本；`@types/node` 升到 `^22`。
-2. **Vitest 配置和测试数据**：`vitest.config.mts`（unit 分两个时区，加 integration）；测试库的 global setup；共用的测试数据 helper，从 `scripts/seed.ts` 抽出来，seed 也改用它。
+1. **依赖**：`vitest`、`@vitest/coverage-v8`、`@playwright/test` 固定版本。Node 24 和 `@types/node` `^24` 已经在 main 上（#76）。
+2. **Vitest 配置和测试数据**：`vitest.config.mts`（unit 和 integration 各分两个时区）；测试库的 global setup（找 Postgres、建 `mars_test`、migrate、清表）；共用的 factory helper，从 `scripts/seed.ts` 抽出来，seed 也改用它。
 3. **Unit test**：按上面的表。
 4. **Integration test**：按上面的表，含 `/api/mcp`。
 5. **Coverage 门槛**：按实测值写进配置。
 6. **Playwright**：配置；e2e user 的 global setup，复用 `dev:session` 的登录逻辑；每页 smoke；Design Console smoke；4 条关键路径。
 7. **CI**：`test` 和 `e2e` 两个 job。
-8. **文档**：
-   - 测试约定的 README（放在哪由 Q1 决定）；
-   - AGENTS.md：命令、push 前的检查、UI Workflow、*Where the rules live* 索引表；
+8. **ui-verifier**：`.claude/agents/ui-verifier.md`（固定说明、只读工具、输出格式），在一个真实的 UI 改动上试跑一次。
+9. **文档**：
+   - 测试约定的 README：`test/README.md`（Q1）；
+   - AGENTS.md：命令、push 前的检查、UI Workflow（分级表和 ui-verifier）、*Where the rules live* 索引表；
    - README Getting Started 加上测试命令；
    - tracker 删掉 Step 5，写 Update Log；
    - spike 归档。
 
 ## 待 owner 决定的问题
+
+### 还待回复
+
+**Q11 · 测试数据的分法和清理时机。** 按「测试数据：dev、integration、e2e 各用什么」那张表：
+
+- **分法**：
+  - **(a)** integration 用单独的 `mars_test` 库，每个 test 自己造数据；e2e 用 dev 的库，换一个独立的 e2e user，本地复用正在跑的 `npm run dev`（推荐）。
+  - **(b)** e2e 也用单独的库（比如 `mars_e2e`）。和 dev 完全分开，但本地跑 e2e 时要另起一个连着这个库的 server，不能复用 `npm run dev`。
+- **清理时机**：
+  - **(a)** 只在运行前清（推荐）：跑崩了不影响下一次，失败时能看现场。
+  - **(b)** 运行前清，跑完也清。
+
+**Q12 · ui-verifier 用什么模型？**
+
+- **(a)** 沿用主 session 的模型（推荐）：先保证判断质量，实测 token 之后再说。
+- **(b)** 固定用更便宜的模型（比如 Sonnet）：每 token 单价更低，但看图和判断「这样算不算对齐」可能弱一些。
+
+### 已回复（结论见 Decision）
 
 **Q1 · 工具和测试文件的位置。** 工具用 Vitest 5 + Playwright？测试文件放哪：
 
