@@ -19,6 +19,16 @@ export const DEV_USER = {
   password: 'mars-dev-password',
 };
 
+/**
+ * The e2e suite's own user (`npm run test:e2e`): it shares the dev database
+ * with the dev user, so a local run never touches the dev user's week.
+ */
+export const E2E_USER = {
+  id: '00000000-0000-4000-8000-0000000000e2',
+  email: 'e2e@mars.local',
+  password: 'mars-e2e-password',
+};
+
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
 
 // What would point local work at a database or Auth server.
@@ -28,11 +38,15 @@ const SERVICE_URL_VARS = [
   'NEXT_PUBLIC_SUPABASE_URL',
 ] as const;
 
+/** Whether a service URL points at this machine. */
+export const isLocalUrl = (url: string) =>
+  LOCAL_HOSTS.has(new URL(url).hostname);
+
 /** The service URL variables that point anywhere but this machine. */
 const getRemoteServiceVars = () =>
   SERVICE_URL_VARS.filter(name => {
     const url = process.env[name];
-    return url !== undefined && !LOCAL_HOSTS.has(new URL(url).hostname);
+    return url !== undefined && !isLocalUrl(url);
   });
 
 /**

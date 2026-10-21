@@ -8,55 +8,23 @@
  */
 import {mkdirSync, writeFileSync} from 'node:fs';
 import {dirname} from 'node:path';
-import {createServerClient} from '@supabase/ssr';
+import {signInAsStorageState} from './localAuth';
 import {DEV_USER, assertLocalServices} from './localEnv';
 
 const DEFAULT_OUT_PATH = '.auth/dev-session.json';
-const APP_COOKIE_DOMAIN = 'localhost';
 
 const main = async () => {
   assertLocalServices('dev:session');
   const outPath = process.argv[2] ?? DEFAULT_OUT_PATH;
-
-  // The same cookie handling as the app's server client, so the cookies are
-  // exactly what a browser sign-in would leave.
-  const cookieJar = new Map<string, string>();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!,
-    {
-      cookies: {
-        getAll: () => [...cookieJar].map(([name, value]) => ({name, value})),
-        setAll: cookiesToSet => {
-          for (const {name, value} of cookiesToSet) cookieJar.set(name, value);
-        },
-      },
-    },
-  );
-  const {email, password} = DEV_USER;
-  const {error} = await supabase.auth.signInWithPassword({email, password});
-  if (error) {
-    throw new Error(
-      `Sign-in as ${email} failed (${error.message}); run npm run db:setup first.`,
-    );
-  }
-
-  const cookies = [...cookieJar].map(([name, value]) => ({
-    name,
-    value,
-    domain: APP_COOKIE_DOMAIN,
-    path: '/',
-    expires: -1,
-    httpOnly: false,
-    secure: false,
-    sameSite: 'Lax' as const,
-  }));
+  const storageState = await signInAsStorageState(DEV_USER);
   mkdirSync(dirname(outPath), {recursive: true});
-  writeFileSync(outPath, JSON.stringify({cookies, origins: []}, null, 2));
+  writeFileSync(outPath, JSON.stringify(storageState, null, 2));
 
-  console.log(`Signed in as ${email}; Playwright storageState: ${outPath}`);
   console.log(
-    `Cookie: ${cookies.map(({name, value}) => `${name}=${value}`).join('; ')}`,
+    `Signed in as ${DEV_USER.email}; Playwright storageState: ${outPath}`,
+  );
+  console.log(
+    `Cookie: ${storageState.cookies.map(({name, value}) => `${name}=${value}`).join('; ')}`,
   );
 };
 
