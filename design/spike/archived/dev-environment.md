@@ -19,11 +19,11 @@ owner 在对话里逐条回复了 Q1–Q9。
 | Q3 · Seed | **(a) 合成数据**，按「今天」生成；不拷 prod 数据，上周的 plan 第一版不做 | `prisma/seed.ts` 调 services |
 | Q4 · prod 凭据 | **`.env.prod`**：`.env.local` 只放本地值，prod 凭据只由显式命令读取 | owner 只回复了文件拆分；`predev` 防误连检查按推荐一起加，不要的话在实施 PR 里删掉 |
 | Q5 · prod migration | **(a) 手动**：merge 之后跑 `npm run db:deploy:prod` | 新 npm script |
-| Q6 · 云端 agent session | **(a) 按需**：需要 DB 或要登录看真实页面时才跑 `npm run db:setup` | AGENTS.md 加一行。另外 owner 给 Step 5 加了一条探索：agent 自己起 Chrome 验证到底有没有必要、大概花多少 token、能不能用 e2e 加 owner 验收代替（见 `test-baseline.md`） |
+| Q6 · 云端 agent session | **(a) 按需**：需要 DB 或要登录看真实页面时才跑 `npm run db:setup` | AGENTS.md 加一行。另外 owner 给 Step 5 加了一条探索：agent 自己起 Chrome 验证到底有没有必要、大概花多少 token、能不能用 e2e 加 owner 验收代替（见 `archived/test-baseline.md`） |
 | Q7 · Vercel preview | 继续连 prod，不开 tracker 条目 | — |
 | Q8 · Postgres 版本 | prod 是 **PostgreSQL 17.6**（owner 在 Supabase 里跑 `select version()`） | `[db] major_version = 17`；本地镜像 17.11，同一个大版本 |
 | Q9 · Mac 上的 Docker | 还没装，owner 现在不在家 | 实施和验证先在云端容器里完成；owner 回家后装 OrbStack 在 Mac 上验证，即 planner 新加的第 11 步（tracker 的 Step 11） |
-| review 中提出 · 实施计划第 8 条 | service 测试用 mock 还是连真实 DB，不在这一步定 | 第 8 条改成「Step 4 提供 DB，用法由 Step 5 决定」；mock / integration / e2e 的分析记进 Step 5 的 spike 草稿 `design/spike/test-baseline.md` |
+| review 中提出 · 实施计划第 8 条 | service 测试用 mock 还是连真实 DB，不在这一步定 | 第 8 条改成「Step 4 提供 DB，用法由 Step 5 决定」；mock / integration / e2e 的分析记进 Step 5 的 spike 草稿 `design/spike/archived/test-baseline.md` |
 
 下文保留 review 时的分析和选项；和结论不一致的地方，以本节为准。
 
@@ -160,7 +160,7 @@ owner 在对话里逐条回复了 Q1–Q9。
    - `src/app/design/README.md` 的占位变量换成本地真实值；
    - tracker 删掉 Step 4，写 Update Log；
    - spike 归档。
-8. **和 Step 5 的边界**：Step 4 只提供一个可以随时清空的 DB 和一种不经过 Google 的登录方式（`dev:session`）。service 测试用 mock 还是连真实 DB、CI 里起什么，由 Step 5 决定（spike 草稿 `design/spike/test-baseline.md`）。
+8. **和 Step 5 的边界**：Step 4 只提供一个可以随时清空的 DB 和一种不经过 Google 的登录方式（`dev:session`）。service 测试用 mock 还是连真实 DB、CI 里起什么，由 Step 5 决定（spike 草稿 `design/spike/archived/test-baseline.md`）。
 
 ## 待 owner 决定的问题
 

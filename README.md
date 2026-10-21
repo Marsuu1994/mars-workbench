@@ -15,6 +15,7 @@ One command from a fresh checkout and every day after: it skips what is already 
 - **Sign in with Google**: copy `supabase/.env.example` to `supabase/.env` and fill in the Google OAuth client's id and secret (its authorized redirect URIs include `http://127.0.0.1:54321/auth/v1/callback`), then `npm run db:stop && npm run db:setup`. To land on the seeded data, uncomment `SEED_EMAIL` in `.env.local` and set it to your Gmail, then `npm run db:reset` and sign in again. The reset also removes the separate, empty user an earlier Google sign-in created, and the seed prints the address it used.
 - **Without Google** (scripts, agents, Playwright): `npm run dev:session` signs in as the seeded dev user and writes its cookies.
 - **Day to day**: `npm run up`; `npm run db:stop` stops the stack (data kept), `npm run db:reset` wipes and reseeds, `npm run setup` does everything but the dev server. `npx prisma migrate dev` works against the stack.
+- **Tests**: `npm test` runs the unit and integration tests (it needs a local Postgres: the stack, or `TEST_DATABASE_URL`), `npm run test:e2e` the Playwright suite as a separate e2e user, reusing a running dev server. Conventions in [test/README.md](./test/README.md).
 - **Production**: its credentials live only in `.env.prod`. Once a migration is merged, `npm run db:deploy:prod` applies it.
 
 ## Docs
@@ -102,7 +103,7 @@ Open items: see [design/tracker.md](./design/tracker.md).
 ## Update Log
 
 ### 2026-10-21
-- **Quality gate Step 11 done: the local Supabase stack works on the owner's Mac, Google sign-in included, and the project runs on Node 24; Step 5's test spike is mostly decided.** Step 4's last open checks — local Google sign-in landing on the seeded week, MCP writes going to the local database — pass, and production was untouched throughout. The owner answered the test spike's ten questions, leaving two follow-ups open.
+- **Quality gate Steps 11 and 5 done: the local stack works on the owner's Mac and the project runs on Node 24; the app now has tests, in CI on every PR.** Step 4's last open checks — local Google sign-in landing on the seeded week, MCP writes going to the local database — pass, with production untouched throughout. Step 5 adds unit, integration and e2e suites; they caught two timezone bugs, both fixed. Agents now leave most UI checks to CI and the owner, and send the rest to a subagent with a small, fixed context.
 - **Verified on the owner's Mac** (OrbStack, Node 24.11.1):
   - **Production credentials moved out**: the old `.env.local`, which held only production values, became `.env.prod`, the file `npm run db:deploy:prod` reads. A fresh `.env.local` comes from `.env.example`.
   - **Google sign-in**: the production Google OAuth client gained the local redirect URI `http://127.0.0.1:54321/auth/v1/callback`, and its id and secret went into `supabase/.env`. With `SEED_EMAIL` set to the owner's Gmail, a local Google sign-in links to the seeded dev user and lands on the seeded week. This was the first real test of that link: Supabase Auth attaches a Google identity whose email is verified to the existing user with the same email (GoTrue's `DetermineAccountLinking`).
@@ -110,11 +111,31 @@ Open items: see [design/tracker.md](./design/tracker.md).
   - **MCP**: `create_project` through the MCP Inspector, with no token, acts as the dev user; the project shows on the local Projects page, and production shows neither it nor the seed data.
 - **The project runs on Node 24** (PR #76; the owner's Mac already ran it): Node 22 left active LTS a year ago and reaches end of life on 2027-04-30, while 24 is supported until 2028-04-30 and is Vercel's default. `package.json` pins `24.x` (`engines`, which Vercel follows over its project setting, so production moved to 24 with the merge), CI's five jobs run 24, a new `.nvmrc` lets nvm pick it up, and `@types/node` moves from 20 to 24. Cloud agent containers ship Node 22 only; npm there warns about the engine but runs, until the cloud environment's setup script installs 24. Verified on Node 24.22.0: `npm ci`, Prettier, ESLint, tsc, knip, the theme check and `next build` pass, and `next dev` serves the Design Console.
 - **Tracker**: Step 11 leaves the Quality gate milestone.
-- **Step 5 test spike: Q1–Q10 decided on PR #75, two follow-ups open** (`design/spike/test-baseline.md`):
-  - **Decided**: Vitest 5 + Playwright, with tests next to their source and e2e in `e2e/`. Services are tested against a real Postgres, and a cloud agent falls back to the container's preinstalled Postgres 16 when the local stack isn't running. Tests run in both UTC and Los Angeles time. e2e runs on every PR. The coverage floors and the e2e scope stay as proposed, and the agent-verification tiers stand.
-  - **Test data, spelled out after the owner asked**: integration tests use their own `mars_test` database in the same local Postgres (a plain `postgres:17` in CI), and each test builds its own data for a fresh `userId` through factory helpers shared with the seed. e2e uses the dev database with a separate e2e user, so a local run can reuse `npm run dev` without touching the dev user's week. Both reset before each run. Q11 asks whether to also clean up afterwards, and whether e2e should get its own database.
-  - **Browser checks go to a fixed-context subagent**: `.claude/agents/ui-verifier.md` gets a short brief, runs the Playwright checks in its own small context and returns a PASS/FAIL/UNSURE verdict that the main agent reads. The estimate is about a third of the tokens at a 450k-token main context; it is unmeasured until the first UI tasks. Q12 asks which model it runs on.
-  - **Also**: Node 24 (#76) already meets Vitest 5's requirements, so the `@types/node` bump is dropped. UI component tests and visual regression join the Phase 2 tracker item.
+- **Step 5 — test baseline, decided and built on PR #75** (spike `design/spike/archived/test-baseline.md`, now archived):
+  - **What the owner decided**: Vitest 5 and Playwright, with tests next to their modules. Services are tested against a real Postgres, never a mocked DAL. Every suite runs in UTC and in Los Angeles time. e2e runs on every PR. Coverage floors are set per layer, never as one global number. Integration tests get a `mars_test` database of their own. e2e signs in as a separate e2e user in the dev database, and both reset before each run. Browser checks go to a subagent on the session's own model.
+  - **Unit + integration**: 22 test files with 191 tests, run in both timezones (380 pass, plus 2 expected failures), in about 11 s.
+    - The suite covers dates, habit dots, card sorting, board cards, plan and project patches, auth redirects, schemas, and MCP's error shaping and token check.
+    - Sync, planning (create_plan / update_plan / update_habit), the plan form, projects, the matrix, the board's metrics and the dump feed run against Postgres. So does `/api/mcp`, called in process for all seven tools; its `tools/list` is snapshotted as Claude's contract.
+    - Coverage reached 97% lines / 95% branches in `utils`, and 92% / 91% lines in services / DAL. The floors sit there.
+    - The test database comes from `TEST_DATABASE_URL`, else the local stack, else a cloud container's system Postgres, which is started on demand (verified: 12 s from stopped).
+  - **e2e**: 25 tests, about 1.2 min, green against `npm run dev` and against a production build.
+    - Smokes of every page on desktop and mobile, plus the signed-out redirect.
+    - Every Design Console scenario tab and gallery tab, failing on a console error or a failed play step.
+    - Four journeys: drag to Done, track from the matrix, put a step on the week, remove a habit through the plan form's review.
+    - The e2e user is reseeded before each run by `npm run e2e:session`.
+  - **Two timezone bugs the tests caught, now fixed**:
+    - The board's Today ring on Vercel counted done tasks in a UTC-midnight window. That window ran from 5 pm the day before to 5 pm in Los Angeles, so evening work dropped out of today. It now counts by the Los Angeles day.
+    - `ensureSynced` compared the DATE `lastSyncDate` with local midnight, so `next dev` in Los Angeles time reran the daily sync on every page load. It now compares calendar days.
+  - **Known bug pinned**: the plan form still saves its whole template list. An `it.fails` test reproduces it, to flip when it's fixed.
+  - **CI**: two new parallel jobs. `test` runs Vitest with coverage against a `postgres:17` service. `e2e` runs `npm run setup` (the Supabase stack), installs Chromium and runs Playwright, uploading traces on failure.
+  - **Agent UI checks**: AGENTS.md › UI Workflow now leaves logic, style and device-only issues to `npm test`, CI and the owner. A layout change gets one check by `.claude/agents/ui-verifier.md`, which takes a brief, measures the DOM and returns a PASS / FAIL / UNSURE verdict.
+    - First run: a regression check of the board cards. 4 of 4 checks passed in 14 tool calls and 89 s; the verifier's context ended at about 80k tokens, with no screenshots. The main session read back about 1k tokens.
+    - It also found that the collapsed desktop backlog leaves its cards focusable, now a tracker item.
+  - **Plumbing**:
+    - The seed's week moves to `test/seedData.ts` + `test/seedWeek.ts`, shared by `db:seed` and the e2e setup.
+    - Password users and storageState sign-in move to `scripts/localAuth.ts`.
+    - Design Console play errors carry `role="alert"`.
+  - **Docs**: new `test/README.md`, plus updates to AGENTS.md (structure, rules index, UI Workflow, CI, push checks, commands), a `baseline.md` Architecture Decision, the board flow's Today window, the Design Console README and README Getting Started. The tracker drops Step 5 and adds the Phase 2 UI tests and the backlog focus item.
 
 ### 2026-10-18
 - **Quality gate: the local stack starts with one command, and Step 5's test spike is up for review** — `npm run up` replaces Getting Started's four steps and `db:setup` survives a cold Docker daemon (both from PR #74's review); the test-baseline spike proposes the tools, what each layer tests, coverage floors, and which UI checks agents can leave to CI and the owner.

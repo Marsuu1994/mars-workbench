@@ -62,7 +62,12 @@ const startSystemPostgres = () => {
 
 const findServerUrl = async (): Promise<string> => {
   const configured = process.env.TEST_DATABASE_URL;
-  if (configured) return configured;
+  if (configured) {
+    if (await canConnect(configured)) return configured;
+    throw new Error(
+      `TEST_DATABASE_URL is set, but no Postgres answers at ${new URL(configured).host}.`,
+    );
+  }
   if (await canConnect(STACK_POSTGRES_URL)) return STACK_POSTGRES_URL;
   if (startSystemPostgres() && (await canConnect(SYSTEM_POSTGRES_URL))) {
     return SYSTEM_POSTGRES_URL;

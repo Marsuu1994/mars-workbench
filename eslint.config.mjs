@@ -86,6 +86,10 @@ const eslintConfig = defineConfig([
     'out/**',
     'build/**',
     'next-env.d.ts',
+    // Test reports (gitignored)
+    'coverage/**',
+    'playwright-report/**',
+    'test-results/**',
   ]),
 ]);
 
