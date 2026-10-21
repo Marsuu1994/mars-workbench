@@ -15,6 +15,7 @@ A Next.js application centered on a Kanban Period Planner; AI planning goes thro
 - Database: PostgreSQL (Supabase) + Prisma ORM
 - Auth: Supabase Auth (Google OAuth); its OAuth 2.1 Server also authorizes MCP clients
 - MCP: `mcp-handler` + `@modelcontextprotocol/server` (v2) — the remote endpoint at `/api/mcp`, where Claude reads planning context and writes plans
+- Tests: Vitest (unit, and integration against a real Postgres) + Playwright (e2e on the local Supabase stack)
 - Icons: Heroicons
 - Language: TypeScript
 
@@ -26,7 +27,10 @@ Directory responsibilities only — for concrete file and component names, read 
 public/                            # PWA manifest, service worker, icons
 prisma/                            # schema.prisma + migrations/
 supabase/                          # Local Supabase stack config (Postgres + Auth in Docker)
-scripts/                           # Repo checks run in CI; the local stack's setup, seed and dev session
+scripts/                           # Repo checks run in CI; the local stack's setup, seed, and dev and e2e sessions
+test/                              # Test helpers and conventions (README); unit and integration tests sit next to their modules
+e2e/                               # Playwright specs
+.claude/agents/                    # Claude Code subagents (ui-verifier)
 design/                            # Design docs — index in design/README.md
 ├── baseline.md                    # The one app-wide baseline: goal, entities, schema, architecture decisions
 ├── design-language/               # Per-theme visual specs + the shared fx-* skeleton
@@ -77,6 +81,7 @@ A rule that only one kind of file needs lives with that file. Read it before you
 
 | Before you edit… | Read first |
 | --- | --- |
+| a test (`*.test.ts`, `*.int.test.ts`, `e2e/`, `test/`) | `test/README.md` |
 | a spike (`design/spike/`) | `design/spike/README.md` |
 | `design/tracker.md` | its Conventions section |
 | a flow doc (`design/flows/`) | `design/flows/README.md` |
@@ -95,7 +100,8 @@ A complex task — several PRs, a data-model change, a new tool surface, or a ch
 
 ## UI Workflow
 
-- **The Design Console is the source of truth for implemented UI.** `/design` renders the real components: a gallery tabbed by layer (`ui/` · `application/` · `domain/`) and per-feature scenario pages (`/design/scenarios/<feature>/`) with pinned fixture states. `npm run dev` serves it without signing in, so verify UI changes there (`src/app/design/README.md` › Local access).
+- **The Design Console is the source of truth for implemented UI.** `/design` renders the real components: a gallery tabbed by layer (`ui/` · `application/` · `domain/`) and per-feature scenario pages (`/design/scenarios/<feature>/`) with pinned fixture states. `npm run dev` serves it without signing in (`src/app/design/README.md` › Local access).
+- **Verification is CI's and the owner's; a browser check is the exception.** CI runs the unit, integration and e2e tests — every page, every Design Console tab, the key journeys — on every PR, and the owner accepts UI on the Vercel preview. Logic, data and MCP changes are verified by `npm test`, style and copy changes by CI and the owner. A layout change (wrapping, overflow, breakpoints, overlay stacking), a new or changed scenario tab or play step, or the owner's request gets one browser check, delegated to the `ui-verifier` subagent with a brief — what changed, the scenario tabs, each check as a sentence — so screenshots and scripts stay out of the main context; read its verdict, and open a screenshot only when it says UNSURE. A bug seen only on a device (iOS / WebKit, the PWA): ask the owner for a screenshot or recording before trying headless Chromium.
 - **Production first, the console adapts.** Components are shaped by what production needs. A production component never carries a prop, branch or comment that only the console uses, and nothing is split or restructured so the console can show it: the console reaches a state the way a user would, or skips it. Bad: `initialUndoToastTaskId` on `PriorityMatrixPage`. Good: a scenario tab's `play` step clicking the real control.
 - **Screen components — today's pattern, pending Quality gate Step 9.** Each page's presentational layout is a screen component in `domain/<feature>/` (`BoardScreen`, `PrioritiesScreen`, `PlanChrome`) that the route and its scenario both render; the Projects page is a pilot exception (tracker › Step 9). The component structure spike decides how new pages split.
 - **New UI starts as a mockup.** A design that isn't built yet is drawn as a self-contained HTML mockup in `design/mockup/`; get the owner's approval before code changes.
@@ -170,7 +176,7 @@ A complex task — several PRs, a data-model change, a new tool surface, or a ch
 ## Tooling
 
 - **Prettier owns formatting** (`.prettierrc.json`; code only — Markdown and `design/` are ignored); don't hand-tune spacing or quotes against it. **ESLint owns correctness** and enforces no `any`, no `console.log` (`console.error` / `warn` allowed) and the server-only import boundary. In production code (`src/` outside the Design Console) it also enforces named exports and `const` arrow components (Next.js convention files excepted), one component per file, and no single-letter names.
-- CI runs `format:check`, `lint`, `typecheck`, `knip` and `check:themes` — run them before pushing (Version Control).
+- CI runs `format:check`, `lint`, `typecheck`, `knip`, `check:themes`, the Vitest suite with its coverage floors and the Playwright suite — run all but Playwright before pushing (Version Control).
 
 ## Data & State
 
@@ -194,7 +200,7 @@ A complex task — several PRs, a data-model change, a new tool surface, or a ch
   2. README Update Log: today's entry (Documentation Style).
   3. README Current State: rewrite the sections the change touches.
   4. AGENTS.md, or a README it indexes: only when a rule or a directory's responsibility changed.
-  5. Run `npm run format`, then `lint`, `typecheck` and `knip` (and `check:themes` when CSS variables changed).
+  5. Run `npm run format`, then `lint`, `typecheck`, `knip` and `npm test` (and `check:themes` when CSS variables changed). CI runs e2e; run `npm run test:e2e` too when a change touches a page's flow.
 - **Act on submitted reviews only.** A pending review — comments drafted but not yet submitted — can still change: don't reply to, resolve or push for its comments; at most mention that one is pending.
 
 ## Commands
@@ -208,12 +214,17 @@ npm run knip         # Unused files, exports and dependencies (CI; config in kni
 npm run format       # Format all code with Prettier
 npm run format:check # Verify formatting (CI)
 npm run check:themes # Every theme declares the same CSS variables (CI)
+npm test             # Unit + integration tests in UTC and Los Angeles time (a local Postgres: test/README.md)
+npm run test:unit    # Unit tests only, no database
+npm run test:coverage  # Everything, failing below the coverage floors (CI)
+npm run test:e2e     # Playwright on the local stack as the e2e user (CI); reuses a running dev server
 npm run up           # One-click start: setup, then the dev server (fresh checkout or any day)
 npm run setup        # .env.local, npm install, db:setup — no dev server (`-- --no-db` stops after install)
 npm run db:setup     # Start the local Supabase stack, migrate, seed (safe to rerun)
 npm run db:reset     # Wipe the local stack, migrate, seed
 npm run db:stop      # Stop the local stack (data kept)
 npm run dev:session  # Sign in as the seeded dev user: Playwright storageState + Cookie header
+npm run e2e:session  # Reset the e2e user to the seed's week and sign it in (run by test:e2e)
 npm run db:deploy:prod  # Apply migrations to production (.env.prod) — only when the owner asks
 npx @modelcontextprotocol/inspector --cli http://localhost:3000/api/mcp --transport http --method tools/list  # MCP smoke test (or drop --cli for the UI)
 npx prisma studio

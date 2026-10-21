@@ -25,7 +25,11 @@ export const Play = ({steps, children}: PlayProps) => {
     <>
       <div ref={scopeRef} className="flex w-full flex-col gap-1.5">
         {children}
-        {error && <p className="text-xs font-semibold text-error">{error}</p>}
+        {error && (
+          <p role="alert" className="text-xs font-semibold text-error">
+            {error}
+          </p>
+        )}
       </div>
       <PlayRunner steps={steps} scopeRef={scopeRef} onError={setError} />
     </>

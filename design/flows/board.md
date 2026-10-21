@@ -62,12 +62,12 @@ Two parallel queries run after sync:
 
 **Today Ring** — circular progress ring showing task completion for the current day.
 
-- Done count: `COUNT(*)` where `status = DONE` and `doneAt` is within today (from DB aggregate).
+- Done count: `COUNT(*)` where `status = DONE` and `doneAt` falls on today in `KANBAN_TZ` (Los Angeles), whatever the server's timezone (from DB aggregate).
 - Total count: number of non-`BACKLOG` tasks (in-memory).
 
 **Today Points** — points earned today vs total points available on the board.
 
-- Done points: `SUM(points)` where `status = DONE` and `doneAt` is within today (from DB aggregate).
+- Done points: `SUM(points)` where `status = DONE` and `doneAt` falls on today in `KANBAN_TZ` (from DB aggregate).
 - Total points: `SUM(task.points)` across non-`BACKLOG` tasks (in-memory reduction).
 
 **Week Points** — cumulative points earned this period vs projected period total.

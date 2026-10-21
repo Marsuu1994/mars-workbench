@@ -1,4 +1,5 @@
 import {prisma} from '@/lib/prisma';
+import {KANBAN_TZ} from '@/utils/dateUtils';
 import {
   Prisma,
   PriorityQuadrant,
@@ -133,27 +134,26 @@ function toLocalDateKey(date: Date): string {
 }
 
 /**
- * Fetch all board-level metrics in one aggregate query for a plan.
+ * Fetch all board-level metrics in one aggregate query for a plan. `today` is
+ * the kanban day (getTodayDate); a task counts as done today when its doneAt
+ * falls on that day in KANBAN_TZ, whatever the server's own timezone.
  */
 export async function getBoardMetricsByPlanId(
   userId: string,
   planId: string,
-  todayStart: Date,
-  tomorrowStart: Date,
+  today: Date,
 ): Promise<BoardMetrics> {
-  const todayDateKey = toLocalDateKey(todayStart);
+  const todayDateKey = toLocalDateKey(today);
 
   const rows = await prisma.$queryRaw<BoardMetricsRow[]>`
     SELECT
       COUNT(*) FILTER (
         WHERE status = 'DONE'
-          AND done_at >= ${todayStart}
-          AND done_at < ${tomorrowStart}
+          AND (done_at AT TIME ZONE ${KANBAN_TZ})::date = ${todayDateKey}::date
       ) AS "todayDoneCount",
       COALESCE(SUM(points) FILTER (
         WHERE status = 'DONE'
-          AND done_at >= ${todayStart}
-          AND done_at < ${tomorrowStart}
+          AND (done_at AT TIME ZONE ${KANBAN_TZ})::date = ${todayDateKey}::date
       ), 0) AS "todayDonePoints",
       COUNT(*) FILTER (WHERE status = 'DONE') AS "weekDoneCount",
       COALESCE(SUM(points) FILTER (WHERE status = 'DONE'), 0) AS "weekDonePoints",

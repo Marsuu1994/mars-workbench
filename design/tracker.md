@@ -12,6 +12,10 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### Medium
 
+- [ ] The collapsed desktop backlog keeps its cards focusable: the closed panel is only `opacity-0` + `pointer-events-none`, so Tab and screen readers reach cards nobody can see — make it `inert` while closed (found by the ui-verifier's first run). The task doubles as the pilot for handing a task's heavy work to subagents:
+  - [ ] `test-writer` and `ci-fixer` subagents beside `ui-verifier`: fixed instructions, a short brief in, a fixed-format report out
+  - [ ] The fix with the work delegated: the failing e2e test to `test-writer`, the browser check to `ui-verifier`, a red CI to `ci-fixer`; the main session keeps the decisions and the edit
+  - [ ] A report to the owner on whether it paid off: the main session's context and calls, each subagent's tokens and tool calls, and what each got wrong
 - [ ] Stack duplicate habit instances in the backlog — the kind-first card has landed; PR #44 implements stacking on the old card and needs moving onto the new face (project steps and one-offs never stack)
 
 ### Future
@@ -22,7 +26,7 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### Medium
 
-- [ ] Edit Plan still saves its full template list: a habit Claude adds or changes on the active plan while the form is open is undone on save (removed, or its type / frequency reverted). One-offs and steps no longer have this problem — the form sends only what was let go
+- [ ] Edit Plan still saves its full template list: a habit Claude adds or changes on the active plan while the form is open is undone on save (removed, or its type / frequency reverted). One-offs and steps no longer have this problem — the form sends only what was let go; pinned by an `it.fails` test in `planService.int.test.ts`, to flip when fixed
 - [ ] Tune the MCP planning guide after 2–3 weeks of using PR 5 — note where Claude went wrong (habit vs project, overlap questions, focus check, step order) and adjust the guide
 - [ ] Clean up stale task templates on the owner's account — a `scripts/one-time/` script; archive or delete is decided when it's picked up (templates used by a plan can't be deleted without its history)
 - [ ] ReviewChangesModal / OverlayShell body height needs tuning on **both** breakpoints — with long change lists the box grows so tall the header ends up out of view; revisit the max-height caps (mobile `max-h-[85vh]`, desktop `md:max-h-[calc(100vh-5em)]`) so the pinned header/footer always stay on screen
@@ -32,6 +36,7 @@ Single source of truth for open ideas and todos across the app — open items on
 - [ ] Week model Phase 2 (not planned yet; starts after Milestone — Quality gate before Phase 2, Cross-cutting) — habits own their cadence (Daily = every day, or N× per week; Plan Mode dropped) with a Plan › Habits page; a three-step Plan week replaces the plan form, with one Plan hub header for This week · Habits · Projects (Phase 1 keeps the plan form as it was and gives Projects its own page and nav entry); Done becomes the week's day-grouped log and cards get a ✓; cleanup of `DOING` and `Plan.mode`. Mockup `design/mockup/mockup-week-model-phase2.html`
   - [ ] Plan page follows the board's data split (`baseline.md` › Architecture Decision, *Server shapes inputs, the client derives the view*): the loader returns inputs, the page's container keeps them as state and derives the view with a pure adapter — done alongside the Plan week rebuild
   - [ ] Redesign the Review changes modal — large as it stands; rework it with the Plan week
+  - [ ] UI component tests (React Testing Library or Vitest browser mode), and a second look at visual regression on the Design Console scenarios — deferred from Quality gate Step 5 until Phase 2's pages settle (`design/spike/archived/test-baseline.md`, Q10)
   - [ ] Investigate the app pain points before planning Phase 2 — a weekly time budget the LLM plans into (size as its estimate, points → hours), focus limits (habits per week, active projects) and one lifecycle for habits and projects (active / paused / completed). Spike `design/spike/week-model-phase2-pain-points.md` (draft)
 - [ ] Habit-level days — let each habit run on weekdays, every day or custom days (after Phase 2 drops Plan Mode, Daily means every day)
 - [ ] One entry for habits and projects together — a single page (Habits · Projects) with the same lifecycle filters, instead of projects having their own nav item and habits living in the plan form; options in `design/spike/week-model-phase2-pain-points.md`
@@ -67,9 +72,7 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### High
 
-- [ ] Milestone — Quality gate before Phase 2: settle the mutation layer, tests and component structure before Phase 2 and Daily rhythm start, so their new pages are built the new way. One sub-bullet per step of the planner project *Mars Workbench — Phase 2 前的代码质量*
-  - [ ] Step 5 — Test baseline: none exists today. Vitest for the pure adapters and services (`toBoardCards`, `applyStepPatch`, the sync date logic) and one Playwright smoke per page, both in CI. Spike `design/spike/test-baseline.md` (draft): unit vs integration vs e2e, and whether services are tested against mocks or a real Postgres
-    - Agent UI verification — explore whether agents need to launch Chrome to check their own UI changes, roughly how many tokens it costs, and whether e2e tests plus the owner's acceptance can replace it
+- [ ] Milestone — Quality gate before Phase 2: settle the mutation layer and component structure before Phase 2 and Daily rhythm start, so their new pages are built the new way. One sub-bullet per step of the planner project *Mars Workbench — Phase 2 前的代码质量*
   - [ ] Step 6 — Quality sweep: a `/quality-sweep` skill (the checklist, versioned in the repo, also run by hand at each milestone's end) and a Routine that runs it every two weeks in a fresh session. It covers only what CI can't: docs vs code (tracker, README Current State, `reference.md`, flows, scenarios), conflicts between rule files (AGENTS.md and the READMEs it indexes) and stale temporary exceptions, AGENTS.md's size and growth and its index matching the READMEs it points to, stale PRs / spikes / mockups, duplicated logic and drifting patterns, dependency updates and `npm audit`, growing hotspot files. It opens one PR with tracker edits and a short report of at most 5–10 findings, each ending as fixed, a tracker item, a new CI rule, or dismissed with a reason; findings a machine can check become CI rules.
   - [ ] Step 7 — Mutation layer: one spike for the three below, then a pilot page, then the remaining pages
     - State management — React Query and / or Zustand in place of each page's hand-rolled client copy (`useOptimisticTasks` + effect sync, `revalidatePath` re-renders); also trim server actions (6 of 29 are reads), server ↔ UI shape conversion per fetch / mutate use case, URL query params as state, and the close-then-stale gap (a form modal closes once its action resolves, but the new data shows only after the `revalidatePath` re-render lands — Projects tried closing in a nested transition (spike Option 0) and dropped it: on Next 16.2.9 / React 19.2 it sometimes never commits, leaving the modal loading). First assessment in `design/spike/archived/projects-page-refactor.md`; also decides the pending half of AGENTS.md › *Server shapes inputs*: how a page's container holds and patches its rows (spike `archived/agents-md-simplification.md`, Q4)

@@ -18,7 +18,12 @@ import {
   TaskType,
   TaskStatus,
 } from '@/generated/prisma/client';
-import {getTodayDate, isPeriodCurrent, isWeekend} from '../utils/dateUtils';
+import {
+  getTodayDate,
+  isPeriodCurrent,
+  isWeekend,
+  normalizeForDate,
+} from '../utils/dateUtils';
 import {sizeToPoints} from '../utils/sizeUtils';
 
 /**
@@ -113,9 +118,12 @@ export const ensureSynced = cache(
       return null;
     }
 
-    // Daily sync at most once per day (lastSyncDate short-circuit)
+    // Daily sync at most once per day (lastSyncDate short-circuit). The DATE
+    // column reads back as UTC midnight and today is local midnight, so they
+    // compare as calendar days — equal times only where the server runs UTC.
     const needsSync =
-      !plan.lastSyncDate || plan.lastSyncDate.getTime() !== today.getTime();
+      !plan.lastSyncDate ||
+      normalizeForDate(plan.lastSyncDate).getTime() !== today.getTime();
     if (needsSync) {
       await runDailySync(userId, plan.id, today);
     }

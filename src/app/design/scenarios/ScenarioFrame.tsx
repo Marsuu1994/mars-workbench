@@ -77,7 +77,9 @@ export const ScenarioFrame = ({
         <h3 className="text-base font-semibold">{title}</h3>
         {note && <p className="text-sm text-base-content/50">{note}</p>}
         {playError && (
-          <p className="text-sm font-semibold text-error">{playError}</p>
+          <p role="alert" className="text-sm font-semibold text-error">
+            {playError}
+          </p>
         )}
       </div>
       <div

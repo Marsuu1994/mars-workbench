@@ -23,6 +23,11 @@ prisma/migrations/
 **/*.md
 /design/
 
+# Test reports
+coverage/
+playwright-report/
+test-results/
+
 # Misc
 *.tsbuildinfo
 next-env.d.ts
