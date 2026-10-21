@@ -62,12 +62,9 @@ export async function fetchBoard(userId: string): Promise<BoardData | null> {
   const planWithTemplates = await getPlanWithTemplates(userId, activePlan.id);
   if (!planWithTemplates) return null;
 
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
-
   const [boardTasks, boardMetrics] = await Promise.all([
     getBoardTasksByPlanId(userId, activePlan.id),
-    getBoardMetricsByPlanId(userId, activePlan.id, today, tomorrow),
+    getBoardMetricsByPlanId(userId, activePlan.id, today),
   ]);
 
   // — Today metrics —
