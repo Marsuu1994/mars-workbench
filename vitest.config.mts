@@ -36,11 +36,17 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}'],
-      exclude: ['src/generated/**', 'src/app/design/**', 'src/**/*.test.ts'],
-      // Floors per layer (spike test-baseline, Q7): they only go up.
+      exclude: [
+        'src/generated/**',
+        'src/app/design/**',
+        'src/i18n/**',
+        'src/**/*.test.ts',
+      ],
+      // Floors per layer, set at what the suite reached (targets were 90 / 80
+      // / 80): raise them as coverage grows, never lower them.
       thresholds: {
-        'src/utils/**': {lines: 90, branches: 80},
-        'src/{services,lib/db}/**': {lines: 80},
+        'src/utils/**': {lines: 97, branches: 95},
+        'src/{services,lib/db}/**': {lines: 91},
       },
     },
   },

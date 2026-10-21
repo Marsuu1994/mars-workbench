@@ -1,0 +1,637 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`tools/list > is Claude's contract: names, schemas and descriptions 1`] = `
+[
+  {
+    "annotations": {
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+    },
+    "description": "How planning works in Mars Workbench: the rules, the three kinds of work (habits, projects, one-offs), how to plan a week, how to start something new, and what each write changes. Call this before anything else in a conversation, and again if you no longer have it.",
+    "inputSchema": {
+      "properties": {},
+      "type": "object",
+    },
+    "name": "get_planning_guide_before_everything",
+    "title": "Get planning guide",
+  },
+  {
+    "annotations": {
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+    },
+    "description": "If you haven't read get_planning_guide_before_everything in this conversation, or no longer have it, call it first. Read what you need to plan the user's week, habits and projects in Mars Workbench: today's date and week; this week's active plan (its habits with type, frequency and progress so far, plus the one-off tasks and project steps on it); last week's finished plan with per-habit completion stats, its project steps (done, and unfinished ones that can carry over) and the one-off tasks that carry over; the user's habits (templates); and their projects, each with its goal, progress and whole path of steps. Call it before you propose or change anything — the ids the other tools take come from here.",
+    "inputSchema": {
+      "properties": {},
+      "type": "object",
+    },
+    "name": "get_planning_context",
+    "title": "Get planning context",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+    },
+    "description": "If you haven't read get_planning_guide_before_everything in this conversation, or no longer have it, call it first. Create this week's plan — only when get_planning_context shows no activePlan. Run existing habits by templateId in \`templates\`, add brand-new ones in \`newTemplates\`, and put UPCOMING project steps on the week with \`addProjectStepIds\`. Completes lastPlan and moves its unfinished one-off tasks and project steps into the new plan (all of them by default). Task instances and steps land in the user's backlog. Agree on the plan with the user before calling.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "properties": {
+        "addProjectStepIds": {
+          "default": [],
+          "description": "UPCOMING project steps to put on this week, by stepId from get_planning_context or create_project",
+          "items": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string",
+          },
+          "type": "array",
+        },
+        "carryOverAdhocTaskIds": {
+          "description": "Which of lastPlan's one-off tasks move into this plan. Omit to carry all of them over; [] carries none (the rest return to the priority matrix)",
+          "items": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string",
+          },
+          "type": "array",
+        },
+        "carryOverProjectStepIds": {
+          "description": "Which of lastPlan's unfinished project steps (state LAST_WEEK) move into this plan. Omit to carry all of them over; [] carries none (the rest return to their projects)",
+          "items": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string",
+          },
+          "type": "array",
+        },
+        "description": {
+          "description": "A short label for the week's focus, shown on the board",
+          "type": "string",
+        },
+        "mode": {
+          "default": "NORMAL",
+          "description": "NORMAL: daily tasks on weekdays only. EXTREME: every day, weekends included",
+          "enum": [
+            "NORMAL",
+            "EXTREME",
+          ],
+          "type": "string",
+        },
+        "newTemplates": {
+          "default": [],
+          "description": "Brand-new templates to create and run this week",
+          "items": {
+            "properties": {
+              "description": {
+                "minLength": 1,
+                "type": "string",
+              },
+              "frequency": {
+                "description": "Instances per day (DAILY) or per week (WEEKLY)",
+                "maximum": 10,
+                "minimum": 1,
+                "type": "integer",
+              },
+              "size": {
+                "description": "Effort: EXTRA_SMALL ~1h, SMALL ~2h, MEDIUM ~3h, LARGE ~5h, EXTRA_LARGE ~8h",
+                "enum": [
+                  "EXTRA_SMALL",
+                  "SMALL",
+                  "MEDIUM",
+                  "LARGE",
+                  "EXTRA_LARGE",
+                ],
+                "type": "string",
+              },
+              "title": {
+                "minLength": 1,
+                "type": "string",
+              },
+              "type": {
+                "description": "DAILY: \`frequency\` instances every day. WEEKLY: \`frequency\` instances for the whole week",
+                "enum": [
+                  "DAILY",
+                  "WEEKLY",
+                ],
+                "type": "string",
+              },
+            },
+            "required": [
+              "title",
+              "description",
+              "size",
+              "type",
+              "frequency",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+        "templates": {
+          "default": [],
+          "description": "Existing templates to run this week",
+          "items": {
+            "properties": {
+              "frequency": {
+                "description": "Instances per day (DAILY) or per week (WEEKLY)",
+                "maximum": 10,
+                "minimum": 1,
+                "type": "integer",
+              },
+              "templateId": {
+                "description": "A templateId from get_planning_context",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string",
+              },
+              "type": {
+                "description": "DAILY: \`frequency\` instances every day. WEEKLY: \`frequency\` instances for the whole week",
+                "enum": [
+                  "DAILY",
+                  "WEEKLY",
+                ],
+                "type": "string",
+              },
+            },
+            "required": [
+              "templateId",
+              "type",
+              "frequency",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+      },
+      "type": "object",
+    },
+    "name": "create_plan",
+    "title": "Create plan",
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+    },
+    "description": "If you haven't read get_planning_guide_before_everything in this conversation, or no longer have it, call it first. Change this week's active plan (activePlan.planId from get_planning_context); only what you pass changes. Removing a habit, or changing its type or frequency, deletes that habit's unfinished task instances (backlog, to-do) and regenerates them in the backlog; completed tasks are never touched. \`addProjectStepIds\` puts UPCOMING project steps in the backlog; \`removeProjectStepIds\` sends steps back to their project. Agree on the change with the user before calling.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "properties": {
+        "addProjectStepIds": {
+          "default": [],
+          "description": "UPCOMING project steps to put on this week; they land in the backlog",
+          "items": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string",
+          },
+          "type": "array",
+        },
+        "addTemplates": {
+          "default": [],
+          "description": "Existing templates to add to the plan",
+          "items": {
+            "properties": {
+              "frequency": {
+                "description": "Instances per day (DAILY) or per week (WEEKLY)",
+                "maximum": 10,
+                "minimum": 1,
+                "type": "integer",
+              },
+              "templateId": {
+                "description": "A templateId from get_planning_context",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string",
+              },
+              "type": {
+                "description": "DAILY: \`frequency\` instances every day. WEEKLY: \`frequency\` instances for the whole week",
+                "enum": [
+                  "DAILY",
+                  "WEEKLY",
+                ],
+                "type": "string",
+              },
+            },
+            "required": [
+              "templateId",
+              "type",
+              "frequency",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+        "description": {
+          "description": "A new label for the week's focus",
+          "type": "string",
+        },
+        "mode": {
+          "description": "NORMAL: daily tasks on weekdays only. EXTREME: every day, weekends included",
+          "enum": [
+            "NORMAL",
+            "EXTREME",
+          ],
+          "type": "string",
+        },
+        "newTemplates": {
+          "default": [],
+          "description": "Brand-new templates to create and add to the plan",
+          "items": {
+            "properties": {
+              "description": {
+                "minLength": 1,
+                "type": "string",
+              },
+              "frequency": {
+                "description": "Instances per day (DAILY) or per week (WEEKLY)",
+                "maximum": 10,
+                "minimum": 1,
+                "type": "integer",
+              },
+              "size": {
+                "description": "Effort: EXTRA_SMALL ~1h, SMALL ~2h, MEDIUM ~3h, LARGE ~5h, EXTRA_LARGE ~8h",
+                "enum": [
+                  "EXTRA_SMALL",
+                  "SMALL",
+                  "MEDIUM",
+                  "LARGE",
+                  "EXTRA_LARGE",
+                ],
+                "type": "string",
+              },
+              "title": {
+                "minLength": 1,
+                "type": "string",
+              },
+              "type": {
+                "description": "DAILY: \`frequency\` instances every day. WEEKLY: \`frequency\` instances for the whole week",
+                "enum": [
+                  "DAILY",
+                  "WEEKLY",
+                ],
+                "type": "string",
+              },
+            },
+            "required": [
+              "title",
+              "description",
+              "size",
+              "type",
+              "frequency",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+        "planId": {
+          "description": "activePlan.planId from get_planning_context",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string",
+        },
+        "removeAdhocTaskIds": {
+          "default": [],
+          "description": "One-off tasks to send back to the priority matrix",
+          "items": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string",
+          },
+          "type": "array",
+        },
+        "removeProjectStepIds": {
+          "default": [],
+          "description": "Project steps on this week to send back to their project",
+          "items": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string",
+          },
+          "type": "array",
+        },
+        "removeTemplateIds": {
+          "default": [],
+          "description": "templateIds to take out of the plan",
+          "items": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string",
+          },
+          "type": "array",
+        },
+        "updateTemplates": {
+          "default": [],
+          "description": "A new type and/or frequency for templates already in the plan",
+          "items": {
+            "properties": {
+              "frequency": {
+                "description": "Instances per day (DAILY) or per week (WEEKLY)",
+                "maximum": 10,
+                "minimum": 1,
+                "type": "integer",
+              },
+              "templateId": {
+                "description": "A templateId from get_planning_context",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string",
+              },
+              "type": {
+                "description": "DAILY: \`frequency\` instances every day. WEEKLY: \`frequency\` instances for the whole week",
+                "enum": [
+                  "DAILY",
+                  "WEEKLY",
+                ],
+                "type": "string",
+              },
+            },
+            "required": [
+              "templateId",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+      },
+      "required": [
+        "planId",
+      ],
+      "type": "object",
+    },
+    "name": "update_plan",
+    "title": "Update plan",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+    },
+    "description": "If you haven't read get_planning_guide_before_everything in this conversation, or no longer have it, call it first. Change a habit (templateId from get_planning_context): its title, description or size; only what you pass changes. It applies to task instances generated from now on; ones already generated keep their old title and size. How often it runs this week is set with update_plan instead. Agree on the change with the user before calling.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "properties": {
+        "description": {
+          "description": "A new description",
+          "minLength": 1,
+          "type": "string",
+        },
+        "size": {
+          "description": "Effort: EXTRA_SMALL ~1h, SMALL ~2h, MEDIUM ~3h, LARGE ~5h, EXTRA_LARGE ~8h",
+          "enum": [
+            "EXTRA_SMALL",
+            "SMALL",
+            "MEDIUM",
+            "LARGE",
+            "EXTRA_LARGE",
+          ],
+          "type": "string",
+        },
+        "templateId": {
+          "description": "A templateId from get_planning_context",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string",
+        },
+        "title": {
+          "description": "A new name",
+          "minLength": 1,
+          "type": "string",
+        },
+      },
+      "required": [
+        "templateId",
+      ],
+      "type": "object",
+    },
+    "name": "update_habit",
+    "title": "Update habit",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+    },
+    "description": "If you haven't read get_planning_guide_before_everything in this conversation, or no longer have it, call it first. Create a project: a goal reached through a finite, ordered path of steps, such as a course or a book (repeating work with no end is a habit instead). Give its title, an optional goal and its steps in order, each with a title, a size and an optional description; aim for 10 steps or fewer, at most 50. Check get_planning_context's projects first so you don't create a second one for the same goal. Returns the project with every step's stepId, in order. Schedules nothing: put steps on the week afterwards with update_plan or create_plan. Agree on the project and its steps with the user before calling.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "properties": {
+        "goal": {
+          "description": "What finishing the project means, in one sentence",
+          "type": "string",
+        },
+        "steps": {
+          "default": [],
+          "description": "The path in order, step 1 first",
+          "items": {
+            "properties": {
+              "description": {
+                "description": "A link, notes, or what done looks like",
+                "type": "string",
+              },
+              "size": {
+                "description": "Effort: EXTRA_SMALL ~1h, SMALL ~2h, MEDIUM ~3h, LARGE ~5h, EXTRA_LARGE ~8h",
+                "enum": [
+                  "EXTRA_SMALL",
+                  "SMALL",
+                  "MEDIUM",
+                  "LARGE",
+                  "EXTRA_LARGE",
+                ],
+                "type": "string",
+              },
+              "title": {
+                "description": "What this step covers, readable on its own, e.g. 'Lesson 3 — Ordering food'",
+                "minLength": 1,
+                "type": "string",
+              },
+            },
+            "required": [
+              "title",
+              "size",
+            ],
+            "type": "object",
+          },
+          "maxItems": 50,
+          "type": "array",
+        },
+        "title": {
+          "description": "The project's name, e.g. 'Spanish A1'",
+          "minLength": 1,
+          "type": "string",
+        },
+      },
+      "required": [
+        "title",
+      ],
+      "type": "object",
+    },
+    "name": "create_project",
+    "title": "Create project",
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+    },
+    "description": "If you haven't read get_planning_guide_before_everything in this conversation, or no longer have it, call it first. Change a project (projectId and stepIds from get_planning_context); only what you pass changes. Rename it or change its goal; add steps (at the end, or before a given step); edit, move or remove steps that aren't done; archive or unarchive it. Done steps are locked, and steps keep their order unless the user asks. Removing a step deletes it, and takes it off the board if it is on this week. Archiving takes every unfinished step off the week — archive only when the user asks. Agree on the change with the user before calling.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "properties": {
+        "addSteps": {
+          "default": [],
+          "description": "New steps, in order",
+          "items": {
+            "properties": {
+              "beforeStepId": {
+                "description": "Insert the new step right before this step; omit to add it at the end of the path",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string",
+              },
+              "description": {
+                "description": "A link, notes, or what done looks like",
+                "type": "string",
+              },
+              "size": {
+                "description": "Effort: EXTRA_SMALL ~1h, SMALL ~2h, MEDIUM ~3h, LARGE ~5h, EXTRA_LARGE ~8h",
+                "enum": [
+                  "EXTRA_SMALL",
+                  "SMALL",
+                  "MEDIUM",
+                  "LARGE",
+                  "EXTRA_LARGE",
+                ],
+                "type": "string",
+              },
+              "title": {
+                "description": "What this step covers, readable on its own, e.g. 'Lesson 3 — Ordering food'",
+                "minLength": 1,
+                "type": "string",
+              },
+            },
+            "required": [
+              "title",
+              "size",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+        "archived": {
+          "description": "true archives the project — only when the user asks; false unarchives it",
+          "type": "boolean",
+        },
+        "goal": {
+          "description": "A new goal; an empty string clears it",
+          "type": "string",
+        },
+        "moveSteps": {
+          "default": [],
+          "description": "Steps that are not done, moved to a new place in the path — only when the user asks",
+          "items": {
+            "properties": {
+              "beforeStepId": {
+                "description": "Move the step right before this one; omit to move it to the end",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string",
+              },
+              "stepId": {
+                "description": "A stepId from get_planning_context",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string",
+              },
+            },
+            "required": [
+              "stepId",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+        "projectId": {
+          "description": "A projectId from get_planning_context",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string",
+        },
+        "removeStepIds": {
+          "default": [],
+          "description": "Steps that are not done, to delete",
+          "items": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string",
+          },
+          "type": "array",
+        },
+        "title": {
+          "description": "A new name",
+          "minLength": 1,
+          "type": "string",
+        },
+        "updateSteps": {
+          "default": [],
+          "description": "A new title, description or size for steps that are not done",
+          "items": {
+            "properties": {
+              "description": {
+                "description": "A new description; an empty string clears it",
+                "type": "string",
+              },
+              "size": {
+                "description": "Effort: EXTRA_SMALL ~1h, SMALL ~2h, MEDIUM ~3h, LARGE ~5h, EXTRA_LARGE ~8h",
+                "enum": [
+                  "EXTRA_SMALL",
+                  "SMALL",
+                  "MEDIUM",
+                  "LARGE",
+                  "EXTRA_LARGE",
+                ],
+                "type": "string",
+              },
+              "stepId": {
+                "description": "A stepId from get_planning_context",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string",
+              },
+              "title": {
+                "description": "What this step covers, readable on its own, e.g. 'Lesson 3 — Ordering food'",
+                "minLength": 1,
+                "type": "string",
+              },
+            },
+            "required": [
+              "stepId",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+      },
+      "required": [
+        "projectId",
+      ],
+      "type": "object",
+    },
+    "name": "update_project",
+    "title": "Update project",
+  },
+]
+`;
