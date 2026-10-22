@@ -12,9 +12,9 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### Medium
 
-- [ ] The collapsed desktop backlog keeps its cards focusable: the faded-out side is only `opacity-0` + `pointer-events-none`, so Tab and screen readers reach what nobody can see — the closed panel's cards, and the collapsed strip while open; make that side `inert` (found by the ui-verifier's first run). The task doubles as the subagent pilot — spike `design/spike/subagent-delegation-pilot.md` (draft, Option 3): `ui-verifier` stays, `test-writer` / `ci-fixer` are registered as a pilot
-  - [ ] The fix: `inert` on the faded side, focus moved to the other side's button on open and close, its e2e test in `journeys.spec.ts`
-  - [ ] Pilot round 3 in a fresh session on the spike's branch: the fix done twice, by the main session alone and delegated to the registered agents (spike › 第 3 轮计划); then the remaining rounds before keeping or dropping the two agents (Q2, Q4, Q5)
+- [ ] The collapsed desktop backlog keeps its cards focusable: the faded-out side is only `opacity-0` + `pointer-events-none`, so Tab and screen readers reach what nobody can see — the closed panel's cards, and the collapsed strip while open; make that side `inert` (found by the ui-verifier's first run). The task doubles as the subagent pilot — spike `design/spike/subagent-delegation-pilot.md` (awaiting owner review after three rounds): `ui-verifier` stays, `test-writer` / `ci-fixer` are registered as a pilot
+  - [ ] The fix: `inert` on the faded side, focus moved to the other side's button on open and close, its e2e test in `journeys.spec.ts` — built in both round-3 arms; the owner picks the version to commit (spike Q8, appendix C)
+  - [ ] Keep or drop `test-writer` / `ci-fixer`: Option 1 or 2, or more rounds first (spike Q7; Q2 with a real CI log, Q4, Q5)
 - [ ] Stack duplicate habit instances in the backlog — the kind-first card has landed; PR #44 implements stacking on the old card and needs moving onto the new face (project steps and one-offs never stack)
 
 ### Future
