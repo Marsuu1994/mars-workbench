@@ -6,6 +6,8 @@ import {registerUpdatePlanTool} from './tools/updatePlan';
 import {registerUpdateHabitTool} from './tools/updateHabit';
 import {registerCreateProjectTool} from './tools/createProject';
 import {registerUpdateProjectTool} from './tools/updateProject';
+import {registerCreateOneOffTasksTool} from './tools/createOneOffTasks';
+import {registerUpdateOneOffTasksTool} from './tools/updateOneOffTasks';
 
 /** Every tool the Mars Workbench MCP server exposes; the guide comes first. */
 export const registerTools = (server: McpServer) => {
@@ -16,4 +18,6 @@ export const registerTools = (server: McpServer) => {
   registerUpdateHabitTool(server);
   registerCreateProjectTool(server);
   registerUpdateProjectTool(server);
+  registerCreateOneOffTasksTool(server);
+  registerUpdateOneOffTasksTool(server);
 };

@@ -13,7 +13,7 @@ import {
   completeMatrixTask,
   undoCompleteMatrixTask,
 } from '../services/matrixService';
-import {updateTaskQuadrant} from '@/lib/db/tasks';
+import {updateAdhocTaskQuadrants} from '@/lib/db/tasks';
 import {getCurrentUserId} from '@/lib/auth/getCurrentUserId';
 
 export async function fetchPriorityMatrixAction() {
@@ -26,7 +26,11 @@ export async function updateTaskQuadrantAction(taskId: string, input: unknown) {
   if (!parsed.success) return {error: parsed.error.flatten()};
 
   const userId = await getCurrentUserId();
-  const task = await updateTaskQuadrant(userId, taskId, parsed.data.quadrant);
+  const [task] = await updateAdhocTaskQuadrants(
+    userId,
+    [taskId],
+    parsed.data.quadrant,
+  );
   if (!task) {
     const t = await getTranslations('Errors');
     return {error: {formErrors: [t('taskNotFound')], fieldErrors: {}}};

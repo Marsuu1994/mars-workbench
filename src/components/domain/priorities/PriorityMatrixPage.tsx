@@ -13,6 +13,7 @@ import {
 } from '@heroicons/react/24/outline';
 import type {TaskItem} from '@/lib/db/tasks';
 import {PriorityQuadrant} from '@/utils/enums';
+import {QUADRANT_ORDER} from '@/utils/oneOffUtils';
 import type {TrackTargetStatus} from '@/schemas';
 import type {MatrixActivePlan} from '@/services/matrixService';
 import {useOptimisticTasks} from '@/hooks/useOptimisticTasks';
@@ -28,7 +29,6 @@ import {MatrixUndoToast} from './MatrixUndoToast';
 import {QuadrantCell} from './QuadrantCell';
 import {MobileMoveToSheet} from './MobileMoveToSheet';
 import {
-  QUADRANT_ORDER,
   FALLBACK_QUADRANT,
   CREATE_PLAN_HREF,
   TOAST_DURATION_MS,

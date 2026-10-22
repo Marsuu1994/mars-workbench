@@ -15,6 +15,7 @@ import {AUTHORIZATION_ID_PATTERN, ConsentDecision} from './utils/oauthConsent';
 import {DUMP_ENTRY_MAX_LENGTH} from './utils/dump';
 import {FREQ_MAX, FREQ_MIN} from './utils/planUtils';
 import {PROJECT_STEP_LIMIT} from './utils/projectUtils';
+import {ONE_OFF_BATCH_LIMIT} from './utils/oneOffUtils';
 // Validation copy is centralized in the i18n catalog. zod messages are set at
 // module load (no React context), so we read the English strings directly from
 // en.json here rather than via useTranslations/getTranslations. Single-locale
@@ -100,6 +101,7 @@ export const createAdhocTaskSchema = z.object({
   size: z.nativeEnum(TaskSize),
   quadrant: z.nativeEnum(PriorityQuadrant),
 });
+export type CreateAdhocTaskInput = z.infer<typeof createAdhocTaskSchema>;
 
 export const updateTaskQuadrantSchema = z.object({
   quadrant: z.nativeEnum(PriorityQuadrant),
@@ -267,10 +269,10 @@ export const planSpecSchema = z.object({
     .array(newPlanLineSchema)
     .default([])
     .describe('Brand-new templates to create and run this week'),
-  carryOverAdhocTaskIds: uuidListSchema
+  carryOverOneOffTaskIds: uuidListSchema
     .optional()
     .describe(
-      "Which of lastPlan's one-off tasks move into this plan. Omit to carry all of them over; [] carries none (the rest return to the priority matrix)",
+      "Which of lastPlan's unfinished one-off tasks move into this plan. Omit to carry all of them over; [] carries none (the rest return to the priority matrix)",
     ),
   carryOverProjectStepIds: uuidListSchema
     .optional()
@@ -327,7 +329,7 @@ export const planPatchSchema = z
     removeTemplateIds: uuidListSchema
       .default([])
       .describe('templateIds to take out of the plan'),
-    removeAdhocTaskIds: uuidListSchema
+    removeOneOffTaskIds: uuidListSchema
       .default([])
       .describe('One-off tasks to send back to the priority matrix'),
     addProjectStepIds: uuidListSchema
@@ -348,7 +350,7 @@ export const planPatchSchema = z
         input.newTemplates,
         input.updateTemplates,
         input.removeTemplateIds,
-        input.removeAdhocTaskIds,
+        input.removeOneOffTaskIds,
         input.addProjectStepIds,
         input.removeProjectStepIds,
       ].some(list => list.length > 0),
@@ -489,3 +491,59 @@ export const projectPatchSchema = z
     {message: 'The patch changes nothing'},
   );
 export type ProjectPatchInput = z.infer<typeof projectPatchSchema>;
+
+const quadrantSchema = z
+  .nativeEnum(PriorityQuadrant)
+  .describe(
+    'Where it sits on the Eisenhower matrix, named in the app as Do First / Schedule / Squeeze In / Maybe Later. DO_FIRST: urgent and important. SCHEDULE: important, not urgent. SQUEEZE_IN: urgent, not important. MAYBE_LATER: neither',
+  );
+const oneOffTaskIdSchema = z
+  .string()
+  .uuid()
+  .describe('A taskId from get_planning_context');
+
+// create_one_off_tasks: the matrix's Add Priority Task fields, described for
+// the model.
+export const oneOffTasksSpecSchema = z.object({
+  tasks: z
+    .array(
+      z.object({
+        title: createAdhocTaskSchema.shape.title.describe(
+          "What to do, readable on its own, e.g. 'Renew passport'",
+        ),
+        description: createAdhocTaskSchema.shape.description.describe(
+          'Optional notes: a link, details, what done looks like',
+        ),
+        size: sizeSchema,
+        quadrant: quadrantSchema,
+      }),
+    )
+    .min(1)
+    .max(ONE_OFF_BATCH_LIMIT)
+    .describe(
+      `One-off tasks to add to the priority matrix, in order; up to ${ONE_OFF_BATCH_LIMIT}`,
+    ),
+});
+export type OneOffTasksSpecInput = z.infer<typeof oneOffTasksSpecSchema>;
+
+export const oneOffTasksPatchSchema = z
+  .object({
+    completeTaskIds: z
+      .array(oneOffTaskIdSchema)
+      .max(ONE_OFF_BATCH_LIMIT)
+      .default([])
+      .describe(
+        "Unfinished one-off tasks to mark done. Done is final: the user can't undo it",
+      ),
+    reprioritizeTasks: z
+      .array(z.object({taskId: oneOffTaskIdSchema, quadrant: quadrantSchema}))
+      .max(ONE_OFF_BATCH_LIMIT)
+      .default([])
+      .describe('Unfinished one-off tasks to move to another quadrant'),
+  })
+  .refine(
+    ({completeTaskIds, reprioritizeTasks}) =>
+      completeTaskIds.length > 0 || reprioritizeTasks.length > 0,
+    {message: 'The patch changes nothing'},
+  );
+export type OneOffTasksPatchInput = z.infer<typeof oneOffTasksPatchSchema>;

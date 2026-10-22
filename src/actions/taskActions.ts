@@ -3,9 +3,9 @@
 import {revalidatePath} from 'next/cache';
 import {getTranslations} from 'next-intl/server';
 import {updateTaskStatusSchema, createAdhocTaskSchema} from '../schemas';
-import {updateTaskStatus, createTask} from '@/lib/db/tasks';
-import {TaskType, TaskStatus} from '@/generated/prisma/client';
-import {sizeToPoints} from '../utils/sizeUtils';
+import {updateTaskStatus, createMatrixTasks} from '@/lib/db/tasks';
+import {TaskType} from '@/generated/prisma/client';
+import {toMatrixTaskRow} from '../utils/oneOffUtils';
 import {getCurrentUserId} from '@/lib/auth/getCurrentUserId';
 
 export async function updateTaskStatusAction(taskId: string, input: unknown) {
@@ -38,17 +38,9 @@ export async function createAdhocTaskAction(input: unknown) {
   if (!parsed.success) return {error: parsed.error.flatten()};
 
   const userId = await getCurrentUserId();
-  const task = await createTask(userId, {
-    planId: null,
-    type: TaskType.AD_HOC,
-    title: parsed.data.title,
-    description: parsed.data.description,
-    size: parsed.data.size,
-    points: sizeToPoints(parsed.data.size),
-    status: TaskStatus.BACKLOG,
-    quadrant: parsed.data.quadrant,
-    instanceIndex: 1,
-  });
+  const [task] = await createMatrixTasks(userId, [
+    toMatrixTaskRow(parsed.data),
+  ]);
 
   revalidatePath('/kanban/priorities');
   return {data: task};

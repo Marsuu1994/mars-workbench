@@ -1,7 +1,7 @@
 import {
   getNonDoneAdhocTasks,
   trackAdhocTask,
-  completeAdhocTask,
+  completeAdhocTasks,
   revertAdhocCompletion,
   type TaskItem,
 } from '@/lib/db/tasks';
@@ -66,7 +66,7 @@ export async function completeMatrixTask(
 ): Promise<CompleteTaskResult> {
   const plan = await ensureSynced(userId);
 
-  const task = await completeAdhocTask(userId, taskId, plan?.id ?? null);
+  const [task] = await completeAdhocTasks(userId, [taskId], plan?.id ?? null);
   if (!task) return {error: 'taskNotFound'};
 
   return {task};

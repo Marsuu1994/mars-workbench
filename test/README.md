@@ -40,4 +40,5 @@ npx playwright test --project=journeys                # one e2e project
 - **Any console error fails a test** (`e2e/fixtures.ts`).
 - **Locate by role and visible text**, the way a user finds a control; a page can hold a hidden copy of some text — its other layout, or a streamed Suspense chunk React hasn't swapped in yet — so match the visible one. Before clicking or typing, open the page with `openPage()`, which waits until React has hydrated it.
 - **Specs can't import Prisma or the services**: Playwright loads TypeScript as CommonJS and the generated client is ESM-only. Put what a spec needs in plain modules like `test/seedData.ts`, and database work in a tsx script.
+- **Let a server action land before leaving the page**: an optimistic update shows before its action saves it, and a reload or navigation right after one aborts the save — CI's slower runner loses that race where a local run doesn't. Start `waitForServerAction(page, path)` (`e2e/fixtures.ts`) before the click and await it before you leave.
 - **Dates stay out of e2e**: the server is another process and its clock can't be frozen, so date logic is tested at the integration layer.

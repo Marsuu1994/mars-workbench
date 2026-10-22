@@ -19,7 +19,7 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | `getEmptyBoardStateAction` | Resolve no-active-plan state (new user vs. finished-plan recap) | `boardService.getEmptyBoardState` |
 | **`src/actions/taskActions.ts`** | | |
 | `updateTaskStatusAction` | Move a task between board columns (drag & drop) | `db/tasks.updateTaskStatus` |
-| `createAdhocTaskAction` | Add an unassigned ad-hoc task to a quadrant | `db/tasks.createTask` |
+| `createAdhocTaskAction` | Add an unassigned ad-hoc task to a quadrant | `db/tasks.createMatrixTasks` |
 | **`src/actions/planActions.ts`** | | |
 | `createPlanAction` | Create a weekly plan from the plan form | `planService.createPlan` |
 | `updatePlanAction` | Update an existing plan from the plan form (templates, mode, the one-offs and steps let go) | `planService.updatePlan` |
@@ -29,7 +29,7 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | `updateTaskTemplateAction` | Edit a task template | `db/taskTemplates.updateTaskTemplate` |
 | **`src/actions/matrixActions.ts`** | | |
 | `fetchPriorityMatrixAction` | Load matrix tasks + active-plan info for `/kanban/priorities` | `matrixService.fetchPriorityMatrix` |
-| `updateTaskQuadrantAction` | Move a task between Eisenhower quadrants | `db/tasks.updateTaskQuadrant` |
+| `updateTaskQuadrantAction` | Move a task between Eisenhower quadrants | `db/tasks.updateAdhocTaskQuadrants` |
 | `trackTaskAction` | Track This Week: pull a matrix task onto the board | `matrixService.trackTaskThisWeek` |
 | `completeTaskAction` | Mark a matrix task done in place (credits the current ACTIVE plan when one exists) | `matrixService.completeMatrixTask` |
 | `undoCompleteTaskAction` | Undo a matrix completion within the toast window (restores the pre-complete status, detaches the plan link the complete added) | `matrixService.undoCompleteMatrixTask` |
@@ -60,12 +60,14 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | Tool | Purpose | Calls |
 | --- | --- | --- |
 | `get_planning_guide_before_everything` | The guide (`MCP_SERVER_INSTRUCTIONS`) as a tool result — claude.ai passes no server instructions to the model | — |
-| `get_planning_context` | Snapshot to plan from: date/week, active or last plan (lines + progress, one-offs, project steps, totals), reusable templates, projects with their paths, archived projects | `planningService.getPlanningContext` |
+| `get_planning_context` | Snapshot to plan from: date/week, active or last plan (lines + progress, one-offs, project steps, totals), reusable templates, projects with their paths, archived projects, the matrix's unfinished one-offs | `planningService.getPlanningContext` |
 | `create_plan` | Create this week's plan from existing + new templates, with carry-over selections and upcoming steps to add | `planningService.createPlanFromSpec` |
 | `update_plan` | Patch this week's active plan (add / new / update / remove templates, drop one-offs, add / remove steps, mode, description) | `planningService.patchActivePlan` |
 | `update_habit` | Change a template's title, description or size | `planningService.updateHabit` |
 | `create_project` | Create a project with its whole path | `projectPlanningService.createProjectFromSpec` |
 | `update_project` | Patch a project (title, goal, archive, add / edit / move / remove steps), all or nothing | `projectPlanningService.patchProject` |
+| `create_one_off_tasks` | Add 1–20 one-offs to the priority matrix, on no week | `oneOffPlanningService.createOneOffTasks` |
+| `update_one_off_tasks` | Mark one-offs done and move them between quadrants, all or nothing | `oneOffPlanningService.patchOneOffTasks` |
 
 ## Services (src/services)
 
@@ -87,17 +89,20 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `createPlanInTx` | Shared transactional plan-creation core reused by `createPlan`/`createPlanFromEntries`; rejects templates the user doesn't own; links the selected one-offs and steps, returns the pending plan's others |
 | `updatePlanInTx` | Transactional plan-update core (template diff + task regeneration, ad-hoc and project-step links, description/mode); returns the applied diff |
 | **`planningService.ts`** | |
-| `getPlanningContext` | MCP read model, synced first: date/week, this week's ACTIVE or last PENDING_UPDATE plan (lines + progress, one-offs, project steps, totals), reusable templates, projects (one read) |
+| `getPlanningContext` | MCP read model, synced first: date/week, this week's ACTIVE or last PENDING_UPDATE plan (lines + progress, one-offs and project steps done ones included, totals), reusable templates, projects (one read), the matrix's unfinished one-offs in matrix order |
 | `createPlanFromSpec` | Guarded create from existing + new templates with validated one-off and step selections (steps carried over by default) |
 | `patchActivePlan` | Patch this week's ACTIVE plan only: patch → full template and step lists (conflicts rejected) → `updatePlanInTx`, one transaction with any new templates |
 | `updateHabit` | Change a template's own fields; already generated instances keep theirs |
 | **`projectPlanningService.ts`** | |
 | `createProjectFromSpec` | MCP `create_project`: `projectService.createProject` → the project as the planning tools describe it |
 | `patchProject` | MCP `update_project`: `applyStepPatch` → one transaction (delete, edit, add, renumber, title / goal, archive last); throws `PlanningError` on any conflict or past the step limit |
+| **`oneOffPlanningService.ts`** | |
+| `createOneOffTasks` | MCP `create_one_off_tasks`: one INSERT through `createMatrixTasks`, in the order given |
+| `patchOneOffTasks` | MCP `update_one_off_tasks`: `ensureSynced` → ids checked against the user's unfinished one-offs (`PlanningError` on any problem) → one transaction (`completeAdhocTasks`, then quadrant moves) |
 | **`matrixService.ts`** | |
 | `fetchPriorityMatrix` | Matrix tasks + active-plan info for `/kanban/priorities` |
 | `trackTaskThisWeek` | Track This Week: pull a matrix task onto the board |
-| `completeMatrixTask` | Complete a matrix task in place: `ensureSynced` → active plan id or null → DAL |
+| `completeMatrixTask` | Complete a matrix task in place: `ensureSynced` → active plan id or null → `completeAdhocTasks` |
 | `undoCompleteMatrixTask` | Undo a matrix completion: validated pre-complete snapshot → DAL |
 | **`projectService.ts`** | |
 | `fetchProjectsPage` | The Projects page's inputs, synced first: every project, their steps flat, the active plan's id |
@@ -134,18 +139,19 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | **`tasks.ts`** | |
 | `getBoardTasksByPlanId` | Board-visible tasks for a plan (excludes EXPIRED) |
 | `getBoardMetricsByPlanId` | All board metrics in one SQL aggregate query |
-| `createTask` | Create one task instance (planId null = unassigned matrix task) |
+| `createMatrixTasks` | Add one-offs to the matrix (AD_HOC, BACKLOG, no plan) in one INSERT, returned and listed in the order given |
 | `createManyTasks` | Bulk create task instances with `skipDuplicates` (idempotent) |
 | `updateTaskStatus` | Set a task's status (+`doneAt` on DONE); returns updated row or null |
-| `updateTaskQuadrant` | Set the Eisenhower quadrant of an owned AD_HOC task |
+| `updateAdhocTaskQuadrants` | Move owned AD_HOC tasks to an Eisenhower quadrant |
 | `trackAdhocTask` | Attach an unassigned matrix task to a plan (BACKLOG → board) in one write |
-| `completeAdhocTask` | Set an owned non-DONE AD_HOC task to DONE (+`doneAt`), filling a null `planId` with the active plan, in one write |
+| `completeAdhocTasks` | Set owned non-DONE AD_HOC tasks to DONE (+`doneAt`), filling a null `planId` with the active plan — the matrix's Done and MCP alike |
 | `revertAdhocCompletion` | Put a DONE AD_HOC task back to its pre-complete status (clear `doneAt`, optional plan detach), guarded on DONE |
 | `expireStaleDailyTasks` | Expire non-DONE daily tasks older than the cutoff (1-day rollover buffer) |
 | `expireAllNonDoneTasks` | End-of-period cleanup: expire all non-done template instances (one-offs and steps never expire) |
 | `deleteIncompleteTasksByTemplateIds` | Delete unfinished (BACKLOG/TODO) tasks for given templates in a plan |
 | `countIncompleteTasksByTemplateId` | Incomplete-task counts grouped by templateId |
 | `getNonDoneAdhocTasks` | All non-DONE AD_HOC tasks (matrix data source) |
+| `getAdhocTasksByPlanId` | A plan's AD_HOC tasks, done ones included (MCP plan context) |
 | `updateTasksPlanId` | Batch link ad-hoc tasks to a plan, owner-scoped |
 | `unlinkTasksFromPlan` | Return a plan's unkept one-offs (to the matrix) or steps (to their project) — DONE tasks stay |
 | `getPlanTemplateStats` | Per-template performance aggregates (MCP planning context + recap stats) |

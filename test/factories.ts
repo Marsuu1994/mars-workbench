@@ -6,12 +6,12 @@
  */
 import {randomUUID} from 'node:crypto';
 import type {z} from 'zod';
-import {createTask, updateTaskStatus} from '@/lib/db/tasks';
+import {createMatrixTasks, updateTaskStatus} from '@/lib/db/tasks';
 import {planSpecSchema} from '@/schemas';
 import {createPlanFromSpec} from '@/services/planningService';
 import {createProject} from '@/services/projectService';
 import {PriorityQuadrant, TaskSize, TaskStatus, TaskType} from '@/utils/enums';
-import {sizeToPoints} from '@/utils/sizeUtils';
+import {toMatrixTaskRow} from '@/utils/oneOffUtils';
 
 /** A user no other test touches: every query is scoped by userId. */
 export const newUserId = () => randomUUID();
@@ -54,24 +54,19 @@ interface OneOffInput {
 }
 
 /** A one-off on the priority matrix, on no plan yet. */
-export const createOneOff = (
+export const createOneOff = async (
   userId: string,
   {
     title,
     quadrant = PriorityQuadrant.DO_FIRST,
     size = TaskSize.SMALL,
   }: OneOffInput,
-) =>
-  createTask(userId, {
-    planId: null,
-    type: TaskType.AD_HOC,
-    title,
-    size,
-    points: sizeToPoints(size),
-    status: TaskStatus.BACKLOG,
-    quadrant,
-    instanceIndex: 1,
-  });
+) => {
+  const [oneOff] = await createMatrixTasks(userId, [
+    toMatrixTaskRow({title, size, quadrant}),
+  ]);
+  return oneOff;
+};
 
 /** Moves tasks across the board, in order. */
 export const moveTasks = async (

@@ -22,10 +22,14 @@ export const PLANNING_ERROR = {
     `Not in the plan: ${templateIds.join(', ')}.`,
   PATCH_REJECTED: (problems: string[]) =>
     `No changes were made. ${problems.join(' ')}`,
-  ADHOC_TASKS_NOT_IN_LAST_PLAN: (taskIds: string[]) =>
+  ONE_OFF_TASKS_NOT_IN_LAST_PLAN: (taskIds: string[]) =>
     `Not unfinished one-off tasks of the last plan: ${taskIds.join(', ')}.`,
-  ADHOC_TASKS_NOT_IN_PLAN: (taskIds: string[]) =>
+  ONE_OFF_TASKS_NOT_IN_PLAN: (taskIds: string[]) =>
     `Not unfinished one-off tasks of this plan: ${taskIds.join(', ')}.`,
+  ONE_OFF_TASKS_NOT_FOUND: (taskIds: string[]) =>
+    `Not unfinished one-off tasks: ${taskIds.join(', ')}. Use taskIds from get_planning_context's oneOffTasks; done tasks can't be changed.`,
+  ONE_OFF_TASKS_LISTED_TWICE: (taskIds: string[]) =>
+    `One-off tasks listed more than once: ${taskIds.join(', ')}.`,
   PROJECT_STEPS_LISTED_TWICE: (stepIds: string[]) =>
     `Project steps listed more than once: ${stepIds.join(', ')}.`,
   PROJECT_STEPS_NOT_IN_LAST_PLAN: (stepIds: string[]) =>

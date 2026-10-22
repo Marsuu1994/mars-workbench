@@ -3,14 +3,6 @@ import type {TrackTargetStatus} from '@/schemas';
 
 export const CREATE_PLAN_HREF = '/kanban/plans/new';
 
-/** Render order: Do First / Schedule (top row), Squeeze In / Maybe Later (bottom). */
-export const QUADRANT_ORDER: PriorityQuadrant[] = [
-  PriorityQuadrant.DO_FIRST,
-  PriorityQuadrant.SCHEDULE,
-  PriorityQuadrant.SQUEEZE_IN,
-  PriorityQuadrant.MAYBE_LATER,
-];
-
 interface QuadrantConfig {
   /** Header top-accent border color */
   accentBorder: string;

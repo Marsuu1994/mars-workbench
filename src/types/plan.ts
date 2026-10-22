@@ -1,10 +1,12 @@
 import type {
   PlanMode,
+  PriorityQuadrant,
   TaskSize,
   TaskStatus,
   TaskType,
 } from '@/generated/prisma/client';
 import type {PlanItem} from '@/lib/db/plans';
+import type {OneOffTaskState} from '@/utils/oneOffUtils';
 import type {ProjectStepState} from '@/utils/projectUtils';
 
 /** An existing template linked to a plan, with its per-plan type and frequency. */
@@ -104,14 +106,25 @@ export type PlanTemplateWithProgress = PlanTemplateInput &
   Pick<TaskTemplateSummary, 'title' | 'size' | 'points'> &
   TaskProgress;
 
-/** An unfinished one-off task attached to a plan. */
-export type AdhocTaskSummary = {
+/** A one-off task on the priority matrix, as the planning tools list it. */
+export type OneOffTaskSummary = {
   taskId: string;
   title: string;
+  description: string | null;
   size: TaskSize;
   points: number;
-  status: TaskStatus;
+  quadrant: PriorityQuadrant | null;
+  /** Where the task sits on the weeks */
+  state: OneOffTaskState;
+  /** YYYY-MM-DD in the planner's time zone */
+  createdOn: string;
 };
+
+/** A one-off task on a plan, with its board status. */
+export type PlanOneOffTaskSummary = Pick<
+  OneOffTaskSummary,
+  'taskId' | 'title' | 'size' | 'points'
+> & {status: TaskStatus};
 
 /** A project step as its project's path lists it for the planning tools. */
 export type ProjectStepContext = {
@@ -163,8 +176,8 @@ export type PlanContext = {
   description: string | null;
   mode: PlanMode;
   templates: PlanTemplateWithProgress[];
-  /** Non-done one-off tasks attached to the plan */
-  adhocTasks: AdhocTaskSummary[];
+  /** One-off tasks on the plan, done ones included */
+  oneOffTasks: PlanOneOffTaskSummary[];
   /** Project steps on the plan, done ones included */
   projectSteps: PlanProjectStepSummary[];
   /** Totals over every template instance of the plan */
@@ -178,7 +191,7 @@ export type PlanContext = {
 /**
  * Everything an assistant needs to plan the user's week: the date, this week's
  * ACTIVE plan or last period's PENDING_UPDATE plan (at most one of them exists),
- * and the reusable templates.
+ * the reusable templates, the projects and the one-off tasks.
  */
 export type PlanningContext = {
   /** YYYY-MM-DD in `timeZone` */
@@ -193,6 +206,8 @@ export type PlanningContext = {
   /** Non-archived projects, newest first */
   projects: ProjectContext[];
   archivedProjects: ArchivedProjectSummary[];
+  /** Unfinished one-off tasks on the priority matrix, in matrix order */
+  oneOffTasks: OneOffTaskSummary[];
 };
 
 /** A template, one-off task or project step named in a change summary. */
@@ -204,7 +219,7 @@ export type PlanPatchResult = {
     addedTemplates: PlanChangeRef[];
     modifiedTemplates: PlanChangeRef[];
     removedTemplates: PlanChangeRef[];
-    removedAdhocTasks: PlanChangeRef[];
+    removedOneOffTasks: PlanChangeRef[];
     addedProjectSteps: PlanChangeRef[];
     removedProjectSteps: PlanChangeRef[];
   };
@@ -222,4 +237,10 @@ export type ProjectPatchResult = {
     archived?: boolean;
   };
   project: ProjectContext;
+};
+
+/** The one-off tasks an update changed, as they stand afterwards. */
+export type OneOffTasksPatchResult = {
+  completedTasks: OneOffTaskSummary[];
+  reprioritizedTasks: OneOffTaskSummary[];
 };

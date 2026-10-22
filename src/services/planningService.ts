@@ -7,6 +7,7 @@ import {
   type TaskTemplateItem,
 } from '@/lib/db/taskTemplates';
 import {
+  getAdhocTasksByPlanId,
   getNonDoneAdhocTasks,
   getPlanTemplateStats,
   type TaskItem,
@@ -30,6 +31,7 @@ import {
   isStepDone,
   toProjectContext,
 } from '@/utils/projectUtils';
+import {sortByQuadrant, toOneOffTaskSummary} from '@/utils/oneOffUtils';
 import {PLANNING_ERROR} from '@/utils/errorMessages';
 import {
   KANBAN_TZ,
@@ -40,10 +42,10 @@ import {
 } from '@/utils/dateUtils';
 import type {HabitPatchInput, PlanPatchInput, PlanSpecInput} from '@/schemas';
 import type {
-  AdhocTaskSummary,
   NewPlanEntry,
   PlanChangeRef,
   PlanContext,
+  PlanOneOffTaskSummary,
   PlanPatchResult,
   PlanProjectStepSummary,
   PlanTemplatePatchConflicts,
@@ -81,13 +83,19 @@ const toNewPlanEntries = (
 ): NewPlanEntry[] =>
   newTemplates.map(newTemplate => ({...newTemplate, templateId: null}));
 
-const toAdhocTaskSummary = ({
+const toPlanOneOffTaskSummary = ({
   id,
   title,
   size,
   points,
   status,
-}: TaskItem): AdhocTaskSummary => ({taskId: id, title, size, points, status});
+}: TaskItem): PlanOneOffTaskSummary => ({
+  taskId: id,
+  title,
+  size,
+  points,
+  status,
+});
 
 /** A step with its project, for the plan tools' step checks and summaries. */
 type StepWithProject = {
@@ -194,8 +202,8 @@ function assertNoStepPatchConflicts({
 
 /**
  * One plan as the planning tools describe it: its templates with their
- * progress (so far for the active plan), its unfinished one-off tasks, its
- * project steps, and the overall totals. Shared by the planning context and
+ * progress (so far for the active plan), its one-off tasks and project steps
+ * (done ones included), and the overall totals. Shared by the planning context and
  * both write results; the context passes the projects it already read.
  */
 async function getPlanContextByPlanId(
@@ -203,17 +211,13 @@ async function getPlanContextByPlanId(
   planId: string,
   loadedProjectsWithSteps?: ProjectWithSteps[],
 ): Promise<PlanContext> {
-  const [
-    planWithTemplates,
-    templateStats,
-    nonDoneAdhocTasks,
-    projectsWithSteps,
-  ] = await Promise.all([
-    getPlanWithTemplates(userId, planId),
-    getPlanTemplateStats(userId, planId),
-    getNonDoneAdhocTasks(userId),
-    loadedProjectsWithSteps ?? getProjectsWithSteps(userId),
-  ]);
+  const [planWithTemplates, templateStats, planAdhocTasks, projectsWithSteps] =
+    await Promise.all([
+      getPlanWithTemplates(userId, planId),
+      getPlanTemplateStats(userId, planId),
+      getAdhocTasksByPlanId(userId, planId),
+      loadedProjectsWithSteps ?? getProjectsWithSteps(userId),
+    ]);
   if (!planWithTemplates) throw new Error(`Plan not found: ${planId}`);
 
   const {id, periodKey, description, mode, planTemplates} = planWithTemplates;
@@ -251,9 +255,7 @@ async function getPlanContextByPlanId(
         };
       },
     ),
-    adhocTasks: nonDoneAdhocTasks
-      .filter(task => task.planId === id)
-      .map(toAdhocTaskSummary),
+    oneOffTasks: planAdhocTasks.map(toPlanOneOffTaskSummary),
     projectSteps: toPlanProjectSteps(projectsWithSteps, id),
     overall: {
       completed: completedCount,
@@ -281,14 +283,19 @@ export async function getPlanningContext(
   const {activePlan, pendingPlan, today, periodKey} =
     await getPlanCreationContext(userId);
   const projectsWithSteps = await getProjectsWithSteps(userId);
-  const [existingTaskTemplates, activePlanContext, pendingPlanContext] =
-    await Promise.all([
-      getTaskTemplates(userId),
-      activePlan &&
-        getPlanContextByPlanId(userId, activePlan.id, projectsWithSteps),
-      pendingPlan &&
-        getPlanContextByPlanId(userId, pendingPlan.id, projectsWithSteps),
-    ]);
+  const [
+    existingTaskTemplates,
+    nonDoneAdhocTasks,
+    activePlanContext,
+    pendingPlanContext,
+  ] = await Promise.all([
+    getTaskTemplates(userId),
+    getNonDoneAdhocTasks(userId),
+    activePlan &&
+      getPlanContextByPlanId(userId, activePlan.id, projectsWithSteps),
+    pendingPlan &&
+      getPlanContextByPlanId(userId, pendingPlan.id, projectsWithSteps),
+  ]);
   const activePlanId = activePlan?.id ?? null;
 
   return {
@@ -315,6 +322,9 @@ export async function getPlanningContext(
         doneCount: countDoneSteps(steps),
         stepCount: steps.length,
       })),
+    oneOffTasks: sortByQuadrant(nonDoneAdhocTasks).map(task =>
+      toOneOffTaskSummary(task, activePlanId),
+    ),
   };
 }
 
@@ -322,7 +332,7 @@ export async function getPlanningContext(
  * Create this week's plan from existing templates plus brand-new ones (MCP
  * `create_plan`), with the shared creation guard. Carries over all of the
  * last plan's unfinished one-off tasks and project steps unless
- * `carryOverAdhocTaskIds` / `carryOverProjectStepIds` pick a subset, and puts
+ * `carryOverOneOffTaskIds` / `carryOverProjectStepIds` pick a subset, and puts
  * `addProjectStepIds` (upcoming steps) on the week. New templates and the
  * plan are written in one transaction.
  */
@@ -335,7 +345,7 @@ export async function createPlanFromSpec(
     mode,
     templates,
     newTemplates,
-    carryOverAdhocTaskIds,
+    carryOverOneOffTaskIds,
     carryOverProjectStepIds,
     addProjectStepIds,
   } = planSpec;
@@ -361,13 +371,13 @@ export async function createPlanFromSpec(
       getCarryOverProjectStepIds(userId, pendingPlan),
       getProjectsWithSteps(userId),
     ]);
-  const adhocTaskIdsToCarry = carryOverAdhocTaskIds ?? carryOverCandidateIds;
+  const adhocTaskIdsToCarry = carryOverOneOffTaskIds ?? carryOverCandidateIds;
   const notCarryableTaskIds = adhocTaskIdsToCarry.filter(
     taskId => !carryOverCandidateIds.includes(taskId),
   );
   if (notCarryableTaskIds.length > 0) {
     throw new PlanningError(
-      PLANNING_ERROR.ADHOC_TASKS_NOT_IN_LAST_PLAN(notCarryableTaskIds),
+      PLANNING_ERROR.ONE_OFF_TASKS_NOT_IN_LAST_PLAN(notCarryableTaskIds),
     );
   }
 
@@ -446,7 +456,7 @@ export async function patchActivePlan(
     newTemplates,
     updateTemplates,
     removeTemplateIds,
-    removeAdhocTaskIds,
+    removeOneOffTaskIds,
     addProjectStepIds,
     removeProjectStepIds,
   } = planPatch;
@@ -501,19 +511,19 @@ export async function patchActivePlan(
   const planAdhocTasks = nonDoneAdhocTasks.filter(
     task => task.planId === planId,
   );
-  const unknownAdhocTaskIds = removeAdhocTaskIds.filter(
+  const unknownAdhocTaskIds = removeOneOffTaskIds.filter(
     taskId => !planAdhocTasks.some(task => task.id === taskId),
   );
   if (unknownAdhocTaskIds.length > 0) {
     throw new PlanningError(
-      PLANNING_ERROR.ADHOC_TASKS_NOT_IN_PLAN(unknownAdhocTaskIds),
+      PLANNING_ERROR.ONE_OFF_TASKS_NOT_IN_PLAN(unknownAdhocTaskIds),
     );
   }
   const removedAdhocTasks = planAdhocTasks.filter(task =>
-    removeAdhocTaskIds.includes(task.id),
+    removeOneOffTaskIds.includes(task.id),
   );
   const keptAdhocTaskIds = planAdhocTasks
-    .filter(task => !removeAdhocTaskIds.includes(task.id))
+    .filter(task => !removeOneOffTaskIds.includes(task.id))
     .map(task => task.id);
 
   const hasTemplateChanges = [
@@ -575,7 +585,7 @@ export async function patchActivePlan(
         toChangeRef(template.templateId),
       ),
       removedTemplates: templateDiff.removed.map(toChangeRef),
-      removedAdhocTasks: removedAdhocTasks.map(({id, title}) => ({id, title})),
+      removedOneOffTasks: removedAdhocTasks.map(({id, title}) => ({id, title})),
       addedProjectSteps: addProjectStepIds.map(toStepChangeRef),
       removedProjectSteps: removeProjectStepIds.map(toStepChangeRef),
     },
