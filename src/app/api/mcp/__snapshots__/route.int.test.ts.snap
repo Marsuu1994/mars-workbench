@@ -653,7 +653,7 @@ exports[`tools/list > is Claude's contract: names, schemas and descriptions 1`] 
                 "type": "string",
               },
               "quadrant": {
-                "description": "DO_FIRST: urgent and important. SCHEDULE: important, not urgent. SQUEEZE_IN: urgent, not important. MAYBE_LATER: neither",
+                "description": "Where it sits on the Eisenhower matrix, named in the app as Do First / Schedule / Squeeze In / Maybe Later. DO_FIRST: urgent and important. SCHEDULE: important, not urgent. SQUEEZE_IN: urgent, not important. MAYBE_LATER: neither",
                 "enum": [
                   "DO_FIRST",
                   "SCHEDULE",
@@ -728,7 +728,7 @@ exports[`tools/list > is Claude's contract: names, schemas and descriptions 1`] 
           "items": {
             "properties": {
               "quadrant": {
-                "description": "DO_FIRST: urgent and important. SCHEDULE: important, not urgent. SQUEEZE_IN: urgent, not important. MAYBE_LATER: neither",
+                "description": "Where it sits on the Eisenhower matrix, named in the app as Do First / Schedule / Squeeze In / Maybe Later. DO_FIRST: urgent and important. SCHEDULE: important, not urgent. SQUEEZE_IN: urgent, not important. MAYBE_LATER: neither",
                 "enum": [
                   "DO_FIRST",
                   "SCHEDULE",

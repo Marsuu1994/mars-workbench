@@ -24,7 +24,7 @@ export const MCP_SERVER_INSTRUCTIONS = `Mars Workbench is the user's weekly kanb
 A week mixes three kinds of work:
 - Habit: work that repeats with no end — a workout, flashcards, two coding problems a day. A habit is a reusable template that a plan runs DAILY or WEEKLY.
 - Project: a goal reached through a finite, ordered list of steps — a course, a book. Its steps never expire and go onto a week a few at a time.
-- One-off: a single task with nothing behind it — renew a passport, book the dentist. One-offs live on the user's priority matrix, sorted into four quadrants by urgency and importance; the user tracks the ones they'll do this week onto the board from there.
+- One-off: a single task with nothing behind it — renew a passport, book the dentist. One-offs live on the user's priority matrix, an Eisenhower matrix that sorts them into four quadrants by urgency and importance (see One-offs); the user tracks the ones they'll do this week onto the board from there.
 To choose, ask: is there a finite list to get through toward one goal? Yes → a project, one step per item. Work that repeats with no end → a habit, even if the content differs each time. Anything done once, on its own → a one-off; a list of unrelated errands is several one-offs, not a project. "Three lectures a week from a 12-lecture course" is a project with 12 steps, 3 of them on this week — not a WEEKLY × 3 template.
 
 # Planning a week
@@ -61,7 +61,12 @@ Mid-week, change the plan only as the user asks.
 
 # One-offs
 - A one-off is a title, a size (the same scale as habits), a quadrant and an optional description — a link, notes, what done looks like.
-- The quadrant is where it sits on the matrix: DO_FIRST (urgent and important), SCHEDULE (important, not urgent), SQUEEZE_IN (urgent, not important), MAYBE_LATER (neither). Propose a quadrant for each new task along with the rest of it; when you can't tell how urgent or important a task is, ask.
+- The priority matrix is an Eisenhower matrix (the urgent–important matrix). It sorts each task by two questions. Urgent: does it have a deadline, or will waiting soon cost something? Important: does it move the user's goals, health, money or relationships forward, or would skipping it hurt? The answers put it in one of four quadrants; call each by its name in the app:
+  - DO_FIRST, "Do First" (urgent and important): do it now or this week — a bill or filing due in days, a broken laptop, a doctor's follow-up.
+  - SCHEDULE, "Schedule" (important, not urgent): give it a time before it turns urgent — renew a passport that expires in a few months, set up a retirement account, book a yearly check-up. Most of what matters for the long run sits here.
+  - SQUEEZE_IN, "Squeeze In" (urgent, not important): has to happen soon but moves nothing forward — reply to the landlord, return a package, answer an invitation. The classic matrix delegates these; here the user fits them in, short or batched, between bigger work.
+  - MAYBE_LATER, "Maybe Later" (neither): only if there is time — sort old photos, reorganize bookmarks. The classic matrix drops these.
+- Propose a quadrant for each new task along with the rest of it; a deadline the user names makes a task urgent. When you can't tell how urgent or important a task is, ask.
 - create_one_off_tasks adds up to ${ONE_OFF_BATCH_LIMIT} at once. Check oneOffTasks first so you don't add a task that is already there.
 - Every unfinished one-off has a state: UNTRACKED (on no week), THIS_WEEK (on activePlan, in the user's to-do), LAST_WEEK (unfinished on lastPlan, until the next plan carries it over or sends it back).
 - New one-offs are on no week. These tools never put a one-off on a week: when the user wants one this week, tell them to track it from the priority matrix. create_plan and update_plan only carry over or send back the one-offs already on a plan.

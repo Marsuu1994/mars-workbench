@@ -495,7 +495,7 @@ export type ProjectPatchInput = z.infer<typeof projectPatchSchema>;
 const quadrantSchema = z
   .nativeEnum(PriorityQuadrant)
   .describe(
-    'DO_FIRST: urgent and important. SCHEDULE: important, not urgent. SQUEEZE_IN: urgent, not important. MAYBE_LATER: neither',
+    'Where it sits on the Eisenhower matrix, named in the app as Do First / Schedule / Squeeze In / Maybe Later. DO_FIRST: urgent and important. SCHEDULE: important, not urgent. SQUEEZE_IN: urgent, not important. MAYBE_LATER: neither',
   );
 const oneOffTaskIdSchema = z
   .string()
