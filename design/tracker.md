@@ -12,10 +12,9 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### Medium
 
-- [ ] The collapsed desktop backlog keeps its cards focusable: the closed panel is only `opacity-0` + `pointer-events-none`, so Tab and screen readers reach cards nobody can see — make it `inert` while closed (found by the ui-verifier's first run). The task doubles as the pilot for handing a task's heavy work to subagents:
-  - [ ] `test-writer` and `ci-fixer` subagents beside `ui-verifier`: fixed instructions, a short brief in, a fixed-format report out
-  - [ ] The fix with the work delegated: the failing e2e test to `test-writer`, the browser check to `ui-verifier`, a red CI to `ci-fixer`; the main session keeps the decisions and the edit
-  - [ ] A report to the owner on whether it paid off: the main session's context and calls, each subagent's tokens and tool calls, and what each got wrong
+- [ ] The collapsed desktop backlog keeps its cards focusable: the faded-out side is only `opacity-0` + `pointer-events-none`, so Tab and screen readers reach what nobody can see — the closed panel's cards, and the collapsed strip while open; make that side `inert` (found by the ui-verifier's first run). The task doubled as the subagent pilot — spike `design/spike/subagent-delegation-pilot.md` (draft): `ui-verifier` stays, `test-writer` / `ci-fixer` are undecided
+  - [ ] The fix and its e2e test (done twice in the pilot, not committed): which spec holds the test, and whether focus moves to the other side's button (spike Q6)
+  - [ ] More pilot rounds before deciding `test-writer` / `ci-fixer`: a heavy red CI, the agents registered in a fresh session, a long session, parallel checks (spike Q2–Q5)
 - [ ] Stack duplicate habit instances in the backlog — the kind-first card has landed; PR #44 implements stacking on the old card and needs moving onto the new face (project steps and one-offs never stack)
 
 ### Future
