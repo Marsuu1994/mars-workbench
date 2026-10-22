@@ -1,6 +1,6 @@
 # Spike: Subagent 分工试点
 
-Status: draft
+Status: awaiting owner review
 
 > 语言说明：正文中文；product 名词、状态和代码标识符保留英文（backlog / card / subagent / `inert` / `test-writer`），与代码和 tracker 一一对应。
 
