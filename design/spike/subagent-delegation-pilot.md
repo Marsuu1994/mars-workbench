@@ -8,7 +8,7 @@ Status: draft
 
 tracker › Board › Medium 第一条：collapsed desktop backlog 的 panel 只有 `opacity-0 pointer-events-none`，Tab 和 screen reader 仍能进入看不见的 cards，修法是 `inert`。这一条同时是 subagent 分工的 pilot：在 `ui-verifier` 旁边建 `test-writer` 和 `ci-fixer`，把一个 fix 的重活交给它们，看是否划算。
 
-做了两轮，每轮两条本地 branch，各一个 worktree：**A** 由 main session 自己做，**B** 把活交给 subagent。代码都没有提交：fix 和两个 agent 定义是否落地，等这份 spike 有了决定再说。定义原文在附录 B，fix 和两版 test 的做法在第 1 轮的表里，都可以照着重做。
+做了两轮，每轮两条本地 branch，各一个 worktree：**A** 由 main session 自己做，**B** 把活交给 subagent。两轮的代码都没有提交。之后 owner 选了 Option 3：两个定义放进 `.claude/agents/` 试用，fix 留给下一个 session 的第 3 轮重做（见「已决定」和「第 3 轮计划」）。
 
 - **第 1 轮**：backlog `inert` fix，CI 一次就绿。
 - **第 2 轮**：故意弄红的 CI，专门补测 `ci-fixer`。
@@ -100,6 +100,36 @@ Fix 本身：被淡出的那一侧加 `inert`，panel 是 `inert={!isOpen}`，co
 
 结论：委派省的从来不是 token。它的价值只可能在三处：(a) 让 main context 远离上限（长 session、少 compaction）；(b) 质量，即一个干净的 context 专注一件事，查得更彻底；(c) 并行，缩短 wall time。这两轮里，(a) 只在写 test 时明显，(b) 在 `ui-verifier` 上明显，(c) 没用上。
 
+## 什么时候适合用 subagent
+
+### 官方文档的判断标准
+
+Claude Code 的 [subagents 文档](https://code.claude.com/docs/en/sub-agents)把分界线画得很清楚：
+
+- **留在主对话**：要频繁来回、反复修改；几个阶段共享大量 context（文档举的例子正是 planning、implementation 和 testing）；改动小而具体；在意延迟（不是 fork 的 subagent 要从零收集 context）。
+- **交给 subagent**：任务会产出大量用完就扔的输出；要限制它能用的工具或权限；工作能独立完成，最后交回一份总结。
+- 文档也写明了代价：subagent 自己的 token 同样计入用量，交回的结果也占主对话的 context。
+
+对照这两轮：`test-writer` 和 `ci-fixer` 把同一个 bug 的 test、fix、check 拆给了三方，正是「几个阶段共享大量 context」那一类，省不下来并不意外。`ui-verifier` 属于后一类：截图和脚本用完就扔，只交回 verdict，而且它没有 Edit 权限。
+
+这两轮没用上的两个手段：
+
+- **换便宜的模型**：定义里的 `model:` 可以写 `haiku` 或 `sonnet`。这两轮都是 `inherit`（session 的模型），所以「token ×2.5」是按最贵的模型算的。
+- **Fork**：继承主 session 的 context，省掉 cold start 重读文件，但每次 request 都带着主 session 的全部 context，只适合短的旁支任务。
+
+### 适合的场景（用这个 repo 举例）
+
+1. **大范围只读搜索，只要结论**：用内置的 `Explore`。比如 Phase 2 清理 `DOING` 和 `Plan.mode` 之前，找出所有读它们的地方。
+2. **输出很长、用完就扔的旁支任务**：浏览器检查（`ui-verifier`）、读很长的 CI log、`npm audit` 和依赖升级调查。2026-10-18 那次 iOS flicker 排查花了约 2.8M token，放在 subagent 里至少不会撑满主 session。
+3. **干净 context 的 review（generator-verifier）**：代码写完后，让没参与的 agent 审 diff。Cognition 2026 年 4 月的复盘说这是确实有效的模式：reviewer 不带 coder 的历史，看得更准。
+4. **互相独立、可以并行的调研**：写 spike 时一个 option 交给一个 agent（比如 Quality gate Step 7 对比 React Query、Zustand 和现状）；Step 6 的 quality sweep 按区域并行核对 docs 和代码。
+5. **很长的多步计划**：每个 task 交给一个新 subagent，主 session 只负责调度（superpowers 的 subagent-driven-development），适合 Phase 2 这种多 PR 的项目；写代码仍然一个接一个来。
+6. **需要限制权限**：只读的 verifier（`ui-verifier` 没有 Edit / Write）。
+
+### 不适合的场景
+
+小改动；要反复来回；几个阶段共享 context（比如这次的 bug fix）；在意速度。一个人维护、PR 都不大的项目，大部分日常改动属于这一类。
+
 ## 各自错在哪
 
 - **`test-writer`**（第 1 轮）：
@@ -117,7 +147,7 @@ Fix 本身：被淡出的那一侧加 `inert`，panel 是 `inert={!isOpen}`，co
   - 一处偏离定义：定义写的是「an export nothing uses」可以自己修，它却交回了 proposal，理由是删掉还是用上要看意图。这偏谨慎，但和定义不一致，定义需要二选一写清楚。
   - 它还额外指出，fault 4 只有 unit test 能抓到，e2e 25 条全绿。这是一个 coverage 观察。
 - **Main session**：
-  1. 新建的 agent 没能调用：定义复制进 `.claude/agents/` 约 30 秒后，`subagent_type: test-writer` 仍报 not found。官方文档说 Claude Code 会监听这个目录，几秒内热加载，不用重启（目录须在 session 开始时就存在，这次是存在的），原因没查明。只好用 general-purpose 读定义文件来模拟，代价是 base context 高约 40k，`tools` 限制也只是文字约束。
+  1. 新建的 agent 没能调用：定义复制进 `.claude/agents/` 约 30 秒后，`subagent_type: test-writer` 仍报 not found。官方文档说 Claude Code 会监听这个目录，几秒内热加载，不用重启（目录须在 session 开始时就存在，这次是存在的），原因没查明。后来在同一个 session 里把定义写进 `.claude/agents/`，几分钟后再查，可用列表里仍然没有它们。只好用 general-purpose 读定义文件来模拟，代价是 base context 高约 40k，`tools` 限制也只是文字约束。
   2. 每份 brief 都要重复环境样板（worktree 路径、Node 24）。
   3. 第 1 轮剔除了两段旁支：stop hook 引起的清理约 1.6k，以及 `pkill -f "next dev"` 杀掉了自己的 shell。
 
@@ -128,13 +158,27 @@ Fix 本身：被淡出的那一侧加 `inert`，panel 是 `inert={!isOpen}`，co
 3. 第 1 轮 B 的 brief 是在已经知道答案之后写的。
 4. main session 的 baseline context 很大（第 1 轮约 77k，到第 2 轮已约 215k），每次 main request 都很贵；这会放大「少几次 main request」的价值。
 
+## 可借鉴的开源 workflow
+
+| 来源 | 是什么 | 可借鉴的地方 |
+| --- | --- | --- |
+| [Anthropic 官方 plugins](https://github.com/anthropics/claude-code/tree/main/plugins) | `feature-dev`：7 个阶段，带 `code-explorer` / `code-architect` / `code-reviewer`；`code-review`：5 个并行 agent 审 PR，按置信度过滤误报；`pr-review-toolkit`：6 个专项 reviewer | subagent 只负责读和审，写代码留在主 session；用置信度过滤 review 噪音 |
+| [obra/superpowers](https://github.com/obra/superpowers) | 一整套 skills：brainstorming → worktree → writing-plans → subagent-driven-development（每个 task 一个新 subagent，先审 spec、再审代码质量）→ TDD → review → 收尾 branch；也有不用 subagent 的 `executing-plans` | 写计划的格式和两段 review；整套偏重，挑着用 |
+| [VoltAgent/awesome-claude-code-subagents](https://github.com/voltagent)、wshobson/agents | 按角色拆分的 agent 合集（python-pro、devops 之类） | 只当 prompt 写法参考：按角色拆分，正是这次试点和 Cognition 都发现效果最差的方式 |
+
+值得读：
+
+- Anthropic, [How we built our multi-agent research system](https://www.anthropic.com/engineering/multi-agent-research-system)（2025-06）：agent 约为普通 chat 的 4 倍 token，multi-agent 约 15 倍；只值得用在价值高、能并行、以读为主的任务上。这次测到 2.5–3.4 倍。
+- Cognition, [Don't Build Multi-Agents](https://cognition.com/blog/dont-build-multi-agents)（2025-06）和 [Multi-Agents: What's Actually Working](https://cognition.com/blog/multi-agents-working)（2026-04-22）：写代码保持单线程，其他 agent 只贡献判断；generator-verifier 用干净 context 有效；并行写代码的 agent 会做出互相冲突的隐含决定。
+- LangChain, [How and when to build multi-agent systems](https://blog.langchain.com/how-and-when-to-build-multi-agent-systems)：以读为主的 multi-agent 比以写为主的容易做对。
+
 ## Options
 
 ### Option 1 — 只保留 `ui-verifier`
 
 - 优点：最快，总 token 最少，与 owner 当前的判断一致。
 - 缺点：main context 增长最快的一块（写 test，第 1 轮占任务的一半）留在 main 里。
-- 实施：不用改仓库；两个定义只留在附录 B。
+- 实施：删掉 `.claude/agents/` 里的两个定义。
 
 ### Option 2 — 三个都留，按触发条件委派
 
@@ -142,22 +186,54 @@ Fix 本身：被淡出的那一侧加 `inert`，panel 是 `inert={!isOpen}`，co
 - `ci-fixer`：只在 CI log 或失败输出预计很大时委派（多个 test 红、e2e trace、GitHub job log），一行报错的红自己修。
 - 优点：只在 main context 真能省下来的地方委派。
 - 缺点：「预计很大」要靠判断；两个定义还没在重任务上证明过价值。
-- 实施：把附录 B 的两个定义放进 `.claude/agents/`；`ci-fixer` 的 description 写明触发条件，「unused export」改成明确交回 proposal；AGENTS.md 的目录说明和 UI Workflow 旁各加一行。
+- 实施：两个定义留在 `.claude/agents/`；`ci-fixer` 的 description 写明触发条件，「unused export」改成明确交回 proposal；AGENTS.md 的目录说明和 UI Workflow 旁各加一行。
 
 ### Option 3 — 先保留定义、不写规则，继续测
 
 - 优点：不在证据不足时定规则；定义随时可以用。
 - 缺点：没有规则，就没人会用它们，也就攒不到数据，除非专门安排测试。
-- 实施：把附录 B 的两个定义放进 `.claude/agents/`（description 里注明 pilot）；按「开放问题」第 2–5 条再跑几轮，然后回到 Option 1 或 2。
+- 实施：把两个定义放进 `.claude/agents/`（description 里注明 pilot）；按「开放问题」第 2–5 条再跑几轮，然后回到 Option 1 或 2。
+
+## 已决定（部分）
+
+Owner，2026-10-22：
+
+- **Q1 → Option 3**：`test-writer` 和 `ci-fixer` 的定义放进 `.claude/agents/`，description 末尾注明 pilot（只在 owner 或某一轮 pilot 点名时委派）；不写委派规则；`ui-verifier` 照旧。下一个 session 在本 branch 上，用注册好的 agent 跑第 3 轮。
+- **Q6 → test 放 `e2e/journeys.spec.ts`，focus handoff 一起做**。fix 不在这个 PR 里提交：第 3 轮的两个 arm 都要从头做它，做完再决定提交哪一版。
 
 ## 开放问题
 
-1. 选哪个 Option？owner 当前倾向是 `ui-verifier` 保留、另外两个待定，对应 Option 3。
+1. ~~选哪个 Option？~~ 已答：Option 3（见「已决定」）。
 2. **重任务测试**：找一个真实的重任务再跑一次 A / B。比如一个红的 GitHub CI，用 `get_job_logs` 拿完整 log；或者一次改动弄红多个 test、带 e2e trace。目的是找到 `ci-fixer` 的 break-even。
-3. **注册后重测**：把附录 B 的定义放进 `.claude/agents/`，确认能按 `subagent_type` 调用（不行就开一个新 session），用真正注册的 `test-writer` / `ci-fixer` 重测 base context 和 tool 限制。
+3. **注册后重测**：用真正注册的 `test-writer` / `ci-fixer` 重测 base context 和 tool 限制，即第 3 轮（见下）。
 4. **长 session 测试**：在一个长 session 的前段委派，看后段的 main context 和 compaction 次数，验证 break-even 的估算。
 5. **并行**：`ui-verifier` 和 `ci-fixer` 并行跑（共用 dev server），看 wall time 能缩多少。
-6. 第 1 轮的 fix 还没提交，重做时：test 放 `smoke.spec.ts`（A）还是 `journeys.spec.ts`（B）？要不要顺带做 focus handoff（按 Enter 打开后，focus 从变成 `inert` 的按钮掉到 body）？
+6. ~~test 放哪个 spec，要不要做 focus handoff？~~ 已答：`journeys.spec.ts`，focus handoff 一起做（见「已决定」）。
+## 第 3 轮计划（下一个 session）
+
+目标是回答 Q3：注册后的 `test-writer` / `ci-fixer` base context 降到多少，`tools` 限制是否生效；同时用同样的方法重测第 1 轮的结论。
+
+### 这一轮的 fix（两个 arm 做同一件事）
+
+- **`inert`**：被淡出的一侧加 `inert`，collapsed 时是 panel，open 时是 collapsed strip。
+- **Focus handoff**：打开后 focus 落在 "Close backlog"，关闭后落在 "Open backlog"，鼠标和键盘触发都一样；首次渲染不动 focus。
+- **e2e test 放在 `e2e/journeys.spec.ts`**，覆盖：
+  - collapsed 时，panel 的 card 和 "Close backlog" 拿不到 focus；
+  - 聚焦 "Open backlog" 按 Enter 后，focus 在 "Close backlog"，card 能拿到 focus，"Open backlog" 拿不到；
+  - 再按 Enter 后，focus 回到 "Open backlog"。
+- 文件头的 "each one changes the week" 要一起改：这条 test 不改 week。
+
+### 步骤
+
+1. 开始时把本 spike 的 Status 改成 `awaiting owner review`（spike README：work 开始时）。确认 Agent tool 的可用列表里有 `test-writer` 和 `ci-fixer`；没有就记下来，这本身就是 Q3 的答案之一。
+2. **3a：backlog fix**，按上面的 spec 做两遍，各一个 worktree：
+   - **A**：main session 自己做；
+   - **B**：failing test 交给 `test-writer`，browser check 交给 `ui-verifier`，CI checks 交给 `ci-fixer`。
+   顺序、阶段标记和记账方法同第 1 轮：A 先做，B 的账补上 A 的 investigate。
+3. **3b：红 CI**（可选，顺带回答 Q2）：用一份新的出错 patch，换一个文件、换一批错误，最好让多条 test 一起红。不要复用第 2 轮的错误：它们已经写在这份 spike 里，main session 读过就等于知道答案。
+4. **对比的重点**：注册后的 base context（第 1、2 轮模拟时是 57k，注册的 `ui-verifier` 是 16.5k）、处理过的 token、有没有越过 `tools` 限制，以及第 1 轮的 −34% / ×2 / ×2.5 是否还成立。
+5. 结果补成本文的「第 3 轮」一节，更新 tracker 和 README Update Log；fix 提交哪一版由 owner 决定。
+
 
 ## 附录 A：怎么复现测量
 
@@ -167,96 +243,125 @@ Fix 本身：被淡出的那一侧加 `inert`，panel 是 `inert={!isOpen}`，co
 - **第 2 轮的出错 patch**：另开一个 worktree，让一个 general-purpose subagent 在某个有 unit test 的 `src/utils/` 文件里做 4–5 处各触发一个 check 的错误，先逐个确认每个 check 确实红了，再 `git diff` 存成 patch，答案写进另一个文件，回复里只给 patch 路径和数量。patch 用 `git apply` 打进两个 worktree，答案等两条 branch 都跑完再看。
 - **调用不了的 agent**：新定义按 `subagent_type` 调用失败时，用 general-purpose agent，第一句让它 Read 定义文件，把 body 当作指令、把 `tools` 当作限制、把报告格式当作回复格式。
 
-## 附录 B：两个 agent 定义（原文）
+- **统计脚本**：第 1、2 轮的数字都出自下面这个脚本。main session 的 transcript 按 `PHASE:` 标记切分；subagent 的 transcript 没有标记，整份算在 `pre`。
 
-`.claude/agents/test-writer.md`：
+```python
+"""Per-phase metrics from a Claude Code transcript.
 
-````markdown
----
-name: test-writer
-description: Writes the test a change starts with — the failing test that reproduces a bug, or the test a new behaviour needs — at the lowest layer that reproduces it, runs it, and returns where it lives, how to rerun it and how it fails, so the main session never holds test/README, the specs and the run logs. Give it the behaviour (what should happen, what happens now), where it shows (page, viewport, component or service), and whether the test must fail today (a bug) or pass (behaviour that already exists). It edits test files only, never production code.
-tools: Bash, Read, Edit, Write, Glob, Grep
-model: inherit
----
+Phases are delimited by Bash calls whose command contains `PHASE:<name>`.
+Usage: python3 -I metrics.py <transcript.jsonl>
+"""
+import json
+import sys
+from collections import Counter, OrderedDict
 
-You write one test for this repository and report back. The main session decides the fix and makes the production edit; you never touch production code.
 
-## The brief
+def load(path):
+    rows = []
+    for line in open(path):
+        try:
+            rows.append(json.loads(line))
+        except json.JSONDecodeError:
+            pass
+    return rows
 
-The main session sends the behaviour (what should happen and what happens now), where it shows, and the expected outcome: **fails today** (a bug fix starts with it) or **passes today**. Write exactly that test. Don't widen it to neighbouring behaviour, and don't fix the bug.
 
-## Writing it
+def context_size(usage):
+    return (
+        usage.get('input_tokens', 0)
+        + usage.get('cache_creation_input_tokens', 0)
+        + usage.get('cache_read_input_tokens', 0)
+    )
 
-1. Read `test/README.md` first: it decides the layer (unit, integration or e2e — the lowest one that reproduces the behaviour; components have no unit layer), the helpers (`test/factories.ts`, `test/time.ts`, `e2e/fixtures.ts`) and the rules (locate by role and visible text, `openPage()` before interacting, no dates in e2e, `it.fails` for a known bug).
-2. Read the specs or tests next to where yours goes and match them: their helpers, naming, comment density and style. Put the test in the existing file and Playwright project whose scope fits; create a file or project only when none fits, and say why in the report.
-3. You may edit `*.test.ts`, `*.int.test.ts`, `e2e/` and `test/`. If the test needs something production code doesn't offer (a role, a label, a test id), don't add it: write the test with what exists if you can, and list the need in the report.
-4. Run only your test: `npx vitest run <file> -t "<name>"`, or `npx playwright test --project=<project> -g "<name>"` (it reuses a running `npm run dev`, otherwise starts one; the e2e user is reseeded first).
-5. Check the outcome against the brief. A test that must fail has to fail **on the assertion that names the behaviour** — not on a locator that never resolves, a console error, a timeout in setup or a typo. If it fails for another reason, fix the test and rerun; stop after three runs. A test that must pass has to pass, and you confirm it would catch a regression by reading the assertion, not by breaking production code.
-6. Run `npx prettier --write` and `npx eslint` on the files you touched.
 
-## The report
+def result_chars(content):
+    if isinstance(content, str):
+        return len(content)
+    total = 0
+    for block in content or []:
+        if block.get('type') == 'text':
+            total += len(block.get('text', ''))
+        elif block.get('type') == 'image':
+            total += 0
+    return total
 
-Reply with this, and nothing else:
 
+def summarize(rows):
+    phases = OrderedDict()
+    current = 'pre'
+    seen_requests = set()
+
+    def phase():
+        return phases.setdefault(
+            current,
+            {
+                'requests': 0,
+                'tools': Counter(),
+                'ctx_first': None,
+                'ctx_last': None,
+                'output_tokens': 0,
+                'result_chars': 0,
+                'images': 0,
+            },
+        )
+
+    for row in rows:
+        message = row.get('message')
+        if row.get('type') == 'assistant' and isinstance(message, dict):
+            for block in message.get('content', []):
+                if block.get('type') == 'tool_use':
+                    command = str(block.get('input', {}).get('command', ''))
+                    if block.get('name') == 'Bash' and 'PHASE:' in command:
+                        current = command.split('PHASE:')[1].split()[0].strip('"\'')
+                        continue
+                    phase()['tools'][block.get('name')] += 1
+            request = row.get('requestId')
+            usage = message.get('usage') or {}
+            if request and request not in seen_requests and usage:
+                seen_requests.add(request)
+                stats = phase()
+                stats['requests'] += 1
+                size = context_size(usage)
+                if stats['ctx_first'] is None:
+                    stats['ctx_first'] = size
+                stats['ctx_last'] = size
+                stats['output_tokens'] += usage.get('output_tokens', 0)
+                stats['processed'] = stats.get('processed', 0) + size
+        elif row.get('type') == 'user' and isinstance(message, dict):
+            content = message.get('content')
+            if isinstance(content, list):
+                for block in content:
+                    if block.get('type') == 'tool_result':
+                        inner = block.get('content')
+                        phase()['result_chars'] += result_chars(inner)
+                        if isinstance(inner, list):
+                            phase()['images'] += sum(
+                                1 for item in inner if item.get('type') == 'image'
+                            )
+    return phases
+
+
+def main():
+    rows = load(sys.argv[1])
+    phases = summarize(rows)
+    previous_last = None
+    for name, stats in phases.items():
+        start = previous_last if previous_last is not None else stats['ctx_first']
+        delta = (stats['ctx_last'] or 0) - (start or 0)
+        tools = ', '.join(f'{tool}×{count}' for tool, count in stats['tools'].most_common())
+        print(
+            f"{name:28} req={stats['requests']:3} ctx_start={start} ctx_end={stats['ctx_last']} "
+            f"ctx_delta={delta:+} out={stats['output_tokens']} result_chars={stats['result_chars']} "
+            f"images={stats['images']} processed={stats.get('processed', 0)} | {tools}"
+        )
+        if stats['ctx_last'] is not None:
+            previous_last = stats['ctx_last']
+
+
+if __name__ == '__main__':
+    main()
 ```
-RESULT: FAILS AS EXPECTED | PASSES AS EXPECTED | WRONG OUTCOME | BLOCKED
-Layer: unit | integration | e2e (<project>) — <one line: why this layer and file>
-Test: <file>:<line> › <full test name>
-Rerun: <the exact command>
-Failure: none | <the assertion's message, at most 6 lines>
-Diff: <each file touched: +added / −removed lines>
-Needs: none | <what production code would need, or a question for the main session>
-```
 
-WRONG OUTCOME means the test fails for a reason other than the behaviour, or passes when it should fail, after three runs; BLOCKED means it couldn't run (say why in Failure).
-````
+## 附录 B：两个 agent 定义
 
-`.claude/agents/ci-fixer.md`：
-
-````markdown
----
-name: ci-fixer
-description: Runs the CI checks on a change locally (or starts from a failing CI job's log), fixes what is red when the fix is mechanical and inside the change's own diff, and returns one line per check, so the main session never holds lint, typecheck and test output. Give it the change in a sentence, which checks to run (default — everything CI runs), and the failing job's name and log when CI is already red. It never changes behaviour: a red that needs a decision comes back as a proposal, not an edit.
-tools: Bash, Read, Edit, Glob, Grep
-model: inherit
----
-
-You get one change's CI green, or say exactly why it isn't. The main session owns the change: you fix only what is mechanical, and hand back everything that needs a decision.
-
-## The brief
-
-The main session sends what the change does, the checks to run, and — when CI is already red — the failing job and its log. Start from the log when there is one: reproduce that failure locally before touching anything.
-
-## The checks
-
-In CI's order (`.github/workflows/`): `npm run format:check`, `lint`, `typecheck`, `knip`, `check:themes` (only when the diff changes CSS custom properties), `npm test` (CI runs `npm run test:coverage`: the same suite with coverage floors), `npm run test:e2e`. Run them one at a time and read only each one's summary and failures (`tail`, `grep`), not its full output. Look at `git diff` first so you know which files are the change's.
-
-## What you may fix
-
-- Formatting: `npm run format`.
-- A lint error, type error or knip finding in a line the diff added or changed, when the fix doesn't change behaviour: an unused import, a missing type, a name the linter rejects, an export nothing uses.
-- Rerun a failing test once to rule out a flake; a second failure is real.
-
-Everything else is a proposal: a failing test, a red in code the diff doesn't touch, anything that changes what the app does. Never skip, disable or quarantine a test, lower a coverage floor, add `eslint-disable`, `@ts-ignore` or `any`, or commit and push.
-
-After your last fix, rerun every check that was red, plus `format:check` and `lint`.
-
-## The report
-
-Reply with this, and nothing else:
-
-```
-RESULT: GREEN | FIXED | RED
-1. format:check — PASS | FIXED | FAIL | SKIPPED — <one line>
-2. lint — …
-3. typecheck — …
-4. knip — …
-5. check:themes — …
-6. test — … <passed / expected-fail counts>
-7. test:e2e — … <passed / skipped counts>
-Fixes: none | <file — what changed, one line each>
-Proposals: none | <each red left: the check, the root cause, a proposed patch of at most 15 lines>
-```
-
-GREEN means every check passed untouched, FIXED that every check passes after your fixes, RED that at least one is still red.
-````
+已提交到 `.claude/agents/test-writer.md` 和 `.claude/agents/ci-fixer.md`。与第 1、2 轮用的版本相比，只在 description 末尾加了一句 pilot 说明，其余逐字相同。
