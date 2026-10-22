@@ -117,7 +117,7 @@ Fix 本身：被淡出的那一侧加 `inert`，panel 是 `inert={!isOpen}`，co
   - 一处偏离定义：定义写的是「an export nothing uses」可以自己修，它却交回了 proposal，理由是删掉还是用上要看意图。这偏谨慎，但和定义不一致，定义需要二选一写清楚。
   - 它还额外指出，fault 4 只有 unit test 能抓到，e2e 25 条全绿。这是一个 coverage 观察。
 - **Main session**：
-  1. 同一个 session 里新建的 agent 用不了（Claude Code 只在 session 启动时加载 `.claude/agents/`），只能用 general-purpose 读定义文件来模拟，代价是 base context 高约 40k，`tools` 限制也只是文字约束。
+  1. 新建的 agent 没能调用：定义复制进 `.claude/agents/` 约 30 秒后，`subagent_type: test-writer` 仍报 not found。官方文档说 Claude Code 会监听这个目录，几秒内热加载，不用重启（目录须在 session 开始时就存在，这次是存在的），原因没查明。只好用 general-purpose 读定义文件来模拟，代价是 base context 高约 40k，`tools` 限制也只是文字约束。
   2. 每份 brief 都要重复环境样板（worktree 路径、Node 24）。
   3. 第 1 轮剔除了两段旁支：stop hook 引起的清理约 1.6k，以及 `pkill -f "next dev"` 杀掉了自己的 shell。
 
@@ -154,7 +154,7 @@ Fix 本身：被淡出的那一侧加 `inert`，panel 是 `inert={!isOpen}`，co
 
 1. 选哪个 Option？owner 当前倾向是 `ui-verifier` 保留、另外两个待定，对应 Option 3。
 2. **重任务测试**：找一个真实的重任务再跑一次 A / B。比如一个红的 GitHub CI，用 `get_job_logs` 拿完整 log；或者一次改动弄红多个 test、带 e2e trace。目的是找到 `ci-fixer` 的 break-even。
-3. **注册后重测**：把附录 B 的定义放进 `.claude/agents/`，再开一个新 session，用真正注册的 `test-writer` / `ci-fixer` 重测 base context 和 tool 限制。
+3. **注册后重测**：把附录 B 的定义放进 `.claude/agents/`，确认能按 `subagent_type` 调用（不行就开一个新 session），用真正注册的 `test-writer` / `ci-fixer` 重测 base context 和 tool 限制。
 4. **长 session 测试**：在一个长 session 的前段委派，看后段的 main context 和 compaction 次数，验证 break-even 的估算。
 5. **并行**：`ui-verifier` 和 `ci-fixer` 并行跑（共用 dev server），看 wall time 能缩多少。
 6. 第 1 轮的 fix 还没提交，重做时：test 放 `smoke.spec.ts`（A）还是 `journeys.spec.ts`（B）？要不要顺带做 focus handoff（按 Enter 打开后，focus 从变成 `inert` 的按钮掉到 body）？
@@ -165,7 +165,7 @@ Fix 本身：被淡出的那一侧加 `inert`，panel 是 `inert={!isOpen}`，co
 - **Context 大小**：每个 `assistant` 行的 `message.usage` 里，`input_tokens + cache_creation_input_tokens + cache_read_input_tokens`。同一个 request 会拆成多行（每个 content block 一行），按 `requestId` 去重。subagent transcript 里的 `output_tokens` 不可靠（只记了第一个 block），不要用。
 - **阶段切分**：每个阶段开头跑一条只 `echo PHASE:<name>` 的 Bash，脚本按 tool_use 的 command 里的 `PHASE:` 切分。
 - **第 2 轮的出错 patch**：另开一个 worktree，让一个 general-purpose subagent 在某个有 unit test 的 `src/utils/` 文件里做 4–5 处各触发一个 check 的错误，先逐个确认每个 check 确实红了，再 `git diff` 存成 patch，答案写进另一个文件，回复里只给 patch 路径和数量。patch 用 `git apply` 打进两个 worktree，答案等两条 branch 都跑完再看。
-- **没注册的 agent**：同一个 session 里新建的定义用不了。用 general-purpose agent，第一句让它 Read 定义文件，把 body 当作指令、把 `tools` 当作限制、把报告格式当作回复格式。
+- **调用不了的 agent**：新定义按 `subagent_type` 调用失败时，用 general-purpose agent，第一句让它 Read 定义文件，把 body 当作指令、把 `tools` 当作限制、把报告格式当作回复格式。
 
 ## 附录 B：两个 agent 定义（原文）
 
