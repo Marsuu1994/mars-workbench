@@ -1,6 +1,6 @@
 # Spike: Subagent 分工试点
 
-Status: awaiting owner review
+Status: decided · 2026-10-22（owner 在 PR #78 的对话里拍板；同一个 PR 实施并归档）
 
 > 语言说明：正文中文；product 名词、状态和代码标识符保留英文（backlog / card / subagent / `inert` / `test-writer`），与代码和 tracker 一一对应。
 
@@ -19,7 +19,7 @@ Status: awaiting owner review
 - **只在工具输出大的阶段省 main context**：写 test、浏览器检查、读 e2e log 时省得多。CI 是绿的，或者失败只有几行时，委派持平或略亏。
 - **质量**：`ui-verifier` 在 CI 之前抓到一个 console error（brief 是在 A 撞到之后写的，要打折扣）；`ci-fixer` 两次 5 / 5 诊断全对，两次都指出了 coverage 缺口；`test-writer` 写得和 A 一样好，但最慢。
 - **代价和限制**：wall time 多 35%–90%；每次委派都在后台跑，main 要多等 1–2 轮。`tools` 限制在 API 层生效，但三个 agent 都有 Bash，「只改 test」仍靠 prompt 约束；`ci-fixer` 就用 Bash 临时套用过 proposal。
-- **待 owner 决定**：Q7 选 Option 1、Option 2 还是继续测；Q8 fix 提交哪一版（附录 C）；Q9 `ci-fixer` 定义里的两处歧义。
+- **决定**：Option 2，两个 agent 的触发条件都收窄：`test-writer` 只接 e2e test，或者 session 还没读过的 layer 里的 test；`ci-fixer` 只接 GitHub 上的红 CI。fix 用 A 的 test 加 B 的文件头，在本 PR 提交。详见「Decision」。
 
 ## 触发
 
@@ -31,7 +31,7 @@ tracker › Board › Medium 第一条：collapsed desktop backlog 的 panel 只
 - **第 2 轮**（模拟）：故意弄红的 CI，专门补测 `ci-fixer`。
 - **第 3 轮**（注册）：3a 重做 backlog fix，这次带 focus handoff；3b 是一份新的红 CI，7 条 Vitest 和 1 条 e2e 一起红。
 
-Owner 看完第 1 轮后的判断：`ui-verifier` 有价值，`test-writer` 和 `ci-fixer` 不确定，是否启用要更多测试。第 3 轮已经跑完，现在要 owner 决定的是：留下还是去掉这两个 agent，以及 fix 提交哪一版（见「开放问题」）。
+Owner 看完第 1 轮后的判断：`ui-verifier` 有价值，`test-writer` 和 `ci-fixer` 不确定，是否启用要更多测试。第 3 轮之后 owner 选了 Option 2，触发条件收窄（见「Decision」）。
 
 ## 怎么量的
 
@@ -299,24 +299,34 @@ Claude Code 的 [subagents 文档](https://code.claude.com/docs/en/sub-agents)�
 - 缺点：没有规则，就没人会用它们，也就攒不到数据，除非专门安排测试。
 - 实施：把两个定义放进 `.claude/agents/`（description 里注明 pilot）；按「开放问题」第 2–5 条再跑几轮，然后回到 Option 1 或 2。
 
-## 已决定（部分）
+## Decision
 
-Owner，2026-10-22：
+Owner，2026-10-22，分两次拍板：第 2 轮之后定了 Q1、Q6；第 3 轮之后按 agent 的建议定了 Q7–Q9，其余问题随之关掉。
 
-- **Q1 → Option 3**：`test-writer` 和 `ci-fixer` 的定义放进 `.claude/agents/`，description 末尾注明 pilot（只在 owner 或某一轮 pilot 点名时委派）；不写委派规则；`ui-verifier` 照旧。下一个 session 在本 branch 上，用注册好的 agent 跑第 3 轮。
-- **Q6 → test 放 `e2e/journeys.spec.ts`，focus handoff 一起做**。fix 不在这个 PR 里提交：第 3 轮的两个 arm 都要从头做它，做完再决定提交哪一版。
+| 问题 | 结论 | 带来的变化 |
+| --- | --- | --- |
+| Q1 · 选哪个 Option（第 2 轮后） | Option 3：两个定义先注册试用，不写委派规则 | 第 3 轮用注册好的 agent 重测 |
+| Q6 · test 放哪，要不要 focus handoff | 放 `journeys.spec.ts`，focus handoff 一起做 | 见 Q8 |
+| Q3 · 注册后重测 | 由第 3 轮回答 | — |
+| Q7 · 第 3 轮之后 | **Option 2，触发条件收窄**。`ui-verifier` 照旧；`test-writer` 只接 e2e test，或者 session 还没读过的 layer 里的 test；`ci-fixer` 只接 GitHub 上的红 CI，job log 由它自己拉。CI 是绿的，或者失败只有几行时，main 自己跑 | AGENTS.md › Workflow 加「Subagents」一节，目录说明去掉 pilot；两个 description 去掉 pilot、写上触发条件；`ci-fixer` 的 `tools` 加上 `mcp__github__get_job_logs`，brief 只给 job URL；`test-writer` 的 Rerun 命令加上 `--no-deps` |
+| Q2 · `ci-fixer` 的 break-even | 不再单独安排一轮。下一次真实的红 GitHub CI 委派给它，量一次 main context；仍然持平就删掉它 | tracker 新条目 |
+| Q4 · 长 session；Q5 · 并行 | 不单独测 | — |
+| Q8 · fix 提交哪一版 | A 的 test（"Close backlog" 用 `getByRole` 定位，没有 `includeHidden`），文件头用 B 的那句 | fix 在本 PR 提交；`design/flows/board.md` 的 Backlog Flow 加一条 focus 规则 |
+| Q9 · `ci-fixer` 定义的歧义 | (a) 禁止在文件上试套 proposal，用 Edit 和用 Bash 都不行；(b) 没人用的 export 交回 proposal | `ci-fixer.md` 改写对应的两段 |
 
 ## 开放问题
 
-1. ~~选哪个 Option？~~ 已答：Option 3（见「已决定」）。
-2. **重任务测试**：找一个真实的重任务再跑一次 A / B，目的是找到 `ci-fixer` 的 break-even。3b 已经让 7 条 Vitest 和 1 条 e2e 一起红，main context 仍持平；剩下的是未过滤的大输出，比如一个红的 GitHub CI，用 `get_job_logs` 拿完整 log，或者带 e2e trace 的失败。
-3. ~~注册后重测~~ 已答（第 3 轮）：base context 约 16k；`tools` 在 API 层生效，但都有 Bash，「只改 test」仍是 prompt 约束；3a 的 main context −49%、token 约 1.0 倍。
-4. **长 session 测试**：在一个长 session 的前段委派，看后段的 main context 和 compaction 次数，验证 break-even 的估算。
-5. **并行**：`ui-verifier` 和 `ci-fixer` 并行跑（共用 dev server），看 wall time 能缩多少。
-6. ~~test 放哪个 spec，要不要做 focus handoff？~~ 已答：`journeys.spec.ts`，focus handoff 一起做（见「已决定」）。
-7. **第 3 轮之后怎么定**：回到 Option 1（只留 `ui-verifier`）、Option 2（三个都留、按触发条件委派），还是继续 Option 3，先测 Q2 / Q4 / Q5？
-8. **fix 提交哪一版**：两个 arm 的 production diff 逐字相同；test 只差名字和 locator 细节，B 多一个 `includeHidden: true`。两版都在附录 C，选定后在本 branch 提交。
-9. **`ci-fixer` 定义的两处歧义**：(a) 用 Bash 临时套上 proposal 验证、再还原，允许还是禁止？(b) 第 2 轮的「unused export」：自己删，还是交回 proposal？
+全部已答，结论见「Decision」。
+
+1. ~~选哪个 Option？~~ 第 2 轮后：Option 3；第 3 轮后：Option 2（Q7）。
+2. ~~重任务测试~~ 不单独安排；下一次真实的红 GitHub CI 时量一次。
+3. ~~注册后重测~~ 第 3 轮。
+4. ~~长 session 测试~~ 不单独测。
+5. ~~并行~~ 不单独测。
+6. ~~test 放哪个 spec，要不要做 focus handoff？~~ `journeys.spec.ts`，一起做。
+7. ~~第 3 轮之后怎么定~~ Option 2，触发条件收窄。
+8. ~~fix 提交哪一版~~ A 的 test，文件头用 B 的。
+9. ~~`ci-fixer` 定义的两处歧义~~ (a) 禁止试套；(b) 交回 proposal。
 
 ## 附录 A：怎么复现测量
 
@@ -447,11 +457,11 @@ if __name__ == '__main__':
 
 ## 附录 B：两个 agent 定义
 
-已提交到 `.claude/agents/test-writer.md` 和 `.claude/agents/ci-fixer.md`。与第 1、2 轮用的版本相比，只在 description 末尾加了一句 pilot 说明，其余逐字相同。
+在 `.claude/agents/test-writer.md` 和 `.claude/agents/ci-fixer.md`。第 3 轮用的版本和第 1、2 轮相比，只在 description 末尾多一句 pilot 说明；Decision 之后的改动见 Decision 表的 Q7 和 Q9。
 
-## 附录 C：第 3 轮的 fix（未提交，Q8）
+## 附录 C：第 3 轮的 fix（两个 arm 的版本）
 
-两个 arm 的 production diff 逐字相同，test 各一版。在 repo 根目录用 `git apply` 打进 production diff 和其中一版 test 即可复原。
+两个 arm 的 production diff 逐字相同，test 各一版。本 PR 提交的是 production diff 加 A 的 test，文件头换成 B 的那句（Q8）。
 
 Production（两个 arm 相同）：
 

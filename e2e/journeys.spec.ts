@@ -1,6 +1,6 @@
 /**
- * The flows that cross pages, on desktop, in order: each one changes the e2e
- * user's week (its global setup reseeds it before every run).
+ * The key journeys on desktop, in order. Most change the e2e user's week (its
+ * global setup reseeds it before every run); the rest only read it.
  */
 import type {Page} from '@playwright/test';
 import {SEED_HABITS, SEED_ONE_OFFS, SEED_PROJECTS} from '../test/seedData';
@@ -97,4 +97,32 @@ test('a habit removed from the plan leaves the board', async ({page}) => {
   await expect(page.getByRole('button', {name: new RegExp(title)})).toHaveCount(
     0,
   );
+});
+
+test('the backlog takes focus only while it is open', async ({page}) => {
+  // Unit 3 sits in the seed week's backlog
+  const card = boardColumn(page, 'BACKLOG').getByRole('button', {
+    name: new RegExp(SEED_PROJECTS.course.steps[2].title),
+  });
+  const openButton = page.getByTitle('Open backlog');
+  const closeButton = page.getByRole('button', {name: 'Close backlog'});
+  await openPage(page, '/kanban');
+
+  // Collapsed, the faded-out panel stays mounted but out of reach
+  await card.focus();
+  await expect(card).not.toBeFocused();
+  await closeButton.focus();
+  await expect(closeButton).not.toBeFocused();
+
+  await openButton.focus();
+  await page.keyboard.press('Enter');
+  await expect(closeButton).toBeFocused();
+  await card.focus();
+  await expect(card).toBeFocused();
+  await openButton.focus();
+  await expect(openButton).not.toBeFocused();
+
+  await closeButton.focus();
+  await page.keyboard.press('Enter');
+  await expect(openButton).toBeFocused();
 });

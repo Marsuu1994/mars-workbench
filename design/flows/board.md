@@ -182,4 +182,5 @@ The backlog (desktop panel / mobile sheet) holds the plan's template-generated t
 - Backlog cards are the board's cards (desktop drags the board `TaskCard`; mobile shows the same face, non-draggable, with the pull action), so a card reads the same before and after the pull.
 - A habit's week dots, computed from the loaded tasks, show each of the week's instances in order: a dot fills when its instance is done, and the card's own dot is ringed.
 - The backlog open state (panel or sheet) is local UI state, default closed.
+- Only the visible side of the desktop backlog can take focus: Tab and screen readers never reach the collapsed panel, or the strip while the panel is open. Opening moves focus to the panel's close control and closing moves it back to the strip; the first render leaves focus where it is.
 - Empty backlog: desktop strip still shows (count `0`) with an empty-state body; the mobile pill is hidden (the sheet's empty state only appears if the last task is pulled while it is open).

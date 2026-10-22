@@ -12,9 +12,6 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### Medium
 
-- [ ] The collapsed desktop backlog keeps its cards focusable: the faded-out side is only `opacity-0` + `pointer-events-none`, so Tab and screen readers reach what nobody can see — the closed panel's cards, and the collapsed strip while open; make that side `inert` (found by the ui-verifier's first run). The task doubles as the subagent pilot — spike `design/spike/subagent-delegation-pilot.md` (awaiting owner review after three rounds): `ui-verifier` stays, `test-writer` / `ci-fixer` are registered as a pilot
-  - [ ] The fix: `inert` on the faded side, focus moved to the other side's button on open and close, its e2e test in `journeys.spec.ts` — built in both round-3 arms; the owner picks the version to commit (spike Q8, appendix C)
-  - [ ] Keep or drop `test-writer` / `ci-fixer`: Option 1 or 2, or more rounds first (spike Q7; Q2 with a real CI log, Q4, Q5)
 - [ ] Stack duplicate habit instances in the backlog — the kind-first card has landed; PR #44 implements stacking on the old card and needs moving onto the new face (project steps and one-offs never stack)
 
 ### Future
@@ -95,6 +92,7 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ### Medium
 
+- [ ] Measure `ci-fixer` on the next red GitHub CI: delegate the failing job to it and compare the main-session context with reading the log inline; if it still comes out even, drop the agent (`design/spike/archived/subagent-delegation-pilot.md` › Decision, Q2)
 - [ ] `ui/` component-structure lookup in `reference.md` — a lean high-level map for agents (humans use the `/design` gallery); follow-up to the landed component library
 - [ ] Uniform page header across board / priorities / projects / dump / settings on both breakpoints (plan keeps its planning-mode header until Phase 2's Plan hub header); also resolves the BoardHeader green-vs-primary accent drift and revisits the mobile header type scale (current mobile header font size reads too large). Along the way (`design/spike/archived/board-prop-drilling.md` Part 2): fold BoardHeader's extra wrapper div, drop the needless `'use client'` from `BoardHeader` / `ProgressDashboard`, and redraw the stale `kanban/loading.tsx` skeleton
 - [ ] Redesign the point system and metric tracking — how sizes map to points, and what the board's Today / Week / Daily avg metrics count now that a week mixes habits, project steps and one-offs (PR 3 only added a project bucket to the week projection). Direction proposed in `design/spike/week-model-phase2-pain-points.md` (points → hours of a weekly budget)
