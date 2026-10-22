@@ -114,6 +114,7 @@ Open items: see [design/tracker.md](./design/tracker.md).
   - **The matrix and Claude share one write path**: matrix Add, Done and drag now run through the same batch DAL functions as the tools, and the server and the matrix share one quadrant order.
   - **One word for Claude**: the LLM-facing `adhoc` fields are renamed to one-off (`carryOverOneOffTaskIds`, `removeOneOffTaskIds`, a plan's `oneOffTasks`), and a plan's one-off list now includes done ones, so the weekly recap can count them. The guide gains a One-offs section, a ninth rule (done can't be undone) and a sharper kind test (unrelated errands are one-offs, not a project); server version 0.5.0.
   - **Verified**: unit and integration suites (a new one-off service suite, the planning context, and `/api/mcp` with a one-off journey and the updated `tools/list` snapshot), the e2e suite, lint, typecheck and knip; over HTTP on the local stack, a batch create, a 21-task rejection, a completion credited to the active plan, a quadrant move, and an all-or-nothing rejection.
+- **Remote sessions now follow their own PRs**: after opening one, a cloud session subscribes to its activity and fixes red CI and review comments until it merges or closes (AGENTS.md › Version Control).
 - **Docs**: the board flow gains the backlog's focus rule; the priorities flows gain the MCP flow and the plan flow's context lists the matrix's one-offs; baseline, `reference.md` and Current State follow; the tracker drops the backlog item and adds the `ci-fixer` re-measure.
 
 ### 2026-10-21
