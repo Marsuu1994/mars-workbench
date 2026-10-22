@@ -8,7 +8,7 @@ exports[`tools/list > is Claude's contract: names, schemas and descriptions 1`] 
       "openWorldHint": false,
       "readOnlyHint": true,
     },
-    "description": "How planning works in Mars Workbench: the rules, the three kinds of work (habits, projects, one-offs), how to plan a week, how to start something new, and what each write changes. Call this before anything else in a conversation, and again if you no longer have it.",
+    "description": "How planning works in Mars Workbench: the rules, the three kinds of work (habits, projects, one-offs), how to plan a week, how to start something new, how to keep one-offs, and what each write changes. Call this before anything else in a conversation, and again if you no longer have it.",
     "inputSchema": {
       "properties": {},
       "type": "object",
@@ -22,7 +22,7 @@ exports[`tools/list > is Claude's contract: names, schemas and descriptions 1`] 
       "openWorldHint": false,
       "readOnlyHint": true,
     },
-    "description": "If you haven't read get_planning_guide_before_everything in this conversation, or no longer have it, call it first. Read what you need to plan the user's week, habits and projects in Mars Workbench: today's date and week; this week's active plan (its habits with type, frequency and progress so far, plus the one-off tasks and project steps on it); last week's finished plan with per-habit completion stats, its project steps (done, and unfinished ones that can carry over) and the one-off tasks that carry over; the user's habits (templates); and their projects, each with its goal, progress and whole path of steps. Call it before you propose or change anything — the ids the other tools take come from here.",
+    "description": "If you haven't read get_planning_guide_before_everything in this conversation, or no longer have it, call it first. Read what you need to plan the user's week, habits and projects in Mars Workbench: today's date and week; this week's active plan (its habits with type, frequency and progress so far, plus the one-off tasks and project steps on it); last week's finished plan with per-habit completion stats, its project steps and one-off tasks (done, and unfinished ones that can carry over); the user's habits (templates); their projects, each with its goal, progress and whole path of steps; and their unfinished one-off tasks on the priority matrix, each with its quadrant and whether it is on this week, last week or no week. Call it before you propose or change anything — the ids the other tools take come from here.",
     "inputSchema": {
       "properties": {},
       "type": "object",
@@ -51,8 +51,8 @@ exports[`tools/list > is Claude's contract: names, schemas and descriptions 1`] 
           },
           "type": "array",
         },
-        "carryOverAdhocTaskIds": {
-          "description": "Which of lastPlan's one-off tasks move into this plan. Omit to carry all of them over; [] carries none (the rest return to the priority matrix)",
+        "carryOverOneOffTaskIds": {
+          "description": "Which of lastPlan's unfinished one-off tasks move into this plan. Omit to carry all of them over; [] carries none (the rest return to the priority matrix)",
           "items": {
             "format": "uuid",
             "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
@@ -297,7 +297,7 @@ exports[`tools/list > is Claude's contract: names, schemas and descriptions 1`] 
           "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
           "type": "string",
         },
-        "removeAdhocTaskIds": {
+        "removeOneOffTaskIds": {
           "default": [],
           "description": "One-off tasks to send back to the priority matrix",
           "items": {
@@ -632,6 +632,132 @@ exports[`tools/list > is Claude's contract: names, schemas and descriptions 1`] 
     },
     "name": "update_project",
     "title": "Update project",
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+    },
+    "description": "If you haven't read get_planning_guide_before_everything in this conversation, or no longer have it, call it first. Add one or more one-off tasks to the user's priority matrix — single tasks with nothing behind them (a finite list toward one goal is a project; repeating work is a habit). Give each a title, a size, a quadrant and an optional description; up to 20 per call. Check get_planning_context's oneOffTasks first so you don't add one twice. They land on no week; only the user tracks a one-off onto a week. Returns each task with its taskId, in order. Agree on the tasks and their quadrants with the user before calling.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "properties": {
+        "tasks": {
+          "description": "One-off tasks to add to the priority matrix, in order; up to 20",
+          "items": {
+            "properties": {
+              "description": {
+                "description": "Optional notes: a link, details, what done looks like",
+                "type": "string",
+              },
+              "quadrant": {
+                "description": "DO_FIRST: urgent and important. SCHEDULE: important, not urgent. SQUEEZE_IN: urgent, not important. MAYBE_LATER: neither",
+                "enum": [
+                  "DO_FIRST",
+                  "SCHEDULE",
+                  "SQUEEZE_IN",
+                  "MAYBE_LATER",
+                ],
+                "type": "string",
+              },
+              "size": {
+                "description": "Effort: EXTRA_SMALL ~1h, SMALL ~2h, MEDIUM ~3h, LARGE ~5h, EXTRA_LARGE ~8h",
+                "enum": [
+                  "EXTRA_SMALL",
+                  "SMALL",
+                  "MEDIUM",
+                  "LARGE",
+                  "EXTRA_LARGE",
+                ],
+                "type": "string",
+              },
+              "title": {
+                "description": "What to do, readable on its own, e.g. 'Renew passport'",
+                "minLength": 1,
+                "type": "string",
+              },
+            },
+            "required": [
+              "title",
+              "size",
+              "quadrant",
+            ],
+            "type": "object",
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "type": "array",
+        },
+      },
+      "required": [
+        "tasks",
+      ],
+      "type": "object",
+    },
+    "name": "create_one_off_tasks",
+    "title": "Create one-off tasks",
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+    },
+    "description": "If you haven't read get_planning_guide_before_everything in this conversation, or no longer have it, call it first. Mark the user's one-off tasks done (completeTaskIds) or move them to another quadrant (reprioritizeTasks), by taskId from get_planning_context; unfinished tasks only. Done is final — the user can't undo it — so pass only the tasks the user said are done. A task done while on no week counts toward this week's active plan, if there is one. It never puts a task on a week or takes one off: update_plan's removeOneOffTaskIds sends a task on this week back to the matrix. Agree on the change with the user before calling.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "properties": {
+        "completeTaskIds": {
+          "default": [],
+          "description": "Unfinished one-off tasks to mark done. Done is final: the user can't undo it",
+          "items": {
+            "description": "A taskId from get_planning_context",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string",
+          },
+          "maxItems": 20,
+          "type": "array",
+        },
+        "reprioritizeTasks": {
+          "default": [],
+          "description": "Unfinished one-off tasks to move to another quadrant",
+          "items": {
+            "properties": {
+              "quadrant": {
+                "description": "DO_FIRST: urgent and important. SCHEDULE: important, not urgent. SQUEEZE_IN: urgent, not important. MAYBE_LATER: neither",
+                "enum": [
+                  "DO_FIRST",
+                  "SCHEDULE",
+                  "SQUEEZE_IN",
+                  "MAYBE_LATER",
+                ],
+                "type": "string",
+              },
+              "taskId": {
+                "description": "A taskId from get_planning_context",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string",
+              },
+            },
+            "required": [
+              "taskId",
+              "quadrant",
+            ],
+            "type": "object",
+          },
+          "maxItems": 20,
+          "type": "array",
+        },
+      },
+      "type": "object",
+    },
+    "name": "update_one_off_tasks",
+    "title": "Update one-off tasks",
   },
 ]
 `;

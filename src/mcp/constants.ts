@@ -1,4 +1,4 @@
-export const MCP_SERVER_INFO = {name: 'mars-workbench', version: '0.4.0'};
+export const MCP_SERVER_INFO = {name: 'mars-workbench', version: '0.5.0'};
 
 /**
  * Where the `/api/mcp` resource's RFC 9728 metadata lives (the well-known

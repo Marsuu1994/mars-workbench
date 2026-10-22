@@ -1,14 +1,29 @@
 # Spike: MCP 支持 one-off — 读取、批量创建、标记完成
 
-**Status: awaiting owner review** · 2026-10-22 · 回答 tracker 条目 *One-offs over MCP*（Priorities › Medium）· 上游：`design/flows/priorities.md`（Add Priority Task / Reprioritize / Complete One-off）、`design/flows/plan.md`（Plan with Claude (MCP) Flow）、`archived/week-model-pr5-mcp-projects.md`（工具的结构、guide 工具、「先读 guide」那句）
+**Status: decided** · 2026-10-22（提出和拍板同一天，见 PR #79）· 回答 tracker 条目 *One-offs over MCP*（Priorities › Medium）· 上游：`design/flows/priorities.md`（Add Priority Task / Reprioritize / Complete One-off）、`design/flows/plan.md`（Plan with Claude (MCP) Flow）、`week-model-pr5-mcp-projects.md`（工具的结构、guide 工具、「先读 guide」那句）
 
 > 语言约定：叙述用中文；产品名词、状态、代码标识保留英文（one-off / habit / project / step、`AD_HOC`、`quadrant`、`get_planning_context` …），和代码、tracker 一一对应。**LLM 读的文字**（guide、tool descriptions、`.describe()`、错误信息）直接给英文成稿，就是要写进代码的原文。
+
+## Decision · 拍板（2026-10-22）
+
+Owner：六个问题都按推荐来。
+
+| 问题 | 结论 | 带来的变化 |
+| --- | --- | --- |
+| Q1 · 读取放在哪 | **A**，并进 `get_planning_context` | 顶层加 `oneOffTasks`；Rule 2 不变 |
+| Q2 · one-off 还是 adhoc | **A**，对 LLM 统一叫 one-off | 新工具、新字段叫 one-off；`carryOverAdhocTaskIds` / `removeAdhocTaskIds` / plan 的 `adhocTasks` / `removedAdhocTasks` 一起改名；代码内部不动 |
+| Q3 · reopen | **A**，只能完成 | Guide 的 Rule 9 |
+| Q4 · 改 quadrant | **B**，status 加 quadrant | `update_one_off_tasks` 带 `reprioritizeTasks` |
+| Q5 · 完成时挂不挂 plan | **A**，和 matrix 一样 | `completeAdhocTasks` 是 matrix 和 MCP 共用的那一条写入 |
+| Q6 · done 的 one-off | **B**，plan 上的列表带上 done 的 | 新 DAL `getAdhocTasksByPlanId`；guide 的回顾一步提到 one-off |
+
+下文已经按结论写好；「待拍板」一节保留当时的选项。
 
 ## 一页看完 · Summary
 
 | | 内容 |
 | --- | --- |
-| 新做 | 2 个写工具：`create_one_off_tasks`（一次 1–20 个，落在 priority matrix，不进任何一周）、`update_one_off_tasks`（批量标记完成；Q4 选 B 时也能换 quadrant） |
+| 新做 | 2 个写工具：`create_one_off_tasks`（一次 1–20 个，落在 priority matrix，不进任何一周）、`update_one_off_tasks`（批量标记完成、换 quadrant） |
 | 更新 | `get_planning_context` 加顶层 `oneOffTasks`：matrix 上全部没做完的 one-off，带 quadrant 和 state（Q1）；plan 上的 one-off 列表带上 done 的（Q6）；guide 里 one-off 的部分重写；LLM 看到的 `adhoc` 字段统一改叫 one-off（Q2） |
 | 复用 | 完成走 matrix 的 Complete One-off 规则：`completeAdhocTask` 改成批量版，matrix 和 MCP 都用它（Q5）；新建走 Add Priority Task 的建法：拼 `AD_HOC` 行的逻辑从 action 挪进 DAL，两边共用 |
 | 不做 | 把 one-off 放进一周（track / add to plan）、删除、改 title 或 size、reopen（Q3），见「不在范围内」 |
@@ -87,7 +102,7 @@ Owner 定的范围：read、create（支持批量）、update status。add to pl
 - **`createdOn`**：让 Claude 能说「这件事放了三周了」。
 - **顶层不列 done 的**（matrix 也不显示）。这周和上周做完的在 plan 的列表里（Q6）。
 - **和 plan 上的列表有重叠**（这周的 one-off 两边都有），和 `projects` / `projectSteps` 一样：顶层看 matrix，plan 上看这周的 board。
-- **实现**：顶层用 `getNonDoneAdhocTasks`（现在已经在 `getPlanContextByPlanId` 里查）；Q6 选 B 时，plan 的列表改用新的 `getAdhocTasksByPlanId`（任何 status）。
+- **实现**：顶层用 `getNonDoneAdhocTasks`（现在已经在 `getPlanContextByPlanId` 里查）；plan 的列表改用新的 `getAdhocTasksByPlanId`（任何 status）。
 
 ### `create_one_off_tasks`（新）
 
@@ -114,7 +129,7 @@ Owner 定的范围：read、create（支持批量）、update status。add to pl
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `completeTaskIds` | uuid[]，默认 `[]`，最多 20 | 标记完成 |
-| `reprioritizeTasks` | `[{taskId, quadrant}]`，默认 `[]`，最多 20 | 换 quadrant（Q4 选 B 时才有） |
+| `reprioritizeTasks` | `[{taskId, quadrant}]`，默认 `[]`，最多 20 | 换 quadrant（Q4） |
 
 至少一个列表非空（refine，和 `planPatchSchema` 一样）。
 
@@ -246,7 +261,7 @@ ONE_OFF_TASKS_LISTED_TWICE: (taskIds: string[]) =>
   `One-off tasks listed more than once: ${taskIds.join(', ')}.`,
 ```
 
-Q2 选 A 时，`ADHOC_TASKS_NOT_IN_LAST_PLAN` / `ADHOC_TASKS_NOT_IN_PLAN` 的 key 改成 `ONE_OFF_TASKS_…`；文字本来就写的 one-off，不用改。
+改名（Q2）：`ADHOC_TASKS_NOT_IN_LAST_PLAN` / `ADHOC_TASKS_NOT_IN_PLAN` 的 key 改成 `ONE_OFF_TASKS_…`；文字本来就写的 one-off，不用改。
 
 ---
 
@@ -307,7 +322,7 @@ Q2 选 A 时，`ADHOC_TASKS_NOT_IN_LAST_PLAN` / `ADHOC_TASKS_NOT_IN_PLAN` 的 ke
 
 ---
 
-## 待拍板 · Open questions
+## 待拍板 · Open questions（已拍板，结论见 Decision）
 
 ### Q1 · 读取放在哪
 
@@ -403,7 +418,7 @@ Q2 选 A 时，`ADHOC_TASKS_NOT_IN_LAST_PLAN` / `ADHOC_TASKS_NOT_IN_PLAN` 的 ke
 ## 风险
 
 - **Kind 判断错**：Claude 可能把几件不相关的事建成一个 project，或者把一门课拆成十几个 one-off。靠收紧后的判断标准（「a list of unrelated errands is several one-offs」）和验收里的第 4 段对话。
-- **标错了完成没法撤回**（Q3 选 A 时）：靠 Rule 9、description 里的 "Done is final" 和「同意以后再写」。
+- **标错了完成没法撤回**（Q3）：靠 Rule 9、description 里的 "Done is final" 和「同意以后再写」。
 - **`LAST_WEEK` 的 one-off 完成后算在上周**（现有规则）：用户可能以为算这周。Guide 里写了 "one already on a week keeps that week"，Claude 汇报时会说。
 - **Guide 变长**：只加了 one-off 相关的句子；tracker 已经有「用 2–3 周后调整 guide」那一条，一起观察。
 

@@ -4,10 +4,8 @@ import {useTranslations} from 'next-intl';
 import type {PriorityQuadrant} from '@/utils/enums';
 import {FieldRow} from '@/components/ui/form/FieldRow';
 import {ChoicePills} from '@/components/ui/form/ChoicePills';
-import {
-  QUADRANT_ORDER,
-  QUADRANT_CONFIG,
-} from '@/components/domain/priorities/constants';
+import {QUADRANT_CONFIG} from '@/components/domain/priorities/constants';
+import {QUADRANT_ORDER} from '@/utils/oneOffUtils';
 
 interface QuadrantPickerProps {
   value: PriorityQuadrant;

@@ -42,7 +42,6 @@ Single source of truth for open ideas and todos across the app — open items on
 ### Medium
 
 - [ ] Ad-hoc task deletion and auto-clear logic
-- [ ] One-offs over MCP — Claude reads the matrix, adds one-offs in batches and marks them done; putting them on a week stays out for now. Spike `design/spike/mcp-one-off-tasks.md` (awaiting owner review)
 
 ### Future
 

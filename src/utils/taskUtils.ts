@@ -28,6 +28,30 @@ export function getTaskKind(type: TaskTypeEnum): TaskKind {
   return KIND_BY_TYPE[type];
 }
 
+// ─── Week placement ────────────────────────────────────────────────────────
+
+/**
+ * The weeks an unfinished task that never expires — a one-off or a project
+ * step — can sit on: this week's ACTIVE plan, or last week's plan
+ * (PENDING_UPDATE) until the next plan carries it over or sends it back.
+ */
+export const WeekPlacement = {
+  THIS_WEEK: 'THIS_WEEK',
+  LAST_WEEK: 'LAST_WEEK',
+} as const;
+export type WeekPlacement = (typeof WeekPlacement)[keyof typeof WeekPlacement];
+
+/** The week a task's plan is, or null when the task is on no week. */
+export function getWeekPlacement(
+  {planId}: Pick<TaskItem, 'planId'>,
+  activePlanId: string | null,
+): WeekPlacement | null {
+  if (planId === null) return null;
+  return planId === activePlanId
+    ? WeekPlacement.THIS_WEEK
+    : WeekPlacement.LAST_WEEK;
+}
+
 // ─── Habit week ────────────────────────────────────────────────────────────
 
 /** A plan line: how a template runs this week (type × frequency). */

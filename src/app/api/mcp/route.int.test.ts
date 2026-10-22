@@ -5,7 +5,7 @@
  */
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {prisma} from '@/lib/prisma';
-import {TaskSize, TaskType} from '@/utils/enums';
+import {PriorityQuadrant, TaskSize, TaskType} from '@/utils/enums';
 import {newHabit, newUserId} from '../../../../test/factories';
 import {MOMENTS, freezeTime} from '../../../../test/time';
 import {POST} from './route';
@@ -68,6 +68,8 @@ describe('tools/list', () => {
       'update_habit',
       'create_project',
       'update_project',
+      'create_one_off_tasks',
+      'update_one_off_tasks',
     ]);
     // A change here changes what Claude sees: update the snapshot on purpose
     expect(tools).toMatchSnapshot();
@@ -127,6 +129,45 @@ describe('tools/call', () => {
       projects: [{projectId, title: 'Spanish A2 course'}],
     });
     expect(await prisma.plan.count({where: {userId}})).toBe(1);
+  });
+
+  it('keeps one-offs: create a batch, read the matrix, mark one done', async () => {
+    await callTool('create_plan', {
+      newTemplates: [newHabit('Run', TaskType.DAILY)],
+    });
+    const created = await callTool('create_one_off_tasks', {
+      tasks: [
+        {
+          title: 'Renew passport',
+          size: TaskSize.SMALL,
+          quadrant: PriorityQuadrant.SCHEDULE,
+        },
+        {
+          title: 'Book dentist',
+          size: TaskSize.EXTRA_SMALL,
+          quadrant: PriorityQuadrant.DO_FIRST,
+        },
+      ],
+    });
+    expect(created.isError).toBeUndefined();
+    const [passport, dentist] = created.structuredContent!.oneOffTasks as {
+      taskId: string;
+    }[];
+
+    const done = await callTool('update_one_off_tasks', {
+      completeTaskIds: [dentist.taskId],
+    });
+    expect(done.structuredContent).toMatchObject({
+      completedTasks: [{taskId: dentist.taskId, state: 'DONE'}],
+    });
+
+    const context = await callTool('get_planning_context');
+    expect(context.structuredContent).toMatchObject({
+      activePlan: {
+        oneOffTasks: [{taskId: dentist.taskId, status: 'DONE'}],
+      },
+      oneOffTasks: [{taskId: passport.taskId, state: 'UNTRACKED'}],
+    });
   });
 
   it('answers a planning error with isError and the reason', async () => {

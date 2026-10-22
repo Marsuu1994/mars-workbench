@@ -189,31 +189,41 @@ export async function getBoardMetricsByPlanId(
   };
 }
 
+/** A new matrix task's own fields; the rest of its row is the same for all. */
+export type MatrixTaskRow = {
+  title: string;
+  description?: string;
+  size: TaskSize;
+  points: number;
+  quadrant: PriorityQuadrant;
+};
+
 /**
- * Create a single task instance. planId is null for matrix (unassigned
- * ad-hoc) tasks; quadrant is set for AD_HOC tasks only.
+ * Add one-offs to the priority matrix in one INSERT: AD_HOC, on no plan
+ * (planId = null), BACKLOG. Each row's createdAt is a millisecond after the
+ * last, so the matrix (ordered by createdAt) lists them in the order given.
  */
-export async function createTask(
+export async function createMatrixTasks(
   userId: string,
-  data: {
-    planId: string | null;
-    templateId?: string;
-    type: TaskType;
-    title: string;
-    description?: string;
-    size: TaskSize;
-    points: number;
-    status: TaskStatus;
-    forDate?: Date;
-    periodKey?: string;
-    quadrant?: PriorityQuadrant;
-    instanceIndex: number;
-  },
-): Promise<TaskItem> {
-  return prisma.task.create({
-    data: {...data, userId},
+  rows: MatrixTaskRow[],
+): Promise<TaskItem[]> {
+  if (rows.length === 0) return [];
+  const createdAtMs = Date.now();
+  const createdTasks = await prisma.task.createManyAndReturn({
+    data: rows.map((row, index) => ({
+      ...row,
+      userId,
+      planId: null,
+      type: TaskType.AD_HOC,
+      status: TaskStatus.BACKLOG,
+      instanceIndex: 1,
+      createdAt: new Date(createdAtMs + index),
+    })),
     select: taskSelect,
   });
+  return createdTasks.sort(
+    (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
+  );
 }
 
 /**
@@ -266,20 +276,22 @@ export async function updateTaskStatus(
 }
 
 /**
- * Reprioritize: set the Eisenhower quadrant of an owned AD_HOC task.
- * Returns null when the task does not exist, is not owned, or is not AD_HOC.
+ * Reprioritize: move owned AD_HOC tasks to an Eisenhower quadrant. Returns the
+ * tasks moved; ids that aren't the user's one-offs are skipped.
  */
-export async function updateTaskQuadrant(
+export async function updateAdhocTaskQuadrants(
   userId: string,
-  taskId: string,
+  taskIds: string[],
   quadrant: PriorityQuadrant,
-): Promise<TaskItem | null> {
-  const [task] = await prisma.task.updateManyAndReturn({
-    where: {id: taskId, userId, type: TaskType.AD_HOC},
+  tx?: Prisma.TransactionClient,
+): Promise<TaskItem[]> {
+  if (taskIds.length === 0) return [];
+  const db = tx ?? prisma;
+  return db.task.updateManyAndReturn({
+    where: {id: {in: taskIds}, userId, type: TaskType.AD_HOC},
     data: {quadrant},
     select: taskSelect,
   });
-  return task ?? null;
 }
 
 /**
@@ -309,42 +321,42 @@ export async function trackAdhocTask(
 }
 
 /**
- * Complete a matrix task in place: DONE + doneAt, and — when an active plan
- * is given — attach an unassigned task to it so the completion lands in the
+ * Complete one-offs in place: DONE + doneAt, and — when an active plan is
+ * given — attach the unassigned ones to it, so each completion lands in the
  * board's Done column and its points count for the week. An existing planId
- * is never re-attributed: the linking write is scoped to planId = null and
- * falls back to a status-only write when it matches nothing (tracked card).
- * Returns null when the task does not exist, is not owned, is not AD_HOC, or
- * is already DONE.
+ * is never re-attributed: the linking write is scoped to planId = null, and
+ * the rest (tracked tasks) get a status-only write. Returns the tasks
+ * completed; ids that aren't the user's unfinished one-offs are skipped.
  */
-export async function completeAdhocTask(
+export async function completeAdhocTasks(
   userId: string,
-  taskId: string,
+  taskIds: string[],
   activePlanId: string | null,
-): Promise<TaskItem | null> {
+  tx?: Prisma.TransactionClient,
+): Promise<TaskItem[]> {
+  if (taskIds.length === 0) return [];
+  const db = tx ?? prisma;
   const where: Prisma.TaskWhereInput = {
-    id: taskId,
+    id: {in: taskIds},
     userId,
     type: TaskType.AD_HOC,
     status: {not: TaskStatus.DONE},
   };
   const data = {status: TaskStatus.DONE, doneAt: new Date()};
 
-  if (activePlanId) {
-    const [linked] = await prisma.task.updateManyAndReturn({
-      where: {...where, planId: null},
-      data: {...data, planId: activePlanId},
-      select: taskSelect,
-    });
-    if (linked) return linked;
-  }
-
-  const [task] = await prisma.task.updateManyAndReturn({
+  const linkedTasks = activePlanId
+    ? await db.task.updateManyAndReturn({
+        where: {...where, planId: null},
+        data: {...data, planId: activePlanId},
+        select: taskSelect,
+      })
+    : [];
+  const otherTasks = await db.task.updateManyAndReturn({
     where,
     data,
     select: taskSelect,
   });
-  return task ?? null;
+  return [...linkedTasks, ...otherTasks];
 }
 
 /**
@@ -463,6 +475,18 @@ export async function getNonDoneAdhocTasks(
 ): Promise<TaskItem[]> {
   return prisma.task.findMany({
     where: {userId, type: TaskType.AD_HOC, status: {not: TaskStatus.DONE}},
+    orderBy: [{createdAt: 'asc'}, {id: 'asc'}],
+    select: taskSelect,
+  });
+}
+
+/** A plan's AD_HOC tasks, done ones included, oldest first. */
+export async function getAdhocTasksByPlanId(
+  userId: string,
+  planId: string,
+): Promise<TaskItem[]> {
+  return prisma.task.findMany({
+    where: {userId, planId, type: TaskType.AD_HOC},
     orderBy: [{createdAt: 'asc'}, {id: 'asc'}],
     select: taskSelect,
   });

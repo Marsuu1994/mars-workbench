@@ -2,7 +2,13 @@ import {beforeEach, describe, expect, it} from 'vitest';
 import {PlanStatus} from '@/generated/prisma/client';
 import {prisma} from '@/lib/prisma';
 import {planPatchSchema} from '@/schemas';
-import {PlanMode, TaskSize, TaskStatus, TaskType} from '@/utils/enums';
+import {
+  PlanMode,
+  PriorityQuadrant,
+  TaskSize,
+  TaskStatus,
+  TaskType,
+} from '@/utils/enums';
 import {PLANNING_ERROR} from '@/utils/errorMessages';
 import {
   createOneOff,
@@ -13,7 +19,7 @@ import {
   newUserId,
 } from '../../test/factories';
 import {MOMENTS, NEXT_WEEK_KEY, WEEK_KEY, freezeTime} from '../../test/time';
-import {trackTaskThisWeek} from './matrixService';
+import {completeMatrixTask, trackTaskThisWeek} from './matrixService';
 import {TemplateNotFoundError} from './planService';
 import {
   createPlanFromSpec,
@@ -71,6 +77,7 @@ describe('getPlanningContext', () => {
       templates: [],
       projects: [],
       archivedProjects: [],
+      oneOffTasks: [],
     });
   });
 
@@ -82,7 +89,7 @@ describe('getPlanningContext', () => {
     expect(context.lastPlan).toMatchObject({
       planId: lastPlan.planId,
       periodKey: WEEK_KEY,
-      adhocTasks: [{taskId: passport.id, status: TaskStatus.TODO}],
+      oneOffTasks: [{taskId: passport.id, status: TaskStatus.TODO}],
       projectSteps: [{stepId: steps[0].id, stepNumber: 1}],
       // Monday's two runs and the two reviews all expired
       overall: {completed: 0, expired: 4, total: 4, completionRate: 0},
@@ -94,6 +101,54 @@ describe('getPlanningContext', () => {
     expect(context.projects[0].steps.map(({state}) => state)).toEqual([
       'LAST_WEEK',
       'UPCOMING',
+    ]);
+    expect(context.oneOffTasks).toEqual([
+      expect.objectContaining({taskId: passport.id, state: 'LAST_WEEK'}),
+    ]);
+  });
+
+  it('lists the unfinished one-offs in matrix order, each with its week', async () => {
+    const garage = await createOneOff(userId, {
+      title: 'Clean the garage',
+      quadrant: PriorityQuadrant.MAYBE_LATER,
+      size: TaskSize.MEDIUM,
+    });
+    const dentist = await createOneOff(userId, {title: 'Book dentist'});
+    const taxes = await createOneOff(userId, {title: 'File tax extension'});
+    const passport = await createOneOff(userId, {
+      title: 'Renew passport',
+      quadrant: PriorityQuadrant.SCHEDULE,
+    });
+    const {plan} = await createWeek(userId, {newTemplates: [RUN]});
+    await trackTaskThisWeek(userId, dentist.id, TaskStatus.TODO);
+    await completeMatrixTask(userId, taxes.id);
+
+    const context = await getPlanningContext(userId);
+
+    expect(context.oneOffTasks).toEqual([
+      {
+        taskId: dentist.id,
+        title: 'Book dentist',
+        description: null,
+        size: TaskSize.SMALL,
+        points: 2,
+        quadrant: PriorityQuadrant.DO_FIRST,
+        state: 'THIS_WEEK',
+        createdOn: '2026-10-14',
+      },
+      expect.objectContaining({taskId: passport.id, state: 'UNTRACKED'}),
+      expect.objectContaining({taskId: garage.id, state: 'UNTRACKED'}),
+    ]);
+    // The plan lists its one-offs, done ones included: the completed one
+    // joined it. Created at one frozen instant, so their order is the DB's
+    expect(context.activePlan?.planId).toBe(plan.planId);
+    expect(
+      context.activePlan?.oneOffTasks
+        .map(({title, status}) => [title, status])
+        .sort(),
+    ).toEqual([
+      ['Book dentist', TaskStatus.TODO],
+      ['File tax extension', TaskStatus.DONE],
     ]);
   });
 });
@@ -163,7 +218,7 @@ describe('createPlanFromSpec', () => {
     });
 
     expect(plan.periodKey).toBe(NEXT_WEEK_KEY);
-    expect(plan.adhocTasks.map(({taskId}) => taskId)).toEqual([passport.id]);
+    expect(plan.oneOffTasks.map(({taskId}) => taskId)).toEqual([passport.id]);
     expect(plan.projectSteps.map(({stepId}) => stepId)).toEqual([steps[0].id]);
     const closedPlan = await prisma.plan.findUniqueOrThrow({
       where: {id: lastPlan.planId},
@@ -175,7 +230,7 @@ describe('createPlanFromSpec', () => {
     const {passport, steps} = await createLastWeek();
     await createWeek(userId, {
       newTemplates: [newHabit('Stretch', TaskType.DAILY)],
-      carryOverAdhocTaskIds: [],
+      carryOverOneOffTaskIds: [],
       carryOverProjectStepIds: [],
     });
 
@@ -196,9 +251,11 @@ describe('createPlanFromSpec', () => {
     await expect(
       createWeek(userId, {
         newTemplates: [RUN],
-        carryOverAdhocTaskIds: [loose.id],
+        carryOverOneOffTaskIds: [loose.id],
       }),
-    ).rejects.toThrow(PLANNING_ERROR.ADHOC_TASKS_NOT_IN_LAST_PLAN([loose.id]));
+    ).rejects.toThrow(
+      PLANNING_ERROR.ONE_OFF_TASKS_NOT_IN_LAST_PLAN([loose.id]),
+    );
   });
 
   it('refuses a template listed twice', async () => {
@@ -340,16 +397,16 @@ describe('patchActivePlan', () => {
 
     const {changes, plan: patched} = await patch({
       planId: plan.planId,
-      removeAdhocTaskIds: [passport.id],
+      removeOneOffTaskIds: [passport.id],
       removeProjectStepIds: [steps[0].id],
       addProjectStepIds: [steps[1].id],
     });
     expect(changes).toMatchObject({
-      removedAdhocTasks: [{id: passport.id, title: 'Renew passport'}],
+      removedOneOffTasks: [{id: passport.id, title: 'Renew passport'}],
       removedProjectSteps: [{id: steps[0].id, title: 'Unit 1'}],
       addedProjectSteps: [{id: steps[1].id, title: 'Unit 2'}],
     });
-    expect(patched.adhocTasks).toEqual([]);
+    expect(patched.oneOffTasks).toEqual([]);
     expect(patched.projectSteps.map(({stepId}) => stepId)).toEqual([
       steps[1].id,
     ]);
@@ -359,8 +416,8 @@ describe('patchActivePlan', () => {
     const {plan} = await createWeek(userId, {newTemplates: [RUN]});
     const loose = await createOneOff(userId, {title: 'Loose end'});
     await expect(
-      patch({planId: plan.planId, removeAdhocTaskIds: [loose.id]}),
-    ).rejects.toThrow(PLANNING_ERROR.ADHOC_TASKS_NOT_IN_PLAN([loose.id]));
+      patch({planId: plan.planId, removeOneOffTaskIds: [loose.id]}),
+    ).rejects.toThrow(PLANNING_ERROR.ONE_OFF_TASKS_NOT_IN_PLAN([loose.id]));
   });
 
   it('changes the description and mode alone', async () => {

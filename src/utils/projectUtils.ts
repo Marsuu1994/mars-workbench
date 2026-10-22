@@ -11,6 +11,7 @@ import {TaskStatus} from './enums';
 import {formatKanbanISODate} from './dateUtils';
 import {findRepeatedIds} from './planUtils';
 import {sizeToPoints} from './sizeUtils';
+import {getWeekPlacement} from './taskUtils';
 
 /** The most steps a project's path holds — the app and Claude alike. */
 export const PROJECT_STEP_LIMIT = 50;
@@ -173,11 +174,7 @@ export function getStepState(
   activePlanId: string | null,
 ): ProjectStepState {
   if (isStepDone(step)) return ProjectStepState.DONE;
-  if (activePlanId !== null && step.planId === activePlanId) {
-    return ProjectStepState.THIS_WEEK;
-  }
-  if (step.planId !== null) return ProjectStepState.LAST_WEEK;
-  return ProjectStepState.UPCOMING;
+  return getWeekPlacement(step, activePlanId) ?? ProjectStepState.UPCOMING;
 }
 
 /** Each project's steps, in step order. */
