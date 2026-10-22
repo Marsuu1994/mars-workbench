@@ -4,6 +4,23 @@ Status: awaiting owner review
 
 > 语言说明：正文中文；product 名词、状态和代码标识符保留英文（backlog / card / subagent / `inert` / `test-writer`），与代码和 tracker 一一对应。
 
+## TL;DR
+
+问题：`ui-verifier` 已确定保留，`test-writer` 和 `ci-fixer` 值不值得留。做法是三轮 A / B 对比：A 由 main session 自己做，B 委派给 subagent。前两轮的 agent 是模拟的，第 3 轮用注册好的。
+
+| B 相对 A | main context | wall time | 总 token |
+| --- | --- | --- | --- |
+| 第 1 轮：backlog fix（模拟） | −34% | ×2.0 | ×2.5 |
+| 第 2 轮：红 CI（模拟） | 持平 | ×1.9 | ×3.4 |
+| 3a：backlog fix + focus handoff（注册） | **−49%** | ×1.35 | **×1.0** |
+| 3b：红 CI，7 条 Vitest + 1 条 e2e（注册） | 持平 | ×1.9 | ×1.26 |
+
+- **注册后成本大降**：subagent 的起始 context 从 57k 降到 16k，总 token 从 2.5–3.4 倍降到 1.0–1.3 倍。
+- **只在工具输出大的阶段省 main context**：写 test、浏览器检查、读 e2e log 时省得多。CI 是绿的，或者失败只有几行时，委派持平或略亏。
+- **质量**：`ui-verifier` 在 CI 之前抓到一个 console error（brief 是在 A 撞到之后写的，要打折扣）；`ci-fixer` 两次 5 / 5 诊断全对，两次都指出了 coverage 缺口；`test-writer` 写得和 A 一样好，但最慢。
+- **代价和限制**：wall time 多 35%–90%；每次委派都在后台跑，main 要多等 1–2 轮。`tools` 限制在 API 层生效，但三个 agent 都有 Bash，「只改 test」仍靠 prompt 约束；`ci-fixer` 就用 Bash 临时套用过 proposal。
+- **待 owner 决定**：Q7 选 Option 1、Option 2 还是继续测；Q8 fix 提交哪一版（附录 C）；Q9 `ci-fixer` 定义里的两处歧义。
+
 ## 触发
 
 tracker › Board › Medium 第一条：collapsed desktop backlog 的 panel 只有 `opacity-0 pointer-events-none`，Tab 和 screen reader 仍能进入看不见的 cards，修法是 `inert`。这一条同时是 subagent 分工的 pilot：在 `ui-verifier` 旁边建 `test-writer` 和 `ci-fixer`，把一个 fix 的重活交给它们，看是否划算。
