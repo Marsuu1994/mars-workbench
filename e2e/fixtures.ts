@@ -32,3 +32,16 @@ export const openPage = async (page: Page, path: string) => {
   await page.goto(path);
   await page.waitForLoadState('networkidle');
 };
+
+/**
+ * Waits for the next server action the page posts to `path` to answer. An
+ * optimistic update shows before its action saves it, so a reload or
+ * navigation right after one can abort the save: start waiting before the
+ * click, and await it before leaving the page.
+ */
+export const waitForServerAction = (page: Page, path: string) =>
+  page.waitForResponse(
+    response =>
+      response.request().method() === 'POST' &&
+      new URL(response.url()).pathname === path,
+  );

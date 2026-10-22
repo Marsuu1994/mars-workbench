@@ -4,7 +4,13 @@
  */
 import type {Page} from '@playwright/test';
 import {SEED_HABITS, SEED_ONE_OFFS, SEED_PROJECTS} from '../test/seedData';
-import {PLAN_LINK, expect, openPage, test} from './fixtures';
+import {
+  PLAN_LINK,
+  expect,
+  openPage,
+  test,
+  waitForServerAction,
+} from './fixtures';
 
 test.describe.configure({mode: 'serial'});
 
@@ -34,10 +40,12 @@ test('a card dragged to Done stays done', async ({page}) => {
   await expect(announcements).toContainText([/lifted/]);
   await page.keyboard.press('ArrowRight');
   await expect(announcements).toContainText([/to list DONE/]);
+  const statusSaved = waitForServerAction(page, '/kanban');
   await page.keyboard.press('Space');
   await expect(announcements).toContainText([/dropped/]);
 
   await expect(findCard(page, 'DONE', title)).toBeVisible();
+  await statusSaved;
   await page.reload();
   await expect(findCard(page, 'DONE', title)).toBeVisible();
   await expect(findCard(page, 'TODO', title)).toHaveCount(0);
@@ -49,9 +57,11 @@ test('a one-off tracked from the matrix lands on the board', async ({page}) => {
   const card = page.getByRole('button', {name: new RegExp(title)});
   await card.hover();
   await card.getByRole('button', {name: 'Move task'}).click();
+  const tracked = waitForServerAction(page, '/kanban/priorities');
   await page.getByRole('button', {name: 'Todo', exact: true}).click();
   await expect(card).toContainText('This Week');
 
+  await tracked;
   await page.goto('/kanban');
   await expect(findCard(page, 'TODO', title)).toBeVisible();
 });
@@ -62,10 +72,12 @@ test("a step put on this week lands in the board's backlog", async ({page}) => {
   const upcomingStep = course.steps[3].title;
   await openPage(page, '/kanban/projects');
   await page.getByRole('button', {name: new RegExp(course.title)}).click();
+  const scheduled = waitForServerAction(page, '/kanban/projects');
   await page.getByTitle('Put on this week').first().click();
   // Take-back is offered on steps still in the week's backlog: Unit 3, Unit 4
   await expect(page.getByTitle('Take off this week')).toHaveCount(2);
 
+  await scheduled;
   await page.goto('/kanban');
   await expect(findCard(page, 'BACKLOG', upcomingStep)).toHaveCount(1);
 });
