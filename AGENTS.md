@@ -30,7 +30,7 @@ supabase/                          # Local Supabase stack config (Postgres + Aut
 scripts/                           # Repo checks run in CI; the local stack's setup, seed, and dev and e2e sessions
 test/                              # Test helpers and conventions (README); unit and integration tests sit next to their modules
 e2e/                               # Playwright specs
-.claude/agents/                    # Claude Code subagents (ui-verifier)
+.claude/agents/                    # Claude Code subagents: ui-verifier, test-writer, ci-fixer (Workflow › Subagents)
 design/                            # Design docs — index in design/README.md
 ├── baseline.md                    # The one app-wide baseline: goal, entities, schema, architecture decisions
 ├── design-language/               # Per-theme visual specs + the shared fx-* skeleton
@@ -97,6 +97,14 @@ A new rule goes where it belongs: a rule for one kind of file goes into that fil
 ### Spike first for complex tasks
 
 A complex task — several PRs, a data-model change, a new tool surface, or a choice with real tradeoffs — starts with a spike in `design/spike/`, not code. Lifecycle and shape: `design/spike/README.md`.
+
+### Subagents
+
+Delegate to a subagent only work whose tool output would outgrow the brief and the report: it starts cold, takes longer and saves no tokens, so it pays off only in main-session context (measured in `design/spike/archived/subagent-delegation-pilot.md`). Each agent's description says what its brief needs.
+
+- `ui-verifier`: the browser check (UI Workflow).
+- `test-writer`: an e2e test, or a test in a layer the session hasn't read yet; a unit test next to a module you just read, write yourself.
+- `ci-fixer`: CI red on GitHub, with the failing job's URL; green checks and few-line local failures, run yourself.
 
 ## UI Workflow
 

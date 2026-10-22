@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, type ReactNode} from 'react';
+import {useEffect, useRef, useState, type ReactNode} from 'react';
 import {Droppable} from '@hello-pangea/dnd';
 import {useTranslations} from 'next-intl';
 import {
@@ -28,12 +28,30 @@ interface DesktopBacklogProps {
 export const DesktopBacklog = ({count, children}: DesktopBacklogProps) => {
   const t = useTranslations('Board.Backlog');
   const [isOpen, setIsOpen] = useState(false);
+  const openButtonRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  // Set by the toggles, so the first render leaves focus where it is
+  const hasToggledRef = useRef(false);
+
+  // The side that fades out turns inert, so focus moves to the toggle that
+  // just appeared — once committed, since it is inert until then
+  useEffect(() => {
+    if (!hasToggledRef.current) return;
+    (isOpen ? closeButtonRef : openButtonRef).current?.focus();
+  }, [isOpen]);
+
+  const toggle = (nextIsOpen: boolean) => {
+    hasToggledRef.current = true;
+    setIsOpen(nextIsOpen);
+  };
 
   const countPill = <BacklogCountBadge count={count} />;
 
   const renderCollapsed = () => (
     <button
-      onClick={() => setIsOpen(true)}
+      ref={openButtonRef}
+      onClick={() => toggle(true)}
+      inert={isOpen}
       className={`absolute inset-y-0 left-0 w-12 bg-base-200/30 flex flex-col items-center gap-3.5 pt-4 cursor-pointer transition-opacity duration-200 hover:bg-base-300 ${
         isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
@@ -55,7 +73,8 @@ export const DesktopBacklog = ({count, children}: DesktopBacklogProps) => {
         {countPill}
       </div>
       <button
-        onClick={() => setIsOpen(false)}
+        ref={closeButtonRef}
+        onClick={() => toggle(false)}
         className="size-7 rounded-md flex items-center justify-center text-base-content/60 hover:bg-base-300 hover:text-base-content cursor-pointer"
         title={t('closeLabel')}
       >
@@ -104,6 +123,7 @@ export const DesktopBacklog = ({count, children}: DesktopBacklogProps) => {
           together — instant content swaps would otherwise read as a jump. */}
       {renderCollapsed()}
       <div
+        inert={!isOpen}
         className={`absolute inset-y-0 right-0 w-[300px] flex flex-col bg-base-100/10 transition-opacity duration-200 ${
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}

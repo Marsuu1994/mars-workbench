@@ -44,7 +44,7 @@ What the product does today, page by page — a skimmable tour, 1–2 lines per 
 - Two-column kanban (Todo · Done; work in progress stays in Todo): drag-and-drop with optimistic UI, fibonacci task sizing (XS–XL), per-column accents
 - **Kind-first cards**: each card opens with its kind — habit, project step or one-off — in a fixed colour, then its context (a habit's plan line, a step's project and number of N, a one-off's quadrant); a neutral size closes the card. A habit's week dots and a step's project path show where the card sits, its own mark outlined. Risk is switched off until per-kind rules return
 - **Missed days expire**: a habit instance not done by the end of its day expires and stays an empty dot
-- **Backlog** stages template-generated instances and this week's project steps, and pulls them onto the board — right-edge drag panel on desktop, bottom sheet on mobile (from a peeking "Backlog" pill); backlog tasks count toward the week projection, not Today
+- **Backlog** stages template-generated instances and this week's project steps, and pulls them onto the board — right-edge drag panel on desktop, bottom sheet on mobile (from a peeking "Backlog" pill); backlog tasks count toward the week projection, not Today. On desktop only the open side takes keyboard and screen-reader focus, and focus follows the toggle
 - **Progress dashboard**: Today ring, stat metrics, Week Progress bar
 - One-off (`AD_HOC`) tasks are created only from the priority matrix and reach the board via Track This Week
 - **Sync** (`syncService.ensureSynced`): daily + end-of-period sync awaited by every kanban page — idempotent, page-visit order never matters
@@ -101,6 +101,16 @@ Open items: see [design/tracker.md](./design/tracker.md).
 - [x] Deploy app on Vercel
 
 ## Update Log
+
+### 2026-10-22
+- **Subagent delegation decided after a three-round pilot: `ui-verifier`, `test-writer` and `ci-fixer` all stay, each delegated only where its tool output would outgrow the brief and report.** `test-writer` takes e2e tests and tests in a layer the session hasn't read; `ci-fixer` takes a red GitHub CI job and fetches its log itself; green checks and few-line failures stay in the main session. The rules sit in AGENTS.md › Workflow › Subagents; the spike is archived.
+  - **Round 1** (agents simulated by a general-purpose agent): the backlog `inert` fix done twice, once by the main session alone and once with the failing test, browser check and CI checks handed to the three agents. Delegating cut the main context by 34% (29.9k → 19.6k tokens), at twice the wall time and 2.5× the tokens processed.
+  - **Round 2** (simulated): the same red CI on both sides, one file with five planted faults. Both found all five; with one-line errors the main context came out even, at twice the wall time and 3.4× the tokens.
+  - **Round 3** (registered agents, starting at about 16k tokens instead of 57k): the backlog fix with focus handoff redone in both arms cut the main context by 49% (37.0k → 19.0k) at 1.35× the wall time and about the same tokens. `ui-verifier` caught, before CI, that the first version's `flushSync` logs a console error under the Design Console's play step. A second red CI (five faults in `projectUtils.ts`, seven Vitest tests and one e2e red) was fixed 5/5 by both sides; `ci-fixer` left the main context even at 1.9× the wall time and 1.26× the tokens.
+  - **Loading and tools**: agent files present at session start are callable by name; the earlier failure only hit files added mid-session. Each agent's requests carry only its declared tools, but all of them have Bash, so "test files only" stays a prompt rule.
+  - **What the owner decided**: Option 2 with narrow triggers. `ci-fixer` now gets the job URL and `get_job_logs`, may no longer try a proposal out on the files, and hands back unused exports as proposals; `test-writer`'s rerun command skips dependency projects. The next real red GitHub CI measures `ci-fixer` once more — if it still comes out even, it goes.
+- **The collapsed desktop backlog no longer lets Tab and screen readers reach what nobody can see.** The faded-out side — the closed panel, or the strip while the panel is open — is now `inert`, and opening or closing moves focus to the other side's control; a new journey test covers it. Focus moves from an effect rather than `flushSync`, which errors when the Design Console's play step opens the panel.
+- **Docs**: the board flow gains the backlog's focus rule; the tracker drops the backlog item and adds the `ci-fixer` re-measure.
 
 ### 2026-10-21
 - **Quality gate Steps 11 and 5 done: the local stack works on the owner's Mac and the project runs on Node 24; the app now has tests, in CI on every PR.** Step 4's last open checks — local Google sign-in landing on the seeded week, MCP writes going to the local database — pass, with production untouched throughout. Step 5 adds unit, integration and e2e suites; they caught two timezone bugs, both fixed. Agents now leave most UI checks to CI and the owner, and send the rest to a subagent with a small, fixed context.
