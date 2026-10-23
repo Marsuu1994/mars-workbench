@@ -1,0 +1,197 @@
+# Spike: Mutation layer — 保留 RSC 刷新、不引入 client cache，先压缩往返
+
+**Status: awaiting owner review** · 2026-10-23 · 回答 tracker 条目 *Quality gate › Step 7 — Mutation layer › State management* · 上游：`archived/projects-page-refactor.md`（React Query 初步评估、close-then-stale 根因）、`archived/board-prop-drilling.md`（`useOptimisticTasks` 的来历）、`archived/agents-md-simplification.md`（Q4：*Server shapes inputs* 的 pending 一半）
+
+> 语言约定：叙述用中文；产品名词、状态和代码标识保留英文（board / step / one-off、`revalidatePath`、`staleTimes`、`useOptimisticTasks` …），和代码、tracker 一一对应。
+
+本稿只覆盖 Step 7 的第一个话题 State management；另外两个话题（shared server-action handler、error-handling plumbing）怎么处理见 Q8。
+
+## TL;DR
+
+| 问题 | 结论（本地实测，Next 16.2.9 / React 19.2） |
+| --- | --- |
+| 切换页面为什么慢 | 每次导航都重跑目标页的 loader（`staleTimes.dynamic` 默认 0），但数据 24–183 ms 就到了；内容固定在 ~310 ms 才出现，因为 `loading.tsx` 的骨架一旦显示，React 至少 300 ms 后才换上内容 |
+| 一次写入做了什么 | 任何 `revalidatePath` 都让 action 在同一个请求里从 root 重渲当前页。Board 拖一张卡 = 写入 3 条 SQL + 整个 Board loader 8 条 = 11 次 DB 往返，约 10 次串行；不 revalidate 是 3 次 |
+| 去掉 `revalidatePath` 行不行 | 不行：router cache 里写入前的 payload 会复活。去掉后按后退键（`staleTimes` 为 0 也一样），或 `staleTimes` > 0 时点链接回到 Board，刚拖到 Done 的卡又回到 Todo |
+| 调高 `staleTimes` 行不行 | 保留 `revalidatePath` 时可以：回到刚去过的 Board 从 372 ms 变成 70 ms，数据正确 |
+| 要不要 React Query / Zustand / Jotai | 现在不要（Option A）。已记录的痛点都能在现有模型里修；只有 client cache 才能给的是"写入不重渲当前页"，而那 8 次往返大半可以先靠压缩 loader 拿回来 |
+
+**建议 Option A**：保留 RSC 刷新；Board loader 的串行往返从 7 段压到 2 段，写入从 3 次压到 1 次；`staleTimes.dynamic` 调到 30–60 s；`useOptimisticTasks` 在新 props 到达时把还在 pending 的 patch 叠回去（修闪回）；所有 close-then-stale 的入口统一改成"新数据到了再关"。待定的是 Q1–Q8。
+
+## 触发
+
+Step 7 原本要回答：每个页面手写的 client 副本（`useOptimisticTasks` + `useEffect` 同步，写入后靠 `revalidatePath` 整页重渲）要不要交给 React Query 和 / 或 Zustand；owner 还想看 Jotai 这类方案。讨论中 owner 先问了更前面的问题：到底有没有必要，现在具体痛在哪。于是这份 spike 先把已记录的痛点逐条对着代码复核，再在本地 production build 上实测导航和写入，最后才比较方案。
+
+## 现在的数据流
+
+以下都在本仓库和 `node_modules/next`（16.2.9）的源码里核实过。
+
+| 场景 | 实际发生的事 |
+| --- | --- |
+| 切换页面 | 所有 kanban 页面都读 cookie，都是动态页面；client router 对动态页面的 `staleTimes.dynamic` 默认 0，所以每次点 sidebar / dock 都发一次 RSC 请求。Server 从第一个不同的 segment 开始渲染（`walk-tree-with-flight-router-state.js`），root layout 不重跑，只跑 proxy（`getClaims` 本地验签）和目标页的 loader。每个页面都有 `loading.tsx`，先出骨架 |
+| 后退 / 前进 | 走 back/forward cache，不看 `staleTimes`（`bfcache.js`：*"A back/forward navigation will disregard the stale time"*）；只有 revalidate 过的 action 会让它整体失效 |
+| 写入 | 23 个写入 action 里，除了切 theme（只设 cookie），22 个都调 `revalidatePath`。只要调过一次，不管 revalidate 的是哪个 path，response 都带上**当前页**的重渲（`action-handler.js` 里只有没 revalidate 才 `skipPageRendering`），而且从 root 开始渲染（client 源码：*"Currently the server always renders from the root in response to a Server Action"*）。Client 随后清掉 back/forward cache 和 prefetch cache，可见的 `<Link>` 全部重新 prefetch |
+| 排队 | Server action 在 client 上一次只发一个，连续写入依次排队 |
+| Client | 新 RSC 在 transition 里 reconcile，组件不 remount、state 保留；但 `useOptimisticTasks` 的 `useEffect(() => setLocalTasks(tasks))` 把本地副本整份换掉，还没确认的乐观 patch 被盖掉，这就是闪回 |
+
+## 实测
+
+### 方法
+
+- 本地 `next start`（production build）+ 本地 Supabase + headless Chromium，桌面 viewport。每组预热 2 轮，取 10 轮中位数，轮间波动小（Board 内容出现在 309–321 ms 之间）。
+- 时间在页面里取：`performance.now()` 记点击 / 按键，`MutationObserver` 记骨架和内容出现，Resource Timing 记请求。
+- Postgres 前面挂一个 TCP 代理：数 client → server 的 chunk（≈ DB 往返），可以给每次往返加 20 ms，模拟 server 与 DB 不在同一台机器；另一个版本解析 wire protocol，记下每次往返的 SQL。
+- "不 revalidate"用一个临时 env 开关跳过 `updateTaskStatusAction` 的 `revalidatePath`；`staleTimes` 用临时 build。都没有提交。
+- 没覆盖：浏览器到 Vercel 的网络、serverless 冷启动、production DB 的真实往返延迟。数字看结构，不看绝对值。
+
+### 切换页面
+
+| 目标页 | DB 往返 | 数据到齐（每次往返 +0 / +20 ms） | 骨架出现 | 内容出现（+0 / +20 ms） |
+| --- | --- | --- | --- | --- |
+| Priorities | 2 | 24 / 47 ms | ~15 ms | 317 / 318 ms |
+| Projects | 3 | 28 / 90 ms | ~15 ms | 313 / 311 ms |
+| Board | 8（约 7 次串行） | 41 / 183 ms | ~15 ms | 313 / 311 ms |
+
+内容出现的时间和数据快慢无关：react-dom 显示过 Suspense fallback 之后，要到 `globalMostRecentFallbackTime + 300` ms 才提交内容（防闪烁）。只要数据在 300 ms 内到齐，导航的体感就由 `loading.tsx` 决定。
+
+### 拖一张卡到 Done
+
+| | response（gzip） | DB 往返 | 请求完成（每次往返 +0 / +20 ms） |
+| --- | --- | --- | --- |
+| 现在（`revalidatePath`） | 9.8 KB（解压约 30 KB） | 11 | 46 / 258 ms |
+| 去掉 `revalidatePath` | 0.4 KB | 3 | 29 / 84 ms |
+
+两种情况下卡片落进 Done 都是立刻的（乐观更新）。这段时间用户看不到，但它决定了连续写入要排多久的队、闪回的窗口有多长；对没有乐观更新的 modal，它就是按钮 loading 加 close-then-stale 空档的长度。
+
+### 这 11 条 SQL
+
+| # | SQL | 来自 |
+| --- | --- | --- |
+| 1–3 | `BEGIN` · `UPDATE tasks … RETURNING` · `COMMIT` | 写入：Prisma 把 `updateManyAndReturn` 包进事务，一条语句占 3 次往返 |
+| 4 | `plans WHERE status = ACTIVE` | 从这里起是 `revalidatePath` 引发的 Board 重渲。`ensureSynced`（root layout 和 page 共用，`cache()` 去重） |
+| 5 | `plans WHERE id = …` | `getPlanWithTemplates`：把 #4 刚读过的 plan 又读一遍 |
+| 6–7 | `plan_templates` · `task_templates` | 同上：Prisma 的嵌套关系每层单独发一条 |
+| 8 ∥ 9 | `tasks WHERE plan_id = …` ∥ `COUNT(*) FILTER …` | `getBoardTasksByPlanId` 和 `getBoardMetricsByPlanId`（进度面板的聚合），并行 |
+| 10–11 | `projects WHERE id IN …` · `tasks WHERE type = PROJECT …` | `getProjectPathsByIds`：step 卡片画 project 路径，要等 #8 返回 project id |
+
+#4–11 和"从 Priorities 切到 Board"时抓到的 8 条完全相同：`revalidatePath('/kanban')` 的代价，就是在 action 里把整个 Board loader 再跑一遍来确认一次写入。串行链是 4 → 5 → 6 → 7 → (8 ∥ 9) → 10 → 11。写入之后那批 prefetch 不查 DB（拖完 4 秒内仍只有这 11 条）。
+
+### 去掉 `revalidatePath` 之后：router cache 里的旧 payload
+
+拖一张卡到 Done → 点链接去 Priorities → 回到 Board：
+
+| 配置 | 点链接回 Board | 按后退键回 Board |
+| --- | --- | --- |
+| `staleTimes` 0 + revalidate（现在） | Done ✓，372 ms | Done ✓ |
+| `staleTimes` 0 + 不 revalidate | Done ✓，378 ms | **Todo ✗**（DB 是 Done） |
+| `staleTimes` 60 s + revalidate | Done ✓，**70 ms** | Done ✓ |
+| `staleTimes` 60 s + 不 revalidate | **Todo ✗** | **Todo ✗** |
+
+原因：本地副本活在页面组件里，离开页面就 unmount；回来时页面由缓存的 RSC payload 重新渲染，而那份是写入前的。`revalidatePath` 同时在做两件事：刷新当前页，以及让 router cache 失效、再用新的 response 填回去。去掉它，第二件事就没人做；client 也没有"只清缓存、不重渲"的 API（`router.refresh()` 一样重渲当前页）。所以"首次加载之后转成 client 逻辑、跨页面不重新加载"本身就要求一份比页面活得久的 client cache，那正是 Option D。
+
+## 痛点复核
+
+| # | 痛点（出处） | 核实 | Option A 怎么处理 |
+| --- | --- | --- | --- |
+| 1 | Close-then-stale（`projects-page-refactor` 诊断 1、tracker） | 在，不止 Projects，见下节 | 统一改成新数据到了再关（Q3） |
+| 2 | 连点闪回（同上，诊断 5） | 在，Board / Matrix / Projects 共用这个 hook | pending-aware 的 `useOptimisticTasks` |
+| 3 | 写入失败没有提示（Step 8） | 在 | 不在本稿，属于 Step 8 |
+| 4 | 连续写入排队（诊断 4） | 在，Next 的行为 | 写入变快，排队就变短；React Query 若仍走 server action，一样排队 |
+| 5 | 写入 = 整页重渲（诊断 2） | 在，量化为 3 + 8 | 压缩 loader 和写入的往返 |
+| 6 | Claude 通过 MCP 写入后，开着的页面不知道（评估表） | 在 | 不变：下次导航可见（开 `staleTimes` 后最多晚 N 秒）；要更快可在窗口回到前台时 `router.refresh()`（Q2） |
+| 7 | 每个页面各写一份 client 副本（tracker） | 部分过时：三页已共用一个 70 行的 hook，另有 `useDumpFeed` | 保留，补 pending 处理和测试（`archived/test-baseline.md` 把这个 hook 的测试推迟到了 Step 7） |
+| 8 | 29 个 action 里 6 个是读（tracker） | 4 个只在 server page 里调用（`fetchBoardAction`、`getEmptyBoardStateAction`、`fetchPriorityMatrixAction`、`getConsentRequestAction`）；从 client 调的只有 `fetchDumpEntriesAction`（load more）和 `countIncompleteByTemplateAction`（plan form） | 前 4 个改成 page 直接调 service，和 Projects 页一致（Q6） |
+| 9 | Server ↔ UI 形状转换、URL state（tracker） | adapter + `useMemo`、`?project=` + `pushState` 都运转正常 | 不变 |
+| 10 | 首次访问的 300 ms 下限（本次新发现） | 每个页面都有 `loading.tsx` | Q4 |
+
+## Close-then-stale：所有出现的地方
+
+模式：入口 `await` 一个会 revalidate 的 action，一返回就关 modal（或结束按钮 loading、改选中项），而新数据要等同一个 response 后面的页面重渲提交才出现（根因见 `archived/projects-page-refactor.md` 诊断 1）。有乐观更新的写入不受影响：Board 的拖拽 / pull，Matrix 的 track / complete / 拖象限 / undo，Projects 的 + This week / × / reorder，Dump 的 capture。
+
+| 页面 | 入口 | 现在 | 空档里用户看到的 |
+| --- | --- | --- | --- |
+| Projects | Project modal：New project / Save project | `await` → `onSaved` → `onClose()` | 新建：URL 已指向新 project，但它还不在 props 里，desktop 显示原来最新的那个，mobile 的详情关回列表，重渲后再打开。保存：旧标题和 goal |
+| Projects | Archive（project modal、all-done banner）· Unarchive（archived row） | `await` → 改 URL / 关 modal | 被 archive 的 project 还在 active 列表里，desktop 上可能还选中着它；unarchive 的还在 archived 里 |
+| Projects | Step modal：Add step / Save step / Delete step | `await` → `onClose()` | 新 step 还没出现 / 旧内容 / 已删的 step 还在 |
+| Priorities | Task modal（one-off）：desktop 象限里的 +、mobile 的全局 add | `await` → 关 modal；mobile 同时弹 "added" toast | 象限里还没有新卡；mobile 的 toast 先于卡片出现 |
+| Plan form | Task modal（template）：New / Edit template | `await` → `router.refresh()` + `onClose()` | 列表里还没有新 template / 旧内容。实测本地 modal 在 132 ms 关、template 在 299 ms 出现；而且页面渲染了两遍：action 的 revalidate 一遍，`router.refresh()` 又一遍 |
+
+除 plan form 一行是实测外，"用户看到的"一栏按代码推断。
+
+Plan form 的提交（create / update，含 Review changes modal 的确认）不是 close-then-stale：`router.push('/kanban')` 之前表单一直在。但它的 action revalidate 了，response 先把要离开的 plan 页重渲一遍，push 再取一次 Board（Q5）。
+
+修法：
+
+| | 做法 | 优点 | 缺点 |
+| --- | --- | --- | --- |
+| (a) 在 transition 里关（Projects spike 的 Option 0） | `startTransition` 包住 action 和关闭 | 改动最小 | 试过并撤回：Next 16.2.9 / React 19.2 上偶尔不提交，modal 一直 loading |
+| (b) 先 patch 再关 | action 返回新行，container 先改本地副本再关 modal，重渲到达后替换 | 一关就看到新数据，最快 | 每个列表都要有本地副本（Projects 的 project 列表、plan form 的 templates 现在都没有），每种写入要手写插入 / 更新逻辑；server 才算得出的字段（step 编号、排序、进度）要么重复一遍，要么还是等重渲 |
+| (c) 新数据到了再关 | 写入成功后不立即关，modal 保持 loading，等页面的新 props 到达（container 的 rows 引用变化）再关，另加超时兜底 | 一个共用 hook 覆盖所有入口；不需要本地副本，不重复 server 逻辑 | loading 持续"写入 + 重渲"，靠压缩往返来缩短；要保证这类写入都 revalidate 当前页（Option A 正好保留） |
+
+## `ensureSynced` 为什么每个请求都跑
+
+讨论中问过：能不能只在 initial load 时 sync？
+
+- 平时它只花 1 条查询（#4：读 active plan），周期和当天是否已 sync 都在内存里判断；真正的 sync 写入，一天只在第一个请求上发生一次。这条查询 loader 本来就要（Board 按 plan id 取 tasks），挪走也省不掉。
+- 拖卡片的 action 不调它。调它的写入（Matrix 的 track / complete、Projects 的 schedule step、plan 和 MCP 的写入）是为了确认 plan 属于当前这一周（`design/flows/priorities.md` 的 stale-plan guard）。同一个请求里由 `cache()` 去重。
+- 只在 initial load sync 的风险：PWA 开着跨午夜或跨周时没有整页加载，sync 不跑，昨天的 daily task 不过期、今天的不生成，写入还可能挂到已结束的 plan 上（`design/flows/shared.md`）。
+- 把 sync 挪出请求路径，正路是 tracker › Future 已有的 *Cron-driven sync*；它不是为了性能，现在不需要。
+
+## Options
+
+### Option A — 保留 RSC 刷新，压缩往返（建议）
+
+写入继续 `revalidatePath`，页面继续由 server 刷新；把这套模型本身的开销压下去，修掉接缝上的两个 bug。
+
+1. **Board loader：7 段串行 → 2 段。** 去掉 #5（直接用 #4 的 plan id 查 templates）；#6–7 合成一条（手写 join，或评估 Prisma 的 `relationJoins`，本项目未开启）；templates、tasks、metrics、project 路径都只依赖 plan id，全部并行，project 路径改成按 plan 直接查，不等 tasks。Priorities（2）、Projects（3）和 plan 页用同样的方法各量一遍。
+2. **写入：3 次 → 1 次。** 单行写入不包事务：一条 `UPDATE … RETURNING`（`$queryRaw`，或先验证 Prisma 的 `update({where: {id, userId}})` 是否不开事务）。先做 `updateTaskStatus`，再看其他高频写入。
+3. **`experimental.staleTimes.dynamic` 设为 30–60 s**（Q2）：回到刚去过的页面直接用缓存。正确性依赖"所有影响别的页面的写入都 revalidate"，现在满足。
+4. **`useOptimisticTasks` 记住 pending 的 patch：** 每个 patch 记在它所属的写入名下，新 props 到达时以新 props 为底，把还没 settle 的 patch 叠回去，写入 settle 后丢掉它。行为和 React 的 `useOptimistic` 一样，但不依赖 transition：dnd 要求在 `onDragEnd` 里同步重排，Next 16.2.9 上 transition 偶尔不提交，这两点是之前没换 `useOptimistic` 的原因。补上推迟的 hook 测试：连点两行不闪回、失败只回滚自己的 patch。
+5. **Close-then-stale：** 按 Q3 的结论改上一节表里的每个入口。
+6. **Plan form（Q5）：** 存 template 后删掉多余的 `router.refresh()`；plan 提交改成在 action 里 `redirect('/kanban')`。Next 在 server 内部取目标页再转发（`createRedirectRenderResult`），不再重渲要离开的 plan 页，也省掉 client 的第二次请求；Vercel 上是否多一次 function 调用要验证。
+7. **读 action（Q6）：** 4 个只在 server 上调用的改成 page 直接调 service。
+8. **AGENTS.md › *Server shapes inputs* 的 pending 一半：** 写成"container 把 rows 按 server 形状存为 state，乐观 patch 带着 pending 状态叠在上面；revalidate 回来的 props 换掉底，pending 的 patch 再叠上去"，并去掉 pending 标记（`archived/agents-md-simplification.md` Q4）。
+9. **前后对比：** 每一步都用 SQL 代理抓一次往返次数，导航和写入的数字写进 PR。
+
+| 优点 | 缺点 |
+| --- | --- |
+| 不加依赖，不新增读接口，不引入第二套数据源；改动集中在 DAL、一个 hook 和几个 modal | 写入仍然重渲当前页（压缩后约 1 + 2 段串行往返），连续写入仍要排队 |
+| 切换页面和写入一起变快，按串行往返的倍数省 | 外部写入（MCP）要导航才可见，开 `staleTimes` 后最多晚 N 秒 |
+| 闪回和 close-then-stale 从根上修掉，Phase 2 的新页面照这个模式写 | `staleTimes` 仍是 experimental（14.2 引入，16.2.9 的文档仍这样标） |
+
+### Option B — 热路径写入不 revalidate（不建议）
+
+拖拽、toggle 这类已有乐观更新的写入不调 `revalidatePath`，action 返回需要的数据（例如进度聚合），client 自己 patch。实测：即使 `staleTimes` 为 0，按后退键回到页面也会看到写入前的数据；调高 `staleTimes` 后点链接也一样。要修，需要一份比页面活得久的 client 副本，那就是 Option D / E。
+
+### Option C — 完全不 revalidate + 调高 `staleTimes`（不建议）
+
+讨论中提出的方向：首次加载拿 server 数据，之后全是 client 逻辑，跨页面靠 router cache。实测四种组合里只有它在点链接和按后退键时都出错。而且非乐观的写入（新建 project / step / template，plan 的创建和更新，后者在 server 上生成 task 实例）在 client 上没有可改的副本；进度聚合这类只有 server 算得出的数据也会过期。
+
+### Option D — React Query 接管页面数据
+
+RSC prefetch 首屏并 hydrate，client 的 query cache 是唯一副本；写入用 `setQueryData` / invalidate，不再 revalidate。
+
+| 优点 | 缺点 |
+| --- | --- |
+| 写入请求只剩 3 次往返（实测的"不 revalidate"）；重取在后台，可以只取受影响的 query | 要一套 client 能调的读接口（GET route handler；server action 是 POST 且串行），每个都要鉴权、跑 `ensureSynced`、返回和 RSC 首屏一致的形状 |
+| Cache 跨页面存活：回到页面先显示缓存，再后台刷新；`refetchOnWindowFocus` 能接住 MCP 写入 | 两条读路径（RSC 首屏 + GET 重取）、hydration 接缝、`QueryClientProvider`；每个页面的 container 都要改写，迁移要好几个 PR |
+| 乐观更新有官方模式 | 闪回不会自动消失：要 `cancelQueries`，并等最后一个 mutation 完成再 invalidate。写入若仍走 server action，照样排队；导航仍取 RSC，除非把页面改成从 cache 渲染 |
+
+### Option E — Zustand / Jotai
+
+用来装 rows 的话，同步规则（过期、失效、pending、回滚）都要自己写，等于手写一个 Option D。用来放 UI state（modal 栈、选中项）的话，现在 `useState` 和 URL 就够了，等 Step 9 的 `useModal` 真需要全局的 open state 再看。
+
+### 什么时候重新考虑 Option D
+
+压缩往返之后再量一次。出现下面任一情况再回到 D：production 上写入的等待仍然明显（例如 modal 的 loading）；Phase 2 的新页面需要跨页面共享、即时一致的数据；MCP 写入需要在开着的页面上即时出现。
+
+## 待定问题
+
+1. **方向：** 采用 Option A，现阶段不引入 React Query / Zustand / Jotai？建议：是。
+2. **`staleTimes.dynamic`：** 30 s、60 s，还是不开？外部写入最多晚 N 秒可见。要不要另加"窗口回到前台时 `router.refresh()`"来接住 MCP 写入？建议：60 s，focus refresh 先不加。
+3. **Close-then-stale 修法：** (b) 先 patch 再关、(c) 新数据到了再关，还是混用？建议：(c)，一个共用 hook。
+4. **首次访问的 300 ms 下限：** 保留骨架；对 loader 压缩后足够快的页面去掉 `loading.tsx`（导航时旧页面停到新页面就绪，链接用 `useLinkStatus` 显示 pending）；还是压缩后再量再定？建议：压缩后再量再定。
+5. **Plan form：** 存 template 后删掉多余的 `router.refresh()`，plan 提交改成在 action 里 `redirect`？建议：都做。
+6. **读 action：** 4 个只在 server 上调用的改成直接调 service？建议：是；从 client 调用的两个保留。
+7. **落地方式：** Step 7 原计划是"spike → pilot page → 其余页面"；AGENTS.md 默认一个 task 一个 PR。建议 Option A 全部在本 PR 里做，Board 先做（往返最多，闪回和进度聚合都在），再做其余页面和 close-then-stale。还是先只做 Board，其余另开 PR？
+8. **Step 7 的另外两个话题**（shared server-action handler；error-handling plumbing，后者已有 PR #32 的 spike）：补进本 spike，还是各自单独？建议：各自单独。Option A 保留了 `revalidatePath`，它们和本稿的结论互不影响。
