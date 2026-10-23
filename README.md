@@ -102,6 +102,12 @@ Open items: see [design/tracker.md](./design/tracker.md).
 
 ## Update Log
 
+### 2026-10-23
+- **Spike: a native iOS app and a desktop version on one data source, awaiting owner review** (`design/spike/native-ios-and-desktop.md`, tracker › Cross-cutting › High). It recommends an app API (`/api/v1`) over the same services, authenticated with the Supabase session's bearer token the way `/api/mcp` checks OAuth tokens; a SwiftUI app for iPhone and iPad with widgets and App Intents, with Expo written up as the alternative; the current web as the desktop version for now; and an execution-first iOS scope (board, matrix, dump, widgets) while planning stays on the web and in Claude. Eleven numbered questions await the owner, including what desktop means, the distribution route and the order against the Quality gate and Phase 2.
+  - **Verified in a cloud container**: all 26 zod schemas in `src/schemas.ts` convert to JSON Schema with zod 4's own `z.toJSONSchema()`. A two-endpoint OpenAPI document built from them generates and compiles a Swift client with `swift-openapi-generator` on Swift 6.4.1 for Linux. A golden fixture of 752 week keys written by the TypeScript `getISOWeekKey` passes in Swift, and a deliberately wrong calendar fails 120 of them.
+  - **One trap found**: under OpenAPI 3.1, zod writes a nullable field as `anyOf [..., {type: "null"}]`, and the generator silently drops the whole field; OpenAPI 3.0's `nullable: true` generates the optional correctly, so the contract uses OpenAPI 3.0.3.
+- **Tracker**: adds the native iOS + desktop item.
+
 ### 2026-10-22
 - **Subagent delegation decided after a three-round pilot: `ui-verifier`, `test-writer` and `ci-fixer` all stay, each delegated only where its tool output would outgrow the brief and report.** `test-writer` takes e2e tests and tests in a layer the session hasn't read; `ci-fixer` takes a red GitHub CI job and fetches its log itself; green checks and few-line failures stay in the main session. The rules sit in AGENTS.md › Workflow › Subagents; the spike is archived.
   - **Round 1** (agents simulated by a general-purpose agent): the backlog `inert` fix done twice, once by the main session alone and once with the failing test, browser check and CI checks handed to the three agents. Delegating cut the main context by 34% (29.9k → 19.6k tokens), at twice the wall time and 2.5× the tokens processed.
