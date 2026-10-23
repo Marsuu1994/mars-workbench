@@ -1,10 +1,10 @@
 # Spike: Mutation layer — 保留 RSC 刷新、不引入 client cache，先压缩往返
 
-**Status: awaiting owner review** · 2026-10-23 · 回答 tracker 条目 *Quality gate › Step 7 — Mutation layer › State management* · 上游：`archived/projects-page-refactor.md`（React Query 初步评估、close-then-stale 根因）、`archived/board-prop-drilling.md`（`useOptimisticTasks` 的来历）、`archived/agents-md-simplification.md`（Q4：*Server shapes inputs* 的 pending 一半）
+**Status: awaiting owner review** · 2026-10-23（第一轮 review 后更新：Q6–Q8 已答，补了 (c) 的 hook 和 modal 放在哪一层）· 回答 tracker 条目 *Quality gate › Step 7 — Mutation layer › State management* · 上游：`archived/projects-page-refactor.md`（React Query 初步评估、close-then-stale 根因）、`archived/board-prop-drilling.md`（`useOptimisticTasks` 的来历）、`archived/agents-md-simplification.md`（Q4：*Server shapes inputs* 的 pending 一半）
 
 > 语言约定：叙述用中文；产品名词、状态和代码标识保留英文（board / step / one-off、`revalidatePath`、`staleTimes`、`useOptimisticTasks` …），和代码、tracker 一一对应。
 
-本稿只覆盖 Step 7 的第一个话题 State management；另外两个话题（shared server-action handler、error-handling plumbing）怎么处理见 Q8。
+本稿只覆盖 Step 7 的第一个话题 State management；另外两个话题（shared server-action handler、error-handling plumbing）各自单独做（Q8）。
 
 ## TL;DR
 
@@ -16,7 +16,7 @@
 | 调高 `staleTimes` 行不行 | 保留 `revalidatePath` 时可以：回到刚去过的 Board 从 372 ms 变成 70 ms，数据正确 |
 | 要不要 React Query / Zustand / Jotai | 现在不要（Option A）。已记录的痛点都能在现有模型里修；只有 client cache 才能给的是"写入不重渲当前页"，而那 8 次往返大半可以先靠压缩 loader 拿回来 |
 
-**建议 Option A**：保留 RSC 刷新；Board loader 的串行往返从 7 段压到 2 段，写入从 3 次压到 1 次；`staleTimes.dynamic` 调到 30–60 s；`useOptimisticTasks` 在新 props 到达时把还在 pending 的 patch 叠回去（修闪回）；所有 close-then-stale 的入口统一改成"新数据到了再关"。待定的是 Q1–Q8。
+**建议 Option A**：保留 RSC 刷新；Board loader 的串行往返从 7 段压到 2 段，写入从 3 次压到 1 次；`staleTimes.dynamic` 调到 30–60 s；`useOptimisticTasks` 在新 props 到达时把还在 pending 的 patch 叠回去（修闪回）；所有 close-then-stale 的入口统一改成"新数据到了再关"。第一轮 review 答了 Q6–Q8，Q1–Q5 和 Q6a 待定。
 
 ## 触发
 
@@ -100,7 +100,7 @@ Step 7 原本要回答：每个页面手写的 client 副本（`useOptimisticTas
 | 5 | 写入 = 整页重渲（诊断 2） | 在，量化为 3 + 8 | 压缩 loader 和写入的往返 |
 | 6 | Claude 通过 MCP 写入后，开着的页面不知道（评估表） | 在 | 不变：下次导航可见（开 `staleTimes` 后最多晚 N 秒）；要更快可在窗口回到前台时 `router.refresh()`（Q2） |
 | 7 | 每个页面各写一份 client 副本（tracker） | 部分过时：三页已共用一个 70 行的 hook，另有 `useDumpFeed` | 保留，补 pending 处理和测试（`archived/test-baseline.md` 把这个 hook 的测试推迟到了 Step 7） |
-| 8 | 29 个 action 里 6 个是读（tracker） | 4 个只在 server page 里调用（`fetchBoardAction`、`getEmptyBoardStateAction`、`fetchPriorityMatrixAction`、`getConsentRequestAction`）；从 client 调的只有 `fetchDumpEntriesAction`（load more）和 `countIncompleteByTemplateAction`（plan form） | 前 4 个改成 page 直接调 service，和 Projects 页一致（Q6） |
+| 8 | 29 个 action 里 6 个是读（tracker） | 4 个只在 server page 里调用（`fetchBoardAction`、`getEmptyBoardStateAction`、`fetchPriorityMatrixAction`、`getConsentRequestAction`）；从 client 调的只有 `fetchDumpEntriesAction`（load more）和 `countIncompleteByTemplateAction`（plan form） | 保留（Q6）；Projects 和 Dump 页绕过 action 的读取看 Q6a |
 | 9 | Server ↔ UI 形状转换、URL state（tracker） | adapter + `useMemo`、`?project=` + `pushState` 都运转正常 | 不变 |
 | 10 | 首次访问的 300 ms 下限（本次新发现） | 每个页面都有 `loading.tsx` | Q4 |
 
@@ -128,6 +128,41 @@ Plan form 的提交（create / update，含 Review changes modal 的确认）不
 | (b) 先 patch 再关 | action 返回新行，container 先改本地副本再关 modal，重渲到达后替换 | 一关就看到新数据，最快 | 每个列表都要有本地副本（Projects 的 project 列表、plan form 的 templates 现在都没有），每种写入要手写插入 / 更新逻辑；server 才算得出的字段（step 编号、排序、进度）要么重复一遍，要么还是等重渲 |
 | (c) 新数据到了再关 | 写入成功后不立即关，modal 保持 loading，等页面的新 props 到达（container 的 rows 引用变化）再关，另加超时兜底 | 一个共用 hook 覆盖所有入口；不需要本地副本，不重复 server 逻辑 | loading 持续"写入 + 重渲"，靠压缩往返来缩短；要保证这类写入都 revalidate 当前页（Option A 正好保留） |
 
+### (c) 的共用 hook 管什么
+
+Owner 在 review 里问：它管 modal 的 open / close state，还是数据？两者都不是。它管的是**一次提交的过程**：提交 → action → 等新数据 → 关闭。open state 留在原处（例如 `ProjectsPage` 的 `openModal`），hook 只决定什么时候调 `onClose`；数据仍由 page 的 props 提供，hook 只观察它。
+
+```tsx
+// 每个 form panel 用一次，换掉现在手写的 isSubmitting / error / await → onClose
+const {isPending, error, submit} = useModalSubmit({
+  freshData: projects, // 新数据会出现在哪份 props
+  onClose,
+});
+
+const handleSubmit = (event: FormEvent) => {
+  event.preventDefault();
+  submit(
+    () => createProjectAction({title, goal}),
+    result => onSaved(result.data.id), // 和关闭同时执行
+  );
+};
+```
+
+- `submit` 先记下提交那一刻 `freshData` 的引用，再调 action。失败时给出 `error`、结束 pending，modal 不关。
+- 成功后不关，`isPending` 保持 true；等 `freshData` 的引用变了（revalidate 带回的新 props 已经提交），在 effect 里调成功回调和 `onClose`。如果 action 返回时引用已经变了，立即关。
+- 兜底：N 秒内等不到新 props 也照样关。这类写入都 revalidate 当前页，正常不会走到这一步。
+- 它就是 `archived/projects-page-refactor.md` 为 Step 9 记下的 `useModalSubmit` 核心（`isPending` / `error` / `submit`），多了"等新数据"这一步；Step 9 的 config-driven modal 可以直接建在它上面。
+- 要观察的数据都是 page 已有的 props：Projects 的 projects 和 steps、Priorities 的 tasks、plan form 的 templates，不需要新的本地副本。
+
+### 把 modal 挪到 root 层能不能解决
+
+Owner 还问：能不能把 modal root 挪出当前页面、放到 window root 层，让页面的 revalidate 不和 modal state 冲突？单靠这一步解决不了：
+
+- **revalidate 本来就不打断 modal state**：RSC 刷新是 reconcile，页面里的 client 组件不 remount，modal 的输入和 loading 都还在。问题不在状态被打断，而在时机：modal 在 action 返回时立即关，列表要等之后的 router transition 提交才换数据。modal 放在哪一层，列表都在同一时刻更新。
+- **放在 root 层，(c) 反而更难做**：root 层的 host 看不到页面的 rows，不知道新数据什么时候到。host 打开 modal 时也只拿得到实体的快照或 id，要按 id 取最新数据就需要 client cache（`projects-page-refactor` 里"全局 host 需要按 id 拿数据"那条），又回到 Option D。
+- **Root 层 host 真正的价值**是让 modal 跨页面存活，任何页面都能打开同一个 modal（例如以后"在任何地方加一个 one-off"）。这属于 Step 9 *Config-driven modals*（open state 放 store / context / URL），这次不动。
+- **两者不冲突**：hook 只需要知道"新数据会出现在哪份 props"。以后 modal 搬到 root 层，页面得把这份数据接给 host（例如经 context），这一点在 Step 9 一起设计。
+
 ## `ensureSynced` 为什么每个请求都跑
 
 讨论中问过：能不能只在 initial load 时 sync？
@@ -149,7 +184,7 @@ Plan form 的提交（create / update，含 Review changes modal 的确认）不
 4. **`useOptimisticTasks` 记住 pending 的 patch：** 每个 patch 记在它所属的写入名下，新 props 到达时以新 props 为底，把还没 settle 的 patch 叠回去，写入 settle 后丢掉它。行为和 React 的 `useOptimistic` 一样，但不依赖 transition：dnd 要求在 `onDragEnd` 里同步重排，Next 16.2.9 上 transition 偶尔不提交，这两点是之前没换 `useOptimistic` 的原因。补上推迟的 hook 测试：连点两行不闪回、失败只回滚自己的 patch。
 5. **Close-then-stale：** 按 Q3 的结论改上一节表里的每个入口。
 6. **Plan form（Q5）：** 存 template 后删掉多余的 `router.refresh()`；plan 提交改成在 action 里 `redirect('/kanban')`。Next 在 server 内部取目标页再转发（`createRedirectRenderResult`），不再重渲要离开的 plan 页，也省掉 client 的第二次请求；Vercel 上是否多一次 function 调用要验证。
-7. **读 action（Q6）：** 4 个只在 server 上调用的改成 page 直接调 service。
+7. **读 action（Q6）：** 保留，page 经 action 读数据；Projects 和 Dump 页是否对齐看 Q6a。
 8. **AGENTS.md › *Server shapes inputs* 的 pending 一半：** 写成"container 把 rows 按 server 形状存为 state，乐观 patch 带着 pending 状态叠在上面；revalidate 回来的 props 换掉底，pending 的 patch 再叠上去"，并去掉 pending 标记（`archived/agents-md-simplification.md` Q4）。
 9. **前后对比：** 每一步都用 SQL 代理抓一次往返次数，导航和写入的数字写进 PR。
 
@@ -189,9 +224,10 @@ RSC prefetch 首屏并 hydrate，client 的 query cache 是唯一副本；写入
 
 1. **方向：** 采用 Option A，现阶段不引入 React Query / Zustand / Jotai？建议：是。
 2. **`staleTimes.dynamic`：** 30 s、60 s，还是不开？外部写入最多晚 N 秒可见。要不要另加"窗口回到前台时 `router.refresh()`"来接住 MCP 写入？建议：60 s，focus refresh 先不加。
-3. **Close-then-stale 修法：** (b) 先 patch 再关、(c) 新数据到了再关，还是混用？建议：(c)，一个共用 hook。
+3. **Close-then-stale 修法：** (b) 先 patch 再关、(c) 新数据到了再关，还是混用？建议：(c)，一个共用 hook（是什么、为什么不靠挪 modal 到 root 层，见「(c) 的共用 hook 管什么」和下一节）。
 4. **首次访问的 300 ms 下限：** 保留骨架；对 loader 压缩后足够快的页面去掉 `loading.tsx`（导航时旧页面停到新页面就绪，链接用 `useLinkStatus` 显示 pending）；还是压缩后再量再定？建议：压缩后再量再定。
 5. **Plan form：** 存 template 后删掉多余的 `router.refresh()`，plan 提交改成在 action 里 `redirect`？建议：都做。
-6. **读 action：** 4 个只在 server 上调用的改成直接调 service？建议：是；从 client 调用的两个保留。
-7. **落地方式：** Step 7 原计划是"spike → pilot page → 其余页面"；AGENTS.md 默认一个 task 一个 PR。建议 Option A 全部在本 PR 里做，Board 先做（往返最多，闪回和进度聚合都在），再做其余页面和 close-then-stale。还是先只做 Board，其余另开 PR？
-8. **Step 7 的另外两个话题**（shared server-action handler；error-handling plumbing，后者已有 PR #32 的 spike）：补进本 spike，还是各自单独？建议：各自单独。Option A 保留了 `revalidatePath`，它们和本稿的结论互不影响。
+6. ✓ **读 action：** 4 个只在 server 上调用的改成直接调 service？**Owner：保留**，UI 和 server 之间要有清晰的一层。
+   - 6a. 顺带：Projects 页直接调 service（`fetchProjectsPage`），Dump 页直接调 DAL（`countDumpEntries`），都绕过了这一层。要不要在本 PR 里改成走 action，和其他页面一致？建议：是。
+7. ✓ **落地方式：** **Owner：Option A 全部在本 PR 里做。** Board 先做（往返最多，闪回和进度聚合都在），再做其余页面和 close-then-stale。
+8. ✓ **Step 7 的另外两个话题**（shared server-action handler；error-handling plumbing，后者已有 PR #32 的 spike）：**Owner：各自单独**，不并进本 spike。
