@@ -102,6 +102,11 @@ Open items: see [design/tracker.md](./design/tracker.md).
 
 ## Update Log
 
+### 2026-10-23
+- **Spike: a clean-context `code-reviewer` subagent, and how to tell whether its reviews are any better** (`design/spike/code-reviewer-agent.md`, awaiting review). Its goal is review quality, not a smaller main context: it reads only AGENTS.md, the READMEs it indexes and the diff, so it judges without the author's history, and it reports only what CI can't catch.
+  - **How quality is measured**: precision, recall, how much it finds beyond CI and the main session's own review, severity calibration and run-to-run stability. The ground truth comes from cases with seeded faults that pass lint (answers sealed until every arm has run), clean diffs for false positives, and three replayed PRs whose misses were fixed later (#60's unsynced layout read, #56's stale plan-form selection, #75's e2e reload race). The main session reviews each case first as the control; the thresholds are set before anything runs.
+  - **Draft agent**: `.claude/agents/code-reviewer.md`, read-only, registered on this branch so a session started from it can run the evaluation. Eight questions are open for the owner.
+
 ### 2026-10-22
 - **Subagent delegation decided after a three-round pilot: `ui-verifier`, `test-writer` and `ci-fixer` all stay, each delegated only where its tool output would outgrow the brief and report.** `test-writer` takes e2e tests and tests in a layer the session hasn't read; `ci-fixer` takes a red GitHub CI job and fetches its log itself; green checks and few-line failures stay in the main session. The rules sit in AGENTS.md › Workflow › Subagents; the spike is archived.
   - **Round 1** (agents simulated by a general-purpose agent): the backlog `inert` fix done twice, once by the main session alone and once with the failing test, browser check and CI checks handed to the three agents. Delegating cut the main context by 34% (29.9k → 19.6k tokens), at twice the wall time and 2.5× the tokens processed.
