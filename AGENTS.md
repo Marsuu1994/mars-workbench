@@ -30,7 +30,7 @@ supabase/                          # Local Supabase stack config (Postgres + Aut
 scripts/                           # Repo checks run in CI; the local stack's setup, seed, and dev and e2e sessions
 test/                              # Test helpers and conventions (README); unit and integration tests sit next to their modules
 e2e/                               # Playwright specs
-.claude/agents/                    # Claude Code subagents: ui-verifier, test-writer, ci-fixer (Workflow › Subagents)
+.claude/agents/                    # Claude Code subagents: ui-verifier, test-writer, ci-fixer (Workflow › Subagents); code-reviewer in pilot (design/spike/code-reviewer-agent.md)
 design/                            # Design docs — index in design/README.md
 ├── baseline.md                    # The one app-wide baseline: goal, entities, schema, architecture decisions
 ├── design-language/               # Per-theme visual specs + the shared fx-* skeleton
