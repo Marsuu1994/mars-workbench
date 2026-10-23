@@ -1,6 +1,6 @@
 # Spike: Mutation layer — 保留 RSC 刷新、不引入 client cache，先压缩往返
 
-**Status: decided** · 2026-10-23（owner 在 PR #80 拍板：Q6–Q8 在第一轮 review 里答，Q6a 和其余问题随后在对话里答；同一个 PR 实施）· 回答 tracker 条目 *Quality gate › Step 7 — Mutation layer › State management* · 上游：`archived/projects-page-refactor.md`（React Query 初步评估、close-then-stale 根因）、`archived/board-prop-drilling.md`（`useOptimisticTasks` 的来历）、`archived/agents-md-simplification.md`（Q4：*Server shapes inputs* 的 pending 一半）
+**Status: decided** · 2026-10-23（owner 在 PR #80 拍板：Q6–Q8 在第一轮 review 里答，Q6a 和其余问题随后在对话里答；同一个 PR 实施并归档）· 回答 tracker 条目 *Quality gate › Step 7 — Mutation layer › State management* · 上游：`archived/projects-page-refactor.md`（React Query 初步评估、close-then-stale 根因）、`archived/board-prop-drilling.md`（`useOptimisticTasks` 的来历）、`archived/agents-md-simplification.md`（Q4：*Server shapes inputs* 的 pending 一半）
 
 > 语言约定：叙述用中文；产品名词、状态和代码标识保留英文（board / step / one-off、`revalidatePath`、`staleTimes`、`useOptimisticTasks` …），和代码、tracker 一一对应。
 

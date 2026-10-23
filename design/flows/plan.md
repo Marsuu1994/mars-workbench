@@ -15,7 +15,7 @@ User clicks the "New Template" button on the plan form page.
 1. Open the template modal (a centered modal on desktop, a bottom sheet on mobile) with empty fields for title, description, and size.
 2. The size selector displays all available sizes (XS–XL) with their corresponding point values and hour estimates. Selecting L or XL shows an inline warning suggesting the user consider splitting into smaller tasks.
 3. User completes the form and clicks "Create". Validate input via Zod schema, then persist the new TaskTemplate.
-4. Revalidate the `/kanban/plans` route to reflect the new template in the plan form.
+4. The response re-renders the plan form with the new template; the modal closes once it has landed.
 
 ---
 
@@ -30,7 +30,7 @@ User clicks the edit button on an existing template card within the plan form pa
 1. Open the template modal pre-populated with the current title, description, and size.
 2. User modifies any fields. The size selector behaves identically to the create flow (point labels, L/XL warning).
 3. User clicks "Save". Validate input, then persist changes to the existing TaskTemplate.
-4. Revalidate the `/kanban/plans` route to reflect the updated template.
+4. The response re-renders the plan form with the updated template; the modal closes once it has landed.
 
 ### Rules
 
@@ -58,7 +58,7 @@ User clicks "Create Plan" on empty board → navigates to `/kanban/plans/new`.
 8. Generate task instances **with `status = BACKLOG`** (staged in the backlog): weekly tasks immediately, daily tasks for today only (respecting plan mode for weekend skipping).
 9. Set `lastSyncDate = today`.
 10. Archive any existing `PENDING_UPDATE` plan → `COMPLETED`.
-11. Revalidate `/kanban` to render board.
+11. Revalidate the board, matrix and Projects pages and redirect to the board, which comes back in the same response.
 
 ### Rules
 
@@ -86,7 +86,7 @@ User opens **Plan** from the sidebar or the mobile dock while this week has an a
 5. On submit, show the confirmation modal summarizing the changes (added, removed, modified, mode change) — a centered modal on desktop, a tall bottom sheet with a scrolling summary and pinned footer on mobile.
 6. User clicks confirm and regenerate button.
 7. Apply template changes and regenerate tasks accordingly (respecting plan mode for weekend skipping).
-8. Revalidate `/kanban` to render updated board.
+8. Revalidate the board, matrix and Projects pages and redirect to the board, which comes back in the same response.
 
 ### Rules
 
