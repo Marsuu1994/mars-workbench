@@ -19,6 +19,7 @@ export const ProjectFormScenario = ({
     <ProjectFormPanel
       mode={mode}
       project={project}
+      freshData={null}
       onClose={NOOP}
       onSaved={NOOP}
       onArchived={NOOP}

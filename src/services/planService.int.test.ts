@@ -11,7 +11,12 @@ import {
 } from '../../test/factories';
 import {MOMENTS, freezeTime} from '../../test/time';
 import {trackTaskThisWeek} from './matrixService';
-import {createPlan, updatePlan} from './planService';
+import {
+  createPlan,
+  fetchEditPlanForm,
+  fetchNewPlanForm,
+  updatePlan,
+} from './planService';
 import {getPlanningContext, patchActivePlan} from './planningService';
 
 let userId: string;
@@ -30,6 +35,60 @@ const readFormTemplates = async () => {
     frequency,
   }));
 };
+
+describe('fetchNewPlanForm / fetchEditPlanForm (plan form pages)', () => {
+  it('seeds a new week from the ended plan: its habits, one-offs and steps', async () => {
+    freezeTime(MOMENTS.MONDAY_NOON);
+    const passport = await createOneOff(userId, {title: 'Renew passport'});
+    // Never tracked: it stays on the matrix, out of the carry-over
+    await createOneOff(userId, {title: 'Sort old photos'});
+    const {steps} = await createProjectWithSteps(userId, 'Course', [
+      'Unit 1',
+      'Unit 2',
+    ]);
+    const {plan} = await createWeek(userId, {
+      newTemplates: [newHabit('Run', TaskType.DAILY)],
+      addProjectStepIds: [steps[0].id],
+    });
+    await trackTaskThisWeek(userId, passport.id, TaskStatus.TODO);
+    freezeTime(MOMENTS.NEXT_MONDAY_NOON);
+
+    const form = await fetchNewPlanForm(userId);
+
+    expect(form.plan?.id).toBe(plan.planId);
+    expect(form.plan?.planTemplates.map(({type}) => type)).toEqual([
+      TaskType.DAILY,
+    ]);
+    expect(form.templates.map(({title}) => title)).toEqual(['Run']);
+    expect(form.adhocTasks.map(({id}) => id)).toEqual([passport.id]);
+    expect(form.projectSteps.map(({id}) => id)).toEqual([steps[0].id]);
+  });
+
+  it('starts a new week from scratch when no plan has ended', async () => {
+    await createOneOff(userId, {title: 'Renew passport'});
+    expect(await fetchNewPlanForm(userId)).toEqual({
+      templates: [],
+      plan: null,
+      adhocTasks: [],
+      projectSteps: [],
+    });
+  });
+
+  it("edits a plan with its own one-offs; another user's plan is not found", async () => {
+    const passport = await createOneOff(userId, {title: 'Renew passport'});
+    await createOneOff(userId, {title: 'Sort old photos'});
+    const {plan} = await createWeek(userId, {
+      newTemplates: [newHabit('Run', TaskType.DAILY)],
+    });
+    await trackTaskThisWeek(userId, passport.id, TaskStatus.TODO);
+
+    const form = await fetchEditPlanForm(userId, plan.planId);
+
+    expect(form?.plan.id).toBe(plan.planId);
+    expect(form?.adhocTasks.map(({id}) => id)).toEqual([passport.id]);
+    expect(await fetchEditPlanForm(newUserId(), plan.planId)).toBeNull();
+  });
+});
 
 describe('createPlan (plan form)', () => {
   it('creates the week from existing templates, one-offs and steps', async () => {

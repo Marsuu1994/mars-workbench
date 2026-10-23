@@ -122,7 +122,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 
 ## Layers
 
-- **Actions** (`src/actions/`): `'use server'`, thin — validate with Zod → call a service → `revalidatePath`. **MCP tools** (`src/mcp/tools/`) have the same shape: validate → service, wrapped by `runTool`.
+- **Actions** (`src/actions/`): `'use server'`, thin — validate with Zod → call a service → `revalidatePath`. **MCP tools** (`src/mcp/tools/`) have the same shape: validate → service, wrapped by `runTool`. Pages and layouts read through actions too — never a service, the DAL or an auth helper — so the action is the one layer between UI and server (ESLint).
 - **Services** (`src/services/`): all business logic, no `'use server'`; an action that needs several DAL calls or conditional orchestration moves it into a service. `syncService.ensureSynced` is the single sync entry point every kanban page awaits.
 - **DAL** (`src/lib/db/`): all Prisma queries — nothing else imports Prisma. Route handlers stay thin: they hand off to `src/mcp/` or infrastructure in `src/lib/`, with no business logic or queries of their own.
 - **Server-only modules** — `src/services/`, the DAL, the Prisma clients and `src/utils/statsUtils.ts` — never reach `'use client'` code (ESLint checks components, hooks and stores; `import type` is fine). The rest of `src/utils/` and `src/schemas.ts` are client-safe. Components may call server actions directly: actions behave like endpoints.

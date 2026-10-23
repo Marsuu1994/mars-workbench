@@ -20,6 +20,7 @@ import {
   unscheduleProjectStepAction,
 } from '@/actions/projectActions';
 import {useOptimisticTasks} from '@/hooks/useOptimisticTasks';
+import {useWaitForFreshData} from '@/hooks/useWaitForFreshData';
 import {EmptyState} from '@/components/ui/EmptyState';
 import {cn} from '@/components/ui/cn';
 import {ProjectDetail} from './project-detail/ProjectDetail';
@@ -58,6 +59,7 @@ export const ProjectsPage = ({
     runOptimisticTasksUpdate,
   } = useOptimisticTasks(steps);
   const [openModal, setOpenModal] = useState<OpenModal | null>(null);
+  const waitForFreshProjects = useWaitForFreshData(projects);
 
   const stepsByProjectId = useMemo(
     () => groupStepsByProjectId(localSteps),
@@ -90,22 +92,27 @@ export const ProjectsPage = ({
   const handleArchived = () =>
     window.history.replaceState(null, '', PROJECTS_HREF);
 
-  // Awaited by the banner and the archived row, so their buttons wait
+  // Awaited by the banner and the archived row, so their buttons wait until
+  // the saved list has landed and the project has moved
   const handleArchive = async (projectId: string) => {
+    const freshProjectsArrived = waitForFreshProjects();
     const result = await archiveProjectAction(projectId);
     if (result.error) {
       console.error('Failed to archive project:', result.error);
       return;
     }
+    await freshProjectsArrived;
     handleArchived();
   };
 
   const handleUnarchive = async (projectId: string) => {
+    const freshProjectsArrived = waitForFreshProjects();
     const result = await unarchiveProjectAction(projectId);
     if (result.error) {
       console.error('Failed to unarchive project:', result.error);
       return;
     }
+    await freshProjectsArrived;
     showProject(projectId);
   };
 
@@ -281,6 +288,7 @@ export const ProjectsPage = ({
         isOpen={openModal?.kind === 'newProject' || editedProject !== undefined}
         mode={editedProject ? 'edit' : 'create'}
         project={editedProject}
+        freshData={projects}
         onClose={closeModal}
         onSaved={handleProjectSaved}
         onArchived={handleArchived}
@@ -322,6 +330,7 @@ export const ProjectsPage = ({
       {renderProjectModal()}
       <StepModal
         target={getStepModalTarget()}
+        freshData={steps}
         onClose={closeModal}
         onSaved={closeModal}
       />

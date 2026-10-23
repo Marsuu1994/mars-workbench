@@ -5,7 +5,7 @@ import {useTranslations} from 'next-intl';
 import {CheckIcon, MapIcon, PlusIcon} from '@heroicons/react/24/outline';
 import type {TaskItem} from '@/lib/db/tasks';
 import {TaskSize} from '@/utils/enums';
-import {toFormErrorMessage} from '@/utils/formErrors';
+import {useModalSubmit} from '@/hooks/useModalSubmit';
 import {
   addProjectStepAction,
   deleteProjectStepAction,
@@ -27,6 +27,8 @@ export interface StepFormPanelProps {
   stepNumber: number;
   /** The step being edited (edit mode) */
   step?: Pick<TaskItem, 'id' | 'title' | 'description' | 'size'>;
+  /** The page's steps: the modal closes once the saved list arrives */
+  freshData: unknown;
   onClose: () => void;
   /** After an add or a save */
   onSaved: () => void;
@@ -47,6 +49,7 @@ export const StepFormPanel = ({
   project,
   stepNumber,
   step,
+  freshData,
   onClose,
   onSaved,
 }: StepFormPanelProps) => {
@@ -54,43 +57,25 @@ export const StepFormPanel = ({
   const [title, setTitle] = useState(step?.title ?? '');
   const [description, setDescription] = useState(step?.description ?? '');
   const [size, setSize] = useState<TaskSize>(step?.size ?? DEFAULT_STEP_SIZE);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const {isSubmitting, error, submit} = useModalSubmit({freshData, onClose});
 
   const isAdd = mode === 'add';
 
-  async function handleSubmit(event: FormEvent) {
+  function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    setError(null);
-    setIsSubmitting(true);
-
     const input = {title, description, size};
-    const result =
-      isAdd || !step
-        ? await addProjectStepAction(project.id, input)
-        : await updateProjectStepAction(step.id, input);
-
-    if (result.error) {
-      setError(toFormErrorMessage(result.error));
-      setIsSubmitting(false);
-      return;
-    }
-
-    onSaved();
-    onClose();
+    void submit(
+      () =>
+        isAdd || !step
+          ? addProjectStepAction(project.id, input)
+          : updateProjectStepAction(step.id, input),
+      onSaved,
+    );
   }
 
-  async function handleDelete() {
+  function handleDelete() {
     if (!step) return;
-    setError(null);
-
-    const result = await deleteProjectStepAction(step.id);
-    if (result.error) {
-      setError(toFormErrorMessage(result.error));
-      return;
-    }
-
-    onClose();
+    void submit(() => deleteProjectStepAction(step.id));
   }
 
   const renderSubtitle = () => (

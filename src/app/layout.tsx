@@ -6,8 +6,7 @@ import {getTranslations} from 'next-intl/server';
 import {ServiceWorkerRegistrar} from '@/components/application/ServiceWorkerRegistrar';
 import {BreakpointProvider} from '@/components/application/BreakpointProvider';
 import {AppShell} from '@/components/application/AppShell';
-import {getSessionClaims} from '@/lib/auth/getSessionClaims';
-import {ensureSynced} from '@/services/syncService';
+import {getAppShellAction} from '@/actions/appShellActions';
 import {resolveTheme, THEME_COOKIE} from '@/utils/theme';
 import './globals.css';
 
@@ -67,21 +66,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Null on the sign-in page; the token's name and email can lag a profile
-  // change until the session's next refresh
-  const claims = await getSessionClaims();
-
-  const userInfo = claims
-    ? {
-        name: (claims.user_metadata?.full_name as string) ?? claims.email ?? '',
-        email: claims.email ?? '',
-      }
-    : null;
-
-  // Synced like every kanban page (cache() makes it one run per request), so
-  // on the first visit of a new week the Plan link and Board state already
-  // see last week's plan as ended
-  const activePlan = claims ? await ensureSynced(claims.sub) : null;
+  const {user, activePlanId} = await getAppShellAction();
 
   const cookieStore = await cookies();
   const theme = resolveTheme(cookieStore.get(THEME_COOKIE)?.value);
@@ -94,11 +79,7 @@ export default async function RootLayout({
         <NextIntlClientProvider>
           <ServiceWorkerRegistrar />
           <BreakpointProvider>
-            <AppShell
-              user={userInfo}
-              activePlanId={activePlan?.id ?? null}
-              theme={theme}
-            >
+            <AppShell user={user} activePlanId={activePlanId} theme={theme}>
               {children}
             </AppShell>
           </BreakpointProvider>

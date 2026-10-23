@@ -36,6 +36,29 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+  // Pages and layouts read through server actions (AGENTS.md → Layers): the
+  // action is the one layer between a route's UI and the server. Route
+  // handlers (`route.ts`) and the Design Console are left out.
+  {
+    files: ['src/app/**/*.tsx'],
+    ignores: ['src/app/design/**'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              regex:
+                '(^@/|\\.\\./)(services|lib/db|lib/prisma|lib/auth|generated/prisma)(/|$)',
+              allowTypeImports: true,
+              message:
+                'Pages and layouts read through a server action (`import type` is fine).',
+            },
+          ],
+        },
+      ],
+    },
+  },
   // Code style for production code (AGENTS.md → Tooling). The Design Console
   // is the console's own scaffolding, so it is left out.
   {

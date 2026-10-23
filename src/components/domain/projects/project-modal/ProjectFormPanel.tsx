@@ -9,7 +9,7 @@ import {
   PlusIcon,
 } from '@heroicons/react/24/outline';
 import type {ProjectItem} from '@/lib/db/projects';
-import {toFormErrorMessage} from '@/utils/formErrors';
+import {useModalSubmit} from '@/hooks/useModalSubmit';
 import {
   archiveProjectAction,
   createProjectAction,
@@ -29,6 +29,8 @@ export interface ProjectFormPanelProps {
   mode: ProjectFormMode;
   /** The project being edited (edit mode) */
   project?: Pick<ProjectItem, 'id' | 'title' | 'goal'>;
+  /** The page's projects: the modal closes once the saved list arrives */
+  freshData: unknown;
   onClose: () => void;
   /** After a create or a save, with the project's id */
   onSaved: (projectId: string) => void;
@@ -46,6 +48,7 @@ export interface ProjectFormPanelProps {
 export const ProjectFormPanel = ({
   mode,
   project,
+  freshData,
   onClose,
   onSaved,
   onArchived,
@@ -54,45 +57,27 @@ export const ProjectFormPanel = ({
   const [title, setTitle] = useState(project?.title ?? '');
   const [goal, setGoal] = useState(project?.goal ?? '');
   const [isArchiveArmed, setIsArchiveArmed] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const {isSubmitting, error, submit} = useModalSubmit({freshData, onClose});
 
   const isCreate = mode === 'create';
 
-  async function handleSubmit(event: FormEvent) {
+  function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    setError(null);
-    setIsSubmitting(true);
-
-    const result =
-      isCreate || !project
-        ? await createProjectAction({title, goal})
-        : await updateProjectAction(project.id, {title, goal});
-
-    if (result.error) {
-      setError(toFormErrorMessage(result.error));
-      setIsSubmitting(false);
-      return;
-    }
-
-    onSaved(result.data.id);
-    onClose();
+    void submit(
+      () =>
+        isCreate || !project
+          ? createProjectAction({title, goal})
+          : updateProjectAction(project.id, {title, goal}),
+      result => onSaved(result.data.id),
+    );
   }
 
-  async function handleArchive() {
+  function handleArchive() {
     if (!project) return;
-    setError(null);
-    setIsSubmitting(true);
-
-    const result = await archiveProjectAction(project.id);
-    if (result.error) {
-      setError(toFormErrorMessage(result.error));
-      setIsSubmitting(false);
-      return;
-    }
-
-    onArchived?.(project.id);
-    onClose();
+    void submit(
+      () => archiveProjectAction(project.id),
+      () => onArchived?.(project.id),
+    );
   }
 
   const renderFields = () => (
