@@ -12,7 +12,7 @@
   - H2：它抓到的东西，lint 和 CI 抓不到；
   - H3：误报少到值得读。
 - **怎么量**：先做一次性评估——埋 bug 的 case、历史回放、和 main 自查对照、每个 case 跑两次看稳定性；通过之后，再在 3–5 个真实 PR 上试用、记录。门槛先定再量（Q3）。
-- **本 PR 带什么**：这份 spike 和定义草案。草案在这个 branch 上已经注册，评估在一个从这个 branch 开的新 session 里跑：agent 文件要在 session 开始时就在，才能按名字调用（pilot 第 1 轮踩过）。
+- **本 PR 带什么**：这份 spike 和定义草案。草案在这个 branch 上已经注册。中途加进来的 agent 文件要过几分钟才能按名字调用：本 session 刚写完就调用，报 not found；几分钟后它出现在了可用列表里（pilot 第 1 轮几分钟后仍然没有）。评估在一个从这个 branch 新开的 session 里跑最稳妥。
 - **要 owner 回答**：Q1–Q8。回答之后跑 Round 0 和 Round 1。
 
 ## 起因
@@ -140,7 +140,7 @@ Round 1 同时给 1、2、3 打分；4 等 1 证明有效之后再说。
 ## 实施计划
 
 1. **Owner 回答 Q1–Q8**，按回答改草案和这份 spike。
-2. **Round 0 · smoke**：从这个 branch 开一个新 session，`code-reviewer` 已经注册。拿一个小的真实 diff（比如 #76）跑一次，确认它拿得到 diff、读对了规则文件、报告格式对，跟着改定义。
+2. **Round 0 · smoke**：从这个 branch 开一个新 session，`code-reviewer` 一开始就注册好了。拿一个小的真实 diff（比如 #76）跑一次，确认它拿得到 diff、读对了规则文件、报告格式对，跟着改定义。
 3. **Round 1 · 评估**，在同一个 session 里：
    1. 埋点 agent 做 E1–E4（其中一个留作最后验证），答案封存；选出 C1、C2；准备 R1–R3 的 worktree。
    2. 每个 case 依次跑 A → B 第 1 次 → B 第 2 次 →（B′）。
