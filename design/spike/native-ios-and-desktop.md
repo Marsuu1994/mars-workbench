@@ -1,6 +1,6 @@
 # Spike: Native iOS app + desktop，共用一套 data source
 
-**Status: awaiting owner review** · 2026-10-23 · 回答 tracker 条目 *Native iOS app + desktop on one data source*（Cross-cutting › High）· 基于 main `28a8553`（#79）· 起因：owner 在对话里提出，见下文 Trigger · 相关：`src/app/api/mcp/route.ts`、`src/mcp/middleware/auth.ts`、`src/services/`、`src/schemas.ts`、`src/utils/`、`src/proxy.ts`、`public/manifest.json`、`design/baseline.md` › Architecture Decision、`design/flows/auth.md`
+**Status: awaiting owner review** · 2026-10-23（owner review 见 PR #81）· 回答 tracker 条目 *Native iOS app + desktop on one data source*（Cross-cutting › High）· 基于 main `28a8553`（#79）· 起因：owner 在对话里提出，见下文 Trigger · 相关：`src/app/api/mcp/route.ts`、`src/mcp/middleware/auth.ts`、`src/services/`、`src/schemas.ts`、`src/utils/`、`src/proxy.ts`、`public/manifest.json`、`design/baseline.md` › Architecture Decision、`design/flows/auth.md`
 
 > 语言约定：叙述用中文；产品名词、平台和工具名、代码标识保留英文（habit / project / step / one-off、SwiftUI、WidgetKit、App Intents、Expo、TestFlight、`ensureSynced`、`getClaims()`），和代码、tracker 一一对应。
 
