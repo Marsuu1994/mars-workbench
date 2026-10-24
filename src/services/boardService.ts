@@ -1,5 +1,6 @@
-import {getPlanByStatus, getPlanWithTemplates} from '@/lib/db/plans';
-import {getProjectPathsByIds} from '@/lib/db/projects';
+import {getPlanByStatus} from '@/lib/db/plans';
+import {getBoardPlanTemplatesByPlanId} from '@/lib/db/planTemplates';
+import {getProjectPathsByPlanId} from '@/lib/db/projects';
 import {
   getBoardMetricsByPlanId,
   getBoardTasksByPlanId,
@@ -58,14 +59,18 @@ export async function fetchBoard(userId: string): Promise<BoardData | null> {
 
   const today = getTodayDate();
 
-  // Fetch plan with templates for board display
-  const planWithTemplates = await getPlanWithTemplates(userId, activePlan.id);
-  if (!planWithTemplates) return null;
-
-  const [boardTasks, boardMetrics] = await Promise.all([
-    getBoardTasksByPlanId(userId, activePlan.id),
-    getBoardMetricsByPlanId(userId, activePlan.id, today),
-  ]);
+  // Everything else hangs off the plan id, so it reads in parallel: the
+  // board loads in two database round trips (the sync's plan read, then these)
+  const [planTemplates, boardTasks, boardMetrics, projects] = await Promise.all(
+    [
+      getBoardPlanTemplatesByPlanId(userId, activePlan.id),
+      getBoardTasksByPlanId(userId, activePlan.id),
+      getBoardMetricsByPlanId(userId, activePlan.id, today),
+      // The projects behind the board's step cards: each card draws its path
+      getProjectPathsByPlanId(userId, activePlan.id),
+    ],
+  );
+  const {periodKey, mode} = activePlan;
 
   // — Today metrics —
   // Backlog tasks are staged off-board (backlog), so they are excluded from the
@@ -85,22 +90,22 @@ export async function fetchBoard(userId: string): Promise<BoardData | null> {
   const dailyPastPoints = boardMetrics.dailyPastPoints;
   const dailyPastCount = boardMetrics.dailyPastCount;
 
-  const weekEnd = getSundayFromPeriodKey(planWithTemplates.periodKey);
+  const weekEnd = getSundayFromPeriodKey(periodKey);
   const remainingDays =
-    planWithTemplates.mode === PlanMode.NORMAL
+    mode === PlanMode.NORMAL
       ? countWeekdaysInRange(today, weekEnd)
       : Math.max(
           1,
           Math.floor((weekEnd.getTime() - today.getTime()) / 86400000) + 1,
         );
 
-  const currentDailyTemplates = planWithTemplates.planTemplates.filter(
+  const currentDailyTemplates = planTemplates.filter(
     planTemplate => planTemplate.type === TaskType.DAILY,
   );
   const dailyFuturePoints =
     currentDailyTemplates.reduce(
       (sum, planTemplate) =>
-        sum + sizeToPoints(planTemplate.template.size) * planTemplate.frequency,
+        sum + sizeToPoints(planTemplate.size) * planTemplate.frequency,
       0,
     ) * remainingDays;
   const dailyFutureCount =
@@ -132,20 +137,12 @@ export async function fetchBoard(userId: string): Promise<BoardData | null> {
   const weekDonePoints = boardMetrics.weekDonePoints;
 
   // — Days elapsed (1–7) —
-  const weekStart = getMondayFromPeriodKey(planWithTemplates.periodKey);
+  const weekStart = getMondayFromPeriodKey(periodKey);
   const diffMs = today.getTime() - weekStart.getTime();
   const daysElapsed = Math.min(
     7,
     Math.max(1, Math.floor(diffMs / 86400000) + 1),
   );
-
-  const {periodKey, mode, planTemplates} = planWithTemplates;
-
-  // The projects behind the board's step cards: each card draws its path
-  const stepProjectIds = new Set(
-    boardTasks.flatMap(task => (task.projectId ? [task.projectId] : [])),
-  );
-  const projects = await getProjectPathsByIds(userId, [...stepProjectIds]);
 
   return {
     plan: {

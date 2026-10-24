@@ -6,6 +6,7 @@ import {
   TaskType,
 } from '@/generated/prisma/client';
 import {taskSelect, type TaskItem} from '@/lib/db/tasks';
+import {updateOrNull} from '@/lib/db/updateOrNull';
 
 export type ProjectItem = {
   id: string;
@@ -291,19 +292,20 @@ export async function scheduleProjectStep(
   stepId: string,
   planId: string,
 ): Promise<TaskItem | null> {
-  const [step] = await prisma.task.updateManyAndReturn({
-    where: {
-      id: stepId,
-      userId,
-      type: TaskType.PROJECT,
-      planId: null,
-      status: TaskStatus.BACKLOG,
-      project: {isArchived: false},
-    },
-    data: {planId},
-    select: taskSelect,
-  });
-  return step ?? null;
+  return updateOrNull(
+    prisma.task.update({
+      where: {
+        id: stepId,
+        userId,
+        type: TaskType.PROJECT,
+        planId: null,
+        status: TaskStatus.BACKLOG,
+        project: {isArchived: false},
+      },
+      data: {planId},
+      select: taskSelect,
+    }),
+  );
 }
 
 /**
@@ -315,18 +317,19 @@ export async function unscheduleProjectStep(
   userId: string,
   stepId: string,
 ): Promise<TaskItem | null> {
-  const [step] = await prisma.task.updateManyAndReturn({
-    where: {
-      id: stepId,
-      userId,
-      type: TaskType.PROJECT,
-      planId: {not: null},
-      status: TaskStatus.BACKLOG,
-    },
-    data: {planId: null},
-    select: taskSelect,
-  });
-  return step ?? null;
+  return updateOrNull(
+    prisma.task.update({
+      where: {
+        id: stepId,
+        userId,
+        type: TaskType.PROJECT,
+        planId: {not: null},
+        status: TaskStatus.BACKLOG,
+      },
+      data: {planId: null},
+      select: taskSelect,
+    }),
+  );
 }
 
 /**
@@ -402,27 +405,56 @@ export type BoardProject = {
 };
 
 /**
- * The projects behind the board's step cards, with every step's status and
- * number (the card's path) — one query, only the fields the path needs.
+ * The projects behind the board's step cards (every project with a step on
+ * this plan that hasn't expired), with every step's status and number: the
+ * card's path. One join, grouped here, so it runs alongside the board's
+ * tasks rather than after them.
  */
-export async function getProjectPathsByIds(
+export async function getProjectPathsByPlanId(
   userId: string,
-  projectIds: string[],
+  planId: string,
 ): Promise<BoardProject[]> {
-  if (projectIds.length === 0) return [];
-  const projects = await prisma.project.findMany({
-    where: {userId, id: {in: projectIds}},
-    select: {
-      id: true,
-      title: true,
-      tasks: {
-        where: {type: TaskType.PROJECT},
-        orderBy: [{instanceIndex: 'asc'}, {createdAt: 'asc'}],
-        select: {id: true, status: true, instanceIndex: true},
-      },
-    },
-  });
-  return projects.map(({tasks, ...project}) => ({...project, steps: tasks}));
+  const rows = await prisma.$queryRaw<
+    {
+      projectId: string;
+      title: string;
+      stepId: string;
+      status: TaskStatus;
+      instanceIndex: number;
+    }[]
+  >`
+    SELECT
+      projects.id AS "projectId",
+      projects.title,
+      steps.id AS "stepId",
+      steps.status,
+      steps.instance_index AS "instanceIndex"
+    FROM projects
+    JOIN tasks AS steps
+      ON steps.project_id = projects.id AND steps.type = 'PROJECT'
+    WHERE projects.user_id = ${userId}::uuid
+      AND EXISTS (
+        SELECT 1 FROM tasks AS board_steps
+        WHERE board_steps.project_id = projects.id
+          AND board_steps.plan_id = ${planId}::uuid
+          AND board_steps.user_id = ${userId}::uuid
+          AND board_steps.status <> 'EXPIRED'
+      )
+    ORDER BY projects.created_at, projects.id, steps.instance_index,
+      steps.created_at
+  `;
+
+  const projectById = new Map<string, BoardProject>();
+  for (const {projectId, title, stepId, status, instanceIndex} of rows) {
+    const project = projectById.get(projectId) ?? {
+      id: projectId,
+      title,
+      steps: [],
+    };
+    project.steps.push({id: stepId, status, instanceIndex});
+    projectById.set(projectId, project);
+  }
+  return [...projectById.values()];
 }
 
 /** A plan's unfinished step as the plan form lists it. */

@@ -14,6 +14,7 @@ import {
   archiveProject,
   createProject,
   deleteProjectStep,
+  fetchProjectsPage,
   moveProjectStep,
   scheduleProjectStep,
   unarchiveProject,
@@ -54,6 +55,11 @@ const revalidateProjectsAndBoard = () => {
   revalidateProjects();
   revalidatePath(BOARD_PATH);
 };
+
+export async function fetchProjectsPageAction() {
+  const userId = await getCurrentUserId();
+  return fetchProjectsPage(userId);
+}
 
 export async function createProjectAction(
   input: unknown,

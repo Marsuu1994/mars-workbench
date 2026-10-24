@@ -8,12 +8,14 @@ Inventory of the handlers and data-access functions that already exist, so new w
 - Keep handlers thin — validate input, call service, return result. No business logic inside handlers.
 - One handler per logical operation, not per UI interaction. A single handler can cover multiple related mutations.
 - If two flows share the same mutation, they share the same handler. Never duplicate handler logic.
-- Use Server Actions for mutations triggered from Server or Client Components. Use API routes when you need webhooks, streaming, or third-party callbacks.
+- Use Server Actions for mutations triggered from Server or Client Components, and for every read a page or layout makes (they never call a service or the DAL themselves). Use API routes when you need webhooks, streaming, or third-party callbacks.
 
 ## Server Actions
 
 | Action | Purpose | Calls |
 | --- | --- | --- |
+| **`src/actions/appShellActions.ts`** | | |
+| `getAppShellAction` | The root layout's frame data: the signed-in user (null on the sign-in page) and the active plan's id, synced first | `syncService.ensureSynced` |
 | **`src/actions/boardActions.ts`** | | |
 | `fetchBoardAction` | Load board data + metrics for `/kanban` | `boardService.fetchBoard` |
 | `getEmptyBoardStateAction` | Resolve no-active-plan state (new user vs. finished-plan recap) | `boardService.getEmptyBoardState` |
@@ -21,8 +23,10 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | `updateTaskStatusAction` | Move a task between board columns (drag & drop) | `db/tasks.updateTaskStatus` |
 | `createAdhocTaskAction` | Add an unassigned ad-hoc task to a quadrant | `db/tasks.createMatrixTasks` |
 | **`src/actions/planActions.ts`** | | |
-| `createPlanAction` | Create a weekly plan from the plan form | `planService.createPlan` |
-| `updatePlanAction` | Update an existing plan from the plan form (templates, mode, the one-offs and steps let go) | `planService.updatePlan` |
+| `fetchNewPlanFormAction` | Load `/kanban/plans/new`: templates and the pending plan to carry over | `planService.fetchNewPlanForm` |
+| `fetchEditPlanFormAction` | Load `/kanban/plans/[id]` (null: not the user's plan) | `planService.fetchEditPlanForm` |
+| `createPlanAction` | Create a weekly plan from the plan form, then redirect to the board (returns only errors) | `planService.createPlan` |
+| `updatePlanAction` | Update an existing plan from the plan form (templates, mode, the one-offs and steps let go), then redirect to the board | `planService.updatePlan` |
 | `countIncompleteByTemplateAction` | Per-template removable-task counts for the review modal | `db/tasks.countIncompleteTasksByTemplateId` |
 | **`src/actions/templateActions.ts`** | | |
 | `createTaskTemplateAction` | Create a task template | `db/taskTemplates.createTaskTemplate` |
@@ -34,6 +38,7 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | `completeTaskAction` | Mark a matrix task done in place (credits the current ACTIVE plan when one exists) | `matrixService.completeMatrixTask` |
 | `undoCompleteTaskAction` | Undo a matrix completion within the toast window (restores the pre-complete status, detaches the plan link the complete added) | `matrixService.undoCompleteMatrixTask` |
 | **`src/actions/projectActions.ts`** | | |
+| `fetchProjectsPageAction` | Load `/kanban/projects` | `projectService.fetchProjectsPage` |
 | `createProjectAction` | Create a project, optionally with its first steps | `projectService.createProject` |
 | `updateProjectAction` | Rename a project / change its goal | `projectService.updateProject` |
 | `archiveProjectAction` | Archive a project (its unfinished steps leave the week) | `projectService.archiveProject` |
@@ -49,6 +54,7 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | **`src/actions/dumpActions.ts`** | | |
 | `createDumpEntryAction` | Quick Capture: insert one dump entry (storage-only, no side effects) | `db/dumpEntries.createDumpEntry` |
 | `fetchDumpEntriesAction` | Load one dump feed page by opaque cursor (server-pinned page size) | `db/dumpEntries.getDumpEntriesPage` |
+| `countDumpEntriesAction` | Total entry count for the dump title bar | `db/dumpEntries.countDumpEntries` |
 | **`src/actions/oauthActions.ts`** | | |
 | `getConsentRequestAction` | Load one OAuth authorization request for `/oauth/consent` | `oauthConsentService.getConsentRequestByAuthorizationId` |
 | `submitConsentDecisionAction` | Approve / deny a request, then redirect to the client (an undecidable one re-renders the page) | `oauthConsentService.submitConsentDecision` |
@@ -80,6 +86,8 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `getEmptyBoardState` | Resolve the no-active-plan state (new user vs. finished-plan recap) |
 | **`planService.ts`** | |
 | `createPlan` | Create a plan from the plan form (templates, mode, ad-hoc and project-step links) |
+| `fetchNewPlanForm` | The new-plan form's inputs, synced first: templates, and the pending plan with its one-offs and unfinished steps to carry over |
+| `fetchEditPlanForm` | The edit-plan form's inputs: the plan with its templates, its one-offs and this week's unfinished steps (null: not the user's) |
 | `updatePlan` | The plan form's update: templates and mode, plus the one-offs and steps let go — the rest of the plan's links are read at save time, so what joined the week meanwhile stays |
 | `getPlanCreationContext` | Guard reads for every creation path: `ensureSynced` → active plan, pending plan, today, period key |
 | `getCarryOverAdhocTaskIds` | The pending plan's non-done ad-hoc tasks (default carry-over when no explicit selection) |
@@ -173,7 +181,7 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `linkProjectStepsToPlan` | Batch link unfinished steps to a plan (status kept) |
 | `unlinkUnfinishedStepsByProjectId` | Archive: return a project's unfinished steps from any plan |
 | `getUnfinishedStepIdsByPlanId` | A plan's unfinished steps (carry-over candidates) |
-| `getProjectPathsByIds` | The board step cards' projects: title + every step's status and number (the path) |
+| `getProjectPathsByPlanId` | The board step cards' projects (those with a step on the plan): title + every step's status and number (the path), one join |
 | `getPlanStepsByPlanId` | A plan's unfinished steps with their project's title (the plan form's Project Steps) |
 | **`taskTemplates.ts`** | |
 | `getTaskTemplates` | Non-archived templates for a user, newest first |
@@ -183,8 +191,11 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `createManyTaskTemplates` | Batch-create templates; returned ids preserve input order |
 | `updateTaskTemplate` | Update a template, owner-scoped (count 0 = not found) |
 | **`planTemplates.ts`** | |
+| `getBoardPlanTemplatesByPlanId` | A plan's template lines with each template's size, for the board (one join) |
 | `createManyPlanTemplates` | Bulk link templates to a plan with per-plan type/frequency |
 | `updatePlanTemplate` | Update a link's type and frequency |
+| **`updateOrNull.ts`** | |
+| `updateOrNull` | Run a guarded single-row `update`, null when its where matches nothing: one round trip, where the `updateMany` family takes three (BEGIN / COMMIT) |
 | **`dumpEntries.ts`** | |
 | `createDumpEntry` | Insert one dump entry (isProcessed defaults false) |
 | `getDumpEntriesPage` | One owner-scoped feed page, (createdAt, id) DESC, cursor + take |

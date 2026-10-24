@@ -98,7 +98,7 @@ Choose **Done** in a matrix card's Move-to popover (desktop, via the hover "→"
 
 1. User fills in title, description, size — and on mobile picks a quadrant — then clicks "Add to matrix".
 2. Generate the Ad-hoc task with `quadrant` matching the source quadrant (desktop) or the picked one (mobile), `status = BACKLOG`, and `planId = null`.
-3. UI state updates on success; the mobile picker flow confirms with a transient "Added to {quadrant}" toast (desktop shows the new card in its quadrant instead).
+3. The modal closes once the matrix's refreshed list, with the new card, has landed; the mobile picker flow then confirms with a transient "Added to {quadrant}" toast (desktop shows the new card in its quadrant instead).
 
 ### Rules
 

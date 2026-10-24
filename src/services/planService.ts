@@ -14,6 +14,8 @@ import {
 import {
   createManyTaskTemplates,
   getOwnedTemplateIds,
+  getTaskTemplates,
+  type TaskTemplateItem,
 } from '@/lib/db/taskTemplates';
 import {
   createManyTasks,
@@ -23,8 +25,10 @@ import {
   unlinkTasksFromPlan,
 } from '@/lib/db/tasks';
 import {
+  getPlanStepsByPlanId,
   getUnfinishedStepIdsByPlanId,
   linkProjectStepsToPlan,
+  type PlanStepItem,
 } from '@/lib/db/projects';
 import {
   Prisma,
@@ -40,6 +44,7 @@ import {sizeToPoints} from '@/utils/sizeUtils';
 import {diffPlanTemplates} from '@/utils/planUtils';
 import {ensureSynced} from './syncService';
 import type {PlanItem, PlanWithTemplates} from '@/lib/db/plans';
+import type {TaskItem} from '@/lib/db/tasks';
 import type {
   NewPlanEntry,
   PlanCreationContext,
@@ -166,6 +171,75 @@ async function generateTasksForTemplates(
   if (taskData.length > 0) {
     await createManyTasks(taskData, tx);
   }
+}
+
+/**
+ * The plan form's inputs: the user's templates, the plan it starts from (the
+ * pending plan when creating, the plan itself when editing), and that plan's
+ * one-offs and unfinished project steps.
+ */
+export interface PlanFormData {
+  templates: TaskTemplateItem[];
+  plan: PlanWithTemplates | null;
+  adhocTasks: TaskItem[];
+  projectSteps: PlanStepItem[];
+}
+
+/**
+ * The new-plan form's inputs. Syncs first, so a direct landing after week
+ * rollover sees the pending plan, whose templates, one-offs and unfinished
+ * steps carry over, and creation isn't blocked by a stale ACTIVE plan.
+ */
+export async function fetchNewPlanForm(userId: string): Promise<PlanFormData> {
+  await ensureSynced(userId);
+
+  const [templates, pendingPlan, allAdhocTasks] = await Promise.all([
+    getTaskTemplates(userId),
+    getPlanByStatus(userId, PlanStatus.PENDING_UPDATE),
+    getNonDoneAdhocTasks(userId),
+  ]);
+  if (!pendingPlan) {
+    return {templates, plan: null, adhocTasks: [], projectSteps: []};
+  }
+
+  const [plan, projectSteps] = await Promise.all([
+    getPlanWithTemplates(userId, pendingPlan.id),
+    getPlanStepsByPlanId(userId, pendingPlan.id),
+  ]);
+  // Only the pending plan's one-offs are offered for carry-over; unassigned
+  // ones reach the board from the matrix's Track This Week instead
+  const adhocTasks = allAdhocTasks.filter(
+    task => task.planId === pendingPlan.id,
+  );
+  return {templates, plan, adhocTasks, projectSteps};
+}
+
+/** The edit form always starts from its own plan. */
+interface EditPlanFormData extends PlanFormData {
+  plan: PlanWithTemplates;
+}
+
+/**
+ * The edit-plan form's inputs, or null when the plan isn't the user's. Only
+ * this plan's one-offs are editable here; this week's unfinished steps come
+ * with it.
+ */
+export async function fetchEditPlanForm(
+  userId: string,
+  planId: string,
+): Promise<EditPlanFormData | null> {
+  await ensureSynced(userId);
+
+  const [plan, templates, allAdhocTasks, projectSteps] = await Promise.all([
+    getPlanWithTemplates(userId, planId),
+    getTaskTemplates(userId),
+    getNonDoneAdhocTasks(userId),
+    getPlanStepsByPlanId(userId, planId),
+  ]);
+  if (!plan) return null;
+
+  const adhocTasks = allAdhocTasks.filter(task => task.planId === planId);
+  return {templates, plan, adhocTasks, projectSteps};
 }
 
 /**

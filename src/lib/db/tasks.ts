@@ -1,5 +1,6 @@
 import {prisma} from '@/lib/prisma';
 import {KANBAN_TZ} from '@/utils/dateUtils';
+import {updateOrNull} from '@/lib/db/updateOrNull';
 import {
   Prisma,
   PriorityQuadrant,
@@ -264,15 +265,16 @@ export async function updateTaskStatus(
   taskId: string,
   status: TaskStatus,
 ): Promise<TaskItem | null> {
-  const [task] = await prisma.task.updateManyAndReturn({
-    where: {id: taskId, userId},
-    data: {
-      status,
-      doneAt: status === 'DONE' ? new Date() : null,
-    },
-    select: taskSelect,
-  });
-  return task ?? null;
+  return updateOrNull(
+    prisma.task.update({
+      where: {id: taskId, userId},
+      data: {
+        status,
+        doneAt: status === 'DONE' ? new Date() : null,
+      },
+      select: taskSelect,
+    }),
+  );
 }
 
 /**
@@ -306,18 +308,19 @@ export async function trackAdhocTask(
   planId: string,
   status: TaskStatus,
 ): Promise<TaskItem | null> {
-  const [task] = await prisma.task.updateManyAndReturn({
-    where: {
-      id: taskId,
-      userId,
-      type: TaskType.AD_HOC,
-      planId: null,
-      status: TaskStatus.BACKLOG,
-    },
-    data: {planId, status},
-    select: taskSelect,
-  });
-  return task ?? null;
+  return updateOrNull(
+    prisma.task.update({
+      where: {
+        id: taskId,
+        userId,
+        type: TaskType.AD_HOC,
+        planId: null,
+        status: TaskStatus.BACKLOG,
+      },
+      data: {planId, status},
+      select: taskSelect,
+    }),
+  );
 }
 
 /**
@@ -370,12 +373,18 @@ export async function revertAdhocCompletion(
   taskId: string,
   {status, detach}: {status: TaskStatus; detach: boolean},
 ): Promise<TaskItem | null> {
-  const [task] = await prisma.task.updateManyAndReturn({
-    where: {id: taskId, userId, type: TaskType.AD_HOC, status: TaskStatus.DONE},
-    data: {status, doneAt: null, ...(detach ? {planId: null} : {})},
-    select: taskSelect,
-  });
-  return task ?? null;
+  return updateOrNull(
+    prisma.task.update({
+      where: {
+        id: taskId,
+        userId,
+        type: TaskType.AD_HOC,
+        status: TaskStatus.DONE,
+      },
+      data: {status, doneAt: null, ...(detach ? {planId: null} : {})},
+      select: taskSelect,
+    }),
+  );
 }
 
 /**

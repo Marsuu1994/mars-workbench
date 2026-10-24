@@ -17,6 +17,7 @@ import {QUADRANT_ORDER} from '@/utils/oneOffUtils';
 import type {TrackTargetStatus} from '@/schemas';
 import type {MatrixActivePlan} from '@/services/matrixService';
 import {useOptimisticTasks} from '@/hooks/useOptimisticTasks';
+import {insertTask, removeTask} from '@/utils/optimisticTasks';
 import {
   updateTaskQuadrantAction,
   trackTaskAction,
@@ -52,19 +53,13 @@ interface UndoToastState {
   completed: Promise<boolean>;
 }
 
-const insertTaskAt = (list: TaskItem[], index: number, task: TaskItem) => [
-  ...list.slice(0, index),
-  task,
-  ...list.slice(index),
-];
-
 export const PriorityMatrixPage = ({
   tasks,
   activePlan,
 }: PriorityMatrixPageProps) => {
   const t = useTranslations('Priorities');
   const tQuadrant = useTranslations('Enums.PriorityQuadrant');
-  const {localTasks, setLocalTasks, runOptimisticTaskUpdate} =
+  const {localTasks, runOptimisticChange, runOptimisticTaskUpdate} =
     useOptimisticTasks(tasks);
   const [openPopoverTaskId, setOpenPopoverTaskId] = useState<string | null>(
     null,
@@ -141,14 +136,15 @@ export const PriorityMatrixPage = ({
     if (index === -1) return;
     const previous = localTasks[index];
 
-    setLocalTasks(prev => prev.filter(task => task.id !== taskId));
-
-    const completed = completeTaskAction(taskId).then(result => {
-      if (!result.error) return true;
-      console.error('Failed to complete task:', result.error);
-      setLocalTasks(prev => insertTaskAt(prev, index, previous));
-      setUndoToast(current => (current?.task.id === taskId ? null : current));
-      return false;
+    const completed = runOptimisticChange(
+      removeTask(taskId),
+      () => completeTaskAction(taskId),
+      'Failed to complete task:',
+    ).then(isSaved => {
+      if (!isSaved) {
+        setUndoToast(current => (current?.task.id === taskId ? null : current));
+      }
+      return isSaved;
     });
 
     setUndoToast({
@@ -168,16 +164,15 @@ export const PriorityMatrixPage = ({
 
     if (!(await completed)) return;
 
-    setLocalTasks(prev => insertTaskAt(prev, index, task));
-
-    const result = await undoCompleteTaskAction(task.id, {
-      status: task.status,
-      detach: task.planId === null,
-    });
-    if (result.error) {
-      console.error('Failed to undo completion:', result.error);
-      setLocalTasks(prev => prev.filter(item => item.id !== task.id));
-    }
+    void runOptimisticChange(
+      insertTask(task, index),
+      () =>
+        undoCompleteTaskAction(task.id, {
+          status: task.status,
+          detach: task.planId === null,
+        }),
+      'Failed to undo completion:',
+    );
   }
 
   // Keyed by task so a second completion restarts the countdown.
@@ -363,6 +358,7 @@ export const PriorityMatrixPage = ({
       />
       <TaskModal
         isOpen={addModal !== null}
+        freshData={tasks}
         onClose={() => setAddModal(null)}
         onSaved={quadrant => {
           setAddModal(null);

@@ -1,61 +1,30 @@
-import {getTaskTemplates} from '@/lib/db/taskTemplates';
-import {getPlanByStatus, getPlanWithTemplates} from '@/lib/db/plans';
-import {getNonDoneAdhocTasks} from '@/lib/db/tasks';
-import {getPlanStepsByPlanId} from '@/lib/db/projects';
-import {PlanStatus} from '@/generated/prisma/client';
-import {ensureSynced} from '@/services/syncService';
+import {fetchNewPlanFormAction} from '@/actions/planActions';
 import {PlanForm} from '@/components/domain/plan/PlanForm';
-import {getCurrentUserId} from '@/lib/auth/getCurrentUserId';
 
 export default async function NewPlanPage() {
-  const userId = await getCurrentUserId();
-  // Flip an ended ACTIVE plan to PENDING_UPDATE first, so a direct landing
-  // here after week rollover sees the pending plan's templates/ad-hoc tasks
-  // and plan creation isn't blocked by a stale ACTIVE plan.
-  await ensureSynced(userId);
+  const {templates, plan, adhocTasks, projectSteps} =
+    await fetchNewPlanFormAction();
 
-  const [templates, pendingPlan, allAdhocTasks] = await Promise.all([
-    getTaskTemplates(userId),
-    getPlanByStatus(userId, PlanStatus.PENDING_UPDATE),
-    getNonDoneAdhocTasks(userId),
-  ]);
-
-  const [pendingPlanWithTemplates, projectSteps] = pendingPlan
-    ? await Promise.all([
-        getPlanWithTemplates(userId, pendingPlan.id),
-        getPlanStepsByPlanId(userId, pendingPlan.id),
-      ])
-    : [null, []];
-
+  // A pending plan (last week's, ended) seeds the form: its templates, and
+  // its one-offs and unfinished steps preselected for carry-over (deselected
+  // steps return to their project at the same step number)
   const initialPlanTemplates =
-    pendingPlanWithTemplates?.planTemplates.map(pt => ({
-      templateId: pt.templateId,
-      type: pt.type,
-      frequency: pt.frequency,
+    plan?.planTemplates.map(planTemplate => ({
+      templateId: planTemplate.templateId,
+      type: planTemplate.type,
+      frequency: planTemplate.frequency,
     })) ?? [];
-
-  // Only the pending plan's ad-hoc tasks are offered for carry-over
-  // (preselected). Unassigned tasks live on the priority matrix and reach
-  // the board via its Track This Week flow instead.
-  const adhocTasks = pendingPlan
-    ? allAdhocTasks.filter(task => task.planId === pendingPlan.id)
-    : [];
-  const initialAdhocTaskIds = adhocTasks.map(task => task.id);
-
-  // The pending plan's unfinished project steps carry over unless deselected
-  // (deselected ones return to their project at the same step number).
-  const initialProjectStepIds = projectSteps.map(step => step.id);
 
   return (
     <PlanForm
       templates={templates}
       mode="create"
       initialPlanTemplates={initialPlanTemplates}
-      initialPlanMode={pendingPlan?.mode}
+      initialPlanMode={plan?.mode}
       adhocTasks={adhocTasks}
-      initialAdhocTaskIds={initialAdhocTaskIds}
+      initialAdhocTaskIds={adhocTasks.map(task => task.id)}
       projectSteps={projectSteps}
-      initialProjectStepIds={initialProjectStepIds}
+      initialProjectStepIds={projectSteps.map(step => step.id)}
     />
   );
 }
