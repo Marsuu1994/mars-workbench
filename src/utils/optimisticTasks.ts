@@ -6,38 +6,6 @@ export type TasksChange = (tasks: TaskItem[]) => TaskItem[];
 /** A patch per task id — what one optimistic write changes. */
 export type TaskPatchById = Record<string, Partial<TaskItem>>;
 
-/**
- * An optimistic write waiting for the server. Until its action settles it
- * applies over every task list the server sends; once it has saved, it still
- * applies over the list it settled on (the revalidated list carrying the
- * write hasn't arrived yet) and stops with the next one.
- */
-export interface PendingTasksChange {
-  id: number;
-  change: TasksChange;
-  /** The server's task list when the action saved; null while in flight */
-  settledOn: TaskItem[] | null;
-}
-
-/** Whether a pending change still applies over the server's latest list. */
-export const isChangeApplied = (
-  {settledOn}: PendingTasksChange,
-  serverTasks: TaskItem[],
-): boolean => settledOn === null || settledOn === serverTasks;
-
-/**
- * The tasks a page shows: the server's latest list with the changes still
- * waiting applied in the order they were made. A failed write is simply
- * removed from the pending list, so it rolls back only itself.
- */
-export const applyPendingChanges = (
-  serverTasks: TaskItem[],
-  pendingChanges: PendingTasksChange[],
-): TaskItem[] =>
-  pendingChanges
-    .filter(pending => isChangeApplied(pending, serverTasks))
-    .reduce((tasks, {change}) => change(tasks), serverTasks);
-
 /** A change that patches the listed tasks in place. */
 export const patchTasks =
   (patchById: TaskPatchById): TasksChange =>

@@ -1,6 +1,7 @@
 'use client';
 
 import {useState} from 'react';
+import {useTranslations} from 'next-intl';
 import {toFormErrorMessage} from '@/utils/formErrors';
 import {useWaitForFreshData} from './useWaitForFreshData';
 
@@ -17,6 +18,7 @@ interface UseModalSubmitOptions {
  * change together, so the list never shows its old data after the close.
  */
 export function useModalSubmit({freshData, onClose}: UseModalSubmitOptions) {
+  const tErrors = useTranslations('Errors');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const waitForFreshData = useWaitForFreshData(freshData);
@@ -29,7 +31,15 @@ export function useModalSubmit({freshData, onClose}: UseModalSubmitOptions) {
     setIsSubmitting(true);
     const freshDataArrived = waitForFreshData();
 
-    const result = await action();
+    let result: Result;
+    try {
+      result = await action();
+    } catch {
+      // The network or a crashed action: the modal stays, with a retry
+      setError(tErrors('generic'));
+      setIsSubmitting(false);
+      return;
+    }
     if (result.error) {
       setError(toFormErrorMessage(result.error));
       setIsSubmitting(false);

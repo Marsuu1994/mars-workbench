@@ -73,9 +73,10 @@ export const StepFormPanel = ({
     );
   }
 
-  function handleDelete() {
+  // Awaited by the confirm button, which stays pending while the delete runs
+  async function handleDelete() {
     if (!step) return;
-    void submit(() => deleteProjectStepAction(step.id));
+    await submit(() => deleteProjectStepAction(step.id));
   }
 
   const renderSubtitle = () => (
