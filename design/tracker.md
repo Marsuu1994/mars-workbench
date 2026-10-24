@@ -93,6 +93,7 @@ Single source of truth for open ideas and todos across the app — open items on
 
 - [ ] Recheck Next's first-write commit bug on each Next upgrade, then drop the workaround: on 16.2.9 the page update of the first server action after a page load often never commits until something else renders
   - Measured 2026-10-24: about 1 in 3 first writes. `useWaitForFreshData` re-renders every 200 ms while it waits, so modals still close as the data lands; a modal that closes inside the action's transition hangs for good (why Option 0 and the native close were dropped)
+  - Known upstream as vercel/next.js#98303, gone in its reporters' runs on 16.3.4 and 16.4 canary; a 16.4.3 upgrade passes every check here unchanged. Findings and the plan in `design/spike/archived/mutation-layer.md` › 追记
 - [ ] First visit of a page still shows its skeleton for ~310 ms: once `loading.tsx` is up, React holds the content back 300 ms, while the data now arrives in ~30–85 ms locally (`design/spike/archived/mutation-layer.md`, Q4). Measure on production, then decide per page whether to drop the skeleton for a pending state on the link
 - [ ] Measure `ci-fixer` on the next red GitHub CI: delegate the failing job to it and compare the main-session context with reading the log inline; if it still comes out even, drop the agent (`design/spike/archived/subagent-delegation-pilot.md` › Decision, Q2)
 - [ ] `ui/` component-structure lookup in `reference.md` — a lean high-level map for agents (humans use the `/design` gallery); follow-up to the landed component library

@@ -1,6 +1,6 @@
 # Spike: Mutation layer — 保留 RSC 刷新、不引入 client cache，先压缩往返
 
-**Status: decided** · 2026-10-23（owner 在 PR #80 拍板：Q6–Q8 在第一轮 review 里答，Q6a 和其余问题随后在对话里答；同一个 PR 实施并归档）· 回答 tracker 条目 *Quality gate › Step 7 — Mutation layer › State management* · 上游：`archived/projects-page-refactor.md`（React Query 初步评估、close-then-stale 根因）、`archived/board-prop-drilling.md`（`useOptimisticTasks` 的来历）、`archived/agents-md-simplification.md`（Q4：*Server shapes inputs* 的 pending 一半）
+**Status: decided** · 2026-10-23（owner 在 PR #80 拍板：Q6–Q8 在第一轮 review 里答，Q6a 和其余问题随后在对话里答；同一个 PR 实施并归档；2026-10-24 应 owner 要求追记原生 hook 实测和 Next 的首写 bug，见「追记」）· 回答 tracker 条目 *Quality gate › Step 7 — Mutation layer › State management* · 上游：`archived/projects-page-refactor.md`（React Query 初步评估、close-then-stale 根因）、`archived/board-prop-drilling.md`（`useOptimisticTasks` 的来历）、`archived/agents-md-simplification.md`（Q4：*Server shapes inputs* 的 pending 一半）
 
 > 语言约定：叙述用中文；产品名词、状态和代码标识保留英文（board / step / one-off、`revalidatePath`、`staleTimes`、`useOptimisticTasks` …），和代码、tracker 一一对应。
 
@@ -19,6 +19,59 @@
 | Q6a · 绕过 action 的页面 | **都改成走 action，并定为 agent 必须遵守的规则** | Projects、Dump、plan form 的两个页面和 root layout 都经 action 读数据；ESLint 禁止 `src/app/` 的页面和 layout 引入 service、DAL、Prisma 和 auth helper，AGENTS.md › Layers 加一行 |
 | Q7 · 落地方式 | **Option A 全部在本 PR 里做** | — |
 | Q8 · Step 7 的另外两个话题 | **各自单独** | tracker 的 Step 7 改成一个话题一个 spike、一个 PR |
+
+## 追记 · 2026-10-24：原生 hook 实测，Next 的首写 bug
+
+拍板之后 owner 又问了两件事，要求结果记进本 spike：`useOptimisticTasks` 能不能换成原生 `useOptimistic`（先实测再改）；`revalidateTag` 能不能做到改 project 而不动 kanban。
+
+**`revalidateTag`：不做（owner 拍板）。** 我们的读取都是不缓存的 Prisma 查询，没有可以按 tag 失效的东西。客户端那边，action 只要 revalidate 了（path、tag 或 `refresh()`），Next 16.2.9 都会清掉整个 BFCache 和 prefetch cache，源码里写着 `TODO: Evict only segments with matching tags and/or paths`。况且大多数 project 写入本来就会显示在 board 上。
+
+### 实测：乐观更新换成 `useOptimistic`
+
+本地生产构建，网络延迟 0 / 400 ms，用 Playwright 逐帧记录页面：
+
+| 场景 | `main` | 本 PR 首版（自写 pending 叠加） | `useOptimistic` |
+| --- | --- | --- | --- |
+| 两次拖拽重叠（1.5 s 延迟强制重叠） | 不闪回 | 不闪回 | 不闪回 |
+| 写入返回 `{error}` | 回滚 | 只回滚这一笔 | 只回滚这一笔 |
+| 请求直接失败（断网、崩溃） | 等下一次写入刷新后才回滚 | **一直停在错误位置**（首版带进来的回归） | 立刻回滚 |
+| matrix 完成后马上撤销 | — | 不闪 | 不闪 |
+
+结论：换成 `useOptimistic`，调用处 API 不变。更正：首版说 `main` 上「第二次编辑会闪回」，复现不了。强制重叠时 `main` 也没有闪回，看起来是 Next 把排队 action 的页面更新合在一起提交了。
+
+### 重测：modal 在 action 的 transition 里关（Option 0 / 原生关闭）
+
+- **页面加载后的第一次写入，约 1/3 永久卡住。** POST 已经返回 200，等了 98 s 新页面仍然没提交，modal 一直 loading。在已加载的页面上连续写 50 次，一次也没卡。加载后等 5 s 再写，照样 7/20 卡住，所以和时间无关。
+- 在 action 返回时补一次同步更新：降到 1/25，不为 0。
+- 本 PR 首版（等新数据，5 s 超时兜底）也中招：同样场景下 2–4/25 转满 5 s 才关。`main` 看不出来，是因为它在 action 返回时就关 modal，这次同步更新让 React 重新尝试那次提交。
+- 落地的 workaround：`useWaitForFreshData` 等待期间每 200 ms 重渲染一次。125 次首次写入都在 40–230 ms 内关闭，没有一次等到超时。modal 继续「等新数据再关」，不放进 transition。
+
+### 根因：Next 16.2.x 的 known issue
+
+- **[vercel/next.js#98303](https://github.com/vercel/next.js/issues/98303)**（open）*Server Action update never commits: a transition lane stays suspended and is never pinged*，特征和我们的一致：
+  - 只在生产构建出现，只有一次新的更新才能救回来。
+  - 触发条件是 `loading.js`、页面在它下面一层、每次请求都 await 的 async layout、action 写 cookie 并 `revalidatePath`。前三条我们都满足，「写 cookie」没确认。
+  - 版本数据：16.2.6 卡住率 5–46%，它内置的 React 和我们的 16.2.9 相同（`19.3.0-canary-3f0b9e61-20260317`）。16.3.4 和 16.4 canary 各跑 480 次都是 0。
+- 相关报告：
+  - [#86055](https://github.com/vercel/next.js/issues/86055)：已关闭，维护者归因于 React 的修复，随 16.3.0 发布。
+  - [Discussion #88767](https://github.com/vercel/next.js/discussions/88767)：生产环境约 30% 卡住。
+  - [#97990](https://github.com/vercel/next.js/issues/97990)：报告在 16.2.9、16.2.12、16.3.3 上仍能复现，因为没有公开复现被关掉了。所以「16.3 以后修好」还没有完全确认。
+  - [#100489](https://github.com/vercel/next.js/issues/100489)：在 16.4 / 16.5 canary 上仍 open，触发方式是 action 进行中调用 `pushState`。Projects 页的 URL 变更已经挪到提交之后，绕开了它。
+- 所以 200 ms 重渲染只是给丢掉的重试信号打补丁，正解是升级 Next。
+
+### 升级到 16.4.3 的评估（本地试装，已还原）
+
+- **改动**：`next` 和 `eslint-config-next` 升到 16.4.3（后者原来停在 16.0.4）。`react` / `react-dom` 不动，App Router 用的内置 React 变成 `19.3.0-canary-278794d7-20261002`。
+- **检查**：typecheck、lint、knip、生产构建、单元 + 集成（48 个文件，416 + 2 个预期失败）、e2e（26 个）全部通过，代码一行不用改。
+- **要拍板**：16.3 起 `next dev` 会自动往 AGENTS.md 末尾写一段 agent-rules，删掉后会再加回来。next.config 里 `agentRules: false` 可以关掉，建议关。
+- **没逐项核对**：16.4 的默认行为变化（严格路由匹配、页面匹配不到路由时报错等）。构建和 e2e 都没受影响。
+
+### 下一步（owner 2026-10-24 要求）
+
+在 16.4.3 的生产构建上实测：去掉 200 ms 重试后，「页面加载后的第一次写入」还卡不卡；顺带重测 modal 关在 transition 里。
+
+- 0 卡住：升级 Next，删掉 workaround 和对应的 tracker 条目。
+- 仍然卡：保留 workaround，把我们的复现补给 #98303。
 
 ## TL;DR
 
