@@ -73,6 +73,8 @@ Read the design docs only when the task involves logic, data or new flows; skip 
 - `design/reference.md`: server action, service or DAL changes
 - `src/app/design/scenarios/<feature>/`: the feature's screen states
 
+Next.js APIs outrun training data: before using a routing, caching, server-action or `next.config` API you haven't checked for this version, read its page in `node_modules/next/dist/docs/`, the docs of the installed version.
+
 A fresh checkout runs `npm run setup` (`.env.local` from `.env.example`, `npm install`, then the local Supabase stack with migrations and seed — starting Docker first in a cloud container); a task that needs neither the database nor a signed-in page runs `npm run setup -- --no-db` instead. `npm run dev:session` signs in as the seeded dev user without Google.
 
 ### Where the rules live
@@ -139,6 +141,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 - **Destructure** when two or more properties of the same object are used, instead of repeating `obj.a`, `obj.b`; a single one-off access can stay. Bad: `const feed = useDumpFeed(...); … feed.entries … feed.hasMore`. Good: `const {entries, capture, hasMore} = useDumpFeed(...);` (for a nullish source: `const {entries, nextCursor} = result ?? {entries: [], nextCursor: null};`).
 - **Name things plainly — clear and boring beats short or clever.** A function says what it returns or does, including what it looks up by; a variable or parameter — callback parameters included — says what it holds. Full words only: `id`, `tx` (Prisma transaction) and `prev` (setState updater) are fine, single letters are linted (allowed ones in `eslint.config.mjs`), and `t` is next-intl's alone. Bad: `getPlanningPlan(userId, planId)`, `templates.map(t => …)`, `runTool(ctx, body)`. Good: `getPlanContextByPlanId(userId, planId)`, `templates.map(template => …)`, `runTool(context, toolFunction)`.
 - **LLM-facing error messages live in `src/utils/errorMessages.ts`**, one UPPER_SNAKE object per surface (`PLANNING_ERROR`, `MCP_ERROR`); a message with dynamic parts is a function of them. Bad: `` throw new PlanningError(`This week already has an active plan (${id})…`) ``. Good: `throw new PlanningError(PLANNING_ERROR.ACTIVE_PLAN_EXISTS(activePlan.id))`.
+- **A workaround is fine, but marked.** Code that exists only to get around someone else's bug or quirk — a dependency's, the framework's, a browser's — opens its comment with `Workaround (<whose>):`, says what goes wrong without it, and links the upstream issue when there is one. Upgrading a dependency starts with `grep -rn "Workaround (<name>"`: each one the new version no longer needs goes in the same change. Bad: a re-render on a timer whose comment never says which bug it dodges. Good: `// Workaround (Next.js, vercel/next.js#98303): the first write's page update never commits on its own …`.
 
 ### Enums
 

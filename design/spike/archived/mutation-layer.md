@@ -1,6 +1,6 @@
 # Spike: Mutation layer — 保留 RSC 刷新、不引入 client cache，先压缩往返
 
-**Status: decided** · 2026-10-23（owner 在 PR #80 拍板：Q6–Q8 在第一轮 review 里答，Q6a 和其余问题随后在对话里答；同一个 PR 实施并归档；2026-10-24 应 owner 要求追记原生 hook 实测和 Next 的首写 bug，见「追记」）· 回答 tracker 条目 *Quality gate › Step 7 — Mutation layer › State management* · 上游：`archived/projects-page-refactor.md`（React Query 初步评估、close-then-stale 根因）、`archived/board-prop-drilling.md`（`useOptimisticTasks` 的来历）、`archived/agents-md-simplification.md`（Q4：*Server shapes inputs* 的 pending 一半）
+**Status: decided** · 2026-10-23（owner 在 PR #80 拍板：Q6–Q8 在第一轮 review 里答，Q6a 和其余问题随后在对话里答；同一个 PR 实施并归档；2026-10-24 应 owner 要求追记原生 hook 实测、Next 的首写 bug 和升级到 16.4.3 的结果，见「追记」）· 回答 tracker 条目 *Quality gate › Step 7 — Mutation layer › State management* · 上游：`archived/projects-page-refactor.md`（React Query 初步评估、close-then-stale 根因）、`archived/board-prop-drilling.md`（`useOptimisticTasks` 的来历）、`archived/agents-md-simplification.md`（Q4：*Server shapes inputs* 的 pending 一半）
 
 > 语言约定：叙述用中文；产品名词、状态和代码标识保留英文（board / step / one-off、`revalidatePath`、`staleTimes`、`useOptimisticTasks` …），和代码、tracker 一一对应。
 
@@ -59,19 +59,28 @@
   - [#100489](https://github.com/vercel/next.js/issues/100489)：在 16.4 / 16.5 canary 上仍 open，触发方式是 action 进行中调用 `pushState`。Projects 页的 URL 变更已经挪到提交之后，绕开了它。
 - 所以 200 ms 重渲染只是给丢掉的重试信号打补丁，正解是升级 Next。
 
-### 升级到 16.4.3 的评估（本地试装，已还原）
+### 升级到 16.4.3 的评估（先本地试装）
 
 - **改动**：`next` 和 `eslint-config-next` 升到 16.4.3（后者原来停在 16.0.4）。`react` / `react-dom` 不动，App Router 用的内置 React 变成 `19.3.0-canary-278794d7-20261002`。
 - **检查**：typecheck、lint、knip、生产构建、单元 + 集成（48 个文件，416 + 2 个预期失败）、e2e（26 个）全部通过，代码一行不用改。
-- **要拍板**：16.3 起 `next dev` 会自动往 AGENTS.md 末尾写一段 agent-rules，删掉后会再加回来。next.config 里 `agentRules: false` 可以关掉，建议关。
+- **已拍板（owner）**：16.3 起 `next dev` 一发现是 agent 在跑，就往 AGENTS.md 末尾写一段 agent-rules，删掉后会再加回来，内容逐字比对、改了也会被覆盖。next.config 设 `agentRules: false` 关掉；那段唯一的规则（先读 `node_modules/next/dist/docs/` 里对应版本的文档）用我们自己的话写进 AGENTS.md › Session start。
 - **没逐项核对**：16.4 的默认行为变化（严格路由匹配、页面匹配不到路由时报错等）。构建和 e2e 都没受影响。
 
-### 下一步（owner 2026-10-24 要求）
+### 16.4.3 实测：workaround 拿掉（owner 拍板升级）
 
-在 16.4.3 的生产构建上实测：去掉 200 ms 重试后，「页面加载后的第一次写入」还卡不卡；顺带重测 modal 关在 transition 里。
+本地生产构建，去掉 200 ms 重试，页面加载完 1 s 后做第一次写入，每种 25 次。16.2.9 的基线在同一环境重测，一次「卡住」= 等满 5 s 超时才关：
 
-- 0 卡住：升级 Next，删掉 workaround 和对应的 tracker 条目。
-- 仍然卡：保留 workaround，把我们的复现补给 #98303。
+| flow | 16.2.9 | 16.4.3 |
+| --- | --- | --- |
+| template | 3 / 25 | 0 / 25 |
+| step-add | 5 / 25 | 0 / 25 |
+| project-edit | 3 / 25 | 0 / 25 |
+| matrix-add | 0 / 25 | 0 / 25 |
+
+- 16.4.3 加测，全部 0 卡住：页面一到 DOMContentLoaded 就写（50 次）、400 ms 网络延迟（30 次）、看板首次拖动后的进度更新（15 次）。modal 在点击后 60–260 ms 关闭，和带重试时的 40–230 ms 差不多。
+- modal 关在 transition 里：16.4.3 上 155 次 0 卡住（16.2.9 约 7/20 永久卡住）。这次不换：它要和 Step 9 的 config-driven modals 一起权衡（tracker）。
+- 结果：PR #80 升级到 16.4.3，删掉 200 ms 重试和对应的 tracker 条目。
+- owner 同时定了一条规则：绕开别人 bug 的写法可以用，但要标出来（AGENTS.md › Coding Conventions › *A workaround is fine, but marked*）。代码里现有的四处都标上了。其中 plan form 吞掉 redirect 的 rejection 那处在 16.4.3 上复查过：action 的 reducer 给 redirect error 标了 `handled`，全局 handler 却不看这个标记，不吞的话会再导航一次 board。16.4.3 上这次导航走 client cache，不发请求也不多一条 history，但仍然会发生，所以保留。
 
 ## TL;DR
 

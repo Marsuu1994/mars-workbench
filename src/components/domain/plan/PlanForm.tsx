@@ -34,11 +34,13 @@ import {TaskModal} from '@/components/domain/shared/task-modal/TaskModal';
 import {ReviewChangesModal} from './review-changes/ReviewChangesModal';
 
 /**
- * Awaits a plan write, which redirects to the board when it saves. The router
- * follows that redirect itself; left unhandled, the redirect error the
- * action's promise rejects with makes Next's global handler navigate a second
- * time (another request for the board), so it's dropped here: undefined
+ * Awaits a plan write, which redirects to the board when it saves: undefined
  * means the plan saved. Any other error is rethrown.
+ *
+ * Workaround (Next.js): the router follows that redirect itself, yet the
+ * action's promise still rejects with the redirect error. Next marks it
+ * handled, but its global handler ignores the mark and navigates to the board
+ * a second time, so the error is dropped here.
  */
 const awaitPlanWrite = async <Result,>(
   write: Promise<Result>,
