@@ -32,7 +32,7 @@ App 现在默认只有 owner 一个用户。2026-10-25 在代码里核对过的�
 | 没有落地页 | `src/app/page.tsx` 直接 `redirect('/kanban')` | 从外部链接进来只看到一个 Google 登录按钮 |
 | 没有隐私政策、条款 | 没有对应的页面 | 见下面「外部约束」 |
 | 删号、导出 | 没有入口 | 同上 |
-| 出错没人知道 | 没有错误监控、使用统计、反馈入口；Step 16 之前很多写入失败只是静默 rollback | 陌生用户遇到 bug 大多直接走 |
+| 出错没人知道 | 没有错误监控、使用统计、反馈入口；Step 14 之前很多写入失败只是静默 rollback | 陌生用户遇到 bug 大多直接走 |
 | Claude 接入 | 规划靠用户自己在 Claude 里加 custom connector（`/api/mcp`） | 对不熟 MCP 的人是好几步；没有 Claude 的用户只剩手动的 plan form |
 | 品牌写在很多地方 | `en.json`、PWA manifest、`src/mcp/constants.ts`、MCP 的 guide 和 tool descriptions、`AppSidebar`、`BrandIcon`，以及视觉语言（Mission Control HUD、`mars-dark` / `mars-light`、「dawn on Mars」） | 改名是一轮全站的改动；视觉方向变不变决定要不要重画 mockup |
 | 域名和 connector 绑在一起 | Connector URL 和 protected-resource 的 `resource` 跟着域名走（tracker *Custom domain*） | 每换一次域名，所有已经连上的用户都要重新添加 connector |
@@ -96,14 +96,15 @@ Sources：[GDPR Article 3](https://gdpr-text.com/read/article-3/) · [Google API
 
 ### P0 · Quality gate 收尾（现有的 planner project）
 
-Owner 定的顺序（2026-10-25）：component structure 已经开始做，排第一。编号跟 planner project 走，所以顺序和编号不一致。Step 13（quality sweep）和 shared server-action handler 移到上线之后。
+Owner 定的顺序（2026-10-25）：component structure 已经开始做，排第一；quality sweep 留在 Quality gate 里，放在最后。编号跟 planner project 走。Shared server-action handler 移到上线之后。
 
 1. Step 10 · component structure 和 config-driven modals（两个 PR，PR #83 已经在做）
-2. Step 12 · error-handling plumbing（PR #32 的 spike）
-3. Step 14 · code review agent（PR #82 的 spike）：harness 在 owner review 之前先跑它
-4. Step 15 · agent harness（见下面「提速」）
-5. Step 16 · 错误呈现：7 个子项每个都是一个规格清楚的 PR，适合拿来试 harness
-6. Step 11 · 收尾
+2. Step 11 · error-handling plumbing（PR #32 的 spike）
+3. Step 12 · code review agent（PR #82 的 spike）：harness 在 owner review 之前先跑它
+4. Step 13 · agent harness（见下面「提速」）
+5. Step 14 · 错误呈现：7 个子项每个都是一个规格清楚的 PR，适合拿来试 harness
+6. Step 15 · 收尾
+7. Step 16 · quality sweep：`/quality-sweep` skill 加两周一次的 Routine，只查 CI 查不了的
 
 ### P1 · Habits 和时间预算（target 1 + 5）
 
@@ -194,11 +195,11 @@ Owner 定的顺序（2026-10-25）：component structure 已经开始做，排�
 | P6 的素材 | 4–6 | 4–6 |
 | **合计** | **66–99**（每周 7 天约 2.5–3.5 个月，每周 5 天约 3–4.5 个月） | **43–66**（每周 7 天约 1.5–2.5 个月，每周 5 天约 2–3 个月） |
 
-不含想名字的时间。最大的不确定性：P3（没有 spike 和 mockup）、起名、owner review 并行 PR 的真实速度。
+不含想名字的时间，也不含后来加回 P0 的 quality sweep（Step 16）。最大的不确定性：P3（没有 spike 和 mockup）、起名、owner review 并行 PR 的真实速度。
 
 ## 提速 · Agent harness
 
-想法：Claude 在无人看守的情况下做一队规格清楚的任务（并行、过夜），owner 每天的时间变成在 Vercel preview 上 review 和验收。具体形状记在 tracker 的 Quality gate Step 15，owner 还在想。
+想法：Claude 在无人看守的情况下做一队规格清楚的任务（并行、过夜），owner 每天的时间变成在 Vercel preview 上 review 和验收。具体形状记在 tracker 的 Quality gate Step 13，owner 还在想。
 
 - **上限在拍板，不在写代码**：提交历史里最慢的是要 owner 决定的环节（spike 的多轮 review、mockup 审批、需要测量的调查）。Harness 能加速规格清楚的任务；设计类任务只能更快地拿到 spike 和 mockup 选项。
 - **吞吐等于 owner 的 review 速度**：同时开着的 PR 不超过 2–3 个，不然队列越积越多。
@@ -213,7 +214,7 @@ Owner 定的顺序（2026-10-25）：component structure 已经开始做，排�
 
 ## 上线之后再做
 
-Quality gate 的 Step 13（quality sweep）和 shared server-action handler、RLS、服务条款、UI 组件测试、per-kind risk rules、Settings 里撤销 OAuth 授权、Dump 的编辑和搜索。
+Shared server-action handler、RLS、服务条款、UI 组件测试、per-kind risk rules、Settings 里撤销 OAuth 授权、Dump 的编辑和搜索。
 
 ---
 
@@ -229,8 +230,8 @@ Quality gate 的 Step 13（quality sweep）和 shared server-action handler、RL
 | Q6 | 公开 demo | a 不做 · b Design Console 做只读 demo · c demo 账号 | **b**：组件和 fixture 已经有了，不用新建数据 |
 | Q7 | 落地页 | a 不做 · b 一页（是什么、截图、登录、connector 说明） | **b**：从外部链接进来的人，现在只看到一个登录按钮 |
 | Q8 | Beta 的规模和来源 | 人数、找谁 | — owner 定 |
-| Q9 | Agent harness 的形状 | 见 tracker 的 Quality gate Step 15 | — owner 在想；spike 在开工时写 |
-| Q10 | Step 16（错误呈现）的范围 | a 7 个子项全做 · b 最低版（`error.tsx`、`not-found.tsx`、静默 rollback 的提示） | **a**，如果 harness 先上：每项都是规格清楚的小 PR |
+| Q9 | Agent harness 的形状 | 见 tracker 的 Quality gate Step 13 | — owner 在想；spike 在开工时写 |
+| Q10 | Step 14（错误呈现）的范围 | a 7 个子项全做 · b 最低版（`error.tsx`、`not-found.tsx`、静默 rollback 的提示） | **a**，如果 harness 先上：每项都是规格清楚的小 PR |
 
 ## 拍板之后
 
