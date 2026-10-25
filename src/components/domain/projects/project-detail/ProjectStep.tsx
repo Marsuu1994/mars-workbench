@@ -17,18 +17,11 @@ import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
 import {Pill} from '@/components/ui/Pill';
 import {cn} from '@/components/ui/cn';
+import {useProjectsPageContext} from '../ProjectsPageContext';
 import {ROW_ACTION_BUTTON, ROW_ICON_BUTTON} from '../constants';
 
 interface ProjectStepProps {
   step: TaskItem;
-  /** The plan + This week schedules into; null: no plan this week yet */
-  activePlanId: string | null;
-  /** ✎ — every step that isn't done */
-  onEdit?: () => void;
-  /** + This week — an upcoming step */
-  onSchedule?: () => void;
-  /** × — this week's step still in the backlog */
-  onTakeBack?: () => void;
 }
 
 const {tint} = TASK_KIND_STYLE[TaskKind.PROJECT];
@@ -37,18 +30,15 @@ const {tint} = TASK_KIND_STYLE[TaskKind.PROJECT];
  * One step of a project's path, by where it sits: done (muted, locked, "✓"
  * and the day it was done), on this week (tinted, its board status; × while
  * still in the backlog), left on last week's plan, or upcoming (its size and
- * + This week, disabled without a plan). From md up a drag hint leads the
- * row and the description shows. No status mark: the row says it.
+ * + This week, disabled without a plan). ✎ on every step that isn't done.
+ * From md up a drag hint leads the row and the description shows. No status
+ * mark: the row says it.
  */
-export const ProjectStep = ({
-  step,
-  activePlanId,
-  onEdit,
-  onSchedule,
-  onTakeBack,
-}: ProjectStepProps) => {
+export const ProjectStep = ({step}: ProjectStepProps) => {
   const t = useTranslations('Projects.Step');
-  const {title, description, instanceIndex, size, points, status, doneAt} =
+  const {activePlanId, openEditStep, scheduleStep, takeStepBack} =
+    useProjectsPageContext();
+  const {id, title, description, instanceIndex, size, points, status, doneAt} =
     step;
   const state = getStepState(step, activePlanId);
   const isDone = state === ProjectStepState.DONE;
@@ -96,7 +86,7 @@ export const ProjectStep = ({
         <SizeChip size={size} points={points} className="max-md:hidden" />
         <button
           type="button"
-          onClick={onSchedule}
+          onClick={() => scheduleStep(id)}
           disabled={activePlanId === null}
           title={t('scheduleLabel')}
           className={ROW_ACTION_BUTTON}
@@ -113,7 +103,7 @@ export const ProjectStep = ({
     isInBacklog && (
       <button
         type="button"
-        onClick={onTakeBack}
+        onClick={() => takeStepBack(id)}
         aria-label={t('takeBackLabel')}
         title={t('takeBackLabel')}
         className={ROW_ACTION_BUTTON}
@@ -131,7 +121,7 @@ export const ProjectStep = ({
         {renderTakeBack()}
         <button
           type="button"
-          onClick={onEdit}
+          onClick={() => openEditStep(id)}
           aria-label={t('editLabel')}
           title={t('editLabel')}
           className={ROW_ICON_BUTTON}

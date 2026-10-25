@@ -122,6 +122,8 @@ PrioritiesPage (server)           fetchPriorityMatrixAction；periodKey 没有 p
 
 ### Projects
 
+下面的树和 prop drilling 是本稿写成时的样子；同一个 PR 里随后改成了 page context，见本节末尾的「更新」。
+
 ```text
 KanbanProjectsPage (server)       fetchProjectsPageAction → {projects, steps, activePlanId}
 └ ProjectsPage (client) ◆         ← spread；route 和 scenario 都渲染它
@@ -146,6 +148,7 @@ KanbanProjectsPage (server)       fetchProjectsPageAction → {projects, steps, 
   - `DragDropContext` 在 `ProjectDetail` 里（不在 container）；`onMove` 由 detail 的 `handleDragEnd` 调。
 - **和其他页面的差异**：没有 screen 层；header 是页面自己写的；派生在叶子（Board 是在 container 一次算好）。
 - **Design Console**：11 个 tab。5 个渲染 `ProjectsPage`（fixture 的顺序决定选中哪个 project），3 个 `StepFormScenario`，3 个 `ProjectFormScenario`。mobile 的 detail 由 URL 决定，pin 不了，所以没有这个 tab。gallery 有 `ProjectStep`。
+- **更新（2026-10-25，owner 的决定，同一个 PR）**：写入、导航和 `activePlanId` 改由 `ProjectsPage` 提供的 `ProjectsPageContext` 下发，组件用 `useProjectsPageContext()` 取；数据仍走 props。现在 `ProjectList` 收 `projects · stepsByProjectId · selectedProjectId`，`ProjectCard` 收 `project · steps · isSelected`，`ArchivedProjectRow` 收 `project · steps`，`ProjectDetail` 收 `project · steps`，`ProjectStep` 只收 `step`。handler、乐观层和 modal 的 open state 都还在 `ProjectsPage`，行为不变。gallery 的 `ProjectStep` specimen 包在一个 handler 全为空操作的 context 里；scenario 渲染 `ProjectsPage`，context 由它自己提供。
 
 ### Plan
 
@@ -243,12 +246,13 @@ ConsentPage (server)              读 OAuth request，绑好 server actions
 | --- | --- | --- | --- |
 | Board | 0（frames 吃 `children`） | 1 层（container 的 render 函数直接给卡片） | — |
 | Priorities | `PrioritiesScreen` 3 个；`QuadrantCell` 6 个（2 个换形状）；`MoveToPopover` 4 个；`MobileMoveToSheet` 3 个（另 2 个绑上 id 再转） | `onTrack` / `onComplete`：桌面 4 层，手机 3 层 | `MatrixTaskCard`、`MobileMoveToSheet` 绑 `task.id` |
-| Projects | `ProjectDetail` 3 个 callback；`ProjectList` 转 `activePlanId`、`onSelect`、`onUnarchive` | 2 层 | `ProjectDetail` 绑 `step.id`；`ProjectList` 绑 `project.id` |
+| Projects（改用 page context 之前） | `ProjectDetail` 3 个 callback；`ProjectList` 转 `activePlanId`、`onSelect`、`onUnarchive` | 2 层 | `ProjectDetail` 绑 `step.id`；`ProjectList` 绑 `project.id` |
+| Projects（之后） | 0 | 0（组件从 context 取） | 各组件自己用 `project.id` / `step.id` 调 |
 | Plan | `ReviewChangesModal` 13 个全部转给 panel | 2 层 | `PlanForm` 给 `TemplateItem` 绑 `template.id` |
 | Dump | 0 | 1 层 | — |
 | App shell | `user` 到三个子组件，`activePlanId` 到两个 | 2 层（`SettingsSheet` → `SettingsPanel` → `ThemePicker`） | — |
 
-当前 plan 这一个值：在 Priorities，`activePlan` / `activePlanId` 经过 3 个组件，再换成 `isTracked` / `hasActivePlan` 两个布尔值往下传 5 个组件；在 Projects，`activePlanId` 进了 5 个组件；在 app shell 进了 3 个。Board 不传它：卡片的 model 里已经算好了。
+当前 plan 这一个值：在 Priorities，`activePlan` / `activePlanId` 经过 3 个组件，再换成 `isTracked` / `hasActivePlan` 两个布尔值往下传 5 个组件；在 Projects，`activePlanId` 原来进了 5 个组件（现在从 context 取）；在 app shell 进了 3 个。Board 不传它：卡片的 model 里已经算好了。
 
 ### 4. Frames
 
@@ -315,7 +319,7 @@ Projects 试点删掉的是 6 个插槽的 `ProjectDetail` frame 那一类（读
 2. Container 的边界：页面的 chrome（header、title bar、空状态）写在 container 里，还是外面？
 3. 派生放在哪：container 用 adapter 一次算出 view model（Board），还是 feature component 吃 domain 行自己算（Projects）？两种要不要并存，按什么分？
 4. Frames 通过 `children` 接内容，算规则、例外还是不允许？带行为的 frame（`BoardColumn`）和纯 layout frame（`PlanChrome`）是不是一回事？
-5. Prop drilling 到什么程度算要处理（例如 Priorities 的 4 层 callback、Projects 的 11 个 prop）？
+5. Prop drilling 到什么程度算要处理（例如 Priorities 的 4 层 callback、Projects 原来的 11 个 prop，已改用 page context）？
 6. Shell / panel 的拆分：哪些理由算 production 的需要，哪些算为 console 拆？（open state 和 registry 留给 PR 2。）
 7. Design Console 渲染页面时渲染哪一层：screen、container，还是别的？
 8. 页面 header 放在哪一层，要不要所有页面同一个？

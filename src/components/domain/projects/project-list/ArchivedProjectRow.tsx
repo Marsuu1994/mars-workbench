@@ -6,26 +6,27 @@ import type {ProjectItem} from '@/lib/db/projects';
 import type {TaskItem} from '@/lib/db/tasks';
 import {countDoneSteps} from '@/utils/projectUtils';
 import {cn} from '@/components/ui/cn';
+import {useProjectsPageContext} from '../ProjectsPageContext';
 import {OUTLINE_BUTTON} from '../constants';
 
 interface ArchivedProjectRowProps {
   project: ProjectItem;
   steps: TaskItem[];
-  onUnarchive: () => Promise<void>;
 }
 
 /** An archived project: its title and progress, and Unarchive. */
 export const ArchivedProjectRow = ({
   project,
   steps,
-  onUnarchive,
 }: ArchivedProjectRowProps) => {
   const t = useTranslations('Projects.List');
+  const {unarchiveProject} = useProjectsPageContext();
   const [isPending, setIsPending] = useState(false);
 
+  // The button waits until the project is back in the list
   async function handleUnarchive() {
     setIsPending(true);
-    await onUnarchive();
+    await unarchiveProject(project.id);
     setIsPending(false);
   }
 
