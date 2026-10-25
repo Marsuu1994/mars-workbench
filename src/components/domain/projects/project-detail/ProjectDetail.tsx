@@ -27,6 +27,7 @@ import {Banner} from '@/components/ui/Banner';
 import {EmptyState} from '@/components/ui/EmptyState';
 import {ProgressBar} from '@/components/ui/ProgressBar';
 import {cn} from '@/components/ui/cn';
+import {useProjectsPageContext} from '../ProjectsPageContext';
 import {ProjectStep} from './ProjectStep';
 import {
   CREATE_PLAN_HREF,
@@ -38,18 +39,6 @@ interface ProjectDetailProps {
   project: ProjectItem;
   /** Its steps, in step order */
   steps: TaskItem[];
-  activePlanId: string | null;
-  /** Mobile's "‹ All projects" */
-  onBack: () => void;
-  onEdit: () => void;
-  onAddStep: () => void;
-  onEditStep: (stepId: string) => void;
-  onSchedule: (stepId: string) => void;
-  onTakeBack: (stepId: string) => void;
-  /** A dragged step goes right before `beforeStepId`, or last without one */
-  onMove: (stepId: string, beforeStepId: string | undefined) => void;
-  /** All steps done's Archive — one click; resolves once it's archived */
-  onArchive: () => Promise<void>;
 }
 
 const {fill, track} = TASK_KIND_STYLE[TaskKind.PROJECT];
@@ -65,29 +54,26 @@ const byDoneAt = (left: TaskItem, right: TaskItem) =>
  * steps on top, then the open ones in step order, reordered by dragging the
  * row — and Add step.
  */
-export const ProjectDetail = ({
-  project,
-  steps,
-  activePlanId,
-  onBack,
-  onEdit,
-  onAddStep,
-  onEditStep,
-  onSchedule,
-  onTakeBack,
-  onMove,
-  onArchive,
-}: ProjectDetailProps) => {
+export const ProjectDetail = ({project, steps}: ProjectDetailProps) => {
   const t = useTranslations('Projects.Detail');
+  const {
+    activePlanId,
+    showProjectList,
+    openEditProject,
+    openAddStep,
+    moveStep,
+    archiveProject,
+  } = useProjectsPageContext();
   const [isArchiving, setIsArchiving] = useState(false);
   const doneCount = countDoneSteps(steps);
   const doneSteps = steps.filter(isStepDone).sort(byDoneAt);
   const openSteps = steps.filter(step => !isStepDone(step));
 
-  // The pane goes once the project is archived; on failure it stays
+  // All steps done's Archive — one click. The pane goes once the project is
+  // archived; on failure it stays
   async function handleArchive() {
     setIsArchiving(true);
-    await onArchive();
+    await archiveProject(project.id);
     setIsArchiving(false);
   }
 
@@ -98,7 +84,7 @@ export const ProjectDetail = ({
     if (!destination || destination.index === source.index) return;
     const otherOpenSteps = [...openSteps];
     const [movedStep] = otherOpenSteps.splice(source.index, 1);
-    onMove(movedStep.id, otherOpenSteps[destination.index]?.id);
+    moveStep(movedStep.id, otherOpenSteps[destination.index]?.id);
   }
 
   const renderNoPlanBanner = () =>
@@ -142,7 +128,7 @@ export const ProjectDetail = ({
       </div>
       <button
         type="button"
-        onClick={onEdit}
+        onClick={() => openEditProject(project.id)}
         className={cn(OUTLINE_BUTTON, 'btn-sm shrink-0')}
       >
         <PencilSquareIcon className="size-3" />
@@ -194,13 +180,7 @@ export const ProjectDetail = ({
               'fx-card-lift bg-base-100 ring-1 ring-primary/35',
           )}
         >
-          <ProjectStep
-            step={step}
-            activePlanId={activePlanId}
-            onEdit={() => onEditStep(step.id)}
-            onSchedule={() => onSchedule(step.id)}
-            onTakeBack={() => onTakeBack(step.id)}
-          />
+          <ProjectStep step={step} />
         </div>
       )}
     </Draggable>
@@ -217,7 +197,7 @@ export const ProjectDetail = ({
           action={
             <button
               type="button"
-              onClick={onAddStep}
+              onClick={() => openAddStep(project.id)}
               className="btn btn-primary btn-sm"
             >
               <PlusIcon className="size-4" />
@@ -230,7 +210,7 @@ export const ProjectDetail = ({
     return (
       <div className="flex flex-col gap-1">
         {doneSteps.map(step => (
-          <ProjectStep key={step.id} step={step} activePlanId={activePlanId} />
+          <ProjectStep key={step.id} step={step} />
         ))}
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId={STEP_LIST_DROPPABLE_ID}>
@@ -254,7 +234,7 @@ export const ProjectDetail = ({
     <div className="flex min-w-0 flex-col gap-3.5 px-3.5 py-3 md:px-[22px] md:pt-[18px] md:pb-[22px]">
       <button
         type="button"
-        onClick={onBack}
+        onClick={showProjectList}
         className="fx-num flex cursor-pointer items-center gap-1 self-start text-[11px] text-base-content/50 hover:text-base-content md:hidden"
       >
         <ChevronLeftIcon className="size-3" />
@@ -267,7 +247,7 @@ export const ProjectDetail = ({
       {steps.length > 0 && (
         <button
           type="button"
-          onClick={onAddStep}
+          onClick={() => openAddStep(project.id)}
           className={cn(OUTLINE_BUTTON, 'w-full md:w-auto md:self-start')}
         >
           <PlusIcon className="size-4" />

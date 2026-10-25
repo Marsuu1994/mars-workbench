@@ -5,6 +5,7 @@ import {PlusIcon} from '@heroicons/react/24/outline';
 import type {ProjectItem} from '@/lib/db/projects';
 import type {TaskItem} from '@/lib/db/tasks';
 import {SectionLabel} from '@/components/ui/SectionLabel';
+import {useProjectsPageContext} from '../ProjectsPageContext';
 import {ArchivedProjectRow} from './ArchivedProjectRow';
 import {ProjectCard} from './ProjectCard';
 
@@ -12,14 +13,8 @@ interface ProjectListProps {
   /** Every project, archived ones included (listed apart at the bottom) */
   projects: ProjectItem[];
   stepsByProjectId: ReadonlyMap<string, TaskItem[]>;
-  activePlanId: string | null;
   /** The project shown in the detail pane */
   selectedProjectId: string | undefined;
-  onSelect: (projectId: string) => void;
-  /** Resolves once the project is back (the row waits on it) */
-  onUnarchive: (projectId: string) => Promise<void>;
-  /** Mobile's New project, under the active projects */
-  onNewProject: () => void;
 }
 
 const NO_STEPS: TaskItem[] = [];
@@ -33,13 +28,10 @@ const NO_STEPS: TaskItem[] = [];
 export const ProjectList = ({
   projects,
   stepsByProjectId,
-  activePlanId,
   selectedProjectId,
-  onSelect,
-  onUnarchive,
-  onNewProject,
 }: ProjectListProps) => {
   const t = useTranslations('Projects');
+  const {openNewProject} = useProjectsPageContext();
   const stepsOf = (projectId: string) =>
     stepsByProjectId.get(projectId) ?? NO_STEPS;
   const activeProjects = projects.filter(({isArchived}) => !isArchived);
@@ -52,14 +44,13 @@ export const ProjectList = ({
           key={project.id}
           project={project}
           steps={stepsOf(project.id)}
-          activePlanId={activePlanId}
           isSelected={project.id === selectedProjectId}
-          onSelect={() => onSelect(project.id)}
         />
       ))}
+      {/* Mobile's New project, under the active projects */}
       <button
         type="button"
-        onClick={onNewProject}
+        onClick={openNewProject}
         className="btn btn-primary w-full md:hidden"
       >
         <PlusIcon className="size-4" />
@@ -75,7 +66,6 @@ export const ProjectList = ({
               key={project.id}
               project={project}
               steps={stepsOf(project.id)}
-              onUnarchive={() => onUnarchive(project.id)}
             />
           ))}
         </>
