@@ -103,6 +103,9 @@ Open items: see [design/tracker.md](./design/tracker.md).
 
 ## Update Log
 
+### 2026-10-25
+- **Closing a form modal inside the action's transition is its own tracker item under Quality gate Step 9's config-driven modals** (owner's call, PR #80): React's own pending state instead of `useModalSubmit` waiting for the revalidated props. It no longer hangs on Next 16.4.3; the Projects page's URL changes would then have to wait for the commit (vercel/next.js#100489). The item carries yesterday's numbers and links the spike's findings.
+
 ### 2026-10-24
 - **Optimistic writes now ride React's own `useOptimistic`, and Next is upgraded to 16.4.3, which fixes the first write after a page load hanging** (PR #80, owner's follow-ups: try the native hooks, measuring first; then check whether the upgrade lets the workaround go).
   - **Measured first**, on local production builds under 0 and 400 ms of network latency, with frame-by-frame Playwright probes of the board, the matrix and every form modal. `useOptimisticTasks` on `useOptimistic` (each write a transition, which Next also sets the action's revalidated page in) behaves like the hand-written version — two overlapping drags stay put, a failed write alone rolls back — and fixes a regression the PR had brought in: a write whose request fails outright (network, crash) stuck its change on screen for good, and the matrix's completed card never came back. Now it rolls back, like an error result.

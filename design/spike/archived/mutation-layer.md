@@ -78,7 +78,7 @@
 | matrix-add | 0 / 25 | 0 / 25 |
 
 - 16.4.3 加测，全部 0 卡住：页面一到 DOMContentLoaded 就写（50 次）、400 ms 网络延迟（30 次）、看板首次拖动后的进度更新（15 次）。modal 在点击后 60–260 ms 关闭，和带重试时的 40–230 ms 差不多。
-- modal 关在 transition 里：16.4.3 上 155 次 0 卡住（16.2.9 约 7/20 永久卡住）。这次不换：它要和 Step 9 的 config-driven modals 一起权衡（tracker）。
+- modal 关在 transition 里：16.4.3 上 155 次 0 卡住（16.2.9 约 7/20 永久卡住）。这次不换：owner 把它放进 Quality gate Step 9 的 config-driven modals（tracker）。
 - 结果：PR #80 升级到 16.4.3，删掉 200 ms 重试和对应的 tracker 条目。
 - owner 同时定了一条规则：绕开别人 bug 的写法可以用，但要标出来（AGENTS.md › Coding Conventions › *A workaround is fine, but marked*）。代码里现有的四处都标上了。其中 plan form 吞掉 redirect 的 rejection 那处在 16.4.3 上复查过：action 的 reducer 给 redirect error 标了 `handled`，全局 handler 却不看这个标记，不吞的话会再导航一次 board。16.4.3 上这次导航走 client cache，不发请求也不多一条 history，但仍然会发生，所以保留。
 
