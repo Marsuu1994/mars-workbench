@@ -104,7 +104,8 @@ Open items: see [design/tracker.md](./design/tracker.md).
 ## Update Log
 
 ### 2026-10-25
-- **Closing a form modal inside the action's transition is its own tracker item under Quality gate Step 9's config-driven modals** (owner's call, PR #80): React's own pending state instead of `useModalSubmit` waiting for the revalidated props. It no longer hangs on Next 16.4.3; the Projects page's URL changes would then have to wait for the commit (vercel/next.js#100489). The item carries yesterday's numbers and links the spike's findings.
+- **The tracker's Quality gate milestone follows the planner project's new order, numbered as there**: Step 10 component structure + config-driven modals (two PRs, component structure first), 11 close out, 12 error handling, 13 the quality sweep, 14 a code review agent (new, not scoped yet). The planner marks the mutation layer done; its two open topics, a shared server-action handler and the error-handling plumbing, now open Step 12 ahead of the per-flow error presentation. AGENTS.md and `baseline.md` point at Step 10.
+- **Closing a form modal inside the action's transition is its own item under Step 10's config-driven modals** (owner's call, PR #80): React's own pending state instead of `useModalSubmit` waiting for the revalidated props. It no longer hangs on Next 16.4.3; the Projects page's URL changes would then have to wait for the commit (vercel/next.js#100489). The item carries yesterday's numbers and links the spike's findings.
 
 ### 2026-10-24
 - **Optimistic writes now ride React's own `useOptimistic`, and Next is upgraded to 16.4.3, which fixes the first write after a page load hanging** (PR #80, owner's follow-ups: try the native hooks, measuring first; then check whether the upgrade lets the workaround go).
