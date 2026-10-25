@@ -1,10 +1,10 @@
 # Spike: Component structure — 全站的组件怎么拆
 
-**Status: draft** · 2026-10-25 · 回答 tracker 条目 Milestone — Quality gate › Step 10 › PR 1（component structure）· 相关：`archived/board-prop-drilling.md`（Board 的 view model + composition）、`archived/projects-page-refactor.md`（Projects 试点和它的六条原则）、`archived/scenario-states-without-production-props.md`（不为 console 加 prop）
+**Status: awaiting owner review** · 2026-10-25 · 回答 tracker 条目 Milestone — Quality gate › Step 10 › PR 1（component structure）· 相关：`archived/board-prop-drilling.md`（Board 的 view model + composition）、`archived/projects-page-refactor.md`（Projects 试点和它的六条原则）、`archived/scenario-states-without-production-props.md`（不为 console 加 prop）
 
 > 语言约定：叙述用中文；产品名词、状态、代码标识保留英文（habit / project / step / one-off / backlog、`KanbanBoard`、`activePlanId` …），和代码、mockup、tracker 里的叫法一一对应。
 
-**这一稿只整理现状**（owner 的要求）：每个 feature 的组件树、数据和 state 在哪、prop drilling、已知的问题，以及跨 feature 的差异。**不给方案和建议**；结尾列出这份 spike 最终要回答的问题，也不预设答案。
+两部分。**Part 1 是计划**：owner 定了以 Projects 页为标准结构，这里写标准是什么、其余每页怎么改、怎么验证、能不能交给 subagent 并行做，以及待拍板的问题。**Part 2 是现状调查**：写计划之前的 draft 原文（每页的组件树、数据和 state、prop drilling、跨页面的差异）。
 
 ---
 
@@ -14,6 +14,211 @@
 - AGENTS.md 里有两处等它裁决：UI Workflow 的 *Screen components*（标着 pending），和 Layers 的 *Server shapes inputs* 里还没定的「layout frame 怎么接内容」。`baseline.md` › Architecture Decision 也写着 still open。
 - Projects 页是试点例外（tracker 的 Step 10 下面）：没有 screen 层，feature component 直接吃 domain 行。其余页面还是试点之前的写法。
 - PR 2（config-driven modals）建在这一步的规则上，所以 modal 的 open state、registry 不在本稿范围，只记录和结构有关的事实（modal 放在哪个组件里、shell 和 panel 怎么拆）。
+
+## Owner 的决定（到目前为止）
+
+| 日期 | 决定 | 落在哪 |
+| --- | --- | --- |
+| 2026-10-25 | Step 10 拆成两个 PR：先 component structure，再 config-driven modals | tracker |
+| 2026-10-25 | Projects 页改用 page context：写入、导航和 `activePlanId` 从 `ProjectsPageContext` 取，数据仍走 props | 本 PR，已落地 |
+| 2026-10-25 | **Projects 页就是标准结构**，其余页面都改成这样；先把改动和计划写进 spike、不动手；结构写进 AGENTS.md | AGENTS.md › Layers › *Page structure*（本 PR）；计划见下文 |
+| 2026-10-25 | 想知道 spike 定了之后能不能用 subagent 并行改，只探索、不开工 | 「并行执行」一节 |
+
+# Part 1 · 计划
+
+## 标准结构（以 Projects 页为准）
+
+```text
+KanbanProjectsPage (server)        fetchProjectsPageAction → <ProjectsPage {...projectsPage} />
+└ ProjectsPage (client) ◆          rows（props）→ useOptimisticTasks；URL；openModal；所有写入
+  └ <ProjectsPageContext value>    activePlanId + 写入 / 导航 / 打开 modal
+    ├ renderHeader、空状态           页面自己的 chrome，写成 render 函数
+    ├ ProjectList                  projects · stepsByProjectId · selectedProjectId   → openNewProject
+    │ ├ ProjectCard                project · steps · isSelected       → activePlanId · showProject
+    │ └ ArchivedProjectRow         project · steps                    → unarchiveProject
+    ├ ProjectDetail                project · steps                    → activePlanId · showProjectList · openEditProject · openAddStep · moveStep · archiveProject
+    │ └ ProjectStep                step                               → activePlanId · scheduleStep · takeStepBack · openEditStep
+    ├ ProjectModal › ProjectFormPanel   overlay：callback 走 props
+    └ StepModal › StepFormPanel
+```
+
+`→` 后面是组件从 context 取的东西。规则 1–6 直接来自 Projects；7、8 是推广到其他页面时要补的两条（Q1）。
+
+1. **Route 不做整形**：调页面的 read action，把结果原样 spread 给 container，没有 screen 层。需要的派生值（例如没有 plan 时退回当前周的 `periodKey`）由 service 返回。
+2. **一个 container**：`<Feature>Page`（client，`domain/<feature>/`），名字跟 route 和文件夹一致。它拥有页面的 client state——rows 的乐观层、URL state、打开的 modal、popover / sheet / toast 这类页面级 UI state——和所有写入，并且自己渲染页面的 chrome（header、title bar、空状态）。
+3. **一个 page context**：`<Feature>PageContext`（`<Feature>PageContext.ts`），由 container 提供。里面放写入、导航、打开 overlay 的函数，以及全页共用的值（`activePlanId`、哪个 popover 开着）。组件用 `use<Feature>PageContext()` 读，在 provider 外直接 throw。
+4. **Feature component 只收数据**：rows（DAL 形状）当 props；写入和全页共用的值从 context 取，不收 callback prop；显示状态用 `src/utils/<feature>Utils.ts` 的纯函数从自己的 rows 算。
+5. **不写只有插槽的 frame**：组件只有在自带行为（`Droppable`、开关 state）时才用 `children` 接内容。
+6. **Design Console**：scenario 渲染 container 本身，context 由它提供；feature component 的 gallery specimen 包在一个 handler 全为空操作的 context 里（`inertProjectsPageContext`，放在 console 的 constants）；transient state 用 play step 点出来。
+7. **只收 props 的组件**：presentational 组件（纯展示，在几处或几种 kind 之间复用：`TaskCard`、`TaskCardFace`、`PlanTaskRow`、`SizeChip`）、`domain/shared/` 和 `ui/` 不读任何 page context；container 自己渲染的 overlay（modal、sheet、toast）收 callback props，等 PR 2 定 modal 的写法。
+8. **View model 的例外**：一个组件显示的东西依赖它自己那一行以外的 rows 时（habit 卡片的周 dots 要看同一 habit 的其他实例，step 卡片的 path 要看整个 project），由 container 用 `src/utils/` 的 adapter 一次算好（Board 的 `toBoardCards`），组件收 model。
+
+AGENTS.md › Layers › *Page structure* 是这 8 条的精简版；owner 对 Q1–Q4 的回答如果不同，那一条跟着改。
+
+## 每页的改动计划
+
+规模按 Projects 这次的量来比：S 和 Projects 差不多（一个 container、六七个文件、几处 console），M 是它的两倍左右，L 是一个 700 行的 container 加提交流程。
+
+### Board（S）
+
+现在：route → `BoardScreen`（server，header + dashboard + `KanbanBoard`）→ `KanbanBoard`（container）。PR #53 之后没有转手的 prop，唯一往下传的写入是给 `MobileBacklogCard` 的 `onPull`（一层）。
+
+```text
+KanbanPage (server)             fetchBoardAction → <BoardPage {...board} />；没有 plan 时 <EmptyBoard>（不变）
+└ BoardPage (client) ◆          tasks · plan · progress · projects → useOptimisticTasks → toBoardCards
+  └ <BoardPageContext value>    pullToTodo
+    ├ BoardHeader               periodKey（domain/shared，props）
+    ├ ProgressDashboard         progress（presentational，props）
+    └ DragDropContext
+      ├ BoardColumn ×2          status · count · isDragActive · children（带 Droppable 的 frame，保留）
+      │ └ TaskCard              card · index（presentational，保留）
+      ├ DesktopBacklog          count · children
+      └ MobileBacklog › MobileBacklogPanel
+        └ MobileBacklogCard     card                      → pullToTodo
+```
+
+- `KanbanBoard` 改名 `BoardPage`，吸收 `BoardScreen` 的两层布局（`flex-col h-full` 和 `flex-1 min-h-0`），删掉 `BoardScreen`；route 渲染 `<BoardPage {...board} />`。
+- 新增 `board/BoardPageContext.ts`：`{pullToTodo}`。`MobileBacklogCard` 去掉 `onPull`，从 context 取。
+- `toBoardCards` 和三个 frame 不动（规则 5、8）；`isDragging` 继续当 `BoardColumn` 的 prop（frame 收 props）。
+- Console：两个 `BoardScreen` tab 改渲染 `BoardPage`；`MobileBacklogSheetFrame` 和 gallery 的 `MobileBacklogCard` specimen 包 `inertBoardPageContext()`。
+- 文档：`baseline.md` › Architecture Decision 里的 `BoardScreen` / `KanbanBoard` 跟着改名。tracker *Uniform page header* 里「去掉 `BoardHeader` / `ProgressDashboard` 多余的 `'use client'`」那半句随之失效：它们会渲染在 client container 里。
+- 布局 wrapper 换了位置，按 AGENTS.md 算 layout 变动，要一次 `ui-verifier`（board 的 5 个 tab，桌面和手机）。
+
+### Priorities（M）
+
+现在：route 算 `periodKey` → `PrioritiesScreen`（三个 prop 原样转手）→ `PriorityMatrixPage`（376 行）→ `QuadrantCell`（9 个 prop，6 个转手）→ `MatrixTaskCard`（9）→ `MoveToPopover`（4，全部转手）→ `MoveToRows`（5）。`isTracked` 算了两处。
+
+```text
+PrioritiesPage route (server)   fetchPriorityMatrixAction → {tasks, activePlan, periodKey} → <PrioritiesPage {...matrix} />
+└ PrioritiesPage (client) ◆     useOptimisticTasks；popover / sheet / add modal / 两个 toast 的 state；四个写入
+  └ <PrioritiesPageContext value>   activePlanId · openPopoverTaskId · togglePopover · openMoveToSheet
+    │                               · openAddTask · trackTask · completeTask
+    ├ BoardHeader、renderTitleBar、renderHintBar、两条轴
+    ├ QuadrantCell ×4           quadrant · tasks          → openAddTask
+    │ └ MatrixTaskCard          task · index              → activePlanId · openPopoverTaskId · togglePopover · openMoveToSheet
+    │   └ MoveToPopover         task
+    │     └ MoveToRows          task · variant            → activePlanId · trackTask · completeTask
+    ├ MatrixUndoToast、Toast     overlay，props 不变
+    ├ MobileMoveToSheet         task · onClose（overlay）
+    │ └ MobileMoveToPanel       task
+    │   └ MoveToRows …
+    └ TaskModal                 domain/shared，props 不变
+```
+
+- `PriorityMatrixPage` 改名 `PrioritiesPage`，吸收 `PrioritiesScreen`（`BoardHeader`），删掉 `PrioritiesScreen`。
+- `matrixService.fetchPriorityMatrix` 多返回 `periodKey`（`activePlan?.periodKey ?? 当前 ISO 周`），route 只 spread（Q4）；`matrixService.int.test.ts` 加一条。
+- `utils/oneOffUtils.ts` 加 `groupTasksByQuadrant(tasks)`、`isTrackedTask(task, activePlanId)`，替掉 container 里的 `useMemo` 分组和两处 `isTracked`，加 unit test。
+- 新增 `priorities/PrioritiesPageContext.ts`。props：`QuadrantCell` 9 → 2，`MatrixTaskCard` 9 → 2，`MoveToPopover` 4 → 1，`MoveToRows` 5 → 2，`MobileMoveToSheet` 6 → 2，`MobileMoveToPanel` 5 → 1。
+- 不变：popover 的 click-away 层留在 container（整张卡是 drag handle）；`MatrixUndoToast`、`Toast`、`TaskModal` 的 props。
+- Console：7 个 `PrioritiesScreen` tab 改渲染 `PrioritiesPage`（fixture 加 `periodKey`）；`MobileMoveToPanelScenario` 和 gallery 的 `MatrixTaskCard` specimen 包 `inertPrioritiesPageContext(activePlanId)`，fixture 的 `isTracked` 改成 task 的 `planId` 等于 `activePlanId`；Done toast 的两个 tab 照旧组合。
+- 文档：`reference.md` 的 `fetchPriorityMatrix` 一行加上 `periodKey`。
+
+### Dump（S）
+
+现在：route 调两个 action、从 `{data}` 里解出 entries、算 `periodKey` → `DumpScreen`（client，screen 和 container 合在一起）。最深两层，没有转手。
+
+```text
+DumpPage route (server)         fetchDumpPageAction → {periodKey, entries, nextCursor, totalCount} → <DumpPage {...dump} />
+└ DumpPage (client) ◆           useDumpFeed
+  └ <DumpPageContext value>     capture · captureError · loadMore
+    ├ BoardHeader、DumpTitleBar
+    ├ DumpComposer              （无 props）              → capture · captureError
+    └ DumpFeed                  entries · hasMore · isAppending   → loadMore
+      └ DumpEntryCard           entry
+```
+
+- `DumpScreen` 改名 `DumpPage`；新增 `dump/DumpPageContext.ts`。props：`DumpComposer` 2 → 0，`DumpFeed` 4 → 3。
+- 页面的 read：新增 `fetchDumpPageAction`，把两次读、`{data}` 解包和 `periodKey` 从 route 挪走（Q4）。Dump 的 action 现在直接调 DAL；按 AGENTS.md，多次 DAL 调用的编排要进 service，所以连带新增 `dumpService.fetchDumpPage`。
+- Console：两个 tab 改渲染 `DumpPage`；gallery 的 `DumpEntryCard` 不变。
+- 文档：`reference.md` 加新的 action 和 service。
+- 这页的 context 只省掉两个 prop（Q3）。
+
+### Plan（L，建议推迟：Q5）
+
+现在：`plans/layout.tsx` → `PlanChrome`（header 加一个插槽）→ route 把 plan 行映射成 `initial*` props → `PlanForm`（707 行、11 个 `useState`、约 95 行的 `computeDiff`、提交流程和 `awaitPlanWrite` workaround）。`ReviewChangesModal` 收 13 个 prop。
+
+完整的改法：
+
+- `fetchNewPlanFormAction` / `fetchEditPlanFormAction` 返回表单的 inputs，包括初始选择（plan 行到 `initialPlanTemplates` 的映射挪进 service）；route 只 spread 给 `PlanPage`。
+- 删掉 `PlanChrome` 和 `plans/layout.tsx`，planning-mode header 由 `PlanPage` 渲染（`plans/loading.tsx` 保留）。
+- `computeDiff` 挪到 `utils/planFormUtils.ts`，改名 `diffPlanForm`，加 unit test；`AdhocTaskItem` 挪到 `types/plan.ts`。
+- `PlanPageContext`：`toggleTemplate`、`setTemplateConfig`、`openNewTemplate`、`openEditTemplate`、`toggleOneOff`、`toggleStep`。`TemplateItem` 6 → 3；`PlanTaskRow` 是两种 kind 共用的 presentational row，保留 props（规则 7）。
+- `ReviewChangesModal` 收一个 `diff` 对象，13 → 6；它是 overlay，callback 仍走 props。
+- Console：两个 plan tab 改渲染 `PlanPage`；gallery 的 `TemplateItem` specimen 现在能点选，要一个接到本地 state 的 context。
+- 风险：提交流程（create / update / Review changes / redirect workaround），以及 `planService.int.test.ts` 里用 `it.fails` 钉住的 Edit Plan bug，都在这一块。
+
+为什么建议推迟：tracker 的 Week model Phase 2 会用三步的 Plan week 替换 plan form，Review changes 也要重做，「Plan 页按 Board 的数据拆分」已经排在 Plan week 一起做。现在改，代码几个月后就删掉；Plan week 直接按标准结构建。推迟期间 Plan 是唯一的例外，AGENTS.md 指向 tracker。
+
+### 不在范围内（Q6）
+
+- **Auth（Login、Consent）**：app shell 外的独立页面；`LoginScreen` 1 个 prop、`ConsentScreen` 2 个，auth 流程本来就在 route 里；没有 drilling。
+- **Settings · App shell**：application 层，不是页面；`AppShell` 把路由和 store state 当 props 传给 sidebar 和 dock，gallery 用 fixture 渲染它们。
+
+## 执行和验证
+
+- **顺序**：三页互相独立（各自的 `domain/<feature>/`、route 和 scenario），没有先后依赖。串行时建议 Board → Dump → Priorities，由小到大。
+- **共享的文件**，也就是并行时的冲突面：`src/app/design/constants.ts`（inert context 和 fixture）、`src/app/design/tabs/DomainTab.tsx`（specimen）、`design/baseline.md`、`design/reference.md`、tracker、README Update Log、AGENTS.md 里「还没改的页面」那一句。`utils/oneOffUtils.ts` 只有 Priorities 动。
+- **每页的验证**：
+  1. `format`、`lint`、`typecheck`、`knip`、`npm test`；
+  2. `npm run test:e2e`：每个 Design Console tab 的 smoke 和四条 journey；
+  3. 像 Projects 那样在真实页面上把 context 里的 handler 逐个点一遍：Board 拖到 Done、手机 pull；Priorities 拖象限、popover 的 track 和 Done、undo、手机 sheet、add（桌面象限和手机 picker）；Dump capture、load more；
+  4. Board 搬了布局 wrapper，要一次 `ui-verifier`。
+- **PR**（Q8）：建议都进本 PR，一页一个 commit（AGENTS.md › *One task, one branch, one PR*）；要分开就一页一个 PR。
+
+## 并行执行（subagent）——探索，没开工
+
+问题：spike 定下之后，能不能让几个 subagent 同时各改一页？
+
+### 能用的工具
+
+- `Agent` tool 可以同时在后台开多个 subagent；`isolation: "worktree"` 给每个一个独立的 git worktree（同一个 repo，各自的工作目录和分支）。
+- 改代码用 general-purpose agent。`.claude/agents/` 的三个都不合适：`ui-verifier` 不改 repo，`test-writer` 只改 test，`ci-fixer` 只修红 CI。
+
+### 在这个容器里实测（2026-10-25）
+
+| 项 | 结果 |
+| --- | --- |
+| 容器 | 4 CPU、15 GB 内存 |
+| 新 worktree 的准备 | `node_modules` 用硬链接复制（`cp -al`，1.1 GB，不占新空间），再复制 `.env.local` 和生成的 Prisma client：**约 1 秒**，不用 `npm install` |
+| 在 worktree 里跑检查 | `typecheck` 19 s、`lint` 17 s、`test:unit` 6 s（238 条）、`knip` 5 s，全部通过 |
+| 两个 `npm test` 同时跑（主目录和 worktree，相差 3 秒开始） | 这一次两边都过了（各约 20–23 s），**但设计上不安全**：integration 的 `globalSetup` 每次开跑都对共用的 `mars_test` 做 `TRUNCATE … CASCADE`，库名写死，没法按 worktree 分开；后开的那次可能清掉先开那次测试中途写的行 |
+| e2e | 只能串行：共用 3000 端口上的 dev server，`e2e:session` 每次重置同一个 e2e 用户 |
+
+### 限制和对策
+
+1. **测试库**：subagent 只跑 `format`、`lint`、`typecheck`、`knip`、`test:unit`；`npm test`（含 integration）、e2e 和点击检查由主 session 在合并之后串行跑。Priorities 和 Dump 改了 service，它们的 integration test 也在这一步跑。（让 `globalSetup` 的库名可配置就能去掉这条限制，不在本 PR 范围。）
+2. **共享文件**：subagent 不碰文档（tracker、README、baseline、reference、AGENTS.md），由主 session 合并后统一写；console 的 constants 和 DomainTab 会有小冲突（各改各的段落），主 session 合并时解决。
+3. **隐含决定互相冲突**：subagent pilot 引用过 Cognition 的结论：并行写代码的 agent 会各自做出互相冲突的隐含决定。这里靠三样东西压住：AGENTS.md 的 *Page structure*、Projects 这个现成的参考实现、本 spike 里每页细到文件和 props 的计划。剩下的（命名、helper 放哪）由主 session 合并时统一。
+4. **成本**：subagent pilot 量过单次委派：处理过的 token 是自己做的 1.0–1.3 倍（注册过的 agent）到 2.5–3.4 倍（general-purpose 加长 brief），wall time 是 1.35–2.0 倍；并行的收益三轮都没测到（pilot 把它列为 subagent 的第三个价值）。这次三页是 S、M、S，主 session 的合并和串行验证（`npm test` 约 25 s、e2e 约 2 分钟、三页的点击检查、一次 `ui-verifier`）是固定成本。所以 wall time 从「三页之和」变成「最慢一页 × 1.35–2.0，加合并和验证」，token 估计多 1.5–3 倍。
+
+### 如果并行，流程是
+
+1. Spike 拍板（Q1–Q9），提交。
+2. 主 session 同时开三个 general-purpose subagent（Board、Priorities、Dump），各自 `isolation: "worktree"`。Brief：本 spike 对应的一节、AGENTS.md › *Page structure*、Projects 的四个文件作参考；第一步用硬链接准备 `node_modules`；只改代码和 console；跑 `format`、`lint`、`typecheck`、`knip`、`test:unit`；在自己的分支上 commit；报告里列出改了哪些共享文件。
+3. 主 session 把三个分支合进本 PR 的分支，解决 console 的冲突，跑 `npm test`、e2e、三页的点击检查和 Board 的 `ui-verifier`，写文档，push 一次。
+4. 像 pilot 那样记下 wall time、处理过的 token 和合并冲突，补进本 spike，作为并行的第一次实测。
+
+结论：**能并行**，限制都有对策。值不值得看 owner 更在乎什么：wall time 能省下大约一到两页的时间，代价是更多 token，以及一次合并（Q9）。
+
+## 待拍板
+
+| | 问题 | 选项 | 建议 |
+| --- | --- | --- | --- |
+| Q1 | 两条推广规则（规则 7、8） | 同意 · 改 | **同意**：presentational、`domain/shared/`、`ui/` 和 container 自己渲染的 overlay 只收 props；显示依赖其他 rows 时用 view model。不同意的话，Board 的 `toBoardCards` 和 `TaskCard` 要拆掉重来 |
+| Q2 | Overlay 的 callback 留在 props，等 PR 2 | 留 · 现在也进 context | **留**：PR 2 会重做 modal 的 open state，现在搬进 context 要改两遍 |
+| Q3 | 薄页面也要 page context 吗（Dump 只省两个 prop） | 一律要 · 只在 callback 跨两层以上时要 | **一律要**：一页一个写法，不用判断「这页够不够厚」 |
+| Q4 | Route 不做整形 | Priorities 的 `periodKey` 进 `matrixService`；Dump 加 `fetchDumpPageAction` + `dumpService.fetchDumpPage` · 只做 Priorities · 都不做 | **都做**；嫌 Dump 多一个 service 文件，可以只加 action |
+| Q5 | Plan | 推迟到 Phase 2 的 Plan week · 现在只做 `diffPlanForm` 和 `ReviewChangesModal` 的 `diff` prop · 现在完整改 | **推迟** |
+| Q6 | Auth、Settings、App shell 不改 | 同意 · 也改 | **同意** |
+| Q7 | 改名：`KanbanBoard` → `BoardPage`、`PriorityMatrixPage` → `PrioritiesPage`、`DumpScreen` → `DumpPage` | 同意 · 保留旧名 | **同意**：container 名 = route / 文件夹 + `Page` |
+| Q8 | 打包 | 都进本 PR，一页一个 commit · 一页一个 PR | **本 PR** |
+| Q9 | 执行 | 三个 subagent 并行（按上面的流程，顺便实测）· 主 session 串行 | 两个都行：在乎 wall time、也想要并行的实测数据，就并行；在乎 token 和一致性，就串行 |
+
+---
+
+# Part 2 · 现状调查（写计划之前的 draft）
+
+下面是 owner 定下标准结构之前的调查原文，Projects 一节末尾有 page context 的更新。
 
 ## 现在管组件结构的规则
 
@@ -311,17 +516,15 @@ Projects 试点删掉的是 6 个插槽的 `ProjectDetail` frame 那一类（读
 
 来自 tracker 的 Week model Phase 2（还没开始规划）：Plan › Habits 页；三步的 Plan week 替换 plan form；This week · Habits · Projects 共用一个 Plan hub header；Done 变成按天分组的 log，卡片加 ✓；Review changes 重做；Plan 页按 Board 的数据拆分；UI component tests 推迟到 Phase 2 的页面稳定之后。mockup：`design/mockup/mockup-week-model-phase2.html`。
 
-## 这份 spike 要回答的问题
+## 调查时列的十个问题，现在的答案
 
-只列问题，不预设答案；方案在 owner 想过之后再写。
-
-1. 页面要不要有 screen 层？如果有，它是什么（server 拼装、layout frame、还是别的）；如果没有，route 和 scenario 渲染什么？
-2. Container 的边界：页面的 chrome（header、title bar、空状态）写在 container 里，还是外面？
-3. 派生放在哪：container 用 adapter 一次算出 view model（Board），还是 feature component 吃 domain 行自己算（Projects）？两种要不要并存，按什么分？
-4. Frames 通过 `children` 接内容，算规则、例外还是不允许？带行为的 frame（`BoardColumn`）和纯 layout frame（`PlanChrome`）是不是一回事？
-5. Prop drilling 到什么程度算要处理（例如 Priorities 的 4 层 callback、Projects 原来的 11 个 prop，已改用 page context）？
-6. Shell / panel 的拆分：哪些理由算 production 的需要，哪些算为 console 拆？（open state 和 registry 留给 PR 2。）
-7. Design Console 渲染页面时渲染哪一层：screen、container，还是别的？
-8. 页面 header 放在哪一层，要不要所有页面同一个？
-9. 页面之上的 client state（Zustand、URL、context）什么时候用？
-10. 定下来之后，现有页面改不改、改哪些（Plan form 在 Phase 2 会被替换）？规则写进 AGENTS.md 的哪一条？
+1. Screen 层：不要。route 直接渲染 container（规则 1）。
+2. Container 的边界：页面的 chrome 写在 container 里（规则 2）。
+3. 派生：feature component 用纯函数从自己的 rows 算；显示依赖其他 rows 时由 container 用 adapter 一次算好（规则 4、8，Q1）。
+4. Frames：只有自带行为的组件用 `children` 接内容，不写只有插槽的 frame（规则 5）；所以 `BoardColumn` 保留，`PlanChrome` 在 Plan 改的时候删掉。
+5. Prop drilling：写入一律走 page context，feature component 不收 callback prop（规则 3、4）。
+6. Shell / panel：拆分保持；container 自己渲染的 overlay 收 callback props，open state 和 registry 留给 PR 2（规则 7，Q2）。
+7. Design Console 渲染哪一层：container；gallery specimen 包 inert context（规则 6）。
+8. 页面 header：由 container 渲染；`BoardHeader` 仍是 `domain/shared` 的组件。各页 header 统一成一个样子是 tracker 的 *Uniform page header*，不在这里。
+9. 页面之上的 client state：不新增。page context 只在一页之内；`settingsStore`、`sidebarStore` 不动。
+10. 改哪些：Board、Priorities、Dump；Plan 建议推迟到 Phase 2（Q5）；规则写在 AGENTS.md › Layers › *Page structure*。
