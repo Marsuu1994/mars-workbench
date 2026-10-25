@@ -11,14 +11,19 @@ export type StepModalTarget = Pick<
 
 interface StepModalProps extends Pick<
   StepFormPanelProps,
-  'onClose' | 'onSaved'
+  'freshData' | 'onClose' | 'onSaved'
 > {
   /** The step to add or edit; null: closed */
   target: StepModalTarget | null;
 }
 
 /** Add / Edit Step as a modal — a bottom sheet on mobile. */
-export const StepModal = ({target, onClose, onSaved}: StepModalProps) => (
+export const StepModal = ({
+  target,
+  freshData,
+  onClose,
+  onSaved,
+}: StepModalProps) => (
   // Backdrop-dismiss stays off: a stray tap must not discard form input
   <OverlayShell
     variant="responsive"
@@ -30,7 +35,12 @@ export const StepModal = ({target, onClose, onSaved}: StepModalProps) => (
   >
     {/* Mounted only while open, so every open starts a fresh form */}
     {target && (
-      <StepFormPanel {...target} onClose={onClose} onSaved={onSaved} />
+      <StepFormPanel
+        {...target}
+        freshData={freshData}
+        onClose={onClose}
+        onSaved={onSaved}
+      />
     )}
   </OverlayShell>
 );

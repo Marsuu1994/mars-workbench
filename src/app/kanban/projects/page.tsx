@@ -1,10 +1,8 @@
 import {ProjectsPage} from '@/components/domain/projects/ProjectsPage';
-import {getCurrentUserId} from '@/lib/auth/getCurrentUserId';
-import {fetchProjectsPage} from '@/services/projectService';
+import {fetchProjectsPageAction} from '@/actions/projectActions';
 
 export default async function KanbanProjectsPage() {
-  const userId = await getCurrentUserId();
-  const projectsPage = await fetchProjectsPage(userId);
+  const projectsPage = await fetchProjectsPageAction();
 
   return <ProjectsPage {...projectsPage} />;
 }

@@ -73,6 +73,8 @@ Read the design docs only when the task involves logic, data or new flows; skip 
 - `design/reference.md`: server action, service or DAL changes
 - `src/app/design/scenarios/<feature>/`: the feature's screen states
 
+Next.js APIs outrun training data: before using a routing, caching, server-action or `next.config` API you haven't checked for this version, read its page in `node_modules/next/dist/docs/`, the docs of the installed version.
+
 A fresh checkout runs `npm run setup` (`.env.local` from `.env.example`, `npm install`, then the local Supabase stack with migrations and seed — starting Docker first in a cloud container); a task that needs neither the database nor a signed-in page runs `npm run setup -- --no-db` instead. `npm run dev:session` signs in as the seeded dev user without Google.
 
 ### Where the rules live
@@ -122,12 +124,12 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 
 ## Layers
 
-- **Actions** (`src/actions/`): `'use server'`, thin — validate with Zod → call a service → `revalidatePath`. **MCP tools** (`src/mcp/tools/`) have the same shape: validate → service, wrapped by `runTool`.
+- **Actions** (`src/actions/`): `'use server'`, thin — validate with Zod → call a service → `revalidatePath`. **MCP tools** (`src/mcp/tools/`) have the same shape: validate → service, wrapped by `runTool`. Pages and layouts read through actions too — never a service, the DAL or an auth helper — so the action is the one layer between UI and server (ESLint).
 - **Services** (`src/services/`): all business logic, no `'use server'`; an action that needs several DAL calls or conditional orchestration moves it into a service. `syncService.ensureSynced` is the single sync entry point every kanban page awaits.
 - **DAL** (`src/lib/db/`): all Prisma queries — nothing else imports Prisma. Route handlers stay thin: they hand off to `src/mcp/` or infrastructure in `src/lib/`, with no business logic or queries of their own.
 - **Server-only modules** — `src/services/`, the DAL, the Prisma clients and `src/utils/statsUtils.ts` — never reach `'use client'` code (ESLint checks components, hooks and stores; `import type` is fine). The rest of `src/utils/` and `src/schemas.ts` are client-safe. Components may call server actions directly: actions behave like endpoints.
 - **Component placement** — `src/components/` has three layers, decided by imports (checked in order): a component that imports a domain type/enum/schema/DAL row is **domain** → `domain/<feature>/`, or `domain/shared/` when reused by ≥2 features; the once-rendered app frame (shell, tab bar, sidebar) and providers are **application**; everything else — generic primitives reusable in any app — is **ui**. Hard rule: nothing in `ui/` imports a domain type. Bad: a `WeeklyPointsChip` importing `TaskType` in `ui/`. Good: the same chip in `domain/shared/`, composing the generic `Pill` from `ui/`.
-- **Server shapes inputs, the client derives the view.** A page's service returns inputs — rows in their DAL shape (narrowed by `select`), server-only aggregates, lookups — never finished UI models. A pure adapter in `src/utils/` derives the UI shape, and derived data never becomes state. Pending: how a page's container holds and patches its rows (Quality gate Step 7) and how layout frames take their content (Step 9). The Board's pattern today: `design/baseline.md` › Architecture Decision.
+- **Server shapes inputs, the client derives the view.** A page's service returns inputs — rows in their DAL shape (narrowed by `select`), server-only aggregates, lookups — never finished UI models. A pure adapter in `src/utils/` derives the UI shape, and derived data never becomes state. A page's container takes its rows as props and layers optimistic writes on top (`useOptimisticTasks`), and form modals close once the revalidated props land (`useModalSubmit`). Pending: how layout frames take their content (Step 9). The Board's pattern: `design/baseline.md` › Architecture Decision.
 
 ## Coding Conventions
 
@@ -139,6 +141,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 - **Destructure** when two or more properties of the same object are used, instead of repeating `obj.a`, `obj.b`; a single one-off access can stay. Bad: `const feed = useDumpFeed(...); … feed.entries … feed.hasMore`. Good: `const {entries, capture, hasMore} = useDumpFeed(...);` (for a nullish source: `const {entries, nextCursor} = result ?? {entries: [], nextCursor: null};`).
 - **Name things plainly — clear and boring beats short or clever.** A function says what it returns or does, including what it looks up by; a variable or parameter — callback parameters included — says what it holds. Full words only: `id`, `tx` (Prisma transaction) and `prev` (setState updater) are fine, single letters are linted (allowed ones in `eslint.config.mjs`), and `t` is next-intl's alone. Bad: `getPlanningPlan(userId, planId)`, `templates.map(t => …)`, `runTool(ctx, body)`. Good: `getPlanContextByPlanId(userId, planId)`, `templates.map(template => …)`, `runTool(context, toolFunction)`.
 - **LLM-facing error messages live in `src/utils/errorMessages.ts`**, one UPPER_SNAKE object per surface (`PLANNING_ERROR`, `MCP_ERROR`); a message with dynamic parts is a function of them. Bad: `` throw new PlanningError(`This week already has an active plan (${id})…`) ``. Good: `throw new PlanningError(PLANNING_ERROR.ACTIVE_PLAN_EXISTS(activePlan.id))`.
+- **A workaround is fine, but marked.** Code that exists only to get around someone else's bug or quirk — a dependency's, the framework's, a browser's — opens its comment with `Workaround (<whose>):`, says what goes wrong without it, and links the upstream issue when there is one. Upgrading a dependency starts with `grep -rn "Workaround (<name>"`: each one the new version no longer needs goes in the same change. Bad: a re-render on a timer whose comment never says which bug it dodges. Good: `// Workaround (Next.js, vercel/next.js#98303): the first write's page update never commits on its own …`.
 
 ### Enums
 

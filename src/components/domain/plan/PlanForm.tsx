@@ -1,8 +1,8 @@
 'use client';
 
 import {useRef, useState, type ReactNode} from 'react';
-import {useRouter} from 'next/navigation';
 import Link from 'next/link';
+import {unstable_rethrow} from 'next/navigation';
 import {useTranslations} from 'next-intl';
 import {CheckIcon, MoonIcon, BoltIcon} from '@heroicons/react/24/outline';
 import {
@@ -32,6 +32,30 @@ import {TemplateItem} from './TemplateItem';
 import {PlanTaskRow, type PlanTaskStatus} from './PlanTaskRow';
 import {TaskModal} from '@/components/domain/shared/task-modal/TaskModal';
 import {ReviewChangesModal} from './review-changes/ReviewChangesModal';
+
+/**
+ * Awaits a plan write, which redirects to the board when it saves: undefined
+ * means the plan saved. Any other error is rethrown.
+ *
+ * Workaround (Next.js): the router follows that redirect itself, yet the
+ * action's promise still rejects with the redirect error. Next marks it
+ * handled, but its global handler ignores the mark and navigates to the board
+ * a second time, so the error is dropped here.
+ */
+const awaitPlanWrite = async <Result,>(
+  write: Promise<Result>,
+): Promise<Result | undefined> => {
+  try {
+    return await write;
+  } catch (error) {
+    try {
+      unstable_rethrow(error);
+    } catch {
+      return undefined;
+    }
+    throw error;
+  }
+};
 
 interface PlanTemplateConfig {
   type: TaskType;
@@ -110,7 +134,6 @@ export const PlanForm = ({
   initialProjectStepIds = [],
   periodKey,
 }: PlanFormProps) => {
-  const router = useRouter();
   const t = useTranslations('Plan');
   const tMode = useTranslations('Enums.PlanMode');
 
@@ -351,43 +374,45 @@ export const PlanForm = ({
     let result;
     switch (mode) {
       case 'create':
-        result = await createPlanAction({
-          periodType: PeriodType.WEEKLY,
-          description: description.trim() || undefined,
-          mode: planMode,
-          templates: templatesPayload,
-          adhocTaskIds: Array.from(selectedAdhocIds),
-          projectStepIds: Array.from(selectedStepIds),
-        });
+        result = await awaitPlanWrite(
+          createPlanAction({
+            periodType: PeriodType.WEEKLY,
+            description: description.trim() || undefined,
+            mode: planMode,
+            templates: templatesPayload,
+            adhocTaskIds: Array.from(selectedAdhocIds),
+            projectStepIds: Array.from(selectedStepIds),
+          }),
+        );
         break;
       case 'edit':
         // Only what the user let go: whatever else is on the week by now
         // (tracked, scheduled or added by Claude meanwhile) stays
-        result = await updatePlanAction(planId!, {
-          description: description.trim() || undefined,
-          mode: planMode,
-          templates: templatesPayload,
-          removeAdhocTaskIds: initialAdhocTaskIds.filter(
-            taskId => !selectedAdhocIds.has(taskId),
-          ),
-          removeProjectStepIds: initialProjectStepIds.filter(
-            stepId => !selectedStepIds.has(stepId),
-          ),
-        });
+        result = await awaitPlanWrite(
+          updatePlanAction(planId!, {
+            description: description.trim() || undefined,
+            mode: planMode,
+            templates: templatesPayload,
+            removeAdhocTaskIds: initialAdhocTaskIds.filter(
+              taskId => !selectedAdhocIds.has(taskId),
+            ),
+            removeProjectStepIds: initialProjectStepIds.filter(
+              stepId => !selectedStepIds.has(stepId),
+            ),
+          }),
+        );
         break;
     }
 
-    if (result.error) {
-      const err = result.error;
-      const message =
-        'formErrors' in err ? err.formErrors.join(', ') : JSON.stringify(err);
-      setError(message);
-      setIsSubmitting(false);
-      setIsReviewModalOpen(false);
-      return;
-    }
+    // Saved: the action redirected to the board
+    if (!result) return;
 
-    router.push('/kanban');
+    const err = result.error;
+    const message =
+      'formErrors' in err ? err.formErrors.join(', ') : JSON.stringify(err);
+    setError(message);
+    setIsSubmitting(false);
+    setIsReviewModalOpen(false);
   }
 
   const diff =
@@ -657,8 +682,8 @@ export const PlanForm = ({
 
       <TaskModal
         isOpen={isModalOpen}
+        freshData={templates}
         onClose={() => setIsModalOpen(false)}
-        onSaved={() => router.refresh()}
         template={editingTemplate}
       />
       <ReviewChangesModal

@@ -9,7 +9,7 @@ import {ModalFormFooter} from '@/components/ui/form/ModalFormFooter';
 import {OverlayHeader} from '@/components/ui/overlay/OverlayHeader';
 import type {TaskTemplateItem} from '@/lib/db/taskTemplates';
 import {TaskSize, type PriorityQuadrant} from '@/utils/enums';
-import {toFormErrorMessage} from '@/utils/formErrors';
+import {useModalSubmit} from '@/hooks/useModalSubmit';
 import {
   createTaskTemplateAction,
   updateTaskTemplateAction,
@@ -48,9 +48,12 @@ const MODE_COPY: Record<
 };
 
 export interface TaskModalPanelProps {
+  /** The page's server rows the saved task shows up in: the modal closes
+      once they arrive */
+  freshData: unknown;
   onClose: () => void;
   /** For adhoc mode, receives the quadrant the created task landed in. */
-  onSaved: (quadrant?: PriorityQuadrant) => void;
+  onSaved?: (quadrant?: PriorityQuadrant) => void;
   mode: TaskModalMode;
   template?: TaskTemplateItem | null;
   /**
@@ -68,6 +71,7 @@ export interface TaskModalPanelProps {
  * mount it inline so it renders inside a frame instead of the top layer.
  */
 export const TaskModalPanel = ({
+  freshData,
   onClose,
   onSaved,
   mode,
@@ -89,8 +93,10 @@ export const TaskModalPanel = ({
   const [size, setSize] = useState<TaskSize>(initialSize);
   const [selectedQuadrant, setSelectedQuadrant] =
     useState<PriorityQuadrant>(FALLBACK_QUADRANT);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const {isSubmitting, error, submit, reset} = useModalSubmit({
+    freshData,
+    onClose,
+  });
 
   // Reset form when the target template/mode changes while mounted. Done
   // during render (not in an effect) to avoid cascading re-renders.
@@ -101,46 +107,40 @@ export const TaskModalPanel = ({
     setDescription(initialDescription);
     setSize(initialSize);
     setSelectedQuadrant(FALLBACK_QUADRANT);
-    setError(null);
-    setIsSubmitting(false);
+    reset();
   }
 
-  async function handleSubmit(event: React.FormEvent) {
-    event.preventDefault();
-    setError(null);
-    setIsSubmitting(true);
-
-    const effectiveQuadrant = quadrant ?? selectedQuadrant;
-    let result;
+  const saveTask = async (effectiveQuadrant: PriorityQuadrant) => {
     switch (mode) {
       case 'create':
-        result = await createTaskTemplateAction({title, description, size});
-        break;
+        return createTaskTemplateAction({title, description, size});
       case 'edit':
-        result = await updateTaskTemplateAction(template!.id, {
+        return updateTaskTemplateAction(template!.id, {
           title,
           description,
           size,
         });
-        break;
       case 'adhoc':
-        result = await createAdhocTaskAction({
+        return createAdhocTaskAction({
           title,
           description,
           size,
           quadrant: effectiveQuadrant,
         });
-        break;
+      default: {
+        const unhandled: never = mode;
+        throw new Error(`Unhandled task modal mode: ${unhandled}`);
+      }
     }
+  };
 
-    if (result.error) {
-      setError(toFormErrorMessage(result.error));
-      setIsSubmitting(false);
-      return;
-    }
-
-    onSaved(mode === 'adhoc' ? effectiveQuadrant : undefined);
-    onClose();
+  function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    const effectiveQuadrant = quadrant ?? selectedQuadrant;
+    void submit(
+      () => saveTask(effectiveQuadrant),
+      () => onSaved?.(mode === 'adhoc' ? effectiveQuadrant : undefined),
+    );
   }
 
   const isAdhoc = mode === 'adhoc';

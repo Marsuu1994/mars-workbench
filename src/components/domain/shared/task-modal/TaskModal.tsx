@@ -14,6 +14,7 @@ interface TaskModalProps extends Omit<TaskModalPanelProps, 'mode'> {
 
 export const TaskModal = ({
   isOpen,
+  freshData,
   onClose,
   onSaved,
   mode: modeProp,
@@ -36,6 +37,7 @@ export const TaskModal = ({
           panel's initial state is the reset the old isOpen effect did). */}
       {isOpen && (
         <TaskModalPanel
+          freshData={freshData}
           onClose={onClose}
           onSaved={onSaved}
           mode={mode}

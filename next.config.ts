@@ -6,6 +6,17 @@ import {assertLocalServices} from './scripts/localEnv';
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
+  // `next dev` would otherwise append a managed block to AGENTS.md whenever an
+  // agent starts it; its one rule (read the installed version's docs) lives in
+  // AGENTS.md › Session start instead
+  agentRules: false,
+  experimental: {
+    // A page visited in the last 60 s comes back from the client cache, with
+    // no loader run and no skeleton. Our writes keep it correct: each one
+    // revalidates, which empties the cache. Writes from elsewhere (Claude over
+    // MCP) show up to 60 s late (design/spike/archived/mutation-layer.md).
+    staleTimes: {dynamic: 60},
+  },
   async headers() {
     return [
       {
