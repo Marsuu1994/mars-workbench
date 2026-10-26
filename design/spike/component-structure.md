@@ -229,7 +229,7 @@ DumpPage route (server)         两个读 action → toDumpPageProps(feed, total
 | Q6 | Auth、Settings、App shell | **按建议**：不改 |
 | Q7 | 改名 | **按建议**：`BoardPage`、`PrioritiesPage`、`DumpPage` |
 | Q8 | 打包 | **Owner**：本 PR 只做 spike 和 Projects 定稿；Board、Priorities、Dump 另开一个 PR；config-driven modals 的范围待定 |
-| Q9 | 串行还是并行 | **Owner：两种都跑，做成对照实验**。串行（主 session 自己做三页）和并行（按上面的流程开三个 worktree subagent）各跑三次，六个互相隔离的 session 从同一个 `main` commit、同一份 prompt 出发；每个 PR 再由一个随机编号的盲审 session 评审；主 session 统计时间、token 和完成质量，按组汇总成描述性的对比报告（不做显著性检验），结果补在这一节，再从中选一个 PR 合并 |
+| Q9 | 串行还是并行 | **Owner：两种都跑，做成对照实验**。串行（主 session 自己做三页）和并行（按上面的流程开三个 worktree subagent）各跑三次，六个互相隔离的 session 从同一个 `main` commit、同一份 prompt 出发；每个 PR 再由一个随机编号的盲审 session 评审；主 session 统计时间、token 和完成质量，按组汇总成描述性的对比报告（不做显著性检验），结果补在这一节，再从中选一个 PR 合并。方案、prompt、评分和开工步骤在 `component-structure-experiment.md` |
 
 ---
 
