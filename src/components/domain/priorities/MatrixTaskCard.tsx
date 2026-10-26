@@ -8,27 +8,16 @@ import {
 } from '@heroicons/react/24/outline';
 import {useBreakpoint} from '@/components/application/BreakpointProvider';
 import type {TaskItem} from '@/lib/db/tasks';
-import type {TrackTargetStatus} from '@/schemas';
+import {isTrackedTask} from '@/utils/oneOffUtils';
 import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {Pill} from '@/components/ui/Pill';
 import {MoveToPopover} from './MoveToPopover';
+import {usePrioritiesPageContext} from './PrioritiesPageContext';
 
 interface MatrixTaskCardProps {
   task: TaskItem;
   /** Position index within the quadrant — required by Draggable */
   index: number;
-  /** planId === active plan id: dimmed "This Week" treatment, chooser offers Done only */
-  isTracked: boolean;
-  /** No active plan → the chooser's column rows disable (Done stays live) */
-  hasActivePlan: boolean;
-  /** Whether this card's Move-to popover is open */
-  isPopoverOpen: boolean;
-  /** Toggle the popover for this card (null closes) */
-  onSendToggle: (taskId: string | null) => void;
-  onTrack: (taskId: string, status: TrackTargetStatus) => void;
-  onComplete: (taskId: string) => void;
-  /** Mobile tap → open the Move-to bottom sheet */
-  onTap: (task: TaskItem) => void;
 }
 
 /**
@@ -36,24 +25,19 @@ interface MatrixTaskCardProps {
  * hover-revealed send "→" button opening the desktop Move-to popover, and a
  * decorative grip. Tracked cards render dimmed with a "This Week" tag
  * (mobile: ★), keep the send button (Done is still a valid move) and stay
- * draggable — dragging only reprioritizes, never touches status/plan.
+ * draggable — dragging only reprioritizes, never touches status/plan. A
+ * mobile tap opens the Move-to sheet instead.
  */
-export const MatrixTaskCard = ({
-  task,
-  index,
-  isTracked,
-  hasActivePlan,
-  isPopoverOpen,
-  onSendToggle,
-  onTrack,
-  onComplete,
-  onTap,
-}: MatrixTaskCardProps) => {
+export const MatrixTaskCard = ({task, index}: MatrixTaskCardProps) => {
   const t = useTranslations('Priorities');
   const {isMobile} = useBreakpoint();
+  const {activePlanId, openPopoverTaskId, togglePopover, openMoveToSheet} =
+    usePrioritiesPageContext();
+  const isTracked = isTrackedTask(task, activePlanId);
+  const isPopoverOpen = openPopoverTaskId === task.id;
 
   const handleCardClick = () => {
-    if (isMobile) onTap(task);
+    if (isMobile) openMoveToSheet(task);
   };
 
   const renderTrackedTag = () => (
@@ -71,7 +55,7 @@ export const MatrixTaskCard = ({
       aria-label={t('sendLabel')}
       onClick={event => {
         event.stopPropagation();
-        onSendToggle(isPopoverOpen ? null : task.id);
+        togglePopover(task.id);
       }}
       className={`hidden flex-shrink-0 size-[22px] rounded-[5px] items-center justify-center cursor-pointer transition-colors ${
         isPopoverOpen
@@ -161,14 +145,7 @@ export const MatrixTaskCard = ({
           </div>
 
           {/* Click-away layer lives at the page level (outside any Draggable) */}
-          {isPopoverOpen && (
-            <MoveToPopover
-              isTracked={isTracked}
-              hasActivePlan={hasActivePlan}
-              onTrack={status => onTrack(task.id, status)}
-              onComplete={() => onComplete(task.id)}
-            />
-          )}
+          {isPopoverOpen && <MoveToPopover task={task} />}
         </div>
       )}
     </Draggable>

@@ -9,7 +9,7 @@ interface DoneToastScenarioProps {
 }
 
 /**
- * The matrix's undo toast, composed over the screen for the Done-toast tabs.
+ * The matrix's undo toast, composed over the page for the Done-toast tabs.
  * The toast only exists after a completion write, which a scenario must not
  * make, so those tabs render the post-completion fixtures plus this shared
  * toast with inert handlers; the frame's frozen time holds its countdown.
