@@ -19,6 +19,7 @@ import {PlanTaskRow} from '@/components/domain/plan/PlanTaskRow';
 import {StepPath} from '@/components/domain/board/StepPath';
 import {ProjectStep} from '@/components/domain/projects/project-detail/ProjectStep';
 import {ProjectsPageContext} from '@/components/domain/projects/ProjectsPageContext';
+import {BoardPageContext} from '@/components/domain/board/BoardPageContext';
 import {ThemePicker} from '@/components/domain/auth/ThemePicker';
 import type {ThemeName} from '@/utils/theme';
 
@@ -41,6 +42,7 @@ import {
   SCENARIO_HREFS,
   PROJECT_STEP_FIXTURES,
   inertProjectsPageContext,
+  inertBoardPageContext,
 } from '../constants';
 
 /** Right-aligned Zone action linking a feature group to its scenario page(s). */
@@ -164,15 +166,16 @@ export const DomainTab = () => {
       title="MobileBacklogCard"
       description="The mobile backlog sheet's card: the full face on a plain card, with the ↑ Todo pull beside the title."
     >
-      <div className="flex max-w-sm flex-col gap-2.5">
-        {MINI_CARD_FIXTURES.slice(0, 2).map(({card}) => (
-          <MobileBacklogCard
-            key={card.task.id}
-            card={{...card, task: {...card.task, status: TaskStatus.BACKLOG}}}
-            onPull={() => undefined}
-          />
-        ))}
-      </div>
+      <BoardPageContext value={inertBoardPageContext()}>
+        <div className="flex max-w-sm flex-col gap-2.5">
+          {MINI_CARD_FIXTURES.slice(0, 2).map(({card}) => (
+            <MobileBacklogCard
+              key={card.task.id}
+              card={{...card, task: {...card.task, status: TaskStatus.BACKLOG}}}
+            />
+          ))}
+        </div>
+      </BoardPageContext>
     </Section>
   );
 
