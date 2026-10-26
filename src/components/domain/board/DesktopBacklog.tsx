@@ -15,14 +15,14 @@ import {BacklogCountBadge} from './BacklogCountBadge';
 interface DesktopBacklogProps {
   /** Staged cards — the count pill and the empty state */
   count: number;
-  /** The staged cards, rendered by KanbanBoard */
+  /** The staged cards, rendered by BoardPage */
   children: ReactNode;
 }
 
 /**
  * Desktop-only collapsible right-edge backlog that stages BACKLOG tasks. The
  * user drags a card onto the Todo column to pull it onto the board
- * (BACKLOG → TODO). Rendered inside KanbanBoard's DragDropContext, which also
+ * (BACKLOG → TODO). Rendered inside BoardPage's DragDropContext, which also
  * renders the cards into it.
  */
 export const DesktopBacklog = ({count, children}: DesktopBacklogProps) => {
