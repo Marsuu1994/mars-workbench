@@ -1,14 +1,11 @@
 'use client';
 
-import type {TrackTargetStatus} from '@/schemas';
+import type {TaskItem} from '@/lib/db/tasks';
 import {Popover} from '@/components/ui/overlay/Popover';
 import {MoveToRows} from './MoveToRows';
 
 interface MoveToPopoverProps {
-  isTracked: boolean;
-  hasActivePlan: boolean;
-  onTrack: (status: TrackTargetStatus) => void;
-  onComplete: () => void;
+  task: TaskItem;
 }
 
 /**
@@ -16,8 +13,8 @@ interface MoveToPopoverProps {
  * row rules (tracked → Done only, no plan → column rows disabled) live in
  * MoveToRows, shared with the mobile sheet.
  */
-export const MoveToPopover = (props: MoveToPopoverProps) => (
+export const MoveToPopover = ({task}: MoveToPopoverProps) => (
   <Popover className="min-w-[180px]">
-    <MoveToRows variant="popover" {...props} />
+    <MoveToRows task={task} variant="popover" />
   </Popover>
 );
