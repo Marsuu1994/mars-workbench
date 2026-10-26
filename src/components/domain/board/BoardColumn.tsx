@@ -10,7 +10,7 @@ interface BoardColumnProps {
   status: BoardColumnStatus;
   /** Cards in the column — the header badge */
   count: number;
-  /** The column's cards, rendered by KanbanBoard */
+  /** The column's cards, rendered by BoardPage */
   children: ReactNode;
   /** True while any card is being dragged — faintly outlines all drop targets. */
   isDragActive?: boolean;
@@ -28,7 +28,7 @@ const STATUS_STYLE: Record<
 
 /**
  * One kanban column: the header (LED, label, count) and a droppable list. A
- * frame only — KanbanBoard renders the cards into it.
+ * frame only — BoardPage renders the cards into it.
  */
 export const BoardColumn = ({
   status,
