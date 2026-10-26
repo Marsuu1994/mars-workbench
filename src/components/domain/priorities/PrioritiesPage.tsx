@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useMemo} from 'react';
+import {useState} from 'react';
 import {DragDropContext, type DropResult} from '@hello-pangea/dnd';
 import {useTranslations} from 'next-intl';
 import Link from 'next/link';
@@ -12,10 +12,14 @@ import {
   CheckIcon,
 } from '@heroicons/react/24/outline';
 import type {TaskItem} from '@/lib/db/tasks';
-import {PriorityQuadrant} from '@/utils/enums';
-import {QUADRANT_ORDER} from '@/utils/oneOffUtils';
+import type {PriorityQuadrant} from '@/utils/enums';
+import {
+  QUADRANT_ORDER,
+  groupTasksByQuadrant,
+  isTrackedTask,
+  type PrioritiesPageData,
+} from '@/utils/oneOffUtils';
 import type {TrackTargetStatus} from '@/schemas';
-import type {MatrixActivePlan} from '@/services/matrixService';
 import {useOptimisticTasks} from '@/hooks/useOptimisticTasks';
 import {insertTask, removeTask} from '@/utils/optimisticTasks';
 import {
@@ -24,21 +28,17 @@ import {
   completeTaskAction,
   undoCompleteTaskAction,
 } from '@/actions/matrixActions';
+import {BoardHeader} from '@/components/domain/shared/BoardHeader';
 import {TaskModal} from '@/components/domain/shared/task-modal/TaskModal';
 import {Toast} from '@/components/ui/Toast';
 import {MatrixUndoToast} from './MatrixUndoToast';
 import {QuadrantCell} from './QuadrantCell';
 import {MobileMoveToSheet} from './MobileMoveToSheet';
 import {
-  FALLBACK_QUADRANT,
-  CREATE_PLAN_HREF,
-  TOAST_DURATION_MS,
-} from './constants';
-
-interface PriorityMatrixPageProps {
-  tasks: TaskItem[];
-  activePlan: MatrixActivePlan | null;
-}
+  PrioritiesPageContext,
+  type PrioritiesPageContextValue,
+} from './PrioritiesPageContext';
+import {CREATE_PLAN_HREF, TOAST_DURATION_MS} from './constants';
 
 /** The undo window's state: everything needed to put the card back. */
 interface UndoToastState {
@@ -53,10 +53,19 @@ interface UndoToastState {
   completed: Promise<boolean>;
 }
 
-export const PriorityMatrixPage = ({
+/**
+ * The Priorities page (/kanban/priorities): the board's header over the
+ * Eisenhower matrix, in a definite-height column (h-full against AppShell's
+ * <main> — or a fill scenario frame). Owns the page's state — the tasks as
+ * client state (drags, Move to and Done patch them optimistically), the open
+ * popover, sheet and add modal, the two toasts — and every write, which its
+ * components reach through PrioritiesPageContext rather than callback props.
+ */
+export const PrioritiesPage = ({
+  periodKey,
   tasks,
   activePlan,
-}: PriorityMatrixPageProps) => {
+}: PrioritiesPageData) => {
   const t = useTranslations('Priorities');
   const tQuadrant = useTranslations('Enums.PriorityQuadrant');
   const {localTasks, runOptimisticChange, runOptimisticTaskUpdate} =
@@ -75,26 +84,11 @@ export const PriorityMatrixPage = ({
   const [undoToast, setUndoToast] = useState<UndoToastState | null>(null);
 
   const activePlanId = activePlan?.id ?? null;
-  const isTrackedTask = (task: TaskItem) =>
-    activePlanId !== null && task.planId === activePlanId;
-
-  const byQuadrant = useMemo(() => {
-    const groups: Record<PriorityQuadrant, TaskItem[]> = {
-      [PriorityQuadrant.DO_FIRST]: [],
-      [PriorityQuadrant.SCHEDULE]: [],
-      [PriorityQuadrant.SQUEEZE_IN]: [],
-      [PriorityQuadrant.MAYBE_LATER]: [],
-    };
-    for (const task of localTasks) {
-      groups[
-        (task.quadrant as PriorityQuadrant | null) ?? FALLBACK_QUADRANT
-      ].push(task);
-    }
-    return groups;
-  }, [localTasks]);
-
+  const tasksByQuadrant = groupTasksByQuadrant(localTasks);
   const totalCount = localTasks.length;
-  const trackedCount = localTasks.filter(isTrackedTask).length;
+  const trackedCount = localTasks.filter(task =>
+    isTrackedTask(task, activePlanId),
+  ).length;
 
   function handleDragEnd(result: DropResult) {
     const {destination, source, draggableId} = result;
@@ -174,6 +168,17 @@ export const PriorityMatrixPage = ({
       'Failed to undo completion:',
     );
   }
+
+  const pageContext: PrioritiesPageContextValue = {
+    activePlanId,
+    openPopoverTaskId,
+    togglePopover: taskId =>
+      setOpenPopoverTaskId(current => (current === taskId ? null : taskId)),
+    openMoveToSheet: setSheetTask,
+    openAddTask: quadrant => setAddModal({quadrant}),
+    trackTask: handleTrack,
+    completeTask: handleComplete,
+  };
 
   // Keyed by task so a second completion restarts the countdown.
   const renderUndoToast = () => {
@@ -306,71 +311,65 @@ export const PriorityMatrixPage = ({
   );
 
   return (
-    <DragDropContext
-      onDragStart={() => setOpenPopoverTaskId(null)}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="flex-1 min-h-0 flex flex-col">
-        {renderTitleBar()}
-        {renderHintBar()}
+    <PrioritiesPageContext value={pageContext}>
+      <div className="flex flex-col h-full">
+        <BoardHeader periodKey={periodKey} />
+        <DragDropContext
+          onDragStart={() => setOpenPopoverTaskId(null)}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="flex-1 min-h-0 flex flex-col">
+            {renderTitleBar()}
+            {renderHintBar()}
 
-        <div className="flex-1 min-h-0 flex">
-          {renderAxisY()}
-          <div className="flex-1 min-w-0 grid grid-cols-2 grid-rows-2">
-            {QUADRANT_ORDER.map(quadrant => (
-              <QuadrantCell
-                key={quadrant}
-                quadrant={quadrant}
-                tasks={byQuadrant[quadrant]}
-                activePlanId={activePlanId}
-                openPopoverTaskId={openPopoverTaskId}
-                onSendToggle={setOpenPopoverTaskId}
-                onTrack={handleTrack}
-                onComplete={handleComplete}
-                onCardTap={setSheetTask}
-                onAdd={quadrant => setAddModal({quadrant})}
-              />
-            ))}
+            <div className="flex-1 min-h-0 flex">
+              {renderAxisY()}
+              <div className="flex-1 min-w-0 grid grid-cols-2 grid-rows-2">
+                {QUADRANT_ORDER.map(quadrant => (
+                  <QuadrantCell
+                    key={quadrant}
+                    quadrant={quadrant}
+                    tasks={tasksByQuadrant[quadrant]}
+                  />
+                ))}
+              </div>
+            </div>
+            {renderAxisX()}
           </div>
-        </div>
-        {renderAxisX()}
+
+          {/* Popover click-away layer — lives outside every Draggable so pressing
+              it can never start a drag (the whole card is a drag handle). */}
+          {openPopoverTaskId !== null && (
+            <div
+              className="fixed inset-0 z-40 cursor-default"
+              onClick={() => setOpenPopoverTaskId(null)}
+            />
+          )}
+
+          {renderUndoToast()}
+          {renderAddedToast()}
+
+          <MobileMoveToSheet
+            task={sheetTask}
+            onClose={() => setSheetTask(null)}
+          />
+          <TaskModal
+            isOpen={addModal !== null}
+            freshData={tasks}
+            onClose={() => setAddModal(null)}
+            onSaved={quadrant => {
+              setAddModal(null);
+              // Confirmation toast only for the mobile global add (picker flow) —
+              // desktop's per-quadrant entry shows the new card in place instead.
+              if (addModal?.quadrant === undefined && quadrant) {
+                setToastQuadrant(quadrant);
+              }
+            }}
+            mode="adhoc"
+            quadrant={addModal?.quadrant}
+          />
+        </DragDropContext>
       </div>
-
-      {/* Popover click-away layer — lives outside every Draggable so pressing
-          it can never start a drag (the whole card is a drag handle). */}
-      {openPopoverTaskId !== null && (
-        <div
-          className="fixed inset-0 z-40 cursor-default"
-          onClick={() => setOpenPopoverTaskId(null)}
-        />
-      )}
-
-      {renderUndoToast()}
-      {renderAddedToast()}
-
-      <MobileMoveToSheet
-        task={sheetTask}
-        isTracked={sheetTask !== null && isTrackedTask(sheetTask)}
-        hasActivePlan={activePlanId !== null}
-        onClose={() => setSheetTask(null)}
-        onTrack={handleTrack}
-        onComplete={handleComplete}
-      />
-      <TaskModal
-        isOpen={addModal !== null}
-        freshData={tasks}
-        onClose={() => setAddModal(null)}
-        onSaved={quadrant => {
-          setAddModal(null);
-          // Confirmation toast only for the mobile global add (picker flow) —
-          // desktop's per-quadrant entry shows the new card in place instead.
-          if (addModal?.quadrant === undefined && quadrant) {
-            setToastQuadrant(quadrant);
-          }
-        }}
-        mode="adhoc"
-        quadrant={addModal?.quadrant}
-      />
-    </DragDropContext>
+    </PrioritiesPageContext>
   );
 };

@@ -14,6 +14,7 @@ import {BoardPageContext} from '@/components/domain/board/BoardPageContext';
 import {BoardColumn} from '@/components/domain/board/BoardColumn';
 import {ProgressDashboard} from '@/components/domain/board/ProgressDashboard';
 import {MatrixTaskCard} from '@/components/domain/priorities/MatrixTaskCard';
+import {PrioritiesPageContext} from '@/components/domain/priorities/PrioritiesPageContext';
 import {DumpEntryCard} from '@/components/domain/dump/DumpEntryCard';
 import {TemplateItem} from '@/components/domain/plan/TemplateItem';
 import {PlanTaskRow} from '@/components/domain/plan/PlanTaskRow';
@@ -43,6 +44,7 @@ import {
   PROJECT_STEP_FIXTURES,
   inertProjectsPageContext,
   inertBoardPageContext,
+  inertPrioritiesPageContext,
 } from '../constants';
 
 /** Right-aligned Zone action linking a feature group to its scenario page(s). */
@@ -223,23 +225,19 @@ export const DomainTab = () => {
               {...provided.droppableProps}
               className="flex flex-wrap items-start gap-6"
             >
-              {MATRIX_CARD_FIXTURES.map((fixture, index) => (
-                <Variant key={fixture.task.id} label={fixture.label}>
-                  <div className="w-64">
-                    <MatrixTaskCard
-                      task={fixture.task}
-                      index={index}
-                      isTracked={fixture.isTracked}
-                      hasActivePlan
-                      isPopoverOpen={false}
-                      onSendToggle={() => undefined}
-                      onTrack={() => undefined}
-                      onComplete={() => undefined}
-                      onTap={() => undefined}
-                    />
-                  </div>
-                </Variant>
-              ))}
+              {MATRIX_CARD_FIXTURES.map(
+                ({label, task, activePlanId}, index) => (
+                  <Variant key={task.id} label={label}>
+                    <div className="w-64">
+                      <PrioritiesPageContext
+                        value={inertPrioritiesPageContext(activePlanId)}
+                      >
+                        <MatrixTaskCard task={task} index={index} />
+                      </PrioritiesPageContext>
+                    </div>
+                  </Variant>
+                ),
+              )}
               {provided.placeholder}
             </div>
           )}

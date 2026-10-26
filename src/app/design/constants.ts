@@ -13,6 +13,7 @@ import {TaskKind, type HabitWeek} from '@/utils/taskUtils';
 import type {BoardCard, ProjectStepContext} from '@/utils/boardCardUtils';
 import type {ProjectsPageContextValue} from '@/components/domain/projects/ProjectsPageContext';
 import type {BoardPageContextValue} from '@/components/domain/board/BoardPageContext';
+import type {PrioritiesPageContextValue} from '@/components/domain/priorities/PrioritiesPageContext';
 
 // ── Page copy ──────────────────────────────────────────────────────────────
 /** Title halves — the accent word renders with fx-text-gradient (the
@@ -419,10 +420,14 @@ export const STEP_PATH_FIXTURES: {label: string; step: ProjectStepContext}[] = [
 ];
 
 // ── Matrix card fixtures ─────────────────────────────────────────────────────
+
+/** The plan the tracked matrix card sits on. */
+const GALLERY_MATRIX_PLAN_ID = 'gallery-matrix-plan';
+
 export interface MatrixCardFixture {
   label: string;
   task: TaskItem;
-  isTracked: boolean;
+  activePlanId: string | null;
 }
 
 export const MATRIX_CARD_FIXTURES: MatrixCardFixture[] = [
@@ -439,7 +444,7 @@ export const MATRIX_CARD_FIXTURES: MatrixCardFixture[] = [
       planId: null,
       quadrant: PriorityQuadrant.DO_FIRST,
     }),
-    isTracked: false,
+    activePlanId: GALLERY_MATRIX_PLAN_ID,
   },
   {
     label: 'Tracked (This Week)',
@@ -449,9 +454,10 @@ export const MATRIX_CARD_FIXTURES: MatrixCardFixture[] = [
       title: 'Shop birthday gift',
       description: 'For mom — this Saturday',
       status: TaskStatus.TODO,
+      planId: GALLERY_MATRIX_PLAN_ID,
       quadrant: PriorityQuadrant.DO_FIRST,
     }),
-    isTracked: true,
+    activePlanId: GALLERY_MATRIX_PLAN_ID,
   },
 ];
 
@@ -688,6 +694,21 @@ export const inertProjectsPageContext = (
     Board page: inert handlers (the frame swallows clicks). */
 export const inertBoardPageContext = (): BoardPageContextValue => ({
   pullToTodo: () => undefined,
+});
+
+/** The page context a MatrixTaskCard or MobileMoveToPanel renders in, outside
+    the Priorities page: the fixture's plan, no popover open, inert handlers
+    (the frame swallows clicks). */
+export const inertPrioritiesPageContext = (
+  activePlanId: string | null,
+): PrioritiesPageContextValue => ({
+  activePlanId,
+  openPopoverTaskId: null,
+  togglePopover: () => undefined,
+  openMoveToSheet: () => undefined,
+  openAddTask: () => undefined,
+  trackTask: () => undefined,
+  completeTask: () => undefined,
 });
 
 /** TemplateItem — a single selectable plan-template row. */

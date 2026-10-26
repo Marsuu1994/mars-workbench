@@ -1,8 +1,9 @@
 import type {MatrixTaskRow, TaskItem} from '@/lib/db/tasks';
 import type {CreateAdhocTaskInput} from '../schemas';
+import type {MatrixData} from '../services/matrixService';
 import type {OneOffTaskSummary} from '../types/plan';
 import {PriorityQuadrant, TaskStatus} from './enums';
-import {formatKanbanISODate} from './dateUtils';
+import {formatKanbanISODate, getISOWeekKey} from './dateUtils';
 import {sizeToPoints} from './sizeUtils';
 import {getWeekPlacement} from './taskUtils';
 
@@ -16,6 +17,13 @@ export const QUADRANT_ORDER: PriorityQuadrant[] = [
   PriorityQuadrant.SQUEEZE_IN,
   PriorityQuadrant.MAYBE_LATER,
 ];
+
+/**
+ * Tasks created before the matrix (or during a deploy window) may carry a null
+ * quadrant — group them into the backfill default so no card silently drops
+ * out of the 2×2 grid.
+ */
+export const FALLBACK_QUADRANT = PriorityQuadrant.SCHEDULE;
 
 /** Where a one-off sits on the weeks. */
 export const OneOffTaskState = {
@@ -80,3 +88,42 @@ export const toMatrixTaskRow = ({
   points: sizeToPoints(size),
   quadrant,
 });
+
+/** What the Priorities page renders: the matrix plus the week its header shows. */
+export interface PrioritiesPageData extends MatrixData {
+  /** The active plan's week, or the current ISO week without one */
+  periodKey: string;
+}
+
+/** The Priorities page's props from the matrix, as of `today`. */
+export const toPrioritiesPageProps = (
+  {tasks, activePlan}: MatrixData,
+  today: Date,
+): PrioritiesPageData => ({
+  periodKey: activePlan?.periodKey ?? getISOWeekKey(today),
+  tasks,
+  activePlan,
+});
+
+/** The matrix's cells: each quadrant's tasks in the order given; a null
+    quadrant falls into FALLBACK_QUADRANT. */
+export const groupTasksByQuadrant = (
+  tasks: readonly TaskItem[],
+): Record<PriorityQuadrant, TaskItem[]> => {
+  const tasksByQuadrant: Record<PriorityQuadrant, TaskItem[]> = {
+    [PriorityQuadrant.DO_FIRST]: [],
+    [PriorityQuadrant.SCHEDULE]: [],
+    [PriorityQuadrant.SQUEEZE_IN]: [],
+    [PriorityQuadrant.MAYBE_LATER]: [],
+  };
+  for (const task of tasks) {
+    tasksByQuadrant[task.quadrant ?? FALLBACK_QUADRANT].push(task);
+  }
+  return tasksByQuadrant;
+};
+
+/** Whether a matrix task is on the active plan (the board's This Week). */
+export const isTrackedTask = (
+  {planId}: Pick<TaskItem, 'planId'>,
+  activePlanId: string | null,
+): boolean => activePlanId !== null && planId === activePlanId;
