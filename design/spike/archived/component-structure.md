@@ -1,6 +1,6 @@
 # Spike: Component structure — 全站的组件怎么拆
 
-**Status: decided（Q9 是一次对照实验，结果出来后补在这里）** · 2026-10-26 · 回答 tracker 条目 Milestone — Quality gate › Step 10 › PR 1（component structure）· 相关：`archived/board-prop-drilling.md`（Board 的 view model + composition）、`archived/projects-page-refactor.md`（Projects 试点和它的六条原则）、`archived/scenario-states-without-production-props.md`（不为 console 加 prop）
+**Status: decided（Q9 是一次对照实验，结果出来后补在这里）** · 2026-10-26 · 回答 tracker 条目 Milestone — Quality gate › Step 10 › PR 1（component structure）· 相关：`board-prop-drilling.md`（Board 的 view model + composition）、`projects-page-refactor.md`（Projects 试点和它的六条原则）、`scenario-states-without-production-props.md`（不为 console 加 prop）
 
 > 语言约定：叙述用中文；产品名词、状态、代码标识保留英文（habit / project / step / one-off / backlog、`KanbanBoard`、`activePlanId` …），和代码、mockup、tracker 里的叫法一一对应。
 
@@ -229,7 +229,7 @@ DumpPage route (server)         两个读 action → toDumpPageProps(feed, total
 | Q6 | Auth、Settings、App shell | **按建议**：不改 |
 | Q7 | 改名 | **按建议**：`BoardPage`、`PrioritiesPage`、`DumpPage` |
 | Q8 | 打包 | **Owner**：本 PR 只做 spike 和 Projects 定稿；Board、Priorities、Dump 另开一个 PR；config-driven modals 的范围待定 |
-| Q9 | 串行还是并行 | **Owner：两种都跑，做成对照实验**。串行（主 session 自己做三页）和并行（按上面的流程开三个 worktree subagent）各跑三次，六个互相隔离的 session 从同一个 `main` commit、同一份 prompt 出发；每个 PR 再由一个随机编号的盲审 session 评审；主 session 统计时间、token 和完成质量，按组汇总成描述性的对比报告（不做显著性检验），结果补在这一节，再从中选一个 PR 合并。方案、prompt、评分和开工步骤在 `component-structure-experiment.md` |
+| Q9 | 串行还是并行 | **Owner：两种都跑，做成对照实验**。串行（主 session 自己做三页）和并行（按上面的流程开三个 worktree subagent）各跑三次，六个互相隔离的 session 从同一个 `main` commit、同一份 prompt 出发；每个 PR 再由一个随机编号的盲审 session 评审；主 session 统计时间、token 和完成质量，按组汇总成描述性的对比报告（不做显著性检验），结果补在这一节，再从中选一个 PR 合并。方案、prompt、评分和开工步骤在 `../component-structure-experiment.md` |
 
 ---
 
@@ -248,7 +248,7 @@ DumpPage route (server)         两个读 action → toDumpPageProps(feed, total
 | *Keep the return statement an outline* | AGENTS.md › JSX & components | 条件或复杂 JSX 写成 render 函数，可复用的拆成子组件 | container 里的 render 函数越来越多（见下文） |
 | 一个文件一个组件、kebab-case 分组文件夹 | AGENTS.md › General（ESLint） | — | — |
 | Modals render inline | `src/app/design/README.md` | scenario 通过 `*Panel` / `*Content` 内联渲染 modal（`<dialog>` 会跳出 frame） | 7 对 shell / panel 的来由之一 |
-| 试点的六条原则 | `archived/projects-page-refactor.md` › 问题 3 | presentational 只给纯展示、跨功能复用的组件；feature component 吃 domain 数据、自己算显示状态；专用 banner 不单做组件；不写 slot-only frame；console 跟 production 走；范围只限 Projects | 只在 Projects 生效 |
+| 试点的六条原则 | `projects-page-refactor.md` › 问题 3 | presentational 只给纯展示、跨功能复用的组件；feature component 吃 domain 数据、自己算显示状态；专用 banner 不单做组件；不写 slot-only frame；console 跟 production 走；范围只限 Projects | 只在 Projects 生效 |
 
 ## 本稿怎么用这几个词
 

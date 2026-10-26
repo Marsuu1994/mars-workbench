@@ -15,7 +15,7 @@ npm run setup -- --no-db && npm run dev
 - **Frame modes**: `fill` (the default) is for screen-level tabs only — a 1:1, viewport-bounded stand-in for the page inside AppShell's `<main>`. Everything standalone (empty states, sheets, inline modal panels) is `fit` — content height plus padding — and/or `overlay` for a dimmed modal backdrop.
 - **Live-feel, no side effects**: frames wrap their content in an `InteractionShield`. Hover and scroll stay live; clicks, submits and drag-starts are swallowed, so wired handlers can never fire against fixture ids.
 - **Modals render inline** through their extracted `*Panel` / `*Content` components — the live `OverlayShell` top-layer dialog would escape the frame's clipping.
-- **Page contexts come from the console**: a specimen of a component that reads its page's context (`ProjectStep` reads `ProjectsPageContext`) renders inside that context with inert handlers (`inertProjectsPageContext`); a scenario renders the page itself, which provides it.
+- **Page contexts come from the console**: a specimen of a component that reads its page's context (`ProjectStep` reads `ProjectsPageContext`) renders inside that context with inert handlers (`inertProjectsPageContext` and its siblings in the console's constants); a scenario renders the page itself, which provides it, passing its fixtures through the route's adapter where the page has one.
 - **Time freezes at the frame**: `data-time="frozen"` holds `fx-countdown` clocks, so a pinned toast neither drains nor dismisses itself.
 
 ## Tabs
