@@ -6,16 +6,13 @@ import {PaperAirplaneIcon} from '@heroicons/react/24/outline';
 import {SubmitButton} from '@/components/ui/form/SubmitButton';
 import {FormErrorAlert} from '@/components/ui/form/FormErrorAlert';
 import {DUMP_ENTRY_MAX_LENGTH} from '@/utils/dump';
-
-interface DumpComposerProps {
-  captureError: string | null;
-  onCapture: (content: string) => Promise<{ok: boolean}>;
-}
+import {useDumpPageContext} from './DumpPageContext';
 
 /** The capture console: an auto-growing, IME-safe textarea. Enter inserts a
- *  newline; ⌘/Ctrl+Enter dumps. */
-export const DumpComposer = ({captureError, onCapture}: DumpComposerProps) => {
+ *  newline; ⌘/Ctrl+Enter dumps through DumpPageContext's capture. */
+export const DumpComposer = () => {
   const t = useTranslations('Dump');
+  const {capture, captureError} = useDumpPageContext();
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -40,7 +37,7 @@ export const DumpComposer = ({captureError, onCapture}: DumpComposerProps) => {
     setContent(''); // optimistic clear
     requestAnimationFrame(resetHeight);
     setIsSubmitting(true);
-    const {ok} = await onCapture(text);
+    const {ok} = await capture(text);
     setIsSubmitting(false);
     if (!ok) {
       setContent(text); // restore on failure

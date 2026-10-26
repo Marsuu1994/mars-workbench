@@ -41,7 +41,7 @@ interface DumpFeedInit {
  * Bridges the dump feed's local state to the server actions. Owns optimistic
  * capture (prepend a temp entry, reconcile with the server row, roll back on
  * error) and cursor-based load-more. Local state (not a store) — the feed is
- * page-scoped and server-seeded, mirroring PriorityMatrixPage.
+ * page-scoped and server-seeded.
  */
 export function useDumpFeed(initial: DumpFeedInit) {
   const tErrors = useTranslations('Errors');

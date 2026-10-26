@@ -7,6 +7,7 @@ import {
   formatDumpTime,
   groupEntriesByDay,
   shiftDayKey,
+  toDumpPageProps,
 } from './dump';
 
 afterEach(() => {
@@ -54,5 +55,35 @@ describe('groupEntriesByDay', () => {
       ['2026-10-12', 'Mon, Oct 12', ['monday-late', 'monday']],
       ['2026-10-18', 'Sun, Oct 18', ['sunday']],
     ]);
+  });
+});
+
+describe('toDumpPageProps', () => {
+  const entry = {id: 'entry-1', content: 'Note', createdAt: new Date()};
+
+  it("passes the first page on and shows today's ISO week", () => {
+    expect(
+      toDumpPageProps(
+        {data: {entries: [entry], nextCursor: 'cursor-1'}},
+        7,
+        new Date(2026, 9, 18),
+      ),
+    ).toEqual({
+      periodKey: '2026-W42',
+      initialEntries: [entry],
+      initialNextCursor: 'cursor-1',
+      initialTotalCount: 7,
+    });
+  });
+
+  it('falls back to an empty feed when the first page fails', () => {
+    expect(
+      toDumpPageProps({error: 'invalid'}, 0, new Date(2026, 9, 19)),
+    ).toEqual({
+      periodKey: '2026-W43',
+      initialEntries: [],
+      initialNextCursor: null,
+      initialTotalCount: 0,
+    });
   });
 });

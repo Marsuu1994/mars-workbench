@@ -3,7 +3,13 @@
  * the server action's paging, and the composer/feed UI (textarea maxLength,
  * skeletons, day grouping).
  */
-import {KANBAN_TZ, formatDayLabel, formatKanbanISODate} from './dateUtils';
+import type {DumpEntryItem} from '@/lib/db/dumpEntries';
+import {
+  KANBAN_TZ,
+  formatDayLabel,
+  formatKanbanISODate,
+  getISOWeekKey,
+} from './dateUtils';
 
 export const DUMP_PAGE_SIZE = 20;
 export const DUMP_ENTRY_MAX_LENGTH = 10000;
@@ -75,4 +81,38 @@ export function groupEntriesByDay<T extends {createdAt: Date}>(
     current.entries.push(entry);
   }
   return groups;
+}
+
+/** One feed page as `fetchDumpEntriesAction` returns it: a page, or an error. */
+type DumpFeedResult =
+  | {data: {entries: DumpEntryItem[]; nextCursor: string | null}}
+  | {error: unknown};
+
+/** The dump page's props: the header's week and the feed's first page. */
+export interface DumpPageProps {
+  periodKey: string;
+  initialEntries: DumpEntryItem[];
+  initialNextCursor: string | null;
+  initialTotalCount: number;
+}
+
+/**
+ * The dump page's adapter: the route's two reads → `DumpPage`'s props. Dump
+ * is plan-independent, so the header shows `today`'s ISO week. The
+ * cursorless first page can only succeed; its (unreachable) error branch
+ * falls back to an empty feed so the types stay honest.
+ */
+export function toDumpPageProps(
+  feed: DumpFeedResult,
+  totalCount: number,
+  today: Date,
+): DumpPageProps {
+  const {entries, nextCursor} =
+    'data' in feed ? feed.data : {entries: [], nextCursor: null};
+  return {
+    periodKey: getISOWeekKey(today),
+    initialEntries: entries,
+    initialNextCursor: nextCursor,
+    initialTotalCount: totalCount,
+  };
 }
