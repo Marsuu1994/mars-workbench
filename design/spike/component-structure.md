@@ -1,6 +1,6 @@
 # Spike: Component structure — 全站的组件怎么拆
 
-**Status: awaiting owner review（Q1–Q8 已定，Q9 待定）** · 2026-10-26 · 回答 tracker 条目 Milestone — Quality gate › Step 10 › PR 1（component structure）· 相关：`archived/board-prop-drilling.md`（Board 的 view model + composition）、`archived/projects-page-refactor.md`（Projects 试点和它的六条原则）、`archived/scenario-states-without-production-props.md`（不为 console 加 prop）
+**Status: decided（Q9 是一次对照实验，结果出来后补在这里）** · 2026-10-26 · 回答 tracker 条目 Milestone — Quality gate › Step 10 › PR 1（component structure）· 相关：`archived/board-prop-drilling.md`（Board 的 view model + composition）、`archived/projects-page-refactor.md`（Projects 试点和它的六条原则）、`archived/scenario-states-without-production-props.md`（不为 console 加 prop）
 
 > 语言约定：叙述用中文；产品名词、状态、代码标识保留英文（habit / project / step / one-off / backlog、`KanbanBoard`、`activePlanId` …），和代码、mockup、tracker 里的叫法一一对应。
 
@@ -25,7 +25,8 @@
 | 2026-10-25 | 想知道 spike 定了之后能不能用 subagent 并行改，只探索、不开工 | 「并行执行」一节 |
 | 2026-10-26 | AGENTS.md 的 *Page structure* 只写核心，细节放 `baseline.md` | 本 PR |
 | 2026-10-26 | 派生放在哪一层定成一条前提，放在标准结构最前面；route 是 adapter（取代「route 只传数据」） | 下文「前提」和规则 1 |
-| 2026-10-26 | Q1–Q7 按建议，Q4 改成 route adapter；Q8：本 PR 只做 spike 和 Projects 定稿，Board、Priorities、Dump 另开一个 PR，config-driven modals 的范围待定；Q9 待定（对照实验怎么做还在讨论） | 「Decision」 |
+| 2026-10-26 | Q1–Q7 按建议，Q4 改成 route adapter；Q8：本 PR 只做 spike 和 Projects 定稿，Board、Priorities、Dump 另开一个 PR，config-driven modals 的范围待定 | 「Decision」 |
+| 2026-10-26 | Q9：串行和并行各跑三次，做成对照实验 | 「Decision」 |
 
 # Part 1 · 计划
 
@@ -228,7 +229,7 @@ DumpPage route (server)         两个读 action → toDumpPageProps(feed, total
 | Q6 | Auth、Settings、App shell | **按建议**：不改 |
 | Q7 | 改名 | **按建议**：`BoardPage`、`PrioritiesPage`、`DumpPage` |
 | Q8 | 打包 | **Owner**：本 PR 只做 spike 和 Projects 定稿；Board、Priorities、Dump 另开一个 PR；config-driven modals 的范围待定 |
-| Q9 | 串行还是并行 | **待定**：owner 想把串行和并行做成对照实验（同样的起点、同样的 context，比较时间、token 和完成质量），实验怎么做还在讨论 |
+| Q9 | 串行还是并行 | **Owner：两种都跑，做成对照实验**。串行（主 session 自己做三页）和并行（按上面的流程开三个 worktree subagent）各跑三次，六个互相隔离的 session 从同一个 `main` commit、同一份 prompt 出发；主 session 统计时间、token 和完成质量，结果补在这一节，再从中选一个 PR 合并 |
 
 ---
 
