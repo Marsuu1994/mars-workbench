@@ -11,27 +11,21 @@ import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
 import {Pill} from '@/components/ui/Pill';
 import {ProgressBar} from '@/components/ui/ProgressBar';
 import {cn} from '@/components/ui/cn';
+import {useProjectsPageContext} from '../ProjectsPageContext';
 
 interface ProjectCardProps {
   project: ProjectItem;
   /** Its steps, in step order */
   steps: TaskItem[];
-  activePlanId: string | null;
   isSelected: boolean;
-  onSelect: () => void;
 }
 
 const {text, edge, fill, track, Icon} = TASK_KIND_STYLE[TaskKind.PROJECT];
 
 /** An active project: a card from md up, a row with a chevron on mobile. */
-export const ProjectCard = ({
-  project,
-  steps,
-  activePlanId,
-  isSelected,
-  onSelect,
-}: ProjectCardProps) => {
+export const ProjectCard = ({project, steps, isSelected}: ProjectCardProps) => {
   const t = useTranslations('Projects.List');
+  const {activePlanId, showProject} = useProjectsPageContext();
   const {doneCount, stepCount, nextStepTitle, isAllStepsDone, thisWeekCount} =
     summarizeProject(steps, activePlanId);
   const progress = t('progress', {done: doneCount, total: stepCount});
@@ -98,7 +92,7 @@ export const ProjectCard = ({
   return (
     <button
       type="button"
-      onClick={onSelect}
+      onClick={() => showProject(project.id)}
       aria-current={isSelected ? 'true' : undefined}
       className={cn(
         'fx-card block w-full cursor-pointer rounded-box border border-base-content/10 bg-base-100/70 p-3 text-left',

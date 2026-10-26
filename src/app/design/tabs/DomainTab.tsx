@@ -18,6 +18,7 @@ import {TemplateItem} from '@/components/domain/plan/TemplateItem';
 import {PlanTaskRow} from '@/components/domain/plan/PlanTaskRow';
 import {StepPath} from '@/components/domain/board/StepPath';
 import {ProjectStep} from '@/components/domain/projects/project-detail/ProjectStep';
+import {ProjectsPageContext} from '@/components/domain/projects/ProjectsPageContext';
 import {ThemePicker} from '@/components/domain/auth/ThemePicker';
 import type {ThemeName} from '@/utils/theme';
 
@@ -39,6 +40,7 @@ import {
   TEMPLATE_FIXTURE,
   SCENARIO_HREFS,
   PROJECT_STEP_FIXTURES,
+  inertProjectsPageContext,
 } from '../constants';
 
 /** Right-aligned Zone action linking a feature group to its scenario page(s). */
@@ -310,13 +312,11 @@ export const DomainTab = () => {
         {PROJECT_STEP_FIXTURES.map(({label, step, activePlanId}) => (
           <Variant key={label} label={label}>
             <div className="self-stretch">
-              <ProjectStep
-                step={step}
-                activePlanId={activePlanId}
-                onEdit={() => undefined}
-                onSchedule={() => undefined}
-                onTakeBack={() => undefined}
-              />
+              <ProjectsPageContext
+                value={inertProjectsPageContext(activePlanId)}
+              >
+                <ProjectStep step={step} />
+              </ProjectsPageContext>
             </div>
           </Variant>
         ))}
