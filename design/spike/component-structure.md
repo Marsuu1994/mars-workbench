@@ -44,16 +44,16 @@ KanbanProjectsPage (server)        fetchProjectsPageAction → <ProjectsPage {..
 
 `→` 后面是组件从 context 取的东西。规则 1–6 直接来自 Projects；7、8 是推广到其他页面时要补的两条（Q1）。
 
-1. **Route 不做整形**：调页面的 read action，把结果原样 spread 给 container，没有 screen 层。需要的派生值（例如没有 plan 时退回当前周的 `periodKey`）由 service 返回。
+1. **Route 只传数据**：route 文件调页面的 read action，把结果原样 spread 给 container，自己不改数据、不补值，也没有 screen 层。页面要的派生值由 service 返回，例如没有 plan 时 header 显示哪一周（`periodKey`，现在是 Priorities 和 Dump 的 route 自己算的）。
 2. **一个 container**：`<Feature>Page`（client，`domain/<feature>/`），名字跟 route 和文件夹一致。它拥有页面的 client state——rows 的乐观层、URL state、打开的 modal、popover / sheet / toast 这类页面级 UI state——和所有写入，并且自己渲染页面的 chrome（header、title bar、空状态）。
 3. **一个 page context**：`<Feature>PageContext`（`<Feature>PageContext.ts`），由 container 提供。里面放写入、导航、打开 overlay 的函数，以及全页共用的值（`activePlanId`、哪个 popover 开着）。组件用 `use<Feature>PageContext()` 读，在 provider 外直接 throw。
 4. **Feature component 只收数据**：rows（DAL 形状）当 props；写入和全页共用的值从 context 取，不收 callback prop；显示状态用 `src/utils/<feature>Utils.ts` 的纯函数从自己的 rows 算。
 5. **不写只有插槽的 frame**：组件只有在自带行为（`Droppable`、开关 state）时才用 `children` 接内容。
 6. **Design Console**：scenario 渲染 container 本身，context 由它提供；feature component 的 gallery specimen 包在一个 handler 全为空操作的 context 里（`inertProjectsPageContext`，放在 console 的 constants）；transient state 用 play step 点出来。
 7. **只收 props 的组件**：presentational 组件（纯展示，在几处或几种 kind 之间复用：`TaskCard`、`TaskCardFace`、`PlanTaskRow`、`SizeChip`）、`domain/shared/` 和 `ui/` 不读任何 page context；container 自己渲染的 overlay（modal、sheet、toast）收 callback props，等 PR 2 定 modal 的写法。
-8. **View model 的例外**：一个组件显示的东西依赖它自己那一行以外的 rows 时（habit 卡片的周 dots 要看同一 habit 的其他实例，step 卡片的 path 要看整个 project），由 container 用 `src/utils/` 的 adapter 一次算好（Board 的 `toBoardCards`），组件收 model。
+8. **派生在哪跑，看它的输入**：只用到组件自己收到的那组 rows 的，在组件里调纯函数（`ProjectCard` 收到自己 project 的 steps，自己调 `summarizeProject(steps)`）；一次计算要扫整页的 rows、结果喂给很多组件的，由 container 跑一次 adapter，组件收结果（Board 的 `toBoardCards`：habit 卡片的一周 dots 要把同一 template 的所有实例排进格子，step 卡片的 path 要把 board 上的乐观状态叠到整个 project 上）。两种都是纯函数，区别只在跑的位置。
 
-AGENTS.md › Layers › *Page structure* 是这 8 条的精简版；owner 对 Q1–Q4 的回答如果不同，那一条跟着改。
+AGENTS.md › Layers › *Page structure* 只写核心（route → container → context、不传 callback）；8 条的完整版在 `baseline.md` › Architecture Decision › *Page structure*。owner 对 Q1–Q4 的回答如果不同，那一条跟着改。
 
 ## 每页的改动计划
 
@@ -204,10 +204,10 @@ DumpPage route (server)         fetchDumpPageAction → {periodKey, entries, nex
 
 | | 问题 | 选项 | 建议 |
 | --- | --- | --- | --- |
-| Q1 | 两条推广规则（规则 7、8） | 同意 · 改 | **同意**：presentational、`domain/shared/`、`ui/` 和 container 自己渲染的 overlay 只收 props；显示依赖其他 rows 时用 view model。不同意的话，Board 的 `toBoardCards` 和 `TaskCard` 要拆掉重来 |
+| Q1 | 两条推广规则（规则 7、8） | 同意 · 改 | **同意**：presentational、`domain/shared/`、`ui/` 和 container 自己渲染的 overlay 只收 props；扫整页 rows 的派生由 container 跑一次。不同意的话，Board 的 `toBoardCards` 和 `TaskCard` 要拆掉重来 |
 | Q2 | Overlay 的 callback 留在 props，等 PR 2 | 留 · 现在也进 context | **留**：PR 2 会重做 modal 的 open state，现在搬进 context 要改两遍 |
 | Q3 | 薄页面也要 page context 吗（Dump 只省两个 prop） | 一律要 · 只在 callback 跨两层以上时要 | **一律要**：一页一个写法，不用判断「这页够不够厚」 |
-| Q4 | Route 不做整形 | Priorities 的 `periodKey` 进 `matrixService`；Dump 加 `fetchDumpPageAction` + `dumpService.fetchDumpPage` · 只做 Priorities · 都不做 | **都做**；嫌 Dump 多一个 service 文件，可以只加 action |
+| Q4 | Route 只传数据（规则 1） | Priorities 的 `periodKey` 进 `matrixService`；Dump 加 `fetchDumpPageAction` + `dumpService.fetchDumpPage` · 只做 Priorities · 都不做 | **都做**；嫌 Dump 多一个 service 文件，可以只加 action |
 | Q5 | Plan | 推迟到 Phase 2 的 Plan week · 现在只做 `diffPlanForm` 和 `ReviewChangesModal` 的 `diff` prop · 现在完整改 | **推迟** |
 | Q6 | Auth、Settings、App shell 不改 | 同意 · 也改 | **同意** |
 | Q7 | 改名：`KanbanBoard` → `BoardPage`、`PriorityMatrixPage` → `PrioritiesPage`、`DumpScreen` → `DumpPage` | 同意 · 保留旧名 | **同意**：container 名 = route / 文件夹 + `Page` |
