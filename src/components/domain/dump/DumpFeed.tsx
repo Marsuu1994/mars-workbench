@@ -9,23 +9,19 @@ import {SectionLabel} from '@/components/ui/SectionLabel';
 import {dumpTodayKey, groupEntriesByDay, shiftDayKey} from '@/utils/dump';
 import {DUMP_SENTINEL_ROOT_MARGIN} from './constants';
 import {DumpEntryCard} from './DumpEntryCard';
+import {useDumpPageContext} from './DumpPageContext';
 
 interface DumpFeedProps {
   entries: DumpEntryItem[];
   hasMore: boolean;
   isAppending: boolean;
-  onLoadMore: () => void;
 }
 
 /** Day-grouped, newest-first feed with an IntersectionObserver load-more
- *  sentinel and an empty state. */
-export const DumpFeed = ({
-  entries,
-  hasMore,
-  isAppending,
-  onLoadMore,
-}: DumpFeedProps) => {
+ *  sentinel (the page's loadMore) and an empty state. */
+export const DumpFeed = ({entries, hasMore, isAppending}: DumpFeedProps) => {
   const t = useTranslations('Dump');
+  const {loadMore} = useDumpPageContext();
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   // Fire load-more as the bottom sentinel approaches the viewport.
@@ -34,13 +30,13 @@ export const DumpFeed = ({
     if (!el || !hasMore) return;
     const observer = new IntersectionObserver(
       observed => {
-        if (observed[0]?.isIntersecting) onLoadMore();
+        if (observed[0]?.isIntersecting) loadMore();
       },
       {rootMargin: DUMP_SENTINEL_ROOT_MARGIN},
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [hasMore, onLoadMore]);
+  }, [hasMore, loadMore]);
 
   if (entries.length === 0) {
     return (
