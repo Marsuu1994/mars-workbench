@@ -3,7 +3,7 @@ import {
   getEmptyBoardStateAction,
 } from '@/actions/boardActions';
 import {EmptyBoard} from '@/components/domain/board/EmptyBoard';
-import {BoardScreen} from '@/components/domain/board/BoardScreen';
+import {BoardPage} from '@/components/domain/board/BoardPage';
 
 export default async function KanbanPage() {
   const board = await fetchBoardAction();
@@ -17,5 +17,5 @@ export default async function KanbanPage() {
     );
   }
 
-  return <BoardScreen {...board} />;
+  return <BoardPage {...board} />;
 }

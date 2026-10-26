@@ -11,6 +11,7 @@ import type {TaskItem} from '@/lib/db/tasks';
 import type {DumpEntryItem} from '@/lib/db/dumpEntries';
 import {TaskKind, type HabitWeek} from '@/utils/taskUtils';
 import type {BoardCard, ProjectStepContext} from '@/utils/boardCardUtils';
+import type {BoardPageContextValue} from '@/components/domain/board/BoardPageContext';
 import type {ProjectsPageContextValue} from '@/components/domain/projects/ProjectsPageContext';
 
 // ── Page copy ──────────────────────────────────────────────────────────────
@@ -681,6 +682,12 @@ export const inertProjectsPageContext = (
   moveStep: () => undefined,
   archiveProject: async () => undefined,
   unarchiveProject: async () => undefined,
+});
+
+/** The page context a MobileBacklogCard renders in, outside the Board page:
+    an inert pull (the frame swallows clicks). */
+export const inertBoardPageContext = (): BoardPageContextValue => ({
+  pullToTodo: () => undefined,
 });
 
 /** TemplateItem — a single selectable plan-template row. */
