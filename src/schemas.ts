@@ -274,6 +274,11 @@ export const planSpecSchema = z.object({
     .describe(
       "Which of lastPlan's unfinished one-off tasks move into this plan. Omit to carry all of them over; [] carries none (the rest return to the priority matrix)",
     ),
+  addOneOffTaskIds: uuidListSchema
+    .default([])
+    .describe(
+      "One-off tasks in state UNTRACKED to put on this week, by taskId from get_planning_context or create_one_off_tasks; they land in the user's to-do",
+    ),
   carryOverProjectStepIds: uuidListSchema
     .optional()
     .describe(
@@ -329,6 +334,11 @@ export const planPatchSchema = z
     removeTemplateIds: uuidListSchema
       .default([])
       .describe('templateIds to take out of the plan'),
+    addOneOffTaskIds: uuidListSchema
+      .default([])
+      .describe(
+        "One-off tasks in state UNTRACKED to put on this week; they land in the user's to-do",
+      ),
     removeOneOffTaskIds: uuidListSchema
       .default([])
       .describe('One-off tasks to send back to the priority matrix'),
@@ -350,6 +360,7 @@ export const planPatchSchema = z
         input.newTemplates,
         input.updateTemplates,
         input.removeTemplateIds,
+        input.addOneOffTaskIds,
         input.removeOneOffTaskIds,
         input.addProjectStepIds,
         input.removeProjectStepIds,

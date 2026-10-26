@@ -297,30 +297,32 @@ export async function updateAdhocTaskQuadrants(
 }
 
 /**
- * Track This Week: attach an unassigned matrix task to a plan, crossing the
+ * Track This Week: attach unassigned matrix tasks to a plan, crossing the
  * BACKLOG → board boundary in a single write (planId + status together).
  * The WHERE requires planId = null and status = BACKLOG, so already-tracked
- * tasks (and anything not on the matrix) come back null instead of moving.
+ * tasks (and anything not on the matrix) are skipped instead of moving.
+ * Returns the tasks tracked.
  */
-export async function trackAdhocTask(
+export async function trackAdhocTasks(
   userId: string,
-  taskId: string,
+  taskIds: string[],
   planId: string,
   status: TaskStatus,
-): Promise<TaskItem | null> {
-  return updateOrNull(
-    prisma.task.update({
-      where: {
-        id: taskId,
-        userId,
-        type: TaskType.AD_HOC,
-        planId: null,
-        status: TaskStatus.BACKLOG,
-      },
-      data: {planId, status},
-      select: taskSelect,
-    }),
-  );
+  tx?: Prisma.TransactionClient,
+): Promise<TaskItem[]> {
+  if (taskIds.length === 0) return [];
+  const db = tx ?? prisma;
+  return db.task.updateManyAndReturn({
+    where: {
+      id: {in: taskIds},
+      userId,
+      type: TaskType.AD_HOC,
+      planId: null,
+      status: TaskStatus.BACKLOG,
+    },
+    data: {planId, status},
+    select: taskSelect,
+  });
 }
 
 /**
