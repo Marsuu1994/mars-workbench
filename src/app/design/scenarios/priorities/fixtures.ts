@@ -18,6 +18,10 @@ export const SCENARIO_ACTIVE_PLAN: MatrixActivePlan = {
   periodKey: '2026-W28',
 };
 
+/** The day the route's adapter is given: Friday of the plan's week, so the
+    no-plan tabs fall back to the same week. */
+export const SCENARIO_TODAY = new Date(2026, 6, 10);
+
 let seq = 0;
 const task = (overrides: Partial<TaskItem>): TaskItem => ({
   id: `scn-p${seq++}`,

@@ -6,22 +6,21 @@ import {
   CheckIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
+import type {TaskItem} from '@/lib/db/tasks';
 import {TaskStatus} from '@/utils/enums';
+import {isTrackedTask} from '@/utils/oneOffUtils';
 import type {TrackTargetStatus} from '@/schemas';
 import {SectionLabel} from '@/components/ui/SectionLabel';
 import {TRACK_TARGETS, COMPLETE_DOT_CLASS} from './constants';
+import {usePrioritiesPageContext} from './PrioritiesPageContext';
 
 export type MoveToVariant = 'popover' | 'sheet';
 
 interface MoveToRowsProps {
+  /** The card the rows move */
+  task: TaskItem;
   /** Compact desktop popover rows vs the roomier mobile sheet rows */
   variant: MoveToVariant;
-  /** Already on the board → the column rows drop out, Done only */
-  isTracked: boolean;
-  /** No active plan → column rows disabled under a note; Done stays live */
-  hasActivePlan: boolean;
-  onTrack: (status: TrackTargetStatus) => void;
-  onComplete: () => void;
 }
 
 interface VariantStyle {
@@ -63,14 +62,11 @@ const VARIANT_STYLE: Record<MoveToVariant, VariantStyle> = {
  * note otherwise) and vanish for tracked cards; Done never needs a plan —
  * completing is the one move that works from any state.
  */
-export const MoveToRows = ({
-  variant,
-  isTracked,
-  hasActivePlan,
-  onTrack,
-  onComplete,
-}: MoveToRowsProps) => {
+export const MoveToRows = ({task, variant}: MoveToRowsProps) => {
   const t = useTranslations('Priorities');
+  const {activePlanId, trackTask, completeTask} = usePrioritiesPageContext();
+  const isTracked = isTrackedTask(task, activePlanId);
+  const hasActivePlan = activePlanId !== null;
   const tStatus = useTranslations('Enums.TaskStatus');
   const {list, label, note, row, dot, icon, rule} = VARIANT_STYLE[variant];
 
@@ -90,7 +86,7 @@ export const MoveToRows = ({
       disabled={!hasActivePlan}
       onClick={event => {
         event.stopPropagation();
-        onTrack(status);
+        trackTask(task.id, status);
       }}
       className={rowClass}
     >
@@ -105,7 +101,7 @@ export const MoveToRows = ({
       type="button"
       onClick={event => {
         event.stopPropagation();
-        onComplete();
+        completeTask(task.id);
       }}
       className={rowClass}
     >

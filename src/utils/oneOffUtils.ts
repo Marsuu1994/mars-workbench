@@ -1,8 +1,10 @@
 import type {MatrixTaskRow, TaskItem} from '@/lib/db/tasks';
 import type {CreateAdhocTaskInput} from '../schemas';
 import type {OneOffTaskSummary} from '../types/plan';
+import type {PrioritiesPageData} from '../types/priorities';
+import type {MatrixData} from '../services/matrixService';
 import {PriorityQuadrant, TaskStatus} from './enums';
-import {formatKanbanISODate} from './dateUtils';
+import {formatKanbanISODate, getISOWeekKey} from './dateUtils';
 import {sizeToPoints} from './sizeUtils';
 import {getWeekPlacement} from './taskUtils';
 
@@ -16,6 +18,13 @@ export const QUADRANT_ORDER: PriorityQuadrant[] = [
   PriorityQuadrant.SQUEEZE_IN,
   PriorityQuadrant.MAYBE_LATER,
 ];
+
+/**
+ * Tasks created before the matrix (or during a deploy window) may carry a null
+ * quadrant — group them into the backfill default so no card silently drops
+ * out of the 2×2 grid.
+ */
+export const FALLBACK_QUADRANT = PriorityQuadrant.SCHEDULE;
 
 /** Where a one-off sits on the weeks. */
 export const OneOffTaskState = {
@@ -80,3 +89,39 @@ export const toMatrixTaskRow = ({
   points: sizeToPoints(size),
   quadrant,
 });
+
+/**
+ * The Priorities route's adapter: the matrix → the page's props. With no
+ * active plan the header falls back to the current ISO week.
+ */
+export const toPrioritiesPageProps = (
+  {tasks, activePlan}: MatrixData,
+  today: Date,
+): PrioritiesPageData => ({
+  periodKey: activePlan?.periodKey ?? getISOWeekKey(today),
+  tasks,
+  activePlanId: activePlan?.id ?? null,
+});
+
+/** The matrix's four cells, each keeping the order given; a task without a
+    quadrant lands in FALLBACK_QUADRANT. */
+export const groupTasksByQuadrant = <Task extends Pick<TaskItem, 'quadrant'>>(
+  tasks: readonly Task[],
+): Record<PriorityQuadrant, Task[]> => {
+  const tasksByQuadrant: Record<PriorityQuadrant, Task[]> = {
+    [PriorityQuadrant.DO_FIRST]: [],
+    [PriorityQuadrant.SCHEDULE]: [],
+    [PriorityQuadrant.SQUEEZE_IN]: [],
+    [PriorityQuadrant.MAYBE_LATER]: [],
+  };
+  for (const task of tasks) {
+    tasksByQuadrant[task.quadrant ?? FALLBACK_QUADRANT].push(task);
+  }
+  return tasksByQuadrant;
+};
+
+/** Tracked: on this week's active plan (the matrix dims it, Done only). */
+export const isTrackedTask = (
+  task: Pick<TaskItem, 'planId'>,
+  activePlanId: string | null,
+): boolean => activePlanId !== null && task.planId === activePlanId;
