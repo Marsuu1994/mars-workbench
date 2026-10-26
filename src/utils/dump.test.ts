@@ -1,5 +1,5 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {MOMENTS, freezeTime} from '../../test/time';
+import {MOMENTS, WEEK_KEY, freezeTime} from '../../test/time';
 import {
   dumpDayKey,
   dumpTodayKey,
@@ -7,6 +7,7 @@ import {
   formatDumpTime,
   groupEntriesByDay,
   shiftDayKey,
+  toDumpPageProps,
 } from './dump';
 
 afterEach(() => {
@@ -54,5 +55,32 @@ describe('groupEntriesByDay', () => {
       ['2026-10-12', 'Mon, Oct 12', ['monday-late', 'monday']],
       ['2026-10-18', 'Sun, Oct 18', ['sunday']],
     ]);
+  });
+});
+
+describe('toDumpPageProps', () => {
+  const wednesday = new Date(2026, 9, 14);
+  const entries = [
+    {id: 'entry-1', content: 'Call the plumber', createdAt: new Date()},
+  ];
+
+  it("hands the feed's first page, the total and today's week to the page", () => {
+    expect(
+      toDumpPageProps({data: {entries, nextCursor: 'cursor-1'}}, 21, wednesday),
+    ).toEqual({
+      periodKey: WEEK_KEY,
+      initialEntries: entries,
+      initialNextCursor: 'cursor-1',
+      initialTotalCount: 21,
+    });
+  });
+
+  it('starts an empty, final feed when the read failed', () => {
+    expect(toDumpPageProps({error: {}}, 0, wednesday)).toEqual({
+      periodKey: WEEK_KEY,
+      initialEntries: [],
+      initialNextCursor: null,
+      initialTotalCount: 0,
+    });
   });
 });

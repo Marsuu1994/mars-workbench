@@ -1,4 +1,5 @@
 import type {DumpEntryItem} from '@/lib/db/dumpEntries';
+import type {DumpFeedResult} from '@/types/dump';
 
 /* Dump scenario fixtures — a DumpEntryItem[] spanning Today / Yesterday / an
    older day so the feed's day-group headers all render, plus one long (>6
@@ -53,5 +54,16 @@ Tomorrow: gym before standup, then a deep-work block till noon.`,
   ),
 ];
 
-/** Header week badge — dump is plan-independent, so a fixed recent week. */
-export const DUMP_PERIOD_KEY = '2026-W29';
+/* The feed action's first page as the route receives it. nextCursor is null
+   so the infinite-scroll observer stays inert against the fixtures. */
+export const DUMP_FEED_RESULT: DumpFeedResult = {
+  data: {entries: DUMP_FEED_ENTRIES, nextCursor: null},
+};
+
+export const DUMP_EMPTY_FEED_RESULT: DumpFeedResult = {
+  data: {entries: [], nextCursor: null},
+};
+
+/** The route's "today" — dump is plan-independent, so the header badge is a
+    fixed recent week (2026-W29). */
+export const DUMP_TODAY = new Date(2026, 6, 15);

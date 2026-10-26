@@ -1,19 +1,26 @@
-import {DumpScreen} from '@/components/domain/dump/DumpScreen';
+import {DumpPage} from '@/components/domain/dump/DumpPage';
+import {toDumpPageProps} from '@/utils/dump';
 import {ScenarioTabs, type ScenarioTab} from '../ScenarioTabs';
 import {ScenarioPage} from '../ScenarioPage';
-import {DUMP_FEED_ENTRIES, DUMP_PERIOD_KEY} from './fixtures';
+import {
+  DUMP_EMPTY_FEED_RESULT,
+  DUMP_FEED_ENTRIES,
+  DUMP_FEED_RESULT,
+  DUMP_TODAY,
+} from './fixtures';
 
 const DUMP_SCENARIOS: ScenarioTab[] = [
   {
     label: 'Feed',
     title: 'Dump — populated feed',
-    note: 'Day-grouped entries (Today / Yesterday / older) with one long entry showing the 6-line clamp + Show more. initialNextCursor is null so the infinite-scroll observer stays inert against the fixtures.',
+    note: 'Day-grouped entries (Today / Yesterday / older) with one long entry showing the 6-line clamp + Show more. The first page has no next cursor, so the infinite-scroll observer stays inert against the fixtures.',
     content: (
-      <DumpScreen
-        periodKey={DUMP_PERIOD_KEY}
-        initialEntries={DUMP_FEED_ENTRIES}
-        initialNextCursor={null}
-        initialTotalCount={DUMP_FEED_ENTRIES.length}
+      <DumpPage
+        {...toDumpPageProps(
+          DUMP_FEED_RESULT,
+          DUMP_FEED_ENTRIES.length,
+          DUMP_TODAY,
+        )}
       />
     ),
   },
@@ -22,12 +29,7 @@ const DUMP_SCENARIOS: ScenarioTab[] = [
     title: 'Dump — empty',
     note: 'First visit: the composer over the empty-state feed.',
     content: (
-      <DumpScreen
-        periodKey={DUMP_PERIOD_KEY}
-        initialEntries={[]}
-        initialNextCursor={null}
-        initialTotalCount={0}
-      />
+      <DumpPage {...toDumpPageProps(DUMP_EMPTY_FEED_RESULT, 0, DUMP_TODAY)} />
     ),
   },
 ];
@@ -36,10 +38,11 @@ export default function DumpScenarioPage() {
   return (
     <ScenarioPage
       title="Dump scenarios"
-      description="The real dump page (BoardHeader + composer + day-grouped feed) fed
-        fixture entries — the populated feed with Today/Yesterday/older headers
-        and the 6-line clamp, plus the empty state. initialNextCursor is pinned
-        null so the load-more observer stays inert against the fixtures."
+      description="The real dump page (BoardHeader + composer + day-grouped feed)
+        fed fixture action results through the route's adapter — the populated
+        feed with Today/Yesterday/older headers and the 6-line clamp, plus the
+        empty state. The first page has no next cursor, so the load-more
+        observer stays inert against the fixtures."
     >
       <ScenarioTabs tabs={DUMP_SCENARIOS} />
     </ScenarioPage>
