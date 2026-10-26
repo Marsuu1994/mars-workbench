@@ -1,0 +1,53 @@
+{
+  "label": "R4",
+  "scores": {
+    "correctness": 5,
+    "spec": 4,
+    "consistency": 4,
+    "conventions": 4,
+    "scope": 4,
+    "readability": 5
+  },
+  "defects": [
+    {
+      "severity": "major",
+      "where": "README.md:104-109",
+      "what": "No Update Log entry for this change and Current State line 39 still says scenarios render 'the same screen components as the live pages', though the screen layer is gone (Version Control › Before every push items 2 and 3)."
+    },
+    {
+      "severity": "major",
+      "where": "design/spike/component-structure.md",
+      "what": "The spike's plan is now fully implemented (Plan deferred by decision) but it was not moved to design/spike/archived/ with its links fixed, as design/spike/README.md step 5 requires in the PR that finishes implementation."
+    },
+    {
+      "severity": "minor",
+      "where": "src/utils/oneOffUtils.ts:92",
+      "what": "PrioritiesPageData lives in utils while the sibling page data types DumpPageData and BoardData live in src/types/, so the three pages' props types have no single home."
+    },
+    {
+      "severity": "minor",
+      "where": "src/utils/oneOffUtils.ts:3",
+      "what": "A client-safe utils module now type-imports MatrixData from the server-only services/matrixService; permitted as import type, but moving MatrixData to src/types/ would keep utils independent of services."
+    },
+    {
+      "severity": "nit",
+      "where": "src/components/domain/priorities/PrioritiesPage.tsx:87",
+      "what": "groupTasksByQuadrant runs unmemoized each render while ProjectsPage.tsx:69 wraps the same kind of grouping in useMemo; harmless with the React Compiler but the two pages differ."
+    },
+    {
+      "severity": "nit",
+      "where": "src/utils/oneOffUtils.ts:106",
+      "what": "JSDoc continuation line lacks the leading '*', unlike the rest of the file's comments."
+    },
+    {
+      "severity": "nit",
+      "where": "src/utils/dump.ts:91",
+      "what": "toDumpPageProps is a function declaration while toPrioritiesPageProps is a const arrow; each follows its file's local style but the two adapters read asymmetrically."
+    },
+    {
+      "severity": "nit",
+      "where": "src/app/design/scenarios/dump/page.tsx:13",
+      "what": "The scenario has to fake a {data: …} success envelope to pass fixtures through the adapter; taking DumpFeedPage | null and unwrapping in the route would avoid it."
+    }
+  ]
+}

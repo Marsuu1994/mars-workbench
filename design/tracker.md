@@ -71,7 +71,7 @@ Single source of truth for open ideas and todos across the app — open items on
 - [ ] Milestone — Quality gate before Phase 2: settle the mutation layer and component structure before Phase 2 and Daily rhythm start, so their new pages are built the new way. One sub-bullet per open step of the planner project *Mars Workbench — Phase 2 前的代码质量*, in its order and numbered as there
   - [ ] Step 10 — Component structure + config-driven modals, spike + implementation: settles how Phase 2's new pages (Habits, Plan week) are written
     - [ ] Page structure for the other pages (one PR) — Board, Priorities and Dump move onto the Projects page's structure (AGENTS.md › Layers › *Page structure*; spike `design/spike/component-structure.md`), built through the Q9 comparison below
-      - Q9 comparison, start here — a fresh session on `main` after PR #83 is the controller: it follows `design/spike/component-structure-experiment.md` › 6 step by step — six isolated run sessions from one commit (serial A1–A3, parallel B1–B3), six blind reviews, then the report and the owner's pick of the PR to merge; it changes no run's code
+      - Q9 comparison done (`experiments/page-structure-parallel/try1/`): six PRs #85–#90, all green and equivalent; the owner picks the one to merge, and that PR archives `design/spike/component-structure-experiment.md`
       - Board — `BoardPage` absorbs `BoardScreen`; the mobile pull through a page context
       - Priorities — `PrioritiesPage` absorbs `PrioritiesScreen`; track, complete, the popover and add through a page context (quadrant cell and card: 9 props → 2); the route's week fallback becomes an adapter
       - Dump — `DumpPage` with capture and load-more through a page context; the route's unwrapping becomes an adapter

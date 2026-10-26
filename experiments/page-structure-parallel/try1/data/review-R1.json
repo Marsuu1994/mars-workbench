@@ -1,0 +1,33 @@
+{
+  "label": "R1",
+  "scores": {
+    "correctness": 5,
+    "spec": 4,
+    "consistency": 5,
+    "conventions": 4,
+    "scope": 4,
+    "readability": 5
+  },
+  "defects": [
+    {
+      "severity": "major",
+      "where": "README.md:32-40, README.md:106",
+      "what": "No Update Log entry for today and Current State still says scenarios render 'the same screen components as the live pages', which the screen layer's removal makes false; AGENTS.md requires both before every push."
+    },
+    {
+      "severity": "minor",
+      "where": "design/spike/component-structure.md",
+      "what": "The spike's implementation finishes in this change (Plan deferred by decision) but it was not git mv'd to design/spike/archived/ nor its tracker link fixed, as the spike README's lifecycle step 5 requires."
+    },
+    {
+      "severity": "nit",
+      "where": "src/app/design/constants.ts:431",
+      "what": "MATRIX_CARD_ACTIVE_PLAN_ID = 'plan-1' duplicates baseTask's planId literal at line 151 instead of deriving from one constant."
+    },
+    {
+      "severity": "nit",
+      "where": "src/utils/dump.ts:87-89",
+      "what": "DumpFeedResult re-declares fetchDumpEntriesAction's return shape (with error loosened to unknown) instead of deriving it from the action's type."
+    }
+  ]
+}
