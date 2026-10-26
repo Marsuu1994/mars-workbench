@@ -7,6 +7,7 @@ import {
   formatDumpTime,
   groupEntriesByDay,
   shiftDayKey,
+  toDumpPageProps,
 } from './dump';
 
 afterEach(() => {
@@ -54,5 +55,45 @@ describe('groupEntriesByDay', () => {
       ['2026-10-12', 'Mon, Oct 12', ['monday-late', 'monday']],
       ['2026-10-18', 'Sun, Oct 18', ['sunday']],
     ]);
+  });
+});
+
+describe('toDumpPageProps', () => {
+  // Today as getTodayDate returns it: local midnight of the Los Angeles day
+  const thursday = new Date(2026, 9, 15);
+  const entry = {
+    id: 'entry-1',
+    content: 'Book the dentist',
+    createdAt: new Date(MOMENTS.WEDNESDAY_NOON),
+  };
+
+  it("passes the first page through under today's week", () => {
+    expect(
+      toDumpPageProps(
+        {data: {entries: [entry], nextCursor: 'cursor-1'}},
+        21,
+        thursday,
+      ),
+    ).toEqual({
+      periodKey: '2026-W42',
+      entries: [entry],
+      nextCursor: 'cursor-1',
+      totalCount: 21,
+    });
+  });
+
+  it('falls back to an empty feed when the read failed', () => {
+    expect(
+      toDumpPageProps(
+        {error: {formErrors: ['failed'], fieldErrors: {}}},
+        0,
+        thursday,
+      ),
+    ).toEqual({
+      periodKey: '2026-W42',
+      entries: [],
+      nextCursor: null,
+      totalCount: 0,
+    });
   });
 });
