@@ -7,6 +7,7 @@ import {
   formatDumpTime,
   groupEntriesByDay,
   shiftDayKey,
+  toDumpPageProps,
 } from './dump';
 
 afterEach(() => {
@@ -54,5 +55,35 @@ describe('groupEntriesByDay', () => {
       ['2026-10-12', 'Mon, Oct 12', ['monday-late', 'monday']],
       ['2026-10-18', 'Sun, Oct 18', ['sunday']],
     ]);
+  });
+});
+
+describe('toDumpPageProps', () => {
+  // Local midnight, as getTodayDate returns it
+  const sunday = new Date(2026, 9, 18);
+  const entries = [
+    {id: 'newest', content: 'Book the dentist', createdAt: new Date()},
+  ];
+
+  it("seeds the page from the feed's first page and the total", () => {
+    expect(
+      toDumpPageProps({data: {entries, nextCursor: 'next-page'}}, 21, sunday),
+    ).toEqual({
+      periodKey: '2026-W42',
+      initialEntries: entries,
+      initialNextCursor: 'next-page',
+      initialTotalCount: 21,
+    });
+  });
+
+  it('falls back to an empty feed when the read failed', () => {
+    expect(
+      toDumpPageProps({error: {formErrors: [], fieldErrors: {}}}, 3, sunday),
+    ).toEqual({
+      periodKey: '2026-W42',
+      initialEntries: [],
+      initialNextCursor: null,
+      initialTotalCount: 3,
+    });
   });
 });

@@ -53,5 +53,6 @@ Tomorrow: gym before standup, then a deep-work block till noon.`,
   ),
 ];
 
-/** Header week badge — dump is plan-independent, so a fixed recent week. */
-export const DUMP_PERIOD_KEY = '2026-W29';
+/** Today for the header's week badge — dump is plan-independent, so a fixed
+ *  day of a recent week (2026-W29). */
+export const DUMP_TODAY = new Date(2026, 6, 15);
