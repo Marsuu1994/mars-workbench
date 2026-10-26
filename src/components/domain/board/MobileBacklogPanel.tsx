@@ -10,7 +10,7 @@ interface MobileBacklogPanelProps {
   /** Staged cards — the header badge and the empty state */
   count: number;
   onClose: () => void;
-  /** The staged cards, rendered by KanbanBoard */
+  /** The staged cards, rendered by BoardPage */
   children: ReactNode;
 }
 
