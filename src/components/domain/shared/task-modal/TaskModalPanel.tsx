@@ -15,7 +15,7 @@ import {
   updateTaskTemplateAction,
 } from '@/actions/templateActions';
 import {createAdhocTaskAction} from '@/actions/taskActions';
-import {FALLBACK_QUADRANT} from '@/components/domain/priorities/constants';
+import {FALLBACK_QUADRANT} from '@/utils/oneOffUtils';
 import {QuadrantPicker} from './QuadrantPicker';
 import {SizePicker} from './SizePicker';
 
