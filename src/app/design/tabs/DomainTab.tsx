@@ -20,6 +20,7 @@ import {StepPath} from '@/components/domain/board/StepPath';
 import {ProjectStep} from '@/components/domain/projects/project-detail/ProjectStep';
 import {ProjectsPageContext} from '@/components/domain/projects/ProjectsPageContext';
 import {BoardPageContext} from '@/components/domain/board/BoardPageContext';
+import {PrioritiesPageContext} from '@/components/domain/priorities/PrioritiesPageContext';
 import {ThemePicker} from '@/components/domain/auth/ThemePicker';
 import type {ThemeName} from '@/utils/theme';
 
@@ -43,6 +44,8 @@ import {
   PROJECT_STEP_FIXTURES,
   inertProjectsPageContext,
   inertBoardPageContext,
+  inertPrioritiesPageContext,
+  MATRIX_CARD_ACTIVE_PLAN_ID,
 } from '../constants';
 
 /** Right-aligned Zone action linking a feature group to its scenario page(s). */
@@ -215,36 +218,30 @@ export const DomainTab = () => {
       title="MatrixTaskCard"
       description="Priorities-page card — hover reveals the Move-to send button (tracked cards keep it: Done is still a valid move); tracked cards dim with a This Week tag (★ on mobile)."
     >
-      <DragDropContext onDragEnd={() => undefined}>
-        <Droppable droppableId="gallery-matrix-cards">
-          {provided => (
-            <div
-              ref={provided.innerRef}
-              {...provided.droppableProps}
-              className="flex flex-wrap items-start gap-6"
-            >
-              {MATRIX_CARD_FIXTURES.map((fixture, index) => (
-                <Variant key={fixture.task.id} label={fixture.label}>
-                  <div className="w-64">
-                    <MatrixTaskCard
-                      task={fixture.task}
-                      index={index}
-                      isTracked={fixture.isTracked}
-                      hasActivePlan
-                      isPopoverOpen={false}
-                      onSendToggle={() => undefined}
-                      onTrack={() => undefined}
-                      onComplete={() => undefined}
-                      onTap={() => undefined}
-                    />
-                  </div>
-                </Variant>
-              ))}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
+      <PrioritiesPageContext
+        value={inertPrioritiesPageContext(MATRIX_CARD_ACTIVE_PLAN_ID)}
+      >
+        <DragDropContext onDragEnd={() => undefined}>
+          <Droppable droppableId="gallery-matrix-cards">
+            {provided => (
+              <div
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                className="flex flex-wrap items-start gap-6"
+              >
+                {MATRIX_CARD_FIXTURES.map((fixture, index) => (
+                  <Variant key={fixture.task.id} label={fixture.label}>
+                    <div className="w-64">
+                      <MatrixTaskCard task={fixture.task} index={index} />
+                    </div>
+                  </Variant>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
+      </PrioritiesPageContext>
     </Section>
   );
 

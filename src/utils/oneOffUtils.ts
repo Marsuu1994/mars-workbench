@@ -1,8 +1,9 @@
 import type {MatrixTaskRow, TaskItem} from '@/lib/db/tasks';
 import type {CreateAdhocTaskInput} from '../schemas';
 import type {OneOffTaskSummary} from '../types/plan';
+import type {MatrixData} from '../services/matrixService';
 import {PriorityQuadrant, TaskStatus} from './enums';
-import {formatKanbanISODate} from './dateUtils';
+import {formatKanbanISODate, getISOWeekKey} from './dateUtils';
 import {sizeToPoints} from './sizeUtils';
 import {getWeekPlacement} from './taskUtils';
 
@@ -16,6 +17,13 @@ export const QUADRANT_ORDER: PriorityQuadrant[] = [
   PriorityQuadrant.SQUEEZE_IN,
   PriorityQuadrant.MAYBE_LATER,
 ];
+
+/**
+ * Tasks created before the matrix (or during a deploy window) may carry a null
+ * quadrant — group them into the backfill default so no card silently drops
+ * out of the 2×2 grid.
+ */
+export const FALLBACK_QUADRANT = PriorityQuadrant.SCHEDULE;
 
 /** Where a one-off sits on the weeks. */
 export const OneOffTaskState = {
@@ -79,4 +87,44 @@ export const toMatrixTaskRow = ({
   size,
   points: sizeToPoints(size),
   quadrant,
+});
+
+/** On the active plan's week: the matrix dims it under a This Week tag. */
+export const isTrackedTask = (
+  task: Pick<TaskItem, 'planId'>,
+  activePlanId: string | null,
+): boolean => activePlanId !== null && task.planId === activePlanId;
+
+/** The matrix's four cells, each keeping the order given; a null quadrant
+    lands in FALLBACK_QUADRANT. */
+export const groupTasksByQuadrant = <Task extends Pick<TaskItem, 'quadrant'>>(
+  tasks: readonly Task[],
+): Record<PriorityQuadrant, Task[]> => {
+  const tasksByQuadrant: Record<PriorityQuadrant, Task[]> = {
+    [PriorityQuadrant.DO_FIRST]: [],
+    [PriorityQuadrant.SCHEDULE]: [],
+    [PriorityQuadrant.SQUEEZE_IN]: [],
+    [PriorityQuadrant.MAYBE_LATER]: [],
+  };
+  for (const task of tasks) {
+    tasksByQuadrant[task.quadrant ?? FALLBACK_QUADRANT].push(task);
+  }
+  return tasksByQuadrant;
+};
+
+/** The priorities page's props: the matrix and the week its header shows. */
+export interface PrioritiesPageProps extends MatrixData {
+  periodKey: string;
+}
+
+/**
+ * The priorities page's adapter: the matrix read → `PrioritiesPage`'s props.
+ * With no active plan the header falls back to `today`'s ISO week.
+ */
+export const toPrioritiesPageProps = (
+  matrix: MatrixData,
+  today: Date,
+): PrioritiesPageProps => ({
+  ...matrix,
+  periodKey: matrix.activePlan?.periodKey ?? getISOWeekKey(today),
 });

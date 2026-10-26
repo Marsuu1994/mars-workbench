@@ -6,22 +6,21 @@ import {
   CheckIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
+import type {TaskItem} from '@/lib/db/tasks';
 import {TaskStatus} from '@/utils/enums';
+import {isTrackedTask} from '@/utils/oneOffUtils';
 import type {TrackTargetStatus} from '@/schemas';
 import {SectionLabel} from '@/components/ui/SectionLabel';
 import {TRACK_TARGETS, COMPLETE_DOT_CLASS} from './constants';
+import {usePrioritiesPageContext} from './PrioritiesPageContext';
 
 export type MoveToVariant = 'popover' | 'sheet';
 
 interface MoveToRowsProps {
   /** Compact desktop popover rows vs the roomier mobile sheet rows */
   variant: MoveToVariant;
-  /** Already on the board → the column rows drop out, Done only */
-  isTracked: boolean;
-  /** No active plan → column rows disabled under a note; Done stays live */
-  hasActivePlan: boolean;
-  onTrack: (status: TrackTargetStatus) => void;
-  onComplete: () => void;
+  /** The task the chooser moves */
+  task: TaskItem;
 }
 
 interface VariantStyle {
@@ -61,18 +60,18 @@ const VARIANT_STYLE: Record<MoveToVariant, VariantStyle> = {
  * sheet: "Move to" label, the board's Todo column and, under a hairline,
  * Done. Column rows need an active plan (disabled with a
  * note otherwise) and vanish for tracked cards; Done never needs a plan —
- * completing is the one move that works from any state.
+ * completing is the one move that works from any state. The moves are
+ * PrioritiesPageContext's track and complete.
  */
-export const MoveToRows = ({
-  variant,
-  isTracked,
-  hasActivePlan,
-  onTrack,
-  onComplete,
-}: MoveToRowsProps) => {
+export const MoveToRows = ({variant, task}: MoveToRowsProps) => {
   const t = useTranslations('Priorities');
   const tStatus = useTranslations('Enums.TaskStatus');
   const {list, label, note, row, dot, icon, rule} = VARIANT_STYLE[variant];
+  const {activePlanId, trackTask, completeTask} = usePrioritiesPageContext();
+  // Already on the board → the column rows drop out, Done only
+  const isTracked = isTrackedTask(task, activePlanId);
+  // No active plan → column rows disabled under a note; Done stays live
+  const hasActivePlan = activePlanId !== null;
 
   const rowClass = `flex items-center border border-base-content/10 bg-base-100 font-medium transition-colors enabled:cursor-pointer enabled:hover:border-primary enabled:hover:bg-primary/5 disabled:opacity-40 disabled:cursor-not-allowed ${row}`;
 
@@ -90,7 +89,7 @@ export const MoveToRows = ({
       disabled={!hasActivePlan}
       onClick={event => {
         event.stopPropagation();
-        onTrack(status);
+        trackTask(task.id, status);
       }}
       className={rowClass}
     >
@@ -105,7 +104,7 @@ export const MoveToRows = ({
       type="button"
       onClick={event => {
         event.stopPropagation();
-        onComplete();
+        completeTask(task.id);
       }}
       className={rowClass}
     >

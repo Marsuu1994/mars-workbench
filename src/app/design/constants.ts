@@ -13,6 +13,7 @@ import {TaskKind, type HabitWeek} from '@/utils/taskUtils';
 import type {BoardCard, ProjectStepContext} from '@/utils/boardCardUtils';
 import type {ProjectsPageContextValue} from '@/components/domain/projects/ProjectsPageContext';
 import type {BoardPageContextValue} from '@/components/domain/board/BoardPageContext';
+import type {PrioritiesPageContextValue} from '@/components/domain/priorities/PrioritiesPageContext';
 
 // ── Page copy ──────────────────────────────────────────────────────────────
 /** Title halves — the accent word renders with fx-text-gradient (the
@@ -425,10 +426,13 @@ export const inertBoardPageContext = (): BoardPageContextValue => ({
 });
 
 // ── Matrix card fixtures ─────────────────────────────────────────────────────
+/** The plan the matrix card specimens' week runs: baseTask's planId, so a
+    fixture that keeps it is tracked. */
+export const MATRIX_CARD_ACTIVE_PLAN_ID = 'plan-1';
+
 export interface MatrixCardFixture {
   label: string;
   task: TaskItem;
-  isTracked: boolean;
 }
 
 export const MATRIX_CARD_FIXTURES: MatrixCardFixture[] = [
@@ -445,7 +449,6 @@ export const MATRIX_CARD_FIXTURES: MatrixCardFixture[] = [
       planId: null,
       quadrant: PriorityQuadrant.DO_FIRST,
     }),
-    isTracked: false,
   },
   {
     label: 'Tracked (This Week)',
@@ -457,9 +460,23 @@ export const MATRIX_CARD_FIXTURES: MatrixCardFixture[] = [
       status: TaskStatus.TODO,
       quadrant: PriorityQuadrant.DO_FIRST,
     }),
-    isTracked: true,
   },
 ];
+
+/** The page context a matrix card or Move-to panel renders in outside the
+    priorities page: the fixture's plan, inert handlers (the frame swallows
+    clicks). */
+export const inertPrioritiesPageContext = (
+  activePlanId: string | null,
+): PrioritiesPageContextValue => ({
+  activePlanId,
+  openPopoverTaskId: null,
+  togglePopover: () => undefined,
+  openMoveToSheet: () => undefined,
+  openAddTask: () => undefined,
+  trackTask: () => undefined,
+  completeTask: () => undefined,
+});
 
 // ── Progress dashboard fixture ───────────────────────────────────────────────
 export const PROGRESS_FIXTURE = {
