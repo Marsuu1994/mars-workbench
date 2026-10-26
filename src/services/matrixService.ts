@@ -1,6 +1,6 @@
 import {
   getNonDoneAdhocTasks,
-  trackAdhocTask,
+  trackAdhocTasks,
   completeAdhocTasks,
   revertAdhocCompletion,
   type TaskItem,
@@ -39,7 +39,8 @@ export async function fetchPriorityMatrix(userId: string): Promise<MatrixData> {
 
 /**
  * Track This Week: attach an unassigned matrix task to the current ACTIVE
- * plan, moving it BACKLOG → TODO onto the board.
+ * plan, moving it BACKLOG → TODO onto the board. MCP's addOneOffTaskIds
+ * tracks through the same write.
  */
 export async function trackTaskThisWeek(
   userId: string,
@@ -49,7 +50,7 @@ export async function trackTaskThisWeek(
   const plan = await ensureSynced(userId);
   if (!plan) return {error: 'noActivePlan'};
 
-  const task = await trackAdhocTask(userId, taskId, plan.id, status);
+  const [task] = await trackAdhocTasks(userId, [taskId], plan.id, status);
   if (!task) return {error: 'taskNotFound'};
 
   return {task};

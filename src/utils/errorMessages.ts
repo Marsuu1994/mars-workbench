@@ -13,7 +13,7 @@ export const PLANNING_ERROR = {
   NO_ACTIVE_PLAN: (planId: string) =>
     `Plan ${planId} is not this week's active plan; this week has no active plan yet, so create one.`,
   EMPTY_PLAN:
-    'A plan needs at least one template, carried-over one-off task or project step.',
+    'A plan needs at least one template, one-off task or project step.',
   TEMPLATES_LISTED_TWICE: (templateIds: string[]) =>
     `Templates listed more than once: ${templateIds.join(', ')}.`,
   TEMPLATES_ALREADY_IN_PLAN: (templateIds: string[]) =>
@@ -28,6 +28,8 @@ export const PLANNING_ERROR = {
     `Not unfinished one-off tasks of this plan: ${taskIds.join(', ')}.`,
   ONE_OFF_TASKS_NOT_FOUND: (taskIds: string[]) =>
     `Not unfinished one-off tasks: ${taskIds.join(', ')}. Use taskIds from get_planning_context's oneOffTasks; done tasks can't be changed.`,
+  ONE_OFF_TASKS_NOT_UNTRACKED: (taskIds: string[]) =>
+    `Not untracked one-off tasks: ${taskIds.join(', ')}. addOneOffTaskIds takes unfinished one-offs in state UNTRACKED (on no week); one in state LAST_WEEK moves with carryOverOneOffTaskIds.`,
   ONE_OFF_TASKS_LISTED_TWICE: (taskIds: string[]) =>
     `One-off tasks listed more than once: ${taskIds.join(', ')}.`,
   PROJECT_STEPS_LISTED_TWICE: (stepIds: string[]) =>

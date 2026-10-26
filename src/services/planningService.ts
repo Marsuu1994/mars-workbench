@@ -10,6 +10,7 @@ import {
   getAdhocTasksByPlanId,
   getNonDoneAdhocTasks,
   getPlanTemplateStats,
+  trackAdhocTasks,
   type TaskItem,
 } from '@/lib/db/tasks';
 import {getProjectsWithSteps, type ProjectWithSteps} from '@/lib/db/projects';
@@ -33,6 +34,7 @@ import {
 } from '@/utils/projectUtils';
 import {sortByQuadrant, toOneOffTaskSummary} from '@/utils/oneOffUtils';
 import {PLANNING_ERROR} from '@/utils/errorMessages';
+import {TaskStatus} from '@/utils/enums';
 import {
   KANBAN_TZ,
   formatISODate,
@@ -201,6 +203,41 @@ function assertNoStepPatchConflicts({
 }
 
 /**
+ * Throws a PlanningError naming every one-off addOneOffTaskIds cannot put on
+ * the week: only unfinished one-offs on no week (UNTRACKED) can go, as with
+ * the matrix's Track This Week.
+ */
+function assertOneOffTasksUntracked(
+  taskIds: string[],
+  nonDoneAdhocTasks: TaskItem[],
+) {
+  const untrackedTaskIds = new Set(
+    nonDoneAdhocTasks
+      .filter(
+        ({planId, status}) => planId === null && status === TaskStatus.BACKLOG,
+      )
+      .map(({id}) => id),
+  );
+  const notUntrackedTaskIds = [
+    ...new Set(taskIds.filter(taskId => !untrackedTaskIds.has(taskId))),
+  ];
+  const repeatedTaskIds = findRepeatedIds(taskIds);
+
+  const problems: string[] = [];
+  if (notUntrackedTaskIds.length > 0) {
+    problems.push(
+      PLANNING_ERROR.ONE_OFF_TASKS_NOT_UNTRACKED(notUntrackedTaskIds),
+    );
+  }
+  if (repeatedTaskIds.length > 0) {
+    problems.push(PLANNING_ERROR.ONE_OFF_TASKS_LISTED_TWICE(repeatedTaskIds));
+  }
+  if (problems.length > 0) {
+    throw new PlanningError(PLANNING_ERROR.PATCH_REJECTED(problems));
+  }
+}
+
+/**
  * One plan as the planning tools describe it: its templates with their
  * progress (so far for the active plan), its one-off tasks and project steps
  * (done ones included), and the overall totals. Shared by the planning context and
@@ -333,6 +370,7 @@ export async function getPlanningContext(
  * `create_plan`), with the shared creation guard. Carries over all of the
  * last plan's unfinished one-off tasks and project steps unless
  * `carryOverOneOffTaskIds` / `carryOverProjectStepIds` pick a subset, and puts
+ * `addOneOffTaskIds` (untracked one-offs, into the to-do) and
  * `addProjectStepIds` (upcoming steps) on the week. New templates and the
  * plan are written in one transaction.
  */
@@ -346,6 +384,7 @@ export async function createPlanFromSpec(
     templates,
     newTemplates,
     carryOverOneOffTaskIds,
+    addOneOffTaskIds,
     carryOverProjectStepIds,
     addProjectStepIds,
   } = planSpec;
@@ -365,12 +404,17 @@ export async function createPlanFromSpec(
     );
   }
 
-  const [carryOverCandidateIds, carryOverStepCandidateIds, projectsWithSteps] =
-    await Promise.all([
-      getCarryOverAdhocTaskIds(userId, pendingPlan),
-      getCarryOverProjectStepIds(userId, pendingPlan),
-      getProjectsWithSteps(userId),
-    ]);
+  const [
+    carryOverCandidateIds,
+    carryOverStepCandidateIds,
+    projectsWithSteps,
+    nonDoneAdhocTasks,
+  ] = await Promise.all([
+    getCarryOverAdhocTaskIds(userId, pendingPlan),
+    getCarryOverProjectStepIds(userId, pendingPlan),
+    getProjectsWithSteps(userId),
+    getNonDoneAdhocTasks(userId),
+  ]);
   const adhocTaskIdsToCarry = carryOverOneOffTaskIds ?? carryOverCandidateIds;
   const notCarryableTaskIds = adhocTaskIdsToCarry.filter(
     taskId => !carryOverCandidateIds.includes(taskId),
@@ -380,6 +424,9 @@ export async function createPlanFromSpec(
       PLANNING_ERROR.ONE_OFF_TASKS_NOT_IN_LAST_PLAN(notCarryableTaskIds),
     );
   }
+  // A LAST_WEEK one-off passed to add is reported as not untracked: carry-over
+  // takes it
+  assertOneOffTasksUntracked(addOneOffTaskIds, nonDoneAdhocTasks);
 
   const stepIdsToCarry = carryOverProjectStepIds ?? carryOverStepCandidateIds;
   const notCarryableStepIds = stepIdsToCarry.filter(
@@ -414,13 +461,14 @@ export async function createPlanFromSpec(
   if (
     planEntries.length === 0 &&
     adhocTaskIdsToCarry.length === 0 &&
+    addOneOffTaskIds.length === 0 &&
     projectStepIds.length === 0
   ) {
     throw new PlanningError(PLANNING_ERROR.EMPTY_PLAN);
   }
 
-  const createdPlan = await prisma.$transaction(tx =>
-    createPlanFromEntries(
+  const createdPlan = await prisma.$transaction(async tx => {
+    const plan = await createPlanFromEntries(
       tx,
       userId,
       {
@@ -433,8 +481,16 @@ export async function createPlanFromSpec(
       },
       periodKey,
       today,
-    ),
-  );
+    );
+    await trackAdhocTasks(
+      userId,
+      addOneOffTaskIds,
+      plan.id,
+      TaskStatus.TODO,
+      tx,
+    );
+    return plan;
+  });
   return {plan: await getPlanContextByPlanId(userId, createdPlan.id)};
 }
 
@@ -456,6 +512,7 @@ export async function patchActivePlan(
     newTemplates,
     updateTemplates,
     removeTemplateIds,
+    addOneOffTaskIds,
     removeOneOffTaskIds,
     addProjectStepIds,
     removeProjectStepIds,
@@ -525,6 +582,7 @@ export async function patchActivePlan(
   const keptAdhocTaskIds = planAdhocTasks
     .filter(task => !removeOneOffTaskIds.includes(task.id))
     .map(task => task.id);
+  assertOneOffTasksUntracked(addOneOffTaskIds, nonDoneAdhocTasks);
 
   const hasTemplateChanges = [
     addTemplates,
@@ -541,7 +599,7 @@ export async function patchActivePlan(
           ...toNewPlanEntries(newTemplates),
         ])
       : undefined;
-    return updatePlanInTx(
+    const diff = await updatePlanInTx(
       tx,
       userId,
       planBeforePatch,
@@ -555,6 +613,15 @@ export async function patchActivePlan(
       },
       getTodayDate(),
     );
+    // After the update core, which unlinks one-offs missing from its list
+    await trackAdhocTasks(
+      userId,
+      addOneOffTaskIds,
+      planId,
+      TaskStatus.TODO,
+      tx,
+    );
+    return diff;
   });
 
   const planAfterPatch = await getPlanContextByPlanId(userId, planId);
@@ -571,6 +638,10 @@ export async function patchActivePlan(
     id: templateId,
     title: templateTitleById.get(templateId) ?? '',
   });
+  const toOneOffChangeRef = (taskId: string): PlanChangeRef => ({
+    id: taskId,
+    title: nonDoneAdhocTasks.find(task => task.id === taskId)?.title ?? '',
+  });
   const toStepChangeRef = (stepId: string): PlanChangeRef => ({
     id: stepId,
     title: stepsWithProjectById.get(stepId)?.step.title ?? '',
@@ -585,6 +656,7 @@ export async function patchActivePlan(
         toChangeRef(template.templateId),
       ),
       removedTemplates: templateDiff.removed.map(toChangeRef),
+      addedOneOffTasks: addOneOffTaskIds.map(toOneOffChangeRef),
       removedOneOffTasks: removedAdhocTasks.map(({id, title}) => ({id, title})),
       addedProjectSteps: addProjectStepIds.map(toStepChangeRef),
       removedProjectSteps: removeProjectStepIds.map(toStepChangeRef),

@@ -67,8 +67,8 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | --- | --- | --- |
 | `get_planning_guide_before_everything` | The guide (`MCP_SERVER_INSTRUCTIONS`) as a tool result — claude.ai passes no server instructions to the model | — |
 | `get_planning_context` | Snapshot to plan from: date/week, active or last plan (lines + progress, one-offs, project steps, totals), reusable templates, projects with their paths, archived projects, the matrix's unfinished one-offs | `planningService.getPlanningContext` |
-| `create_plan` | Create this week's plan from existing + new templates, with carry-over selections and upcoming steps to add | `planningService.createPlanFromSpec` |
-| `update_plan` | Patch this week's active plan (add / new / update / remove templates, drop one-offs, add / remove steps, mode, description) | `planningService.patchActivePlan` |
+| `create_plan` | Create this week's plan from existing + new templates, with carry-over selections, untracked one-offs and upcoming steps to add | `planningService.createPlanFromSpec` |
+| `update_plan` | Patch this week's active plan (add / new / update / remove templates, add / drop one-offs, add / remove steps, mode, description) | `planningService.patchActivePlan` |
 | `update_habit` | Change a template's title, description or size | `planningService.updateHabit` |
 | `create_project` | Create a project with its whole path | `projectPlanningService.createProjectFromSpec` |
 | `update_project` | Patch a project (title, goal, archive, add / edit / move / remove steps), all or nothing | `projectPlanningService.patchProject` |
@@ -151,7 +151,7 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `createManyTasks` | Bulk create task instances with `skipDuplicates` (idempotent) |
 | `updateTaskStatus` | Set a task's status (+`doneAt` on DONE); returns updated row or null |
 | `updateAdhocTaskQuadrants` | Move owned AD_HOC tasks to an Eisenhower quadrant |
-| `trackAdhocTask` | Attach an unassigned matrix task to a plan (BACKLOG → board) in one write |
+| `trackAdhocTasks` | Attach unassigned matrix tasks to a plan (BACKLOG → board) in one write — Track This Week and MCP's `addOneOffTaskIds` alike |
 | `completeAdhocTasks` | Set owned non-DONE AD_HOC tasks to DONE (+`doneAt`), filling a null `planId` with the active plan — the matrix's Done and MCP alike |
 | `revertAdhocCompletion` | Put a DONE AD_HOC task back to its pre-complete status (clear `doneAt`, optional plan detach), guarded on DONE |
 | `expireStaleDailyTasks` | Expire non-DONE daily tasks older than the cutoff (1-day rollover buffer) |
