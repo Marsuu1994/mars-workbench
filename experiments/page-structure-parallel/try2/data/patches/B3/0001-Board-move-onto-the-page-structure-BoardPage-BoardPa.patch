@@ -1,0 +1,551 @@
+From 97dfcb6e759391e2b264ee65f3fd9049d4403aed Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 27 Oct 2026 05:19:00 +0000
+Subject: [PATCH 1/4] Board: move onto the page structure (BoardPage +
+ BoardPageContext)
+
+KanbanBoard becomes BoardPage, the page's container: it takes over BoardScreen's two-layer layout and renders BoardHeader and ProgressDashboard itself, so BoardScreen is gone and /kanban renders <BoardPage {...board} />. The new BoardPageContext carries pullToTodo; MobileBacklogCard reads it instead of taking an onPull prop. toBoardCards and the column and backlog frames are unchanged.
+
+Design Console: the two board tabs render BoardPage; the inline mobile backlog sheet and the MobileBacklogCard specimen render inside inertBoardPageContext().
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01KCt6pLaQcffbbgWyRsYruK
+---
+ src/app/design/constants.ts                   |  7 ++
+ .../board/MobileBacklogSheetFrame.tsx         | 17 ++--
+ src/app/design/scenarios/board/fixtures.ts    |  4 +-
+ src/app/design/scenarios/board/page.tsx       |  8 +-
+ src/app/design/tabs/DomainTab.tsx             | 17 ++--
+ src/app/kanban/page.tsx                       |  4 +-
+ src/components/domain/board/BoardColumn.tsx   |  4 +-
+ .../board/{KanbanBoard.tsx => BoardPage.tsx}  | 95 +++++++++++--------
+ .../domain/board/BoardPageContext.ts          | 24 +++++
+ src/components/domain/board/BoardScreen.tsx   | 29 ------
+ .../domain/board/DesktopBacklog.tsx           |  4 +-
+ src/components/domain/board/MobileBacklog.tsx |  2 +-
+ .../domain/board/MobileBacklogCard.tsx        |  7 +-
+ .../domain/board/MobileBacklogPanel.tsx       |  2 +-
+ src/utils/boardCardUtils.ts                   |  2 +-
+ 15 files changed, 124 insertions(+), 102 deletions(-)
+ rename src/components/domain/board/{KanbanBoard.tsx => BoardPage.tsx} (51%)
+ create mode 100644 src/components/domain/board/BoardPageContext.ts
+ delete mode 100644 src/components/domain/board/BoardScreen.tsx
+
+diff --git a/src/app/design/constants.ts b/src/app/design/constants.ts
+index 76b04cc..37299e2 100644
+--- a/src/app/design/constants.ts
++++ b/src/app/design/constants.ts
+@@ -12,6 +12,7 @@ import type {DumpEntryItem} from '@/lib/db/dumpEntries';
+ import {TaskKind, type HabitWeek} from '@/utils/taskUtils';
+ import type {BoardCard, ProjectStepContext} from '@/utils/boardCardUtils';
+ import type {ProjectsPageContextValue} from '@/components/domain/projects/ProjectsPageContext';
++import type {BoardPageContextValue} from '@/components/domain/board/BoardPageContext';
+ 
+ // ── Page copy ──────────────────────────────────────────────────────────────
+ /** Title halves — the accent word renders with fx-text-gradient (the
+@@ -683,6 +684,12 @@ export const inertProjectsPageContext = (
+   unarchiveProject: async () => undefined,
+ });
+ 
++/** The page context a MobileBacklogCard renders in, outside the Board page:
++    inert handlers (the frame swallows clicks). */
++export const inertBoardPageContext = (): BoardPageContextValue => ({
++  pullToTodo: () => undefined,
++});
++
+ /** TemplateItem — a single selectable plan-template row. */
+ export const TEMPLATE_FIXTURE = {
+   id: 'tmpl-1',
+diff --git a/src/app/design/scenarios/board/MobileBacklogSheetFrame.tsx b/src/app/design/scenarios/board/MobileBacklogSheetFrame.tsx
+index d8070c0..0b14df0 100644
+--- a/src/app/design/scenarios/board/MobileBacklogSheetFrame.tsx
++++ b/src/app/design/scenarios/board/MobileBacklogSheetFrame.tsx
+@@ -3,6 +3,8 @@
+ import type {BoardCard} from '@/utils/boardCardUtils';
+ import {MobileBacklogPanel} from '@/components/domain/board/MobileBacklogPanel';
+ import {MobileBacklogCard} from '@/components/domain/board/MobileBacklogCard';
++import {BoardPageContext} from '@/components/domain/board/BoardPageContext';
++import {inertBoardPageContext} from '../../constants';
+ 
+ interface MobileBacklogSheetFrameProps {
+   /** The staged cards, as toBoardCards derives them from the fixtures */
+@@ -14,18 +16,21 @@ const NOOP = () => {};
+ /**
+  * The live mobile backlog sheet's panel, rendered inline in a phone-width
+  * sheet frame — no top-layer <dialog>, so it stays inside the scenario frame
+- * and inherits its inertness.
++ * and inherits its inertness. Its cards read the Board page's context, here
++ * with inert handlers.
+  */
+ export const MobileBacklogSheetFrame = ({
+   cards,
+ }: MobileBacklogSheetFrameProps) => (
+   <div className="flex h-full flex-col bg-base-200/20 p-3">
+     <div className="mx-auto flex min-h-0 w-full max-w-[430px] flex-1 flex-col overflow-hidden rounded-2xl border border-base-content/10 bg-base-100 shadow-lg">
+-      <MobileBacklogPanel count={cards.length} onClose={NOOP}>
+-        {cards.map(card => (
+-          <MobileBacklogCard key={card.task.id} card={card} onPull={NOOP} />
+-        ))}
+-      </MobileBacklogPanel>
++      <BoardPageContext value={inertBoardPageContext()}>
++        <MobileBacklogPanel count={cards.length} onClose={NOOP}>
++          {cards.map(card => (
++            <MobileBacklogCard key={card.task.id} card={card} />
++          ))}
++        </MobileBacklogPanel>
++      </BoardPageContext>
+     </div>
+   </div>
+ );
+diff --git a/src/app/design/scenarios/board/fixtures.ts b/src/app/design/scenarios/board/fixtures.ts
+index c5edf22..ab106f6 100644
+--- a/src/app/design/scenarios/board/fixtures.ts
++++ b/src/app/design/scenarios/board/fixtures.ts
+@@ -12,7 +12,7 @@ import type {BoardPlan} from '@/utils/taskUtils';
+ import {toBoardCards} from '@/utils/boardCardUtils';
+ import type {BoardProgress} from '@/types/board';
+ 
+-/* Board scenario fixtures — real KanbanBoard + ProgressDashboard fed
++/* Board scenario fixtures — real BoardPage fed
+    fictional weeks that are hard to reach against live data. */
+ 
+ // Friday of ISO week 28 (Mon Jul 6 – Sun Jul 12).
+@@ -207,7 +207,7 @@ export const MID_WEEK_PROGRESS: BoardProgress = {
+ };
+ 
+ // ── Mobile backlog scenario inputs ───────────────────────────────────────────
+-// The inline mobile backlog sheet bypasses KanbanBoard, so its cards come from
++// The inline mobile backlog sheet bypasses BoardPage, so its cards come from
+ // the same adapter the live board runs, on the same fixture week.
+ export const BACKLOG_CARDS = toBoardCards(MID_WEEK_TASKS, {
+   plan: SCENARIO_PLAN,
+diff --git a/src/app/design/scenarios/board/page.tsx b/src/app/design/scenarios/board/page.tsx
+index 6f1f3c8..0da372c 100644
+--- a/src/app/design/scenarios/board/page.tsx
++++ b/src/app/design/scenarios/board/page.tsx
+@@ -1,4 +1,4 @@
+-import {BoardScreen} from '@/components/domain/board/BoardScreen';
++import {BoardPage} from '@/components/domain/board/BoardPage';
+ import {EmptyBoard} from '@/components/domain/board/EmptyBoard';
+ import {ScenarioTabs, type ScenarioTab} from '../ScenarioTabs';
+ import {ScenarioPage} from '../ScenarioPage';
+@@ -41,7 +41,7 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
+     title: 'Board — active plan',
+     note: "Todo · Done with kind-first cards: habits with their plan line and week dots (each card rings its own dot; Workout shows a missed day), project steps with their project, step n/N and the path (the card's own step outlined), one-offs with their quadrant. Backlog collapsed.",
+     content: (
+-      <BoardScreen
++      <BoardPage
+         plan={SCENARIO_PLAN}
+         progress={MID_WEEK_PROGRESS}
+         tasks={MID_WEEK_TASKS}
+@@ -54,7 +54,7 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
+     title: 'Board — backlog open (desktop)',
+     note: 'A play step opens the backlog: habit instances and a scheduled project step staged, ready to pull onto the board.',
+     content: (
+-      <BoardScreen
++      <BoardPage
+         plan={SCENARIO_PLAN}
+         progress={MID_WEEK_PROGRESS}
+         tasks={MID_WEEK_TASKS}
+@@ -76,7 +76,7 @@ export default function BoardScenarioPage() {
+   return (
+     <ScenarioPage
+       title="Board scenarios"
+-      description="The real board page (BoardHeader + ProgressDashboard + KanbanBoard)
++      description="The real BoardPage (header, progress dashboard and board)
+         fed fixture weeks — the states that are hard to reach against live
+         data."
+     >
+diff --git a/src/app/design/tabs/DomainTab.tsx b/src/app/design/tabs/DomainTab.tsx
+index 195f092..1d050b7 100644
+--- a/src/app/design/tabs/DomainTab.tsx
++++ b/src/app/design/tabs/DomainTab.tsx
+@@ -10,6 +10,7 @@ import {BoardHeader} from '@/components/domain/shared/BoardHeader';
+ import {TaskCard} from '@/components/domain/board/TaskCard';
+ import {TaskCardMiniFace} from '@/components/domain/board/TaskCardMiniFace';
+ import {MobileBacklogCard} from '@/components/domain/board/MobileBacklogCard';
++import {BoardPageContext} from '@/components/domain/board/BoardPageContext';
+ import {BoardColumn} from '@/components/domain/board/BoardColumn';
+ import {ProgressDashboard} from '@/components/domain/board/ProgressDashboard';
+ import {MatrixTaskCard} from '@/components/domain/priorities/MatrixTaskCard';
+@@ -41,6 +42,7 @@ import {
+   SCENARIO_HREFS,
+   PROJECT_STEP_FIXTURES,
+   inertProjectsPageContext,
++  inertBoardPageContext,
+ } from '../constants';
+ 
+ /** Right-aligned Zone action linking a feature group to its scenario page(s). */
+@@ -165,13 +167,14 @@ export const DomainTab = () => {
+       description="The mobile backlog sheet's card: the full face on a plain card, with the ↑ Todo pull beside the title."
+     >
+       <div className="flex max-w-sm flex-col gap-2.5">
+-        {MINI_CARD_FIXTURES.slice(0, 2).map(({card}) => (
+-          <MobileBacklogCard
+-            key={card.task.id}
+-            card={{...card, task: {...card.task, status: TaskStatus.BACKLOG}}}
+-            onPull={() => undefined}
+-          />
+-        ))}
++        <BoardPageContext value={inertBoardPageContext()}>
++          {MINI_CARD_FIXTURES.slice(0, 2).map(({card}) => (
++            <MobileBacklogCard
++              key={card.task.id}
++              card={{...card, task: {...card.task, status: TaskStatus.BACKLOG}}}
++            />
++          ))}
++        </BoardPageContext>
+       </div>
+     </Section>
+   );
+diff --git a/src/app/kanban/page.tsx b/src/app/kanban/page.tsx
+index a29c5a2..cffac07 100644
+--- a/src/app/kanban/page.tsx
++++ b/src/app/kanban/page.tsx
+@@ -3,7 +3,7 @@ import {
+   getEmptyBoardStateAction,
+ } from '@/actions/boardActions';
+ import {EmptyBoard} from '@/components/domain/board/EmptyBoard';
+-import {BoardScreen} from '@/components/domain/board/BoardScreen';
++import {BoardPage} from '@/components/domain/board/BoardPage';
+ 
+ export default async function KanbanPage() {
+   const board = await fetchBoardAction();
+@@ -17,5 +17,5 @@ export default async function KanbanPage() {
+     );
+   }
+ 
+-  return <BoardScreen {...board} />;
++  return <BoardPage {...board} />;
+ }
+diff --git a/src/components/domain/board/BoardColumn.tsx b/src/components/domain/board/BoardColumn.tsx
+index 22024ee..de5fe64 100644
+--- a/src/components/domain/board/BoardColumn.tsx
++++ b/src/components/domain/board/BoardColumn.tsx
+@@ -10,7 +10,7 @@ interface BoardColumnProps {
+   status: BoardColumnStatus;
+   /** Cards in the column — the header badge */
+   count: number;
+-  /** The column's cards, rendered by KanbanBoard */
++  /** The column's cards, rendered by BoardPage */
+   children: ReactNode;
+   /** True while any card is being dragged — faintly outlines all drop targets. */
+   isDragActive?: boolean;
+@@ -28,7 +28,7 @@ const STATUS_STYLE: Record<
+ 
+ /**
+  * One kanban column: the header (LED, label, count) and a droppable list. A
+- * frame only — KanbanBoard renders the cards into it.
++ * frame only — BoardPage renders the cards into it.
+  */
+ export const BoardColumn = ({
+   status,
+diff --git a/src/components/domain/board/KanbanBoard.tsx b/src/components/domain/board/BoardPage.tsx
+similarity index 51%
+rename from src/components/domain/board/KanbanBoard.tsx
+rename to src/components/domain/board/BoardPage.tsx
+index ce1dd10..e064941 100644
+--- a/src/components/domain/board/KanbanBoard.tsx
++++ b/src/components/domain/board/BoardPage.tsx
+@@ -2,35 +2,30 @@
+ 
+ import {useState, useMemo} from 'react';
+ import {DragDropContext, type DropResult} from '@hello-pangea/dnd';
+-import type {TaskItem} from '@/lib/db/tasks';
+-import type {BoardProject} from '@/lib/db/projects';
++import type {BoardData} from '@/types/board';
+ import {TaskStatus} from '@/utils/enums';
+-import type {BoardPlan} from '@/utils/taskUtils';
+ import {toBoardCards, type BoardCard} from '@/utils/boardCardUtils';
+ import {updateTaskStatusAction} from '@/actions/taskActions';
+ import {useOptimisticTasks} from '@/hooks/useOptimisticTasks';
++import {BoardHeader} from '@/components/domain/shared/BoardHeader';
+ import {BoardColumn} from './BoardColumn';
+ import {DesktopBacklog} from './DesktopBacklog';
+ import {MobileBacklog} from './MobileBacklog';
+ import {MobileBacklogCard} from './MobileBacklogCard';
++import {ProgressDashboard} from './ProgressDashboard';
+ import {TaskCard} from './TaskCard';
+-
+-interface KanbanBoardProps {
+-  /** The board's state, in the server's shape — moves patch these */
+-  tasks: TaskItem[];
+-  /** The active plan — its week, lines and mode drive the habit cards */
+-  plan: BoardPlan;
+-  /** The projects behind the step cards — each card draws its path */
+-  projects: BoardProject[];
+-}
++import {BoardPageContext, type BoardPageContextValue} from './BoardPageContext';
+ 
+ /**
+- * The board's container: keeps the tasks as state, derives the cards with
+- * toBoardCards, and renders them into the columns and backlogs — which are
+- * frames that know nothing about cards. Moves are optimistic and roll back
+- * per task on failure.
++ * The Board page (/kanban): header + progress dashboard + the kanban board,
++ * in a definite-height column (h-full against AppShell's <main>, or a fill
++ * scenario frame). Owns the page's state — the tasks as client state, which
++ * moves patch optimistically and roll back per task on failure — and every
++ * write, which its components reach through BoardPageContext. Derives the
++ * cards with toBoardCards and renders them into the columns and backlogs —
++ * frames that know nothing about cards.
+  */
+-export const KanbanBoard = ({tasks, plan, projects}: KanbanBoardProps) => {
++export const BoardPage = ({plan, progress, tasks, projects}: BoardData) => {
+   const {localTasks, runOptimisticTaskUpdate} = useOptimisticTasks(tasks);
+   const [isDragging, setIsDragging] = useState(false);
+ 
+@@ -75,6 +70,8 @@ export const KanbanBoard = ({tasks, plan, projects}: KanbanBoardProps) => {
+     moveTask(taskId, TaskStatus.TODO, 'Failed to pull task to Todo:');
+   }
+ 
++  const pageContext: BoardPageContextValue = {pullToTodo};
++
+   const renderDraggableCards = (cards: BoardCard[]) =>
+     cards.map((card, index) => (
+       <TaskCard key={card.task.id} card={card} index={index} />
+@@ -82,38 +79,42 @@ export const KanbanBoard = ({tasks, plan, projects}: KanbanBoardProps) => {
+ 
+   const renderMobileBacklogCards = () =>
+     backlogCards.map(card => (
+-      <MobileBacklogCard key={card.task.id} card={card} onPull={pullToTodo} />
++      <MobileBacklogCard key={card.task.id} card={card} />
+     ));
+ 
+-  return (
++  // Scroll ownership: @hello-pangea/dnd supports one scroll parent per
++  // Droppable, so this row must not add scroll axes beyond what it owns —
++  // md:overflow-y-hidden keeps it x-only on desktop (overflow-x auto would
++  // otherwise force computed overflow-y to auto), and <main> is
++  // overflow-hidden on /kanban (AppShell SELF_SCROLLING_ROUTES). The
++  // remaining dev warning (scrollable columns inside this scrollable row) is
++  // the library's known kanban limitation.
++  const renderColumns = () => (
++    <div className="flex-1 min-w-0 flex flex-col gap-3.5 md:flex-row md:gap-4 overflow-y-auto md:overflow-x-auto md:overflow-y-hidden p-4 max-md:pb-32">
++      <BoardColumn
++        status={TaskStatus.TODO}
++        count={todoCards.length}
++        isDragActive={isDragging}
++      >
++        {renderDraggableCards(todoCards)}
++      </BoardColumn>
++      <BoardColumn
++        status={TaskStatus.DONE}
++        count={doneCards.length}
++        isDragActive={isDragging}
++      >
++        {renderDraggableCards(doneCards)}
++      </BoardColumn>
++    </div>
++  );
++
++  const renderBoard = () => (
+     <DragDropContext
+       onDragStart={() => setIsDragging(true)}
+       onDragEnd={handleDragEnd}
+     >
+       <div className="flex h-full">
+-        {/* Scroll ownership: @hello-pangea/dnd supports one scroll parent per
+-            Droppable, so this row must not add scroll axes beyond what it
+-            owns — md:overflow-y-hidden keeps it x-only on desktop (overflow-x
+-            auto would otherwise force computed overflow-y to auto), and
+-            <main> is overflow-hidden on /kanban (AppShell SELF_SCROLLING_ROUTES).
+-            The remaining dev warning (scrollable columns inside this
+-            scrollable row) is the library's known kanban limitation. */}
+-        <div className="flex-1 min-w-0 flex flex-col gap-3.5 md:flex-row md:gap-4 overflow-y-auto md:overflow-x-auto md:overflow-y-hidden p-4 max-md:pb-32">
+-          <BoardColumn
+-            status={TaskStatus.TODO}
+-            count={todoCards.length}
+-            isDragActive={isDragging}
+-          >
+-            {renderDraggableCards(todoCards)}
+-          </BoardColumn>
+-          <BoardColumn
+-            status={TaskStatus.DONE}
+-            count={doneCards.length}
+-            isDragActive={isDragging}
+-          >
+-            {renderDraggableCards(doneCards)}
+-          </BoardColumn>
+-        </div>
++        {renderColumns()}
+         <DesktopBacklog count={backlogCards.length}>
+           {renderDraggableCards(backlogCards)}
+         </DesktopBacklog>
+@@ -123,4 +124,14 @@ export const KanbanBoard = ({tasks, plan, projects}: KanbanBoardProps) => {
+       </MobileBacklog>
+     </DragDropContext>
+   );
++
++  return (
++    <BoardPageContext value={pageContext}>
++      <div className="flex flex-col h-full">
++        <BoardHeader periodKey={plan.periodKey} />
++        <ProgressDashboard {...progress} />
++        <div className="flex-1 min-h-0">{renderBoard()}</div>
++      </div>
++    </BoardPageContext>
++  );
+ };
+diff --git a/src/components/domain/board/BoardPageContext.ts b/src/components/domain/board/BoardPageContext.ts
+new file mode 100644
+index 0000000..1d5ad91
+--- /dev/null
++++ b/src/components/domain/board/BoardPageContext.ts
+@@ -0,0 +1,24 @@
++import {createContext, use} from 'react';
++
++/**
++ * What the Board page's components do without threading it through props:
++ * the writes, bound to the page's optimistic tasks. `BoardPage` provides it;
++ * the cards still come down as props.
++ */
++export interface BoardPageContextValue {
++  /** Mobile's tap-to-pull: BACKLOG → TODO */
++  pullToTodo: (taskId: string) => void;
++}
++
++export const BoardPageContext = createContext<BoardPageContextValue | null>(
++  null,
++);
++
++/** The Board page's context; only its components render inside it. */
++export const useBoardPageContext = (): BoardPageContextValue => {
++  const context = use(BoardPageContext);
++  if (!context) {
++    throw new Error('useBoardPageContext must be used within BoardPage');
++  }
++  return context;
++};
+diff --git a/src/components/domain/board/BoardScreen.tsx b/src/components/domain/board/BoardScreen.tsx
+deleted file mode 100644
+index ac15ab5..0000000
+--- a/src/components/domain/board/BoardScreen.tsx
++++ /dev/null
+@@ -1,29 +0,0 @@
+-import type {BoardData} from '@/types/board';
+-import {BoardHeader} from '@/components/domain/shared/BoardHeader';
+-import {ProgressDashboard} from '@/components/domain/board/ProgressDashboard';
+-import {KanbanBoard} from '@/components/domain/board/KanbanBoard';
+-
+-/** The page's data as fetchBoard shapes it: plan, tasks, progress, projects. */
+-type BoardScreenProps = BoardData;
+-
+-/**
+- * The board page's screen layer: header + progress dashboard + kanban board
+- * in a definite-height column (h-full against AppShell's <main> — or a fill
+- * scenario frame). Shared by /kanban and the board scenarios so the two can
+- * never drift apart. The header and the metrics read server data as-is; the
+- * board keeps the tasks as state (KanbanBoard is the container).
+- */
+-export const BoardScreen = ({
+-  plan,
+-  progress,
+-  tasks,
+-  projects,
+-}: BoardScreenProps) => (
+-  <div className="flex flex-col h-full">
+-    <BoardHeader periodKey={plan.periodKey} />
+-    <ProgressDashboard {...progress} />
+-    <div className="flex-1 min-h-0">
+-      <KanbanBoard tasks={tasks} plan={plan} projects={projects} />
+-    </div>
+-  </div>
+-);
+diff --git a/src/components/domain/board/DesktopBacklog.tsx b/src/components/domain/board/DesktopBacklog.tsx
+index 5758190..998b58c 100644
+--- a/src/components/domain/board/DesktopBacklog.tsx
++++ b/src/components/domain/board/DesktopBacklog.tsx
+@@ -15,14 +15,14 @@ import {BacklogCountBadge} from './BacklogCountBadge';
+ interface DesktopBacklogProps {
+   /** Staged cards — the count pill and the empty state */
+   count: number;
+-  /** The staged cards, rendered by KanbanBoard */
++  /** The staged cards, rendered by BoardPage */
+   children: ReactNode;
+ }
+ 
+ /**
+  * Desktop-only collapsible right-edge backlog that stages BACKLOG tasks. The
+  * user drags a card onto the Todo column to pull it onto the board
+- * (BACKLOG → TODO). Rendered inside KanbanBoard's DragDropContext, which also
++ * (BACKLOG → TODO). Rendered inside BoardPage's DragDropContext, which also
+  * renders the cards into it.
+  */
+ export const DesktopBacklog = ({count, children}: DesktopBacklogProps) => {
+diff --git a/src/components/domain/board/MobileBacklog.tsx b/src/components/domain/board/MobileBacklog.tsx
+index c4a73d0..abad3c4 100644
+--- a/src/components/domain/board/MobileBacklog.tsx
++++ b/src/components/domain/board/MobileBacklog.tsx
+@@ -11,7 +11,7 @@ import {MobileBacklogPanel} from './MobileBacklogPanel';
+ interface MobileBacklogProps {
+   /** Staged cards — the pill's badge; the pill hides at zero */
+   count: number;
+-  /** The staged cards, rendered by KanbanBoard */
++  /** The staged cards, rendered by BoardPage */
+   children: ReactNode;
+ }
+ 
+diff --git a/src/components/domain/board/MobileBacklogCard.tsx b/src/components/domain/board/MobileBacklogCard.tsx
+index 358a4dc..a97ff52 100644
+--- a/src/components/domain/board/MobileBacklogCard.tsx
++++ b/src/components/domain/board/MobileBacklogCard.tsx
+@@ -5,10 +5,10 @@ import {ArrowUpIcon} from '@heroicons/react/24/outline';
+ import type {BoardCard} from '@/utils/boardCardUtils';
+ import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
+ import {TaskCardFace} from './TaskCardFace';
++import {useBoardPageContext} from './BoardPageContext';
+ 
+ interface MobileBacklogCardProps {
+   card: BoardCard;
+-  onPull: (taskId: string) => void;
+ }
+ 
+ /**
+@@ -16,14 +16,15 @@ interface MobileBacklogCardProps {
+  * kind-first face on a plain (non-draggable) card, with a tap "↑ Todo" pull
+  * action beside the title.
+  */
+-export const MobileBacklogCard = ({card, onPull}: MobileBacklogCardProps) => {
++export const MobileBacklogCard = ({card}: MobileBacklogCardProps) => {
+   const t = useTranslations('Board.Backlog');
++  const {pullToTodo} = useBoardPageContext();
+   const {kind, task} = card;
+   const {edge} = TASK_KIND_STYLE[kind];
+ 
+   const renderPullButton = () => (
+     <button
+-      onClick={() => onPull(task.id)}
++      onClick={() => pullToTodo(task.id)}
+       className="flex-shrink-0 inline-flex items-center gap-1 h-6 px-2 rounded-field border border-base-content/10 fx-num text-[10.5px] font-semibold text-base-content/60 cursor-pointer hover:text-primary hover:border-primary"
+     >
+       <ArrowUpIcon className="size-2.5 stroke-2" />
+diff --git a/src/components/domain/board/MobileBacklogPanel.tsx b/src/components/domain/board/MobileBacklogPanel.tsx
+index 7afd128..8a1a166 100644
+--- a/src/components/domain/board/MobileBacklogPanel.tsx
++++ b/src/components/domain/board/MobileBacklogPanel.tsx
+@@ -10,7 +10,7 @@ interface MobileBacklogPanelProps {
+   /** Staged cards — the header badge and the empty state */
+   count: number;
+   onClose: () => void;
+-  /** The staged cards, rendered by KanbanBoard */
++  /** The staged cards, rendered by BoardPage */
+   children: ReactNode;
+ }
+ 
+diff --git a/src/utils/boardCardUtils.ts b/src/utils/boardCardUtils.ts
+index 4a12062..1ab5c86 100644
+--- a/src/utils/boardCardUtils.ts
++++ b/src/utils/boardCardUtils.ts
+@@ -95,7 +95,7 @@ function toProjectStepContext(
+ 
+ /**
+  * The board's adapter: the tasks (client state, in the server's shape) →
+- * card models, grouped by status and sorted. Pure, so KanbanBoard re-runs it
++ * card models, grouped by status and sorted. Pure, so BoardPage re-runs it
+  * on every optimistic update and the board scenarios run it on fixtures.
+  */
+ export function toBoardCards(
+-- 
+2.43.0
+

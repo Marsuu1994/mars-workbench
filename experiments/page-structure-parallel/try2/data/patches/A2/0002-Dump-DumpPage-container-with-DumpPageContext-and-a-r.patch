@@ -1,0 +1,540 @@
+From 150cecd81503c66c48b0df980c4501692c879b3c Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 27 Oct 2026 05:18:50 +0000
+Subject: [PATCH 2/4] Dump: DumpPage container with DumpPageContext and a route
+ adapter
+
+DumpScreen becomes DumpPage, the page's container; capture, its error
+and load more reach the composer and the feed through DumpPageContext.
+The route's inline unwrapping of the feed and its period key move into
+the pure adapter toDumpPageProps (utils/dump.ts, unit-tested), which the
+route and the Dump scenarios both run.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01KCt6pNEEiysMZJhTNDRjPF
+---
+ src/app/design/scenarios/dump/fixtures.ts     |  5 +-
+ src/app/design/scenarios/dump/page.tsx        | 38 ++++++-----
+ src/app/kanban/dump/page.tsx                  | 23 ++-----
+ src/components/domain/dump/DumpComposer.tsx   | 13 ++--
+ src/components/domain/dump/DumpFeed.tsx       | 16 ++---
+ src/components/domain/dump/DumpPage.tsx       | 66 +++++++++++++++++++
+ src/components/domain/dump/DumpPageContext.ts | 26 ++++++++
+ src/components/domain/dump/DumpScreen.tsx     | 66 -------------------
+ src/types/dump.ts                             | 14 ++++
+ src/utils/dump.test.ts                        | 34 +++++++++-
+ src/utils/dump.ts                             | 39 ++++++++++-
+ 11 files changed, 216 insertions(+), 124 deletions(-)
+ create mode 100644 src/components/domain/dump/DumpPage.tsx
+ create mode 100644 src/components/domain/dump/DumpPageContext.ts
+ delete mode 100644 src/components/domain/dump/DumpScreen.tsx
+ create mode 100644 src/types/dump.ts
+
+diff --git a/src/app/design/scenarios/dump/fixtures.ts b/src/app/design/scenarios/dump/fixtures.ts
+index c80eb24..bfbb352 100644
+--- a/src/app/design/scenarios/dump/fixtures.ts
++++ b/src/app/design/scenarios/dump/fixtures.ts
+@@ -53,5 +53,6 @@ Tomorrow: gym before standup, then a deep-work block till noon.`,
+   ),
+ ];
+ 
+-/** Header week badge — dump is plan-independent, so a fixed recent week. */
+-export const DUMP_PERIOD_KEY = '2026-W29';
++/** The day the route would pass the adapter — dump is plan-independent, so a
++    fixed recent day pins the header's week badge (2026-W29). */
++export const DUMP_TODAY = new Date(2026, 6, 15);
+diff --git a/src/app/design/scenarios/dump/page.tsx b/src/app/design/scenarios/dump/page.tsx
+index 7068016..ccaa1d8 100644
+--- a/src/app/design/scenarios/dump/page.tsx
++++ b/src/app/design/scenarios/dump/page.tsx
+@@ -1,19 +1,21 @@
+-import {DumpScreen} from '@/components/domain/dump/DumpScreen';
++import {DumpPage} from '@/components/domain/dump/DumpPage';
++import {toDumpPageProps} from '@/utils/dump';
+ import {ScenarioTabs, type ScenarioTab} from '../ScenarioTabs';
+ import {ScenarioPage} from '../ScenarioPage';
+-import {DUMP_FEED_ENTRIES, DUMP_PERIOD_KEY} from './fixtures';
++import {DUMP_FEED_ENTRIES, DUMP_TODAY} from './fixtures';
+ 
+ const DUMP_SCENARIOS: ScenarioTab[] = [
+   {
+     label: 'Feed',
+     title: 'Dump — populated feed',
+-    note: 'Day-grouped entries (Today / Yesterday / older) with one long entry showing the 6-line clamp + Show more. initialNextCursor is null so the infinite-scroll observer stays inert against the fixtures.',
++    note: 'Day-grouped entries (Today / Yesterday / older) with one long entry showing the 6-line clamp + Show more. The next cursor is null so the infinite-scroll observer stays inert against the fixtures.',
+     content: (
+-      <DumpScreen
+-        periodKey={DUMP_PERIOD_KEY}
+-        initialEntries={DUMP_FEED_ENTRIES}
+-        initialNextCursor={null}
+-        initialTotalCount={DUMP_FEED_ENTRIES.length}
++      <DumpPage
++        {...toDumpPageProps(
++          {data: {entries: DUMP_FEED_ENTRIES, nextCursor: null}},
++          DUMP_FEED_ENTRIES.length,
++          DUMP_TODAY,
++        )}
+       />
+     ),
+   },
+@@ -22,11 +24,12 @@ const DUMP_SCENARIOS: ScenarioTab[] = [
+     title: 'Dump — empty',
+     note: 'First visit: the composer over the empty-state feed.',
+     content: (
+-      <DumpScreen
+-        periodKey={DUMP_PERIOD_KEY}
+-        initialEntries={[]}
+-        initialNextCursor={null}
+-        initialTotalCount={0}
++      <DumpPage
++        {...toDumpPageProps(
++          {data: {entries: [], nextCursor: null}},
++          0,
++          DUMP_TODAY,
++        )}
+       />
+     ),
+   },
+@@ -36,10 +39,11 @@ export default function DumpScenarioPage() {
+   return (
+     <ScenarioPage
+       title="Dump scenarios"
+-      description="The real dump page (BoardHeader + composer + day-grouped feed) fed
+-        fixture entries — the populated feed with Today/Yesterday/older headers
+-        and the 6-line clamp, plus the empty state. initialNextCursor is pinned
+-        null so the load-more observer stays inert against the fixtures."
++      description="The real dump page (DumpPage: header, composer and day-grouped
++        feed) fed fixture entries through the route's adapter — the populated
++        feed with Today/Yesterday/older headers and the 6-line clamp, plus the
++        empty state. The next cursor is pinned null so the load-more observer
++        stays inert against the fixtures."
+     >
+       <ScenarioTabs tabs={DUMP_SCENARIOS} />
+     </ScenarioPage>
+diff --git a/src/app/kanban/dump/page.tsx b/src/app/kanban/dump/page.tsx
+index 167561f..af89d75 100644
+--- a/src/app/kanban/dump/page.tsx
++++ b/src/app/kanban/dump/page.tsx
+@@ -2,27 +2,16 @@ import {
+   countDumpEntriesAction,
+   fetchDumpEntriesAction,
+ } from '@/actions/dumpActions';
+-import {getISOWeekKey, getTodayDate} from '@/utils/dateUtils';
+-import {DumpScreen} from '@/components/domain/dump/DumpScreen';
++import {getTodayDate} from '@/utils/dateUtils';
++import {toDumpPageProps} from '@/utils/dump';
++import {DumpPage} from '@/components/domain/dump/DumpPage';
+ 
+-export default async function DumpPage() {
+-  // Dump is plan-independent — no ensureSynced; the header badge is just the
+-  // current ISO week.
++export default async function KanbanDumpPage() {
++  // Dump is plan-independent — no ensureSynced
+   const [feed, totalCount] = await Promise.all([
+     fetchDumpEntriesAction({}),
+     countDumpEntriesAction(),
+   ]);
+-  // The cursorless first page can only succeed; fall back to empty on the
+-  // (unreachable) error branch so the types stay honest.
+-  const feedData = 'data' in feed ? feed.data : null;
+-  const {entries, nextCursor} = feedData ?? {entries: [], nextCursor: null};
+ 
+-  return (
+-    <DumpScreen
+-      periodKey={getISOWeekKey(getTodayDate())}
+-      initialEntries={entries}
+-      initialNextCursor={nextCursor}
+-      initialTotalCount={totalCount}
+-    />
+-  );
++  return <DumpPage {...toDumpPageProps(feed, totalCount, getTodayDate())} />;
+ }
+diff --git a/src/components/domain/dump/DumpComposer.tsx b/src/components/domain/dump/DumpComposer.tsx
+index 15078c0..5f023d2 100644
+--- a/src/components/domain/dump/DumpComposer.tsx
++++ b/src/components/domain/dump/DumpComposer.tsx
+@@ -6,16 +6,13 @@ import {PaperAirplaneIcon} from '@heroicons/react/24/outline';
+ import {SubmitButton} from '@/components/ui/form/SubmitButton';
+ import {FormErrorAlert} from '@/components/ui/form/FormErrorAlert';
+ import {DUMP_ENTRY_MAX_LENGTH} from '@/utils/dump';
+-
+-interface DumpComposerProps {
+-  captureError: string | null;
+-  onCapture: (content: string) => Promise<{ok: boolean}>;
+-}
++import {useDumpPageContext} from './DumpPageContext';
+ 
+ /** The capture console: an auto-growing, IME-safe textarea. Enter inserts a
+- *  newline; ⌘/Ctrl+Enter dumps. */
+-export const DumpComposer = ({captureError, onCapture}: DumpComposerProps) => {
++ *  newline; ⌘/Ctrl+Enter dumps through the page's capture. */
++export const DumpComposer = () => {
+   const t = useTranslations('Dump');
++  const {capture, captureError} = useDumpPageContext();
+   const [content, setContent] = useState('');
+   const [isSubmitting, setIsSubmitting] = useState(false);
+   const textareaRef = useRef<HTMLTextAreaElement>(null);
+@@ -40,7 +37,7 @@ export const DumpComposer = ({captureError, onCapture}: DumpComposerProps) => {
+     setContent(''); // optimistic clear
+     requestAnimationFrame(resetHeight);
+     setIsSubmitting(true);
+-    const {ok} = await onCapture(text);
++    const {ok} = await capture(text);
+     setIsSubmitting(false);
+     if (!ok) {
+       setContent(text); // restore on failure
+diff --git a/src/components/domain/dump/DumpFeed.tsx b/src/components/domain/dump/DumpFeed.tsx
+index 71c0735..854a5b6 100644
+--- a/src/components/domain/dump/DumpFeed.tsx
++++ b/src/components/domain/dump/DumpFeed.tsx
+@@ -9,23 +9,19 @@ import {SectionLabel} from '@/components/ui/SectionLabel';
+ import {dumpTodayKey, groupEntriesByDay, shiftDayKey} from '@/utils/dump';
+ import {DUMP_SENTINEL_ROOT_MARGIN} from './constants';
+ import {DumpEntryCard} from './DumpEntryCard';
++import {useDumpPageContext} from './DumpPageContext';
+ 
+ interface DumpFeedProps {
+   entries: DumpEntryItem[];
+   hasMore: boolean;
+   isAppending: boolean;
+-  onLoadMore: () => void;
+ }
+ 
+ /** Day-grouped, newest-first feed with an IntersectionObserver load-more
+- *  sentinel and an empty state. */
+-export const DumpFeed = ({
+-  entries,
+-  hasMore,
+-  isAppending,
+-  onLoadMore,
+-}: DumpFeedProps) => {
++ *  sentinel (the page's loadMore) and an empty state. */
++export const DumpFeed = ({entries, hasMore, isAppending}: DumpFeedProps) => {
+   const t = useTranslations('Dump');
++  const {loadMore} = useDumpPageContext();
+   const sentinelRef = useRef<HTMLDivElement>(null);
+ 
+   // Fire load-more as the bottom sentinel approaches the viewport.
+@@ -34,13 +30,13 @@ export const DumpFeed = ({
+     if (!el || !hasMore) return;
+     const observer = new IntersectionObserver(
+       observed => {
+-        if (observed[0]?.isIntersecting) onLoadMore();
++        if (observed[0]?.isIntersecting) loadMore();
+       },
+       {rootMargin: DUMP_SENTINEL_ROOT_MARGIN},
+     );
+     observer.observe(el);
+     return () => observer.disconnect();
+-  }, [hasMore, onLoadMore]);
++  }, [hasMore, loadMore]);
+ 
+   if (entries.length === 0) {
+     return (
+diff --git a/src/components/domain/dump/DumpPage.tsx b/src/components/domain/dump/DumpPage.tsx
+new file mode 100644
+index 0000000..be88ec8
+--- /dev/null
++++ b/src/components/domain/dump/DumpPage.tsx
+@@ -0,0 +1,66 @@
++'use client';
++
++import type {DumpPageData} from '@/types/dump';
++import {BoardHeader} from '@/components/domain/shared/BoardHeader';
++import {useDumpFeed} from '@/hooks/useDumpFeed';
++import {DUMP_COLUMN_MAX_W} from './constants';
++import {DumpPageContext, type DumpPageContextValue} from './DumpPageContext';
++import {DumpTitleBar} from './DumpTitleBar';
++import {DumpComposer} from './DumpComposer';
++import {DumpFeed} from './DumpFeed';
++
++/**
++ * The Dump page (/kanban/dump): shared app header + dump title bar, a pinned
++ * composer above a scrolling day-grouped feed. One useDumpFeed instance backs
++ * both — the composer's capture prepends into the same list the feed renders
++ * — and its writes reach them through DumpPageContext.
++ */
++export const DumpPage = ({
++  periodKey,
++  initialEntries,
++  initialNextCursor,
++  initialTotalCount,
++}: DumpPageData) => {
++  const {
++    entries,
++    totalCount,
++    hasMore,
++    isAppending,
++    captureError,
++    capture,
++    loadMore,
++  } = useDumpFeed({
++    entries: initialEntries,
++    nextCursor: initialNextCursor,
++    totalCount: initialTotalCount,
++  });
++
++  const pageContext: DumpPageContextValue = {capture, captureError, loadMore};
++
++  return (
++    <DumpPageContext value={pageContext}>
++      <div className="flex flex-col h-full">
++        <BoardHeader periodKey={periodKey} />
++        <DumpTitleBar totalCount={totalCount} />
++
++        <div className="flex-shrink-0 border-b border-base-content/10 px-4 py-3">
++          <div className={`mx-auto w-full ${DUMP_COLUMN_MAX_W}`}>
++            <DumpComposer />
++          </div>
++        </div>
++
++        <div className="flex-1 min-h-0 overflow-y-auto">
++          <div
++            className={`mx-auto w-full ${DUMP_COLUMN_MAX_W} px-4 py-4 pb-12`}
++          >
++            <DumpFeed
++              entries={entries}
++              hasMore={hasMore}
++              isAppending={isAppending}
++            />
++          </div>
++        </div>
++      </div>
++    </DumpPageContext>
++  );
++};
+diff --git a/src/components/domain/dump/DumpPageContext.ts b/src/components/domain/dump/DumpPageContext.ts
+new file mode 100644
+index 0000000..9853811
+--- /dev/null
++++ b/src/components/domain/dump/DumpPageContext.ts
+@@ -0,0 +1,26 @@
++import {createContext, use} from 'react';
++
++/**
++ * What the Dump page's components read and do without threading it through
++ * props: the feed's writes, bound to the page's feed state (useDumpFeed).
++ * `DumpPage` provides it; the entries still come down as props.
++ */
++export interface DumpPageContextValue {
++  /** Prepends the entry optimistically; resolves ok: false on failure */
++  capture: (content: string) => Promise<{ok: boolean}>;
++  /** The last capture's error, shown under the composer */
++  captureError: string | null;
++  /** Appends the next page of the feed */
++  loadMore: () => void;
++}
++
++export const DumpPageContext = createContext<DumpPageContextValue | null>(null);
++
++/** The Dump page's context; only its components render inside it. */
++export const useDumpPageContext = (): DumpPageContextValue => {
++  const context = use(DumpPageContext);
++  if (!context) {
++    throw new Error('useDumpPageContext must be used within DumpPage');
++  }
++  return context;
++};
+diff --git a/src/components/domain/dump/DumpScreen.tsx b/src/components/domain/dump/DumpScreen.tsx
+deleted file mode 100644
+index 0515b98..0000000
+--- a/src/components/domain/dump/DumpScreen.tsx
++++ /dev/null
+@@ -1,66 +0,0 @@
+-'use client';
+-
+-import {BoardHeader} from '@/components/domain/shared/BoardHeader';
+-import type {DumpEntryItem} from '@/lib/db/dumpEntries';
+-import {useDumpFeed} from '@/hooks/useDumpFeed';
+-import {DUMP_COLUMN_MAX_W} from './constants';
+-import {DumpTitleBar} from './DumpTitleBar';
+-import {DumpComposer} from './DumpComposer';
+-import {DumpFeed} from './DumpFeed';
+-
+-interface DumpScreenProps {
+-  periodKey: string;
+-  initialEntries: DumpEntryItem[];
+-  initialNextCursor: string | null;
+-  initialTotalCount: number;
+-}
+-
+-/**
+- * The dump page's screen layer: shared app header + dump title bar, a pinned
+- * composer above a scrolling day-grouped feed. One useDumpFeed instance backs
+- * both — the composer's capture prepends into the same list the feed renders.
+- */
+-export const DumpScreen = ({
+-  periodKey,
+-  initialEntries,
+-  initialNextCursor,
+-  initialTotalCount,
+-}: DumpScreenProps) => {
+-  const {
+-    entries,
+-    totalCount,
+-    hasMore,
+-    isAppending,
+-    captureError,
+-    capture,
+-    loadMore,
+-  } = useDumpFeed({
+-    entries: initialEntries,
+-    nextCursor: initialNextCursor,
+-    totalCount: initialTotalCount,
+-  });
+-
+-  return (
+-    <div className="flex flex-col h-full">
+-      <BoardHeader periodKey={periodKey} />
+-      <DumpTitleBar totalCount={totalCount} />
+-
+-      <div className="flex-shrink-0 border-b border-base-content/10 px-4 py-3">
+-        <div className={`mx-auto w-full ${DUMP_COLUMN_MAX_W}`}>
+-          <DumpComposer captureError={captureError} onCapture={capture} />
+-        </div>
+-      </div>
+-
+-      <div className="flex-1 min-h-0 overflow-y-auto">
+-        <div className={`mx-auto w-full ${DUMP_COLUMN_MAX_W} px-4 py-4 pb-12`}>
+-          <DumpFeed
+-            entries={entries}
+-            hasMore={hasMore}
+-            isAppending={isAppending}
+-            onLoadMore={loadMore}
+-          />
+-        </div>
+-      </div>
+-    </div>
+-  );
+-};
+diff --git a/src/types/dump.ts b/src/types/dump.ts
+new file mode 100644
+index 0000000..1927f66
+--- /dev/null
++++ b/src/types/dump.ts
+@@ -0,0 +1,14 @@
++import type {DumpEntryItem} from '@/lib/db/dumpEntries';
++
++/**
++ * What the Dump page starts from: the week its header shows (the current ISO
++ * week; Dump is plan-independent), the feed's first page and where the next
++ * one starts (null: end of history), and the total for the title bar. The
++ * page keeps the feed as client state from here (useDumpFeed).
++ */
++export interface DumpPageData {
++  periodKey: string;
++  initialEntries: DumpEntryItem[];
++  initialNextCursor: string | null;
++  initialTotalCount: number;
++}
+diff --git a/src/utils/dump.test.ts b/src/utils/dump.test.ts
+index 866a1f3..160204c 100644
+--- a/src/utils/dump.test.ts
++++ b/src/utils/dump.test.ts
+@@ -1,5 +1,6 @@
+ import {afterEach, describe, expect, it, vi} from 'vitest';
+-import {MOMENTS, freezeTime} from '../../test/time';
++import {MOMENTS, WEEK_KEY, freezeTime} from '../../test/time';
++import {getTodayDate} from './dateUtils';
+ import {
+   dumpDayKey,
+   dumpTodayKey,
+@@ -7,6 +8,7 @@ import {
+   formatDumpTime,
+   groupEntriesByDay,
+   shiftDayKey,
++  toDumpPageProps,
+ } from './dump';
+ 
+ afterEach(() => {
+@@ -56,3 +58,33 @@ describe('groupEntriesByDay', () => {
+     ]);
+   });
+ });
++
++describe('toDumpPageProps', () => {
++  const entries = [
++    {id: 'entry', content: 'Call the dentist', createdAt: new Date()},
++  ];
++
++  it("hands the first page on and heads it with the kanban day's week", () => {
++    // Sunday evening in Los Angeles is already Monday in UTC
++    freezeTime(MOMENTS.SUNDAY_LATE);
++    expect(
++      toDumpPageProps(
++        {data: {entries, nextCursor: 'next'}},
++        21,
++        getTodayDate(),
++      ),
++    ).toEqual({
++      periodKey: WEEK_KEY,
++      initialEntries: entries,
++      initialNextCursor: 'next',
++      initialTotalCount: 21,
++    });
++  });
++
++  it('falls back to an empty feed on an error', () => {
++    freezeTime(MOMENTS.WEDNESDAY_NOON);
++    const props = toDumpPageProps({error: 'invalid'}, 0, getTodayDate());
++    expect(props.initialEntries).toEqual([]);
++    expect(props.initialNextCursor).toBeNull();
++  });
++});
+diff --git a/src/utils/dump.ts b/src/utils/dump.ts
+index 48342f7..0633c80 100644
+--- a/src/utils/dump.ts
++++ b/src/utils/dump.ts
+@@ -1,9 +1,16 @@
+ /**
+  * Dump feature constants + client-safe date helpers — shared by the zod schema,
+- * the server action's paging, and the composer/feed UI (textarea maxLength,
+- * skeletons, day grouping).
++ * the server action's paging, the page's route adapter, and the composer/feed
++ * UI (textarea maxLength, skeletons, day grouping).
+  */
+-import {KANBAN_TZ, formatDayLabel, formatKanbanISODate} from './dateUtils';
++import type {DumpEntryItem} from '@/lib/db/dumpEntries';
++import type {DumpPageData} from '@/types/dump';
++import {
++  KANBAN_TZ,
++  formatDayLabel,
++  formatKanbanISODate,
++  getISOWeekKey,
++} from './dateUtils';
+ 
+ export const DUMP_PAGE_SIZE = 20;
+ export const DUMP_ENTRY_MAX_LENGTH = 10000;
+@@ -76,3 +83,29 @@ export function groupEntriesByDay<T extends {createdAt: Date}>(
+   }
+   return groups;
+ }
++
++/** A feed page as fetchDumpEntriesAction returns it: the page or an error. */
++type DumpFeedResult =
++  | {data: {entries: DumpEntryItem[]; nextCursor: string | null}}
++  | {error: unknown};
++
++/**
++ * The Dump route's adapter: the two read actions' results → the page's
++ * props. The header shows the week of `today` (Dump is plan-independent). The
++ * cursorless first page can only succeed; its (unreachable) error branch
++ * falls back to an empty feed so the types stay honest.
++ */
++export function toDumpPageProps(
++  feed: DumpFeedResult,
++  totalCount: number,
++  today: Date,
++): DumpPageData {
++  const {entries, nextCursor} =
++    'data' in feed ? feed.data : {entries: [], nextCursor: null};
++  return {
++    periodKey: getISOWeekKey(today),
++    initialEntries: entries,
++    initialNextCursor: nextCursor,
++    initialTotalCount: totalCount,
++  };
++}
+-- 
+2.43.0
+

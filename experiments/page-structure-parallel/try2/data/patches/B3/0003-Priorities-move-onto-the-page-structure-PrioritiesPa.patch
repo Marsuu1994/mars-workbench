@@ -1,0 +1,1521 @@
+From 0130204aef7c71d4e84ebaa6d5dbf9fa663b2e28 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 27 Oct 2026 05:22:53 +0000
+Subject: [PATCH 3/4] Priorities: move onto the page structure (PrioritiesPage
+ + PrioritiesPageContext)
+
+PriorityMatrixPage becomes PrioritiesPage and renders BoardHeader itself; PrioritiesScreen is gone. The route shapes the matrix read with the pure adapter toPrioritiesPageProps (the no-plan week fallback), and the page's components read activePlanId, the open popover, the overlay openers and the Track / Done writes from PrioritiesPageContext instead of callback props. groupTasksByQuadrant and isTrackedTask join oneOffUtils with unit tests; FALLBACK_QUADRANT moves there too. The Design Console renders PrioritiesPage through the same adapter and wraps the MatrixTaskCard specimen and the mobile Move-to panel in inertPrioritiesPageContext.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01KCt6pLaQcffbbgWyRsYruK
+---
+ src/app/design/constants.ts                   |  24 +-
+ .../priorities/MobileMoveToPanelScenario.tsx  |  25 +-
+ .../design/scenarios/priorities/fixtures.ts   |  36 ++-
+ src/app/design/scenarios/priorities/page.tsx  |  94 +++-----
+ src/app/design/tabs/DomainTab.tsx             |  57 +++--
+ src/app/kanban/priorities/page.tsx            |  18 +-
+ .../domain/priorities/MatrixTaskCard.tsx      |  44 +---
+ .../domain/priorities/MobileMoveToPanel.tsx   |  21 +-
+ .../domain/priorities/MobileMoveToSheet.tsx   |  25 +-
+ .../domain/priorities/MoveToPopover.tsx       |  11 +-
+ .../domain/priorities/MoveToRows.tsx          |  26 +--
+ ...orityMatrixPage.tsx => PrioritiesPage.tsx} | 213 +++++++++---------
+ .../priorities/PrioritiesPageContext.ts       |  42 ++++
+ .../domain/priorities/PrioritiesScreen.tsx    |  29 ---
+ .../domain/priorities/QuadrantCell.tsx        |  41 +---
+ src/components/domain/priorities/constants.ts |   7 -
+ .../shared/task-modal/TaskModalPanel.tsx      |   2 +-
+ src/types/priorities.ts                       |  13 ++
+ src/utils/oneOffUtils.test.ts                 |  90 ++++++++
+ src/utils/oneOffUtils.ts                      |  50 +++-
+ 20 files changed, 468 insertions(+), 400 deletions(-)
+ rename src/components/domain/priorities/{PriorityMatrixPage.tsx => PrioritiesPage.tsx} (70%)
+ create mode 100644 src/components/domain/priorities/PrioritiesPageContext.ts
+ delete mode 100644 src/components/domain/priorities/PrioritiesScreen.tsx
+ create mode 100644 src/types/priorities.ts
+ create mode 100644 src/utils/oneOffUtils.test.ts
+
+diff --git a/src/app/design/constants.ts b/src/app/design/constants.ts
+index 37299e2..cbb27d3 100644
+--- a/src/app/design/constants.ts
++++ b/src/app/design/constants.ts
+@@ -13,6 +13,7 @@ import {TaskKind, type HabitWeek} from '@/utils/taskUtils';
+ import type {BoardCard, ProjectStepContext} from '@/utils/boardCardUtils';
+ import type {ProjectsPageContextValue} from '@/components/domain/projects/ProjectsPageContext';
+ import type {BoardPageContextValue} from '@/components/domain/board/BoardPageContext';
++import type {PrioritiesPageContextValue} from '@/components/domain/priorities/PrioritiesPageContext';
+ 
+ // ── Page copy ──────────────────────────────────────────────────────────────
+ /** Title halves — the accent word renders with fx-text-gradient (the
+@@ -419,10 +420,13 @@ export const STEP_PATH_FIXTURES: {label: string; step: ProjectStepContext}[] = [
+ ];
+ 
+ // ── Matrix card fixtures ─────────────────────────────────────────────────────
++/** The plan the MatrixTaskCard specimens render against: a card on it is
++    tracked (This Week). */
++export const MATRIX_CARD_ACTIVE_PLAN_ID = 'gallery-matrix-plan';
++
+ export interface MatrixCardFixture {
+   label: string;
+   task: TaskItem;
+-  isTracked: boolean;
+ }
+ 
+ export const MATRIX_CARD_FIXTURES: MatrixCardFixture[] = [
+@@ -439,7 +443,6 @@ export const MATRIX_CARD_FIXTURES: MatrixCardFixture[] = [
+       planId: null,
+       quadrant: PriorityQuadrant.DO_FIRST,
+     }),
+-    isTracked: false,
+   },
+   {
+     label: 'Tracked (This Week)',
+@@ -449,9 +452,9 @@ export const MATRIX_CARD_FIXTURES: MatrixCardFixture[] = [
+       title: 'Shop birthday gift',
+       description: 'For mom — this Saturday',
+       status: TaskStatus.TODO,
++      planId: MATRIX_CARD_ACTIVE_PLAN_ID,
+       quadrant: PriorityQuadrant.DO_FIRST,
+     }),
+-    isTracked: true,
+   },
+ ];
+ 
+@@ -690,6 +693,21 @@ export const inertBoardPageContext = (): BoardPageContextValue => ({
+   pullToTodo: () => undefined,
+ });
+ 
++/** The page context a MatrixTaskCard or Move-to specimen renders in, outside
++    the Priorities page: the fixture's plan, no popover open, inert handlers
++    (the frame swallows clicks). */
++export const inertPrioritiesPageContext = (
++  activePlanId: string | null,
++): PrioritiesPageContextValue => ({
++  activePlanId,
++  openPopoverTaskId: null,
++  togglePopover: () => undefined,
++  openMoveToSheet: () => undefined,
++  openAddTask: () => undefined,
++  trackTask: () => undefined,
++  completeTask: () => undefined,
++});
++
+ /** TemplateItem — a single selectable plan-template row. */
+ export const TEMPLATE_FIXTURE = {
+   id: 'tmpl-1',
+diff --git a/src/app/design/scenarios/priorities/MobileMoveToPanelScenario.tsx b/src/app/design/scenarios/priorities/MobileMoveToPanelScenario.tsx
+index e3bb4b3..c32593e 100644
+--- a/src/app/design/scenarios/priorities/MobileMoveToPanelScenario.tsx
++++ b/src/app/design/scenarios/priorities/MobileMoveToPanelScenario.tsx
+@@ -2,33 +2,30 @@
+ 
+ import type {TaskItem} from '@/lib/db/tasks';
+ import {MobileMoveToPanel} from '@/components/domain/priorities/MobileMoveToPanel';
++import {PrioritiesPageContext} from '@/components/domain/priorities/PrioritiesPageContext';
++import {inertPrioritiesPageContext} from '../../constants';
+ 
+ interface MobileMoveToPanelScenarioProps {
+   task: TaskItem;
+-  isTracked?: boolean;
+-  hasActivePlan: boolean;
++  /** The week's plan; the task is tracked when it sits on it */
++  activePlanId: string | null;
+ }
+ 
+ /**
+  * The mobile Move-to sheet's body, rendered inline as a phone-width card
+- * inside a scenario frame: the real MobileMoveToPanel with inert handlers,
+- * minus the top-layer <dialog> so it stays inside the frame and inherits
+- * its inertness.
++ * inside a scenario frame: the real MobileMoveToPanel in an inert page
++ * context, minus the top-layer <dialog> so it stays inside the frame and
++ * inherits its inertness.
+  */
+ export const MobileMoveToPanelScenario = ({
+   task,
+-  isTracked = false,
+-  hasActivePlan,
++  activePlanId,
+ }: MobileMoveToPanelScenarioProps) => (
+   <div className="flex h-full flex-col justify-end bg-base-200/20 p-3">
+     <div className="mx-auto w-full max-w-[430px] rounded-2xl border border-base-content/10 bg-base-100 shadow-lg">
+-      <MobileMoveToPanel
+-        task={task}
+-        isTracked={isTracked}
+-        hasActivePlan={hasActivePlan}
+-        onTrack={() => undefined}
+-        onComplete={() => undefined}
+-      />
++      <PrioritiesPageContext value={inertPrioritiesPageContext(activePlanId)}>
++        <MobileMoveToPanel task={task} />
++      </PrioritiesPageContext>
+     </div>
+   </div>
+ );
+diff --git a/src/app/design/scenarios/priorities/fixtures.ts b/src/app/design/scenarios/priorities/fixtures.ts
+index 230f685..2136641 100644
+--- a/src/app/design/scenarios/priorities/fixtures.ts
++++ b/src/app/design/scenarios/priorities/fixtures.ts
+@@ -6,13 +6,18 @@ import {
+   SIZE_TO_POINTS,
+ } from '@/utils/enums';
+ import type {TaskItem} from '@/lib/db/tasks';
+-import type {MatrixActivePlan} from '@/services/matrixService';
++import type {MatrixActivePlan, MatrixData} from '@/services/matrixService';
+ 
+ /* Priorities scenario fixtures — the real matrix page fed a populated
+-   Eisenhower spread with a couple of tracked (on-board) tasks. */
++   Eisenhower spread with a couple of tracked (on-board) tasks. The tabs pass
++   each matrix through the route's adapter (toPrioritiesPageProps). */
+ 
+ const NOW = new Date('2026-07-10T15:00:00');
+ 
++/** The scenarios' today (local midnight): with no plan, the header falls
++    back to its ISO week — the active plan's week. */
++export const SCENARIO_TODAY = new Date(2026, 6, 10);
++
+ export const SCENARIO_ACTIVE_PLAN: MatrixActivePlan = {
+   id: 'scn-plan',
+   periodKey: '2026-W28',
+@@ -60,7 +65,7 @@ const SHEET_TASK_ID = 'scn-move-sheet';
+ /** The tracked card shown in the mobile sheet's Done-only state. */
+ const SHEET_TRACKED_TASK_ID = 'scn-move-sheet-tracked';
+ 
+-export const MATRIX_TASKS: TaskItem[] = [
++const MATRIX_TASKS: TaskItem[] = [
+   // Do First — one tracked (dimmed, This Week tag), one actionable
+   task({
+     id: TRACKED_POPOVER_TASK_ID,
+@@ -135,9 +140,28 @@ export const DONE_TASK: TaskItem = MATRIX_TASKS.find(
+ 
+ /** The matrix right after DONE_TASK was marked done — the page drops the
+     card optimistically, so the composed Done-toast tabs render this. */
+-export const MATRIX_TASKS_AFTER_DONE = MATRIX_TASKS.filter(
+-  t => t.id !== DONE_TASK.id,
+-);
++const MATRIX_TASKS_AFTER_DONE = MATRIX_TASKS.filter(t => t.id !== DONE_TASK.id);
++
++/** The matrix read, as the route gets it from fetchPriorityMatrixAction. */
++export const MATRIX: MatrixData = {
++  tasks: MATRIX_TASKS,
++  activePlan: SCENARIO_ACTIVE_PLAN,
++};
++
++export const MATRIX_NO_PLAN: MatrixData = {
++  tasks: MATRIX_TASKS,
++  activePlan: null,
++};
++
++export const MATRIX_AFTER_DONE: MatrixData = {
++  tasks: MATRIX_TASKS_AFTER_DONE,
++  activePlan: SCENARIO_ACTIVE_PLAN,
++};
++
++export const MATRIX_AFTER_DONE_NO_PLAN: MatrixData = {
++  tasks: MATRIX_TASKS_AFTER_DONE,
++  activePlan: null,
++};
+ 
+ /** Play scope for one fixture card: @hello-pangea/dnd stamps each draggable
+     with its id. */
+diff --git a/src/app/design/scenarios/priorities/page.tsx b/src/app/design/scenarios/priorities/page.tsx
+index 33c6176..79778e7 100644
+--- a/src/app/design/scenarios/priorities/page.tsx
++++ b/src/app/design/scenarios/priorities/page.tsx
+@@ -1,15 +1,20 @@
++import type {MatrixData} from '@/services/matrixService';
+ import {PriorityQuadrant} from '@/utils/enums';
+-import {PrioritiesScreen} from '@/components/domain/priorities/PrioritiesScreen';
++import {toPrioritiesPageProps} from '@/utils/oneOffUtils';
++import {PrioritiesPage} from '@/components/domain/priorities/PrioritiesPage';
+ import {ScenarioTabs, type ScenarioTab} from '../ScenarioTabs';
+ import {ScenarioPage} from '../ScenarioPage';
+ import {TaskModalScenario} from '../TaskModalScenario';
+ import {MobileMoveToPanelScenario} from './MobileMoveToPanelScenario';
+ import {DoneToastScenario} from './DoneToastScenario';
+ import {
+-  MATRIX_TASKS,
+-  MATRIX_TASKS_AFTER_DONE,
++  MATRIX,
++  MATRIX_NO_PLAN,
++  MATRIX_AFTER_DONE,
++  MATRIX_AFTER_DONE_NO_PLAN,
+   DONE_TASK,
+   SCENARIO_ACTIVE_PLAN,
++  SCENARIO_TODAY,
+   POPOVER_TASK_ID,
+   TRACKED_POPOVER_TASK_ID,
+   SHEET_TASK,
+@@ -17,30 +22,23 @@ import {
+   matrixCard,
+ } from './fixtures';
+ 
++/** The page as its route renders it: the matrix read through the adapter. */
++const renderPrioritiesPage = (matrix: MatrixData) => (
++  <PrioritiesPage {...toPrioritiesPageProps(matrix, SCENARIO_TODAY)} />
++);
++
+ const PRIORITIES_SCENARIOS: ScenarioTab[] = [
+   {
+     label: 'Matrix',
+     title: 'Priority matrix — populated',
+     note: 'All four quadrants filled; tracked tasks render dimmed with the This Week tag.',
+-    content: (
+-      <PrioritiesScreen
+-        periodKey={SCENARIO_ACTIVE_PLAN.periodKey}
+-        tasks={MATRIX_TASKS}
+-        activePlan={SCENARIO_ACTIVE_PLAN}
+-      />
+-    ),
++    content: renderPrioritiesPage(MATRIX),
+   },
+   {
+     label: 'Move-to popover',
+     title: 'Move to — popover open',
+     note: "A play step clicks an untracked card's Move-to button: Todo, then Done under a hairline.",
+-    content: (
+-      <PrioritiesScreen
+-        periodKey={SCENARIO_ACTIVE_PLAN.periodKey}
+-        tasks={MATRIX_TASKS}
+-        activePlan={SCENARIO_ACTIVE_PLAN}
+-      />
+-    ),
++    content: renderPrioritiesPage(MATRIX),
+     play: [
+       {
+         click: {
+@@ -54,13 +52,7 @@ const PRIORITIES_SCENARIOS: ScenarioTab[] = [
+     label: 'Move-to popover — tracked',
+     title: 'Move to — tracked card',
+     note: 'The popover on a This Week card: the column rows drop out, Done is the only move left.',
+-    content: (
+-      <PrioritiesScreen
+-        periodKey={SCENARIO_ACTIVE_PLAN.periodKey}
+-        tasks={MATRIX_TASKS}
+-        activePlan={SCENARIO_ACTIVE_PLAN}
+-      />
+-    ),
++    content: renderPrioritiesPage(MATRIX),
+     play: [
+       {
+         click: {
+@@ -73,26 +65,14 @@ const PRIORITIES_SCENARIOS: ScenarioTab[] = [
+   {
+     label: 'No plan',
+     title: 'No active plan',
+-    note: 'Warning hint bar with the Create Plan link; send buttons stay enabled because Done never needs a plan.',
+-    content: (
+-      <PrioritiesScreen
+-        periodKey={SCENARIO_ACTIVE_PLAN.periodKey}
+-        tasks={MATRIX_TASKS}
+-        activePlan={null}
+-      />
+-    ),
++    note: "Warning hint bar with the Create Plan link; send buttons stay enabled because Done never needs a plan. The header falls back to today's ISO week.",
++    content: renderPrioritiesPage(MATRIX_NO_PLAN),
+   },
+   {
+     label: 'Move-to popover — no plan',
+     title: 'Move to — no active plan',
+     note: 'The same popover without a plan: column rows disabled under the "No active plan yet" note, Done still live.',
+-    content: (
+-      <PrioritiesScreen
+-        periodKey={SCENARIO_ACTIVE_PLAN.periodKey}
+-        tasks={MATRIX_TASKS}
+-        activePlan={null}
+-      />
+-    ),
++    content: renderPrioritiesPage(MATRIX_NO_PLAN),
+     play: [
+       {
+         click: {
+@@ -108,11 +88,7 @@ const PRIORITIES_SCENARIOS: ScenarioTab[] = [
+     note: 'Right after Done: the card is gone and the Undo toast shows, its countdown held by the frame — credited copy because the active plan absorbed the points. Composed: the toast needs a completion write, which a scenario never makes.',
+     content: (
+       <>
+-        <PrioritiesScreen
+-          periodKey={SCENARIO_ACTIVE_PLAN.periodKey}
+-          tasks={MATRIX_TASKS_AFTER_DONE}
+-          activePlan={SCENARIO_ACTIVE_PLAN}
+-        />
++        {renderPrioritiesPage(MATRIX_AFTER_DONE)}
+         <DoneToastScenario task={DONE_TASK} credited />
+       </>
+     ),
+@@ -123,11 +99,7 @@ const PRIORITIES_SCENARIOS: ScenarioTab[] = [
+     note: 'The same toast without a plan: plain "Marked done", nothing credited.',
+     content: (
+       <>
+-        <PrioritiesScreen
+-          periodKey={SCENARIO_ACTIVE_PLAN.periodKey}
+-          tasks={MATRIX_TASKS_AFTER_DONE}
+-          activePlan={null}
+-        />
++        {renderPrioritiesPage(MATRIX_AFTER_DONE_NO_PLAN)}
+         <DoneToastScenario task={DONE_TASK} credited={false} />
+       </>
+     ),
+@@ -137,7 +109,12 @@ const PRIORITIES_SCENARIOS: ScenarioTab[] = [
+     title: 'Move-to sheet (mobile)',
+     note: 'The tap-a-card bottom sheet — summary line plus the two board columns and Done — shown inline (not as a top-layer modal).',
+     display: 'fit',
+-    content: <MobileMoveToPanelScenario task={SHEET_TASK} hasActivePlan />,
++    content: (
++      <MobileMoveToPanelScenario
++        task={SHEET_TASK}
++        activePlanId={SCENARIO_ACTIVE_PLAN.id}
++      />
++    ),
+   },
+   {
+     label: 'Move-to sheet — tracked (mobile)',
+@@ -147,8 +124,7 @@ const PRIORITIES_SCENARIOS: ScenarioTab[] = [
+     content: (
+       <MobileMoveToPanelScenario
+         task={SHEET_TRACKED_TASK}
+-        isTracked
+-        hasActivePlan
++        activePlanId={SCENARIO_ACTIVE_PLAN.id}
+       />
+     ),
+   },
+@@ -158,7 +134,7 @@ const PRIORITIES_SCENARIOS: ScenarioTab[] = [
+     note: 'Same sheet without an active plan: warning note, disabled column rows, Done still enabled.',
+     display: 'fit',
+     content: (
+-      <MobileMoveToPanelScenario task={SHEET_TASK} hasActivePlan={false} />
++      <MobileMoveToPanelScenario task={SHEET_TASK} activePlanId={null} />
+     ),
+   },
+   {
+@@ -185,12 +161,12 @@ export default function PrioritiesScenarioPage() {
+   return (
+     <ScenarioPage
+       title="Priorities scenarios"
+-      description="The real priorities page (BoardHeader + PriorityMatrixPage) fed a
+-        fixture matrix — tracked states, the Move-to chooser (popover opened
+-        by a play step, and the mobile sheet, with and without a plan), the
+-        undo toast after Done, the no-plan fallback, and the add-task modal in
+-        both entry modes. The board with tracked one-off cards lives in the
+-        Board scenarios."
++      description="The real priorities page (PrioritiesPage) fed a fixture
++        matrix through the route's adapter — tracked states, the Move-to
++        chooser (popover opened by a play step, and the mobile sheet, with and
++        without a plan), the undo toast after Done, the no-plan fallback, and
++        the add-task modal in both entry modes. The board with tracked one-off
++        cards lives in the Board scenarios."
+     >
+       <ScenarioTabs tabs={PRIORITIES_SCENARIOS} />
+     </ScenarioPage>
+diff --git a/src/app/design/tabs/DomainTab.tsx b/src/app/design/tabs/DomainTab.tsx
+index 1d050b7..580240f 100644
+--- a/src/app/design/tabs/DomainTab.tsx
++++ b/src/app/design/tabs/DomainTab.tsx
+@@ -14,6 +14,7 @@ import {BoardPageContext} from '@/components/domain/board/BoardPageContext';
+ import {BoardColumn} from '@/components/domain/board/BoardColumn';
+ import {ProgressDashboard} from '@/components/domain/board/ProgressDashboard';
+ import {MatrixTaskCard} from '@/components/domain/priorities/MatrixTaskCard';
++import {PrioritiesPageContext} from '@/components/domain/priorities/PrioritiesPageContext';
+ import {DumpEntryCard} from '@/components/domain/dump/DumpEntryCard';
+ import {TemplateItem} from '@/components/domain/plan/TemplateItem';
+ import {PlanTaskRow} from '@/components/domain/plan/PlanTaskRow';
+@@ -33,6 +34,7 @@ import {
+   STEP_PATH_FIXTURES,
+   PLAN_TASK_ROW_FIXTURES,
+   MATRIX_CARD_FIXTURES,
++  MATRIX_CARD_ACTIVE_PLAN_ID,
+   DUMP_CARD_FIXTURES,
+   PROGRESS_FIXTURE,
+   BOARD_HEADER_PERIOD,
+@@ -43,6 +45,7 @@ import {
+   PROJECT_STEP_FIXTURES,
+   inertProjectsPageContext,
+   inertBoardPageContext,
++  inertPrioritiesPageContext,
+ } from '../constants';
+ 
+ /** Right-aligned Zone action linking a feature group to its scenario page(s). */
+@@ -215,36 +218,30 @@ export const DomainTab = () => {
+       title="MatrixTaskCard"
+       description="Priorities-page card — hover reveals the Move-to send button (tracked cards keep it: Done is still a valid move); tracked cards dim with a This Week tag (★ on mobile)."
+     >
+-      <DragDropContext onDragEnd={() => undefined}>
+-        <Droppable droppableId="gallery-matrix-cards">
+-          {provided => (
+-            <div
+-              ref={provided.innerRef}
+-              {...provided.droppableProps}
+-              className="flex flex-wrap items-start gap-6"
+-            >
+-              {MATRIX_CARD_FIXTURES.map((fixture, index) => (
+-                <Variant key={fixture.task.id} label={fixture.label}>
+-                  <div className="w-64">
+-                    <MatrixTaskCard
+-                      task={fixture.task}
+-                      index={index}
+-                      isTracked={fixture.isTracked}
+-                      hasActivePlan
+-                      isPopoverOpen={false}
+-                      onSendToggle={() => undefined}
+-                      onTrack={() => undefined}
+-                      onComplete={() => undefined}
+-                      onTap={() => undefined}
+-                    />
+-                  </div>
+-                </Variant>
+-              ))}
+-              {provided.placeholder}
+-            </div>
+-          )}
+-        </Droppable>
+-      </DragDropContext>
++      <PrioritiesPageContext
++        value={inertPrioritiesPageContext(MATRIX_CARD_ACTIVE_PLAN_ID)}
++      >
++        <DragDropContext onDragEnd={() => undefined}>
++          <Droppable droppableId="gallery-matrix-cards">
++            {provided => (
++              <div
++                ref={provided.innerRef}
++                {...provided.droppableProps}
++                className="flex flex-wrap items-start gap-6"
++              >
++                {MATRIX_CARD_FIXTURES.map(({label, task}, index) => (
++                  <Variant key={task.id} label={label}>
++                    <div className="w-64">
++                      <MatrixTaskCard task={task} index={index} />
++                    </div>
++                  </Variant>
++                ))}
++                {provided.placeholder}
++              </div>
++            )}
++          </Droppable>
++        </DragDropContext>
++      </PrioritiesPageContext>
+     </Section>
+   );
+ 
+diff --git a/src/app/kanban/priorities/page.tsx b/src/app/kanban/priorities/page.tsx
+index 40772f8..5fff596 100644
+--- a/src/app/kanban/priorities/page.tsx
++++ b/src/app/kanban/priorities/page.tsx
+@@ -1,18 +1,10 @@
+ import {fetchPriorityMatrixAction} from '@/actions/matrixActions';
+-import {PrioritiesScreen} from '@/components/domain/priorities/PrioritiesScreen';
+-import {getISOWeekKey, getTodayDate} from '@/utils/dateUtils';
++import {PrioritiesPage} from '@/components/domain/priorities/PrioritiesPage';
++import {getTodayDate} from '@/utils/dateUtils';
++import {toPrioritiesPageProps} from '@/utils/oneOffUtils';
+ 
+-export default async function PrioritiesPage() {
++export default async function KanbanPrioritiesPage() {
+   const matrix = await fetchPriorityMatrixAction();
+-  // With no active plan the header badge falls back to the current ISO week
+-  const periodKey =
+-    matrix.activePlan?.periodKey ?? getISOWeekKey(getTodayDate());
+ 
+-  return (
+-    <PrioritiesScreen
+-      periodKey={periodKey}
+-      tasks={matrix.tasks}
+-      activePlan={matrix.activePlan}
+-    />
+-  );
++  return <PrioritiesPage {...toPrioritiesPageProps(matrix, getTodayDate())} />;
+ }
+diff --git a/src/components/domain/priorities/MatrixTaskCard.tsx b/src/components/domain/priorities/MatrixTaskCard.tsx
+index 44d2073..23c2d34 100644
+--- a/src/components/domain/priorities/MatrixTaskCard.tsx
++++ b/src/components/domain/priorities/MatrixTaskCard.tsx
+@@ -8,27 +8,16 @@ import {
+ } from '@heroicons/react/24/outline';
+ import {useBreakpoint} from '@/components/application/BreakpointProvider';
+ import type {TaskItem} from '@/lib/db/tasks';
+-import type {TrackTargetStatus} from '@/schemas';
++import {isTrackedTask} from '@/utils/oneOffUtils';
+ import {SizeChip} from '@/components/domain/shared/SizeChip';
+ import {Pill} from '@/components/ui/Pill';
+ import {MoveToPopover} from './MoveToPopover';
++import {usePrioritiesPageContext} from './PrioritiesPageContext';
+ 
+ interface MatrixTaskCardProps {
+   task: TaskItem;
+   /** Position index within the quadrant — required by Draggable */
+   index: number;
+-  /** planId === active plan id: dimmed "This Week" treatment, chooser offers Done only */
+-  isTracked: boolean;
+-  /** No active plan → the chooser's column rows disable (Done stays live) */
+-  hasActivePlan: boolean;
+-  /** Whether this card's Move-to popover is open */
+-  isPopoverOpen: boolean;
+-  /** Toggle the popover for this card (null closes) */
+-  onSendToggle: (taskId: string | null) => void;
+-  onTrack: (taskId: string, status: TrackTargetStatus) => void;
+-  onComplete: (taskId: string) => void;
+-  /** Mobile tap → open the Move-to bottom sheet */
+-  onTap: (task: TaskItem) => void;
+ }
+ 
+ /**
+@@ -38,22 +27,16 @@ interface MatrixTaskCardProps {
+  * (mobile: ★), keep the send button (Done is still a valid move) and stay
+  * draggable — dragging only reprioritizes, never touches status/plan.
+  */
+-export const MatrixTaskCard = ({
+-  task,
+-  index,
+-  isTracked,
+-  hasActivePlan,
+-  isPopoverOpen,
+-  onSendToggle,
+-  onTrack,
+-  onComplete,
+-  onTap,
+-}: MatrixTaskCardProps) => {
++export const MatrixTaskCard = ({task, index}: MatrixTaskCardProps) => {
+   const t = useTranslations('Priorities');
+   const {isMobile} = useBreakpoint();
++  const {activePlanId, openPopoverTaskId, togglePopover, openMoveToSheet} =
++    usePrioritiesPageContext();
++  const isTracked = isTrackedTask(task, activePlanId);
++  const isPopoverOpen = openPopoverTaskId === task.id;
+ 
+   const handleCardClick = () => {
+-    if (isMobile) onTap(task);
++    if (isMobile) openMoveToSheet(task.id);
+   };
+ 
+   const renderTrackedTag = () => (
+@@ -71,7 +54,7 @@ export const MatrixTaskCard = ({
+       aria-label={t('sendLabel')}
+       onClick={event => {
+         event.stopPropagation();
+-        onSendToggle(isPopoverOpen ? null : task.id);
++        togglePopover(task.id);
+       }}
+       className={`hidden flex-shrink-0 size-[22px] rounded-[5px] items-center justify-center cursor-pointer transition-colors ${
+         isPopoverOpen
+@@ -161,14 +144,7 @@ export const MatrixTaskCard = ({
+           </div>
+ 
+           {/* Click-away layer lives at the page level (outside any Draggable) */}
+-          {isPopoverOpen && (
+-            <MoveToPopover
+-              isTracked={isTracked}
+-              hasActivePlan={hasActivePlan}
+-              onTrack={status => onTrack(task.id, status)}
+-              onComplete={() => onComplete(task.id)}
+-            />
+-          )}
++          {isPopoverOpen && <MoveToPopover task={task} />}
+         </div>
+       )}
+     </Draggable>
+diff --git a/src/components/domain/priorities/MobileMoveToPanel.tsx b/src/components/domain/priorities/MobileMoveToPanel.tsx
+index 8f646da..4a3129b 100644
+--- a/src/components/domain/priorities/MobileMoveToPanel.tsx
++++ b/src/components/domain/priorities/MobileMoveToPanel.tsx
+@@ -2,15 +2,10 @@
+ 
+ import {useTranslations} from 'next-intl';
+ import type {TaskItem} from '@/lib/db/tasks';
+-import type {TrackTargetStatus} from '@/schemas';
+ import {MoveToRows} from './MoveToRows';
+ 
+ interface MobileMoveToPanelProps {
+   task: TaskItem;
+-  isTracked: boolean;
+-  hasActivePlan: boolean;
+-  onTrack: (status: TrackTargetStatus) => void;
+-  onComplete: () => void;
+ }
+ 
+ /**
+@@ -19,13 +14,7 @@ interface MobileMoveToPanelProps {
+  * mounts it in the live bottom sheet; the priorities scenario renders it
+  * inline inside a frame.
+  */
+-export const MobileMoveToPanel = ({
+-  task,
+-  isTracked,
+-  hasActivePlan,
+-  onTrack,
+-  onComplete,
+-}: MobileMoveToPanelProps) => {
++export const MobileMoveToPanel = ({task}: MobileMoveToPanelProps) => {
+   const t = useTranslations('Priorities');
+   const tSize = useTranslations('Enums.TaskSize');
+   const {title, description, size, points} = task;
+@@ -38,13 +27,7 @@ export const MobileMoveToPanel = ({
+     <div className="px-4 pt-4 pb-6">
+       <h3 className="text-[15px] font-bold">{title}</h3>
+       <p className="text-xs text-base-content/60 mt-0.5 mb-4">{meta}</p>
+-      <MoveToRows
+-        variant="sheet"
+-        isTracked={isTracked}
+-        hasActivePlan={hasActivePlan}
+-        onTrack={onTrack}
+-        onComplete={onComplete}
+-      />
++      <MoveToRows task={task} variant="sheet" />
+     </div>
+   );
+ };
+diff --git a/src/components/domain/priorities/MobileMoveToSheet.tsx b/src/components/domain/priorities/MobileMoveToSheet.tsx
+index f93dff3..8c516f5 100644
+--- a/src/components/domain/priorities/MobileMoveToSheet.tsx
++++ b/src/components/domain/priorities/MobileMoveToSheet.tsx
+@@ -2,7 +2,6 @@
+ 
+ import {useTranslations} from 'next-intl';
+ import type {TaskItem} from '@/lib/db/tasks';
+-import type {TrackTargetStatus} from '@/schemas';
+ import {OverlayShell} from '@/components/ui/overlay/OverlayShell';
+ import {useBreakpoint} from '@/components/application/BreakpointProvider';
+ import {MobileMoveToPanel} from './MobileMoveToPanel';
+@@ -10,12 +9,7 @@ import {MobileMoveToPanel} from './MobileMoveToPanel';
+ interface MobileMoveToSheetProps {
+   /** Task the sheet is open for; null = closed */
+   task: TaskItem | null;
+-  /** The open task is already on the board → Done only */
+-  isTracked: boolean;
+-  hasActivePlan: boolean;
+   onClose: () => void;
+-  onTrack: (taskId: string, status: TrackTargetStatus) => void;
+-  onComplete: (taskId: string) => void;
+ }
+ 
+ /**
+@@ -23,14 +17,7 @@ interface MobileMoveToSheetProps {
+  * MobileMoveToPanel in the live <dialog> shell; at md and up this renders
+  * nothing (desktop uses the popover).
+  */
+-export const MobileMoveToSheet = ({
+-  task,
+-  isTracked,
+-  hasActivePlan,
+-  onClose,
+-  onTrack,
+-  onComplete,
+-}: MobileMoveToSheetProps) => {
++export const MobileMoveToSheet = ({task, onClose}: MobileMoveToSheetProps) => {
+   const t = useTranslations('Priorities');
+   const {isMobile} = useBreakpoint();
+ 
+@@ -46,15 +33,7 @@ export const MobileMoveToSheet = ({
+       closeLabel={t('closeLabel')}
+       boxClassName="p-0"
+     >
+-      {task && (
+-        <MobileMoveToPanel
+-          task={task}
+-          isTracked={isTracked}
+-          hasActivePlan={hasActivePlan}
+-          onTrack={status => onTrack(task.id, status)}
+-          onComplete={() => onComplete(task.id)}
+-        />
+-      )}
++      {task && <MobileMoveToPanel task={task} />}
+     </OverlayShell>
+   );
+ };
+diff --git a/src/components/domain/priorities/MoveToPopover.tsx b/src/components/domain/priorities/MoveToPopover.tsx
+index 8fc05d9..957729f 100644
+--- a/src/components/domain/priorities/MoveToPopover.tsx
++++ b/src/components/domain/priorities/MoveToPopover.tsx
+@@ -1,14 +1,11 @@
+ 'use client';
+ 
+-import type {TrackTargetStatus} from '@/schemas';
++import type {TaskItem} from '@/lib/db/tasks';
+ import {Popover} from '@/components/ui/overlay/Popover';
+ import {MoveToRows} from './MoveToRows';
+ 
+ interface MoveToPopoverProps {
+-  isTracked: boolean;
+-  hasActivePlan: boolean;
+-  onTrack: (status: TrackTargetStatus) => void;
+-  onComplete: () => void;
++  task: TaskItem;
+ }
+ 
+ /**
+@@ -16,8 +13,8 @@ interface MoveToPopoverProps {
+  * row rules (tracked → Done only, no plan → column rows disabled) live in
+  * MoveToRows, shared with the mobile sheet.
+  */
+-export const MoveToPopover = (props: MoveToPopoverProps) => (
++export const MoveToPopover = ({task}: MoveToPopoverProps) => (
+   <Popover className="min-w-[180px]">
+-    <MoveToRows variant="popover" {...props} />
++    <MoveToRows task={task} variant="popover" />
+   </Popover>
+ );
+diff --git a/src/components/domain/priorities/MoveToRows.tsx b/src/components/domain/priorities/MoveToRows.tsx
+index f2d5200..3e5c233 100644
+--- a/src/components/domain/priorities/MoveToRows.tsx
++++ b/src/components/domain/priorities/MoveToRows.tsx
+@@ -6,22 +6,21 @@ import {
+   CheckIcon,
+   ExclamationTriangleIcon,
+ } from '@heroicons/react/24/outline';
++import type {TaskItem} from '@/lib/db/tasks';
+ import {TaskStatus} from '@/utils/enums';
++import {isTrackedTask} from '@/utils/oneOffUtils';
+ import type {TrackTargetStatus} from '@/schemas';
+ import {SectionLabel} from '@/components/ui/SectionLabel';
+ import {TRACK_TARGETS, COMPLETE_DOT_CLASS} from './constants';
++import {usePrioritiesPageContext} from './PrioritiesPageContext';
+ 
+ export type MoveToVariant = 'popover' | 'sheet';
+ 
+ interface MoveToRowsProps {
++  /** The card the rows move */
++  task: TaskItem;
+   /** Compact desktop popover rows vs the roomier mobile sheet rows */
+   variant: MoveToVariant;
+-  /** Already on the board → the column rows drop out, Done only */
+-  isTracked: boolean;
+-  /** No active plan → column rows disabled under a note; Done stays live */
+-  hasActivePlan: boolean;
+-  onTrack: (status: TrackTargetStatus) => void;
+-  onComplete: () => void;
+ }
+ 
+ interface VariantStyle {
+@@ -63,16 +62,13 @@ const VARIANT_STYLE: Record<MoveToVariant, VariantStyle> = {
+  * note otherwise) and vanish for tracked cards; Done never needs a plan —
+  * completing is the one move that works from any state.
+  */
+-export const MoveToRows = ({
+-  variant,
+-  isTracked,
+-  hasActivePlan,
+-  onTrack,
+-  onComplete,
+-}: MoveToRowsProps) => {
++export const MoveToRows = ({task, variant}: MoveToRowsProps) => {
+   const t = useTranslations('Priorities');
+   const tStatus = useTranslations('Enums.TaskStatus');
++  const {activePlanId, trackTask, completeTask} = usePrioritiesPageContext();
+   const {list, label, note, row, dot, icon, rule} = VARIANT_STYLE[variant];
++  const hasActivePlan = activePlanId !== null;
++  const isTracked = isTrackedTask(task, activePlanId);
+ 
+   const rowClass = `flex items-center border border-base-content/10 bg-base-100 font-medium transition-colors enabled:cursor-pointer enabled:hover:border-primary enabled:hover:bg-primary/5 disabled:opacity-40 disabled:cursor-not-allowed ${row}`;
+ 
+@@ -90,7 +86,7 @@ export const MoveToRows = ({
+       disabled={!hasActivePlan}
+       onClick={event => {
+         event.stopPropagation();
+-        onTrack(status);
++        trackTask(task.id, status);
+       }}
+       className={rowClass}
+     >
+@@ -105,7 +101,7 @@ export const MoveToRows = ({
+       type="button"
+       onClick={event => {
+         event.stopPropagation();
+-        onComplete();
++        completeTask(task.id);
+       }}
+       className={rowClass}
+     >
+diff --git a/src/components/domain/priorities/PriorityMatrixPage.tsx b/src/components/domain/priorities/PrioritiesPage.tsx
+similarity index 70%
+rename from src/components/domain/priorities/PriorityMatrixPage.tsx
+rename to src/components/domain/priorities/PrioritiesPage.tsx
+index 6f1c49f..09e3759 100644
+--- a/src/components/domain/priorities/PriorityMatrixPage.tsx
++++ b/src/components/domain/priorities/PrioritiesPage.tsx
+@@ -1,6 +1,6 @@
+ 'use client';
+ 
+-import {useState, useMemo} from 'react';
++import {useState} from 'react';
+ import {DragDropContext, type DropResult} from '@hello-pangea/dnd';
+ import {useTranslations} from 'next-intl';
+ import Link from 'next/link';
+@@ -12,10 +12,14 @@ import {
+   CheckIcon,
+ } from '@heroicons/react/24/outline';
+ import type {TaskItem} from '@/lib/db/tasks';
+-import {PriorityQuadrant} from '@/utils/enums';
+-import {QUADRANT_ORDER} from '@/utils/oneOffUtils';
++import type {PrioritiesPageData} from '@/types/priorities';
++import type {PriorityQuadrant} from '@/utils/enums';
++import {
++  QUADRANT_ORDER,
++  groupTasksByQuadrant,
++  isTrackedTask,
++} from '@/utils/oneOffUtils';
+ import type {TrackTargetStatus} from '@/schemas';
+-import type {MatrixActivePlan} from '@/services/matrixService';
+ import {useOptimisticTasks} from '@/hooks/useOptimisticTasks';
+ import {insertTask, removeTask} from '@/utils/optimisticTasks';
+ import {
+@@ -24,21 +28,17 @@ import {
+   completeTaskAction,
+   undoCompleteTaskAction,
+ } from '@/actions/matrixActions';
++import {BoardHeader} from '@/components/domain/shared/BoardHeader';
+ import {TaskModal} from '@/components/domain/shared/task-modal/TaskModal';
+ import {Toast} from '@/components/ui/Toast';
+ import {MatrixUndoToast} from './MatrixUndoToast';
+ import {QuadrantCell} from './QuadrantCell';
+ import {MobileMoveToSheet} from './MobileMoveToSheet';
+ import {
+-  FALLBACK_QUADRANT,
+-  CREATE_PLAN_HREF,
+-  TOAST_DURATION_MS,
+-} from './constants';
+-
+-interface PriorityMatrixPageProps {
+-  tasks: TaskItem[];
+-  activePlan: MatrixActivePlan | null;
+-}
++  PrioritiesPageContext,
++  type PrioritiesPageContextValue,
++} from './PrioritiesPageContext';
++import {CREATE_PLAN_HREF, TOAST_DURATION_MS} from './constants';
+ 
+ /** The undo window's state: everything needed to put the card back. */
+ interface UndoToastState {
+@@ -53,10 +53,20 @@ interface UndoToastState {
+   completed: Promise<boolean>;
+ }
+ 
+-export const PriorityMatrixPage = ({
++/**
++ * The Priorities page (/kanban/priorities): the app header over the
++ * Eisenhower matrix of open one-offs, in a definite-height column (h-full
++ * against AppShell's <main>, or a fill scenario frame). Owns the page's
++ * state — the one-offs as client state (drag, Track and Done patch them
++ * optimistically), the open popover, sheet, add modal and toasts — and every
++ * write, which its components reach through PrioritiesPageContext rather
++ * than callback props.
++ */
++export const PrioritiesPage = ({
++  periodKey,
+   tasks,
+-  activePlan,
+-}: PriorityMatrixPageProps) => {
++  activePlanId,
++}: PrioritiesPageData) => {
+   const t = useTranslations('Priorities');
+   const tQuadrant = useTranslations('Enums.PriorityQuadrant');
+   const {localTasks, runOptimisticChange, runOptimisticTaskUpdate} =
+@@ -64,7 +74,7 @@ export const PriorityMatrixPage = ({
+   const [openPopoverTaskId, setOpenPopoverTaskId] = useState<string | null>(
+     null,
+   );
+-  const [sheetTask, setSheetTask] = useState<TaskItem | null>(null);
++  const [sheetTaskId, setSheetTaskId] = useState<string | null>(null);
+   // null = closed; quadrant undefined = mobile global add (modal shows its picker)
+   const [addModal, setAddModal] = useState<{
+     quadrant?: PriorityQuadrant;
+@@ -74,27 +84,12 @@ export const PriorityMatrixPage = ({
+   );
+   const [undoToast, setUndoToast] = useState<UndoToastState | null>(null);
+ 
+-  const activePlanId = activePlan?.id ?? null;
+-  const isTrackedTask = (task: TaskItem) =>
+-    activePlanId !== null && task.planId === activePlanId;
+-
+-  const byQuadrant = useMemo(() => {
+-    const groups: Record<PriorityQuadrant, TaskItem[]> = {
+-      [PriorityQuadrant.DO_FIRST]: [],
+-      [PriorityQuadrant.SCHEDULE]: [],
+-      [PriorityQuadrant.SQUEEZE_IN]: [],
+-      [PriorityQuadrant.MAYBE_LATER]: [],
+-    };
+-    for (const task of localTasks) {
+-      groups[
+-        (task.quadrant as PriorityQuadrant | null) ?? FALLBACK_QUADRANT
+-      ].push(task);
+-    }
+-    return groups;
+-  }, [localTasks]);
+-
++  const tasksByQuadrant = groupTasksByQuadrant(localTasks);
++  const sheetTask = localTasks.find(({id}) => id === sheetTaskId) ?? null;
+   const totalCount = localTasks.length;
+-  const trackedCount = localTasks.filter(isTrackedTask).length;
++  const trackedCount = localTasks.filter(task =>
++    isTrackedTask(task, activePlanId),
++  ).length;
+ 
+   function handleDragEnd(result: DropResult) {
+     const {destination, source, draggableId} = result;
+@@ -112,10 +107,10 @@ export const PriorityMatrixPage = ({
+   }
+ 
+   // Track This Week: optimistic dim + "This Week" tag + count bump, rollback on failure
+-  function handleTrack(taskId: string, status: TrackTargetStatus) {
++  function trackTask(taskId: string, status: TrackTargetStatus) {
+     if (!activePlanId) return;
+     setOpenPopoverTaskId(null);
+-    setSheetTask(null);
++    setSheetTaskId(null);
+ 
+     runOptimisticTaskUpdate(
+       taskId,
+@@ -128,9 +123,9 @@ export const PriorityMatrixPage = ({
+   // Complete One-off: the matrix never shows DONE tasks, so the card leaves
+   // optimistically and a 5 s undo toast opens; on failure the card returns
+   // to where it was and the toast is withdrawn. No confirm — act, then undo.
+-  function handleComplete(taskId: string) {
++  function completeTask(taskId: string) {
+     setOpenPopoverTaskId(null);
+-    setSheetTask(null);
++    setSheetTaskId(null);
+ 
+     const index = localTasks.findIndex(task => task.id === taskId);
+     if (index === -1) return;
+@@ -175,6 +170,20 @@ export const PriorityMatrixPage = ({
+     );
+   }
+ 
++  // No quadrant: mobile's global add, the modal shows its picker
++  const openAddTask = (quadrant?: PriorityQuadrant) => setAddModal({quadrant});
++
++  const pageContext: PrioritiesPageContextValue = {
++    activePlanId,
++    openPopoverTaskId,
++    togglePopover: taskId =>
++      setOpenPopoverTaskId(current => (current === taskId ? null : taskId)),
++    openMoveToSheet: setSheetTaskId,
++    openAddTask,
++    trackTask,
++    completeTask,
++  };
++
+   // Keyed by task so a second completion restarts the countdown.
+   const renderUndoToast = () => {
+     if (undoToast === null) return null;
+@@ -239,7 +248,7 @@ export const PriorityMatrixPage = ({
+       <button
+         type="button"
+         title={t('addTaskLabel')}
+-        onClick={() => setAddModal({})}
++        onClick={() => openAddTask()}
+         className="md:hidden flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-content shadow-md shadow-primary/30 cursor-pointer"
+       >
+         <PlusIcon className="size-[18px] stroke-[2.5]" />
+@@ -305,72 +314,70 @@ export const PriorityMatrixPage = ({
+     </div>
+   );
+ 
+-  return (
+-    <DragDropContext
+-      onDragStart={() => setOpenPopoverTaskId(null)}
+-      onDragEnd={handleDragEnd}
+-    >
+-      <div className="flex-1 min-h-0 flex flex-col">
+-        {renderTitleBar()}
+-        {renderHintBar()}
++  const renderMatrix = () => (
++    <div className="flex-1 min-h-0 flex flex-col">
++      {renderTitleBar()}
++      {renderHintBar()}
+ 
+-        <div className="flex-1 min-h-0 flex">
+-          {renderAxisY()}
+-          <div className="flex-1 min-w-0 grid grid-cols-2 grid-rows-2">
+-            {QUADRANT_ORDER.map(quadrant => (
+-              <QuadrantCell
+-                key={quadrant}
+-                quadrant={quadrant}
+-                tasks={byQuadrant[quadrant]}
+-                activePlanId={activePlanId}
+-                openPopoverTaskId={openPopoverTaskId}
+-                onSendToggle={setOpenPopoverTaskId}
+-                onTrack={handleTrack}
+-                onComplete={handleComplete}
+-                onCardTap={setSheetTask}
+-                onAdd={quadrant => setAddModal({quadrant})}
+-              />
+-            ))}
+-          </div>
++      <div className="flex-1 min-h-0 flex">
++        {renderAxisY()}
++        <div className="flex-1 min-w-0 grid grid-cols-2 grid-rows-2">
++          {QUADRANT_ORDER.map(quadrant => (
++            <QuadrantCell
++              key={quadrant}
++              quadrant={quadrant}
++              tasks={tasksByQuadrant[quadrant]}
++            />
++          ))}
+         </div>
+-        {renderAxisX()}
+       </div>
++      {renderAxisX()}
++    </div>
++  );
+ 
+-      {/* Popover click-away layer — lives outside every Draggable so pressing
+-          it can never start a drag (the whole card is a drag handle). */}
+-      {openPopoverTaskId !== null && (
+-        <div
+-          className="fixed inset-0 z-40 cursor-default"
+-          onClick={() => setOpenPopoverTaskId(null)}
+-        />
+-      )}
++  return (
++    <PrioritiesPageContext value={pageContext}>
++      <div className="flex flex-col h-full">
++        <BoardHeader periodKey={periodKey} />
++        <DragDropContext
++          onDragStart={() => setOpenPopoverTaskId(null)}
++          onDragEnd={handleDragEnd}
++        >
++          {renderMatrix()}
+ 
+-      {renderUndoToast()}
+-      {renderAddedToast()}
++          {/* Popover click-away layer — lives outside every Draggable so pressing
++              it can never start a drag (the whole card is a drag handle). */}
++          {openPopoverTaskId !== null && (
++            <div
++              className="fixed inset-0 z-40 cursor-default"
++              onClick={() => setOpenPopoverTaskId(null)}
++            />
++          )}
+ 
+-      <MobileMoveToSheet
+-        task={sheetTask}
+-        isTracked={sheetTask !== null && isTrackedTask(sheetTask)}
+-        hasActivePlan={activePlanId !== null}
+-        onClose={() => setSheetTask(null)}
+-        onTrack={handleTrack}
+-        onComplete={handleComplete}
+-      />
+-      <TaskModal
+-        isOpen={addModal !== null}
+-        freshData={tasks}
+-        onClose={() => setAddModal(null)}
+-        onSaved={quadrant => {
+-          setAddModal(null);
+-          // Confirmation toast only for the mobile global add (picker flow) —
+-          // desktop's per-quadrant entry shows the new card in place instead.
+-          if (addModal?.quadrant === undefined && quadrant) {
+-            setToastQuadrant(quadrant);
+-          }
+-        }}
+-        mode="adhoc"
+-        quadrant={addModal?.quadrant}
+-      />
+-    </DragDropContext>
++          {renderUndoToast()}
++          {renderAddedToast()}
++
++          <MobileMoveToSheet
++            task={sheetTask}
++            onClose={() => setSheetTaskId(null)}
++          />
++          <TaskModal
++            isOpen={addModal !== null}
++            freshData={tasks}
++            onClose={() => setAddModal(null)}
++            onSaved={quadrant => {
++              setAddModal(null);
++              // Confirmation toast only for the mobile global add (picker flow) —
++              // desktop's per-quadrant entry shows the new card in place instead.
++              if (addModal?.quadrant === undefined && quadrant) {
++                setToastQuadrant(quadrant);
++              }
++            }}
++            mode="adhoc"
++            quadrant={addModal?.quadrant}
++          />
++        </DragDropContext>
++      </div>
++    </PrioritiesPageContext>
+   );
+ };
+diff --git a/src/components/domain/priorities/PrioritiesPageContext.ts b/src/components/domain/priorities/PrioritiesPageContext.ts
+new file mode 100644
+index 0000000..6eb0861
+--- /dev/null
++++ b/src/components/domain/priorities/PrioritiesPageContext.ts
+@@ -0,0 +1,42 @@
++import {createContext, use} from 'react';
++import type {PriorityQuadrant} from '@/utils/enums';
++import type {TrackTargetStatus} from '@/schemas';
++
++/**
++ * What the Priorities page's components read and do without threading it
++ * through props: the week Track moves a card onto, which card's Move-to
++ * popover is open, and every write and overlay opener, bound to the page's
++ * optimistic one-offs. `PrioritiesPage` provides it; the rows still come
++ * down as props.
++ */
++export interface PrioritiesPageContextValue {
++  /** The plan Track moves a card onto; null: no plan this week yet */
++  activePlanId: string | null;
++  /** The card whose desktop Move-to popover is open, if any */
++  openPopoverTaskId: string | null;
++  /** Opens a card's Move-to popover, or closes it when it is the open one */
++  togglePopover: (taskId: string) => void;
++  /** Mobile's card tap: the Move-to bottom sheet */
++  openMoveToSheet: (taskId: string) => void;
++  /** The add-task modal, preset to a quadrant (desktop's per-quadrant Add)
++      or with its quadrant picker (mobile's global add) */
++  openAddTask: (quadrant?: PriorityQuadrant) => void;
++  /** Puts a card on this week's board */
++  trackTask: (taskId: string, status: TrackTargetStatus) => void;
++  /** Marks a card done; the page opens its undo toast */
++  completeTask: (taskId: string) => void;
++}
++
++export const PrioritiesPageContext =
++  createContext<PrioritiesPageContextValue | null>(null);
++
++/** The Priorities page's context; only its components render inside it. */
++export const usePrioritiesPageContext = (): PrioritiesPageContextValue => {
++  const context = use(PrioritiesPageContext);
++  if (!context) {
++    throw new Error(
++      'usePrioritiesPageContext must be used within PrioritiesPage',
++    );
++  }
++  return context;
++};
+diff --git a/src/components/domain/priorities/PrioritiesScreen.tsx b/src/components/domain/priorities/PrioritiesScreen.tsx
+deleted file mode 100644
+index d8ea4a2..0000000
+--- a/src/components/domain/priorities/PrioritiesScreen.tsx
++++ /dev/null
+@@ -1,29 +0,0 @@
+-import type {ComponentProps} from 'react';
+-import {BoardHeader} from '@/components/domain/shared/BoardHeader';
+-import {PriorityMatrixPage} from '@/components/domain/priorities/PriorityMatrixPage';
+-
+-type MatrixProps = ComponentProps<typeof PriorityMatrixPage>;
+-
+-interface PrioritiesScreenProps {
+-  periodKey: string;
+-  tasks: MatrixProps['tasks'];
+-  activePlan: MatrixProps['activePlan'];
+-}
+-
+-/**
+- * The priorities page's screen layer: the same app header as the board page
+- * (both breakpoints) above the matrix, in a definite-height column (h-full
+- * against AppShell's <main> — or a fill scenario frame). Shared by
+- * /kanban/priorities and the priorities scenarios so the two can never drift
+- * apart.
+- */
+-export const PrioritiesScreen = ({
+-  periodKey,
+-  tasks,
+-  activePlan,
+-}: PrioritiesScreenProps) => (
+-  <div className="flex flex-col h-full">
+-    <BoardHeader periodKey={periodKey} />
+-    <PriorityMatrixPage tasks={tasks} activePlan={activePlan} />
+-  </div>
+-);
+diff --git a/src/components/domain/priorities/QuadrantCell.tsx b/src/components/domain/priorities/QuadrantCell.tsx
+index 049ad96..be91908 100644
+--- a/src/components/domain/priorities/QuadrantCell.tsx
++++ b/src/components/domain/priorities/QuadrantCell.tsx
+@@ -4,21 +4,14 @@ import {Droppable} from '@hello-pangea/dnd';
+ import {useTranslations} from 'next-intl';
+ import {PlusIcon, ArrowDownIcon} from '@heroicons/react/24/outline';
+ import type {TaskItem} from '@/lib/db/tasks';
+-import {PriorityQuadrant} from '@/utils/enums';
+-import type {TrackTargetStatus} from '@/schemas';
++import type {PriorityQuadrant} from '@/utils/enums';
+ import {QUADRANT_CONFIG} from './constants';
+ import {MatrixTaskCard} from './MatrixTaskCard';
++import {usePrioritiesPageContext} from './PrioritiesPageContext';
+ 
+ interface QuadrantCellProps {
+   quadrant: PriorityQuadrant;
+   tasks: TaskItem[];
+-  activePlanId: string | null;
+-  openPopoverTaskId: string | null;
+-  onSendToggle: (taskId: string | null) => void;
+-  onTrack: (taskId: string, status: TrackTargetStatus) => void;
+-  onComplete: (taskId: string) => void;
+-  onCardTap: (task: TaskItem) => void;
+-  onAdd: (quadrant: PriorityQuadrant) => void;
+ }
+ 
+ /**
+@@ -26,18 +19,9 @@ interface QuadrantCellProps {
+  * count), a droppable scrollable card list with a drop-hint banner while
+  * hovered, and a desktop-only dashed Add button pinned to the bottom.
+  */
+-export const QuadrantCell = ({
+-  quadrant,
+-  tasks,
+-  activePlanId,
+-  openPopoverTaskId,
+-  onSendToggle,
+-  onTrack,
+-  onComplete,
+-  onCardTap,
+-  onAdd,
+-}: QuadrantCellProps) => {
++export const QuadrantCell = ({quadrant, tasks}: QuadrantCellProps) => {
+   const t = useTranslations('Priorities');
++  const {openAddTask} = usePrioritiesPageContext();
+   const tQuadrant = useTranslations('Enums.PriorityQuadrant');
+   const tQuadrantShort = useTranslations('Priorities.QuadrantShort');
+   const config = QUADRANT_CONFIG[quadrant];
+@@ -74,7 +58,7 @@ export const QuadrantCell = ({
+   const renderAddButton = () => (
+     <button
+       type="button"
+-      onClick={() => onAdd(quadrant)}
++      onClick={() => openAddTask(quadrant)}
+       className="hidden md:flex items-center justify-center gap-1 w-full mt-auto p-2 rounded-lg border-[1.5px] border-dashed border-base-content/20 text-base-content/40 text-xs font-medium cursor-pointer transition-colors hover:border-primary hover:text-primary flex-shrink-0"
+     >
+       <PlusIcon className="size-3.5" />
+@@ -113,20 +97,7 @@ export const QuadrantCell = ({
+             }`}
+           >
+             {tasks.map((task, index) => (
+-              <MatrixTaskCard
+-                key={task.id}
+-                task={task}
+-                index={index}
+-                isTracked={
+-                  activePlanId !== null && task.planId === activePlanId
+-                }
+-                hasActivePlan={activePlanId !== null}
+-                isPopoverOpen={openPopoverTaskId === task.id}
+-                onSendToggle={onSendToggle}
+-                onTrack={onTrack}
+-                onComplete={onComplete}
+-                onTap={onCardTap}
+-              />
++              <MatrixTaskCard key={task.id} task={task} index={index} />
+             ))}
+             {provided.placeholder}
+             {renderAddButton()}
+diff --git a/src/components/domain/priorities/constants.ts b/src/components/domain/priorities/constants.ts
+index 08c7c39..87b7e31 100644
+--- a/src/components/domain/priorities/constants.ts
++++ b/src/components/domain/priorities/constants.ts
+@@ -54,13 +54,6 @@ export const TRACK_TARGETS: {status: TrackTargetStatus; dotClass: string}[] = [
+ /** Dot color of the chooser's Done row — matches the board's Done column. */
+ export const COMPLETE_DOT_CLASS = 'bg-success';
+ 
+-/**
+- * Tasks created before the matrix (or during a deploy window) may carry a null
+- * quadrant — group them into the backfill default so no card silently drops
+- * out of the 2×2 grid.
+- */
+-export const FALLBACK_QUADRANT = PriorityQuadrant.SCHEDULE;
+-
+ /** How long the mobile "Added to …" confirmation toast stays visible. */
+ export const TOAST_DURATION_MS = 2500;
+ 
+diff --git a/src/components/domain/shared/task-modal/TaskModalPanel.tsx b/src/components/domain/shared/task-modal/TaskModalPanel.tsx
+index f2f8082..184465c 100644
+--- a/src/components/domain/shared/task-modal/TaskModalPanel.tsx
++++ b/src/components/domain/shared/task-modal/TaskModalPanel.tsx
+@@ -15,7 +15,7 @@ import {
+   updateTaskTemplateAction,
+ } from '@/actions/templateActions';
+ import {createAdhocTaskAction} from '@/actions/taskActions';
+-import {FALLBACK_QUADRANT} from '@/components/domain/priorities/constants';
++import {FALLBACK_QUADRANT} from '@/utils/oneOffUtils';
+ import {QuadrantPicker} from './QuadrantPicker';
+ import {SizePicker} from './SizePicker';
+ 
+diff --git a/src/types/priorities.ts b/src/types/priorities.ts
+new file mode 100644
+index 0000000..b4885bb
+--- /dev/null
++++ b/src/types/priorities.ts
+@@ -0,0 +1,13 @@
++import type {TaskItem} from '@/lib/db/tasks';
++
++/**
++ * What the Priorities page needs, shaped by its route: the week its header
++ * shows, the open one-offs — the rows the page keeps as state and patches
++ * optimistically — and the plan Track moves a card onto (null: no plan this
++ * week yet).
++ */
++export interface PrioritiesPageData {
++  periodKey: string;
++  tasks: TaskItem[];
++  activePlanId: string | null;
++}
+diff --git a/src/utils/oneOffUtils.test.ts b/src/utils/oneOffUtils.test.ts
+new file mode 100644
+index 0000000..e951893
+--- /dev/null
++++ b/src/utils/oneOffUtils.test.ts
+@@ -0,0 +1,90 @@
++import {describe, expect, it} from 'vitest';
++import {buildTask} from '../../test/buildTask';
++import {PriorityQuadrant} from './enums';
++import {
++  groupTasksByQuadrant,
++  isTrackedTask,
++  toPrioritiesPageProps,
++} from './oneOffUtils';
++
++const ACTIVE_PLAN = {id: 'plan-w28', periodKey: '2026-W28'};
++
++describe('toPrioritiesPageProps', () => {
++  const tasks = [buildTask({id: 'dentist', planId: null})];
++
++  it("shows the active plan's week and passes its id", () => {
++    expect(
++      toPrioritiesPageProps(
++        {tasks, activePlan: ACTIVE_PLAN},
++        new Date(2026, 9, 27),
++      ),
++    ).toEqual({periodKey: '2026-W28', tasks, activePlanId: 'plan-w28'});
++  });
++
++  it("falls back to today's ISO week without a plan", () => {
++    expect(
++      toPrioritiesPageProps({tasks, activePlan: null}, new Date(2026, 6, 10)),
++    ).toEqual({periodKey: '2026-W28', tasks, activePlanId: null});
++  });
++
++  it('takes the ISO week of the Thursday across a year boundary', () => {
++    const {periodKey} = toPrioritiesPageProps(
++      {tasks, activePlan: null},
++      new Date(2027, 0, 1),
++    );
++    expect(periodKey).toBe('2026-W53');
++  });
++});
++
++describe('groupTasksByQuadrant', () => {
++  it('groups by quadrant, keeping the order given, every quadrant present', () => {
++    const tasks = [
++      buildTask({id: 'gift', quadrant: PriorityQuadrant.DO_FIRST}),
++      buildTask({id: 'gym', quadrant: PriorityQuadrant.SCHEDULE}),
++      buildTask({id: 'dentist', quadrant: PriorityQuadrant.DO_FIRST}),
++    ];
++
++    const idsByQuadrant = Object.fromEntries(
++      Object.entries(groupTasksByQuadrant(tasks)).map(
++        ([quadrant, quadrantTasks]) => [
++          quadrant,
++          quadrantTasks.map(({id}) => id),
++        ],
++      ),
++    );
++
++    expect(idsByQuadrant).toEqual({
++      [PriorityQuadrant.DO_FIRST]: ['gift', 'dentist'],
++      [PriorityQuadrant.SCHEDULE]: ['gym'],
++      [PriorityQuadrant.SQUEEZE_IN]: [],
++      [PriorityQuadrant.MAYBE_LATER]: [],
++    });
++  });
++
++  it('puts a task with no quadrant into Schedule', () => {
++    const legacy = buildTask({id: 'legacy', quadrant: null});
++
++    expect(groupTasksByQuadrant([legacy])[PriorityQuadrant.SCHEDULE]).toEqual([
++      legacy,
++    ]);
++  });
++});
++
++describe('isTrackedTask', () => {
++  it("is tracked on this week's plan", () => {
++    expect(isTrackedTask({planId: 'plan-w28'}, 'plan-w28')).toBe(true);
++  });
++
++  it('is not tracked on the matrix only', () => {
++    expect(isTrackedTask({planId: null}, 'plan-w28')).toBe(false);
++  });
++
++  it("is not tracked on last week's plan", () => {
++    expect(isTrackedTask({planId: 'plan-w27'}, 'plan-w28')).toBe(false);
++  });
++
++  it('is not tracked when there is no plan this week', () => {
++    expect(isTrackedTask({planId: 'plan-w27'}, null)).toBe(false);
++    expect(isTrackedTask({planId: null}, null)).toBe(false);
++  });
++});
+diff --git a/src/utils/oneOffUtils.ts b/src/utils/oneOffUtils.ts
+index 800dc90..358f5eb 100644
+--- a/src/utils/oneOffUtils.ts
++++ b/src/utils/oneOffUtils.ts
+@@ -1,10 +1,12 @@
+ import type {MatrixTaskRow, TaskItem} from '@/lib/db/tasks';
++import type {MatrixData} from '@/services/matrixService';
+ import type {CreateAdhocTaskInput} from '../schemas';
+ import type {OneOffTaskSummary} from '../types/plan';
++import type {PrioritiesPageData} from '../types/priorities';
+ import {PriorityQuadrant, TaskStatus} from './enums';
+-import {formatKanbanISODate} from './dateUtils';
++import {formatKanbanISODate, getISOWeekKey} from './dateUtils';
+ import {sizeToPoints} from './sizeUtils';
+-import {getWeekPlacement} from './taskUtils';
++import {WeekPlacement, getWeekPlacement} from './taskUtils';
+ 
+ /** The most one-off tasks one Claude call creates, completes or moves. */
+ export const ONE_OFF_BATCH_LIMIT = 20;
+@@ -17,6 +19,50 @@ export const QUADRANT_ORDER: PriorityQuadrant[] = [
+   PriorityQuadrant.MAYBE_LATER,
+ ];
+ 
++/**
++ * Tasks created before the matrix (or during a deploy window) may carry a null
++ * quadrant — group them into the backfill default so no card silently drops
++ * out of the 2×2 grid. Also the add-task picker's preselected quadrant.
++ */
++export const FALLBACK_QUADRANT = PriorityQuadrant.SCHEDULE;
++
++/**
++ * The Priorities page's props from the matrix read: with no active plan the
++ * header shows the current ISO week of `today`.
++ */
++export const toPrioritiesPageProps = (
++  {tasks, activePlan}: MatrixData,
++  today: Date,
++): PrioritiesPageData => ({
++  periodKey: activePlan?.periodKey ?? getISOWeekKey(today),
++  tasks,
++  activePlanId: activePlan?.id ?? null,
++});
++
++/** One-offs by matrix cell, each keeping the order given; a null quadrant
++    falls back to FALLBACK_QUADRANT. */
++export const groupTasksByQuadrant = <Task extends Pick<TaskItem, 'quadrant'>>(
++  tasks: readonly Task[],
++): Record<PriorityQuadrant, Task[]> => {
++  const tasksByQuadrant: Record<PriorityQuadrant, Task[]> = {
++    [PriorityQuadrant.DO_FIRST]: [],
++    [PriorityQuadrant.SCHEDULE]: [],
++    [PriorityQuadrant.SQUEEZE_IN]: [],
++    [PriorityQuadrant.MAYBE_LATER]: [],
++  };
++  for (const task of tasks) {
++    tasksByQuadrant[task.quadrant ?? FALLBACK_QUADRANT].push(task);
++  }
++  return tasksByQuadrant;
++};
++
++/** Whether a matrix one-off is on this week's board (the dimmed "This Week"
++    card, whose Move-to offers Done only). */
++export const isTrackedTask = (
++  task: Pick<TaskItem, 'planId'>,
++  activePlanId: string | null,
++): boolean => getWeekPlacement(task, activePlanId) === WeekPlacement.THIS_WEEK;
++
+ /** Where a one-off sits on the weeks. */
+ export const OneOffTaskState = {
+   DONE: 'DONE',
+-- 
+2.43.0
+
