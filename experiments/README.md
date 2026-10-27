@@ -11,6 +11,7 @@ experiments/
     └── tryN/
         ├── instruction.md     # the protocol, written and approved before anything runs
         ├── report.md          # conclusion first, then the data and the analysis
+        ├── takeaways.md       # a lesson the try paid for, written when it happens, ahead of the report (optional)
         ├── prompts/           # the exact prompts the runs and the reviewers got (optional)
         ├── scripts/           # the as-run tooling (optional)
         └── data/              # the measurements: transcript sums, checklists, reviews, logs (optional)
@@ -71,3 +72,4 @@ Lessons try1 paid for; the next controller starts from them.
 - Scheduled tasks fire at most hourly. For a usage-limit pause, arm a one-shot at `rate_limit_info.resetsAt` and keep the hourly task as the fallback; mirror the controller's log to a branch so a lost container costs nothing.
 - A clean blind review is an orphan two-commit branch per candidate: a scrubbed base, the scrubbed candidate on top, README restored to the base (try1's `scripts/make-review-branch.sh`). Reviewers still ran `git log -3`, so leave nothing in the history. A defect every candidate shares is an artifact of the scrub, not a finding.
 - Behavior checks on the controller machine: warm the dev server before Playwright touches it (a cold Turbopack server reaches `networkidle` before React attaches its handlers) and probe the local stack before each branch — a dockerd started from a tool call can die with the call.
+- Every session the controller starts — runs, reviewers, subagents — draws on the controller's own five-hour usage window unless `rate_limit_info.rateLimitType` says otherwise (try1's child sessions were on a promotional allowance, try2's on `five_hour`). A window held try2's ten runs plus the controller and nothing more: start collection and the blind reviews after `resetsAt`, the ten reviewers first and alone, subagents two or three at a time (each inherits the controller's effort and carries a context as large), and parse transcripts with scripts rather than a model (`page-structure-parallel/try2/takeaways.md`).
