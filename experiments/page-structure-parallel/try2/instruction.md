@@ -1,6 +1,6 @@
 # page-structure-parallel · try2 — 同一个三页重构，搭好实验再比一次串行和并行，每组五次
 
-**Status: draft（待 owner 批准）** · 来源：try1（`experiments/page-structure-parallel/try1/`）、tracker › Milestone — Quality gate › Step 10
+**Status: approved 2026-10-27**（owner 认可做法并建好了 lab 仓库；本 session 已推 `main`；compact 后新 session 从 Fresh start 执行） · 来源：try1（`experiments/page-structure-parallel/try1/`）、tracker › Milestone — Quality gate › Step 10
 
 > 叙述用中文；run 编号、指标名、代码标识保留英文。Prompt 用英文。这份文件和它引用的 try1 文件、`experiments/README.md`、`prompts/controller-briefs.md` 一起，足够一个全新的 session 从零跑完整个实验（见"Fresh start"）。
 
@@ -90,7 +90,7 @@ As soon as `npm run setup -- --no-db` has finished, spawn three general-purpose 
 
 ## 前置条件
 
-0. **Lab 仓库**：owner 在 GitHub 建空仓库 `Marsuu1994/mars-workbench-lab-try2`（公开，和主仓库一致；不初始化 README），给它装 Claude GitHub App。controller 用 `add_repo`（owner `Marsuu1994`、repo `mars-workbench-lab-try2`、access `push`）把它挂进 session，本机 `git remote add lab https://github.com/Marsuu1994/mars-workbench-lab-try2`，把主仓库的 `main` 推过去作默认分支（`git push lab origin/main:refs/heads/main`）。CI 原样可用：`ci.yml` 没有 secrets，`pull_request` 触发不限 base；lab 仓库没有 Vercel，绿 = 七个 Actions job。run 分支、评审分支、controller 状态分支都只在 lab 仓库；主仓库只收归档 PR 和推荐合并的分支。
+0. **Lab 仓库**（2026-10-27 已做：仓库已建、App 装在 All repositories、`main` 已推到 `96d9c63`、本机 remote `lab` 已加）：owner 在 GitHub 建空仓库 `Marsuu1994/mars-workbench-lab-try2`（公开，和主仓库一致；不初始化 README），给它装 Claude GitHub App。controller 用 `add_repo`（owner `Marsuu1994`、repo `mars-workbench-lab-try2`、access `push`）把它挂进 session，本机 `git remote add lab https://github.com/Marsuu1994/mars-workbench-lab-try2`，把主仓库的 `main` 推过去作默认分支（`git push lab origin/main:refs/heads/main`）。CI 原样可用：`ci.yml` 没有 secrets，`pull_request` 触发不限 base；lab 仓库没有 Vercel，绿 = 七个 Actions job。run 分支、评审分支、controller 状态分支都只在 lab 仓库；主仓库只收归档 PR 和推荐合并的分支。
 
 起点分支 `experiment/base-try2` 上的四个 commit（推到 lab 仓库；同样的 commit 另开一个 PR 进主仓库的 `main`，不属于实验）：
 
