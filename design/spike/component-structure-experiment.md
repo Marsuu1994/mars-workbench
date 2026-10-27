@@ -39,7 +39,7 @@ Owner 想知道：同一件事（按 component-structure spike 把 Board、Prior
 ````text
 You are working on the repository Marsuu1994/mars-workbench, starting from main at commit {SHA}.
 
-Task: implement the next PR that the decided spike `design/spike/component-structure.md` plans — move the Board, Priorities and Dump pages onto the page structure, exactly as its Part 1 describes (the premise, rules 1–7, the per-page plans for Board, Priorities and Dump, and the decisions Q1–Q8). Plan stays as it is (Q5); auth, settings and the app shell are out of scope (Q6). Read AGENTS.md and the spike first; the Projects page (`src/components/domain/projects/`) is the reference implementation. Don't open `design/spike/component-structure-experiment.md`: it describes how this work is evaluated, and reading it would skew it.
+Task: implement the next PR that the decided spike `design/spike/archived/component-structure.md` plans — move the Board, Priorities and Dump pages onto the page structure, exactly as its Part 1 describes (the premise, rules 1–7, the per-page plans for Board, Priorities and Dump, and the decisions Q1–Q8). Plan stays as it is (Q5); auth, settings and the app shell are out of scope (Q6). Read AGENTS.md and the spike first; the Projects page (`src/components/domain/projects/`) is the reference implementation. Don't open `design/spike/component-structure-experiment.md`: it describes how this work is evaluated, and reading it would skew it.
 
 Deliverables:
 - One branch, `claude/page-structure-{run-lowercase}`, with one commit per page plus a commit for the docs.
@@ -78,7 +78,7 @@ Follow the spike's parallel procedure (Part 1 › 并行执行 › 如果并行�
 **评审 session 的 prompt：**
 
 ````text
-You are reviewing one implementation of a planned refactor in Marsuu1994/mars-workbench, labelled {R}. Review only the combined diff `git diff {SHA} {HEAD}` (fetch the commit {HEAD} if needed). Don't read commit messages, branch names, pull requests, `design/spike/component-structure-experiment.md` or any other implementation — only this diff, the code it touches, AGENTS.md and the spike `design/spike/component-structure.md` (as of {SHA}), which says what the change should do.
+You are reviewing one implementation of a planned refactor in Marsuu1994/mars-workbench, labelled {R}. Review only the combined diff `git diff {SHA} {HEAD}` (fetch the commit {HEAD} if needed). Don't read commit messages, branch names, pull requests, `design/spike/component-structure-experiment.md` or any other implementation — only this diff, the code it touches, AGENTS.md and the spike `design/spike/archived/component-structure.md` (as of {SHA}), which says what the change should do.
 
 Score each criterion from 1 (poor) to 5 (excellent), with one or two sentences of evidence:
 1. Correctness — behavior unchanged for the user; no bugs, broken handlers or regressions.
