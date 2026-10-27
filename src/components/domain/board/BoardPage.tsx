@@ -2,35 +2,29 @@
 
 import {useState, useMemo} from 'react';
 import {DragDropContext, type DropResult} from '@hello-pangea/dnd';
-import type {TaskItem} from '@/lib/db/tasks';
-import type {BoardProject} from '@/lib/db/projects';
+import type {BoardData} from '@/types/board';
 import {TaskStatus} from '@/utils/enums';
-import type {BoardPlan} from '@/utils/taskUtils';
 import {toBoardCards, type BoardCard} from '@/utils/boardCardUtils';
 import {updateTaskStatusAction} from '@/actions/taskActions';
 import {useOptimisticTasks} from '@/hooks/useOptimisticTasks';
+import {BoardHeader} from '@/components/domain/shared/BoardHeader';
 import {BoardColumn} from './BoardColumn';
 import {DesktopBacklog} from './DesktopBacklog';
 import {MobileBacklog} from './MobileBacklog';
 import {MobileBacklogCard} from './MobileBacklogCard';
+import {ProgressDashboard} from './ProgressDashboard';
 import {TaskCard} from './TaskCard';
-
-interface KanbanBoardProps {
-  /** The board's state, in the server's shape — moves patch these */
-  tasks: TaskItem[];
-  /** The active plan — its week, lines and mode drive the habit cards */
-  plan: BoardPlan;
-  /** The projects behind the step cards — each card draws its path */
-  projects: BoardProject[];
-}
+import {BoardPageContext, type BoardPageContextValue} from './BoardPageContext';
 
 /**
- * The board's container: keeps the tasks as state, derives the cards with
- * toBoardCards, and renders them into the columns and backlogs — which are
- * frames that know nothing about cards. Moves are optimistic and roll back
- * per task on failure.
+ * The board page (/kanban): header, progress dashboard and the board in a
+ * definite-height column (h-full against AppShell's <main>). Keeps the tasks
+ * as state, derives the cards with toBoardCards, and renders them into the
+ * columns and backlogs — frames that know nothing about cards. Moves are
+ * optimistic and roll back per task on failure; the mobile pull reaches its
+ * cards through BoardPageContext.
  */
-export const KanbanBoard = ({tasks, plan, projects}: KanbanBoardProps) => {
+export const BoardPage = ({plan, progress, tasks, projects}: BoardData) => {
   const {localTasks, runOptimisticTaskUpdate} = useOptimisticTasks(tasks);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -75,6 +69,8 @@ export const KanbanBoard = ({tasks, plan, projects}: KanbanBoardProps) => {
     moveTask(taskId, TaskStatus.TODO, 'Failed to pull task to Todo:');
   }
 
+  const pageContext: BoardPageContextValue = {pullToTodo};
+
   const renderDraggableCards = (cards: BoardCard[]) =>
     cards.map((card, index) => (
       <TaskCard key={card.task.id} card={card} index={index} />
@@ -82,10 +78,10 @@ export const KanbanBoard = ({tasks, plan, projects}: KanbanBoardProps) => {
 
   const renderMobileBacklogCards = () =>
     backlogCards.map(card => (
-      <MobileBacklogCard key={card.task.id} card={card} onPull={pullToTodo} />
+      <MobileBacklogCard key={card.task.id} card={card} />
     ));
 
-  return (
+  const renderBoard = () => (
     <DragDropContext
       onDragStart={() => setIsDragging(true)}
       onDragEnd={handleDragEnd}
@@ -122,5 +118,15 @@ export const KanbanBoard = ({tasks, plan, projects}: KanbanBoardProps) => {
         {renderMobileBacklogCards()}
       </MobileBacklog>
     </DragDropContext>
+  );
+
+  return (
+    <BoardPageContext value={pageContext}>
+      <div className="flex h-full flex-col">
+        <BoardHeader periodKey={plan.periodKey} />
+        <ProgressDashboard {...progress} />
+        <div className="min-h-0 flex-1">{renderBoard()}</div>
+      </div>
+    </BoardPageContext>
   );
 };

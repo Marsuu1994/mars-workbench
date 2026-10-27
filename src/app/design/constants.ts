@@ -11,6 +11,7 @@ import type {TaskItem} from '@/lib/db/tasks';
 import type {DumpEntryItem} from '@/lib/db/dumpEntries';
 import {TaskKind, type HabitWeek} from '@/utils/taskUtils';
 import type {BoardCard, ProjectStepContext} from '@/utils/boardCardUtils';
+import type {BoardPageContextValue} from '@/components/domain/board/BoardPageContext';
 import type {ProjectsPageContextValue} from '@/components/domain/projects/ProjectsPageContext';
 
 // ── Page copy ──────────────────────────────────────────────────────────────
@@ -543,6 +544,12 @@ export const BOARD_COLUMN_STATUS = TaskStatus.TODO;
 export const BOARD_COLUMN_CARDS: BoardCard[] = MINI_CARD_FIXTURES.map(
   fixture => fixture.card,
 );
+
+/** The page context a MobileBacklogCard renders in, outside the board page:
+    inert handlers (the frame swallows clicks). */
+export const inertBoardPageContext = (): BoardPageContextValue => ({
+  pullToTodo: () => undefined,
+});
 
 /** PlanTaskRow — tasks already on the plan the form keeps or lets go. */
 export const PLAN_TASK_ROW_FIXTURES = [

@@ -10,6 +10,7 @@ import {BoardHeader} from '@/components/domain/shared/BoardHeader';
 import {TaskCard} from '@/components/domain/board/TaskCard';
 import {TaskCardMiniFace} from '@/components/domain/board/TaskCardMiniFace';
 import {MobileBacklogCard} from '@/components/domain/board/MobileBacklogCard';
+import {BoardPageContext} from '@/components/domain/board/BoardPageContext';
 import {BoardColumn} from '@/components/domain/board/BoardColumn';
 import {ProgressDashboard} from '@/components/domain/board/ProgressDashboard';
 import {MatrixTaskCard} from '@/components/domain/priorities/MatrixTaskCard';
@@ -40,6 +41,7 @@ import {
   TEMPLATE_FIXTURE,
   SCENARIO_HREFS,
   PROJECT_STEP_FIXTURES,
+  inertBoardPageContext,
   inertProjectsPageContext,
 } from '../constants';
 
@@ -164,15 +166,16 @@ export const DomainTab = () => {
       title="MobileBacklogCard"
       description="The mobile backlog sheet's card: the full face on a plain card, with the ↑ Todo pull beside the title."
     >
-      <div className="flex max-w-sm flex-col gap-2.5">
-        {MINI_CARD_FIXTURES.slice(0, 2).map(({card}) => (
-          <MobileBacklogCard
-            key={card.task.id}
-            card={{...card, task: {...card.task, status: TaskStatus.BACKLOG}}}
-            onPull={() => undefined}
-          />
-        ))}
-      </div>
+      <BoardPageContext value={inertBoardPageContext()}>
+        <div className="flex max-w-sm flex-col gap-2.5">
+          {MINI_CARD_FIXTURES.slice(0, 2).map(({card}) => (
+            <MobileBacklogCard
+              key={card.task.id}
+              card={{...card, task: {...card.task, status: TaskStatus.BACKLOG}}}
+            />
+          ))}
+        </div>
+      </BoardPageContext>
     </Section>
   );
 

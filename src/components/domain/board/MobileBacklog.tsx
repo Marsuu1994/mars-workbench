@@ -11,7 +11,7 @@ import {MobileBacklogPanel} from './MobileBacklogPanel';
 interface MobileBacklogProps {
   /** Staged cards — the pill's badge; the pill hides at zero */
   count: number;
-  /** The staged cards, rendered by KanbanBoard */
+  /** The staged cards, rendered by BoardPage */
   children: ReactNode;
 }
 
