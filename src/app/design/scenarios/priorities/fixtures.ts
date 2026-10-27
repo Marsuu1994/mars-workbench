@@ -13,6 +13,10 @@ import type {MatrixActivePlan} from '@/services/matrixService';
 
 const NOW = new Date('2026-07-10T15:00:00');
 
+/** The adapter's today: the no-plan tabs' header falls back to its week,
+    the active plan's own (2026-W28). */
+export const SCENARIO_TODAY = new Date(2026, 6, 10);
+
 export const SCENARIO_ACTIVE_PLAN: MatrixActivePlan = {
   id: 'scn-plan',
   periodKey: '2026-W28',
