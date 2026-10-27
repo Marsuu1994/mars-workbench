@@ -64,6 +64,7 @@ experiments/
 
 Lessons try1 paid for; the next controller starts from them.
 
+- Run in a throwaway lab repository (`<repo>-lab-<try>`, created by the owner with the Claude GitHub App installed, attached with `add_repo`): runs, review branches and the controller's state branch go there, because a cloud session cannot delete remote branches and deleting the repository is the cleanup. The archive PR and the recommended merge candidate go to the main repository; export each run's patches and PR description into `data/` first, since the lab repository's PRs die with it.
 - `create_session` sets the model, the permission mode and the checkout, not the effort. Pin effort with the environment's `CLAUDE_CODE_EFFORT_LEVEL` or the repo's `.claude/settings.json` at the base commit.
 - Tokens: `get_session` › `usage` is the figure to report (it matches the transcript's `result` events); on assistant events `output_tokens` is a streaming placeholder. The main / subagent split comes from `list_events` (`parent_tool_use_id`); a subagent's `<usage>` block arrives in a later task-notification, and its `subagent_tokens` is about its largest single request, not a total.
 - Keep the controller's own context small: one subagent per transcript, per checklist audit and for collecting the reviews; the controller reads their tables. Give sibling subagents their own working directories — they share the scratchpad.

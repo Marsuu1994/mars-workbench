@@ -72,6 +72,7 @@ Single source of truth for open ideas and todos across the app — open items on
   - [ ] Step 10 — Component structure + config-driven modals, spike + implementation: settles how Phase 2's new pages (Habits, Plan week) are written
     - [ ] Page structure for the other pages (one PR) — Board, Priorities and Dump move onto the Projects page's structure (AGENTS.md › Layers › *Page structure*; spike `design/spike/component-structure.md`), built through the Q9 comparison below
       - Q9 comparison done (`experiments/page-structure-parallel/try1/`): six PRs #85–#90, all green and equivalent; the owner picks the one to merge, and that PR archives `design/spike/component-structure-experiment.md`
+      - try2 planned (`experiments/page-structure-parallel/try2/instruction.md`): the same task, five runs per arm, in the lab repository `mars-workbench-lab-try2`; starts when the owner says so, after the lab repository exists with the Claude GitHub App installed
       - Board — `BoardPage` absorbs `BoardScreen`; the mobile pull through a page context
       - Priorities — `PrioritiesPage` absorbs `PrioritiesScreen`; track, complete, the popover and add through a page context (quadrant cell and card: 9 props → 2); the route's week fallback becomes an adapter
       - Dump — `DumpPage` with capture and load-more through a page context; the route's unwrapping becomes an adapter
