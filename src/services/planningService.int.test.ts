@@ -245,6 +245,40 @@ describe('createPlanFromSpec', () => {
     }
   });
 
+  it("puts untracked one-offs on the new week, in the user's to-do", async () => {
+    const {passport} = await createLastWeek();
+    const dentist = await createOneOff(userId, {title: 'Book dentist'});
+    const {plan} = await createWeek(userId, {addOneOffTaskIds: [dentist.id]});
+
+    expect(
+      plan.oneOffTasks.map(({taskId, status}) => [taskId, status]).sort(),
+    ).toEqual(
+      [
+        [passport.id, TaskStatus.TODO],
+        [dentist.id, TaskStatus.TODO],
+      ].sort(),
+    );
+  });
+
+  it("refuses to add a one-off that isn't untracked, or one listed twice", async () => {
+    const {passport} = await createLastWeek();
+    const dentist = await createOneOff(userId, {title: 'Book dentist'});
+    await expect(
+      createWeek(userId, {
+        newTemplates: [RUN],
+        addOneOffTaskIds: [passport.id, dentist.id, dentist.id],
+      }),
+    ).rejects.toThrow(
+      PLANNING_ERROR.PATCH_REJECTED([
+        PLANNING_ERROR.ONE_OFF_TASKS_NOT_UNTRACKED([passport.id]),
+        PLANNING_ERROR.ONE_OFF_TASKS_LISTED_TWICE([dentist.id]),
+      ]),
+    );
+    expect(
+      await prisma.plan.count({where: {userId, periodKey: NEXT_WEEK_KEY}}),
+    ).toBe(0);
+  });
+
   it("refuses to carry a one-off that wasn't on last week", async () => {
     await createLastWeek();
     const loose = await createOneOff(userId, {title: 'Loose end'});
@@ -410,6 +444,44 @@ describe('patchActivePlan', () => {
     expect(patched.projectSteps.map(({stepId}) => stepId)).toEqual([
       steps[1].id,
     ]);
+  });
+
+  it("puts untracked one-offs in the user's to-do while sending others back", async () => {
+    const passport = await createOneOff(userId, {title: 'Renew passport'});
+    const dentist = await createOneOff(userId, {title: 'Book dentist'});
+    const {plan} = await createWeek(userId, {
+      newTemplates: [RUN],
+      addOneOffTaskIds: [passport.id],
+    });
+
+    const {changes, plan: patched} = await patch({
+      planId: plan.planId,
+      addOneOffTaskIds: [dentist.id],
+      removeOneOffTaskIds: [passport.id],
+    });
+    expect(changes).toMatchObject({
+      addedOneOffTasks: [{id: dentist.id, title: 'Book dentist'}],
+      removedOneOffTasks: [{id: passport.id, title: 'Renew passport'}],
+    });
+    expect(patched.oneOffTasks).toEqual([
+      expect.objectContaining({taskId: dentist.id, status: TaskStatus.TODO}),
+    ]);
+  });
+
+  it('refuses to add a one-off that is already on the week or done', async () => {
+    const passport = await createOneOff(userId, {title: 'Renew passport'});
+    const taxes = await createOneOff(userId, {title: 'File tax extension'});
+    const {plan} = await createWeek(userId, {
+      newTemplates: [RUN],
+      addOneOffTaskIds: [passport.id],
+    });
+    await completeMatrixTask(userId, taxes.id);
+
+    await expect(
+      patch({planId: plan.planId, addOneOffTaskIds: [passport.id, taxes.id]}),
+    ).rejects.toThrow(
+      PLANNING_ERROR.ONE_OFF_TASKS_NOT_UNTRACKED([passport.id, taxes.id]),
+    );
   });
 
   it("refuses a one-off that isn't on the plan", async () => {

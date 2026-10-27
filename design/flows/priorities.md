@@ -103,7 +103,7 @@ Choose **Done** in a matrix card's Move-to popover (desktop, via the hover "→"
 ### Rules
 
 - Reuses the existing Ad-hoc task creation modal; only the submit wiring differs (quadrant + unassigned, instead of column status + plan link). The quadrant picker renders only when no source quadrant is preset.
-- Tasks created here reach the board only via the "Track This Week Flow".
+- Tasks created here reach the board only via the "Track This Week Flow" (or Claude's `addOneOffTaskIds`, the same write).
 
 ---
 
@@ -111,7 +111,7 @@ Choose **Done** in a matrix card's Move-to popover (desktop, via the hover "→"
 
 ### Trigger / Entry Point
 
-The user asks Claude, connected to the `/api/mcp` server, about their one-offs: what's on the matrix, to note a few tasks down, that some are done, or to move one to another quadrant.
+The user asks Claude, connected to the `/api/mcp` server, about their one-offs: what's on the matrix, to note a few tasks down, that some are done, to move one to another quadrant, or to put some on this week.
 
 ### Steps
 
@@ -119,10 +119,11 @@ The user asks Claude, connected to the `/api/mcp` server, about their one-offs: 
 2. Claude proposes; nothing is written before the user agrees.
 3. `create_one_off_tasks`: 1–20 tasks, each a title, size, quadrant and optional description, created exactly as the Add Priority Task Flow creates one (`AD_HOC`, `BACKLOG`, `planId = null`) in one INSERT, listed on the matrix in the order given.
 4. `update_one_off_tasks`: `completeTaskIds` completes tasks exactly as the Complete One-off Flow does (a task on no week joins the current ACTIVE plan when there is one), and `reprioritizeTasks` moves tasks between quadrants; one transaction.
-5. Each write returns the tasks as they now stand, for Claude to report back.
+5. Putting one-offs on this week goes through the plan tools' `addOneOffTaskIds` — `create_plan` for a new plan, `update_plan` for the active one — which tracks them as the Track This Week Flow does (see "Plan with Claude (MCP) Flow" in `design/flows/plan.md`); `update_plan`'s `removeOneOffTaskIds` sends a tracked one-off back to the matrix.
+6. Each write returns the tasks as they now stand, for Claude to report back.
 
 ### Rules
 
-- The tools never put a one-off on a week: tracking stays the user's, from the matrix. `update_plan` can still send a tracked one-off back to the matrix.
+- Only an untracked one-off (on no week) can be added to a week; one left on last week's plan moves by carry-over instead.
 - Only unfinished one-offs of the user can be completed or moved; an unknown, done or repeated id rejects the whole call, and nothing is written.
 - Completing is final, as on the matrix (whose Undo lives only in its toast): there is no reopen.
