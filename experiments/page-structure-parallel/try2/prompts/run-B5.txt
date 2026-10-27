@@ -1,0 +1,24 @@
+You are working on the repository Marsuu1994/mars-workbench-lab-try2, starting from the branch experiment/base-try2 at commit 83ae5a4348ba722fb1fbda1d632ef1fb3a059ac5.
+
+Task: implement the next PR that the decided spike `design/spike/component-structure.md` plans — move the Board, Priorities and Dump pages onto the page structure, exactly as its Part 1 describes (the premise, rules 1–7, the per-page plans for Board, Priorities and Dump, and the decisions Q1–Q8). Plan stays as it is (Q5); auth, settings and the app shell are out of scope (Q6). Read AGENTS.md and the spike first; the Projects page (`src/components/domain/projects/`) is the reference implementation. Don't open `design/spike/component-structure-experiment.md`: it describes how this work is evaluated, and reading it would skew it.
+
+Deliverables:
+- One branch, `claude/page-structure-try2-b5`, based on experiment/base-try2, with one commit per page plus a commit for the docs.
+- The Design Console updated so every scenario and gallery tab renders (src/app/design/README.md).
+- The docs the repo's rules require for a PR that implements a decided spike (AGENTS.md › Version Control, design/spike/README.md, the tracker's Conventions).
+- The checks AGENTS.md asks for before a push, the e2e suite, the click-through checks (below) and the Board browser check through `ui-verifier`.
+- A pull request in this repository against the branch experiment/base-try2, titled "[try2 B5] Page structure: Board, Priorities and Dump", ready for review, with a "Judgment calls" section.
+
+Setup and verification, the same for every run:
+- Run `npm run setup -- --no-db` first (.env.local, npm install, the generated Prisma client). Then start the local stack in the background (`npm run db:setup > /tmp/db-setup.log 2>&1 &`) and don't wait for it until you need the database (npm test's integration tests, the e2e suite, the click-through checks).
+- The click-through checks are the repo's `npm run check:clicks`: start `npm run dev` in the background, run `npm run e2e:session -- .auth/e2e-session.json`, then the script; it prints PASS/FAIL per check. Run it on your finished branch and quote its summary in the PR. Don't write Playwright scripts of your own.
+
+Rules for this run:
+- Nobody will answer questions while you work. Make reasonable calls, and list each one under "Judgment calls" in the PR description.
+- Never merge, never push to main or to experiment/base-try2, and never touch another branch or pull request.
+- Your work ends when the PR is open and CI is green on its head. Fix red CI as AGENTS.md says, don't wait for reviews, and don't schedule check-ins.
+- Nothing you write into the repository — code, comments, tests, docs, commit messages — may describe how this work was organized (who did which page, in what order, serial or parallel, with or without subagents). Say that only in your final summary and under "Judgment calls" in the PR description.
+- End with a short summary: what changed per page, which checks ran, and the judgment calls.
+
+Workflow:
+As soon as `npm run setup -- --no-db` has finished, spawn three general-purpose subagents at once, one per page (Board, Priorities, Dump), each with `isolation: "worktree"`; don't wait for the database. Brief each one with its page's section of the spike, AGENTS.md › Layers › Page structure and the Projects page as the reference. Each subagent: prepares its worktree by hard-linking node_modules and copying .env.local and src/generated from the main checkout; changes only its page's code and the Design Console; uses simple single-directory commands and the Write tool for edits (the worktree guard rejects compound `cd … &&` commands and heredocs); runs format, lint, typecheck, knip and test:unit; commits once on its own branch; and reports which shared files it touched. While they run, end your turn and wait — don't implement a page yourself. Then bring each agent's commit onto your branch with cherry-pick (one commit per page), resolve the conflicts, and run npm test, the e2e suite, `npm run check:clicks` and the Board `ui-verifier` check yourself. Write the docs and push. Besides these three, the only subagent you may use is `ui-verifier`.

@@ -1,6 +1,6 @@
 # page-structure-parallel · try2 — 同一个三页重构，搭好实验再比一次串行和并行，每组五次
 
-**Status: approved 2026-10-27**（owner 认可做法并建好了 lab 仓库；本 session 已推 `main`；compact 后新 session 从 Fresh start 执行） · 来源：try1（`experiments/page-structure-parallel/try1/`）、tracker › Milestone — Quality gate › Step 10
+**Status: running 2026-10-27**（起点 `experiment/base-try2` = `83ae5a4`，推到 lab 仓库 05:13 UTC；prompt 冻结在 `prompts/`；run prompt 里"别看评估文件"一句指向起点树上实际存在的 `design/spike/component-structure-experiment.md`，起点树没有 `experiments/`） · 来源：try1（`experiments/page-structure-parallel/try1/`）、tracker › Milestone — Quality gate › Step 10
 
 > 叙述用中文；run 编号、指标名、代码标识保留英文。Prompt 用英文。这份文件和它引用的 try1 文件、`experiments/README.md`、`prompts/controller-briefs.md` 一起，足够一个全新的 session 从零跑完整个实验（见"Fresh start"）。
 
@@ -44,7 +44,7 @@
 ```text
 You are working on the repository Marsuu1994/mars-workbench-lab-try2, starting from the branch experiment/base-try2 at commit {SHA}.
 
-Task: implement the next PR that the decided spike `design/spike/component-structure.md` plans — move the Board, Priorities and Dump pages onto the page structure, exactly as its Part 1 describes (the premise, rules 1–7, the per-page plans for Board, Priorities and Dump, and the decisions Q1–Q8). Plan stays as it is (Q5); auth, settings and the app shell are out of scope (Q6). Read AGENTS.md and the spike first; the Projects page (`src/components/domain/projects/`) is the reference implementation. Don't open anything under `experiments/`: it describes how this work is evaluated, and reading it would skew it.
+Task: implement the next PR that the decided spike `design/spike/component-structure.md` plans — move the Board, Priorities and Dump pages onto the page structure, exactly as its Part 1 describes (the premise, rules 1–7, the per-page plans for Board, Priorities and Dump, and the decisions Q1–Q8). Plan stays as it is (Q5); auth, settings and the app shell are out of scope (Q6). Read AGENTS.md and the spike first; the Projects page (`src/components/domain/projects/`) is the reference implementation. Don't open `design/spike/component-structure-experiment.md`: it describes how this work is evaluated, and reading it would skew it.
 
 Deliverables:
 - One branch, `claude/page-structure-try2-{run-lowercase}`, based on experiment/base-try2, with one commit per page plus a commit for the docs.
