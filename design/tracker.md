@@ -1,11 +1,11 @@
 # Tracker
 
-Single source of truth for open ideas and todos across the app — open items only; completed work is recorded in the root `README.md` Update Log, not here.
+Single source of truth for open ideas and todos across the app — open items only; completed work is recorded in the git history and PR descriptions, not here.
 
 ## Conventions
 
 - **One concise line per item; details go into sub-bullets.** An item says what is open and why, at product altitude — not an inventory of files or components.
-- **Finished work leaves.** Delete an item or sub-bullet when it lands — don't keep it checked; the Update Log records it.
+- **Finished work leaves.** Delete an item or sub-bullet when it lands — don't keep it checked; the PR that landed it records it.
 - **A multi-PR project is one item with a sub-bullet per step.** The parent line names the goal and links the spike and mockups; each sub-bullet is one PR or step, kept to one line. Delete a sub-bullet when its PR lands, and the parent goes with the last one. Bad: five unrelated top-level items ("Projects PR 1", "Projects PR 2", …), or one parent whose prose lists every PR in a paragraph. Good: `- [ ] Week model Phase 1 — Projects MVP: … Spike … (approved)` followed by `  - [ ] PR 1 — Phase 1 docs: …`, `  - [ ] PR 2 — kind-first cards, risk off, …`.
 
 ## Board
