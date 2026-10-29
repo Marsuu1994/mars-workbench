@@ -174,7 +174,7 @@ DumpPage route (server)         两个读 action → toDumpPageProps(feed, total
 ## 执行和验证
 
 - **顺序**：三页互相独立（各自的 `domain/<feature>/`、route 和 scenario），没有先后依赖。串行时建议 Board → Dump → Priorities，由小到大。
-- **共享的文件**，也就是并行时的冲突面：`src/app/design/constants.ts`（inert context 和 fixture）、`src/app/design/tabs/DomainTab.tsx`（specimen）、`design/baseline.md`、tracker、README Update Log、AGENTS.md 里「还没改的页面」那一句。`utils/oneOffUtils.ts` 只有 Priorities 动。
+- **共享的文件**，也就是并行时的冲突面：`src/app/design/constants.ts`（inert context 和 fixture）、`src/app/design/tabs/DomainTab.tsx`（specimen）、`design/baseline.md`、tracker、AGENTS.md 里「还没改的页面」那一句。`utils/oneOffUtils.ts` 只有 Priorities 动。
 - **每页的验证**：
   1. `format`、`lint`、`typecheck`、`knip`、`npm test`；
   2. `npm run test:e2e`：每个 Design Console tab 的 smoke 和四条 journey；
