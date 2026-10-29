@@ -1,6 +1,6 @@
 # page-structure-parallel · try2 — 同一个三页重构，搭好实验再比一次串行和并行，每组五次
 
-**Status: running 2026-10-27**（起点 `experiment/base-try2` = `83ae5a4`，推到 lab 仓库 05:13 UTC；prompt 冻结在 `prompts/`；run prompt 里"别看评估文件"一句指向起点树上实际存在的 `design/spike/component-structure-experiment.md`，起点树没有 `experiments/`） · 来源：try1（`experiments/page-structure-parallel/try1/`）、tracker › Milestone — Quality gate › Step 10
+**Status: paused 2026-10-28**（十个 run 10-27 跑完，数据完整：并行仍更慢，T_pr 17.2 对 13.8 min，成本 1.49 倍；收数据阶段两次把用量窗口耗尽，盲审没做完，见 `takeaways.md`。额度重置后由一个 Opus 的 controller session 按"预算和角色"补完流程第 4–6 步；page structure 到此收口，不再开新 try。起点 `experiment/base-try2` = `83ae5a4`，推到 lab 仓库 05:13 UTC；prompt 冻结在 `prompts/`；run prompt 里"别看评估文件"一句指向起点树上实际存在的 `design/spike/component-structure-experiment.md`，起点树没有 `experiments/`） · 来源：try1（`experiments/page-structure-parallel/try1/`）、tracker › Milestone — Quality gate › Step 10
 
 > 叙述用中文；run 编号、指标名、代码标识保留英文。Prompt 用英文。这份文件和它引用的 try1 文件、`experiments/README.md`、`prompts/controller-briefs.md` 一起，足够一个全新的 session 从零跑完整个实验（见"Fresh start"）。
 
@@ -9,7 +9,7 @@
 - **上次的意外**：预期三个 subagent 并行改三页会比一个 session 串行快，结果反而慢。三页写完 10.1 对 7.9 分钟，到 PR 开出 31 对 17 分钟，多花 36% 的钱，质量一样。
 - **慢的原因大部分不是并行本身，是实验没搭好**：给并行组的指令让它等整个 setup（含数据库）跑完才派 agent，白等 2 到 6 分钟；要求做点击检查却没给脚本，每个 run 自己写 Playwright，顺的 5 分钟、不顺的 20 分钟，这段噪声比组间差异还大；每组只有 3 次，噪声盖过信号。还有一个真实因素：每页只有 2 到 4 分钟的活，派发、agent 冷启动、合并这些固定成本本来就难摊掉。
 - **这次改什么**：同一个任务、同一个起点，把实验搭好再比一次。Setup 不再挡在并行的路上；点击检查脚本进仓库，两组直接用；effort 固定为 high 对标日常开发；去掉几处已知噪声（stop hook、`ui-verifier` 的一个老问题、盲审里 README 的假缺陷）；每组跑 5 次；事先写好什么结果算并行赢。
-- **这次在一个一次性仓库里跑**：十个 run、盲审分支、controller 的状态分支都放在 `Marsuu1994/mars-workbench-lab-try2`，主仓库只收最后的归档 PR 和推荐合并的那个分支。云 session 删不了远端分支，跑完你删掉 lab 仓库就是全部清理。
+- **这次在一个一次性仓库里跑**：十个 run、盲审分支、controller 的状态分支都放在 `Marsuu1994/mars-workbench-lab-try2`，主仓库只收最后的归档 PR 和推荐合并的那个分支。云 session 删不了远端分支，跑完你把 lab 仓库归档就是全部清理，原始测量留在那里。
 - **预期**：三页写完这一段两组打平或并行略快，总时间差距缩小，钱仍是 1.3 到 1.5 倍。要是这样并行还不快，这个规模的任务就定串行，不再测。
 
 ## 问题
@@ -86,7 +86,16 @@ As soon as `npm run setup -- --no-db` has finished, spawn three general-purpose 
 - 每个 run 一个 `create_session`（claude-code-remote MCP）：`source_url` `https://github.com/Marsuu1994/mars-workbench-lab-try2`，`source_revision` 起点 SHA，`model` `claude-opus-5-5`，`environment_id` 是现有环境 `env_011scbxKVRAPcJTTmy6VqZcA`（owner 决定不新建；effort 来自仓库的 settings 文件，前置条件 3），permission mode 继承（auto），title `[try2 A1] Page structure experiment`，tags `experiment:page-structure-try2`、`try2-run:A1`。
 - 十个 run 一次批量创建，顺序 A1、B1、A2、B2、…、A5、B5。
 - CI 队列：十个 PR 同时开，约 70 个 job 排队，先 push 的先跑；CI 等待只记录、不进判定（H1、H2 都在 PR 开出之前截止）。
-- 主 session 只观察，不碰任何 run 的分支。额度：try1 六个 run 加六份评审都在 `ccr_promotional` 内，十加十按 1.7 倍估。
+- 主 session 只观察，不碰任何 run 的分支。额度：try1 六个 run 加六份评审都在 `ccr_promotional` 内，十加十按 1.7 倍估（实际：这次所有 session 都算进账号的 `five_hour` 窗口，见"预算和角色"）。
+
+## 预算和角色（2026-10-29 补，恢复时生效）
+
+- 所有 session 共用账号的五小时用量窗口（`get_session` › `rate_limit_info`）。一个窗口装得下十个 run 加 controller，装不下紧接着的收数据和盲审。阶段按窗口排：run 一个窗口；下一个窗口开头先起评审，评审期间不起 subagent，再串行收数据；报告另算。
+- controller：`claude-opus-5-5`，effort high；subagent 继承这两项，一次 2–3 个；transcript 的 usage、timeline、process 用脚本算，只把失败标注交给模型。
+- run：`claude-opus-5-5`，effort high（已跑完，不动）。
+- 盲审：由 code review agent（tracker › Harness engineering › 3，owner 先做出来）在十个 review 分支上执行，产出同一份 JSON；agent 没就绪就退回 `claude-opus-5-5` 的评审 session，每个候选一份，同一份 prompt、同一个 effort，窗口刚重置时十个单独起。评审模型和 try1 的 Fable 不同：十个候选同一个裁判，组间比较不受影响，分数不和 try1 合并。
+- 归档：主仓库只留 instruction、report、takeaways、prompts 和 `experiments/_tools/`；patch、transcript 汇总、清单、评审 JSON、行为日志留在 lab 仓库的 `controller/try2`，仓库跑完归档不删。
+- 预计花费（补完）：评审 $20–40，收数据和报告 $30–40，一到两个窗口。
 
 ## 前置条件
 
@@ -103,7 +112,7 @@ As soon as `npm run setup -- --no-db` has finished, spawn three general-purpose 
 
 5. controller 脚本参数化进主仓库的 `experiments/_tools/`（remote 名作参数，本轮是 `lab`）：`make-review-branch.sh`（scrub 规则读 per-try 文件 `scrub.txt`，基于 try1 的脚本）、行为检查 runner（checkout → 重启 dev → 重置 e2e 用户 → `npm run check:clicks`）；transcript 统计、清单审计、评审收集的 subagent brief 用 `prompts/controller-briefs.md`。
 6. 十份 run prompt、十份评审 prompt 冻结在 `prompts/`；R1–R10 到 run 的映射用 `SystemRandom`，只存 controller 分支。
-7. 主 session 机器：Node 24（`export NVM_DIR=/opt/nvm; . /opt/nvm/nvm.sh; nvm install 24`，每条 Bash 都要重新 source）、`npm run setup`、`npm run check:clicks` 在起点树上的基线；controller 状态分支 `controller/try2`，只推到 lab 仓库，随仓库一起删；每小时心跳任务（平台最小间隔一小时）加一次性检查。
+7. 主 session 机器：Node 24（`export NVM_DIR=/opt/nvm; . /opt/nvm/nvm.sh; nvm install 24`，每条 Bash 都要重新 source）、`npm run setup`、`npm run check:clicks` 在起点树上的基线；controller 状态分支 `controller/try2`，只推到 lab 仓库，随仓库一起归档；每小时心跳任务（平台最小间隔一小时）加一次性检查。
 
 ## 测量
 
@@ -117,7 +126,7 @@ As soon as `npm run setup -- --no-db` has finished, spawn three general-purpose 
 | 质量 · CI | 第一次 push 绿否、红了几次 | check runs |
 | 质量 · 清单 | try1 的 20 条，一字不改（`try1/instruction.md` › 质量判定） | 每个 diff 一个只读 agent |
 | 质量 · 行为 | `npm run check:clicks` 的 16 项，主 session 按分支跑 | 日志 |
-| 质量 · 盲审 | 6 项 1–5 分加缺陷列表 | 十个评审 session（`claude-fable-5-1`，effort high，来自同一个 settings 文件） |
+| 质量 · 盲审 | 6 项 1–5 分加缺陷列表 | code review agent，或 `claude-opus-5-5` 评审 session（effort high，来自同一个 settings 文件），见"预算和角色"；原计划 `claude-fable-5-1`，10-27 的十个因撞限失败 |
 
 汇总：每组均值、中位数、范围；和 try1 同指标并排；Mann–Whitney 的 p 值作参考。
 
@@ -127,10 +136,10 @@ As soon as `npm run setup -- --no-db` has finished, spawn three general-purpose 
 1. **前置**：建 `experiment/base-try2`，提交四个修正，推到 lab 仓库（`git push lab experiment/base-try2`）；本机在它上面跑 `format:check`、`lint`、`typecheck`、`knip`、`npm test`、`check:clicks` 基线；`experiments/_tools/` 就位；取 SHA，填十份 run prompt 和十份评审 prompt 到 `prompts/`。
 2. **起 run**：十个 `create_session`，记 session id 和创建时间；`send_later` 20 分钟后第一次检查（看 B 是否在 `--no-db` 之后立刻派 agent；没有的话记为协议偏差，不干预），之后每 30 分钟；建每小时心跳；状态镜像。
 3. **结束条件**：PR 开好、head 的 CI 全绿（`get_session` 的 `status_bucket` 加 GitHub check runs）。卡住或基础设施故障的 run 记录并重跑一次。
-4. **收数据**：每个 run 一个 transcript subagent（`prompts/controller-briefs.md` › Transcript metrics，含失败标注）；每个 diff 一个清单 subagent（› Checklist audit，20 条原文）；行为检查十个分支串行（冷服务器预热；失败的页面热重跑一次，两次都记）；`get_session` 的 `usage` 作成本主数据。
-5. **盲审**：`make-review-branch.sh` 为每个 run 建 `experiment/review-R<n>`（孤儿两 commit，README 换成 base 的，scrub 规则见 `prompts/scrub.txt`，只推到 lab 仓库）；十个评审 session 同时起（`claude-fable-5-1`，`source_revision` 各自的 review 分支，prompt 见 `prompts/review-template.txt`）；一个 subagent 收齐 JSON 并审计（有没有用 GitHub 工具、看别的 ref）。
-6. **导出和报告**：先导出，删 lab 仓库才不丢东西：每个 run 的 patch（`git format-patch lab/experiment/base-try2..lab/claude/page-structure-try2-<run>` 到 `data/patches/<run>/`）、PR 描述（`data/pr-<run>.md`）、CI 结果进 run 表；报告推荐合并的那个 run，把分支同名推到主仓库并对 `main` 开 PR，作为合并候选。再写报告：结论先行，和 try1 并排的表，固定成本分解，判定规则的结果；写进 `experiments/page-structure-parallel/try2/report.md`，一个 PR 进主仓库的 `main`。
-7. **收尾**：二十个 session 归档；心跳任务停掉；owner 定合并候选 PR 的去留（和 try1 的六个一起看），然后删掉 lab 仓库，run、评审、起点、controller 分支随之消失，不用逐个删。
+4. **收数据**（串行，一次 2–3 个 subagent）：transcript 的 usage、timeline、process 用脚本算，失败标注交给每个 run 一个 subagent（`prompts/controller-briefs.md` › Transcript metrics）；每个 diff 一个清单 subagent（› Checklist audit，20 条原文）；行为检查十个分支串行（冷服务器预热；失败的页面热重跑一次，两次都记）；`get_session` 的 `usage` 作成本主数据。10-27 已完成的部分：行为检查 10/10、transcript 8/10（缺 B4、B5）、成本；清单 0/10。
+5. **盲审**：`make-review-branch.sh` 为每个 run 建 `experiment/review-R<n>`（孤儿两 commit，README 换成 base 的，scrub 规则见 `prompts/scrub.txt`，只推到 lab 仓库）；评审按"预算和角色"：code review agent 跑十个 review 分支，或十个 `claude-opus-5-5` 评审 session 在窗口刚重置时单独起（`source_revision` 各自的 review 分支，prompt 见 `prompts/review-template.txt`）；一个 subagent 收齐 JSON 并审计（有没有用 GitHub 工具、看别的 ref）。review 分支 10-27 已建好（base commit `c9784f40`）。
+6. **报告**：不导出 run 的代码；PR 描述和 CI 结果进 run 表，留在 lab 仓库的 `controller/try2`。报告推荐合并的那个 run，把分支同名推到主仓库并对 `main` 开 PR，作为合并候选。报告结论先行，和 try1 并排的表，固定成本分解，判定规则的结果，附录链接 lab 仓库；写进 `experiments/page-structure-parallel/try2/report.md`，一个 PR 进主仓库的 `main`。
+7. **收尾**：二十个 session 归档；心跳任务停掉；owner 定合并候选 PR 的去留（和 try1 的六个一起看），然后把 lab 仓库归档（只读），run、评审、起点、controller 分支和原始测量都留在那里。
 
 ## 质量判定
 
@@ -171,7 +180,10 @@ Do not change any file, push, comment on GitHub or open a PR. End your reply wit
 | ui-verifier | pre-existing 问题判成 FAIL 或 PASS | 先修掉 | 去噪 |
 | 盲审 | README 缺失被当缺陷 | prompt 豁免 README | scrub 产物 |
 | PR base | `main` | `experiment/base-try2` | `main` 会合并 try1 的 PR |
-| 仓库 | 主仓库 | 一次性 lab 仓库 `mars-workbench-lab-try2` | 云 session 删不了远端分支；跑完删仓库即清理 |
+| 仓库 | 主仓库 | 一次性 lab 仓库 `mars-workbench-lab-try2` | 云 session 删不了远端分支；跑完归档仓库，原始测量留在那里 |
+| 评审模型 | Fable | code review agent 或 Opus（10-29 改） | 预算；组间比较不受影响 |
+| 预算 | 无 | 阶段按用量窗口排，每个角色定模型和 effort | 10-27 两次把窗口耗尽 |
+| 归档 | `data/` 进主仓库 | 原始测量留在 lab 仓库 | 导出的 patch 占了归档 PR 的 81% |
 | 失败分类 | 无 | 2610.10263 的四类 | 可与文献对照 |
 | 假设 | 事后描述 | 预注册 H1–H4 和判定规则 | 结果直接变成默认流程 |
 | 时间主指标 | 总时长 | T_pages 和 T_pr，CI 排除 | 十个 PR 同时开，CI 排队是共用噪声 |

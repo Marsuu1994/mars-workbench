@@ -56,3 +56,4 @@
 - 不受影响：T_pr、T_green、T_pages（时间戳已记录，transcript 事件在服务端不过期）、成本、行为检查（暂停前 10/10 都 16/16）、B 组流程合规、清单审计（没开始，diff 冻结在分支和 patch 里）。
 - 受影响的只有盲审：九个 session 跑了 4–5 分钟被打断，R4 跑完。两种处理，输入（review 分支、prompt）都不变。续跑：`send_message` 接着做，每个约 $1–2；中断对九个对称、盲图随机，不偏向哪一组，但续跑的评审和一口气跑完的可能不一样（容器已回收，重新 clone、重读文件），报告要注明。重跑：新 session 从头，每个约 $4，共 $36–40，一个窗口 5–8 分钟，记录干净。倾向重跑九个、R4 保留。
 - 同一时段 owner 自己 05:45 起的一个 session 06:00 也 failed，同一个窗口。
+- 决定（10-29）：try2 跑完即收口，不重跑 run；盲审由 code review agent 或 Opus 评审 session 做；page structure 不再开新 try（T_pages 已算出的 8 个 run：A 7.8 对 B 8.8 min，并行仍慢）。

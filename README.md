@@ -103,6 +103,9 @@ Open items: see [design/tracker.md](./design/tracker.md).
 
 ## Update Log
 
+### 2026-10-29
+- **The page-structure comparison closes with try2, and the archive slims down** (`experiments/`): try2's ten Opus runs settle the question (parallel again slower: three pages on the branch in 8.8 vs 7.8 min on the runs tabulated so far, PR open in 17.2 vs 13.8 min, cost 1.49×), so no further try; after the usage reset an Opus controller finishes the collection and the blind review (the code review agent, or Opus reviewers) and writes the report (`try2/instruction.md` › 预算和角色 holds the budget and the model and effort per role). The experiments README now keeps a try's measurements in its lab repository, archived rather than deleted, and the archive PR drops the exported run patches. The blind-review setup — branch builder, scrub rules, prompts, session parameters — is on the code-reviewer spike's branch (PR #82) so that agent can review the ten candidates.
+
 ### 2026-10-28
 - **Harness engineering is now a tracked series, ahead of the product milestones** (tracker › Harness engineering): three explorations in order — whether parallel worktree subagents pay off on architecture-clear refactors (the page structure, then the error framework), a standard model and effort per phase (spike, implementation, review, judged by cost per completed task; the discussion that framed it is kept as context), and whether a code review agent is needed — plus the setup every try follows from now on (phases per usage window, an Opus controller at high effort, reviewers alone, scripts for parsing, an archive that keeps measurements rather than run code). try2 of the page-structure comparison is declared failed: its ten runs stand as data, the review never completed, and the next try starts from the owner's review of the instruction.
 
