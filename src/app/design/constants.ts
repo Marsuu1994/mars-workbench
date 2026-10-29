@@ -11,6 +11,7 @@ import type {TaskItem} from '@/lib/db/tasks';
 import type {DumpEntryItem} from '@/lib/db/dumpEntries';
 import {TaskKind, type HabitWeek} from '@/utils/taskUtils';
 import type {BoardCard, ProjectStepContext} from '@/utils/boardCardUtils';
+import type {ProjectsPageContextValue} from '@/components/domain/projects/ProjectsPageContext';
 
 // ── Page copy ──────────────────────────────────────────────────────────────
 /** Title halves — the accent word renders with fx-text-gradient (the
@@ -662,6 +663,25 @@ export const PROJECT_STEP_FIXTURES: {
     }),
   },
 ];
+
+/** The page context a ProjectStep specimen renders in, outside the Projects
+    page: the fixture's plan, inert handlers (the frame swallows clicks). */
+export const inertProjectsPageContext = (
+  activePlanId: string | null,
+): ProjectsPageContextValue => ({
+  activePlanId,
+  showProject: () => undefined,
+  showProjectList: () => undefined,
+  openNewProject: () => undefined,
+  openEditProject: () => undefined,
+  openAddStep: () => undefined,
+  openEditStep: () => undefined,
+  scheduleStep: () => undefined,
+  takeStepBack: () => undefined,
+  moveStep: () => undefined,
+  archiveProject: async () => undefined,
+  unarchiveProject: async () => undefined,
+});
 
 /** TemplateItem — a single selectable plan-template row. */
 export const TEMPLATE_FIXTURE = {

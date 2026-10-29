@@ -15,7 +15,7 @@ User clicks the "New Template" button on the plan form page.
 1. Open the template modal (a centered modal on desktop, a bottom sheet on mobile) with empty fields for title, description, and size.
 2. The size selector displays all available sizes (XS–XL) with their corresponding point values and hour estimates. Selecting L or XL shows an inline warning suggesting the user consider splitting into smaller tasks.
 3. User completes the form and clicks "Create". Validate input via Zod schema, then persist the new TaskTemplate.
-4. Revalidate the `/kanban/plans` route to reflect the new template in the plan form.
+4. The response re-renders the plan form with the new template; the modal closes once it has landed.
 
 ---
 
@@ -30,7 +30,7 @@ User clicks the edit button on an existing template card within the plan form pa
 1. Open the template modal pre-populated with the current title, description, and size.
 2. User modifies any fields. The size selector behaves identically to the create flow (point labels, L/XL warning).
 3. User clicks "Save". Validate input, then persist changes to the existing TaskTemplate.
-4. Revalidate the `/kanban/plans` route to reflect the updated template.
+4. The response re-renders the plan form with the updated template; the modal closes once it has landed.
 
 ### Rules
 
@@ -58,7 +58,7 @@ User clicks "Create Plan" on empty board → navigates to `/kanban/plans/new`.
 8. Generate task instances **with `status = BACKLOG`** (staged in the backlog): weekly tasks immediately, daily tasks for today only (respecting plan mode for weekend skipping).
 9. Set `lastSyncDate = today`.
 10. Archive any existing `PENDING_UPDATE` plan → `COMPLETED`.
-11. Revalidate `/kanban` to render board.
+11. Revalidate the board, matrix and Projects pages and redirect to the board, which comes back in the same response.
 
 ### Rules
 
@@ -86,7 +86,7 @@ User opens **Plan** from the sidebar or the mobile dock while this week has an a
 5. On submit, show the confirmation modal summarizing the changes (added, removed, modified, mode change) — a centered modal on desktop, a tall bottom sheet with a scrolling summary and pinned footer on mobile.
 6. User clicks confirm and regenerate button.
 7. Apply template changes and regenerate tasks accordingly (respecting plan mode for weekend skipping).
-8. Revalidate `/kanban` to render updated board.
+8. Revalidate the board, matrix and Projects pages and redirect to the board, which comes back in the same response.
 
 ### Rules
 
@@ -116,15 +116,15 @@ The user asks Claude, connected to the `/api/mcp` server, to plan or adjust thei
 2. Claude calls `get_planning_context`: sync first (`ensureSynced`), then today and the week; this week's ACTIVE plan (template lines with progress so far, its one-offs and project steps with their status) or last period's PENDING_UPDATE plan (per-template stats, its one-offs and project steps — done, and unfinished ones that carry over); the reusable templates; the projects with their whole paths (each step's state: `UPCOMING` / `THIS_WEEK` / `LAST_WEEK` / `DONE`); the archived projects; and the matrix's unfinished one-offs (each with its quadrant and state: `UNTRACKED` / `THIS_WEEK` / `LAST_WEEK`).
 3. Claude recaps last week, asks what the user wants to keep or change, and proposes; nothing is written before the user agrees.
 4. Projects and habits are settled first: `create_project` / `update_project` (see "Draft Steps with Claude (MCP) Flow" in `design/flows/projects.md`) and `update_habit` (a template's title, description, size).
-5. No active plan → `create_plan`: existing templates by id plus brand-new ones, mode, description, `carryOverOneOffTaskIds` and `carryOverProjectStepIds` (each omitted = all of the last plan's unfinished one-offs / steps), and `addProjectStepIds` (upcoming steps). Runs the shared creation guard, then one transaction — create the new templates, then the Create Plan Flow's steps 6–10 (links or returns one-offs and steps, generates BACKLOG instances, completes the pending plan).
-6. Active plan → `update_plan` with a patch: add existing / create new / update type or frequency / remove templates, remove one-offs, add or remove project steps, mode, description. The patch is applied to the plan's current links, and the resulting full list runs through the Update Plan Flow's regeneration in one transaction with any new templates.
+5. No active plan → `create_plan`: existing templates by id plus brand-new ones, mode, description, `carryOverOneOffTaskIds` and `carryOverProjectStepIds` (each omitted = all of the last plan's unfinished one-offs / steps), `addOneOffTaskIds` (untracked one-offs) and `addProjectStepIds` (upcoming steps). Runs the shared creation guard, then one transaction — create the new templates, then the Create Plan Flow's steps 6–10 (links or returns one-offs and steps, generates BACKLOG instances, completes the pending plan), then tracks the added one-offs as the Track This Week Flow does.
+6. Active plan → `update_plan` with a patch: add existing / create new / update type or frequency / remove templates, add or remove one-offs, add or remove project steps, mode, description. The patch is applied to the plan's current links, and the resulting full list runs through the Update Plan Flow's regeneration in one transaction with any new templates.
 7. Each write returns what it changed and the plan, project or habit as it now stands, for Claude to report back.
 
 ### Rules
 
 - `update_plan` only changes this week's ACTIVE plan; a plan id read before a week rollover is rejected.
 - A patch that adds a template already in the plan, updates or removes one that isn't, or names an id twice is rejected whole; nothing is written.
-- Carried-over or removed one-offs must be unfinished one-off tasks of that plan — the plan tools never pull a one-off from the priority matrix onto a week.
+- One-offs: carried-over or removed ones must be unfinished one-off tasks of that plan; an added one must be untracked (unfinished, on no plan) and is tracked exactly as the Track This Week Flow does — `planId` set, `BACKLOG → TODO`, into the user's to-do.
 - Project steps: a carried-over step must be an unfinished step of the last plan; an added step must be upcoming (the user's, unfinished, on no plan, of a project that isn't archived); a removed step must be an unfinished step of this plan and returns to its project (`planId = null`, `BACKLOG`, step number unchanged).
 - `update_habit` changes the template only: instances already generated keep their title and size.
 - Identity: tool calls act for the user whose Supabase OAuth access token the request carries (see OAuth Consent Flow in `design/flows/auth.md`); local development without a token acts as `MCP_DEV_USER_ID`.

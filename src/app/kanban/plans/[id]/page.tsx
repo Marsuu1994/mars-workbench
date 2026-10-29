@@ -1,11 +1,6 @@
 import {notFound} from 'next/navigation';
-import {getPlanWithTemplates} from '@/lib/db/plans';
-import {getTaskTemplates} from '@/lib/db/taskTemplates';
-import {getNonDoneAdhocTasks} from '@/lib/db/tasks';
-import {getPlanStepsByPlanId} from '@/lib/db/projects';
-import {ensureSynced} from '@/services/syncService';
+import {fetchEditPlanFormAction} from '@/actions/planActions';
 import {PlanForm} from '@/components/domain/plan/PlanForm';
-import {getCurrentUserId} from '@/lib/auth/getCurrentUserId';
 
 export default async function EditPlanPage({
   params,
@@ -13,35 +8,21 @@ export default async function EditPlanPage({
   params: Promise<{id: string}>;
 }) {
   const {id} = await params;
-  const userId = await getCurrentUserId();
-  // Keep the plan lifecycle current before reading (see syncService)
-  await ensureSynced(userId);
+  const planForm = await fetchEditPlanFormAction(id);
 
-  const [plan, templates, allAdhocTasks, projectSteps] = await Promise.all([
-    getPlanWithTemplates(userId, id),
-    getTaskTemplates(userId),
-    getNonDoneAdhocTasks(userId),
-    getPlanStepsByPlanId(userId, id),
-  ]);
-
-  if (!plan) {
+  if (!planForm) {
     notFound();
   }
+  const {templates, plan, adhocTasks, projectSteps} = planForm;
 
-  const initialPlanTemplates = plan.planTemplates.map(pt => ({
-    templateId: pt.templateId,
-    type: pt.type,
-    frequency: pt.frequency,
+  const initialPlanTemplates = plan.planTemplates.map(planTemplate => ({
+    templateId: planTemplate.templateId,
+    type: planTemplate.type,
+    frequency: planTemplate.frequency,
   }));
 
-  // Only this plan's ad-hoc tasks are editable here (deselect → back to the
-  // matrix). Unassigned tasks are tracked from the priority matrix instead.
-  const adhocTasks = allAdhocTasks.filter(task => task.planId === id);
-  const initialAdhocTaskIds = adhocTasks.map(task => task.id);
-
-  // This week's unfinished steps; deselect → back to their project.
-  const initialProjectStepIds = projectSteps.map(step => step.id);
-
+  // This plan's one-offs (deselect → back to the matrix) and this week's
+  // unfinished steps (deselect → back to their project)
   return (
     <PlanForm
       templates={templates}
@@ -51,9 +32,9 @@ export default async function EditPlanPage({
       initialDescription={plan.description ?? ''}
       initialPlanMode={plan.mode}
       adhocTasks={adhocTasks}
-      initialAdhocTaskIds={initialAdhocTaskIds}
+      initialAdhocTaskIds={adhocTasks.map(task => task.id)}
       projectSteps={projectSteps}
-      initialProjectStepIds={initialProjectStepIds}
+      initialProjectStepIds={projectSteps.map(step => step.id)}
       periodKey={plan.periodKey}
     />
   );

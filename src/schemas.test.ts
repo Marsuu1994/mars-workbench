@@ -19,6 +19,7 @@ describe('planSpecSchema', () => {
       mode: PlanMode.NORMAL,
       templates: [],
       newTemplates: [],
+      addOneOffTaskIds: [],
       addProjectStepIds: [],
     });
   });

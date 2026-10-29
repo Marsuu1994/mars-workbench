@@ -219,6 +219,7 @@ export type PlanPatchResult = {
     addedTemplates: PlanChangeRef[];
     modifiedTemplates: PlanChangeRef[];
     removedTemplates: PlanChangeRef[];
+    addedOneOffTasks: PlanChangeRef[];
     removedOneOffTasks: PlanChangeRef[];
     addedProjectSteps: PlanChangeRef[];
     removedProjectSteps: PlanChangeRef[];

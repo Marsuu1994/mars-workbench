@@ -1,6 +1,6 @@
 # Spike: code-reviewer subagent — 怎么量 review 的质量
 
-**Status: awaiting owner review** · 2026-10-23 · 回答 tracker 条目 *Code-review subagent*（Cross-cutting › Medium）· 相关：`design/spike/archived/subagent-delegation-pilot.md`（三个 agent 的分工，decided）· 草案：`.claude/agents/code-reviewer.md`
+**Status: awaiting owner review** · 2026-10-23 · 回答 tracker 条目 *Quality gate › Step 14 — Code review agent*· 相关：`design/spike/archived/subagent-delegation-pilot.md`（三个 agent 的分工，decided）· 草案：`.claude/agents/code-reviewer.md`
 
 > 语言说明：正文中文；product 名词、状态和代码标识符保留英文（subagent / diff / finding / `ensureSynced` / `code-reviewer`），与代码和 tracker 一一对应。
 
@@ -34,14 +34,14 @@ AGENTS.md 的规则分两类。
 **CI 已经管的，reviewer 不报**：
 
 - Prettier 格式；
-- ESLint（`eslint.config.mjs`）：no `any`、no `console.log`、components / hooks / stores 不 import server-only module、named export、`const` arrow component、一个文件一个 component、单字母命名；
+- ESLint（`eslint.config.mjs`）：no `any`、no `console.log`、components / hooks / stores 不 import server-only module、page 和 layout 只经 action 读数据、named export、`const` arrow component、一个文件一个 component、单字母命名；
 - 类型（`tsc`）、没人用的 export 和文件（knip）、每个 theme 声明同一套变量（`check:themes`）、test 是否通过。
 
 **只能读代码判断的，是 reviewer 的范围**：
 
 - Layers：action 和 MCP tool 要薄，逻辑在 service，查询只在 DAL，`ensureSynced` 是唯一的 sync 入口；
 - Component 放 `ui/` / `application/` / `domain/` 哪一层（「`ui/` 不 import domain type」没有 lint）；
-- *Server shapes inputs*；DRY 和 `Record<Key, string>` 的字面量 class；
+- *Server shapes inputs*、*Page structure*（route → adapter → container，写入和 optimistic 层在 container 里）；DRY 和 `Record<Key, string>` 的字面量 class；workaround 的注释以 `Workaround (<whose>):` 开头；
 - `Record<Enum>`、`default` 断言 `never`、enum 常量不用裸字符串；
 - i18n、sentence case、magic literal；
 - Heroicons、不用 inline style、semantic token、不嵌套 `data-theme`；

@@ -1,5 +1,6 @@
 import {prisma} from '@/lib/prisma';
 import {KANBAN_TZ} from '@/utils/dateUtils';
+import {updateOrNull} from '@/lib/db/updateOrNull';
 import {
   Prisma,
   PriorityQuadrant,
@@ -264,15 +265,16 @@ export async function updateTaskStatus(
   taskId: string,
   status: TaskStatus,
 ): Promise<TaskItem | null> {
-  const [task] = await prisma.task.updateManyAndReturn({
-    where: {id: taskId, userId},
-    data: {
-      status,
-      doneAt: status === 'DONE' ? new Date() : null,
-    },
-    select: taskSelect,
-  });
-  return task ?? null;
+  return updateOrNull(
+    prisma.task.update({
+      where: {id: taskId, userId},
+      data: {
+        status,
+        doneAt: status === 'DONE' ? new Date() : null,
+      },
+      select: taskSelect,
+    }),
+  );
 }
 
 /**
@@ -295,20 +297,24 @@ export async function updateAdhocTaskQuadrants(
 }
 
 /**
- * Track This Week: attach an unassigned matrix task to a plan, crossing the
+ * Track This Week: attach unassigned matrix tasks to a plan, crossing the
  * BACKLOG → board boundary in a single write (planId + status together).
  * The WHERE requires planId = null and status = BACKLOG, so already-tracked
- * tasks (and anything not on the matrix) come back null instead of moving.
+ * tasks (and anything not on the matrix) are skipped instead of moving.
+ * Returns the tasks tracked.
  */
-export async function trackAdhocTask(
+export async function trackAdhocTasks(
   userId: string,
-  taskId: string,
+  taskIds: string[],
   planId: string,
   status: TaskStatus,
-): Promise<TaskItem | null> {
-  const [task] = await prisma.task.updateManyAndReturn({
+  tx?: Prisma.TransactionClient,
+): Promise<TaskItem[]> {
+  if (taskIds.length === 0) return [];
+  const db = tx ?? prisma;
+  return db.task.updateManyAndReturn({
     where: {
-      id: taskId,
+      id: {in: taskIds},
       userId,
       type: TaskType.AD_HOC,
       planId: null,
@@ -317,7 +323,6 @@ export async function trackAdhocTask(
     data: {planId, status},
     select: taskSelect,
   });
-  return task ?? null;
 }
 
 /**
@@ -370,12 +375,18 @@ export async function revertAdhocCompletion(
   taskId: string,
   {status, detach}: {status: TaskStatus; detach: boolean},
 ): Promise<TaskItem | null> {
-  const [task] = await prisma.task.updateManyAndReturn({
-    where: {id: taskId, userId, type: TaskType.AD_HOC, status: TaskStatus.DONE},
-    data: {status, doneAt: null, ...(detach ? {planId: null} : {})},
-    select: taskSelect,
-  });
-  return task ?? null;
+  return updateOrNull(
+    prisma.task.update({
+      where: {
+        id: taskId,
+        userId,
+        type: TaskType.AD_HOC,
+        status: TaskStatus.DONE,
+      },
+      data: {status, doneAt: null, ...(detach ? {planId: null} : {})},
+      select: taskSelect,
+    }),
+  );
 }
 
 /**

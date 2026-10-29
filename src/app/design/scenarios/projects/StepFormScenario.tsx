@@ -16,6 +16,6 @@ type StepFormScenarioProps = Pick<
 /** The real StepFormPanel rendered inline in a modal-box stand-in. */
 export const StepFormScenario = (props: StepFormScenarioProps) => (
   <ModalPanelFrame>
-    <StepFormPanel {...props} onClose={NOOP} onSaved={NOOP} />
+    <StepFormPanel {...props} freshData={null} onClose={NOOP} onSaved={NOOP} />
   </ModalPanelFrame>
 );

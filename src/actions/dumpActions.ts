@@ -6,6 +6,7 @@ import {z} from 'zod';
 import {createDumpEntrySchema, fetchDumpEntriesSchema} from '../schemas';
 import {DUMP_PAGE_SIZE} from '../utils/dump';
 import {
+  countDumpEntries,
   createDumpEntry,
   getDumpEntriesPage,
   type DumpEntryItem,
@@ -83,4 +84,10 @@ export async function fetchDumpEntriesAction(input: unknown) {
   const nextCursor = hasMore && lastRow ? encodeCursor(lastRow) : null;
 
   return {data: {entries, nextCursor}};
+}
+
+/** Total entry count for the dump title bar. */
+export async function countDumpEntriesAction() {
+  const userId = await getCurrentUserId();
+  return countDumpEntries(userId);
 }

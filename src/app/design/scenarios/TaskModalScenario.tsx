@@ -27,6 +27,7 @@ export const TaskModalScenario = ({
       mode={mode}
       template={template}
       quadrant={quadrant}
+      freshData={null}
       onClose={NOOP}
       onSaved={NOOP}
     />

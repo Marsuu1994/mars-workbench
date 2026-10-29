@@ -20,12 +20,17 @@ import {
   unscheduleProjectStepAction,
 } from '@/actions/projectActions';
 import {useOptimisticTasks} from '@/hooks/useOptimisticTasks';
+import {useWaitForFreshData} from '@/hooks/useWaitForFreshData';
 import {EmptyState} from '@/components/ui/EmptyState';
 import {cn} from '@/components/ui/cn';
 import {ProjectDetail} from './project-detail/ProjectDetail';
 import {ProjectList} from './project-list/ProjectList';
 import {ProjectModal} from './project-modal/ProjectModal';
 import {StepModal, type StepModalTarget} from './step-modal/StepModal';
+import {
+  ProjectsPageContext,
+  type ProjectsPageContextValue,
+} from './ProjectsPageContext';
 import {getProjectHref, PROJECTS_HREF} from './constants';
 
 /** Which modal is open, and on what. */
@@ -41,9 +46,10 @@ const NO_STEPS: TaskItem[] = [];
  * The Projects page (/kanban/projects): the list beside the selected
  * project's path from md up, one of the two on mobile. Owns the page's
  * state — the steps as client state (+ This week, × and moves patch them
- * optimistically), the open modal — and every write. The selected project
- * is the URL's `?project=`, changed on the client: refresh keeps it, back
- * steps through earlier selections, and nothing waits on the server.
+ * optimistically), the open modal — and every write, which its components
+ * reach through ProjectsPageContext rather than callback props. The selected
+ * project is the URL's `?project=`, changed on the client: refresh keeps it,
+ * back steps through earlier selections, and nothing waits on the server.
  */
 export const ProjectsPage = ({
   projects,
@@ -58,6 +64,7 @@ export const ProjectsPage = ({
     runOptimisticTasksUpdate,
   } = useOptimisticTasks(steps);
   const [openModal, setOpenModal] = useState<OpenModal | null>(null);
+  const waitForFreshProjects = useWaitForFreshData(projects);
 
   const stepsByProjectId = useMemo(
     () => groupStepsByProjectId(localSteps),
@@ -90,26 +97,31 @@ export const ProjectsPage = ({
   const handleArchived = () =>
     window.history.replaceState(null, '', PROJECTS_HREF);
 
-  // Awaited by the banner and the archived row, so their buttons wait
-  const handleArchive = async (projectId: string) => {
+  // Awaited by the banner and the archived row, so their buttons wait until
+  // the saved list has landed and the project has moved
+  const archiveProject = async (projectId: string) => {
+    const freshProjectsArrived = waitForFreshProjects();
     const result = await archiveProjectAction(projectId);
     if (result.error) {
       console.error('Failed to archive project:', result.error);
       return;
     }
+    await freshProjectsArrived;
     handleArchived();
   };
 
-  const handleUnarchive = async (projectId: string) => {
+  const unarchiveProject = async (projectId: string) => {
+    const freshProjectsArrived = waitForFreshProjects();
     const result = await unarchiveProjectAction(projectId);
     if (result.error) {
       console.error('Failed to unarchive project:', result.error);
       return;
     }
+    await freshProjectsArrived;
     showProject(projectId);
   };
 
-  const handleSchedule = (stepId: string) =>
+  const scheduleStep = (stepId: string) =>
     runOptimisticTaskUpdate(
       stepId,
       {planId: activePlanId},
@@ -117,7 +129,7 @@ export const ProjectsPage = ({
       'Failed to schedule step:',
     );
 
-  const handleTakeBack = (stepId: string) =>
+  const takeStepBack = (stepId: string) =>
     runOptimisticTaskUpdate(
       stepId,
       {planId: null},
@@ -127,7 +139,7 @@ export const ProjectsPage = ({
 
   // The path is renumbered by the same applyStepPatch the server runs, so the
   // optimistic numbers are the ones that land
-  function handleMove(stepId: string, beforeStepId: string | undefined) {
+  function moveStep(stepId: string, beforeStepId: string | undefined) {
     if (!selectedProject) return;
     const {path} = applyStepPatch(stepsOf(selectedProject.id), {
       addSteps: [],
@@ -149,6 +161,22 @@ export const ProjectsPage = ({
   }
 
   const openNewProject = () => setOpenModal({kind: 'newProject'});
+
+  const pageContext: ProjectsPageContextValue = {
+    activePlanId,
+    showProject,
+    showProjectList,
+    openNewProject,
+    openEditProject: projectId =>
+      setOpenModal({kind: 'editProject', projectId}),
+    openAddStep: projectId => setOpenModal({kind: 'addStep', projectId}),
+    openEditStep: stepId => setOpenModal({kind: 'editStep', stepId}),
+    scheduleStep,
+    takeStepBack,
+    moveStep,
+    archiveProject,
+    unarchiveProject,
+  };
 
   const renderHeader = () => (
     <div className="flex flex-shrink-0 items-center gap-4 border-b border-base-content/10 px-4 py-3 md:px-5 md:py-4">
@@ -227,15 +255,6 @@ export const ProjectsPage = ({
         key={projectId}
         project={selectedProject}
         steps={stepsOf(projectId)}
-        activePlanId={activePlanId}
-        onBack={showProjectList}
-        onEdit={() => setOpenModal({kind: 'editProject', projectId})}
-        onAddStep={() => setOpenModal({kind: 'addStep', projectId})}
-        onEditStep={stepId => setOpenModal({kind: 'editStep', stepId})}
-        onSchedule={handleSchedule}
-        onTakeBack={handleTakeBack}
-        onMove={handleMove}
-        onArchive={() => handleArchive(projectId)}
       />
     );
   };
@@ -253,11 +272,7 @@ export const ProjectsPage = ({
         <ProjectList
           projects={projects}
           stepsByProjectId={stepsByProjectId}
-          activePlanId={activePlanId}
           selectedProjectId={selectedProject?.id}
-          onSelect={showProject}
-          onUnarchive={handleUnarchive}
-          onNewProject={openNewProject}
         />
       </div>
       <div
@@ -281,6 +296,7 @@ export const ProjectsPage = ({
         isOpen={openModal?.kind === 'newProject' || editedProject !== undefined}
         mode={editedProject ? 'edit' : 'create'}
         project={editedProject}
+        freshData={projects}
         onClose={closeModal}
         onSaved={handleProjectSaved}
         onArchived={handleArchived}
@@ -316,15 +332,18 @@ export const ProjectsPage = ({
   };
 
   return (
-    <div className="flex h-full flex-col">
-      {renderHeader()}
-      {projects.length === 0 ? renderNoProjects() : renderPanes()}
-      {renderProjectModal()}
-      <StepModal
-        target={getStepModalTarget()}
-        onClose={closeModal}
-        onSaved={closeModal}
-      />
-    </div>
+    <ProjectsPageContext value={pageContext}>
+      <div className="flex h-full flex-col">
+        {renderHeader()}
+        {projects.length === 0 ? renderNoProjects() : renderPanes()}
+        {renderProjectModal()}
+        <StepModal
+          target={getStepModalTarget()}
+          freshData={steps}
+          onClose={closeModal}
+          onSaved={closeModal}
+        />
+      </div>
+    </ProjectsPageContext>
   );
 };

@@ -4,9 +4,9 @@ import {getSessionClaims} from './getSessionClaims';
 /**
  * Resolve the authenticated user's id for use in the data layer.
  *
- * Auth is resolved only at the entry boundary (Server Actions and Server
- * Component pages); the id is then passed explicitly into services and the DAL,
- * which stay auth-agnostic. The id is the verified token's `sub`, checked once
+ * Auth is resolved only at the entry boundary (Server Actions, which pages
+ * read through too); the id is then passed explicitly into services and the
+ * DAL, which stay auth-agnostic. The id is the verified token's `sub`, checked once
  * per request (see getSessionClaims).
  *
  * If there is no session, this redirects to the login page. `redirect()` throws

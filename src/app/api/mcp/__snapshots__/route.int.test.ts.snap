@@ -37,10 +37,20 @@ exports[`tools/list > is Claude's contract: names, schemas and descriptions 1`] 
       "openWorldHint": false,
       "readOnlyHint": false,
     },
-    "description": "If you haven't read get_planning_guide_before_everything in this conversation, or no longer have it, call it first. Create this week's plan — only when get_planning_context shows no activePlan. Run existing habits by templateId in \`templates\`, add brand-new ones in \`newTemplates\`, and put UPCOMING project steps on the week with \`addProjectStepIds\`. Completes lastPlan and moves its unfinished one-off tasks and project steps into the new plan (all of them by default). Task instances and steps land in the user's backlog. Agree on the plan with the user before calling.",
+    "description": "If you haven't read get_planning_guide_before_everything in this conversation, or no longer have it, call it first. Create this week's plan — only when get_planning_context shows no activePlan. Run existing habits by templateId in \`templates\`, add brand-new ones in \`newTemplates\`, put UNTRACKED one-off tasks on the week with \`addOneOffTaskIds\` and UPCOMING project steps with \`addProjectStepIds\`. Completes lastPlan and moves its unfinished one-off tasks and project steps into the new plan (all of them by default). Task instances and steps land in the user's backlog; added one-offs in their to-do. Agree on the plan with the user before calling.",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "properties": {
+        "addOneOffTaskIds": {
+          "default": [],
+          "description": "One-off tasks in state UNTRACKED to put on this week, by taskId from get_planning_context or create_one_off_tasks; they land in the user's to-do",
+          "items": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string",
+          },
+          "type": "array",
+        },
         "addProjectStepIds": {
           "default": [],
           "description": "UPCOMING project steps to put on this week, by stepId from get_planning_context or create_project",
@@ -180,10 +190,20 @@ exports[`tools/list > is Claude's contract: names, schemas and descriptions 1`] 
       "openWorldHint": false,
       "readOnlyHint": false,
     },
-    "description": "If you haven't read get_planning_guide_before_everything in this conversation, or no longer have it, call it first. Change this week's active plan (activePlan.planId from get_planning_context); only what you pass changes. Removing a habit, or changing its type or frequency, deletes that habit's unfinished task instances (backlog, to-do) and regenerates them in the backlog; completed tasks are never touched. \`addProjectStepIds\` puts UPCOMING project steps in the backlog; \`removeProjectStepIds\` sends steps back to their project. Agree on the change with the user before calling.",
+    "description": "If you haven't read get_planning_guide_before_everything in this conversation, or no longer have it, call it first. Change this week's active plan (activePlan.planId from get_planning_context); only what you pass changes. Removing a habit, or changing its type or frequency, deletes that habit's unfinished task instances (backlog, to-do) and regenerates them in the backlog; completed tasks are never touched. \`addOneOffTaskIds\` puts UNTRACKED one-off tasks in the user's to-do; \`removeOneOffTaskIds\` sends one-offs back to the priority matrix. \`addProjectStepIds\` puts UPCOMING project steps in the backlog; \`removeProjectStepIds\` sends steps back to their project. Agree on the change with the user before calling.",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "properties": {
+        "addOneOffTaskIds": {
+          "default": [],
+          "description": "One-off tasks in state UNTRACKED to put on this week; they land in the user's to-do",
+          "items": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string",
+          },
+          "type": "array",
+        },
         "addProjectStepIds": {
           "default": [],
           "description": "UPCOMING project steps to put on this week; they land in the backlog",
@@ -640,7 +660,7 @@ exports[`tools/list > is Claude's contract: names, schemas and descriptions 1`] 
       "openWorldHint": false,
       "readOnlyHint": false,
     },
-    "description": "If you haven't read get_planning_guide_before_everything in this conversation, or no longer have it, call it first. Add one or more one-off tasks to the user's priority matrix — single tasks with nothing behind them (a finite list toward one goal is a project; repeating work is a habit). Give each a title, a size, a quadrant and an optional description; up to 20 per call. Check get_planning_context's oneOffTasks first so you don't add one twice. They land on no week; only the user tracks a one-off onto a week. Returns each task with its taskId, in order. Agree on the tasks and their quadrants with the user before calling.",
+    "description": "If you haven't read get_planning_guide_before_everything in this conversation, or no longer have it, call it first. Add one or more one-off tasks to the user's priority matrix — single tasks with nothing behind them (a finite list toward one goal is a project; repeating work is a habit). Give each a title, a size, a quadrant and an optional description; up to 20 per call. Check get_planning_context's oneOffTasks first so you don't add one twice. They land on no week; put one on this week with addOneOffTaskIds in create_plan or update_plan. Returns each task with its taskId, in order. Agree on the tasks and their quadrants with the user before calling.",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "properties": {
@@ -706,7 +726,7 @@ exports[`tools/list > is Claude's contract: names, schemas and descriptions 1`] 
       "openWorldHint": false,
       "readOnlyHint": false,
     },
-    "description": "If you haven't read get_planning_guide_before_everything in this conversation, or no longer have it, call it first. Mark the user's one-off tasks done (completeTaskIds) or move them to another quadrant (reprioritizeTasks), by taskId from get_planning_context; unfinished tasks only. Done is final — the user can't undo it — so pass only the tasks the user said are done. A task done while on no week counts toward this week's active plan, if there is one. It never puts a task on a week or takes one off: update_plan's removeOneOffTaskIds sends a task on this week back to the matrix. Agree on the change with the user before calling.",
+    "description": "If you haven't read get_planning_guide_before_everything in this conversation, or no longer have it, call it first. Mark the user's one-off tasks done (completeTaskIds) or move them to another quadrant (reprioritizeTasks), by taskId from get_planning_context; unfinished tasks only. Done is final — the user can't undo it — so pass only the tasks the user said are done. A task done while on no week counts toward this week's active plan, if there is one. It never puts a task on a week or takes one off: that is update_plan's addOneOffTaskIds and removeOneOffTaskIds. Agree on the change with the user before calling.",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "properties": {

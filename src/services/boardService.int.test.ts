@@ -86,6 +86,33 @@ describe('fetchBoard', () => {
     ]);
   });
 
+  it("draws each step card's whole path, for this week's projects only", async () => {
+    const {steps} = await createProjectWithSteps(userId, 'Course', [
+      'Unit 1',
+      'Unit 2',
+      'Unit 3',
+    ]);
+    await createProjectWithSteps(userId, 'Book', ['Part 1']);
+    await createWeek(userId, {
+      newTemplates: [newHabit('Run', TaskType.DAILY)],
+      addProjectStepIds: [steps[1].id],
+    });
+
+    const board = await fetchBoard(userId);
+
+    expect(board?.projects).toEqual([
+      {
+        id: expect.any(String),
+        title: 'Course',
+        steps: steps.map(({id, instanceIndex}) => ({
+          id,
+          status: TaskStatus.BACKLOG,
+          instanceIndex,
+        })),
+      },
+    ]);
+  });
+
   it("doesn't count yesterday evening's work as today's", async () => {
     const plan = await createMidWeek();
     // Tuesday 18:00 in Los Angeles, Wednesday 01:00 UTC

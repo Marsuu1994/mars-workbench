@@ -23,7 +23,7 @@ The main session sends one sentence on what the change is meant to do and the ba
 
 ## What to look for
 
-- **Rules a linter can't check**: the layers (thin actions and MCP tools, logic in services, queries only in the DAL, `ensureSynced` as the one sync entry point), component placement, *Server shapes inputs*, DRY, enum maps and exhaustive switches, i18n and sentence case, magic literals, return statements kept an outline, styling and theme rules, *Production first*, naming beyond single letters, LLM-facing error messages in `errorMessages.ts`, the data rules (batch writes, transactions, focused `select`).
+- **Rules a linter can't check**: the layers (thin actions and MCP tools, logic in services, queries only in the DAL, `ensureSynced` as the one sync entry point), component placement, *Server shapes inputs*, *Page structure*, DRY, workarounds marked as such, enum maps and exhaustive switches, i18n and sentence case, magic literals, return statements kept an outline, styling and theme rules, *Production first*, naming beyond single letters, LLM-facing error messages in `errorMessages.ts`, the data rules (batch writes, transactions, focused `select`).
 - **Bugs in the changed lines**: wrong results, missed cases, stale or concurrent state, errors swallowed. Report one only with a concrete scenario — the state or input, and the wrong outcome.
 - **The change against its brief**: something the sentence promises that the diff doesn't do.
 - **Before every push** (AGENTS.md › Version Control): the tracker, today's Update Log entry, README Current State and AGENTS.md updated where the change calls for it.
