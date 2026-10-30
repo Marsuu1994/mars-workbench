@@ -1,11 +1,11 @@
 # Tracker
 
-Single source of truth for open ideas and todos across the app — open items only; completed work is recorded in the root `README.md` Update Log, not here.
+Single source of truth for open ideas and todos across the app — open items only; completed work is recorded in the git history and PR descriptions, not here.
 
 ## Conventions
 
 - **One concise line per item; details go into sub-bullets.** An item says what is open and why, at product altitude — not an inventory of files or components.
-- **Finished work leaves.** Delete an item or sub-bullet when it lands — don't keep it checked; the Update Log records it.
+- **Finished work leaves.** Delete an item or sub-bullet when it lands — don't keep it checked; the PR that landed it records it.
 - **A multi-PR project is one item with a sub-bullet per step.** The parent line names the goal and links the spike and mockups; each sub-bullet is one PR or step, kept to one line. Delete a sub-bullet when its PR lands, and the parent goes with the last one. Bad: five unrelated top-level items ("Projects PR 1", "Projects PR 2", …), or one parent whose prose lists every PR in a paragraph. Good: `- [ ] Week model Phase 1 — Projects MVP: … Spike … (approved)` followed by `  - [ ] PR 1 — Phase 1 docs: …`, `  - [ ] PR 2 — kind-first cards, risk off, …`.
 
 ## Board
@@ -91,6 +91,7 @@ Single source of truth for open ideas and todos across the app — open items on
       - [ ] Pages — no `error.tsx` / `not-found.tsx`; a server throw lands on Next's default error page
   - [ ] Step 13 — Quality sweep: a `/quality-sweep` skill (the checklist, versioned in the repo, also run by hand at each milestone's end) and a Routine that runs it every two weeks in a fresh session. It covers only what CI can't: docs vs code (tracker, README Current State, `reference.md`, flows, scenarios), conflicts between rule files (AGENTS.md and the READMEs it indexes) and stale temporary exceptions, AGENTS.md's size and growth and its index matching the READMEs it points to, stale PRs / spikes / mockups, duplicated logic and drifting patterns, dependency updates and `npm audit`, growing hotspot files. It opens one PR with tracker edits and a short report of at most 5–10 findings, each ending as fixed, a tracker item, a new CI rule, or dismissed with a reason; findings a machine can check become CI rules.
   - [ ] Step 14 — Code review agent: a clean-context reviewer that checks a change against AGENTS.md before the first push, kept only if it measurably beats the main session's own review — seeded and replayed cases first, then a 3–5 PR trial. Spike `design/spike/code-reviewer-agent.md` (awaiting review); draft `.claude/agents/code-reviewer.md`
+- [ ] Spike: tracking production errors — today a crash leaves nothing to debug (2026-10-30: dragging a daily card to Done on the phone PWA ended on Next's "Application error" page; the write had saved, and no log or report showed why)
 - [ ] Persist sidebar collapse state across page refreshes (localStorage with SSR hydration)
 - [ ] Daily rhythm — Open / Close-the-day rituals and phone notifications for unfinished tasks; starts after the Quality gate milestone. Spike `design/spike/daily-rhythm-notifications.md` in PR #33 (awaiting review, written before Phase 1); when picked up, regroup its sheets by kind, map "Still on it" to staying in Todo (the board has no Doing column), and re-derive the midday nudge's triggers (it keys off the risk clock and In Progress cards, both gone)
 

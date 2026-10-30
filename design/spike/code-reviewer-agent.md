@@ -48,7 +48,7 @@ AGENTS.md 的规则分两类。
 - return 是 outline；命名说清楚它是什么（单字母以外）；LLM-facing error 放 `errorMessages.ts`；
 - batch write、`$transaction`、focused `select`；
 - *Production first*；
-- Before every push 的四项文档；
+- Before every push 的三项文档；
 - `test/README.md` 的规则。
 
 再加两样：changed lines 里的 bug（必须给出具体的失败场景），以及 diff 有没有做到 brief 说的事。
@@ -88,7 +88,7 @@ AGENTS.md 的规则分两类。
 1. **另开 worktree 埋点**：由一个 general-purpose agent 在一个真实大小的 diff 上埋 3–5 个问题，答案写进 scratchpad 里的文件。main session 只拿到 patch 路径和埋点数量。
 2. **埋什么**：从上面「reviewer 的范围」里挑，每个 case 再埋一个正确性 bug。每个埋点都要过 `format:check`、`lint`、`typecheck`、`knip`，不然量的是 lint，不是 reviewer。
 3. **case 数量**：4 个埋了问题的 case（E1–E4），加 2 个干净的 diff（C1、C2：已合并、之后没有修过的小 PR，不用 Round 0 用过的那个），专门看误报。
-4. **贴近真实错误**：比如漏一条 Update Log、`ui/` 里 import 了 domain type、`switch` 用 `default` 兜底、一个 load 时就固定的列表在 save 时覆盖了别人的改动。埋点的 agent 和 reviewer 是同一个模型，盲点相关；owner 亲手写一两个能补上这一点（Q4）。
+4. **贴近真实错误**：比如漏改 README Current State、`ui/` 里 import 了 domain type、`switch` 用 `default` 兜底、一个 load 时就固定的列表在 save 时覆盖了别人的改动。埋点的 agent 和 reviewer 是同一个模型，盲点相关；owner 亲手写一两个能补上这一点（Q4）。
 5. **防过拟合**：留一个 case 不参与调 prompt，只在最后跑。
 
 ### 2. 历史回放（真实，但少）
@@ -147,7 +147,7 @@ Round 1 同时给 1、2、3 打分；4 等 1 证明有效之后再说。
    3. 全部跑完才打开答案，逐条裁决。main 判成误报的 finding 由 owner 复核：main 天然倾向于把 finding 判成误报。
    4. 算指标，写进 spike；owner 拍板，结果写进 Decision。
 4. **通过之后试用**：本 PR 合并，定义随之进 main；description 去掉 pilot，写上触发条件；AGENTS.md › Subagents 加一行；tracker 加一条「3–5 个 PR 之后按门槛定去留」，像 `ci-fixer` 的复测条目那样。
-5. **不通过**：删掉定义，或者按结果收窄范围（比如只查四项文档），或者改用 Option 3。
+5. **不通过**：删掉定义，或者按结果收窄范围（比如只查三项文档），或者改用 Option 3。
 
 试用时的流程（Q8）：本地 checks 全绿之后、第一次 push 之前跑一次；修 finding 的改动很大时再跑一次。改动小的时候，它和 `ui-verifier` 并行（两个都只读）；reviewer 可能引出 UI 改动时，先 review、修完，再跑 `ui-verifier`。
 

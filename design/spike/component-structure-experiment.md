@@ -124,7 +124,7 @@ Do not change any file, push, comment on GitHub or open a PR. End your reply wit
 16. 页面范围内的 feature component 都不收 callback prop（grep 检查）
 17. 三页的 context 文件、hook 命名和 inert context helper 用同一种写法，并且和 Projects 一致
 18. 没有改到计划之外的东西（Plan、auth、app shell）
-19. 文档：spike 归档（`git mv` 到 `archived/` 并修好链接）；tracker 删掉三个子项；AGENTS.md 里「还没改的页面」那句更新；README Update Log；baseline 的 Board 部分
+19. 文档：spike 归档（`git mv` 到 `archived/` 并修好链接）；tracker 删掉三个子项；AGENTS.md 里「还没改的页面」那句更新；baseline 的 Board 部分
 20. 一页一个 commit，加一个文档 commit
 
 ## 6. 主 session 的开工步骤
