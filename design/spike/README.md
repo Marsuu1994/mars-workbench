@@ -6,7 +6,7 @@ Point-in-time proposals for open questions. A complex task — several PRs, a da
 
 1. **Spike** — write a self-contained doc here, headed `Status: awaiting owner review` and linked from the tracker item it answers. An exploration parked until its work is picked up is headed `Status: draft` instead; it moves to awaiting owner review when that work starts.
 2. **Review** — go back and forth with the owner on the spike's PR, editing the spike in place each round.
-3. **Decided** — once every open question is answered, record the answers in a Decision section and mark `Status: decided`. From here the spike is frozen; later decisions land in the tracker and the README Update Log.
+3. **Decided** — once every open question is answered, record the answers in a Decision section and mark `Status: decided`. From here the spike is frozen; later decisions land in the tracker and the PRs that make them.
 4. **Implement** — build what it decided, and update the living docs (`baseline.md`, `flows/`, `reference.md`, scenarios) so they stand on their own without the spike. A session that writes the spike and builds it keeps both in one PR (AGENTS.md › Version Control › *One task, one branch, one PR*).
 5. **Archive** — in the PR that finishes step 4, `git mv` the spike to `archived/` and fix every link to it.
 

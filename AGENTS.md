@@ -120,8 +120,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 
 ## Documentation Style
 
-- **Living docs are for the owner to re-orient, not the agent's work record.** README Current State, `design/tracker.md` and everything under `design/` say what the product is now and what's still open. Write at the doc's altitude (each doc states it at its top); length doesn't scale with diff size — a bigger change earns a higher-level summary, not a longer one; rewrite the sentence that is now wrong instead of appending a paragraph. Implementation inventory (file, component and key names, sub-change lists) lives in the code, the diff and `reference.md`; completeness lives in PR descriptions and the Update Log.
-- **The README Update Log is kept per day.** Earlier days' sections are never edited. On the current day, add the new entry, then rewrite the day's section into one summary of the day's work. Detail is welcome there; lead each bullet with the outcome, not the operation.
+- **Living docs are for the owner to re-orient, not the agent's work record.** README Current State, `design/tracker.md` and everything under `design/` say what the product is now and what's still open. Write at the doc's altitude (each doc states it at its top); length doesn't scale with diff size — a bigger change earns a higher-level summary, not a longer one; rewrite the sentence that is now wrong instead of appending a paragraph. Implementation inventory (file, component and key names, sub-change lists) lives in the code, the diff and `reference.md`; completeness lives in PR descriptions and the git history.
 
 ## Layers
 
@@ -210,10 +209,9 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 - **Branch names say what the PR does**: `claude/<feature>-<change>`, kebab-case, a few words, with the step for a multi-PR project. A remote session whose assigned branch is a random name creates a descriptive branch instead. Bad: `claude/quirky-galileo-8ofthc`, `claude/project-data-layer`. Good: `claude/week-model-pr3-project-data-layer`.
 - **Before every push**:
   1. `design/tracker.md`: delete finished items and sub-bullets.
-  2. README Update Log: today's entry (Documentation Style).
-  3. README Current State: rewrite the sections the change touches.
-  4. AGENTS.md, or a README it indexes: only when a rule or a directory's responsibility changed.
-  5. Run `npm run format`, then `lint`, `typecheck`, `knip` and `npm test` (and `check:themes` when CSS variables changed). CI runs e2e; run `npm run test:e2e` too when a change touches a page's flow.
+  2. README Current State: rewrite the sections the change touches.
+  3. AGENTS.md, or a README it indexes: only when a rule or a directory's responsibility changed.
+  4. Run `npm run format`, then `lint`, `typecheck`, `knip` and `npm test` (and `check:themes` when CSS variables changed). CI runs e2e; run `npm run test:e2e` too when a change touches a page's flow.
 - **Act on submitted reviews only.** A pending review — comments drafted but not yet submitted — can still change: don't reply to, resolve or push for its comments; at most mention that one is pending.
 
 ## Commands

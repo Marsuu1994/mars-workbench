@@ -111,7 +111,7 @@ As soon as `npm run setup -- --no-db` has finished, spawn three general-purpose 
 主 session 侧：
 
 5. controller 脚本参数化进主仓库的 `experiments/_tools/`（remote 名作参数，本轮是 `lab`）：`make-review-branch.sh`（scrub 规则读 per-try 文件 `scrub.txt`，基于 try1 的脚本）、行为检查 runner（checkout → 重启 dev → 重置 e2e 用户 → `npm run check:clicks`）；transcript 统计、清单审计、评审收集的 subagent brief 用 `prompts/controller-briefs.md`。
-6. 十份 run prompt、十份评审 prompt 冻结在 `prompts/`；R1–R10 到 run 的映射用 `SystemRandom`，只存 controller 分支。
+6. Prompt 模板冻结在 `prompts/`（`run-template.txt` 加 `workflow-A.txt` / `workflow-B.txt`、`review-template.txt`），每个 session 收到的是填好的模板：run 的 `{SHA}` 填起点 SHA、`{RUN}` 填 A1–B5、`{run-lowercase}` 填 a1–b5、`{WORKFLOW}` 按组插 A 或 B 段；评审的 `{R}` 填 R1–R10。填好的实例不存，每个 session 的首条消息就是它；R1–R10 到 run 的映射用 `SystemRandom`，只存 controller 分支。
 7. 主 session 机器：Node 24（`export NVM_DIR=/opt/nvm; . /opt/nvm/nvm.sh; nvm install 24`，每条 Bash 都要重新 source）、`npm run setup`、`npm run check:clicks` 在起点树上的基线；controller 状态分支 `controller/try2`，只推到 lab 仓库，随仓库一起归档；每小时心跳任务（平台最小间隔一小时）加一次性检查。
 
 ## 测量
@@ -133,7 +133,7 @@ As soon as `npm run setup -- --no-db` has finished, spawn three general-purpose 
 ## 流程（controller runbook）
 
 0. **Fresh start**：新 session 从合并了 PR #91 的 `main` 起（否则从分支 `claude/experiments-page-structure-parallel-try1` 起）；lab 仓库没挂在 session 上就先 `add_repo`（owner `Marsuu1994`、repo `mars-workbench-lab-try2`、access `push`），本机 `git remote add lab https://github.com/Marsuu1994/mars-workbench-lab-try2`；只读本文件、`prompts/controller-briefs.md`、`experiments/README.md` 的 Controller notes 和 try1 的 `report.md`；不读 try1 的 transcript 细节。Scratchpad 里建 `experiment.md`（run 表、事故、阶段），每个里程碑镜像到 lab 仓库的 `controller/try2` 分支。
-1. **前置**：建 `experiment/base-try2`，提交四个修正，推到 lab 仓库（`git push lab experiment/base-try2`）；本机在它上面跑 `format:check`、`lint`、`typecheck`、`knip`、`npm test`、`check:clicks` 基线；`experiments/_tools/` 就位；取 SHA，填十份 run prompt 和十份评审 prompt 到 `prompts/`。
+1. **前置**：建 `experiment/base-try2`，提交四个修正，推到 lab 仓库（`git push lab experiment/base-try2`）；本机在它上面跑 `format:check`、`lint`、`typecheck`、`knip`、`npm test`、`check:clicks` 基线；`experiments/_tools/` 就位；取 SHA，按前置条件 6 填模板。
 2. **起 run**：十个 `create_session`，记 session id 和创建时间；`send_later` 20 分钟后第一次检查（看 B 是否在 `--no-db` 之后立刻派 agent；没有的话记为协议偏差，不干预），之后每 30 分钟；建每小时心跳；状态镜像。
 3. **结束条件**：PR 开好、head 的 CI 全绿（`get_session` 的 `status_bucket` 加 GitHub check runs）。卡住或基础设施故障的 run 记录并重跑一次。
 4. **收数据**（串行，一次 2–3 个 subagent）：transcript 的 usage、timeline、process 用脚本算，失败标注交给每个 run 一个 subagent（`prompts/controller-briefs.md` › Transcript metrics）；每个 diff 一个清单 subagent（› Checklist audit，20 条原文）；行为检查十个分支串行（冷服务器预热；失败的页面热重跑一次，两次都记）；`get_session` 的 `usage` 作成本主数据。10-27 已完成的部分：行为检查 10/10、transcript 8/10（缺 B4、B5）、成本；清单 0/10。

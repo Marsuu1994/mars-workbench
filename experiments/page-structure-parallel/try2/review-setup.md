@@ -23,7 +23,7 @@ The review base commit is `c9784f40` on every branch (the scrubbed tree of `expe
 ## What a reviewer gets
 
 - Checkout: the branch, nothing else (`source_revision` on `create_session`; or `git worktree add <dir> experiment/review-R<n>` for an in-session agent).
-- Prompt: `try2/prompts/review-template.txt` with `{R}` filled in (`review-R1.txt` … `review-R10.txt`). Scope: `git diff HEAD~1 HEAD`, the code it touches, AGENTS.md, and the spike at `git show HEAD~1:design/spike/component-structure.md` (a candidate may have moved its copy to `design/spike/archived/`). Out of scope: README and the Update Log, other branches, pull requests, GitHub tools, history beyond the two commits, any other candidate.
+- Prompt: `try2/prompts/review-template.txt` with `{R}` filled in as `R1` … `R10` (the label is the only difference between the ten prompts). Scope: `git diff HEAD~1 HEAD`, the code it touches, AGENTS.md, and the spike at `git show HEAD~1:design/spike/component-structure.md` (a candidate may have moved its copy to `design/spike/archived/`). Out of scope: README and the Update Log, other branches, pull requests, GitHub tools, history beyond the two commits, any other candidate.
 - Output: six criteria scored 1–5 with one or two sentences of evidence (correctness, spec conformance, consistency, conventions, scope, readability), a defect list (blocker / major / minor / nit, `file:line`, one sentence), and one closing JSON block: `{"label": "R<n>", "scores": {...}, "defects": [{"severity", "where", "what"}]}`.
 - Effort: the review branches carry the base's `.claude/settings.json` (`"effortLevel": "high"`), so a session on them runs at high; an in-session agent inherits its session's effort.
 

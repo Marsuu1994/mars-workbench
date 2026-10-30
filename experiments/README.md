@@ -23,7 +23,7 @@ experiments/
 1. **Instruction first.** Write `tryN/instruction.md` from the template below and get the owner's approval; it plays the role a spike's Decision plays for product work. Nothing runs before that.
 2. **Run and measure.** The controller session follows the instruction, keeps its log in `data/`, and never changes a run's code. Runs produce their own branches and PRs; the experiment folder only records.
 3. **Report.** Write `tryN/report.md` with the conclusion first. Everything a reader needs to re-judge the conclusion is in the report; the measurements behind it stay where the try ran (`data/` for a try run here, the archived lab repository otherwise), linked from the report's appendix.
-4. **One PR per try** carries the try's folder, the tracker line it closes and a README Update Log entry. A conclusion that changes how we work lands in AGENTS.md or the README it indexes in the same PR; code the experiment produced merges through its own PRs.
+4. **One PR per try** carries the try's folder and the tracker line it closes; its description says what the try found. A conclusion that changes how we work lands in AGENTS.md or the README it indexes in the same PR; code the experiment produced merges through its own PRs.
 
 ## Conventions
 
