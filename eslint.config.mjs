@@ -104,8 +104,6 @@ const eslintConfig = defineConfig([
   prettier,
   // Override default ignores of eslint-config-next.
   globalIgnores([
-    // Archived, as-run experiment scripts and data (experiments/README.md).
-    'experiments/**',
     // Default ignores of eslint-config-next:
     '.next/**',
     'out/**',

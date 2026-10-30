@@ -31,6 +31,3 @@ test-results/
 # Misc
 *.tsbuildinfo
 next-env.d.ts
-
-# Archived experiments (as-run scripts and data; experiments/README.md)
-/experiments/

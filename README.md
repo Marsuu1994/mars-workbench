@@ -26,7 +26,7 @@ One command from a fresh checkout and every day after: it skips what is already 
   - [reference](./design/reference.md) — actions/services/DAL inventory
   - [flows/](./design/flows) — per-page flow docs
   - [mockup/](./design/mockup) — mockups of designs not yet fully implemented
-- [experiments/](./experiments/README.md) — controlled comparisons of ways of working (agent workflows, models, tooling), one folder per question with a protocol and a report per try
+- [experiments/](./experiments/README.md) — controlled comparisons of ways of working (agent workflows, models, tooling), one folder per question with a report per try (protocols and data in each try's lab repository)
 - Implemented UI is documented in-app at `/design` — layer-tabbed component gallery + per-feature scenario pages
 - This README holds the app-wide **Current State**; what changed and when lives in the git history and PR descriptions
 
