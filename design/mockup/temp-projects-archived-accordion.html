@@ -203,6 +203,11 @@
     <div class="pane mobile" data-frame="after-mobile" data-open="false"></div>
   </div>
   <div>
+    <p class="frame-title after">After · desktop · every project archived</p>
+    <p class="frame-note">No active project: the detail pane shows “No active projects”, and the section starts open so Unarchive is one click away (Q1).</p>
+    <div class="pane" data-frame="after-empty" data-open="true"></div>
+  </div>
+  <div>
     <p class="frame-title after">After · mobile · opened</p>
     <p class="frame-note">Opened, as on desktop.</p>
     <div class="pane mobile" data-frame="after-mobile" data-open="true"></div>
@@ -214,12 +219,12 @@
     <h2>Behaviour (the e2e contract)</h2>
     <ol>
       <li>No archived projects → no section (as today).</li>
-      <li>Every visit opens with the section <b>collapsed</b>: the header is a button with <code>aria-expanded="false"</code>; the archived rows aren't shown.</li>
+      <li>Every visit opens with the section <b>collapsed</b> — unless no project is active, then <b>open</b> (Q1): the header is a button with <code>aria-expanded="false"</code>; the archived rows aren't shown.</li>
       <li>The header's name reads <code>Archived</code> and shows how many are archived.</li>
       <li>Clicking (or Enter / Space on) the header opens it: <code>aria-expanded="true"</code>, every archived row with its Unarchive. Clicking again closes it.</li>
       <li>Archiving a project while collapsed only bumps the count; the section stays collapsed.</li>
       <li>Unarchive keeps the section open; the project goes back to the active list. Unarchiving the last one removes the section.</li>
-      <li>Open / closed is page state only: a reload starts collapsed again.</li>
+      <li>Open / closed is page state only: a reload starts from the default again (Q2).</li>
     </ol>
   </section>
   <section>
@@ -229,15 +234,15 @@
       <li>Chevron: Heroicons <code>ChevronRightIcon</code>, <code>rotate-90</code> when open, a short transition.</li>
       <li>Label: <code>SectionLabel</code> (<code>Projects.List.archived</code>); count: an ICU-free numeral in a quiet <code>Pill</code>.</li>
       <li>Hover / focus-visible: label and chevron in <code>primary</code>; a focus ring on the button.</li>
-      <li>The open state lives in <code>ProjectList</code> (<code>useState(false)</code>) or a small <code>ArchivedSection</code> beside <code>ArchivedProjectRow</code>.</li>
+      <li>The open state lives in <code>ProjectList</code> (<code>useState</code>, initialised from “no active project” on mount) or a small <code>ArchivedSection</code> beside <code>ArchivedProjectRow</code>.</li>
       <li>Design Console: the projects scenario's list tab stays collapsed; a new tab opens it with a play step clicking the header.</li>
     </ul>
   </section>
   <section>
-    <h2>Open questions</h2>
+    <h2>Decided (owner, 2026-10-31)</h2>
     <ul>
-      <li><span class="q">Q1</span> Every project archived (“No active projects” on the right): open the section by default there, since the empty state says “unarchive one”? Mockup and contract assume <b>no</b> — always collapsed.</li>
-      <li><span class="q">Q2</span> Remember open / closed across visits (localStorage / settings store)? Assumed <b>no</b>.</li>
+      <li><span class="q">Q1</span> Every project archived (“No active projects” on the right): the section starts <b>open</b>, since the empty state says “unarchive one”.</li>
+      <li><span class="q">Q2</span> Open / closed is <b>not</b> remembered across visits.</li>
     </ul>
   </section>
 </div>
@@ -270,7 +275,8 @@
       pane.append(label, fill('archived-rows'));
       return;
     }
-    pane.append(fill(frame === 'after-mobile' ? 'active-rows-mobile' : 'active-cards'));
+    if (frame === 'after-mobile') pane.append(fill('active-rows-mobile'));
+    if (frame === 'after') pane.append(fill('active-cards'));
     pane.append(buildAccordion(isOpen));
   });
 
