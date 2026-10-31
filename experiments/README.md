@@ -22,7 +22,7 @@ Start with a try's `report.md`: the conclusion and the numbers behind it come fi
 
 | Question | Tries | Status |
 | --- | --- | --- |
-| [page-structure-parallel](./page-structure-parallel/) — serial vs parallel worktree subagents on an architecture-clear refactor | [try1](./page-structure-parallel/try1/report.md), [try2](./page-structure-parallel/try2/instruction.md) | try1 reported; try2's runs are done, its review and report are pending |
+| [page-structure-parallel](./page-structure-parallel/) — serial vs parallel worktree subagents on an architecture-clear refactor | [try1](./page-structure-parallel/try1/report.md), [try2](./page-structure-parallel/try2/report.md) | closed: serial wins at this size (both tries) |
 
 The series these questions belong to, and what comes next, is on the tracker under Harness engineering.
 
