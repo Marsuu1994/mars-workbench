@@ -6,7 +6,7 @@
 
 这份 spike 分五部分：起因；mockup 怎么 host（四个方案，附本次实测）；Vercel preview URL 能不能事先确定；design phase / implementation phase 的标准化流程；待 owner 决定的问题。
 
-**第 1 轮 review 之后**（2026-10-31，PR #100 上）：hosting 先用方案 C 看效果，B 暂不做；design PR / implementation PR 拆开；mockup 一个名字用到底（`design/README.md` 已改）。还开着 Q6、Q7，见文末。
+**第 1 轮 review 之后**（2026-10-31，PR #100 上）：hosting 先用方案 C 看效果，B 暂不做；design PR / implementation PR 拆开；mockup 一个名字用到底（`design/README.md` 已改）。第 2 轮（PR #102 上）：Q6 选 (a)，contract 放 `e2e/contract/`，翻转要做成机械动作（见 *Contract 的翻转*）；Q7 采用 CI check，skill 要能自动触发。还开着 Q9、Q10，见文末。
 
 **最初的推荐**：方案 B，在 production 上加一个 route `/mockups/<branch>/<file>`，它从 GitHub 读该 branch 上的 `design/mockup/<file>` 原样返回。URL 只取决于 branch 名和文件名，push 之后马上能开，不用等 Vercel preview。它也不经过 Deployment Protection 和 app 的登录，agent 开 PR 时就能把 link 写进 description。Vercel preview 的 branch URL 只在 branch 名够短时才能事先算出来：超过 63 字符的 label 会被截断并加 hash，hash 的算法没有公开文档。流程上拆成两个 PR：design PR 合入 mockup 和 `test.fail` contract，implementation PR 翻转 contract 并删掉 mockup。两条现有规则要改：*One task, one branch, one PR* 和 mockup 的 `temp-` 命名。
 
@@ -137,7 +137,7 @@ Vercel 文档（Generated URLs，2026-09-08 版）给出的 branch URL 格式是
 | AGENTS.md › Version Control › *One task, one branch, one PR* | 一个 task 一个 PR；Bad 例子就是 "a spike PR plus a stacked implementation PR" | 加一个例外：UI 任务拆成 design PR 和 implementation PR，后者在前者 merge 之后从 `main` 开，不 stack |
 | AGENTS.md › UI Workflow › *New UI starts as a mockup* | "get the owner's approval before code changes" | approval = design PR merge；指向 `design/README.md` 的流程 |
 | `design/README.md` › Mockups | iterating 时 `temp-<area>.html`，approved 后改名 `mockup-<area>.html` | 去掉改名：一个名字从头到尾，URL 不变，owner 的评论 link 不失效。加 URL 格式和 design / implementation 两步 |
-| `test/README.md` | "A known bug is an `it.fails`" | 再加一条：design 已定、还没实现的行为是 `test.fail` contract，名字对应 tracker 条目，implementation PR 翻转 |
+| `test/README.md` | "A known bug is an `it.fails`" | e2e 一节加：`e2e/contract/` 放 design 已定、**还没实现**的行为，每条是 `contractTest`，名字对应 tracker 条目；implementation PR 用 `npm run contract:flip` 翻转 |
 
 ### 让 contract 只在"对的原因"上失败
 
@@ -147,10 +147,34 @@ PR #100 暴露了一个缺陷：Playwright 的 `test.fail` 只要测试失败就
 - **(b) 约定**：每条 contract 第一段只做今天就成立的事（打开页面、展开面板），并把这段抽成一条普通 `test` 先跑。
 - **(c) 维持现状**：靠 implementation PR 发现。
 
+### Contract 的翻转（第 2 轮加）
+
+owner 的两个要求：contract 放 `e2e/contract/` 下，e2e 的文档写明那里是还没实现的行为；翻转要是机械动作，agent 不用花心思。
+
+**Design 阶段**：一个 feature 一个文件，`e2e/contract/<feature>.spec.ts`，里面每条都是 `contractTest(title, failsAt, body)`。Playwright 加一个 `contract` project 只跑这个目录。
+
+**翻转**：`npm run contract:flip <feature>`，一个纯文本的 codemod，有自己的单元测试：
+1. 每个 `contractTest('…', /…/, async …)` 改成 `test('…', async …)`：换函数名、删掉第二个参数，body 不动；
+2. import 从 `contractTest` 换成 `test`；
+3. `git mv e2e/contract/<feature>.spec.ts e2e/features/<feature>.spec.ts`。`features` project 跑 `e2e/features/`，和 journeys 一样在 smoke 之后。
+
+**谁来触发**，四个位置：
+
+| 位置 | 怎么做 | 优点 | 缺点 |
+| --- | --- | --- | --- |
+| **(i) CI 报错带命令（推荐）** | 一条 `contractTest` 通过时，它自己报错：`contract passes — run npm run contract:flip <feature>`。agent 看到红 CI，照着跑一行命令、commit | 确定性；agent 不用判断"该不该翻"，CI 告诉它翻哪个；不需要额外权限 | 多一轮 CI：实现完先红一次，翻转后再绿 |
+| (ii) CI 自动 commit | contract job 发现一个文件全部通过，就跑 flip 并 push 到 PR branch | 完全不用 agent | 用 `GITHUB_TOKEN` push 的 commit 不会再触发 CI，要配 PAT 或 GitHub App；CI 往 branch 写东西，和 agent 的 push 互相冲突；一个文件部分通过时怎么办要另定 |
+| (iii) Claude Code hook | `Stop` 或 push 前的 hook 跑 contract、通过就翻 | 在 session 里自动 | 每次都要起本地 stack 跑 Playwright，几分钟；只在 Claude session 里生效 |
+| (iv) git pre-push hook | push 前跑 | 不依赖 Claude | 同 (iii)，更慢，而且每次 push 都跑 |
+
+推荐 (i)：判断"实现完了没有"本来就是 CI 跑 contract 得出的，CI 顺手说出要跑的那一行命令，翻转就是机械的。(ii) 省掉最后一行命令，代价是一套写权限。如果 (i) 用下来嫌多一轮 CI，再升级到 (ii)。
+
+一个文件里只有部分 contract 通过时，说明实现还没做完，CI 保持红，报错列出已通过的条目。多个 PR 做一个 feature 时，每个 PR 一个 contract 文件。
+
 ### 自动化的程度
 
 - **最小**：只改文档。agent 开 PR 时手写 Mockups 一节（方案 B 下 URL 可以直接拼出来）。
-- **中等**：加 `.claude/skills/ui-design/SKILL.md`（只按名字触发），把上面的流程、PR description 模板、contract 写法打包，owner 用 `/ui-design` 开始一个 UI 需求。
+- **中等**：加 `.claude/skills/ui-design/SKILL.md`，把上面的流程、PR description 模板、contract 写法打包。Claude Code 的 skill 默认就会自动触发：模型看到 skill 的 description 和当前任务对得上就自己加载，只有设了 `disable-model-invocation` 才必须手动 `/ui-design`。所以写一个 description 说清什么时候用（"owner asks for new or changed UI"），agent 收到 UI 需求就会自己用。
 - **加一个 CI check**：PR 改了 `design/mockup/*.html`，description 里却没有对应 link 时，check 变红。确定性的，不需要 LLM。
 
 ## 待 owner 决定的问题
@@ -160,6 +184,8 @@ PR #100 暴露了一个缺陷：Playwright 的 `test.fail` 只要测试失败就
 3. ~~**Production 上的 mockup route**~~ → 用 C，暂不适用。
 4. ~~**两个 PR 的拆分**~~ → **同意拆**：design PR 和 implementation PR。规则改动随 Decision 一起落（AGENTS.md › Version Control、UI Workflow）。
 5. ~~**Mockup 命名**~~ → **一个名字用到底**（`mockup-<area>.html`），`design/README.md` › Mockups 已改，并写了方案 C 的 link 格式。
-6. **Contract 的失败原因**：(a) `contractTest` helper、(b) 约定，还是 (c) 维持现状？ owner 问 (a) 是不是多一层、翻转时要多一步：上面 (a) 已改写说明——翻转同样是一行，body 不变。
-7. **标准化程度**：只改文档、加 `/ui-design` skill，还是再加 CI check？可以多选。
+6. ~~**Contract 的失败原因**~~ → **(a) `contractTest`**，放 `e2e/contract/`，翻转做成机械动作（见 *Contract 的翻转*）。
+7. ~~**标准化程度**~~ → **CI check 采用**；skill 要自动触发（默认就是，见 *自动化的程度*）。
 8. ~~**PR #100 怎么办**~~ → spike 拆到自己的 PR；PR #100 先去掉 e2e contract，按新流程 mockup 定稿后再写，等这份 spike 定下来再回去。
+9. **翻转由谁触发**：(i) CI 报错带命令（推荐）、(ii) CI 自动 commit、(iii) Claude Code hook，还是 (iv) git pre-push hook？
+10. **`ui-design` skill 自动触发**：按上面的写法（不设 `disable-model-invocation`，description 写清"新增或修改 UI 时用"）可以吗？
