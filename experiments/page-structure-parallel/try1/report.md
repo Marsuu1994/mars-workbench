@@ -2,7 +2,7 @@
 
 **执行 2026-10-26 05:25–06:52 UTC** · 协议：`instruction.md` · prompt、脚本和原始数据：lab 仓库 [`archive/try1`](https://github.com/Marsuu1994/mars-workbench-lab-try2/tree/archive/try1/experiments/page-structure-parallel/try1)
 
-> try2（每组五个 run，去掉了这一轮的两个干扰因素）复现了结论：并行仍然更慢，成本约 1.5 倍；见 tracker › Harness engineering › 1a。
+> try2（每组五个 run，去掉了这一轮的两个干扰因素）复现了结论：并行仍然更慢，成本约 1.5 倍；见 `../try2/report.md`。
 
 > 叙述用中文；run 编号、指标名、代码标识保留英文。
 

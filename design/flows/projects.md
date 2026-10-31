@@ -22,7 +22,7 @@ User opens **Projects** from the sidebar or the mobile dock → `/kanban/project
 ### Rules
 
 - With no projects, the page shows its empty state, which offers creating a project.
-- Archived projects are listed separately and can be unarchived.
+- Archived projects are listed separately, under an Archived header with their count that opens and closes them; it starts collapsed on every visit, or open when no project is active. Each one can be unarchived.
 - **All steps done:** a project with at least one step, every one DONE, shows as All steps done and offers adding the next steps or archiving. The state is derived from the steps: nothing is stored, and the project is never archived automatically. Adding a step makes it active again.
 - Progress = DONE steps / all steps.
 - A modal's save (new / edit project, add / edit / delete step) and the Archive and Unarchive buttons finish only once the page's refreshed data has landed: the modal closes, or the button stops loading, onto the updated list.

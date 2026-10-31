@@ -12,8 +12,8 @@ import type {BoardPlan} from '@/utils/taskUtils';
 import {toBoardCards} from '@/utils/boardCardUtils';
 import type {BoardProgress} from '@/types/board';
 
-/* Board scenario fixtures — real KanbanBoard + ProgressDashboard fed
-   fictional weeks that are hard to reach against live data. */
+/* Board scenario fixtures — the real BoardPage fed fictional weeks that are
+   hard to reach against live data. */
 
 // Friday of ISO week 28 (Mon Jul 6 – Sun Jul 12).
 const NOW = new Date('2026-07-10T15:00:00');
@@ -207,7 +207,7 @@ export const MID_WEEK_PROGRESS: BoardProgress = {
 };
 
 // ── Mobile backlog scenario inputs ───────────────────────────────────────────
-// The inline mobile backlog sheet bypasses KanbanBoard, so its cards come from
+// The inline mobile backlog sheet bypasses BoardPage, so its cards come from
 // the same adapter the live board runs, on the same fixture week.
 export const BACKLOG_CARDS = toBoardCards(MID_WEEK_TASKS, {
   plan: SCENARIO_PLAN,

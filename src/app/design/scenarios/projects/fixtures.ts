@@ -98,6 +98,12 @@ export const SCENARIO_PROJECTS: ProjectItem[] = [
   project(HOME_OFFICE_ID, 'Home office setup', null, 1, true),
 ];
 
+/** Every project archived: the list holds only the Archived section. */
+export const ALL_ARCHIVED_PROJECTS = SCENARIO_PROJECTS.map(scenarioProject => ({
+  ...scenarioProject,
+  isArchived: true,
+}));
+
 /** The same projects with one moved to the front, so the page selects it —
     how a tab shows a project other than the newest. */
 export const projectsLedBy = (projectId: string): ProjectItem[] => [

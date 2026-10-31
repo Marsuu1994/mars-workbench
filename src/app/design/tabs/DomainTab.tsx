@@ -10,9 +10,11 @@ import {BoardHeader} from '@/components/domain/shared/BoardHeader';
 import {TaskCard} from '@/components/domain/board/TaskCard';
 import {TaskCardMiniFace} from '@/components/domain/board/TaskCardMiniFace';
 import {MobileBacklogCard} from '@/components/domain/board/MobileBacklogCard';
+import {BoardPageContext} from '@/components/domain/board/BoardPageContext';
 import {BoardColumn} from '@/components/domain/board/BoardColumn';
 import {ProgressDashboard} from '@/components/domain/board/ProgressDashboard';
 import {MatrixTaskCard} from '@/components/domain/priorities/MatrixTaskCard';
+import {PrioritiesPageContext} from '@/components/domain/priorities/PrioritiesPageContext';
 import {DumpEntryCard} from '@/components/domain/dump/DumpEntryCard';
 import {TemplateItem} from '@/components/domain/plan/TemplateItem';
 import {PlanTaskRow} from '@/components/domain/plan/PlanTaskRow';
@@ -32,6 +34,7 @@ import {
   STEP_PATH_FIXTURES,
   PLAN_TASK_ROW_FIXTURES,
   MATRIX_CARD_FIXTURES,
+  MATRIX_CARD_ACTIVE_PLAN_ID,
   DUMP_CARD_FIXTURES,
   PROGRESS_FIXTURE,
   BOARD_HEADER_PERIOD,
@@ -40,6 +43,8 @@ import {
   TEMPLATE_FIXTURE,
   SCENARIO_HREFS,
   PROJECT_STEP_FIXTURES,
+  inertBoardPageContext,
+  inertPrioritiesPageContext,
   inertProjectsPageContext,
 } from '../constants';
 
@@ -164,15 +169,16 @@ export const DomainTab = () => {
       title="MobileBacklogCard"
       description="The mobile backlog sheet's card: the full face on a plain card, with the ↑ Todo pull beside the title."
     >
-      <div className="flex max-w-sm flex-col gap-2.5">
-        {MINI_CARD_FIXTURES.slice(0, 2).map(({card}) => (
-          <MobileBacklogCard
-            key={card.task.id}
-            card={{...card, task: {...card.task, status: TaskStatus.BACKLOG}}}
-            onPull={() => undefined}
-          />
-        ))}
-      </div>
+      <BoardPageContext value={inertBoardPageContext()}>
+        <div className="flex max-w-sm flex-col gap-2.5">
+          {MINI_CARD_FIXTURES.slice(0, 2).map(({card}) => (
+            <MobileBacklogCard
+              key={card.task.id}
+              card={{...card, task: {...card.task, status: TaskStatus.BACKLOG}}}
+            />
+          ))}
+        </div>
+      </BoardPageContext>
     </Section>
   );
 
@@ -212,36 +218,30 @@ export const DomainTab = () => {
       title="MatrixTaskCard"
       description="Priorities-page card — hover reveals the Move-to send button (tracked cards keep it: Done is still a valid move); tracked cards dim with a This Week tag (★ on mobile)."
     >
-      <DragDropContext onDragEnd={() => undefined}>
-        <Droppable droppableId="gallery-matrix-cards">
-          {provided => (
-            <div
-              ref={provided.innerRef}
-              {...provided.droppableProps}
-              className="flex flex-wrap items-start gap-6"
-            >
-              {MATRIX_CARD_FIXTURES.map((fixture, index) => (
-                <Variant key={fixture.task.id} label={fixture.label}>
-                  <div className="w-64">
-                    <MatrixTaskCard
-                      task={fixture.task}
-                      index={index}
-                      isTracked={fixture.isTracked}
-                      hasActivePlan
-                      isPopoverOpen={false}
-                      onSendToggle={() => undefined}
-                      onTrack={() => undefined}
-                      onComplete={() => undefined}
-                      onTap={() => undefined}
-                    />
-                  </div>
-                </Variant>
-              ))}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
+      <PrioritiesPageContext
+        value={inertPrioritiesPageContext(MATRIX_CARD_ACTIVE_PLAN_ID)}
+      >
+        <DragDropContext onDragEnd={() => undefined}>
+          <Droppable droppableId="gallery-matrix-cards">
+            {provided => (
+              <div
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                className="flex flex-wrap items-start gap-6"
+              >
+                {MATRIX_CARD_FIXTURES.map((fixture, index) => (
+                  <Variant key={fixture.task.id} label={fixture.label}>
+                    <div className="w-64">
+                      <MatrixTaskCard task={fixture.task} index={index} />
+                    </div>
+                  </Variant>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
+      </PrioritiesPageContext>
     </Section>
   );
 
