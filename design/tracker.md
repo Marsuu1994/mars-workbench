@@ -10,12 +10,12 @@ Single source of truth for open ideas and todos across the app — open items on
 
 ## Harness engineering
 
-How agents work on this repository: the experiments under `experiments/` (conventions in its README) and the rules they settle. The owner's priority while the series runs (2026-10-28); the product milestones below resume after it.
+How agents work on this repository: the experiments under `experiments/` (rules in its AGENTS.md) and the rules they settle. The owner's priority while the series runs (2026-10-28); the product milestones below resume after it.
 
 ### High
 
 - [ ] Harness engineering series — three explorations in order, each run as experiments (instruction → runs → report); a conclusion that changes how we work lands in AGENTS.md or the README it indexes
-  - [ ] Setup, before the next try — the budget and roles every try follows: phases scheduled per usage window (runs in one, reviews and collection in the next), the controller on Opus at high effort with subagents in small serial waves and scripts for mechanical parsing, reviewers on one model started alone right after a reset, and an archive that keeps measurements and a high-level instruction rather than run code (`experiments/README.md` › Controller notes; try2's takeaways on `controller/try2` of the lab repository)
+  - [ ] Setup, before the next try — the budget and roles every try follows: phases scheduled per usage window (runs in one, reviews and collection in the next), the controller on Opus at high effort with subagents in small serial waves and scripts for mechanical parsing, reviewers on one model started alone right after a reset, and an archive that keeps measurements and a high-level instruction rather than run code (`experiments/AGENTS.md` › Controller notes; try2's instruction › 预算和角色)
   - [ ] 1 · Parallel subagents on architecture-clear refactors — is the parallel worktree workflow a good idea once the design is settled? Serial vs parallel on time, tokens and quality (CI, checklist, behavior checks, blind review)
     - [ ] 1a · Page structure (`experiments/page-structure-parallel/`) — try1: serial wins at this size (six PRs #85–#90, all equivalent); try2: ten runs green on the first push, declared failed when collecting the data drained the usage window twice (its run data stands, the review never completed); next: after the usage reset an Opus controller finishes try2's collection and blind review (the code review agent, or Opus reviewers) and writes the report; the question closes with it, no further try
     - [ ] 1b · Error framework — the second task: Step 12's plumbing (shared action handler, typed errors per surface) as the refactor both workflows build, once its spike is approved
@@ -24,6 +24,15 @@ How agents work on this repository: the experiments under `experiments/` (conven
     - Economics: in these sessions cache reads are over half the cost and cost the same on Opus and Sonnet, so Sonnet saves about a quarter at equal token counts; Opus at lower effort may be the cheaper cell, and the cost guidance is to sweep effort before changing the model (a model swap without an eval is the riskiest change); Sonnet at low effort sometimes skips the verifying check, so medium or high
     - First measurement, cheap: reuse the page-structure rig (base `83ae5a4`, the serial prompt, checklist, behavior checks, scrub and review prompt) — try2's five Opus-high serial runs are one cell; add five Sonnet runs (medium or high; the effort needs a second base commit) and three Opus-medium runs, review all 13 with Opus; about $100 over two windows. It measures spec-settled implementation only, which is the tier Sonnet is proposed for
   - [ ] 3 · Code review agent — is one needed, and what would it catch that CI and the owner's review don't? Context: the blind reviews so far (Fable, try1) barely separated candidates (26–27/30, no blocker) and the quality verdict rested on CI, the checklist and the behavior checks; Quality gate › Step 14 is this item
+- [ ] Docs split by reader — every folder with rules gets a `README.md` for people and an `AGENTS.md` (with a `CLAUDE.md` importing it) for agents, as `experiments/` does and the root README's *How docs are split* describes; one sub-bullet per folder, each moving its rules out of the README and pointing the root AGENTS.md's *Where the rules live* row at the new file
+  - [ ] `design/spike/` — lifecycle, shape and archiving rules
+  - [ ] `design/flows/` — how a flow doc is written
+  - [ ] `design/` — the mockup rules and the docs index
+  - [ ] `design/design-language/` — theme and visual-pattern rules
+  - [ ] `src/app/design/` — Design Console scenarios, gallery and play steps
+  - [ ] `test/` — test helpers and conventions
+  - [ ] `design/tracker.md` — its Conventions section (a file, not a folder: decide whether it moves to `design/AGENTS.md`)
+  - [ ] Root `AGENTS.md` — once every folder has moved, rewrite *Adding a rule* and *Where the rules live* for the new split
 
 ## Board
 

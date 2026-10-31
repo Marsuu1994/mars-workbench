@@ -1,6 +1,6 @@
 # page-structure-parallel · try1 — 报告
 
-**执行 2026-10-26 05:25–06:52 UTC** · 来源：`design/spike/component-structure.md` 的 Q9 · 协议、prompt、脚本和原始数据归档在 lab 仓库的 [`archive/try1`](https://github.com/Marsuu1994/mars-workbench-lab-try2/tree/archive/try1/experiments/page-structure-parallel/try1) 分支（`instruction.md`、`prompts/`、`scripts/`、`data/`）
+**执行 2026-10-26 05:25–06:52 UTC** · 协议：`instruction.md` · prompt、脚本和原始数据：lab 仓库 [`archive/try1`](https://github.com/Marsuu1994/mars-workbench-lab-try2/tree/archive/try1/experiments/page-structure-parallel/try1)
 
 > try2（每组五个 run，去掉了这一轮的两个干扰因素）复现了结论：并行仍然更慢，成本约 1.5 倍；见 tracker › Harness engineering › 1a。
 
@@ -15,13 +15,6 @@
 5. **质量六个都够合并。** CI 六个一次绿；行为检查六个 16 / 16；清单 A 19 / 20 / 19，B 19 / 20 / 20；盲审 A 27 / 27 / 27，B 26 / 27 / 27（满分 30），没有 blocker，没有发现行为 bug。
 6. **并行会赢的条件**：各块工作之和减最大的那块要明显大于 4–9 min 的固定成本，也就是每块本身 10–15 min 以上或块数远多于三，同时 setup 离开关键路径、验证已脚本化。那时它买到的是 wall time 和更小的主 context，代价仍是约 1.4 倍的 token。
 7. **建议合并 B2（PR #87）**，备选 A2（PR #88）；理由见"建议合并"。
-
-## 做法
-
-- **任务**：按已决定的 spike（`design/spike/component-structure.md` Part 1）把 Board、Priorities、Dump 三页搬到页面结构，一个 PR：一页一个 commit 加一个文档 commit，Design Console 全部 tab 可渲染，仓库要求的文档、push 前检查、e2e、每页点击检查、Board 的 `ui-verifier`，PR 带 "Judgment calls"。起点 `main` 的 `1ae70f7f`。
-- **两组**：A 串行，主 session 按 Board → Dump → Priorities 自己做；B 并行，主 session 一次派三个 `isolation: "worktree"` 的 general-purpose subagent 各做一页，再 cherry-pick 合并、跑检查。六份 prompt 只差分支名、run 编号和这一段 workflow。
-- **隔离**：每组三个 run，每个是独立的 `create_session`（`claude-opus-5-5`，CLI 默认 effort），各自一台机器；共享的只有 GitHub 仓库、Actions 队列和 Vercel。六个 run 4 秒内全部创建，主 session 只观察。
-- **测量**：时间（transcript 时间戳）、token 和成本（`get_session` › `usage`）、过程（工具调用、冲突、拦截）；质量看 CI、20 条清单、16 项点击检查和每个结果一份盲审（`claude-fable-5-1`，孤儿两 commit 分支，scrub 掉实验痕迹）。
 
 ## 数据
 

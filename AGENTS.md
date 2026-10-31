@@ -39,7 +39,7 @@ design/                            # Design docs — index in design/README.md
 ├── flows/                         # Per-feature flow docs
 ├── spike/                         # Spike docs for open questions; archived/ = implemented
 └── mockup/                        # Self-contained HTML mockups of designs not yet fully implemented
-experiments/                       # Controlled comparisons of ways of working (agent workflows, tooling): one folder per question, one tryN per run — conventions in its README
+experiments/                       # Controlled comparisons of ways of working: one folder per question, an instruction and a report per try — README for people, rules in its AGENTS.md
 src/
 ├── proxy.ts                       # Route protection (Supabase session check)
 ├── app/                           # App Router routes, api/mcp/ and its OAuth metadata, the Design Console (design/)
@@ -90,7 +90,7 @@ A rule that only one kind of file needs lives with that file. Read it before you
 | a flow doc (`design/flows/`) | `design/flows/README.md` |
 | the Design Console — scenarios, gallery (`src/app/design/`) | `src/app/design/README.md` |
 | a mockup (`design/mockup/`) | `design/README.md` |
-| an experiment (`experiments/`) | `experiments/README.md` |
+| an experiment (`experiments/`) | `experiments/AGENTS.md` |
 | themes, `globals.css`, visual patterns | `design/design-language/README.md` |
 | how a page's data flows from server to client | `design/baseline.md` › Architecture Decision |
 

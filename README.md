@@ -26,9 +26,19 @@ One command from a fresh checkout and every day after: it skips what is already 
   - [reference](./design/reference.md) — actions/services/DAL inventory
   - [flows/](./design/flows) — per-page flow docs
   - [mockup/](./design/mockup) — mockups of designs not yet fully implemented
-- [experiments/](./experiments/README.md) — controlled comparisons of ways of working (agent workflows, models, tooling), one folder per question with a report per try (protocols and data in each try's lab repository)
+- [experiments/](./experiments/README.md) — controlled comparisons of ways of working (agent workflows, models, tooling): one folder per question, an instruction and a report per try
 - Implemented UI is documented in-app at `/design` — layer-tabbed component gallery + per-feature scenario pages
 - This README holds the app-wide **Current State**; what changed and when lives in the git history and PR descriptions
+
+### How docs are split (target state)
+
+Every folder that has rules splits them by reader:
+
+- `README.md` is for people: what the folder is for, how it is organized, where to start reading.
+- `AGENTS.md` is for coding agents: the rules to follow and the templates to fill, short and checkable. A `CLAUDE.md` beside it holds `@AGENTS.md`, so Claude Code loads it too.
+- The root `AGENTS.md` keeps only the rules every task needs, plus an index of the folders' `AGENTS.md`.
+
+Today only `experiments/` follows this; the other folders keep their rules in their README until they migrate (tracker › Harness engineering).
 
 ## Current State
 
