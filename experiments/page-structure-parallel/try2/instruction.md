@@ -1,8 +1,8 @@
 # page-structure-parallel · try2 — 同一个三页重构，去掉 try1 的两个干扰再比一次串行和并行，每组五次
 
-**Status: paused 2026-10-28** · 来源：try1 的报告、tracker › Harness engineering › 1a · Lab 仓库：[`mars-workbench-lab-try2`](https://github.com/Marsuu1994/mars-workbench-lab-try2/tree/controller/try2)（完整协议、prompt 模板和填充规则、controller briefs、工具、数据在 `controller/try2` 的 `protocol/`、`tools/`、`data/`）
+**Status: executed 2026-10-27 (runs), 2026-10-31 (review, collection, report)** · 来源：try1 的报告、tracker › Harness engineering › 1a · Lab 仓库：[`mars-workbench-lab-try2`](https://github.com/Marsuu1994/mars-workbench-lab-try2/tree/controller/try2)（完整协议、prompt 模板和填充规则、controller briefs、工具、数据在 `controller/try2` 的 `protocol/`、`tools/`、`data/`）
 
-> 十个 run 2026-10-27 跑完，数据完整；收数据阶段两次把账号的用量窗口耗尽，盲审没做完（9/10 被打断）。额度重置后由一个 Opus 的 controller 按"预算和角色"补完收数据、盲审和报告；page structure 到此收口，不再开新 try。
+> 十个 run 2026-10-27 跑完，数据完整；收数据阶段两次把账号的用量窗口耗尽，盲审没做完（9/10 被打断）。额度重置后由一个 Opus 的 controller 按"预算和角色"补完收数据、盲审和报告；page structure 到此收口，不再开新 try。2026-10-31 补完：盲审按 owner 的决定沿用原协议的 `claude-fable-5-1`，结果见 `report.md`。
 
 ## 问题
 

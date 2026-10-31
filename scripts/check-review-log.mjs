@@ -1,0 +1,127 @@
+/**
+ * Review log — run by the Review log workflow on every push and every
+ * submitted review (reviews/AGENTS.md).
+ *
+ * Every review the repository owner submits on a pull request, and every
+ * review comment they leave, must have an entry in reviews/pr-<NNN>.md that
+ * links to it. A missing entry fails the check; an entry whose outcome is
+ * still open passes with a warning, since an open entry waits on the owner.
+ * Pending reviews are invisible to the API until submitted, so they never
+ * count.
+ *
+ * Locally: GITHUB_REPOSITORY=owner/repo PR_NUMBER=97 node scripts/check-review-log.mjs
+ */
+import {existsSync, readFileSync} from 'node:fs';
+
+const API = 'https://api.github.com';
+const PAGE_SIZE = 100;
+
+const token = process.env.GITHUB_TOKEN;
+const repository = process.env.GITHUB_REPOSITORY;
+if (!repository) {
+  throw new Error('GITHUB_REPOSITORY is required');
+}
+const [repoOwner] = repository.split('/');
+
+const fetchJson = async path => {
+  const response = await fetch(`${API}${path}`, {
+    headers: {
+      Accept: 'application/vnd.github+json',
+      // CI passes the workflow token; a public repository also answers without one.
+      ...(token && {Authorization: `Bearer ${token}`}),
+    },
+  });
+  if (!response.ok) {
+    throw new Error(`GitHub API ${path}: ${response.status}`);
+  }
+  return response.json();
+};
+
+/** Every page of a list endpoint. */
+const fetchAll = async path => {
+  const items = [];
+  for (let page = 1; ; page++) {
+    const separator = path.includes('?') ? '&' : '?';
+    const batch = await fetchJson(
+      `${path}${separator}per_page=${PAGE_SIZE}&page=${page}`,
+    );
+    items.push(...batch);
+    if (batch.length < PAGE_SIZE) return items;
+  }
+};
+
+/** The PR this run is about: the event's, an override, or the open PR of the pushed branch. */
+const findPullNumber = async () => {
+  if (process.env.PR_NUMBER) return Number(process.env.PR_NUMBER);
+  const eventPath = process.env.GITHUB_EVENT_PATH;
+  const event = eventPath ? JSON.parse(readFileSync(eventPath, 'utf8')) : {};
+  if (event.pull_request) return event.pull_request.number;
+  const branch = process.env.GITHUB_REF_NAME;
+  if (!branch) return null;
+  const pulls = await fetchJson(
+    `/repos/${repository}/pulls?state=open&head=${repoOwner}:${encodeURIComponent(branch)}`,
+  );
+  return pulls[0]?.number ?? null;
+};
+
+const pullNumber = await findPullNumber();
+if (!pullNumber) {
+  console.log('No open pull request for this run; nothing to check.');
+  process.exit(0);
+}
+
+const byOwner = item => item.user?.login === repoOwner;
+const reviews = (
+  await fetchAll(`/repos/${repository}/pulls/${pullNumber}/reviews`)
+)
+  .filter(byOwner)
+  .filter(review => review.state !== 'PENDING' && review.body?.trim());
+const comments = (
+  await fetchAll(`/repos/${repository}/pulls/${pullNumber}/comments`)
+).filter(byOwner);
+
+const expected = [
+  ...reviews.map(review => ({
+    anchor: `pullrequestreview-${review.id}`,
+    label: `review ${review.id}`,
+    url: review.html_url,
+  })),
+  ...comments.map(comment => ({
+    anchor: `discussion_r${comment.id}`,
+    label: `comment on ${comment.path}:${comment.line ?? comment.original_line}`,
+    url: comment.html_url,
+  })),
+];
+if (expected.length === 0) {
+  console.log(`PR #${pullNumber}: no submitted review from ${repoOwner} yet.`);
+  process.exit(0);
+}
+
+const logPath = `reviews/pr-${String(pullNumber).padStart(3, '0')}.md`;
+const log = existsSync(logPath) ? readFileSync(logPath, 'utf8') : '';
+const missing = expected.filter(item => !log.includes(item.anchor));
+
+const openEntries = log
+  .split(/\n(?=#{2,3} )/)
+  .filter(entry => /\*\*Outcome:\*\* open\b/.test(entry))
+  .map(entry => entry.split('\n')[0].replace(/^#+ /, ''));
+for (const heading of openEntries) {
+  console.log(
+    `::warning file=${logPath}::Open, waiting on a decision: ${heading}`,
+  );
+}
+
+if (missing.length > 0) {
+  for (const item of missing) {
+    console.log(
+      `::error file=${logPath}::No entry for ${item.label} (${item.url})`,
+    );
+  }
+  console.error(
+    `${logPath}: ${missing.length} of ${expected.length} owner review items have no entry (reviews/AGENTS.md).`,
+  );
+  process.exit(1);
+}
+console.log(
+  `${logPath}: all ${expected.length} owner review items logged; ${openEntries.length} still open.`,
+);

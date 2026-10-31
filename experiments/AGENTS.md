@@ -6,9 +6,10 @@ Rules for writing, running and reporting a try. `README.md` here is the overview
 
 1. One folder per question (kebab-case), one `tryN/` per execution. A try that has run is not edited: a variant is a new `tryN`.
 2. A try holds two files, `instruction.md` and `report.md`. Nothing else from a try enters this repository.
-3. Everything else lives in the try's lab repository (`<repo>-lab-<try>`): run and review branches, and a controller branch with the prompts, tools, measurements and the controller's log. The owner archives it once the report lands; nothing is exported from it.
-4. The instruction follows the template below, has a 预算和角色 section, and is approved by the owner before anything runs.
+3. Everything else lives in the try's lab repository (`<repo>-lab-<try>`): run and review branches, and a controller branch with the prompts, tools, measurements and the controller's log. Runs push their branches and open no pull requests; reviews and checks read the branches. The owner archives the repository once the report lands; nothing is exported from it.
+4. The instruction follows the template below and is approved by the owner before anything runs. A try's measurement tools are built with it and land on `main` before the run, each in its own PR: checks of existing behavior in CI, acceptance tests for behavior not built yet as `it.fails` (the base branch flips them to plain tests, so the runs see them as spec). What only the evaluators may see — the checklist, the review prompt — stays off the base.
 5. The report follows the template below, conclusion first; its appendix says where each number lives in the lab repository.
+6. When the report is written, decide whether the try's implementations become a case in the evals repository (`mars-workbench-evals`): only when they caught real problems, meaning defects CI missed that adjudication confirms. A case holds the task, the base ref, each implementation with how it was produced, the adjudicated ground truth and the checks. The lab repository stays the source and is archived as usual.
 
 Running a try as its controller: the controller notes are on the lab repository's controller branch (`protocol/controller-notes.md`) until they become a skill (tracker › Harness engineering › Setup).
 
