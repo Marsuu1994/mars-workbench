@@ -16,6 +16,8 @@ experiments/
 
 The working material of a try — prompts, controller tools, run and review branches, raw measurements, the controller's log — sits in that try's own lab repository (`mars-workbench-lab-<try>`), kept read-only once the report is written. Both files link to it.
 
+One try, one lab repository, so no try's material is in another's context. What outlives a try is a dataset: when a try's implementations caught real problems, they become a case in `mars-workbench-evals`, the one repository shared across tries, and later experiments (which reviewer model, which implementer model, whether a new rule worked) rerun against it. A case reruns less often as the problems it catches stop appearing, and is archived when they are gone.
+
 ## Reading the results
 
 Start with a try's `report.md`: the conclusion and the numbers behind it come first, then the analysis and what the next try changes. When a number needs context, `instruction.md` says what was compared and how it was measured.
