@@ -1,0 +1,37 @@
+name: Review log
+
+# Every review the owner submits on a PR has an entry in reviews/pr-<NNN>.md
+# (reviews/AGENTS.md). Runs on every push and on each submitted review; a
+# pending review fires nothing, so the check never runs against drafts.
+on:
+  push:
+  pull_request_review:
+    types: [submitted, edited]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: review-log-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  review-log:
+    name: Review log
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Every owner review is logged
+        run: node scripts/check-review-log.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

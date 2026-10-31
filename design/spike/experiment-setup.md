@@ -1,6 +1,6 @@
 # Spike: 下一次实验之前 — 工具放哪、仓库怎么分、按什么顺序做
 
-**Status: awaiting owner review** · 2026-10-31 · 回答 tracker 条目 *Harness engineering › Setup* · 相关：`experiments/AGENTS.md`（实验的规则）、`experiments/page-structure-parallel/try2/report.md`（这一轮的教训和单位成本）、PR #82 的 `code-reviewer-agent.md`（Eval strategy）
+**Status: decided** · 2026-10-31 · 回答 tracker 条目 *Harness engineering › Setup* · 相关：`experiments/AGENTS.md`（实验的规则）、`experiments/page-structure-parallel/try2/report.md`（这一轮的教训和单位成本）、PR #82 的 `code-reviewer-agent.md`（Eval strategy）
 
 > 语言说明：正文中文；仓库名、分支名、脚本名、代码标识保留英文（lab repository / controller branch / `check:clicks` / `make-review-branch.sh`），和仓库里的叫法一一对应。
 
@@ -15,7 +15,7 @@
 - **实验专用的测量工具在写 instruction 时就定下、做好，开跑前进 `main`**（owner，2026-10-31）：测已有行为的检查直接进 CI；测还没做的行为的验收测试以 `it.fails` 进 `main`，实验开始时起点分支把它们翻成普通测试，run 看到的红 CI 就是 spec 的一部分。这样 controller 只做编排，起点就是 `main` 的快照加一个实验专用的 commit。
 - **run 不开 PR**（owner，2026-10-31）：run 只 push 分支，CI 在 push 上跑；评审和检查都在分支上做，lab 仓库不再出现一批与主仓库无关的 PR。
 - **执行顺序**（详见"顺序"）：这份 spike → skill 和通用脚本 → evals 仓库和 page-structure case → reviewer model（3）→ implementer model（2）→ 规则落地 → 规则管不管用（4）→ error framework（1b）→ sweep model（5）。
-- **要 owner 回答**：Q4（其余已答）。
+- **已定**：Q1–Q8 都已回答，见 Decision。
 
 ## 起因
 
@@ -80,7 +80,7 @@ skill 的 `scripts/` 第一版。前五个从 lab 仓库的 `tools/` 搬来、�
 1. **写 instruction**（主仓库 `experiments/<question>/tryN/instruction.md`，按模板，含"预算和角色"），同时定下并做好这个实验专用的测量工具：测已有行为的进 CI，测还没做的行为的以 `it.fails` 进 `main`，只给评估者看的放模板；它们各自开 PR 进 `main`，owner 和 instruction 一起批准。
 2. ✓ **skill 的形状**（owner，2026-10-31：按推荐）：一个 `experiment-controller` skill，`SKILL.md` 加 `scripts/` 和 `templates/`，整体随 skill 加载和拷贝。
 3. ✓ **evals 仓库的可见性**（owner，2026-10-31）：公开，和 lab 仓库一样。
-4. **evals case 的答案由谁裁决**：一个 case 的"答案"（`ground-truth.json`）是每个实现里确认为真的缺陷清单，用来给后来的 reviewer 算 recall 和 precision。建 page-structure case 时，要先把已有的 16 份盲审和 16 份清单报过的缺陷合并成一张候选表（约 30–40 条，比如"`AGENTS.md:115` 还写着旧组件名"出现在 16 个实现里），每条判定：在这个实现里真的存在吗、严重度是什么。谁来判：(a) 一个 Opus subagent 逐条对照代码判定，owner 复核它判成"不存在"的那些（推荐：owner 只看有分歧的，约 10 分钟）；(b) owner 亲自过完整张表。
+4. ✓ **evals case 的答案由谁裁决**（owner，2026-10-31：(a)）：一个 case 的"答案"（`ground-truth.json`）是每个实现里确认为真的缺陷清单，用来给后来的 reviewer 算 recall 和 precision。建 page-structure case 时，要先把已有的 16 份盲审和 16 份清单报过的缺陷合并成一张候选表（约 30–40 条，比如"`AGENTS.md:115` 还写着旧组件名"出现在 16 个实现里），每条判定：在这个实现里真的存在吗、严重度是什么。谁来判：(a) 一个 Opus subagent 逐条对照代码判定，owner 复核它判成"不存在"的那些（推荐：owner 只看有分歧的，约 10 分钟）；(b) owner 亲自过完整张表。
 5. ✓ **顺序**（owner，2026-10-31）：上表的 1–10，之后可以再调。
 6. ✓ **controller 的 model**（owner，2026-10-31）：固定 Opus high。
 7. ✓ **lab 仓库的默认分支**（owner，2026-10-31）："起点"指 controller 做好的**起点分支**（主仓库 `main` 的快照加一个实验专用的 commit），run 和它们的 worktree 都从它出发。lab 仓库不推 `main`，起点分支就是它的默认分支，worktree 不会再像 B4 那样建在别的 commit 上（流程第 2 步）。
@@ -133,3 +133,14 @@ mars-workbench-evals/
 6. **controller 的 model**：固定 Opus high（这一轮实测够用），还是每个实验在 instruction 里定？
 7. **lab 仓库的默认分支**：B4 的三个 worktree 建在 lab 仓库的 `main` 而不是起点上。下一次把 lab 仓库的默认分支设成起点分支，还是在 workflow prompt 里写明 worktree 要从当前 HEAD 建？
 8. ✓ **验收测试让不让 run 看见**（owner，2026-10-31）：看见。它们以 `it.fails` 留在 `main`，实验开始时起点分支把它们翻成普通测试，红 CI 就是 spec 的一部分；只给评估者看的清单和评审 prompt 照旧对 run 隐藏。每个实验的 instruction 写明哪些测试是验收测试。
+
+## Decision
+
+2026-10-31，owner 在 PR #97 的 review 里逐条回答：
+
+- **东西放哪**：按"东西放哪"的五类。实验的测量工具在写 instruction 时定下、做好，开跑前各自开 PR 进 `main`——测已有行为的进 CI，测还没做的行为的以 `it.fails` 进 `main`、由起点分支翻成普通测试；只给评估者看的清单和评审 prompt 不进起点（Q1、Q8）。
+- **起点分支**：主仓库 `main` 的快照加一个实验专用的 commit，是 lab 仓库的默认分支，lab 仓库不推 `main`（Q7）。run 只 push 分支、不开 PR；CI 现在在每次 push 上跑，`main` 也一样。
+- **skill**：一个 `experiment-controller` skill，带 `scripts/` 和 `templates/`（Q2）；`check:clicks` 的流程改写成 e2e，和 skill 同一个 PR。
+- **evals 仓库**：公开（Q3）；答案由一个 Opus subagent 裁决、owner 只复核有分歧的（Q4）；重跑频率另议，记在 quality sweep 的 spike（PR #94）里。
+- **controller**：固定 Opus high（Q6）。
+- **顺序**：按"顺序"一节的 1–10，之后可以调（Q5）。
