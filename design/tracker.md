@@ -105,6 +105,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 
 ### High
 
+- [ ] Mockup hosting and a design-phase workflow — a mockup opens from a link in its PR (no checkout, no sign-in), and UI work splits into a design PR (mockup, then an e2e contract once the design is settled; merged then) and an implementation PR that flips the contract and deletes the mockup. Spike `design/spike/mockup-hosting-design-workflow.md` (round 1 answered: raw.githack for now, split agreed, one mockup name; contract shape and how much to standardize still open)
 - [ ] Milestone — Human readability: what the owner reads every day (PR descriptions, reports, docs) reads quickly and the same way each time
   - [ ] Rewrite the PR template — there is no `.github/pull_request_template.md` yet, so every session writes its description its own way; one template that leads with what changed for the user and what to check, then the details
 - [ ] Milestone — Quality gate before Phase 2: settle the mutation layer and component structure before Phase 2 and Daily rhythm start, so their new pages are built the new way. One sub-bullet per open step of the planner project *Mars Workbench — Phase 2 前的代码质量*, in its order and numbered as there
