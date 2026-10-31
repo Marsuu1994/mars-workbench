@@ -98,6 +98,24 @@ README 放在 `.claude/agents/`，理由有三：
 | 同仓库 › `code-review/commands/code-review.md` | 四个 agent 并行：两个查 CLAUDE.md 遵守（只用和文件同路径的 CLAUDE.md），两个查 bug（只看 diff）；每条 finding 再由另一个 agent 验证；pre-existing、linter 能抓的、吹毛求疵都算误报；不跑 linter 去验证 | 采用：规则按文件类型取、linter 能抓的不报、不跑检查、要有验证一步。**有意不同**：它只看 diff、把 pre-existing 当误报来保 precision；这里把整个被改函数纳入范围，因为这里漏掉的规则问题恰恰在 diff 旁边的旧行里（G1、try2） |
 | `obra/superpowers` › `skills/requesting-code-review/code-reviewer.md` | brief 是「做了什么 + 计划 + base / head SHA」；只读，连 HEAD 都不动，要看别的版本就开 worktree；reviewer 不再派 subagent；列出考虑过但没判的；按严重度分级并给出 merge 结论 | 采用：不动 HEAD、用 worktree；`Rules unclear` 字段相当于它的「没判的」。不采用：先列优点、Ready to merge 结论（这里合并是 owner 的事） |
 
+## Eval strategy
+
+评估分三层，从便宜、可重复到真实、稀少。每一层回答的问题不同，下一层只在上一层过了之后才跑。
+
+| 层 | 数据 | 回答什么 | 成本 |
+| --- | --- | --- | --- |
+| 1 · 受控数据集 | try2 的十个实现：同一个任务（Board / Priorities / Dump 搬到页面结构）、同一个起点 `83ae5a4`、十份各自独立的 diff，scrub 过的评审分支 `experiment/review-R1`–`R10`；每份都有一份 Fable 盲审和一份 20 条清单 | 规则类缺陷的 recall 和 precision；同一个 diff 跑两次的稳定性；不同 reviewer model 之间的比较 | 每份评审约 $4（Fable high 实测），十份一个窗口 |
+| 2 · Golden set | 下一节的 G1–G10：历史里 CI 和 owner 都漏掉、后来才发现的问题 | 藏得深的 bug 和被改函数里的旧问题，抓不抓得到 | 每条一次评审 |
+| 3 · 试用 | 3–5 个真实 PR | 真实的误报率，和它有没有一次挡下 CI 与 owner 都会放过的问题 | 每个 PR 一次评审 |
+
+**第 1 层的做法**
+
+- **答案**：十份盲审里出现两次以上的缺陷算"已知问题"（改名后 AGENTS.md 的旧名、手抄 action 返回类型、页面数据类型的名字和位置、同类写法不一致），加上清单上 git 能判定的条目。reviewer 报的不在已知问题里的，逐条裁决：是真问题就补进答案，不是才算误报。
+- **循环偏差**：已知问题是 Fable 评审给的，它的盲点也在答案里。所以答案取的是所有参评 reviewer 报过、裁决为真的问题的并集，不是只用 Fable 的那份；裁决由 owner 复核。
+- **reviewer model 的比较**（和 Q7、Harness engineering › 2 是同一个问题）：同样的十份 diff，同一份定义，分别用 Fable、Opus、Sonnet、Haiku 跑，比 recall、precision 和每份的花费。想验证的是：规则类的缺陷 Opus 是否已经够，Fable 是否只在藏得深的 bug（第 2 层）上才有优势。
+- **局限**：只有一种任务、十个 diff 彼此很像，规则类缺陷之外覆盖得少；第 1 层过了不说明第 2 层能过。error framework（Harness engineering › 1b）跑完后，它的实现可以当第二个受控数据集，任务形状不同（横切 services、actions、MCP 的 plumbing，而不是逐页改结构）。
+- **reviewer 不装依赖、不跑检查**：CI 已经跑过；try2 的评审自己跑了一遍，其中一份为此多等了 14 min。
+
 ## Golden set（第一版）
 
 挑的是合并时 CI 和 owner 都没拦下、后来才发现的问题。回放时 checkout 引入它的 PR 的 head，按那时 head 上的 AGENTS.md 审；reviewer 报出同一处的同一个问题才算命中。
