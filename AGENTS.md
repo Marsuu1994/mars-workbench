@@ -230,7 +230,7 @@ npm run format:check # Verify formatting (CI)
 npm run check:themes # Every theme declares the same CSS variables (CI)
 npm run check:review-log  # Every owner review on a PR has its entry in reviews/ (CI; GITHUB_REPOSITORY and PR_NUMBER locally)
 npm run check:mockup-links  # Every mockup a PR changes is linked from its description (CI; same env)
-npm run contract:flip <feature>  # e2e/contract/<feature>.spec.ts → plain tests in e2e/features/ (CI names it when a contract passes)
+npm run contract:flip <feature>  # e2e/contract/<feature>.spec.ts → plain tests in e2e/features/ (an implementation PR's first commit)
 npm test             # Unit + integration tests in UTC and Los Angeles time (a local Postgres: test/README.md)
 npm run test:unit    # Unit tests only, no database
 npm run test:coverage  # Everything, failing below the coverage floors (CI)

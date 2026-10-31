@@ -1,6 +1,7 @@
 /**
- * `npm run contract:flip <feature>`: the implementation PR's one mechanical
- * step once a feature's contracts pass (test/README.md › e2e). Rewrites
+ * `npm run contract:flip <feature>`: the implementation PR's first commit,
+ * before any code (test/README.md › e2e) — from then on the feature's tests
+ * fail until the implementation makes them pass. Rewrites
  * `e2e/contract/<feature>.spec.ts` into plain tests, moves it to
  * `e2e/features/` with `git mv`, and formats it.
  */

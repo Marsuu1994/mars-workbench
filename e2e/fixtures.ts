@@ -85,8 +85,9 @@ const ANSI_COLOUR = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, 'g');
  * A contract: behaviour the design settled and the code doesn't have yet
  * (`e2e/contract/`, test/README.md › e2e). It passes while `body` fails at
  * `failsAt` — the assertion the missing behaviour trips — and fails when
- * `body` fails anywhere else, or passes: then the behaviour has landed, and
- * the error names the command that turns the file into plain tests.
+ * `body` fails anywhere else, or passes: the implementation PR flips its
+ * contract to plain tests before building, so a passing contract means that
+ * step was skipped.
  *
  * @public Used by e2e/contract/ specs, which exist only between a design PR
  * and its implementation.
@@ -109,7 +110,7 @@ export const contractTest = (
     if (failure === undefined) {
       const feature = basename(specPath, '.spec.ts');
       throw new Error(
-        `Contract passes (${specPath}): the behaviour has landed. Run npm run contract:flip ${feature} and commit.`,
+        `Contract passes (${specPath}), so the behaviour was built without flipping its contract first. Run npm run contract:flip ${feature} and commit.`,
       );
     }
     const message = (

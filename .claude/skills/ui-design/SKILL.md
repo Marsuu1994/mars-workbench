@@ -19,6 +19,6 @@ New UI lands in two PRs. The rules each step follows live in the docs this skill
 
 A new branch from `main` after the design PR merged — never stacked on it.
 
-1. Build the UI exactly as the mockup draws it (AGENTS.md › UI Workflow), with the scenario pages and gallery entries.
-2. When the contract passes, CI goes red with `Run npm run contract:flip <feature>`. Run exactly that, commit, push. Don't edit the contract by hand: if a contract is wrong, the design changed, and that goes back to the owner.
+1. **Flip first.** Before any code, run `npm run contract:flip <feature>` and commit it alone. The feature's tests now live in `e2e/features/` and fail; they are the definition of done.
+2. Build the UI exactly as the mockup draws it (AGENTS.md › UI Workflow), with the scenario pages and gallery entries, until `npx playwright test e2e/features/<feature>.spec.ts` passes. Don't edit those tests to make them pass: a test that is wrong means the design changed, and that goes back to the owner.
 3. Delete the mockup and the tracker item; the Design Console is the source of truth from here.
