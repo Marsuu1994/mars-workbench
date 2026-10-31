@@ -11,9 +11,11 @@
   - 主仓库：`experiments/`（instruction、report、规则）和 `.claude/skills/experiment-controller/`（controller 的 SOP 和所有通用脚本）；对日常开发也有用的检查进 `e2e/` 或 `scripts/`。
   - lab 仓库（一个 try 一个）：起点分支、run 分支、review 分支、controller 分支（这一轮填好的协议、log、数据、所用 skill 的快照）。
   - evals 仓库（一个，跨 try）：每个任务一个 case——起点、实现、裁决过的答案、检查。
-- **`check:clicks` 的答案**：它不是 controller 的工具，是 run 在起点上必须用的测量工具（三页 16 项点击检查），所以放在了起点分支。它覆盖了 e2e 没有的流程（popover 的 Done / Undo、键盘拖动、象限 Add、手机 sheet、Dump 的连续捕获和翻页），建议改写成 e2e spec 进主仓库（Q1）。
+- **`check:clicks` 的答案**：它不是 controller 的工具，是 run 在起点上必须用的测量工具（三页 16 项点击检查），所以放在了起点分支。它覆盖了 e2e 没有的流程（popover 的 Done / Undo、键盘拖动、象限 Add、手机 sheet、Dump 的连续捕获和翻页），改写成 e2e spec 进主仓库的 CI（Q1，已定）。
+- **实验专用的测量工具在写 instruction 时就定下、做好，开跑前进 `main`**（owner，2026-10-31）：测已有行为的检查直接进 CI；测还没做的行为的验收测试以 `it.fails` 进 `main`，实验开始时起点分支把它们翻成普通测试，run 看到的红 CI 就是 spec 的一部分。这样 controller 只做编排，起点就是 `main` 的快照加一个实验专用的 commit。
+- **run 不开 PR**（owner，2026-10-31）：run 只 push 分支，CI 在 push 上跑；评审和检查都在分支上做，lab 仓库不再出现一批与主仓库无关的 PR。
 - **执行顺序**（详见"顺序"）：这份 spike → skill 和通用脚本 → evals 仓库和 page-structure case → reviewer model（3）→ implementer model（2）→ 规则落地 → 规则管不管用（4）→ error framework（1b）→ sweep model（5）。
-- **要 owner 回答**：Q1–Q7。
+- **要 owner 回答**：Q2–Q7（Q1、Q8 已答）。
 
 ## 起因
 
@@ -44,12 +46,15 @@
 | --- | --- | --- | --- |
 | 1 · 实验的结论和规则 | 每个 try 的 instruction 和 report；`experiments/AGENTS.md`、README | 主仓库 `experiments/` | 给人看的结论要和代码放在一起；体积小 |
 | 2 · controller 的 SOP 和通用工具 | 预算规则、阶段排法、brief 模板；建 review 分支、scrub、行为检查批跑、session 用量、transcript 指标、清单的机械部分、评审收集、窗口预算 | 主仓库 `.claude/skills/experiment-controller/`（`SKILL.md` + `scripts/` + `templates/`） | 每一轮都用，要版本化；只在 owner 点名时加载（`disable-model-invocation`），平时不占 context；起点分支删掉它，run 和评审看不到 |
-| 3 · 对日常开发也有用的检查 | `check:clicks` 覆盖的流程 | 主仓库 `e2e/`（Q1） | 进了 CI，每个 PR 都受益；实验直接用 `npm run test:e2e`，不用再在起点上加工具 |
-| 4 · 只属于一个 try 的东西 | 起点分支（含实验专用的设置，比如 `effortLevel`）、run 分支、review 分支、填好的协议、controller log、原始数据、所用 skill 的快照 | 这个 try 的 lab 仓库 | 一个 try 一个仓库，别的 try 的材料不会进 context；跑完归档，原始测量留在那里 |
+| 3 · 实验的测量工具：测已有行为 | `check:clicks` 覆盖的流程（回归保护） | 写 instruction 时定下、做好，开跑前单独进主仓库 `e2e/` 或单测，进 CI | 你和 instruction 一起审过才开跑；进了 CI，每个 PR 都受益；实验直接用 `npm run test:e2e` |
+| 3′ · 实验的测量工具：测还没做的行为 | error framework 的错误路径测试（验收） | 写 instruction 时写好，以 `it.fails` 进主仓库（CI 记为预期失败，保持绿）；实验开始时起点分支把它们翻成普通测试 | CI 就是基准：做之前是已知失败，做完是通过；run 看到的红 CI 就是 spec；跑完后同一批测试就是 evals case 的检查 |
+| 3″ · 只给评估者看的东西 | 20 条清单、评审 prompt | 写 instruction 时定下，放 skill 的模板或 controller 分支 | 绝不进起点：run 看见了就成了 spec，量的就不是能不能照 spike 做对 |
+| 4 · 只属于一个 try 的东西 | 起点分支（`main` 的快照加一个实验专用的 commit：删 `experiments/` 和 skill、加 `effortLevel`、把验收测试从 `it.fails` 翻成普通测试、让 CI 在 run 分支的 push 上跑）、run 分支、review 分支、填好的协议、controller log、原始数据、所用 skill 的快照 | 这个 try 的 lab 仓库 | 一个 try 一个仓库，别的 try 的材料不会进 context；跑完归档，原始测量留在那里 |
 | 5 · 要反复跑的数据集 | 一个任务的起点、实现、裁决过的答案、任务专属的检查 | evals 仓库 `mars-workbench-evals` | 比单个 try 活得久，被后来的实验（reviewer model、implementer model、规则管不管用）反复用 |
 
 - **skill 的快照**：controller 开工时把当时的 skill 原样拷进 controller 分支的 `skill/`，记录这一轮用的是哪个版本；之后改 skill 只改主仓库。起点分支永远不带 skill。
-- **实验专用的设置**（`effortLevel`、实验用的 `.gitignore` 行）只在起点分支上；对主仓库有用的修正（PlayRunner）单独开 PR 进 `main`，不随实验走。
+- **实验专用的设置**（`effortLevel`、CI 的 push 触发）只在起点分支上；对主仓库有用的修正（PlayRunner、`.gitignore` 的 worktree 行）和测量工具一样，开跑前单独开 PR 进 `main`，不随实验走。
+- **controller 不写代码**：准备阶段只建仓库和分支、做那一个实验专用的 commit、填 prompt。这一轮准备花了 16 min，一半在调 PlayRunner 的修正；工具提前进 `main` 之后，这段时间和风险都移到写 instruction 时，由 owner 一起审。
 
 ## 通用工具清单
 
@@ -72,9 +77,9 @@ skill 的 `scripts/` 第一版。前五个从 lab 仓库的 `tools/` 搬来、�
 
 把这一轮学到的写成固定流程，进 skill 的 `SKILL.md`：
 
-1. **写 instruction**（主仓库 `experiments/<question>/tryN/instruction.md`，按模板，含"预算和角色"）；owner 批准。
-2. **准备**：owner 建 lab 仓库 `mars-workbench-lab-<try>` 并装 App；controller `add_repo`、建起点分支（从 evals case 的起点或 `main`；删掉 `experiments/` 和 skill；加实验专用设置）、`fill-prompts`、把 skill 快照放进 controller 分支。
-3. **跑**：owner 在满窗口时开始；所有 run 一次全起。
+1. **写 instruction**（主仓库 `experiments/<question>/tryN/instruction.md`，按模板，含"预算和角色"），同时定下并做好这个实验专用的测量工具：测已有行为的进 CI，测还没做的行为的以 `it.fails` 进 `main`，只给评估者看的放模板；它们各自开 PR 进 `main`，owner 和 instruction 一起批准。
+2. **准备**：owner 建 lab 仓库 `mars-workbench-lab-<try>` 并装 App；controller 只做编排——`add_repo`；从 `main`（或 evals case 的起点）建起点分支，加一个实验专用的 commit（删掉 `experiments/` 和 skill、加 `effortLevel`、把验收测试从 `it.fails` 翻成普通测试、CI 加上 run 分支的 push 触发）；`fill-prompts`；把 skill 快照放进 controller 分支。不写新工具。
+3. **跑**：owner 在满窗口时开始；所有 run 一次全起。run 只 push 自己的分支、不开 PR，结束条件是分支 head 上 CI 全绿；时间指标从"PR 开出"改成"最后一次 push"。
 4. **等窗口**：run 全部结束后，controller 的 context 超过约 200k 就 compact，在 `resetsAt` 后两分钟设一次性唤醒。
 5. **评审**：重置后先看 `rate_limit_info`，所有评审一次全起（每个候选一个，最多十个），这时不起别的。
 6. **收数据**：脚本先跑完所有机械的部分；判断类的 subagent 按 `window-budget` 分批，每批前再看一次状态。
@@ -120,10 +125,11 @@ mars-workbench-evals/
 
 ## 开放问题
 
-1. **`check:clicks` 的流程**：(a) 改写成 e2e spec 进主仓库（推荐：日常 CI 也覆盖 popover 的 Done / Undo、键盘拖动、象限 Add、手机 sheet、Dump 的连续捕获和翻页，e2e 大约多 1 分钟）；(b) 原样作为 `scripts/` 里的检查进主仓库，不进 CI；(c) 只作为 page-structure case 的任务专属检查留在 evals 仓库。
+1. ✓ **`check:clicks` 的流程**（owner，2026-10-31：(a)，而且推广成规则——实验的测量工具能进 CI 就进 CI）：(a) 改写成 e2e spec 进主仓库（日常 CI 也覆盖 popover 的 Done / Undo、键盘拖动、象限 Add、手机 sheet、Dump 的连续捕获和翻页，e2e 大约多 1 分钟）；(b) 原样作为 `scripts/` 里的检查进主仓库，不进 CI；(c) 只作为 page-structure case 的任务专属检查留在 evals 仓库。
 2. **skill 的形状**：一个 `experiment-controller` skill 带 `scripts/`（推荐），还是把脚本放主仓库 `scripts/experiments/`、skill 只放 SOP？前者整体随 skill 加载和拷贝；后者脚本对 knip、lint 可见，需要排除规则。
 3. **evals 仓库的可见性**：和 lab 仓库一样公开，还是私有？
 4. **答案的裁决**：Opus subagent 裁决、owner 复核（推荐），还是 owner 亲自过一遍候选清单？page-structure 的候选大约 30–40 条。
 5. **顺序**：上表的 1–10 行不行？特别是 5 在 6 前面、7 可以随时插进来。
 6. **controller 的 model**：固定 Opus high（这一轮实测够用），还是每个实验在 instruction 里定？
 7. **lab 仓库的默认分支**：B4 的三个 worktree 建在 lab 仓库的 `main` 而不是起点上。下一次把 lab 仓库的默认分支设成起点分支，还是在 workflow prompt 里写明 worktree 要从当前 HEAD 建？
+8. ✓ **验收测试让不让 run 看见**（owner，2026-10-31）：看见。它们以 `it.fails` 留在 `main`，实验开始时起点分支把它们翻成普通测试，红 CI 就是 spec 的一部分；只给评估者看的清单和评审 prompt 照旧对 run 隐藏。每个实验的 instruction 写明哪些测试是验收测试。
