@@ -1,6 +1,6 @@
 # Spike: code-reviewer subagent — 怎么量 review 的质量
 
-**Status: awaiting owner review** · 2026-10-23 · 回答 tracker 条目 *Quality gate › Step 14 — Code review agent*· 相关：`design/spike/archived/subagent-delegation-pilot.md`（三个 agent 的分工，decided）· 草案：`.claude/agents/code-reviewer.md`
+**Status: awaiting owner review** · 2026-10-23 · 回答 tracker 条目 *Harness engineering › 3 · Code review agent*（Quality gate › Step 14 指向它）· 相关：`design/spike/archived/subagent-delegation-pilot.md`（三个 agent 的分工，decided）· 草案：`.claude/agents/code-reviewer.md`
 
 > 语言说明：正文中文；product 名词、状态和代码标识符保留英文（subagent / diff / finding / `ensureSynced` / `code-reviewer`），与代码和 tracker 一一对应。
 
