@@ -29,8 +29,9 @@ prisma/                            # schema.prisma + migrations/
 supabase/                          # Local Supabase stack config (Postgres + Auth in Docker)
 scripts/                           # Repo checks run in CI; the local stack's setup, seed, and dev and e2e sessions
 test/                              # Test helpers and conventions (README); unit and integration tests sit next to their modules
-e2e/                               # Playwright specs
+e2e/                               # Playwright specs; contract/ = designed, not built yet (test/README.md)
 .claude/agents/                    # Claude Code subagents: ui-verifier, test-writer, ci-fixer (Workflow › Subagents)
+.claude/skills/                    # Claude Code skills: ui-design (UI Workflow)
 design/                            # Design docs — index in design/README.md
 ├── baseline.md                    # The one app-wide baseline: goal, entities, schema, architecture decisions
 ├── design-language/               # Per-theme visual specs + the shared fx-* skeleton
@@ -117,7 +118,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 - **The Design Console is the source of truth for implemented UI.** `/design` renders the real components: a gallery tabbed by layer (`ui/` · `application/` · `domain/`) and per-feature scenario pages (`/design/scenarios/<feature>/`) with pinned fixture states. `npm run dev` serves it without signing in (`src/app/design/README.md` › Local access).
 - **Verification is CI's and the owner's; a browser check is the exception.** CI runs the unit, integration and e2e tests — every page, every Design Console tab, the key journeys — on every PR, and the owner accepts UI on the Vercel preview. Logic, data and MCP changes are verified by `npm test`, style and copy changes by CI and the owner. A layout change (wrapping, overflow, breakpoints, overlay stacking), a new or changed scenario tab or play step, or the owner's request gets one browser check, delegated to the `ui-verifier` subagent with a brief — what changed, the scenario tabs, each check as a sentence — so screenshots and scripts stay out of the main context; read its verdict, and open a screenshot only when it says UNSURE. A bug seen only on a device (iOS / WebKit, the PWA): ask the owner for a screenshot or recording before trying headless Chromium.
 - **Production first, the console adapts.** Components are shaped by what production needs. A production component never carries a prop, branch or comment that only the console uses, and nothing is split or restructured so the console can show it: the console reaches a state the way a user would, or skips it. Bad: `initialUndoToastTaskId` on `PrioritiesPage`. Good: a scenario tab's `play` step clicking the real control.
-- **New UI starts as a mockup.** A design that isn't built yet is drawn as a self-contained HTML mockup in `design/mockup/`; get the owner's approval before code changes.
+- **New UI starts with a design PR.** A design that isn't built yet is drawn as a self-contained HTML mockup in `design/mockup/`, reviewed by the owner on its PR and pinned by an e2e contract; that PR merges with no component code, and an implementation PR follows from `main` (`design/README.md` › Mockups; the `ui-design` skill walks both).
 - **Build it exactly, then sync the console.** Implement the approved mockup exactly (layout, spacing, text, colors, icons, states); if something can't be built as-is, raise it and update the mockup first. As the UI lands, add or update the feature's scenario page and gallery entries so the pinned states match production. Once the design is fully implemented, delete its mockup: from then on the Design Console is the source of truth. A scenario that no longer matches production is a bug.
 
 ## Documentation Style
@@ -207,7 +208,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 - **Local sessions** (on the owner's machine): never commit, push or take another outward-facing VCS action without explicit permission — make and stage the changes, summarize them, and wait for approval.
 - **Remote sessions** (cloud containers such as Claude Code on the web): commit, push with `git push -u origin <branch>` and open the PR without asking, then subscribe to its activity (`subscribe_pr_activity`) and see it through until it merges or closes: red CI and review comments are the session's to fix.
 - Never commit or push to `main`; changes land through pull requests.
-- **One task, one branch, one PR.** Everything a session's task produces — its spike, the decision, the implementation, the docs and any follow-ups the owner adds along the way — goes on one branch into one PR. A second branch or PR only when the owner asks for one. Bad: a spike PR plus a stacked implementation PR from the same session. Good: the spike, its Decision and the code it decided, all in one PR.
+- **One task, one branch, one PR.** Everything a session's task produces — its spike, the decision, the implementation, the docs and any follow-ups the owner adds along the way — goes on one branch into one PR. A second branch or PR only when the owner asks for one. The one standing exception is new UI: its design PR and its implementation PR (UI Workflow). Bad: a spike PR plus a stacked implementation PR from the same session. Good: the spike, its Decision and the code it decided, all in one PR.
 - **Branch names say what the PR does**: `claude/<feature>-<change>`, kebab-case, a few words, with the step for a multi-PR project. A remote session whose assigned branch is a random name creates a descriptive branch instead. Bad: `claude/quirky-galileo-8ofthc`, `claude/project-data-layer`. Good: `claude/week-model-pr3-project-data-layer`.
 - **Before every push**:
   1. `design/tracker.md`: delete finished items and sub-bullets.
@@ -228,6 +229,8 @@ npm run format       # Format all code with Prettier
 npm run format:check # Verify formatting (CI)
 npm run check:themes # Every theme declares the same CSS variables (CI)
 npm run check:review-log  # Every owner review on a PR has its entry in reviews/ (CI; GITHUB_REPOSITORY and PR_NUMBER locally)
+npm run check:mockup-links  # Every mockup a PR changes is linked from its description (CI; same env)
+npm run contract:flip <feature>  # e2e/contract/<feature>.spec.ts → plain tests in e2e/features/ (CI names it when a contract passes)
 npm test             # Unit + integration tests in UTC and Los Angeles time (a local Postgres: test/README.md)
 npm run test:unit    # Unit tests only, no database
 npm run test:coverage  # Everything, failing below the coverage floors (CI)

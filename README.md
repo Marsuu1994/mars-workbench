@@ -15,7 +15,7 @@ One command from a fresh checkout and every day after: it skips what is already 
 - **Sign in with Google**: copy `supabase/.env.example` to `supabase/.env` and fill in the Google OAuth client's id and secret (its authorized redirect URIs include `http://127.0.0.1:54321/auth/v1/callback`), then `npm run db:stop && npm run db:setup`. To land on the seeded data, uncomment `SEED_EMAIL` in `.env.local` and set it to your Gmail, then `npm run db:reset` and sign in again. The reset also removes the separate, empty user an earlier Google sign-in created, and the seed prints the address it used.
 - **Without Google** (scripts, agents, Playwright): `npm run dev:session` signs in as the seeded dev user and writes its cookies.
 - **Day to day**: `npm run up`; `npm run db:stop` stops the stack (data kept), `npm run db:reset` wipes and reseeds, `npm run setup` does everything but the dev server. `npx prisma migrate dev` works against the stack.
-- **Tests**: `npm test` runs the unit and integration tests (it needs a local Postgres: the stack, or `TEST_DATABASE_URL`), `npm run test:e2e` the Playwright suite as a separate e2e user, reusing a running dev server. Conventions in [test/README.md](./test/README.md).
+- **Tests**: `npm test` runs the unit and integration tests (it needs a local Postgres: the stack, or `TEST_DATABASE_URL`), `npm run test:e2e` the Playwright suite as a separate e2e user, reusing a running dev server; `e2e/contract/` holds the contracts of designed UI not built yet. Conventions in [test/README.md](./test/README.md).
 - **Production**: its credentials live only in `.env.prod`. Once a migration is merged, `npm run db:deploy:prod` applies it.
 
 ## Docs

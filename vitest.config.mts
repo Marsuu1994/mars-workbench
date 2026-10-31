@@ -6,7 +6,7 @@ import {defineConfig} from 'vitest/config';
  */
 const TIME_ZONES = {utc: 'UTC', la: 'America/Los_Angeles'};
 
-const UNIT_TESTS = 'src/**/*.test.ts';
+const UNIT_TESTS = ['src/**/*.test.ts', 'scripts/**/*.test.ts'];
 const INTEGRATION_TESTS = 'src/**/*.int.test.ts';
 
 export default defineConfig({
@@ -17,7 +17,7 @@ export default defineConfig({
         extends: true,
         test: {
           name: `unit-${suffix}`,
-          include: [UNIT_TESTS],
+          include: UNIT_TESTS,
           exclude: [INTEGRATION_TESTS],
           env: {TZ: timeZone},
         },

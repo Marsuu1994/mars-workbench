@@ -17,6 +17,8 @@
     "format:check": "prettier --check .",
     "check:themes": "node scripts/check-theme-vars.mjs",
     "check:review-log": "node scripts/check-review-log.mjs",
+    "check:mockup-links": "node scripts/check-mockup-links.mjs",
+    "contract:flip": "tsx scripts/flipContract.ts",
     "test": "vitest run",
     "test:unit": "vitest run --project 'unit-*'",
     "test:coverage": "vitest run --coverage",

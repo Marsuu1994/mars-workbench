@@ -1,10 +1,25 @@
 # Spike: Mockup hosting and the design-phase workflow
 
-**Status: awaiting owner review** · 2026-10-31 · 回答 tracker 条目 *Mockup hosting and a design-phase workflow*（Cross-cutting › High）· 基于 main `3b0a15c`，起因是 PR #100（backlog stacking 的 mockup）· 相关：`design/README.md` › Mockups、AGENTS.md › UI Workflow 和 Version Control、`test/README.md`、`src/proxy.ts`、`e2e/fixtures.ts`
+**Status: decided** · 2026-10-31（三轮 owner review：PR #100、PR #102） · 回答 tracker 条目 *Mockup hosting and a design-phase workflow*（Cross-cutting › High）· 基于 main `3b0a15c`，起因是 PR #100（backlog stacking 的 mockup）· 相关：`design/README.md` › Mockups、AGENTS.md › UI Workflow 和 Version Control、`test/README.md`、`src/proxy.ts`、`e2e/fixtures.ts`
 
 > 语言约定：叙述用中文；产品名词、工具名、URL、命令和代码标识保留英文（mockup、preview、Deployment Protection、`test.fail`、`src/proxy.ts`），和代码、tracker 一一对应。
 
 这份 spike 分五部分：起因；mockup 怎么 host（四个方案，附本次实测）；Vercel preview URL 能不能事先确定；design phase / implementation phase 的标准化流程；待 owner 决定的问题。
+
+## Decision · 拍板（2026-10-31）
+
+owner 在 PR #100（第 1 轮）和 PR #102（第 2、3 轮）上逐条回复了 Q1–Q10。
+
+| 问题 | 结论 | 带来的变化 |
+| --- | --- | --- |
+| Q1–Q3 · Hosting | **C**：先用 `raw.githack.com` 看效果；B（app 上的 `/mockups` route）搁置，Q2、Q3 随之不适用 | `design/README.md` › Mockups 写 link 格式 |
+| Q4 · 两个 PR | **拆**：design PR（mockup → review → contract，定稿即 merge）+ implementation PR（从 `main` 开，不 stack） | AGENTS.md › UI Workflow 和 *One task, one branch, one PR* 的例外 |
+| Q5 · 命名 | **一个名字用到底**：`mockup-<area>.html`，不再 `temp-` → `mockup-` | `design/README.md` › Mockups |
+| Q6 · Contract | **(a) `contractTest(title, failsAt, body)`**，放 `e2e/contract/<feature>.spec.ts`，e2e 文档写明那里是还没实现的行为 | `e2e/fixtures.ts`、`test/README.md` › e2e |
+| Q7 · 标准化 | **skill + CI check**：PR 改了 mockup 却没在 description 里链接时 check 变红 | `.claude/skills/ui-design/`、Mockup links workflow |
+| Q8 · PR #100 | spike 拆到 PR #102；PR #100 只留 mockup，等这份 spike 定下来再回去 | — |
+| Q9 · 翻转触发 | **(i) CI 报错带命令**：contract 通过时报 `Run npm run contract:flip <feature>`；owner 加了一条：**`contract` project 每次最先跑，fail fast** | `contract:flip` codemod；Playwright 里其余 project 都依赖 `contract` |
+| Q10 · skill 触发 | **自动触发**：不设 `disable-model-invocation`，description 写清何时用 | 同 Q7 |
 
 **第 1 轮 review 之后**（2026-10-31，PR #100 上）：hosting 先用方案 C 看效果，B 暂不做；design PR / implementation PR 拆开；mockup 一个名字用到底（`design/README.md` 已改）。第 2 轮（PR #102 上）：Q6 选 (a)，contract 放 `e2e/contract/`，翻转要做成机械动作（见 *Contract 的翻转*）；Q7 采用 CI check，skill 要能自动触发。还开着 Q9、Q10，见文末。
 
@@ -187,5 +202,5 @@ owner 的两个要求：contract 放 `e2e/contract/` 下，e2e 的文档写明�
 6. ~~**Contract 的失败原因**~~ → **(a) `contractTest`**，放 `e2e/contract/`，翻转做成机械动作（见 *Contract 的翻转*）。
 7. ~~**标准化程度**~~ → **CI check 采用**；skill 要自动触发（默认就是，见 *自动化的程度*）。
 8. ~~**PR #100 怎么办**~~ → spike 拆到自己的 PR；PR #100 先去掉 e2e contract，按新流程 mockup 定稿后再写，等这份 spike 定下来再回去。
-9. **翻转由谁触发**：(i) CI 报错带命令（推荐）、(ii) CI 自动 commit、(iii) Claude Code hook，还是 (iv) git pre-push hook？
-10. **`ui-design` skill 自动触发**：按上面的写法（不设 `disable-model-invocation`，description 写清"新增或修改 UI 时用"）可以吗？
+9. ~~**翻转由谁触发**~~ → **(i) CI 报错带命令**，`contract` project 最先跑、fail fast。
+10. ~~**`ui-design` skill 自动触发**~~ → 可以。
