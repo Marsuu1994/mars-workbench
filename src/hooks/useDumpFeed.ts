@@ -7,6 +7,7 @@ import {
   fetchDumpEntriesAction,
 } from '@/actions/dumpActions';
 import type {DumpEntryItem} from '@/lib/db/dumpEntries';
+import type {DumpFeedPage} from '@/types/dump';
 
 type ActionError = {
   formErrors: string[];
@@ -31,9 +32,7 @@ function extractError(error: ActionError | unknown, fallback: string): string {
 let tempCounter = 0;
 const nextTempId = () => `temp-${++tempCounter}`;
 
-interface DumpFeedInit {
-  entries: DumpEntryItem[];
-  nextCursor: string | null;
+interface DumpFeedInit extends DumpFeedPage {
   totalCount: number;
 }
 

@@ -6,7 +6,7 @@ import {
   SIZE_TO_POINTS,
 } from '@/utils/enums';
 import type {TaskItem} from '@/lib/db/tasks';
-import type {MatrixActivePlan} from '@/services/matrixService';
+import type {MatrixActivePlan} from '@/types/priorities';
 
 /* Priorities scenario fixtures — the real matrix page fed a populated
    Eisenhower spread with a couple of tracked (on-board) tasks. */

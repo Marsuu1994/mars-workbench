@@ -3,7 +3,8 @@
  * the server action's paging, and the composer/feed UI (textarea maxLength,
  * skeletons, day grouping).
  */
-import type {DumpFeedPage, DumpPageData} from '@/types/dump';
+import type {fetchDumpEntriesAction} from '@/actions/dumpActions';
+import type {DumpPageData} from '@/types/dump';
 import {
   KANBAN_TZ,
   formatDayLabel,
@@ -91,12 +92,11 @@ export function groupEntriesByDay<T extends {createdAt: Date}>(
  * types stay honest.
  */
 export function toDumpPageProps(
-  feed: {data: DumpFeedPage} | {error: unknown},
+  feed: Awaited<ReturnType<typeof fetchDumpEntriesAction>>,
   totalCount: number,
   today: Date,
 ): DumpPageData {
-  const {entries, nextCursor} =
-    'data' in feed ? feed.data : {entries: [], nextCursor: null};
+  const {entries, nextCursor} = feed.data ?? {entries: [], nextCursor: null};
   return {
     periodKey: getISOWeekKey(today),
     initialEntries: entries,

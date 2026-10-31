@@ -1,4 +1,14 @@
-import type {MatrixData} from '@/services/matrixService';
+import type {TaskItem} from '@/lib/db/tasks';
+
+export type MatrixActivePlan = {id: string; periodKey: string};
+
+/** What the server shapes for the matrix, before the page adds its week. */
+export type MatrixData = {
+  /** All of the user's non-DONE AD_HOC tasks — unassigned and tracked alike. */
+  tasks: TaskItem[];
+  /** Current-week ACTIVE plan, or null (drives the no-plan state). */
+  activePlan: MatrixActivePlan | null;
+};
 
 /**
  * What the Priorities page takes: the matrix as the server shapes it — the

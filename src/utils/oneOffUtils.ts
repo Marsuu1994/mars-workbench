@@ -2,7 +2,7 @@ import type {MatrixTaskRow, TaskItem} from '@/lib/db/tasks';
 import type {CreateAdhocTaskInput} from '../schemas';
 import type {OneOffTaskSummary} from '../types/plan';
 import type {PrioritiesPageData} from '../types/priorities';
-import type {MatrixData} from '@/services/matrixService';
+import type {MatrixData} from '@/types/priorities';
 import {PriorityQuadrant, TaskStatus} from './enums';
 import {formatKanbanISODate, getISOWeekKey} from './dateUtils';
 import {sizeToPoints} from './sizeUtils';

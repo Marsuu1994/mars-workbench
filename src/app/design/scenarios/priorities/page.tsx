@@ -1,6 +1,6 @@
 import {PriorityQuadrant} from '@/utils/enums';
 import type {TaskItem} from '@/lib/db/tasks';
-import type {MatrixActivePlan} from '@/services/matrixService';
+import type {MatrixActivePlan} from '@/types/priorities';
 import {toPrioritiesPageProps} from '@/utils/oneOffUtils';
 import {PrioritiesPage} from '@/components/domain/priorities/PrioritiesPage';
 import {ScenarioTabs, type ScenarioTab} from '../ScenarioTabs';

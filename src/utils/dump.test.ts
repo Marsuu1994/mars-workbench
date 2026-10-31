@@ -83,7 +83,13 @@ describe('toDumpPageProps', () => {
   });
 
   it('falls back to an empty feed when the first page fails', () => {
-    expect(toDumpPageProps({error: 'invalid'}, 0, sunday)).toMatchObject({
+    expect(
+      toDumpPageProps(
+        {error: {formErrors: ['invalid'], fieldErrors: {}}},
+        0,
+        sunday,
+      ),
+    ).toMatchObject({
       initialEntries: [],
       initialNextCursor: null,
     });

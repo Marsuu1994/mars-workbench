@@ -1,6 +1,6 @@
 # Experiment: 串行 vs 并行改三页（component-structure spike 的 Q9）
 
-**Status: decided，待执行** · 2026-10-26 · 是 `component-structure.md` 的延伸，回答它的 Q9 · tracker：Milestone — Quality gate › Step 10 › Page structure for the other pages
+**Status: executed（try1 2026-10-26、try2 2026-10-27；报告在 `experiments/page-structure-parallel/`）** · 2026-10-26 · 是 `component-structure.md` 的延伸，回答它的 Q9 · tracker：Milestone — Quality gate › Step 10 › Page structure for the other pages
 
 > 语言约定：叙述用中文；产品名词、状态、代码标识保留英文。给子 session 的 prompt 用英文。
 
