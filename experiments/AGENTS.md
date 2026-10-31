@@ -10,7 +10,7 @@ Rules for writing, running and reporting a try. `README.md` here is the overview
 4. The instruction follows the template below, has a 预算和角色 section, and is approved by the owner before anything runs.
 5. The report follows the template below, conclusion first; its appendix says where each number lives in the lab repository.
 6. When the report is written, decide whether the try's implementations become a case in the evals repository (`mars-workbench-evals`): only when they caught real problems, meaning defects CI missed that adjudication confirms. A case holds the task, the base ref, each implementation with how it was produced, the adjudicated ground truth and the checks. The lab repository stays the source and is archived as usual.
-7. A case reruns whenever a rule, model or agent definition it measures changes. A defect class it has stopped finding (about 1 run in 100) moves to a monthly run; a case whose classes have all stopped is archived.
+7. *(Future: once the evals repository and its first case exist.)* A case reruns whenever a rule, model or agent definition it measures changes. A defect class it has stopped finding (about 1 run in 100) moves to a monthly run; a case whose classes have all stopped is archived.
 
 Running a try as its controller: the controller notes are on the lab repository's controller branch (`protocol/controller-notes.md`) until they become a skill (tracker › Harness engineering › Setup).
 

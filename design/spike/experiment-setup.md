@@ -106,8 +106,8 @@ mars-workbench-evals/
 | # | 做什么 | 谁 | 依赖 | 产出 |
 | --- | --- | --- | --- | --- |
 | 1 | 这份 spike 定下来 | owner 回答 Q1–Q7 | — | Decision |
-| 2 | `experiment-controller` skill：`SKILL.md`（上面的流程）、`scripts/`（通用工具清单）、`templates/`（brief、评审 prompt、instruction 骨架）；`experiments/AGENTS.md` 改成指向 skill | 一个 PR | 1 | skill 进主仓库 |
-| 3 | `check:clicks` 的流程按 Q1 处理（改写成 e2e spec 时是一个单独的 PR） | 一个 PR | 1 | e2e 覆盖三页的写入流程 |
+| 2 | `experiment-controller` skill：`SKILL.md`（上面的流程）、`scripts/`（通用工具清单）、`templates/`（brief、评审 prompt、instruction 骨架）；`experiments/AGENTS.md` 改成指向 skill | 一个 PR（和 3 一起） | 1 | skill 进主仓库 |
+| 3 | `check:clicks` 的流程按 Q1 处理，和 2 放在同一个 PR | 同 2 | 1 | e2e 覆盖三页的写入流程 |
 | 4 | evals 仓库：owner 建仓装 App；controller 建 page-structure case（16 个实现、裁决过的答案、清单） | owner + 一个 session | 2 | case v1 |
 | 5 | reviewer model（Harness › 3 的测量）：十个 try2 diff 用 Opus、Sonnet 审（站得住再加 Haiku），和已有的 Fable 比；同时是 PR #82 的 Round 1 | 一个实验 | 4 | 选定 reviewer；code review agent 的去留 |
 | 6 | implementer model 和 effort（Harness › 2）：Opus low / medium、Sonnet、Haiku 各 3–5 个 run，对照是 try2 的五个 A；质量用 5 选出的 reviewer 判 | 一个实验 | 5 | 实现阶段的默认 model 和 effort |
