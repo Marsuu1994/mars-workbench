@@ -27,6 +27,24 @@
   GitHub 上没有 review bot，PR 上也没有 review thread（查了 #62、#79：只有 Vercel bot 和 session 自己的说明）。所以 lint 管不到的那部分规则，靠的是 main session 的注意力，和 owner 有没有看到。
 - **Context rot 在这里是真的**：pilot 第 3 轮的 main baseline 是 112k–207k。AGENTS.md 在 context 最前面，越往后越被稀释；写代码的 session 也已经认同了自己的写法。
 
+## 来自 page-structure 实验的证据（2026-10-31）
+
+`experiments/page-structure-parallel/` 的两轮一共有 16 份盲审（Fable，try1 六份、try2 十份），审的是同一个三页重构的 16 个实现（报告：`try2/report.md`）。它们不是为这份 spike 做的，但正好回答了一部分 H2，也说明了 reviewer 该产出什么。
+
+- **分数没用，缺陷清单有用。** 16 份的 correctness 全是 5，总分挤在 26–29 / 30；分数几乎只反映 spike 归没归档。真正有信息的是缺陷清单：十个实现里反复出现的问题全部来自它。
+- **反复出现的缺陷正是 CI 抓不到、owner 也没揪到的那一类（H2）。** CI 十个都第一次就绿，行为检查十个都 16 / 16，但：
+  - 改名之后 AGENTS.md 的 Bad 例子还写着旧组件名：10 / 10；
+  - 手抄 server action 的返回类型，不从 action 推导：10 份盲审里 7 份；
+  - 页面数据类型的名字（`*PageData` / `*PageProps`）、位置（`types/` / `utils/`）和依赖方向（`types/`、`utils/` 引用 `services/` 的类型）各做各的：10 / 10 至少有一种；
+  - 同类写法不一致（箭头函数和 function 声明、class 顺序）：8 / 10。
+- **这些在 `main` 上本来就有。** 全仓库没有一处从 action 推导返回类型；`MatrixData`、`PlanFormData`、`EmptyBoardState` 都定义在 `src/services/`；`src/utils/` 的导出函数 37 个 function 声明对 15 个 `const` 箭头。实现者照着仓库已有的写法做，已有的不一致就被一份份复制下去。一个 PR 里一个 nit 不显眼，十份评审都指出同一件事才显出它是系统性的——这是 owner 的 review 和 main 自查都很难看到的角度。
+- **对草案的含义**：
+  1. 产出是 finding，不打分（草案已经是这样）。
+  2. 同一个 finding 在多个 PR 里出现，就该变成一句规则或一个工具（AGENTS.md › Adding a rule），而不是每次再审一遍；草案的 `Rules unclear` 字段之外，可以加一个"这条以前报过"的标记，或者由 Step 13 的 quality sweep 汇总。try2 的这几条已经各记成 tracker 的一个子项（Harness engineering › *Rules the page-structure runs were missing*）。
+  3. `Pre-existing` 有用：上面几条大多是"照抄已有写法"，在 diff 上看是新行，根子在旧代码。
+  4. 不要让 reviewer 装依赖、重跑检查：try2 的十份评审都自己跑了 `npm ci`、lint、typecheck、knip、单测，CI 早就跑过；其中一份为此等了 14 min。一份完整评审 $3.6–4.7、约 7 min（Fable high）。
+- **可以直接拿来当 Round 1 的 case**：try2 的十个实现是同一个任务、同一个起点、各自独立的 diff（lab 仓库 `mars-workbench-lab-try2` 的 `claude/page-structure-try2-*`，scrub 过的评审分支 `experiment/review-R1`–`R10`），每个都有十份盲审和十份 20 条清单作为参照。拿 reviewer 去审这十个，按"十份盲审里出现两次以上的缺陷"算 recall，按清单和逐条裁决算 precision，比埋点便宜，而且是真实的漏网问题。
+
 ## Reviewer 管什么
 
 AGENTS.md 的规则分两类。
