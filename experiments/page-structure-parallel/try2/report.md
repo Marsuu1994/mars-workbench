@@ -104,8 +104,8 @@
 
 ## 下一步
 
-1. **合并候选 A1。** 把 lab 仓库的 `claude/page-structure-try2-a1` 推到主仓库，合入当前 `main`（README 的 Update Log 已经删了，那条记录改写进 Current State；tracker 和 AGENTS.md 有小冲突），同一个 PR 里修掉反复出现的问题 1、3、4（AGENTS.md:115、`DumpFeedResult`、`MatrixData` 挪进 `src/types/`），归档 spike 和评估文件并写 Q9 的 Decision。备选 A2（lab PR #4）或 A3（#5），三个都是 20 / 20、29 / 30；try1 的 B2（#87）也等价，而且已经在主仓库里。
-2. **起点的四个修正。** `check:clicks` 脚本、`.gitignore` 的 worktree 行、PlayRunner 的修正都随 A1 一起进 `main`；`.claude/settings.json` 的 `effortLevel: high` 会改变这个仓库里所有 session 的默认 effort，单独由 owner 决定，默认不带。
+1. **合并候选 A1**（PR #98）。把 lab 仓库的 `claude/page-structure-try2-a1` 推到主仓库，合入当前 `main`（README 的 Update Log 已经删了，那条记录改写进 Current State；tracker 和 AGENTS.md 有小冲突），同一个 PR 里修掉反复出现的问题 1、3、4（AGENTS.md:115、`DumpFeedResult`、`MatrixData` 挪进 `src/types/`），归档 spike 和评估文件并写 Q9 的 Decision。备选 A2（lab PR #4）或 A3（#5），三个都是 20 / 20、29 / 30；try1 的 B2（#87）也等价，而且已经在主仓库里。
+2. **起点的四个修正。** `.gitignore` 的 worktree 行和 PlayRunner 的修正随 A1 进 `main`（PR #98）；`check:clicks` 是实验的测量工具、不在 CI 里，`.claude/settings.json` 的 `effortLevel: high` 是实验为固定 effort 加的项目设置（放进 `main` 会改变这个仓库里所有 session 的 effort），两个都只留在实验的起点上。
 3. **反复出现的问题变成规则和工具**：上表 1、3、4 的规则句和检查脚本、5 的 Prettier 插件和 lint 规则、7 的 Console bug，记在 tracker 上，各自一个小 PR。
 4. **收尾。** 关掉 try1 没选中的 PR（#85–#90）；归档 try2 的 20 个 run 和评审 session 以及 10-27 作废的评审 session；owner 把 lab 仓库归档。
 5. **再往后。** `experiment-controller` skill 的 PR（tracker › Harness engineering › Setup），然后 1b（error framework）——块更大，冷启动的固定成本才有可能摊得开。
