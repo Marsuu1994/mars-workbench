@@ -29,7 +29,7 @@ prisma/                            # schema.prisma + migrations/
 supabase/                          # Local Supabase stack config (Postgres + Auth in Docker)
 scripts/                           # Repo checks run in CI; the local stack's setup, seed, and dev and e2e sessions
 test/                              # Test helpers and conventions (README); unit and integration tests sit next to their modules
-e2e/                               # Playwright specs; contract/ = designed, not built yet (test/README.md)
+e2e/                               # Playwright specs; a test.fail tagged with a mockup = designed, not built yet (test/README.md)
 .claude/agents/                    # Claude Code subagents: ui-verifier, test-writer, ci-fixer (Workflow › Subagents)
 .claude/skills/                    # Claude Code skills: ui-design (UI Workflow)
 design/                            # Design docs — index in design/README.md
@@ -230,7 +230,7 @@ npm run format:check # Verify formatting (CI)
 npm run check:themes # Every theme declares the same CSS variables (CI)
 npm run check:review-log  # Every owner review on a PR has its entry in reviews/ (CI; GITHUB_REPOSITORY and PR_NUMBER locally)
 npm run check:mockup-links  # Every mockup a PR changes is linked from its description (CI; same env)
-npm run contract:flip <feature>  # e2e/contract/<feature>.spec.ts → plain tests in e2e/features/ (an implementation PR's first commit)
+npm run check:contracts  # Every e2e test.fail is tagged with a mockup that still exists (CI)
 npm test             # Unit + integration tests in UTC and Los Angeles time (a local Postgres: test/README.md)
 npm run test:unit    # Unit tests only, no database
 npm run test:coverage  # Everything, failing below the coverage floors (CI)

@@ -42,26 +42,12 @@ export default defineConfig({
     },
   },
   projects: [
-    // Contracts run first and alone, so a landed or broken contract fails the
-    // run in seconds instead of after every other project
-    {name: 'contract', testMatch: /contract\/.*\.spec\.ts/, use: DESKTOP},
-    {
-      name: 'smoke-desktop',
-      testMatch: /smoke\.spec\.ts/,
-      use: DESKTOP,
-      dependencies: ['contract'],
-    },
-    {
-      name: 'smoke-mobile',
-      testMatch: /smoke\.spec\.ts/,
-      use: MOBILE,
-      dependencies: ['contract'],
-    },
+    {name: 'smoke-desktop', testMatch: /smoke\.spec\.ts/, use: DESKTOP},
+    {name: 'smoke-mobile', testMatch: /smoke\.spec\.ts/, use: MOBILE},
     {
       name: 'design-console',
       testMatch: /designConsole\.spec\.ts/,
       use: DESKTOP,
-      dependencies: ['contract'],
     },
     // Journeys change the e2e user's week, so they run after the smokes
     {
@@ -69,14 +55,6 @@ export default defineConfig({
       testMatch: /journeys\.spec\.ts/,
       use: DESKTOP,
       dependencies: ['smoke-desktop', 'smoke-mobile', 'design-console'],
-    },
-    // Flipped contracts: a feature's own specs, after the journeys for the
-    // same reason
-    {
-      name: 'features',
-      testMatch: /features\/.*\.spec\.ts/,
-      use: DESKTOP,
-      dependencies: ['journeys'],
     },
   ],
   webServer: {
