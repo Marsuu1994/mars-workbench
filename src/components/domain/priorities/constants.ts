@@ -54,13 +54,6 @@ export const TRACK_TARGETS: {status: TrackTargetStatus; dotClass: string}[] = [
 /** Dot color of the chooser's Done row — matches the board's Done column. */
 export const COMPLETE_DOT_CLASS = 'bg-success';
 
-/**
- * Tasks created before the matrix (or during a deploy window) may carry a null
- * quadrant — group them into the backfill default so no card silently drops
- * out of the 2×2 grid.
- */
-export const FALLBACK_QUADRANT = PriorityQuadrant.SCHEDULE;
-
 /** How long the mobile "Added to …" confirmation toast stays visible. */
 export const TOAST_DURATION_MS = 2500;
 

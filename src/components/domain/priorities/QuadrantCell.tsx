@@ -5,20 +5,13 @@ import {useTranslations} from 'next-intl';
 import {PlusIcon, ArrowDownIcon} from '@heroicons/react/24/outline';
 import type {TaskItem} from '@/lib/db/tasks';
 import {PriorityQuadrant} from '@/utils/enums';
-import type {TrackTargetStatus} from '@/schemas';
 import {QUADRANT_CONFIG} from './constants';
 import {MatrixTaskCard} from './MatrixTaskCard';
+import {usePrioritiesPageContext} from './PrioritiesPageContext';
 
 interface QuadrantCellProps {
   quadrant: PriorityQuadrant;
   tasks: TaskItem[];
-  activePlanId: string | null;
-  openPopoverTaskId: string | null;
-  onSendToggle: (taskId: string | null) => void;
-  onTrack: (taskId: string, status: TrackTargetStatus) => void;
-  onComplete: (taskId: string) => void;
-  onCardTap: (task: TaskItem) => void;
-  onAdd: (quadrant: PriorityQuadrant) => void;
 }
 
 /**
@@ -26,18 +19,9 @@ interface QuadrantCellProps {
  * count), a droppable scrollable card list with a drop-hint banner while
  * hovered, and a desktop-only dashed Add button pinned to the bottom.
  */
-export const QuadrantCell = ({
-  quadrant,
-  tasks,
-  activePlanId,
-  openPopoverTaskId,
-  onSendToggle,
-  onTrack,
-  onComplete,
-  onCardTap,
-  onAdd,
-}: QuadrantCellProps) => {
+export const QuadrantCell = ({quadrant, tasks}: QuadrantCellProps) => {
   const t = useTranslations('Priorities');
+  const {openAddTask} = usePrioritiesPageContext();
   const tQuadrant = useTranslations('Enums.PriorityQuadrant');
   const tQuadrantShort = useTranslations('Priorities.QuadrantShort');
   const config = QUADRANT_CONFIG[quadrant];
@@ -74,7 +58,7 @@ export const QuadrantCell = ({
   const renderAddButton = () => (
     <button
       type="button"
-      onClick={() => onAdd(quadrant)}
+      onClick={() => openAddTask(quadrant)}
       className="hidden md:flex items-center justify-center gap-1 w-full mt-auto p-2 rounded-lg border-[1.5px] border-dashed border-base-content/20 text-base-content/40 text-xs font-medium cursor-pointer transition-colors hover:border-primary hover:text-primary flex-shrink-0"
     >
       <PlusIcon className="size-3.5" />
@@ -113,20 +97,7 @@ export const QuadrantCell = ({
             }`}
           >
             {tasks.map((task, index) => (
-              <MatrixTaskCard
-                key={task.id}
-                task={task}
-                index={index}
-                isTracked={
-                  activePlanId !== null && task.planId === activePlanId
-                }
-                hasActivePlan={activePlanId !== null}
-                isPopoverOpen={openPopoverTaskId === task.id}
-                onSendToggle={onSendToggle}
-                onTrack={onTrack}
-                onComplete={onComplete}
-                onTap={onCardTap}
-              />
+              <MatrixTaskCard key={task.id} task={task} index={index} />
             ))}
             {provided.placeholder}
             {renderAddButton()}

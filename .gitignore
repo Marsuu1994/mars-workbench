@@ -45,6 +45,9 @@ yarn-error.log*
 *.tsbuildinfo
 **/next-env.d.ts
 
+# Claude Code worktrees (subagents with isolation: "worktree")
+.claude/worktrees/
+
 # IDE
 .idea/
 .vscode/

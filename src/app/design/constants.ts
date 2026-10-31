@@ -11,6 +11,8 @@ import type {TaskItem} from '@/lib/db/tasks';
 import type {DumpEntryItem} from '@/lib/db/dumpEntries';
 import {TaskKind, type HabitWeek} from '@/utils/taskUtils';
 import type {BoardCard, ProjectStepContext} from '@/utils/boardCardUtils';
+import type {BoardPageContextValue} from '@/components/domain/board/BoardPageContext';
+import type {PrioritiesPageContextValue} from '@/components/domain/priorities/PrioritiesPageContext';
 import type {ProjectsPageContextValue} from '@/components/domain/projects/ProjectsPageContext';
 
 // ── Page copy ──────────────────────────────────────────────────────────────
@@ -421,8 +423,11 @@ export const STEP_PATH_FIXTURES: {label: string; step: ProjectStepContext}[] = [
 export interface MatrixCardFixture {
   label: string;
   task: TaskItem;
-  isTracked: boolean;
 }
+
+/** The plan the MatrixTaskCard specimens' context holds: a card on it is
+    tracked. */
+export const MATRIX_CARD_ACTIVE_PLAN_ID = 'plan-1';
 
 export const MATRIX_CARD_FIXTURES: MatrixCardFixture[] = [
   {
@@ -438,7 +443,6 @@ export const MATRIX_CARD_FIXTURES: MatrixCardFixture[] = [
       planId: null,
       quadrant: PriorityQuadrant.DO_FIRST,
     }),
-    isTracked: false,
   },
   {
     label: 'Tracked (This Week)',
@@ -448,9 +452,9 @@ export const MATRIX_CARD_FIXTURES: MatrixCardFixture[] = [
       title: 'Shop birthday gift',
       description: 'For mom — this Saturday',
       status: TaskStatus.TODO,
+      planId: MATRIX_CARD_ACTIVE_PLAN_ID,
       quadrant: PriorityQuadrant.DO_FIRST,
     }),
-    isTracked: true,
   },
 ];
 
@@ -543,6 +547,27 @@ export const BOARD_COLUMN_STATUS = TaskStatus.TODO;
 export const BOARD_COLUMN_CARDS: BoardCard[] = MINI_CARD_FIXTURES.map(
   fixture => fixture.card,
 );
+
+/** The page context a MatrixTaskCard or Move-to sheet renders in, outside the
+    Priorities page: the fixture's plan, no popover open, inert handlers (the
+    frame swallows clicks). */
+export const inertPrioritiesPageContext = (
+  activePlanId: string | null,
+): PrioritiesPageContextValue => ({
+  activePlanId,
+  openPopoverTaskId: null,
+  togglePopover: () => undefined,
+  openMoveToSheet: () => undefined,
+  openAddTask: () => undefined,
+  trackTask: () => undefined,
+  completeTask: () => undefined,
+});
+
+/** The page context a MobileBacklogCard renders in, outside the board page:
+    inert handlers (the frame swallows clicks). */
+export const inertBoardPageContext = (): BoardPageContextValue => ({
+  pullToTodo: () => undefined,
+});
 
 /** PlanTaskRow — tasks already on the plan the form keeps or lets go. */
 export const PLAN_TASK_ROW_FIXTURES = [
