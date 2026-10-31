@@ -8,6 +8,33 @@ Single source of truth for open ideas and todos across the app — open items on
 - **Finished work leaves.** Delete an item or sub-bullet when it lands — don't keep it checked; the PR that landed it records it.
 - **A multi-PR project is one item with a sub-bullet per step.** The parent line names the goal and links the spike and mockups; each sub-bullet is one PR or step, kept to one line. Delete a sub-bullet when its PR lands, and the parent goes with the last one. Bad: five unrelated top-level items ("Projects PR 1", "Projects PR 2", …), or one parent whose prose lists every PR in a paragraph. Good: `- [ ] Week model Phase 1 — Projects MVP: … Spike … (approved)` followed by `  - [ ] PR 1 — Phase 1 docs: …`, `  - [ ] PR 2 — kind-first cards, risk off, …`.
 
+## Harness engineering
+
+How agents work on this repository: the experiments under `experiments/` (rules in its AGENTS.md) and the rules they settle. The owner's priority while the series runs (2026-10-28); the product milestones below resume after it.
+
+### High
+
+- [ ] Harness engineering series — three explorations in order, each run as experiments (instruction → runs → report); a conclusion that changes how we work lands in AGENTS.md or the README it indexes
+  - [ ] Setup, before the next try — the budget and roles every try follows: phases scheduled per usage window (runs in one, reviews and collection in the next), the controller on Opus at high effort with subagents in small serial waves and scripts for mechanical parsing, reviewers on one model started alone right after a reset, and an archive that keeps measurements and a high-level instruction rather than run code (try2's instruction › 预算和角色)
+    - [ ] `experiment-controller` skill — the controller notes (now `protocol/controller-notes.md` on `controller/try2` of the lab repository) become `.claude/skills/experiment-controller/` in this repository, invoked only by name (`disable-model-invocation`), with scripts for session usage, transcript metrics, a per-window budget estimate, review branches and behavior checks; a try's base branch drops the skill like it drops `experiments/`, so runs and reviewers never see it; its own PR, after try2 wraps up
+  - [ ] 1 · Parallel subagents on architecture-clear refactors — is the parallel worktree workflow a good idea once the design is settled? Serial vs parallel on time, tokens and quality (CI, checklist, behavior checks, blind review)
+    - [ ] 1a · Page structure (`experiments/page-structure-parallel/`) — try1: serial wins at this size (six PRs #85–#90, all equivalent); try2: ten runs green on the first push, declared failed when collecting the data drained the usage window twice (its run data stands, the review never completed); next: after the usage reset an Opus controller finishes try2's collection and blind review (the code review agent, or Opus reviewers) and writes the report; the question closes with it, no further try
+    - [ ] 1b · Error framework — the second task: Step 12's plumbing (shared action handler, typed errors per surface) as the refactor both workflows build, once its spike is approved
+  - [ ] 2 · A standard workflow per phase — which model and effort for a spike, for implementation, for review; judged by cost per completed task, not per token
+    - Context (2026-10-28): the proposed tiering is Opus for spikes, Fable for large novel work (effort high, alone in a window), Sonnet for implementation. Sonnet 5.5 is positioned for agentic coding in a real repository and Opus for the hardest long-horizon work; this repository's safety net (spike first, AGENTS.md, CI with coverage floors and e2e, owner review) is what makes a cheaper implementer viable, and what it would miss are the judgment items CI can't check (naming, DRY, layer placement, docs altitude)
+    - Economics: in these sessions cache reads are over half the cost and cost the same on Opus and Sonnet, so Sonnet saves about a quarter at equal token counts; Opus at lower effort may be the cheaper cell, and the cost guidance is to sweep effort before changing the model (a model swap without an eval is the riskiest change); Sonnet at low effort sometimes skips the verifying check, so medium or high
+    - First measurement, cheap: reuse the page-structure rig (base `83ae5a4`, the serial prompt, checklist, behavior checks, scrub and review prompt) — try2's five Opus-high serial runs are one cell; add five Sonnet runs (medium or high; the effort needs a second base commit) and three Opus-medium runs, review all 13 with Opus; about $100 over two windows. It measures spec-settled implementation only, which is the tier Sonnet is proposed for
+  - [ ] 3 · Code review agent — is one needed, and what would it catch that CI and the owner's review don't? Context: the blind reviews so far (Fable, try1) barely separated candidates (26–27/30, no blocker) and the quality verdict rested on CI, the checklist and the behavior checks; Quality gate › Step 14 is this item
+- [ ] Docs split by reader — every folder with rules gets a `README.md` for people and an `AGENTS.md` (with a `CLAUDE.md` importing it) for agents, as `experiments/` does and the root README's *How docs are split* describes; one sub-bullet per folder, each moving its rules out of the README and pointing the root AGENTS.md's *Where the rules live* row at the new file
+  - [ ] `design/spike/` — lifecycle, shape and archiving rules
+  - [ ] `design/flows/` — how a flow doc is written
+  - [ ] `design/` — the mockup rules and the docs index
+  - [ ] `design/design-language/` — theme and visual-pattern rules
+  - [ ] `src/app/design/` — Design Console scenarios, gallery and play steps
+  - [ ] `test/` — test helpers and conventions
+  - [ ] `design/tracker.md` — its Conventions section (a file, not a folder: decide whether it moves to `design/AGENTS.md`)
+  - [ ] Root `AGENTS.md` — once every folder has moved, rewrite *Adding a rule* and *Where the rules live* for the new split
+
 ## Board
 
 ### Medium
@@ -71,7 +98,7 @@ Single source of truth for open ideas and todos across the app — open items on
 - [ ] Milestone — Quality gate before Phase 2: settle the mutation layer and component structure before Phase 2 and Daily rhythm start, so their new pages are built the new way. One sub-bullet per open step of the planner project *Mars Workbench — Phase 2 前的代码质量*, in its order and numbered as there
   - [ ] Step 10 — Component structure + config-driven modals, spike + implementation: settles how Phase 2's new pages (Habits, Plan week) are written
     - [ ] Page structure for the other pages (one PR) — Board, Priorities and Dump move onto the Projects page's structure (AGENTS.md › Layers › *Page structure*; spike `design/spike/component-structure.md`), built through the Q9 comparison below
-      - Q9 comparison, start here — a fresh session on `main` after PR #83 is the controller: it follows `design/spike/component-structure-experiment.md` › 6 step by step — six isolated run sessions from one commit (serial A1–A3, parallel B1–B3), six blind reviews, then the report and the owner's pick of the PR to merge; it changes no run's code
+      - Built through Harness engineering › 1a (above): try1's six PRs #85–#90 are all green and equivalent; the owner picks the one to merge (B2 #87 recommended, A2 #88 equivalent), and that PR archives `design/spike/component-structure-experiment.md`
       - Board — `BoardPage` absorbs `BoardScreen`; the mobile pull through a page context
       - Priorities — `PrioritiesPage` absorbs `PrioritiesScreen`; track, complete, the popover and add through a page context (quadrant cell and card: 9 props → 2); the route's week fallback becomes an adapter
       - Dump — `DumpPage` with capture and load-more through a page context; the route's unwrapping becomes an adapter
@@ -90,7 +117,7 @@ Single source of truth for open ideas and todos across the app — open items on
       - [ ] Auth — OAuth sign-in failure surface (none today; login just returns to the button)
       - [ ] Pages — no `error.tsx` / `not-found.tsx`; a server throw lands on Next's default error page
   - [ ] Step 13 — Quality sweep: a `/quality-sweep` skill (the checklist, versioned in the repo, also run by hand at each milestone's end) and a Routine that runs it every two weeks in a fresh session. It covers only what CI can't: docs vs code (tracker, README Current State, `reference.md`, flows, scenarios), conflicts between rule files (AGENTS.md and the READMEs it indexes) and stale temporary exceptions, AGENTS.md's size and growth and its index matching the READMEs it points to, stale PRs / spikes / mockups, duplicated logic and drifting patterns, dependency updates and `npm audit`, growing hotspot files. It opens one PR with tracker edits and a short report of at most 5–10 findings, each ending as fixed, a tracker item, a new CI rule, or dismissed with a reason; findings a machine can check become CI rules.
-  - [ ] Step 14 — Code review agent: scope not written yet; settled when the step is picked up
+  - [ ] Step 14 — Code review agent: explored as Harness engineering › 3 (above), which settles its scope
 - [ ] Spike: tracking production errors — today a crash leaves nothing to debug (2026-10-30: dragging a daily card to Done on the phone PWA ended on Next's "Application error" page; the write had saved, and no log or report showed why)
 - [ ] Persist sidebar collapse state across page refreshes (localStorage with SSR hydration)
 - [ ] Daily rhythm — Open / Close-the-day rituals and phone notifications for unfinished tasks; starts after the Quality gate milestone. Spike `design/spike/daily-rhythm-notifications.md` in PR #33 (awaiting review, written before Phase 1); when picked up, regroup its sheets by kind, map "Still on it" to staying in Todo (the board has no Doing column), and re-derive the midday nudge's triggers (it keys off the risk clock and In Progress cards, both gone)
