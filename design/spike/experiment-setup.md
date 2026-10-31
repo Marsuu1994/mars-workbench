@@ -15,7 +15,7 @@
 - **实验专用的测量工具在写 instruction 时就定下、做好，开跑前进 `main`**（owner，2026-10-31）：测已有行为的检查直接进 CI；测还没做的行为的验收测试以 `it.fails` 进 `main`，实验开始时起点分支把它们翻成普通测试，run 看到的红 CI 就是 spec 的一部分。这样 controller 只做编排，起点就是 `main` 的快照加一个实验专用的 commit。
 - **run 不开 PR**（owner，2026-10-31）：run 只 push 分支，CI 在 push 上跑；评审和检查都在分支上做，lab 仓库不再出现一批与主仓库无关的 PR。
 - **执行顺序**（详见"顺序"）：这份 spike → skill 和通用脚本 → evals 仓库和 page-structure case → reviewer model（3）→ implementer model（2）→ 规则落地 → 规则管不管用（4）→ error framework（1b）→ sweep model（5）。
-- **要 owner 回答**：Q2–Q7（Q1、Q8 已答）。
+- **要 owner 回答**：Q4（其余已答）。
 
 ## 起因
 
@@ -49,11 +49,11 @@
 | 3 · 实验的测量工具：测已有行为 | `check:clicks` 覆盖的流程（回归保护） | 写 instruction 时定下、做好，开跑前单独进主仓库 `e2e/` 或单测，进 CI | 你和 instruction 一起审过才开跑；进了 CI，每个 PR 都受益；实验直接用 `npm run test:e2e` |
 | 3′ · 实验的测量工具：测还没做的行为 | error framework 的错误路径测试（验收） | 写 instruction 时写好，以 `it.fails` 进主仓库（CI 记为预期失败，保持绿）；实验开始时起点分支把它们翻成普通测试 | CI 就是基准：做之前是已知失败，做完是通过；run 看到的红 CI 就是 spec；跑完后同一批测试就是 evals case 的检查 |
 | 3″ · 只给评估者看的东西 | 20 条清单、评审 prompt | 写 instruction 时定下，放 skill 的模板或 controller 分支 | 绝不进起点：run 看见了就成了 spec，量的就不是能不能照 spike 做对 |
-| 4 · 只属于一个 try 的东西 | 起点分支（`main` 的快照加一个实验专用的 commit：删 `experiments/` 和 skill、加 `effortLevel`、把验收测试从 `it.fails` 翻成普通测试、让 CI 在 run 分支的 push 上跑）、run 分支、review 分支、填好的协议、controller log、原始数据、所用 skill 的快照 | 这个 try 的 lab 仓库 | 一个 try 一个仓库，别的 try 的材料不会进 context；跑完归档，原始测量留在那里 |
+| 4 · 只属于一个 try 的东西 | 起点分支（`main` 的快照加一个实验专用的 commit：删 `experiments/` 和 skill、加 `effortLevel`、把验收测试从 `it.fails` 翻成普通测试）、run 分支、review 分支、填好的协议、controller log、原始数据、所用 skill 的快照 | 这个 try 的 lab 仓库 | 一个 try 一个仓库，别的 try 的材料不会进 context；跑完归档，原始测量留在那里 |
 | 5 · 要反复跑的数据集 | 一个任务的起点、实现、裁决过的答案、任务专属的检查 | evals 仓库 `mars-workbench-evals` | 比单个 try 活得久，被后来的实验（reviewer model、implementer model、规则管不管用）反复用 |
 
 - **skill 的快照**：controller 开工时把当时的 skill 原样拷进 controller 分支的 `skill/`，记录这一轮用的是哪个版本；之后改 skill 只改主仓库。起点分支永远不带 skill。
-- **实验专用的设置**（`effortLevel`、CI 的 push 触发）只在起点分支上；对主仓库有用的修正（PlayRunner、`.gitignore` 的 worktree 行）和测量工具一样，开跑前单独开 PR 进 `main`，不随实验走。
+- **实验专用的设置**（`effortLevel`）只在起点分支上；对主仓库有用的修正（PlayRunner、`.gitignore` 的 worktree 行）和测量工具一样，开跑前单独开 PR 进 `main`，不随实验走。
 - **controller 不写代码**：准备阶段只建仓库和分支、做那一个实验专用的 commit、填 prompt。这一轮准备花了 16 min，一半在调 PlayRunner 的修正；工具提前进 `main` 之后，这段时间和风险都移到写 instruction 时，由 owner 一起审。
 
 ## 通用工具清单
@@ -78,12 +78,12 @@ skill 的 `scripts/` 第一版。前五个从 lab 仓库的 `tools/` 搬来、�
 把这一轮学到的写成固定流程，进 skill 的 `SKILL.md`：
 
 1. **写 instruction**（主仓库 `experiments/<question>/tryN/instruction.md`，按模板，含"预算和角色"），同时定下并做好这个实验专用的测量工具：测已有行为的进 CI，测还没做的行为的以 `it.fails` 进 `main`，只给评估者看的放模板；它们各自开 PR 进 `main`，owner 和 instruction 一起批准。
-2. **准备**：owner 建 lab 仓库 `mars-workbench-lab-<try>` 并装 App；controller 只做编排——`add_repo`；从 `main`（或 evals case 的起点）建起点分支，加一个实验专用的 commit（删掉 `experiments/` 和 skill、加 `effortLevel`、把验收测试从 `it.fails` 翻成普通测试、CI 加上 run 分支的 push 触发）；`fill-prompts`；把 skill 快照放进 controller 分支。不写新工具。
-3. **跑**：owner 在满窗口时开始；所有 run 一次全起。run 只 push 自己的分支、不开 PR，结束条件是分支 head 上 CI 全绿；时间指标从"PR 开出"改成"最后一次 push"。
-4. **等窗口**：run 全部结束后，controller 的 context 超过约 200k 就 compact，在 `resetsAt` 后两分钟设一次性唤醒。
-5. **评审**：重置后先看 `rate_limit_info`，所有评审一次全起（每个候选一个，最多十个），这时不起别的。
-6. **收数据**：脚本先跑完所有机械的部分；判断类的 subagent 按 `window-budget` 分批，每批前再看一次状态。
-7. **报告**（主仓库 `report.md`）：结论先行；附录指向 lab 仓库的文件。
+2. ✓ **skill 的形状**（owner，2026-10-31：按推荐）：一个 `experiment-controller` skill，`SKILL.md` 加 `scripts/` 和 `templates/`，整体随 skill 加载和拷贝。
+3. ✓ **evals 仓库的可见性**（owner，2026-10-31）：公开，和 lab 仓库一样。
+4. **evals case 的答案由谁裁决**：一个 case 的"答案"（`ground-truth.json`）是每个实现里确认为真的缺陷清单，用来给后来的 reviewer 算 recall 和 precision。建 page-structure case 时，要先把已有的 16 份盲审和 16 份清单报过的缺陷合并成一张候选表（约 30–40 条，比如"`AGENTS.md:115` 还写着旧组件名"出现在 16 个实现里），每条判定：在这个实现里真的存在吗、严重度是什么。谁来判：(a) 一个 Opus subagent 逐条对照代码判定，owner 复核它判成"不存在"的那些（推荐：owner 只看有分歧的，约 10 分钟）；(b) owner 亲自过完整张表。
+5. ✓ **顺序**（owner，2026-10-31）：上表的 1–10，之后可以再调。
+6. ✓ **controller 的 model**（owner，2026-10-31）：固定 Opus high。
+7. ✓ **lab 仓库的默认分支**（owner，2026-10-31）："起点"指 controller 做好的**起点分支**（主仓库 `main` 的快照加一个实验专用的 commit），run 和它们的 worktree 都从它出发。lab 仓库不推 `main`，起点分支就是它的默认分支，worktree 不会再像 B4 那样建在别的 commit 上（流程第 2 步）。
 8. **数据集**：按 `experiments/AGENTS.md` 第 6 条决定这一轮的实现要不要进 evals 仓库（抓到了 CI 漏掉、经裁决确认的真问题才进）。
 9. **收尾**：session 归档；owner 把 lab 仓库归档。
 
@@ -103,7 +103,7 @@ mars-workbench-evals/
 
 - 分支也放这个仓库：`case/<case>/base`、`case/<case>/impl/<label>`、`case/<case>/review/<label>`。page-structure 的 16 个实现从主仓库（try1 的 #85–#90）和 lab 仓库（try2 的十个）拷过来。
 - **答案怎么来**：第一次建 case 时，把已有的评审和清单报过的缺陷合并成候选清单，由一个 Opus subagent 逐条裁决、owner 复核；之后每次有新的 reviewer 报出不在答案里的问题，裁决为真就补进去（避免答案只反映某一个模型的盲点）。
-- **频率**（`experiments/AGENTS.md` 第 7 条）：case 测的规则、模型或 agent 定义一变就重跑；某类缺陷基本不再出现（约 1 / 100）后改成每月一次；所有类别都不再出现就归档。
+- **频率**：另议，记在 quality sweep 的 spike（PR #94）里，做那个任务时再定。
 - **和 lab 仓库的关系**：一个新实验要用某个 case 时，lab 仓库的起点从 `case/<case>/base` 建；实验产出的新实现如果有价值，按第 6 条补回这个 case。
 
 ## 顺序
