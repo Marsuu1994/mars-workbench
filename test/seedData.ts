@@ -52,8 +52,7 @@ export const SEED_HABITS = {
     description: 'Look back at the week and tidy the matrix',
     size: TaskSize.SMALL,
     type: TaskType.WEEKLY,
-    // Three, so two instances stay in the backlog: a habit stack (journeys)
-    frequency: 3,
+    frequency: 2,
   },
 } as const;
 

@@ -194,7 +194,7 @@
   <p class="lede">
     In the backlog, a habit's instances collapse into one card, and so do a project's steps. One-offs never stack.
     The top card is the one a pull takes; a <span class="num">×n</span> chip and paper lips say how many sit behind it.
-    Todo and Done never stack. Seed-week data: Weekly review 3× / week (two instances still staged), Spanish A2 Units 3 and 4 put on the week.
+    Todo and Done never stack. Example week: Weekly review 3× / week with two instances still staged, Spanish A2 Units 3 and 4 put on the week.
   </p>
   <div class="toolbar">
     <button onclick="document.documentElement.dataset.theme='mars-dark'">Sora dark</button>
@@ -455,17 +455,6 @@
     </div>
   </section>
 
-  <!-- ─────────────────────── e2e contract ─────────────────────── -->
-  <section>
-    <h2>e2e contract</h2>
-    <p class="sub">Pinned in <code>e2e/journeys.spec.ts</code> as <code>test.fail</code> until the stacking lands; the implementing PR flips them. The seed's Weekly review runs 3× / week so two of its instances are staged.</p>
-    <ul class="ul">
-      <li><b>Habit stack</b> — the desktop backlog shows Weekly review once, with <span class="num">×2</span>.</li>
-      <li><b>Step stack</b> — after Unit 4 is put on the week, the course shows once: Unit 3 on top with <span class="num">×2</span>, Unit 4 not a card of its own.</li>
-      <li><b>Desktop pull</b> — dragging the Weekly review stack to Todo moves one instance: Todo gains a Weekly review, the backlog keeps one, now without a chip.</li>
-      <li><b>Mobile pull</b> — ↑ Todo on the course's stack sends Unit 3 to Todo and leaves Unit 4 as a plain card.</li>
-    </ul>
-  </section>
 </div>
 </body>
 </html>
