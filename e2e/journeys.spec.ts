@@ -138,3 +138,55 @@ test('the backlog takes focus only while it is open', async ({page}) => {
   await page.keyboard.press('Enter');
   await expect(openButton).toBeFocused();
 });
+
+test('archived projects sit in a collapsed accordion', async ({page}) => {
+  // The contract for the Archived accordion (design/mockup/
+  // temp-projects-archived-accordion.html): delete this line when it lands
+  test.fail(true, 'Archived accordion not built yet');
+  const {book} = SEED_PROJECTS;
+  const projectCard = page.getByRole('button', {name: new RegExp(book.title)});
+  const archivedHeader = page.getByRole('button', {name: /^Archived/});
+  const unarchiveButton = page.getByRole('button', {name: 'Unarchive'});
+  await openPage(page, '/kanban/projects');
+
+  // Nothing archived in the seed's week: no section at all
+  await expect(archivedHeader).toHaveCount(0);
+
+  // Archive the book from its Edit modal
+  await projectCard.click();
+  await page.getByRole('button', {name: 'Edit', exact: true}).click();
+  const modal = page.getByRole('dialog');
+  await modal.getByRole('button', {name: 'Archive', exact: true}).click();
+  const archived = waitForServerAction(page, '/kanban/projects');
+  await modal.getByRole('button', {name: 'Archive', exact: true}).click();
+  await archived;
+  await expect(projectCard).toHaveCount(0);
+
+  // Collapsed by default: the header names the count, the rows stay out
+  await expect(archivedHeader).toHaveAccessibleName(/^Archived\s*1$/);
+  await expect(archivedHeader).toHaveAttribute('aria-expanded', 'false');
+  await expect(unarchiveButton).toHaveCount(0);
+
+  // The header opens and closes it
+  await archivedHeader.click();
+  await expect(archivedHeader).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.getByText(new RegExp(`^${book.title} · `))).toBeVisible();
+  await expect(unarchiveButton).toBeVisible();
+  await archivedHeader.click();
+  await expect(archivedHeader).toHaveAttribute('aria-expanded', 'false');
+  await expect(unarchiveButton).toHaveCount(0);
+
+  // Open / closed is page state: a reload starts collapsed again
+  await archivedHeader.click();
+  await page.reload();
+  await page.waitForLoadState('networkidle');
+  await expect(archivedHeader).toHaveAttribute('aria-expanded', 'false');
+
+  // Unarchiving the last one brings the project back and the section goes
+  await archivedHeader.click();
+  const unarchived = waitForServerAction(page, '/kanban/projects');
+  await unarchiveButton.click();
+  await unarchived;
+  await expect(projectCard).toBeVisible();
+  await expect(archivedHeader).toHaveCount(0);
+});
