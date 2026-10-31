@@ -1,4 +1,4 @@
-import {BoardScreen} from '@/components/domain/board/BoardScreen';
+import {BoardPage} from '@/components/domain/board/BoardPage';
 import {EmptyBoard} from '@/components/domain/board/EmptyBoard';
 import {ScenarioTabs, type ScenarioTab} from '../ScenarioTabs';
 import {ScenarioPage} from '../ScenarioPage';
@@ -41,7 +41,7 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
     title: 'Board — active plan',
     note: "Todo · Done with kind-first cards: habits with their plan line and week dots (each card rings its own dot; Workout shows a missed day), project steps with their project, step n/N and the path (the card's own step outlined), one-offs with their quadrant. Backlog collapsed.",
     content: (
-      <BoardScreen
+      <BoardPage
         plan={SCENARIO_PLAN}
         progress={MID_WEEK_PROGRESS}
         tasks={MID_WEEK_TASKS}
@@ -54,7 +54,7 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
     title: 'Board — backlog open (desktop)',
     note: 'A play step opens the backlog: habit instances and a scheduled project step staged, ready to pull onto the board.',
     content: (
-      <BoardScreen
+      <BoardPage
         plan={SCENARIO_PLAN}
         progress={MID_WEEK_PROGRESS}
         tasks={MID_WEEK_TASKS}
@@ -76,7 +76,7 @@ export default function BoardScenarioPage() {
   return (
     <ScenarioPage
       title="Board scenarios"
-      description="The real board page (BoardHeader + ProgressDashboard + KanbanBoard)
+      description="The real board page (BoardPage: header, progress dashboard and board)
         fed fixture weeks — the states that are hard to reach against live
         data."
     >

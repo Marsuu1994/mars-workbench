@@ -8,15 +8,7 @@ import {
 import {TaskStatus} from '@/generated/prisma/client';
 import type {UndoCompleteTaskInput} from '@/schemas';
 import {ensureSynced} from '@/services/syncService';
-
-export type MatrixActivePlan = {id: string; periodKey: string};
-
-export type MatrixData = {
-  /** All of the user's non-DONE AD_HOC tasks — unassigned and tracked alike. */
-  tasks: TaskItem[];
-  /** Current-week ACTIVE plan, or null (drives the no-plan state). */
-  activePlan: MatrixActivePlan | null;
-};
+import type {MatrixData} from '@/types/priorities';
 
 type MatrixTaskResult<E extends string> = {task: TaskItem} | {error: E};
 export type TrackTaskResult = MatrixTaskResult<'noActivePlan' | 'taskNotFound'>;
