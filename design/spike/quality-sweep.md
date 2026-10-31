@@ -254,6 +254,12 @@ AGENTS.md 3707 → 3790 words (+83; Layers +61) · npm audit 0 high in prod deps
 
 ---
 
+## 后来的想法（2026-10-31，做这个任务时再考虑）
+
+来自 page-structure 实验收尾（`experiments/page-structure-parallel/try2/report.md`、`design/spike/experiment-setup.md`），还没定，不进本 spike 的方案：
+
+- **评估集的重跑频率交给 sweep**：evals 仓库（`mars-workbench-evals`，每个任务一个 case）里的 case 不必每次都跑。case 测的规则、模型或 agent 定义一变就重跑；某类缺陷基本不再出现（约 1 / 100 个实现）之后改成每月一次；一个 case 的缺陷类别都不再出现就归档。sweep 每两周跑一次，正好可以顺带看哪些 case 到期、哪些类别可以降频。
+
 ## 附录 A · 试跑的 finding（去重后）
 
 去向是按上面「修复边界」和「新 rule 的判断」给的建议。✓ = 附录 B 里有 0 或接近 0 误报的机制。
