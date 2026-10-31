@@ -1,6 +1,6 @@
 # Spike: Quality sweep — 两周一次的 drift 防线
 
-**Status: awaiting owner review** · 2026-10-27 · 回答 tracker 条目 *Milestone — Quality gate before Phase 2 › Step 13 — Quality sweep*（Cross-cutting › High）· 基于 main `96d9c63`（#92）· 相关：`archived/agents-md-simplification.md`（Q7：AGENTS.md 的体量交给 sweep，不做 CI 体量检查）、`archived/subagent-delegation-pilot.md`（委派什么时候划算）、PR #82 的 `code-reviewer-agent.md`（tracker 的 Step 14，每个 diff 一次的 review）、PR #84 的 `public-launch.md`（agent harness 的想法）
+**Status: awaiting owner review** · 2026-10-27 · 回答 tracker 条目 *Milestone — Quality gate before Phase 2 › Step 13 — Quality sweep*（Cross-cutting › High）· 基于 main `96d9c63`（#92）· 相关：`archived/agents-md-simplification.md`（Q7：AGENTS.md 的体量交给 sweep，不做 CI 体量检查）、`archived/subagent-delegation-pilot.md`（委派什么时候划算）、PR #82 的 `code-reviewer-agent.md`（tracker 的 Step 14，每个 diff 一次的 review）、PR #84 的 `public-launch.md`（agent harness 的想法）、tracker 的 *Harness engineering › 5*（sweep 用哪个模型，另做实验）、`reviews/`（owner review 的记录，sweep 的「漏网」可以从这里对照）
 
 > 语言约定：叙述用中文；产品名词、状态、代码标识、ESLint 规则名保留英文（finding / drift / skill / Routine / `no-restricted-syntax` / `reference.md` …），和代码、tracker 一一对应。给 skill 和 subagent 的 prompt 用英文。
 
@@ -235,7 +235,7 @@ AGENTS.md 3707 → 3790 words (+83; Layers +61) · npm audit 0 high in prod deps
 | 3 | `.claude/skills/quality-sweep/SKILL.md` + `checks/*.md`：checks 从这次试跑的 4 份 brief 改写，删掉干净且低效的检查，把各 auditor 报告的成本经验（例如 grep `TODO` 会命中 `TaskStatus.TODO`）写进去 | — |
 | 4 | 第一次真实 sweep，按 Q9 的决定处理附录 A 的 baseline | sweep PR 本身：CI 绿，报告符合上面的模板 |
 | 5 | 用 `create_trigger` 建 Routine（Q7 定的时间） | `list_triggers` 里能看到它，`next_run_at` 正确 |
-| 6 | 文档：AGENTS.md › Subagents 加 `sweep-auditor` 一行；tracker 的 Step 13 在完成后删掉；README Update Log；spike 归档 | — |
+| 6 | 文档：AGENTS.md › Subagents 加 `sweep-auditor` 一行；tracker 的 Step 13 在完成后删掉；spike 归档 | — |
 
 ## 待 owner 决定
 

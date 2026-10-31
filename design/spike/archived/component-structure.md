@@ -1,6 +1,6 @@
 # Spike: Component structure — 全站的组件怎么拆
 
-**Status: decided（Q9 是一次对照实验，结果出来后补在这里）** · 2026-10-26 · 回答 tracker 条目 Milestone — Quality gate › Step 10 › PR 1（component structure）· 相关：`archived/board-prop-drilling.md`（Board 的 view model + composition）、`archived/projects-page-refactor.md`（Projects 试点和它的六条原则）、`archived/scenario-states-without-production-props.md`（不为 console 加 prop）
+**Status: implemented 2026-10-31（Q9 的结果：这个规模用串行，见 Q9 一行）** · 2026-10-26 · 回答 tracker 条目 Milestone — Quality gate › Step 10 › PR 1（component structure）· 相关：`archived/board-prop-drilling.md`（Board 的 view model + composition）、`archived/projects-page-refactor.md`（Projects 试点和它的六条原则）、`archived/scenario-states-without-production-props.md`（不为 console 加 prop）
 
 > 语言约定：叙述用中文；产品名词、状态、代码标识保留英文（habit / project / step / one-off / backlog、`KanbanBoard`、`activePlanId` …），和代码、mockup、tracker 里的叫法一一对应。
 
@@ -174,7 +174,7 @@ DumpPage route (server)         两个读 action → toDumpPageProps(feed, total
 ## 执行和验证
 
 - **顺序**：三页互相独立（各自的 `domain/<feature>/`、route 和 scenario），没有先后依赖。串行时建议 Board → Dump → Priorities，由小到大。
-- **共享的文件**，也就是并行时的冲突面：`src/app/design/constants.ts`（inert context 和 fixture）、`src/app/design/tabs/DomainTab.tsx`（specimen）、`design/baseline.md`、tracker、README Update Log、AGENTS.md 里「还没改的页面」那一句。`utils/oneOffUtils.ts` 只有 Priorities 动。
+- **共享的文件**，也就是并行时的冲突面：`src/app/design/constants.ts`（inert context 和 fixture）、`src/app/design/tabs/DomainTab.tsx`（specimen）、`design/baseline.md`、tracker、AGENTS.md 里「还没改的页面」那一句。`utils/oneOffUtils.ts` 只有 Priorities 动。
 - **每页的验证**：
   1. `format`、`lint`、`typecheck`、`knip`、`npm test`；
   2. `npm run test:e2e`：每个 Design Console tab 的 smoke 和四条 journey；
@@ -229,7 +229,7 @@ DumpPage route (server)         两个读 action → toDumpPageProps(feed, total
 | Q6 | Auth、Settings、App shell | **按建议**：不改 |
 | Q7 | 改名 | **按建议**：`BoardPage`、`PrioritiesPage`、`DumpPage` |
 | Q8 | 打包 | **Owner**：本 PR 只做 spike 和 Projects 定稿；Board、Priorities、Dump 另开一个 PR；config-driven modals 的范围待定 |
-| Q9 | 串行还是并行 | **Owner：两种都跑，做成对照实验**。串行（主 session 自己做三页）和并行（按上面的流程开三个 worktree subagent）各跑三次，六个互相隔离的 session 从同一个 `main` commit、同一份 prompt 出发；每个 PR 再由一个随机编号的盲审 session 评审；主 session 统计时间、token 和完成质量，按组汇总成描述性的对比报告（不做显著性检验），结果补在这一节，再从中选一个 PR 合并。方案、prompt、评分和开工步骤在 `component-structure-experiment.md` |
+| Q9 | 串行还是并行 | **Owner：两种都跑，做成对照实验**。串行（主 session 自己做三页）和并行（按上面的流程开三个 worktree subagent）各跑三次，六个互相隔离的 session 从同一个 `main` commit、同一份 prompt 出发；每个 PR 再由一个随机编号的盲审 session 评审；主 session 统计时间、token 和完成质量，按组汇总成描述性的对比报告（不做显著性检验），结果补在这一节，再从中选一个 PR 合并。方案、prompt、评分和开工步骤在 `component-structure-experiment.md`。**结果（2026-10-31）**：两轮共 16 个实现（try1 三加三，try2 五加五）都能合并、质量分不出高下；并行两轮都更慢（try2：三页写完 9.2 对 7.8 min，PR 开出 17.2 对 13.8 min），钱是 1.36–1.49 倍——一个冷启动的 agent 做最大那一页，和一个 session 做完三页一样久。所以这个规模的任务用串行；合并的是 try2 的 A1。报告：`experiments/page-structure-parallel/try1/report.md`、`try2/report.md` |
 
 ---
 

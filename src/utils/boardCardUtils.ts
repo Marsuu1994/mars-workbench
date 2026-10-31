@@ -95,7 +95,7 @@ function toProjectStepContext(
 
 /**
  * The board's adapter: the tasks (client state, in the server's shape) →
- * card models, grouped by status and sorted. Pure, so KanbanBoard re-runs it
+ * card models, grouped by status and sorted. Pure, so BoardPage re-runs it
  * on every optimistic update and the board scenarios run it on fixtures.
  */
 export function toBoardCards(
