@@ -49,7 +49,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 
 ### Medium
 
-- [ ] Stack duplicate habit instances in the backlog — the kind-first card has landed; PR #44 implements stacking on the old card and needs moving onto the new face (project steps and one-offs never stack)
+- [ ] Stack the backlog by habit and by project — a habit's staged instances become one card, and so do a project's staged steps; one-offs never stack, Todo and Done never stack. The top card (lowest instance, earliest step) is what a drag or ↑ Todo pulls; a `×n` chip and paper lips show the rest, counts stay per task. Mockup `design/mockup/mockup-board-backlog-stacking.html` (awaiting approval; its e2e contract follows once the design is settled, per spike `design/spike/mockup-hosting-design-workflow.md`). PR #44 (closed) stacked on the old card face
 
 ### Future
 
