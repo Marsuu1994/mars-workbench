@@ -94,6 +94,7 @@
 ## 方法上的教训
 
 - **按窗口排阶段这次奏效。** 十份盲审在窗口重置后单独起，08:53 起、09:02 前全部交卷，合计 $41.19；收数据用 12 个 subagent、一次三个，整个窗口没有撞限。10-27 同样的工作和 21 个 subagent、10 个评审一起放出去，两个窗口在几分钟内耗尽。
+- **单位成本，下一轮排预算用**（`cost_usd` 作代理；`rate_limit_info` 只给 status、类型和重置时间，看不到剩多少，所以只能按单位成本算）：Opus high 的 run 串行 $5.9–6.7、三个 worktree agent 的 $8.2–11.3；Fable high 的一份盲审 $3.6–4.7（cache read 2–4M、output 约 15k、约 7 min）；十份清单、两份 transcript 和评审收集一共 13 个 subagent，加 controller 约 $29。一个窗口装了约 $70 没有任何警告（10-31），另一个在 $100–110 左右耗尽（10-27）。下一轮的排法：owner 在满窗口时开始；run 一次全起；run 完 controller 的 context 超过约 200k 就先 compact，并在 `resetsAt` 后两分钟设一次性唤醒；重置后所有评审一次全起（每个候选一个，最多十个）；然后脚本收机械数据，判断类的 subagent 按估算分批，每批前再看一次 `rate_limit_info`。规则写在 lab 仓库的 `protocol/controller-notes.md`，随 `experiment-controller` skill 进主仓库。
 - **盲审的分数分辨率不够。** 两轮 16 份评审，correctness 和 readability 全是 5，总分挤在 26–29。分数几乎只反映 spike 归没归档；真正有用的是缺陷清单——上面那张表全部来自它。对 Harness engineering › 3（code review agent）的含义：评审的价值在缺陷，不在打分；同一个缺陷在多个实现里出现，就该变成规则或工具，而不是每次再审一遍。
 - **评审自己装依赖、跑全套检查。** 十份都跑了 `npm ci` 或 setup、lint、typecheck、knip、单测（R7 等安装等了 14 min），CI 早就跑过同样的东西；五份还为此建了 `.env.local`。下一轮的评审 prompt 应该写明不装依赖、不跑检查。
 - **评审模型和 instruction 写的不同。** instruction 的"预算和角色"写的是 code review agent 或 Opus 评审；10-31 owner 定为沿用原协议的 `claude-fable-5-1`（和 try1 同一个裁判），十个候选同一个模型，组间比较不受影响。
