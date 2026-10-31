@@ -151,9 +151,6 @@ const archiveProject = async (page: Page, title: string) => {
 };
 
 test('archived projects sit in a collapsed accordion', async ({page}) => {
-  // The contract for the Archived accordion (design/mockup/
-  // temp-projects-archived-accordion.html): delete this line when it lands
-  test.fail(true, 'Archived accordion not built yet');
   const {book, course} = SEED_PROJECTS;
   const bookCard = page.getByRole('button', {name: new RegExp(book.title)});
   const courseCard = page.getByRole('button', {name: new RegExp(course.title)});
