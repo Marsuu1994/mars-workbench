@@ -52,7 +52,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 
 ### Medium
 
-- [ ] Stack duplicate habit instances in the backlog — the kind-first card has landed; PR #44 implements stacking on the old card and needs moving onto the new face (project steps and one-offs never stack)
+- [ ] Stack the backlog by habit and by project — a habit's staged instances become one card, and so do a project's staged steps; one-offs need no rule, since they never reach the backlog (a one-off put on the week lands in Todo). Design first (`ui-design` skill); PR #44 (closed) stacked habits on the old card face
 
 ### Future
 
