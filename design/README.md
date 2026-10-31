@@ -19,8 +19,9 @@ Centralized design documentation for Mars Workbench. Code is organized layer-fir
 
 A file in `mockup/` is a design that isn't fully implemented yet. A mockup is self-contained HTML — inline styles, no shared stylesheets — typically showing the current state (Before) next to the proposed design (After), plus the screens of any other flow the design cascades into.
 
-- While iterating, name it `mockup/temp-<area>.html`.
-- Once the owner approves it, rename it to `mockup-<area>.html`, link it from the tracker item it belongs to, and delete any `temp-*` files.
+- Name it `mockup/mockup-<area>.html` from the first draft and keep that name through every round, so its link never changes; link it from the tracker item it belongs to.
+- Link it in its PR's description, rendered through raw.githack (the repository is public, no sign-in): `https://raw.githack.com/Marsuu1994/mars-workbench/<branch>/design/mockup/<file>.html`. The Mockup links check (`npm run check:mockup-links`) fails while a mockup the PR changes isn't linked, and prints the line to paste.
+- New UI lands in two PRs: a **design PR** (the mockup, the owner's review rounds, then the e2e contract in `e2e/contract/`; merged once the design is settled) and an **implementation PR** from `main` afterwards (build it, flip the contract, delete the mockup). The `ui-design` skill (`.claude/skills/ui-design/`) walks both; the decision record is `spike/archived/mockup-hosting-design-workflow.md`.
 - A design built over several PRs keeps its mockup until the last one lands. Once it is fully implemented, the mockup is deleted and the Design Console's scenario pages are its source of truth (AGENTS.md › UI Workflow).
 
 ## App README
