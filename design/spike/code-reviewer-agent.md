@@ -1,181 +1,170 @@
-# Spike: code-reviewer subagent — 怎么量 review 的质量
+# Spike: code-reviewer subagent — 规则遵守和藏得深的 bug
 
-**Status: awaiting owner review** · 2026-10-23 · 回答 tracker 条目 *Harness engineering › 3 · Code review agent*（Quality gate › Step 14 指向它）· 相关：`design/spike/archived/subagent-delegation-pilot.md`（三个 agent 的分工，decided）· 草案：`.claude/agents/code-reviewer.md`
+**Status: awaiting owner review** · 2026-10-23 起草，2026-10-31 按 owner 的反馈改写 · 回答 tracker 条目 *Harness engineering › 3 · Code review agent*（Quality gate › Step 14 指向它）· 相关：`design/spike/archived/subagent-delegation-pilot.md`（三个 agent 的分工，decided）、PR #94 的 `quality-sweep.md`（两周一次的 drift sweep）· 给 agent 的定义：`.claude/agents/code-reviewer.md` · 给人看的说明：`.claude/agents/README.md`
 
-> 语言说明：正文中文；product 名词、状态和代码标识符保留英文（subagent / diff / finding / `ensureSynced` / `code-reviewer`），与代码和 tracker 一一对应。
+> 语言说明：正文中文；product 名词、状态和代码标识符保留英文（subagent / diff / finding / golden set / `ensureSynced` / `code-reviewer`），与代码和 tracker 一一对应。
 
 ## TL;DR
 
-- **问题**：加一个 `code-reviewer` subagent，push 前拿 AGENTS.md 和 diff 审一遍。它的目标是质量，不是省 main context：review 本来就不占多少 main context（diff 和文件 main 都读过了），委派之后还要多付 brief 和报告（pilot 量过，每次约 2–5k）。
-- **要验证三个假设**：
-  - H1：干净 context 的 reviewer 比做了很久的 main session 自查抓得多；
-  - H2：它抓到的东西，lint 和 CI 抓不到；
-  - H3：误报少到值得读。
-- **怎么量**：先做一次性评估——埋 bug 的 case、历史回放、和 main 自查对照、每个 case 跑两次看稳定性；通过之后，再在 3–5 个真实 PR 上试用、记录。门槛先定再量（Q3）。
-- **本 PR 带什么**：这份 spike 和定义草案。草案在这个 branch 上已经注册。中途加进来的 agent 文件要过几分钟才能按名字调用：本 session 刚写完就调用，报 not found；几分钟后它出现在了可用列表里（pilot 第 1 轮几分钟后仍然没有）。评估在一个从这个 branch 新开的 session 里跑最稳妥。
-- **要 owner 回答**：Q1–Q8。回答之后跑 Round 0 和 Round 1。
+- **问题重新定义（owner，2026-10-31）**：CI 和测试已经能抓到绝大部分 bug。review 要抓的是 CI 抓不到的两类：不符合书面规则的代码，和藏得深的 bug。
+- **已定**：
+  - 每个 PR 第一次 push 之前都跑（per change）；两周一次的 sweep 另议（Step 13）。
+  - 审的单位是**被改到的整个函数**，不是 diff 那几行：这来自 owner 的 tech lead 吃过的亏，本地例子是 #60。
+- **文档分两份**：`.claude/agents/README.md` 给人看，写为什么、怎么做；`.claude/agents/code-reviewer.md` 给 agent，只放关键规则和例子。
+- **对照了公开实践**：Claude Code 官方文档、Anthropic 官方的两份 review 定义、obra/superpowers 的 reviewer。
+  - 采用：引用规则原文、报之前逐条验证、只读（连 HEAD 都不动）、不重跑 CI。
+  - 有意不同：Anthropic 的 `code-review` 只看 diff、把 pre-existing 当误报；这里看整个被改函数。
+- **怎么量**：一个 golden set，即历史里真实漏掉的问题（第一版 10 条，7 条已核实），加上 try2 的十个实现和它们的盲审。先在这上面量 recall 和 precision，再决定进不进 AGENTS.md。埋点和 main 自查对照降为可选（Q4）。
+- **待 owner**：Q4–Q10；Q1–Q3 已答。
 
 ## 起因
 
-- **Owner 的观察**：subagent 目前最大的收益是 main context 下降。下一步想加一个 code review agent：context 干净，只按 AGENTS.md 和 diff 判断，避开 context rot，和 `ui-verifier` 配合使用。
-- **Pilot 没测这一类**：`archived/subagent-delegation-pilot.md` 把委派的价值分成三处——(a) main context，(b) 质量，(c) 并行。三个 agent 主要靠 (a) 立足；「适合的场景」第 3 条列了干净 context 的 review（generator-verifier），没测过。
-- **现在的 review 只有三层**：
-  1. CI：`format:check`、`lint`、`typecheck`、`knip`、`check:themes`、Vitest、Playwright；
-  2. main session 写完自己看；
-  3. owner 在 session 对话和 Vercel preview 上验收。
-
-  GitHub 上没有 review bot，PR 上也没有 review thread（查了 #62、#79：只有 Vercel bot 和 session 自己的说明）。所以 lint 管不到的那部分规则，靠的是 main session 的注意力，和 owner 有没有看到。
-- **Context rot 在这里是真的**：pilot 第 3 轮的 main baseline 是 112k–207k。AGENTS.md 在 context 最前面，越往后越被稀释；写代码的 session 也已经认同了自己的写法。
+- **最初的想法**：subagent 目前最大的收益是 main context 下降；owner 想加一个 code review agent，context 干净，只按 AGENTS.md 和 diff 判断，避开 context rot。
+- **2026-10-31 的重新定义**：通用的 per-PR reviewer 加上一整套评估，对这个规模的 repo 偏重。数据：
+  - bug 很少在合并后才被发现：golden set 里只有寥寥几条，而且 unit、integration、e2e 从 #75 起每个 PR 都跑；
+  - 规则漂移是真的：quality sweep 在 `main` 上试跑（PR #94）一次就有 42 条，全是代码和规则对不上，没有一条是 bug；
+  - 规则改得勤：最近 54 个 PR 里 30 个改了 AGENTS.md，它从精简落地（10-17）的 2769 词涨到 3651 词。
+  
+  所以 reviewer 的价值在于：拿书面规则核对改动；找 CI 和测试碰不到的 bug；改动让文档或规则里的例子失效时指出来。
+- **现在的 review 只有三层**：CI；写代码的 session 自己看；owner 在对话和 Vercel preview 上验收。GitHub 上没有 review bot。lint 管不到的规则，靠的是写代码的 session 的注意力。
+- **作者最后才审**：pilot 第 3 轮的 main baseline 是 112k–207k，AGENTS.md 在 context 最前面，越往后越被稀释，写代码的 session 也已经认同了自己的写法。
 
 ## 来自 page-structure 实验的证据（2026-10-31）
 
-`experiments/page-structure-parallel/` 的两轮一共有 16 份盲审（Fable，try1 六份、try2 十份），审的是同一个三页重构的 16 个实现（报告：`try2/report.md`）。它们不是为这份 spike 做的，但正好回答了一部分 H2，也说明了 reviewer 该产出什么。
+`experiments/page-structure-parallel/` 的两轮一共有 16 份盲审（Fable，try1 六份、try2 十份），审的是同一个三页重构的 16 个实现。它们不是为这份 spike 做的，但正好说明了 reviewer 该抓什么、该产出什么。
 
 - **分数没用，缺陷清单有用。** 16 份的 correctness 全是 5，总分挤在 26–29 / 30；分数几乎只反映 spike 归没归档。真正有信息的是缺陷清单：十个实现里反复出现的问题全部来自它。
-- **反复出现的缺陷正是 CI 抓不到、owner 也没揪到的那一类（H2）。** CI 十个都第一次就绿，行为检查十个都 16 / 16，但：
+- **反复出现的缺陷正是 CI 抓不到、owner 也没揪到的那一类。** CI 十个都第一次就绿，行为检查十个都 16 / 16，但：
   - 改名之后 AGENTS.md 的 Bad 例子还写着旧组件名：10 / 10；
   - 手抄 server action 的返回类型，不从 action 推导：10 份盲审里 7 份；
   - 页面数据类型的名字（`*PageData` / `*PageProps`）、位置（`types/` / `utils/`）和依赖方向（`types/`、`utils/` 引用 `services/` 的类型）各做各的：10 / 10 至少有一种；
   - 同类写法不一致（箭头函数和 function 声明、class 顺序）：8 / 10。
-- **这些在 `main` 上本来就有。** 全仓库没有一处从 action 推导返回类型；`MatrixData`、`PlanFormData`、`EmptyBoardState` 都定义在 `src/services/`；`src/utils/` 的导出函数 37 个 function 声明对 15 个 `const` 箭头。实现者照着仓库已有的写法做，已有的不一致就被一份份复制下去。一个 PR 里一个 nit 不显眼，十份评审都指出同一件事才显出它是系统性的——这是 owner 的 review 和 main 自查都很难看到的角度。
-- **对草案的含义**：
-  1. 产出是 finding，不打分（草案已经是这样）。
-  2. 同一个 finding 在多个 PR 里出现，就该变成一句规则或一个工具（AGENTS.md › Adding a rule），而不是每次再审一遍；草案的 `Rules unclear` 字段之外，可以加一个"这条以前报过"的标记，或者由 Step 13 的 quality sweep 汇总。try2 的这几条已经各记成 tracker 的一个子项（Harness engineering › *Rules the page-structure runs were missing*）。
-  3. `Pre-existing` 有用：上面几条大多是"照抄已有写法"，在 diff 上看是新行，根子在旧代码。
+- **这些在 `main` 上本来就有。** 全仓库没有一处从 action 推导返回类型；`MatrixData`、`PlanFormData`、`EmptyBoardState` 都定义在 `src/services/`；`src/utils/` 的导出函数里，function 声明 37 个，`const` 箭头 15 个。实现者照着仓库已有的写法做，已有的不一致就被一份份复制下去。一个 PR 里一个 nit 不显眼，十份评审都指出同一件事才显出它是系统性的。
+- **对设计的含义**：
+  1. 产出是 finding，不打分。
+  2. 同一个 finding 在多个 PR 里出现，就该变成一句规则或一个工具（AGENTS.md › Adding a rule），而不是每次再审一遍。try2 的这几条已经各记成 tracker 的子项（Harness engineering › *Rules the page-structure runs were missing*）。
+  3. 照抄已有写法的问题，在 diff 上看是新行，根子在旧代码：所以审的范围是整个被改函数（下一节）。
   4. 不要让 reviewer 装依赖、重跑检查：try2 的十份评审都自己跑了 `npm ci`、lint、typecheck、knip、单测，CI 早就跑过；其中一份为此等了 14 min。一份完整评审 $3.6–4.7、约 7 min（Fable high）。
-- **可以直接拿来当 Round 1 的 case**：try2 的十个实现是同一个任务、同一个起点、各自独立的 diff（lab 仓库 `mars-workbench-lab-try2` 的 `claude/page-structure-try2-*`，scrub 过的评审分支 `experiment/review-R1`–`R10`），每个都有十份盲审和十份 20 条清单作为参照。拿 reviewer 去审这十个，按"十份盲审里出现两次以上的缺陷"算 recall，按清单和逐条裁决算 precision，比埋点便宜，而且是真实的漏网问题。
 
-## Reviewer 管什么
+## 审什么，审到哪
 
-AGENTS.md 的规则分两类。
+### 四类 finding
 
-**CI 已经管的，reviewer 不报**：
-
-- Prettier 格式；
-- ESLint（`eslint.config.mjs`）：no `any`、no `console.log`、components / hooks / stores 不 import server-only module、page 和 layout 只经 action 读数据、named export、`const` arrow component、一个文件一个 component、单字母命名；
-- 类型（`tsc`）、没人用的 export 和文件（knip）、每个 theme 声明同一套变量（`check:themes`）、test 是否通过。
-
-**只能读代码判断的，是 reviewer 的范围**：
-
-- Layers：action 和 MCP tool 要薄，逻辑在 service，查询只在 DAL，`ensureSynced` 是唯一的 sync 入口；
-- Component 放 `ui/` / `application/` / `domain/` 哪一层（「`ui/` 不 import domain type」没有 lint）；
-- *Server shapes inputs*、*Page structure*（route → adapter → container，写入和 optimistic 层在 container 里）；DRY 和 `Record<Key, string>` 的字面量 class；workaround 的注释以 `Workaround (<whose>):` 开头；
-- `Record<Enum>`、`default` 断言 `never`、enum 常量不用裸字符串；
-- i18n、sentence case、magic literal；
-- Heroicons、不用 inline style、semantic token、不嵌套 `data-theme`；
-- return 是 outline；命名说清楚它是什么（单字母以外）；LLM-facing error 放 `errorMessages.ts`；
-- batch write、`$transaction`、focused `select`；
-- *Production first*；
-- Before every push 的三项文档；
-- `test/README.md` 的规则。
-
-再加两样：changed lines 里的 bug（必须给出具体的失败场景），以及 diff 有没有做到 brief 说的事。
-
-## 草案要点
-
-全文在 `.claude/agents/code-reviewer.md`，形状照 `ui-verifier`：
-
-1. **只读**：`Bash, Read, Glob, Grep`，没有 Edit / Write，Bash 用来 `git diff`。和 pilot 一样，「不改文件」对 Bash 仍然只是 prompt 约束。
-2. **Brief 只有两样**：一句话说这个改动要做什么，加 base ref。不给设计理由，不说 main 担心哪里，也不让它读 PR description 和 commit message：给了就把 main 的视角带回去了（Q2）。
-3. **规则来源固定**：AGENTS.md，加上 *Where the rules live* 表里 diff 涉及的文件类型对应的 README，别的不读。代码只读 hunk 周围、判断需要的部分。
-4. **每条 finding**：标 blocking / optional；引用一行规则原文，或者给出失败场景；置信度 high / medium，low 的丢掉；最多 10 条；没有 finding 是合法结果。
-5. **两个副产品字段**：
-   - `Pre-existing`：diff 没碰的行上的问题，最多 3 条（Q7）；
-   - `Rules unclear`：它不得不自己解释的规则。这一项量的是 AGENTS.md 写得清不清楚，不算 reviewer 的对错。
-6. **Model**：`inherit`（Q6）。
-
-## 指标
-
-| 指标 | 怎么算 | 回答哪个假设 |
+| 类型 | 抓什么 | 例子 |
 | --- | --- | --- |
-| Precision | 真问题 ÷ 报出的 finding；blocking 单独算 | H3 |
-| Recall | 抓到的埋点 ÷ 埋点总数，按类别分 | H1、H2 |
-| 增量 | reviewer 抓到、而 CI 和对照组都没抓到的问题数 | H1、H2 |
-| Severity 校准 | 标 blocking 的 finding 里，裁决后确实该挡的比例 | H3 |
-| 稳定性 | 同一 case 跑两次：两次都抓到的埋点 ÷ 至少一次抓到的埋点 | 结果可不可信 |
-| 成本 | subagent token、wall time、main 多出的 context（brief + 报告） | 只记录，不是目标 |
+| rule | 被改代码违反了书面规则，主要是 lint 管不到的那些 | layers、component 放在哪一层、*Page structure*、DRY、enum、i18n 和大小写、magic literal、styling 和 theme、命名、workaround 标记、数据规则、*Production first* |
+| bug | CI 和测试碰不到的错：stale 或并发状态、漏掉的情况、绕过 revalidate 或 sync 的写入、被吞掉的错误 | G1、G2 |
+| docs | 改动让 living doc 失效（baseline、flow、`reference.md`、tracker、README Current State），或让 AGENTS.md 的例子指向已经不存在的东西 | G4、try2 的 Bad 例子 |
+| brief | 意图那一句话承诺了、diff 却没做到的 | — |
 
-一条 finding 要和一个埋点「对上」，须是同一个文件、说的是同一个问题；行号可以差几行。没对上任何埋点的 finding 逐条裁决：是真问题就算 true positive（干净的 diff 上也可能有真问题），不是才算误报。
+CI 已经管的不报：Prettier；ESLint（no `any`、no `console.log`、server-only import 边界、page 和 layout 只经 action 读数据、named export、`const` arrow component、一个文件一个 component、单字母命名）；`tsc`；knip；`check:themes`；测试。
 
-## Ground truth 从哪来
+### 范围：被改到的整个函数
 
-### 1. 埋 bug 的 case（可控，可以重跑）
+Owner 的 tech lead 吃过一次亏：diff 里的新代码没问题，旁边一行旧的 inline `axios.delete` 绕过了会 invalidate cache 的 hook，只看 diff 的 reviewer 看不到。规则据此分两层：
 
-照 pilot 第 2 轮的做法：
+1. **hunk 在哪个函数、component 或 hook 里，整个都在范围内**：按改完之后的样子，从头读到尾，旧行也算。
+2. **改动改变了这个函数对外的承诺时，再读它的调用方**：承诺指参数、返回的结构，以及 revalidate、sync 这类副作用。
 
-1. **另开 worktree 埋点**：由一个 general-purpose agent 在一个真实大小的 diff 上埋 3–5 个问题，答案写进 scratchpad 里的文件。main session 只拿到 patch 路径和埋点数量。
-2. **埋什么**：从上面「reviewer 的范围」里挑，每个 case 再埋一个正确性 bug。每个埋点都要过 `format:check`、`lint`、`typecheck`、`knip`，不然量的是 lint，不是 reviewer。
-3. **case 数量**：4 个埋了问题的 case（E1–E4），加 2 个干净的 diff（C1、C2：已合并、之后没有修过的小 PR，不用 Round 0 用过的那个），专门看误报。
-4. **贴近真实错误**：比如漏改 README Current State、`ui/` 里 import 了 domain type、`switch` 用 `default` 兜底、一个 load 时就固定的列表在 save 时覆盖了别人的改动。埋点的 agent 和 reviewer 是同一个模型，盲点相关；owner 亲手写一两个能补上这一点（Q4）。
-5. **防过拟合**：留一个 case 不参与调 prompt，只在最后跑。
+再往外的「整体影响」交给测试，review 不写 test。
 
-### 2. 历史回放（真实，但少）
+本地例子用 #60，而不是 axios 那个。这个 repo 没有 axios 和 cache hook，用这里的规则名和函数名，读者能拿 commit 对照：
 
-挑的是当时 main session 和 owner 都漏掉、后来才修的问题，所以会是最难的几个 case。checkout PR 合并时的 head，按 head 上当时的 AGENTS.md 审：
+- #60 是 auth 改动，在 `RootLayout` 里只把 `getActivePlan(user.id)` 改成了 `getActivePlan(claims.sub)`。只看 diff 的 reviewer 会确认 `claims.sub` 是对的。
+- 把整个 `RootLayout` 读下来，就会发现这一行读 active plan 不走 `ensureSynced`，而当时的 AGENTS.md 已经写明它是唯一的 sync 入口。#63 修了它。
+- 它和 tech lead 的例子不完全一样：#60 改的就是出问题的那一行，只是只改了参数。教训相同：「这个改动对不对」和「这个函数守不守规则」是两个问题。
 
-| Case | PR | 当时漏掉的 | 在哪修的 | 类型 |
-| --- | --- | --- | --- | --- |
-| R1 | #60 auth（`getClaims` + `cache`） | diff 改到了 root layout 里 `getActivePlan(claims.sub)` 这一行。它不走 `ensureSynced`，新一周第一次访问时，Plan 链接打开的还是上周的 plan。当时的 AGENTS.md 已经写明 `ensureSynced` 是唯一的 sync 入口 | #63 | 规则；diff 碰到了这一行，但问题在这之前就有 |
-| R2 | #56 Week model PR 4a | Plan form 提交的是 load 时的整份 `projectStepIds`（one-off 也是）：表单打开期间别处加进这一周的东西，save 时会被退回。当时 step 还没有别的入口，one-off 有（matrix） | #63 | 并发 / stale state |
-| R3 | #75 test baseline | e2e journey 在 optimistic update 之后马上 reload，把还没返回的 server action 打断；CI 慢的时候就红 | #79 | test |
+被改函数以外的问题，报告里单列，最多三条。
 
-R1 检验 diff 里碰到的规则问题会不会被注意到；R2、R3 检验 bug 那一部分。Clone 是 shallow 的（50 个 commit），三个 PR 都在里面。
+## 文档怎么分
 
-### 3. 真实 PR 上的记录（试用阶段）
+| 文件 | 读者 | 写什么 |
+| --- | --- | --- |
+| `.claude/agents/README.md` | 人 | 每个 agent 为什么存在；reviewer 要解决的痛点和整体做法；借鉴了谁、哪里有意不同 |
+| `.claude/agents/code-reviewer.md` | agent | 关键规则加一个 Bad / Good 例子：brief、范围、四类 finding、报之前验证、报告格式。不写理由，不写 SOP |
+| 这份 spike | 拍板之前的 owner | 证据、选项、怎么量；拍板后冻结、归档 |
 
-每个 PR 的 description 加一小段：reviewer 报了几条，每条的结局是什么。结局分五种：真问题·已修 / 真问题·不修 / 误报 / 规则歧义 / pre-existing。之后由 owner、CI 或后来的 PR 发现、而 reviewer 当时看过却漏掉的问题，记为 escape。
+README 放在 `.claude/agents/`，理由有三：
+- 它挨着它解释的那几个定义；
+- Claude Code 递归扫描这个目录，但没有 `name` 的文件「当作放在 agent 旁边的文档」直接跳过（官方 sub-agents 文档），所以它不会被当成 agent；
+- 和 README › *How docs are split* 的目标状态一致：README 给人，定义文件相当于这个目录给 agent 的那一份。
 
-## 对照组
+## 对照公开实践
 
-H1 要和不委派的做法比，不然分不清功劳是「做了一次 review」的，还是「context 干净」的。
+| 来源 | 做法 | 这里 |
+| --- | --- | --- |
+| [Claude Code 官方 sub-agents 文档](https://code.claude.com/docs/en/sub-agents) | description 要短，写清什么时候委派，细节放进 body；用 `tools` 限制权限；定义 check 进 repo；`.claude/agents/` 递归扫描，没有 `name` 的文件当文档跳过；custom subagent 会加载 `CLAUDE.md`（`omitClaudeMd` 可关）；frontmatter 有 `model`、`effort` 等字段 | description 只写职责、触发时机和 brief；README 放同目录；AGENTS.md 经 `CLAUDE.md` 已在 context 里，不必再读 |
+| Anthropic `claude-plugins-official` › `pr-review-toolkit/agents/code-reviewer.md` | 按 CLAUDE.md 审，加 bug 和质量；每条打 0–100 的置信度，只报 ≥ 80；引用具体规则；`model: opus` | 采用：引用规则原文、只报站得住的。不用数字置信度，改成「报之前逐条回读验证」 |
+| 同仓库 › `code-review/commands/code-review.md` | 四个 agent 并行：两个查 CLAUDE.md 遵守（只用和文件同路径的 CLAUDE.md），两个查 bug（只看 diff）；每条 finding 再由另一个 agent 验证；pre-existing、linter 能抓的、吹毛求疵都算误报；不跑 linter 去验证 | 采用：规则按文件类型取、linter 能抓的不报、不跑检查、要有验证一步。**有意不同**：它只看 diff、把 pre-existing 当误报来保 precision；这里把整个被改函数纳入范围，因为这里漏掉的规则问题恰恰在 diff 旁边的旧行里（G1、try2） |
+| `obra/superpowers` › `skills/requesting-code-review/code-reviewer.md` | brief 是「做了什么 + 计划 + base / head SHA」；只读，连 HEAD 都不动，要看别的版本就开 worktree；reviewer 不再派 subagent；列出考虑过但没判的；按严重度分级并给出 merge 结论 | 采用：不动 HEAD、用 worktree；`Rules unclear` 字段相当于它的「没判的」。不采用：先列优点、Ready to merge 结论（这里合并是 owner 的事） |
 
-- **A（main 自查）**：Round 1 的 main session 用同一份规则清单、同一种报告格式，自己审这个 diff。每个 case 都是 A 先做，而且在看到 B 的报告之前写完。到后面几个 case 时，main context 已经装满了前面的 diff 和报告，接近长 session；审的时候记下 context 大小。
-- **B（`code-reviewer`）**：每个 case 跑两次（稳定性）。
-- **B′（内置 `/code-review`，可选）**：同样的 case 各跑一次。如果它和 B 一样好，就不需要自定义 agent（Q5）。
+## Golden set（第一版）
 
-Round 1 里的 A 只能测到「context 长」这一半：这些代码不是它写的，没有「作者认同自己写法」的锚定。那一半只能在真实 PR 上测：试用时，main 先把自查的结果写进 PR description，再委派，最后把两份结果放在一起比。
+挑的是合并时 CI 和 owner 都没拦下、后来才发现的问题。回放时 checkout 引入它的 PR 的 head，按那时 head 上的 AGENTS.md 审；reviewer 报出同一处的同一个问题才算命中。
 
-## 门槛（先定再量，Q3）
+| # | 回放哪个 diff | 漏掉的问题 | 怎么发现、在哪修 | 类型 | 核实 |
+| --- | --- | --- | --- | --- | --- |
+| G1 | #60 auth（`c03bf6a`） | `RootLayout` 读 active plan 不走 `ensureSynced`；diff 只改了这一行的参数 | #63 修 | rule · 被改函数 | ✓ |
+| G2 | #56 Week model PR 4a（`8be3870`） | plan form 提交 load 时的整份 `projectStepIds`：表单开着时别处加进这一周的，save 时会被退回（one-off 早有同样写法） | #63 修 | bug · stale state | ✓ |
+| G3 | #75 test baseline（`7812efc`） | e2e journey 在 optimistic update 后马上 reload，打断还没返回的 server action | #79 上 CI 变红，#79 修 | bug · test | ✓ |
+| G4 | #92（`96d9c63`） | Claude 能把 one-off 放上 week 了，`baseline.md` 仍写 one-off 只在用户 track 时才上 board | sweep 试跑发现，未修 | docs | ✓ |
+| G5 | #58 Projects page（`bc30305`） | 第三份 `CREATE_PLAN_HREF`（board 和 priorities 已各有一份） | sweep 试跑发现，未修；也是两条规则互相拉扯：constants 放在 component 旁边 vs DRY | rule · 规则质量 | ✓ |
+| G6 | #41 MCP 3/5（`9e16bfd`） | service 为了 `$transaction` 直接 import `prisma`；当时的规则是 DAL 放「all Prisma queries」，现在 6 个 service 都这样 | sweep 试跑发现，未修；更像规则和代码打架 | 规则质量 | ✓ 引入 commit |
+| G7 | try2 R1–R10（lab 仓库的评审分支） | 手抄 action 返回类型；改名后 AGENTS.md 的 Bad 例子还是旧名；页面数据类型的名字和位置各做各的 | 十份盲审 | rule · docs | 参照盲审清单 |
+| G8 | 待查（2026-03 以前） | `getISOWeekKey()` 用 UTC、`getTodayDate()` 用本地时间，周界附近误触发 end-of-period sync | `a90dddf` 修 | bug · 时区 | 引入 PR 待查 |
+| G9 | 待查（#62 之前） | 通过 Claude 建下周的 plan 时，上周没做完的 step 被退回 project | #62 内修 | bug | 引入 PR 待查 |
+| G10 | 待查（priority matrix 时期） | mobile matrix 卡片出现两个 size chip：`SizeChip` 自带 `display` class，传进来的 `hidden` / `md:*` 谁赢看样式表顺序 | 当时的 PR 内修 | bug · UI | 引入 PR 待查 |
 
-建议的起点：
+- G1、G2、G3 是最难的：当时写代码的 session 和 owner 都漏了。
+- G4–G6 是 sweep 在 `main` 上找到的漂移，per-PR 回放要回到引入它的那个 PR。其中 G6 主要检验 reviewer 会不会在 `Rules unclear` 里指出规则和代码打架，不算 rule 命中。
+- G8–G10 早于现在的大部分规则和测试，回放时用当时的规则。
+- Owner 之后遇到的漏网问题，随时补进来（Q5）。
 
-- Precision ≥ 70%，blocking 的 ≥ 80%。
-- 埋点 recall ≥ 60%，而且 B 比 A 至少高 20 个百分点。差不到 20 个点，说明 H1 不成立，改用 main 自查加 checklist（Option 3）。
-- 稳定性 ≥ 70%。
-- 试用的 3–5 个 PR 里，至少有一次抓到 CI 和 main 自查都漏掉的 blocking 问题。
+## 怎么量
+
+| 指标 | 怎么算 |
+| --- | --- |
+| Recall | 命中的 golden case ÷ golden case 总数，按类型分；try2 那部分，以「十份盲审里出现两次以上的缺陷」为准 |
+| Precision | 逐条裁决每一条 finding：真问题 ÷ 报出的总数，blocking 单独算。main 判成误报的，由 owner 复核 |
+| 范围 | `Read` 字段里列的函数，是否覆盖了每个 hunk 所在的函数 |
+| 成本 | 每次的 wall time 和花费；只记录，不是目标 |
+
+可选（Q4）：埋点 case（可以反复跑，但埋点的 agent 和 reviewer 是同一个模型）；和 main 自查对照（检验「干净 context」本身值多少）；内置 `/code-review` 作为第二组。门槛先定再量（Q4）。
+
+试用阶段，每个 PR 的 description 记一小段：reviewer 报了几条，每条的结局（真问题·已修 / 真问题·不修 / 误报 / 规则歧义）。之后由 owner、CI 或 sweep 发现、而 reviewer 当时看过却漏掉的，补进 golden set。
 
 ## Options
 
 | Option | 做法 | 好处 | 代价 |
 | --- | --- | --- | --- |
-| 1 · 自定义 `code-reviewer` | 本 spike 的草案 | 按这个 repo 的规则审；context 干净；只读 | 冷启动 16k 起，再加上读 AGENTS.md 和 diff；每次多几分钟 wall time；要维护一份定义 |
-| 2 · 内置 `/code-review` | Claude Code 自带的 skill | 不用维护；偏通用的正确性检查 | 不一定按 AGENTS.md 的规则审；报告格式不归我们管 |
-| 3 · main 自查加 checklist | push 前，main 按一份清单自己过一遍 | 最便宜，不多花 wall time | 正好落在 context rot 和作者锚定那一边 |
-| 4 · GitHub 上 review（CI job 或 review app） | 每次 push 之后在 PR 上审 | 有记录，不依赖 session 自觉 | 每次 push 都要付钱；finding 变成 PR thread，session 都得回复；和 1 一样要先证明质量。本 spike 不评估 |
-
-Round 1 同时给 1、2、3 打分；4 等 1 证明有效之后再说。
+| 1 · 自定义 `code-reviewer`，每个 PR 跑（现在的方向） | 本 spike 的定义 | 按这个 repo 的规则审；context 干净；只读；范围是被改函数 | 每次多几分钟 wall time 和一份花费；要维护一份定义；它的上限是 AGENTS.md 本身的质量 |
+| 2 · 内置 `/code-review` | Claude Code 自带的 skill | 不用维护 | 不一定按 AGENTS.md 审；范围和报告格式不归我们管 |
+| 3 · main 自查加 checklist | push 前 main 按清单过一遍 | 最便宜 | 正好落在 context rot 和作者锚定那一边 |
+| 4 · 合并闸门（owner 的 tech lead 的做法） | reviewer 是 cron 上的 bot，它没在当前 head SHA 上 APPROVED 就不能 merge，merge 留给人按 | 不依赖 session 自觉，有记录 | 每次 push 都要重审，成本按 push 计；finding 变成 PR thread。等 1 证明有用之后再说 |
 
 ## 实施计划
 
-1. **Owner 回答 Q1–Q8**，按回答改草案和这份 spike。
-2. **Round 0 · smoke**：从这个 branch 开一个新 session，`code-reviewer` 一开始就注册好了。拿一个小的真实 diff（比如 #76）跑一次，确认它拿得到 diff、读对了规则文件、报告格式对，跟着改定义。
-3. **Round 1 · 评估**，在同一个 session 里：
-   1. 埋点 agent 做 E1–E4（其中一个留作最后验证），答案封存；选出 C1、C2；准备 R1–R3 的 worktree。
-   2. 每个 case 依次跑 A → B 第 1 次 → B 第 2 次 →（B′）。
-   3. 全部跑完才打开答案，逐条裁决。main 判成误报的 finding 由 owner 复核：main 天然倾向于把 finding 判成误报。
-   4. 算指标，写进 spike；owner 拍板，结果写进 Decision。
-4. **通过之后试用**：本 PR 合并，定义随之进 main；description 去掉 pilot，写上触发条件；AGENTS.md › Subagents 加一行；tracker 加一条「3–5 个 PR 之后按门槛定去留」，像 `ci-fixer` 的复测条目那样。
-5. **不通过**：删掉定义，或者按结果收窄范围（比如只查三项文档），或者改用 Option 3。
+1. **AGENTS.md 过一遍**（owner，下一次）：定下新规则的标准（不重复、简洁、分层、带例子）。reviewer 拿 AGENTS.md 当尺子，尺子的质量就是它的上限。
+2. **Round 0 · smoke**：在一个从这个 branch 开的 session 里，拿 G1 跑一次，确认它拿得到 diff、读的是整个 `RootLayout`、报告格式对。
+3. **Round 1 · golden set**：G1–G6、G8–G10（核实完引入 PR 的那些）和 try2 的十个实现，各跑一次；逐条裁决，算 recall 和 precision，写进这份 spike；owner 拍板。
+4. **通过之后**：
+   - 定义的 description 去掉 pilot；
+   - AGENTS.md › Subagents 加一行：每个 PR 第一次 push 前跑；
+   - 本 PR 合并，spike 写 Decision 并归档；
+   - 试用期的记录按上一节的方式写进各 PR 的 description。
+5. **不通过**：按结果收窄（比如只查 rule 和 docs），或者改用 Option 3。
 
-试用时的流程（Q8）：本地 checks 全绿之后、第一次 push 之前跑一次；修 finding 的改动很大时再跑一次。改动小的时候，它和 `ui-verifier` 并行（两个都只读）；reviewer 可能引出 UI 改动时，先 review、修完，再跑 `ui-verifier`。
+和 `ui-verifier` 的配合：两个都只读。改动小的时候并行跑；reviewer 可能引出 UI 改动时，先 review、修完，再跑 `ui-verifier`。
 
 ## 开放问题
 
-1. **Scope**：以 AGENTS.md 规则为主、changed lines 里的 bug 为辅（草案）；还是只查规则；还是也做通用的 bug hunt？
-2. **Brief**：只给意图一句话和 base ref（草案），还是也告诉它 main 担心哪里？后者能把它引向风险点，代价是带回锚定。
-3. **门槛**：上面那组数字行不行？
-4. **埋点**：owner 要不要亲手写一两个 case 或埋点？
-5. **B′**：Round 1 要不要把内置 `/code-review` 也作为一组来跑？每个 case 多一次运行。
-6. **Model**：`inherit`（草案，质量是目标），还是用 `sonnet` 省钱？
-7. **Pre-existing**：diff 没碰的行上的问题，单独列、最多 3 条（草案），还是完全不报？
-8. **试用时的触发和去向**：第一次 push 前跑一次，finding 只回给 main、不发到 GitHub（草案），行不行？
+1. ✓ **Scope**（owner，2026-10-31）：规则遵守和藏得深的 bug，外加改动让文档失效的；不做通用 bug hunt。
+2. ✓ **什么时候跑**（owner，2026-10-31）：每个 PR 第一次 push 前都跑。两周一次的 sweep 另议（Step 13）。
+3. ✓ **范围单位**（owner，2026-10-31）：被改到的整个函数；改了函数的承诺时，再看调用方。
+4. **评估**：只用 golden set 加 try2 够不够？要不要再加埋点、main 自查对照或内置 `/code-review`？门槛定多少？（owner 在想）
+5. **Golden set**：第一版这 10 条行不行？G8–G10 要不要我把引入 PR 查出来？
+6. **Brief**：只给意图一句话和 base ref，不给 PR description（现在的定义）。行不行？
+7. **Model 和 effort**：`inherit`，还是在 frontmatter 里固定 `effort`？这和 Harness engineering › 2（每个阶段用什么 model 和 effort）是同一个问题。
+8. **README 位置**：`.claude/agents/README.md`，行不行？
+9. **合并闸门**（Option 4）：现在不做，等 Round 1 之后再看？
+10. **规则标准**：明天过 AGENTS.md 时定下来；定下之后，rule-change 的 review（新规则是否重复、简洁、分层、带例子）也交给这个 reviewer，还是单独一个检查？
