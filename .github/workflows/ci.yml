@@ -115,6 +115,23 @@ jobs:
       - name: Check theme variables
         run: npm run check:themes
 
+  contracts:
+    name: Contracts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      # Dependency-free script: every e2e test.fail is a contract tagged with
+      # a mockup that still exists (see test/README.md → e2e).
+      - name: Check contracts
+        run: npm run check:contracts
+
   test:
     name: Unit + integration tests (Vitest)
     runs-on: ubuntu-latest
