@@ -1,15 +1,16 @@
 # Spike: e2e 的数据隔离 — 每个 test 一个 user，只铺自己要的数据
 
-**Status: awaiting owner review** · 2026-11-01 · 回答 tracker 条目 *Harness engineering › e2e data isolation* · 相关：PR #104（`ui-feature` skill、tagged `test.fail` contract）、`design/spike/archived/test-baseline.md`（现在这套 e2e 的决策记录）、`test/README.md` › e2e
+**Status: awaiting owner review** · 2026-11-01 · 回答 tracker 条目 *Harness engineering › e2e data isolation* · 相关：PR #104（`ui-feature` skill、tagged `test.fail` contract，等本 spike 落地后再回看）、`design/spike/archived/test-baseline.md`（现在这套 e2e 的决策记录）、`test/README.md` › e2e
 
 > 语言说明：正文中文；代码标识、文件名、Playwright / Prisma / Supabase 的概念保留英文（fixture / worker / storageState / `moduleFormat`），和代码、文档里的叫法一一对应。
 
 ## TL;DR
 
 - **问题**：e2e 全部测试共用一个 e2e user 和一份 `seedWeek()` 铺好的周，`workers: 1`，journeys 是 `serial`。后一条依赖前一条留下的状态，断言写死 seed 的内容，加一条新测试就要改 seed、牵动别的断言。PR #104 的 review 里暴露出来：contract 要写数据，而写在共享数据上会让排在后面的测试在 design PR 和 implementation PR 之间表现不一样。
-- **建议**：照 Cal.com、Documenso、Formbricks、Epic Stack 的做法——**每个 test 一个新 user**，test 用 `test/factories.ts` 自己铺要读的数据，通过 API 登录；spec 按 feature 拆；去掉 `serial`，开 `fullyParallel`。
+- **已定的方向**：照 Cal.com、Documenso、Formbricks、Epic Stack 的做法——**每个 test 一个新 user**，test 用 `test/factories.ts` 自己铺要读的数据，通过 API 登录；spec 按 flow doc 拆；去掉 `serial`，开 `fullyParallel`；每条测试在 desktop 和 mobile 两个视口各跑一遍。
 - **关键阻碍已验证可解**：Prisma generator 加 `moduleFormat = "cjs"`（Cal.com 同款）后，Playwright 里能直接 import factories、services、DAL；typecheck、unit、integration、`next build`、dev 和 `next start` 运行时都通过。每个 test 的准备开销实测 0.1–0.45 秒。
-- **对 contract 的意义**：contract 自己铺前置数据、写什么都只影响自己的 user、放进它所属 feature 的 spec——PR #104 讨论里的问题 1 和 5 不再存在。
+- **本 PR 定标准、迁移现有测试，不补新覆盖**：现有 13 条产品测试（两个视口共 20 次运行）拆进 6 个 feature spec，7 条 Design Console 测试不动（见 *拆分计划*，每条注明来源）；flow doc 里还没覆盖的 journey 列出来，留到以后。
+- **对 contract 的意义**：contract 自己铺前置数据、写什么都只影响自己的 user、放进它所属 flow 的 spec——PR #104 讨论里的问题 1 和 5 不再存在。
 
 ## 起因
 
@@ -20,18 +21,52 @@ PR #104 的 review 讨论（2026-11-01）：
 
 owner 的判断：根子在 e2e 设计——测试之间、测试和 seed 之间没有隔离。
 
-## 现状
+## 现状与回顾
+
+### 现在怎么跑
 
 | | 做法 |
 | --- | --- |
 | 数据 | 一个 e2e user（`E2E_USER`，固定 id），每次 run 前 `e2e:session` 删掉它的数据、用 `seedWeek()` 重铺一周，run 中途不再 reset |
-| 登录 | 同上脚本写出一个 `.auth/e2e-session.json`，所有测试共用 |
-| 顺序 | `workers: 1`；smoke-desktop、smoke-mobile、design-console 之后才跑 journeys（会改数据）；journeys 是 `mode: 'serial'`，一条依赖上一条的结果 |
-| spec | 按类型分：`smoke.spec.ts`（每页能渲染 seed 的周，两个视口）、`designConsole.spec.ts`、`journeys.spec.ts`（6 条关键路径） |
+| 登录 | 同一个脚本写出 `.auth/e2e-session.json`，所有测试共用 |
+| 顺序 | `workers: 1`；smoke-desktop、smoke-mobile、design-console 跑完才跑 journeys（会改数据）；journeys 是 `mode: 'serial'`，一条依赖上一条的结果 |
 | 为什么 spec 里不能直接造数据 | `test/README.md`：Playwright 按 CommonJS 加载 TypeScript，生成的 Prisma client 只支持 ESM（`import.meta.url`），所以数据库工作只能放进 tsx 脚本 |
-| 耗时 | 27 条测试，本地复用 dev server 2.2 分钟（含首次编译；2026-11-01 云端容器实测） |
+| 耗时 | 27 次运行，本地复用 dev server 2.2 分钟（含首次编译；2026-11-01 云端容器实测） |
 
-这套是 `test-baseline` spike 的 Q11 决定的（"e2e 用独立的 e2e user，只在运行前清"），当时只有几条 smoke 和 4 条 journey，共享一份数据是最省事的。integration 层那时就选了**每个 test 一个新 user**（`newUserId()`，`test/README.md` › Unit and integration）——这次是把同一个做法搬到 e2e。
+### 每个文件测什么
+
+| 文件 | 测试 | 对应的 flow（`design/flows/`） | 读 / 改 seed 的什么 | 加进来的 PR |
+| --- | --- | --- | --- | --- |
+| `smoke.spec.ts`（desktop、mobile 各一遍） | S1 the board shows the week | board › Landing | 读 flashcards habit、course 的 Unit 2 | #75 |
+| | S2 the priority matrix lists the open one-offs | priorities › Landing | 读 `SEED_ONE_OFFS` 第 3 条起 | #75 |
+| | S3 projects list both projects | projects › Landing | 读两个 seed project | #75 |
+| | S4 the plan form opens on this week's plan | plan › Update Plan（入口） | 读 review habit | #75 |
+| | S5 the dump shows its entries and the composer | dump › Landing | 读第一条 dump entry | #75 |
+| | S6 settings open from the navigation | auth › Theme Change / Sign-Out（入口） | — | #75 |
+| | S7 a protected page sends you to sign in（未登录） | auth › Route Protection | — | #75 |
+| `designConsole.spec.ts`（desktop） | 6 个 feature 的 scenarios render and play + gallery | 不对应 flow：Design Console 自己的冒烟 | 不碰数据库 | #75 |
+| `journeys.spec.ts`（desktop，serial） | J1 a card dragged to Done stays done | board › Drag and Drop | 改：flashcards Todo → Done | #75 |
+| | J2 a one-off tracked from the matrix lands on the board | priorities › Track This Week | 改：第 3 条 one-off 进本周 | #75 |
+| | J3 a step put on this week lands in the board's backlog | projects › Schedule Step | 改：Unit 4 进本周；依赖 "Units 1–3 已在周里" | #75 |
+| | J4 a habit removed from the plan leaves the board | plan › Update Plan | 改：删掉 review habit；断言 "2 templates" | #75 |
+| | J5 the backlog takes focus only while it is open | board › Backlog（desktop 的 focus 规则） | 读：Unit 3 在 backlog | #78 |
+| | J6 archived projects sit in a collapsed accordion | projects › Edit Project（archive）、Landing | 改：两个 project 先 archive 再 unarchive | #103 |
+
+7 条 smoke × 2 个视口 + 7 条 Design Console + 6 条 journey = 27 次运行。
+
+### 当时为什么这样分
+
+- **按"怎么跑"分，不按 feature 分**（`test-baseline` spike Q5，PR #75，2026-10-21）。按成本分了三类：每页 smoke（只读、两个视口）、Design Console 冒烟（替掉 agent 每次自己写的检查脚本）、4 条关键路径（改数据、串行）。当时一共只有 20 来条，按"读 / 写"分最容易保证顺序：只读的先跑，改数据的放最后。
+- **一个 e2e user、只在运行前清**（Q11）。本地跑 e2e 要复用正在跑的 `npm run dev`，它连的是 dev 的库，所以 e2e 必须换一个 user，不能动 owner 的 dev 数据。一个 user 对 20 来条测试够用；跑完不清，是为了失败后能登录那个 user 看现场。
+- **数据在 Playwright 进程外准备**：因为 Prisma client 是 ESM，spec 里 import 不了，只能 globalSetup 起一个 tsx 脚本一次铺好。这条技术限制直接导致了"一份 seed 给所有人用"。
+
+### 后来哪里开始别扭
+
+- **journeys 变成了"所有改数据的测试"的去处**：#78（backlog focus）和 #103（archived accordion）都只能追加到 `journeys.spec.ts`，因为只有那里能改数据。一个文件横跨 board、priorities、projects、plan 四个 flow，顺序互相依赖。
+- **设计和实现有偏差**：`test-baseline` 里 J1 写的是"进度数字跟着变，刷新后还在"，实际测试只断言了卡片在 Done，**没断言进度**；J2、J3 计划"在测试里新建一个 one-off / step"，实际用的是 seed 里现成的，于是和 seed 绑在一起。
+- **断言依赖 seed 的细节（Mystery Guest）**："两个 project"、"2 templates"、"Units 1–3 已在周里"都要去 `seedData.ts` / `seedWeek.ts` 里找原因。
+- **CI 竞态**：#79 加了 `waitForServerAction`，因为 CI 上导航会打断还没落库的 server action。这条做法要保留。
+- **一直好用、要保留的**：按 role 和可见文字定位、`openPage()` 等 hydration、console error 让测试失败、`waitForServerAction`。
 
 ## 别人怎么做
 
@@ -46,9 +81,9 @@ Playwright 自己只隔离浏览器（每个 test 一个新的 BrowserContext）
 
 ### 测试数据的经典说法
 
-- **Shared Fixture**：测试一旦修改共享 fixture，就会 "lead to Erratic Tests… because Shared Fixtures violate the principle of Independent Test"；只读的参考数据可以共享，会被修改的对象 "should be built by each test as a Fresh Fixture"。**Mystery Guest**：读测试的人看不到 fixture 和断言之间的因果，因为一部分在测试方法之外（Meszaros, [xUnit Test Patterns](http://xunitpatterns.com/Shared%20Fixture.html)）。现在的 smoke 断言 "两个 project" 就是 Mystery Guest：两个从哪来，要去翻 `seedData.ts`。
+- **Shared Fixture**：测试一旦修改共享 fixture，就会 "lead to Erratic Tests… because Shared Fixtures violate the principle of Independent Test"；只读的参考数据可以共享，会被修改的对象 "should be built by each test as a Fresh Fixture"。**Mystery Guest**：读测试的人看不到 fixture 和断言之间的因果，因为一部分在测试方法之外（Meszaros, [xUnit Test Patterns](http://xunitpatterns.com/Shared%20Fixture.html)）。
 - **Object Mother vs Test Data Builder**：一份大而全的样本数据会造成 "heavy coupling in that many tests will depend on the exact data in the mothers"（[Fowler](https://martinfowler.com/bliki/ObjectMother.html)）；builder 带安全的默认值，每个测试只覆盖它关心的字段（[Nat Pryce](http://natpryce.com/articles/000714.html)）。`seedWeek()` 就是一个 Object Mother；`test/factories.ts` 已经是 builder 的样子。
-- Cypress：不要用 UI 去造状态，用程序登录和造数据；"Tests should always be able to be run independently from one another and still pass"；**在测试之前清理，而不是之后**（[best practices](https://docs.cypress.io/app/core-concepts/best-practices)）。
+- Cypress：不要用 UI 去造状态，用程序登录和造数据；"Tests should always be able to be run independently from one another and still pass"（[best practices](https://docs.cypress.io/app/core-concepts/best-practices)）。
 
 ### 开源项目（2026-11-01 读的各仓库默认分支）
 
@@ -62,7 +97,7 @@ Playwright 自己只隔离浏览器（每个 test 一个新的 BrowserContext）
 | Twenty | 共享的 seed workspace | GraphQL | UI 登录一次 | fixture 删自己建的 | `workers: 1`（"tests can't be parallelized"） | — |
 | Immich | 每个 file `TRUNCATE` | SDK / API | 注 cookie | 每个 file 开头清库 | 真后端 `workers: 1`；UI 测试改成 mock 网络才并行 | — |
 
-**规律**：能并行的那几个（Cal.com、Documenso、Formbricks、Epic Stack）做法一致——一个 `test.extend` fixture 每个 test 建一个唯一的 user，在 Playwright 进程里直接用 Prisma 造数据，不经 UI 登录，spec 按 feature 拆。共享账号的那几个（Dub、Twenty、Immich 的真后端部分）都是串行，和我们现在一样。Prisma 在 Playwright 里两种格式都有人用：Cal.com 用 CJS（`moduleFormat = "cjs"`），Epic Stack、Formbricks、Immich 用 ESM（`"type": "module"`），Documenso 用 `--import tsx`。
+**规律**：能并行的那几个（Cal.com、Documenso、Formbricks、Epic Stack）做法一致——一个 `test.extend` fixture 每个 test 建一个唯一的 user，在 Playwright 进程里直接用 Prisma 造数据，不经 UI 登录，spec 按 feature 拆。共享账号的那几个（Dub、Twenty、Immich 的真后端部分）都是串行，和我们现在一样。
 
 Supabase 官方的 RLS 测试指南给的造 user 方式和这里一致：`auth.admin.createUser`（secret key，`email_confirm: true`），`signInWithPassword` 登录，id 用 `randomUUID()`（[testing RLS](https://supabase.com/docs/guides/database/postgres/testing-row-level-security)）。我们的 `scripts/localAuth.ts` 已经是这样做的。
 
@@ -75,7 +110,7 @@ Supabase 官方的 RLS 测试指南给的造 user 方式和这里一致：`auth.
 | 现状（`prisma-client`，默认 ESM） | 失败：`SyntaxError: Cannot use 'import.meta' outside a module` |
 | generator 加 `moduleFormat = "cjs"` | 能 import；同时 `typecheck` ✓、`test:unit` 260 ✓、`npm test`（含 integration）446 ✓、`next build` ✓、`next dev` 和 `next start` 下页面读写数据库 ✓ |
 
-没验证的：Vercel 上的 serverless 打包。implementation PR 的 Vercel preview 会顺带验证。
+没验证的：Vercel 上的 serverless 打包。implementation 的 Vercel preview 会顺带验证。
 
 **2. 每个 test 的准备开销**（探针：每个 test 建 user、`createWeek` 铺一个 habit、`signInWithPassword` 写 storageState，然后打开 `/kanban` 断言看到自己的 habit）
 
@@ -90,83 +125,150 @@ Supabase 官方的 RLS 测试指南给的造 user 方式和这里一致：`auth.
 
 **3. 顺带发现的两个问题**
 
-- `getLocalSecretKey()`（`scripts/localEnv.ts`）每次调用都起一个 `npx supabase status` 子进程，约 2.5 秒。现在只在 run 开始调一次，无所谓；改成每个 test 建 user 后就会让每个 test 多 2.5 秒。要在 globalSetup 里读一次，经环境变量传给 worker。
-- Docker Hub 限流：`npm run db:setup` 拉 `kong:2.8.1` 时 `docker.io` 返回 429；换 `SUPABASE_INTERNAL_IMAGE_REGISTRY=public.ecr.aws` 一次成功。`scripts/localDb.ts` 现在只用 `docker.io`（之前从 ECR 换过来，因为 ECR 也会限）。两边配额独立，失败时自动换另一个能省掉手动重试（Q7）。
+- `getLocalSecretKey()`（`scripts/localEnv.ts`）每次调用都起一个 `npx supabase status` 子进程，约 2.5 秒。改成每个 test 建 user 后会让每个 test 多 2.5 秒，所以要在 globalSetup 里读一次，经环境变量传给 worker。
+- Docker Hub 限流：`npm run db:setup` 拉 `kong:2.8.1` 时 `docker.io` 返回 429；换 `SUPABASE_INTERNAL_IMAGE_REGISTRY=public.ecr.aws` 一次成功。两边配额独立，失败时自动换另一个（Q7）。
 
-## 选项
+## 已定（PR #105 第 1 轮 review）
 
-### Q1 · 隔离单位
+| 问题 | 决定 |
+| --- | --- |
+| Q1 · 隔离单位 | **每个 test 一个 user** |
+| Q2 · Playwright 里怎么用 Prisma | **`moduleFormat = "cjs"`** |
+| Q3 · 清理 | **不清**：CI 每次是新 runner；在本地跑 e2e 的是云端 session 的 agent，容器也是一次性的；dev user 看不到 `e2e-*` user 的数据，测试只读自己的 user |
+| Q4 · 视口 | **每条测试 desktop 和 mobile 各跑一遍**，不用 `@mobile` tag 挑（后果见 *拆分计划 › 两个视口*） |
+| Q5 · 并行度 | `fullyParallel`；CI 先用 2 个 worker，实测后再调 |
+| Q6 · PR #104 | 先放着，e2e 落地后再回看 |
+| Q7 · Docker 镜像源回退 | 放进本 PR |
+| 范围 | 本 PR 定标准、迁移现有测试；没覆盖到的 journey 只列出来，不在本 PR 补 |
+| 分层 | 按下面 *分层* 一节；component testing 这一层先不加 |
 
-| | 每个 test 一个 user（推荐） | 每个 worker 一个 user | 每个 file 一个 user |
-| --- | --- | --- | --- |
-| 做法 | test 级 fixture | Playwright 文档的 *one account per parallel worker*，worker 级 fixture | `beforeAll` 建 |
-| 隔离 | 完全：任何一条都能单独、重复、任意顺序跑 | worker 内的测试仍共享数据，顺序仍有影响 | file 内仍共享 |
-| 开销 | 每条 0.1–0.45 s | 几乎为零 | 几乎为零 |
-| 谁这么做 | Cal.com、Documenso、Formbricks、Epic Stack；我们的 integration 层 | Playwright 文档的示例 | Immich（换成清库） |
+## 拆分计划
 
-推荐每个 test：开销对 27 条测试是 3–12 秒，换来的是"一条测试只影响自己"。worker 级只解决了并行，没解决这次的问题。
+### 文件和分组
 
-### Q2 · Playwright 里怎么用 Prisma
+- **一个 flow doc 一个 spec**：`board`、`plan`、`priorities`、`projects`、`dump`、`auth`。`shared.md` 的三个 flow（Ensure Synced、Daily Sync、End of Period Sync）都是日期逻辑，留在 integration 层（`test/README.md`：dates stay out of e2e）。
+- **spec 里一个 flow 一个 `test.describe`**，名字就是 flow doc 的 `##` 标题（`'Drag and Drop Flow'`），这样测试报告和 flow doc 一一对应，以后核对覆盖面只要对标题。
+- **每条测试独立**：自己的 user、自己铺数据、任意顺序都能跑。不再有 `serial`、project 之间的 `dependencies`。
+- **`designConsole.spec.ts` 不动**，不碰数据库。
 
-| | 做法 | 状态 |
+### 每条测试
+
+"铺什么"一栏只写这条测试读到的东西，全部用 `test/factories.ts`（缺的 builder 加进去，保持默认值 + 覆盖的写法）。
+
+**`board.spec.ts`**
+
+| describe | 测试 | 来源 | 铺什么 | 改动 |
+| --- | --- | --- | --- | --- |
+| Landing Flow | the board shows the week | `smoke.spec.ts` S1 | 一周：一个 habit 在 Todo、一个 project step 在 Todo | 断言换成自己铺的标题，不再引用 `SEED_*` |
+| Drag and Drop Flow | a card dragged to Done stays done, and the day's progress counts it | `journeys.spec.ts` J1 | 一周：一个 habit 在 Todo | **补上进度断言**（`test-baseline` 原本计划要测，实现时漏了）：拖动后今天的进度跟着加一，刷新后还在（具体断言的文字以 `ProgressDashboard` 实际显示的为准） |
+| Backlog Flow | the backlog takes focus only while it is open | `journeys.spec.ts` J5 | 一周：一个 project step 在 backlog | 这条是 desktop 面板的规则（flow doc 写明），mobile 上 `test.skip` 并写明原因 |
+
+**`plan.spec.ts`**
+
+| describe | 测试 | 来源 | 铺什么 | 改动 |
+| --- | --- | --- | --- | --- |
+| Update Plan Flow | the plan form opens on this week's plan | `smoke.spec.ts` S4 | 一周：一个 habit | — |
+| Update Plan Flow | a habit removed from the plan leaves the board | `journeys.spec.ts` J4 | 一周：两个 habit | 断言从 "2 templates"（三删一）改成 "1 template"（二删一） |
+
+**`priorities.spec.ts`**
+
+| describe | 测试 | 来源 | 铺什么 | 改动 |
+| --- | --- | --- | --- | --- |
+| Priorities Landing Flow | the priority matrix lists the open one-offs | `smoke.spec.ts` S2 | 两个不同象限的 one-off | — |
+| Track This Week Flow | a one-off tracked from the matrix lands on the board | `journeys.spec.ts` J2 | 一周（空的也行）、一个 one-off | 在测试里新建 one-off（`test-baseline` 原计划如此）；desktop 用 hover → "Move task"，mobile 用点卡片 → bottom sheet |
+
+**`projects.spec.ts`**
+
+| describe | 测试 | 来源 | 铺什么 | 改动 |
+| --- | --- | --- | --- | --- |
+| Projects Landing Flow | projects list the active projects | `smoke.spec.ts` S3（原名 projects list both projects） | 两个 project | 标题不再写死"两个" |
+| Schedule Step Flow | a step put on this week lands in the board's backlog | `journeys.spec.ts` J3 | 一周、一个两步的 project（都没上周） | 不再依赖 "Units 1–3 已在周里"；看 backlog 时 desktop 展开面板，mobile 打开 sheet |
+| Edit Project Flow | archived projects sit in a collapsed accordion | `journeys.spec.ts` J6 | 两个 project | — |
+
+**`dump.spec.ts`**
+
+| describe | 测试 | 来源 | 铺什么 | 改动 |
+| --- | --- | --- | --- | --- |
+| Dump Landing Flow (View) | the dump shows its entries and the composer | `smoke.spec.ts` S5 | 一条 dump entry | — |
+
+**`auth.spec.ts`**
+
+| describe | 测试 | 来源 | 铺什么 | 改动 |
+| --- | --- | --- | --- | --- |
+| Route Protection Flow | a protected page sends you to sign in | `smoke.spec.ts` S7 | 不建 user（未登录） | — |
+| Sign-Out Flow | settings open from the navigation | `smoke.spec.ts` S6 | 一个空 user | 只是归位；它测的是 settings sheet 能打开，Sign-Out 本身没测 |
+
+合计：13 条产品测试 × 2 个视口 = 26 次运行（减去 J5 在 mobile 上 skip 的 1 次），加 Design Console 7 次，共 32 次；现在是 27 次。
+
+### 两个视口
+
+每条测试都跑两遍，带来两件要处理的事：
+
+- **同一件事两个视口的操作不同**：backlog（desktop 面板拖动 / mobile sheet 点 `↑ Todo`）、Track This Week（desktop hover → 按钮 / mobile 点卡片 → sheet）。做法是把这类操作写成 `e2e/actions/` 下的小函数（`openBacklog(page)`、`trackThisWeek(page, title)`），函数里按 `isMobile` 分支，测试本身只写一遍。这和 Cal.com、Twenty 用的 page object 是一个思路，只是更薄。
+- **只属于一个视口的规则**：flow doc 里明确只对一个视口成立的（J5 的 focus 规则只写了 desktop），在另一个视口 `test.skip(isMobile, '<flow doc 里的原话>')`。这是"这个视口不适用"，不是为了让 CI 变绿而跳过。
+- **未验证**：J1 用的 `@hello-pangea/dnd` 键盘拖动在 390 宽的 mobile 布局下能不能用，迁移时第一个实测；不能用的话，mobile 上换成 flow doc 里 mobile 的操作方式。
+
+Design Console 不跟着跑 mobile：它是开发工具，scenario 本身就在 frame 里画出手机宽度；tracker 里还有一个已知问题（desktop-only tab 在手机宽度下跑 play step 会打开 mobile sheet），在 mobile 视口跑它只会撞上这个问题（Q9）。
+
+### 还没覆盖的 journey（本 PR 不补）
+
+按 flow doc 对照，上表覆盖了 13 个 flow；下面这些在 e2e 里还没有测试，留给以后（含 MCP 和日期逻辑的那些本来就在 integration 层）：
+
+| flow doc | 还没覆盖的 flow |
+| --- | --- |
+| board | Progress Tracking（只在 J1 里断言一处）、Backlog 的拉取（desktop 拖到 Todo / mobile 点 `↑ Todo`） |
+| plan | Create Task Template、Update Task Template、Create Plan |
+| priorities | Reprioritize（拖到别的象限）、Complete One-off（含 undo）、Add Priority Task |
+| projects | Create Project、Manage Steps（加、改、删、排序） |
+| dump | Quick Capture |
+| auth | Login（要 Google，手动验证）、Theme Change、Sign-Out 本身 |
+| 不进 e2e | Plan with Claude、Manage One-offs with Claude、Draft Steps with Claude（MCP，integration 已测）；OAuth Consent（要 claude.ai，手动）；`shared.md` 的三个 sync flow（日期逻辑，integration） |
+
+## 分层：一个行为该放哪一层
+
+以"habit 拖到 Done，进度要对"为例，拆成三件事，各放一层：
+
+| 要验证的 | 放哪 | 例子 |
 | --- | --- | --- |
-| **(a) `moduleFormat = "cjs"`（推荐）** | `prisma/schema.prisma` 的 generator 加一行 | 已验证（上面）；Cal.com 同款 |
-| (b) `e2e/package.json` 设 `"type": "module"` | Prisma 官方 Playwright 指南的做法 | 未验证；`@/` 别名和 ESM 的旧 issue 在 1.64 是否还在未知 |
-| (c) `NODE_OPTIONS='--import tsx'` | Documenso 的做法 | 未验证 |
-| (d) 每个 test 起一个 tsx 子进程造数据 | 不碰生成的 client | 每条多 1–2 秒，数据只能以 JSON 传 |
+| 值算得对不对，含各种边界情况 | integration（服务 + 真数据库） | `boardService.int.test.ts` 的 "counts today's and the week's progress"：各种 status、size、日期组合下进度是多少 |
+| UI 能不能把一个状态画对 | Design Console scenario（e2e 会把每个 tab 跑一遍） | 进度为 0、一半、满、超额时进度条的样子 |
+| 整条链路接起来没有 | e2e，一条 journey 断言一次看得见的结果 | 拖动 → server action → revalidate → 页面上今天的进度跟着加一，刷新后还在 |
 
-(a) 改的是 app 本身用的 client 格式。Next.js 打包时 CJS 和 ESM 都能处理，验证里 build 和运行时都正常；剩下的风险是 Vercel 打包，由 preview 兜底。如果 preview 有问题，退到 (b)。
+规则：**e2e 证明接通，不穷举组合**。一个组合要不要单独测，看它在哪一层出错：算错放 integration，画错放 scenario，只有"接错了"才需要 e2e 再多一条。component testing（React Testing Library 或 Playwright CT）适合复杂的客户端交互逻辑（optimistic update 回滚、拖动规则），仓库现在没有这一层，先不加。
 
-### Q3 · 清理
+## 选择性跑 e2e（owner 提的后续）
 
-| | 做法 | 好处 | 代价 |
-| --- | --- | --- | --- |
-| **(a) 运行前清扫（推荐）** | globalSetup 删掉所有 `e2e-*@mars.local` 的 Auth user 和它们名下的 app 数据 | 失败测试的数据留到下次 run，可以用 Prisma Studio 或登录那个 user 看现场（`test-baseline` Q11 就是这么定的）；Cypress 的建议 | 本地库里会留一次 run 的数据 |
-| (b) 每个 test 结束删 | fixture teardown | 库永远干净 | 失败现场没了；并行下删除要小心死锁（Cal.com 为此放进一个 transaction、只删记下的 id） |
-| (c) 不清 | 唯一邮箱避免冲突 | 最简单 | 本地库无限增长 |
+owner 的想法：每个 PR 只跑它改动到的 feature 的 e2e，全量回归放到两周一次的 quality sweep（tracker 里 Quality gate 的 Step 13）。先把这次拆完后的耗时量出来再定。
 
-app 表对 Auth 没有外键，所以要删两边：`deleteUserData(userId)`（`scripts/e2eSession.ts` 里已有）加上 `auth.admin.deleteUser`。
+**先量什么**：implementation PR 在描述里写出全量 e2e 的耗时，和每个 spec（= 每个 feature）各自的耗时，两个视口分开。Playwright 的 JSON reporter 有每条测试的 duration，按文件加起来即可。
 
-### Q4 · spec 布局和 mobile 视口
+**选择性跑的两个难点**（供量完之后定）：
 
-按 feature 拆（上面四个能并行的项目都这样）：`board`、`priorities`、`projects`、`plan`、`dump`、`settings`、`auth`，`designConsole.spec.ts` 保持不变（它不碰数据库）。每个 spec 里，每条测试自己铺它要读的东西，标题照旧是行为。
+- **"改动到哪个 feature"不好判断**。e2e 测的是整个 app，一个 PR 改的往往是 service、DAL、schema 或 `domain/shared/` 这类多个 feature 共用的文件；`planningService` 一处改动会影响 board、plan、projects。常见做法是一张 feature → 路径的映射表，改到共用路径时退回全量跑。Playwright 1.46 起有 `--only-changed`，但它只顺着 spec 文件的 import 图找，app 代码的改动它看不到，帮不上这里。
+- **回归晚发现的代价**：两周一次的全量跑出问题时，这两周的 PR 都是嫌疑，要二分查找。折中做法是每次 merge 到 `main` 后跑一次全量（或每晚一次），问题最多晚一天、只涉及几个 PR。
 
-`test-baseline` 定过每个页面要在两个视口渲染。两种保留方式：
+拆完以后如果全量本身就只要一两分钟，选择性跑省下的时间可能抵不过映射表的维护；量完再定（Q8）。
 
-- **(a) tag（推荐）**：每个 feature spec 第一条 "renders" 测试打 `@mobile`，mobile project 用 `grep: /@mobile/` 只跑这些。一个 feature 的东西都在一个文件里。
-- (b) 留一个很薄的 `pages.spec.ts`，desktop 和 mobile 两个 project 都跑它，其余 spec 只跑 desktop。
-
-### Q5 · 并行度
-
-`fullyParallel: true`，去掉 `serial` 和 project 之间的 `dependencies`（不再需要"改数据的排在最后"）。worker 数：本地用默认值（CPU 的一半）；CI（`ubuntu-latest`，4 vCPU，同一台机器上还跑着 Next server 和 Supabase）先用 2，实测后再调。Documenso 的经验是 worker 数受数据库连接数限制。
-
-### Q6 · 和 PR #104 的关系
-
-本 spike 的计划假设 contract 已经是 tagged `test.fail`（#104），不再有 `contract` / `features` project。两条路：#104 先 merge，本 PR 在它之上做；或者 #104 关掉，它的内容并进本 PR。#104 里 `check:contracts` 的几处正则问题（PR 上的 review 讨论）和这里无关，可以在 #104 里单独修。
-
-### Q7 · Docker 镜像源回退放不放进这个 PR
-
-implementation 要在云端容器里跑 e2e，就要能起本地 stack。`scripts/localDb.ts` 在 `docker.io` 拉取失败时自动用 `public.ecr.aws` 重试一次，大约十几行。放进本 PR 能让这个 PR 自己的验证跑得起来；按 *One task, one branch, one PR* 也可以单开一个 tracker 条目。
-
-## 实施计划（Q1–Q5 按推荐）
+## 实施计划
 
 一个 PR，按这个顺序提交：
 
 1. **Prisma 在 Playwright 里可用**：generator 加 `moduleFormat = "cjs"`；删掉 `test/README.md` 里 "Specs can't import Prisma" 那条。
-2. **fixture**（`e2e/fixtures.ts`）：
+2. **Docker 镜像源回退**：`scripts/localDb.ts` 在 `docker.io` 拉取失败时用 `public.ecr.aws` 重试一次。
+3. **fixture**（`e2e/fixtures.ts`）：
    - `user`：`randomUUID()`，邮箱 `e2e-<id>@mars.local`，`auth.admin.createUser`；
    - `storageState` 覆盖为 `signInAsStorageState(user)`，每个 test 自己的登录态；
-   - 数据：测试直接调 `test/factories.ts`（`createWeek`、`createProjectWithSteps`、`createOneOff`、`moveTasks`），缺的组合加进 factories，保持 builder 的样子（默认值 + 覆盖），不再造一个新的 `seedWeek`。
-3. **globalSetup**：读一次 secret key 放进环境变量；清扫上一次 run 留下的 `e2e-*` user 和数据。
-4. **迁移 27 条测试到按 feature 的 spec**：每条只铺自己读的数据；断言里不再引用 `SEED_*`；journeys 拆开后各自造前置状态（例如 "a step put on this week" 自己建一个 Units 1–3 已在周里的 project）。
-5. **配置**：`fullyParallel: true`；desktop project 跑全部，mobile project `grep: /@mobile/`；去掉 `dependencies`。
-6. **删掉不再需要的**：`E2E_USER`、`scripts/e2eSession.ts`、`npm run e2e:session`（`dev:session` 和 dev user 的 `seedWeek()` 保留）；knip 会指出剩下的。
-7. **文档**：`test/README.md` › e2e（隔离、fixture、清扫、布局、contract 怎么放）、AGENTS.md › Commands、README › Tests；#104 的 skill 第 4 步写明 "contract 自己铺前置数据，放进它所属 feature 的 spec"。
-8. **量**：本地和 CI 前后的 e2e 耗时写进 PR 描述。
+   - globalSetup 读一次 secret key 放进环境变量；不做清理。
+4. **视口操作**：`e2e/actions/` 下按 `isMobile` 分支的小函数（backlog、Track This Week），先实测 J1 的键盘拖动在 mobile 上能不能用。
+5. **迁移 13 条产品测试到 6 个 spec**，按上面的表：每条只铺自己读的数据，断言不再引用 `SEED_*`，J1 补上进度断言。
+6. **配置**：`fullyParallel: true`；`desktop` 和 `mobile` 两个 project 都跑全部产品 spec，`design-console` 只跑 desktop；去掉 `dependencies`；CI `workers: 2`。
+7. **删掉不再需要的**：`E2E_USER`、`scripts/e2eSession.ts`、`npm run e2e:session`、`smoke.spec.ts`、`journeys.spec.ts`（`dev:session` 和 dev user 的 `seedWeek()` 保留）；knip 会指出剩下的。
+8. **文档**：`test/README.md` › e2e（隔离、fixture、按 flow 分 spec 和 describe、两个视口、分层规则、contract 自己铺数据）、AGENTS.md › Commands、README › Tests。
+9. **量**：本地和 CI 的全量耗时、每个 spec 的耗时，前后对比写进 PR 描述（Q8 的输入）。
 
 ## 顺带：agent 开发流程，别人是不是 spec 和 test driven
 
-owner 想知道的另一面。结论先说：**公开仓库里大多是 test-verified（测试来验收），真正 test-first、spec-first 的很少，多是可选或停在工具和研究里。**
+结论先说：**公开仓库里大多是 test-verified（测试来验收），真正 test-first、spec-first 的很少，多是可选或停在工具和研究里。**
 
 - **工具**：GitHub spec-kit（specify → plan → tasks → implement，不要求先写测试）、AWS Kiro（requirements / design / tasks 三份文档，另有给小改动用的 Quick Spec）。Thoughtworks 的 Birgitta Böckeler 试用后的评价：Kiro 把一个小 bug 修复变成 4 个 user story、16 条验收标准，"like using a sledgehammer to crack a nut"；"I'd rather review code than all these markdown files"；而且 agent "ultimately not follow all the instructions"（[martinfowler.com](https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html)）。
 - **Anthropic 现在的文档**：核心是给 agent "something it can run that comes back pass or fail"——测试文件、和 mockup 并排的截图；"done" 是 "a failing test it has to turn green"（[best practices](https://code.claude.com/docs/en/best-practices)）。
@@ -190,10 +292,6 @@ owner 想知道的另一面。结论先说：**公开仓库里大多是 test-ver
 
 ## 待 owner 回答
 
-1. **Q1**：每个 test 一个 user（推荐）、每个 worker、还是每个 file？
-2. **Q2**：`moduleFormat = "cjs"`（推荐，已验证）还是 ESM（`e2e/package.json` 的 `"type": "module"`）？
-3. **Q3**：运行前清扫（推荐）、每个 test 结束删、还是不清？
-4. **Q4**：mobile 视口用 `@mobile` tag（推荐）还是留一个 `pages.spec.ts`？
-5. **Q5**：CI 先用 2 个 worker 实测，可以吗？
-6. **Q6**：PR #104 先 merge、还是并进本 PR？
-7. **Q7**：Docker 镜像源回退放进本 PR，还是单开 tracker 条目？
+8. **Q8 · 选择性跑 e2e**：先按 *实施计划* 第 9 步量出全量和每个 feature 的耗时，再决定"每个 PR 只跑改到的 feature + 定期全量"（全量是两周一次，还是每次 merge 到 `main` 后一次）。可以吗？
+9. **Q9 · Design Console 只跑 desktop**：理由见 *两个视口*。可以吗？
+10. **拆分计划的表**：13 条测试的去向、改动和"还没覆盖"的清单，有要调整的吗？
