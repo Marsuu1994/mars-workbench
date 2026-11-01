@@ -1,9 +1,9 @@
 ---
-name: ui-design
-description: The design PR for new or changed UI in this repository — mockup, the owner's review rounds on the PR, then the e2e contract — and the implementation PR that follows it. Use whenever the owner asks for a UI change that isn't built yet (a new screen, a new state, a changed layout or interaction), before writing any component code; also when picking up the implementation of a merged design. Not for copy, colour or spacing tweaks the owner described exactly.
+name: ui-feature
+description: "What: the workflow for a UI feature, new screens or changes to existing ones, from the owner's request to shipped code: a mockup the owner reviews on a design PR until approved, an e2e contract pinning it, then an implementation PR that builds it. When to use: the owner asks for UI that isn't built yet (a new screen, a new state, a changed layout or interaction), before writing any component code; or a merged design is ready to implement. When not to use: a UI bug (existing UI behaving wrong: fix it with a failing test first, test/README.md); copy, colour or spacing tweaks the owner described exactly."
 ---
 
-# UI design → implementation
+# UI feature: design → implementation
 
 New UI lands in two PRs. The rules each step follows live in the docs this skill points to; read them at the step, not up front.
 

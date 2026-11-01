@@ -31,7 +31,7 @@ scripts/                           # Repo checks run in CI; the local stack's se
 test/                              # Test helpers and conventions (README); unit and integration tests sit next to their modules
 e2e/                               # Playwright specs; a test.fail tagged with a mockup = designed, not built yet (test/README.md)
 .claude/agents/                    # Claude Code subagents: ui-verifier, test-writer, ci-fixer (Workflow › Subagents)
-.claude/skills/                    # Claude Code skills: ui-design (UI Workflow)
+.claude/skills/                    # Claude Code skills: ui-feature (UI Workflow); description format in its README
 design/                            # Design docs — index in design/README.md
 ├── baseline.md                    # The one app-wide baseline: goal, entities, schema, architecture decisions
 ├── design-language/               # Per-theme visual specs + the shared fx-* skeleton
@@ -93,6 +93,7 @@ A rule that only one kind of file needs lives with that file. Read it before you
 | the Design Console — scenarios, gallery (`src/app/design/`) | `src/app/design/README.md` |
 | a mockup (`design/mockup/`) | `design/README.md` |
 | an experiment (`experiments/`) | `experiments/AGENTS.md` |
+| a skill (`.claude/skills/`) | `.claude/skills/README.md` |
 | `reviews/`, or addressing the owner's review on a PR | `reviews/AGENTS.md` |
 | themes, `globals.css`, visual patterns | `design/design-language/README.md` |
 | how a page's data flows from server to client | `design/baseline.md` › Architecture Decision |
@@ -118,7 +119,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 - **The Design Console is the source of truth for implemented UI.** `/design` renders the real components: a gallery tabbed by layer (`ui/` · `application/` · `domain/`) and per-feature scenario pages (`/design/scenarios/<feature>/`) with pinned fixture states. `npm run dev` serves it without signing in (`src/app/design/README.md` › Local access).
 - **Verification is CI's and the owner's; a browser check is the exception.** CI runs the unit, integration and e2e tests — every page, every Design Console tab, the key journeys — on every PR, and the owner accepts UI on the Vercel preview. Logic, data and MCP changes are verified by `npm test`, style and copy changes by CI and the owner. A layout change (wrapping, overflow, breakpoints, overlay stacking), a new or changed scenario tab or play step, or the owner's request gets one browser check, delegated to the `ui-verifier` subagent with a brief — what changed, the scenario tabs, each check as a sentence — so screenshots and scripts stay out of the main context; read its verdict, and open a screenshot only when it says UNSURE. A bug seen only on a device (iOS / WebKit, the PWA): ask the owner for a screenshot or recording before trying headless Chromium.
 - **Production first, the console adapts.** Components are shaped by what production needs. A production component never carries a prop, branch or comment that only the console uses, and nothing is split or restructured so the console can show it: the console reaches a state the way a user would, or skips it. Bad: `initialUndoToastTaskId` on `PrioritiesPage`. Good: a scenario tab's `play` step clicking the real control.
-- **New UI starts with a design PR.** A design that isn't built yet is drawn as a self-contained HTML mockup in `design/mockup/`, reviewed by the owner on its PR and pinned by an e2e contract; that PR merges with no component code, and an implementation PR follows from `main` (`design/README.md` › Mockups; the `ui-design` skill walks both).
+- **New UI starts with a design PR.** A design that isn't built yet is drawn as a self-contained HTML mockup in `design/mockup/`, reviewed by the owner on its PR and pinned by an e2e contract; that PR merges with no component code, and an implementation PR follows from `main` (`design/README.md` › Mockups; the `ui-feature` skill walks both).
 - **Build it exactly, then sync the console.** Implement the approved mockup exactly (layout, spacing, text, colors, icons, states); if something can't be built as-is, raise it and update the mockup first. As the UI lands, add or update the feature's scenario page and gallery entries so the pinned states match production. Once the design is fully implemented, delete its mockup: from then on the Design Console is the source of truth. A scenario that no longer matches production is a bug.
 
 ## Documentation Style
