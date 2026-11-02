@@ -29,9 +29,10 @@ const MOBILE = {
 export default defineConfig({
   testDir: 'e2e',
   // Every test runs as its own user (e2e/fixtures.ts), so all of them run in
-  // parallel; CI's runner also hosts the app and the Supabase stack
+  // parallel. CI's 4 vCPU runner also hosts the app and the Supabase stack:
+  // 2 workers didn't beat the old serial run, so try 3
   fullyParallel: true,
-  workers: isCI ? 2 : undefined,
+  workers: isCI ? 3 : undefined,
   forbidOnly: isCI,
   // In CI the JSON report feeds the job summary's per-spec timing
   // (scripts/e2e-timing.mjs)
