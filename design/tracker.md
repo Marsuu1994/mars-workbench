@@ -47,7 +47,9 @@ How agents work on this repository: the experiments under `experiments/` (rules 
   - [ ] `test/` — test helpers and conventions
   - [ ] `design/tracker.md` — its Conventions section (a file, not a folder: decide whether it moves to `design/AGENTS.md`)
   - [ ] Root `AGENTS.md` — once every folder has moved, rewrite *Adding a rule* and *Where the rules live* for the new split
-- [ ] e2e data isolation — every e2e test signs in as its own fresh user and builds only the data it reads, specs split by feature and run in parallel, so a test (a design PR's contract included) affects nothing but itself: spike `design/spike/e2e-data-isolation.md`
+- [ ] e2e data isolation — every e2e test signs in as its own fresh user and builds only the data it reads, specs split by feature and run in parallel, so a test (a design PR's contract included) affects nothing but itself: spike `design/spike/e2e-data-isolation.md` (decided)
+  - [ ] Isolation and the migration of today's tests (PR #105)
+  - [ ] Review the flow docs against the product, then add or update the e2e tests each flow needs; the gaps known today are in `e2e/not-implemented.md`
 
 ## Board
 

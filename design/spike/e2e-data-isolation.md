@@ -1,6 +1,6 @@
 # Spike: e2e 的数据隔离 — 每个 test 一个 user，只铺自己要的数据
 
-**Status: awaiting owner review** · 2026-11-01 · 回答 tracker 条目 *Harness engineering › e2e data isolation* · 相关：PR #104（`ui-feature` skill、tagged `test.fail` contract，等本 spike 落地后再回看）、`design/spike/archived/test-baseline.md`（现在这套 e2e 的决策记录）、`test/README.md` › e2e
+**Status: decided** · 2026-11-02 · 回答 tracker 条目 *Harness engineering › e2e data isolation* · 相关：PR #104（`ui-feature` skill、tagged `test.fail` contract，等本 spike 落地后再回看）、`design/spike/archived/test-baseline.md`（现在这套 e2e 的决策记录）、`test/README.md` › e2e
 
 > 语言说明：正文中文；代码标识、文件名、Playwright / Prisma / Supabase 的概念保留英文（fixture / worker / storageState / `moduleFormat`），和代码、文档里的叫法一一对应。
 
@@ -9,7 +9,7 @@
 - **问题**：e2e 全部测试共用一个 e2e user 和一份 `seedWeek()` 铺好的周，`workers: 1`，journeys 是 `serial`。后一条依赖前一条留下的状态，断言写死 seed 的内容，加一条新测试就要改 seed、牵动别的断言。PR #104 的 review 里暴露出来：contract 要写数据，而写在共享数据上会让排在后面的测试在 design PR 和 implementation PR 之间表现不一样。
 - **已定的方向**：照 Cal.com、Documenso、Formbricks、Epic Stack 的做法——**每个 test 一个新 user**，test 用 `test/factories.ts` 自己铺要读的数据，通过 API 登录；spec 按 flow doc 拆；去掉 `serial`，开 `fullyParallel`；每条测试在 desktop 和 mobile 两个视口各跑一遍。
 - **关键阻碍已验证可解**：Prisma generator 加 `moduleFormat = "cjs"`（Cal.com 同款）后，Playwright 里能直接 import factories、services、DAL；typecheck、unit、integration、`next build`、dev 和 `next start` 运行时都通过。每个 test 的准备开销实测 0.1–0.45 秒。
-- **本 PR 定标准、迁移现有测试，不补新覆盖**：现有 13 条产品测试（两个视口共 20 次运行）拆进 6 个 feature spec，7 条 Design Console 测试不动（见 *拆分计划*，每条注明来源）；flow doc 里还没覆盖的 journey 列出来，留到以后。
+- **本 PR 定标准、迁移现有测试，不补新覆盖**：现有 13 条产品测试（两个视口共 20 次运行）拆进 6 个 feature spec，7 条 Design Console 测试不动（见 *拆分计划*，每条注明来源）；flow doc 里还没覆盖的 journey 记在 `e2e/not-implemented.md`，留给 tracker 的后续条目（先 review flow doc，再补测试）。
 - **对 contract 的意义**：contract 自己铺前置数据、写什么都只影响自己的 user、放进它所属 flow 的 spec——PR #104 讨论里的问题 1 和 5 不再存在。
 
 ## 起因
@@ -128,7 +128,7 @@ Supabase 官方的 RLS 测试指南给的造 user 方式和这里一致：`auth.
 - `getLocalSecretKey()`（`scripts/localEnv.ts`）每次调用都起一个 `npx supabase status` 子进程，约 2.5 秒。改成每个 test 建 user 后会让每个 test 多 2.5 秒，所以要在 globalSetup 里读一次，经环境变量传给 worker。
 - Docker Hub 限流：`npm run db:setup` 拉 `kong:2.8.1` 时 `docker.io` 返回 429；换 `SUPABASE_INTERNAL_IMAGE_REGISTRY=public.ecr.aws` 一次成功。两边配额独立，失败时自动换另一个（Q7）。
 
-## 已定（PR #105 第 1 轮 review）
+## Decision · 拍板（2026-11-01 / 02，PR #105 第 1 轮 review 和会话里的讨论）
 
 | 问题 | 决定 |
 | --- | --- |
@@ -141,6 +141,9 @@ Supabase 官方的 RLS 测试指南给的造 user 方式和这里一致：`auth.
 | Q7 · Docker 镜像源回退 | 放进本 PR |
 | 范围 | 本 PR 定标准、迁移现有测试；没覆盖到的 journey 只列出来，不在本 PR 补 |
 | 分层 | 按下面 *分层* 一节；component testing 这一层先不加 |
+| Q8 · 选择性跑 e2e | 先量：implementation PR 报出全量和每个 spec 的耗时，再决定要不要"每个 PR 只跑改到的 feature + 定期全量" |
+| Q9 · Design Console | 只跑 desktop |
+| 拆分计划 | 按下面的表迁移；owner 认为问题主要在 flow doc 本身，flow doc 的 review 和据此补 / 改 e2e 是 tracker 的后续条目 |
 
 ## 拆分计划
 
@@ -212,17 +215,39 @@ Design Console 不跟着跑 mobile：它是开发工具，scenario 本身就在 
 
 ### 还没覆盖的 journey（本 PR 不补）
 
-按 flow doc 对照，上表覆盖了 13 个 flow；下面这些在 e2e 里还没有测试，留给以后（含 MCP 和日期逻辑的那些本来就在 integration 层）：
+按 flow doc 对照，上表覆盖了 13 个 flow；其余的记在 `e2e/not-implemented.md`（每个 flow doc 一节，以及哪些 flow 本来就不进 e2e、在哪一层测）。一条测试落地时删掉对应的行。flow doc 本身也要先 review 一遍，才知道这份清单准不准：tracker 的后续条目。
 
-| flow doc | 还没覆盖的 flow |
-| --- | --- |
-| board | Progress Tracking（只在 J1 里断言一处）、Backlog 的拉取（desktop 拖到 Todo / mobile 点 `↑ Todo`） |
-| plan | Create Task Template、Update Task Template、Create Plan |
-| priorities | Reprioritize（拖到别的象限）、Complete One-off（含 undo）、Add Priority Task |
-| projects | Create Project、Manage Steps（加、改、删、排序） |
-| dump | Quick Capture |
-| auth | Login（要 Google，手动验证）、Theme Change、Sign-Out 本身 |
-| 不进 e2e | Plan with Claude、Manage One-offs with Claude、Draft Steps with Claude（MCP，integration 已测）；OAuth Consent（要 claude.ai，手动）；`shared.md` 的三个 sync flow（日期逻辑，integration） |
+### 公共的准备放在哪
+
+数据隔离之后，"公共的 setup"分三层，只有第一层是全局的：
+
+| 层 | 跑几次 | 放什么 | 不放什么 |
+| --- | --- | --- | --- |
+| `e2e/globalSetup.ts` | 每次 run 一次 | 读一次 secret key，放进环境变量给 worker | 任何数据：它不再铺 seed |
+| `e2e/fixtures.ts` 里的 fixture | 每个 test 一次，自动 | `user`（建一个新 user）、`storageState`（让这个 test 以它登录）、`seed`（绑定了当前 user 的 factories） | 业务数据：fixture 只给工具，不替测试决定铺什么 |
+| 测试自己 | — | 调 `seed.*` 铺它读的东西；一个 spec 里反复出现的形状，写成 spec 里的一个小函数显式调用 | `beforeEach` 铺一大份共享的世界（那又是一个 `seedWeek`） |
+
+每个 spec 都从 `./fixtures` import `test`，所以拿 `page` 的测试自动有自己的 user，不用写 `beforeEach`：
+
+```ts
+// e2e/fixtures.ts（草图）
+export const test = base.extend<{user: E2eUser; seed: Seed}>({
+  user: async ({}, use) => use(await createE2eUser()),        // randomUUID + auth.admin.createUser
+  storageState: async ({user}, use) => use(await signInAsStorageState(user)),
+  seed: async ({user}, use) => use(bindFactories(user.id)),   // test/factories.ts，userId 已填好
+});
+
+// e2e/board.spec.ts
+test.describe('Drag and Drop Flow', () => {
+  test('a card dragged to Done stays done, and the day\'s progress counts it', async ({page, seed}) => {
+    await seed.week({habits: [newHabit('Flashcards', TaskType.DAILY)], todo: ['Flashcards']});
+    await openPage(page, '/kanban');
+    // …
+  });
+});
+```
+
+未登录的测试照旧用 `test.use({storageState: {cookies: [], origins: []}})` 覆盖掉登录态，它不碰 `user`，也就不会建 user。
 
 ## 分层：一个行为该放哪一层
 
@@ -263,7 +288,7 @@ owner 的想法：每个 PR 只跑它改动到的 feature 的 e2e，全量回归
 5. **迁移 13 条产品测试到 6 个 spec**，按上面的表：每条只铺自己读的数据，断言不再引用 `SEED_*`，J1 补上进度断言。
 6. **配置**：`fullyParallel: true`；`desktop` 和 `mobile` 两个 project 都跑全部产品 spec，`design-console` 只跑 desktop；去掉 `dependencies`；CI `workers: 2`。
 7. **删掉不再需要的**：`E2E_USER`、`scripts/e2eSession.ts`、`npm run e2e:session`、`smoke.spec.ts`、`journeys.spec.ts`（`dev:session` 和 dev user 的 `seedWeek()` 保留）；knip 会指出剩下的。
-8. **文档**：`test/README.md` › e2e（隔离、fixture、按 flow 分 spec 和 describe、两个视口、分层规则、contract 自己铺数据）、AGENTS.md › Commands、README › Tests。
+8. **文档**：`test/README.md` › e2e（隔离、fixture 的三层、按 flow 分 spec 和 describe、两个视口、分层规则、contract 自己铺数据、`e2e/not-implemented.md` 怎么维护）、AGENTS.md › Commands、README › Tests。
 9. **量**：本地和 CI 的全量耗时、每个 spec 的耗时，前后对比写进 PR 描述（Q8 的输入）。
 
 ## 顺带：agent 开发流程，别人是不是 spec 和 test driven
@@ -289,9 +314,3 @@ owner 的想法：每个 PR 只跑它改动到的 feature 的 e2e，全量回归
 - 第二常见的是**复杂流程的 e2e 不稳定**。每条 contract 小而独立、自己铺数据，正是降低这个风险的做法——这也是本 spike 的隔离对 contract 流程的意义。
 - 第三是**小改动上的流程负担**。`ui-feature` 已经把文案、颜色、间距和 bug 排除在外。
 - tracker 的 *Harness engineering › 6 · Test first as the workflow* 打算在 integration 层做 test-first 的对照实验；e2e 隔离之后，同样的实验在 e2e 层也能做。
-
-## 待 owner 回答
-
-8. **Q8 · 选择性跑 e2e**：先按 *实施计划* 第 9 步量出全量和每个 feature 的耗时，再决定"每个 PR 只跑改到的 feature + 定期全量"（全量是两周一次，还是每次 merge 到 `main` 后一次）。可以吗？
-9. **Q9 · Design Console 只跑 desktop**：理由见 *两个视口*。可以吗？
-10. **拆分计划的表**：13 条测试的去向、改动和"还没覆盖"的清单，有要调整的吗？
