@@ -1,6 +1,6 @@
 # e2e tests not written yet
 
-Flows in `design/flows/` that ship today but have no e2e test. When a test for one lands, delete its row. The list follows the flow docs as they stand, and those are due for a review first (tracker › *e2e data isolation*), so the review may add, merge or drop rows.
+Flows in `design/flows/` that ship today but have no e2e test. When a test for one lands, delete its row. The list follows the flow docs as they stand, and those are due for a review first (tracker › *e2e after isolation*), so the review may add, merge or drop rows.
 
 Which layer tests what: an e2e test proves a journey is wired end to end (the action lands, the page shows it); the value's edge cases belong to integration tests, and how each state looks belongs to the Design Console scenarios (`test/README.md`).
 

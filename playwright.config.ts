@@ -7,7 +7,6 @@ import {config} from 'dotenv';
 config({path: '.env.local', quiet: true});
 
 const BASE_URL = 'http://localhost:3000';
-export const E2E_STORAGE_STATE = '.auth/e2e-session.json';
 
 /**
  * A cloud agent's container ships a Chromium for Playwright to drive; on a
@@ -16,6 +15,9 @@ export const E2E_STORAGE_STATE = '.auth/e2e-session.json';
 const PREINSTALLED_CHROMIUM = '/opt/pw-browsers/chromium';
 
 const isCI = Boolean(process.env.CI);
+
+/** Everything but the product specs: the console and the contracts. */
+const PRODUCT_SPECS_IGNORE = [/designConsole\.spec\.ts/, /contract\//];
 
 const DESKTOP = {viewport: {width: 1280, height: 800}};
 const MOBILE = {
@@ -26,14 +28,23 @@ const MOBILE = {
 
 export default defineConfig({
   testDir: 'e2e',
-  // One e2e user and one database: tests run one at a time.
-  workers: 1,
+  // Every test runs as its own user (e2e/fixtures.ts), so all of them run in
+  // parallel; CI's runner also hosts the app and the Supabase stack
+  fullyParallel: true,
+  workers: isCI ? 2 : undefined,
   forbidOnly: isCI,
-  reporter: isCI ? [['github'], ['html', {open: 'never'}]] : 'list',
+  // In CI the JSON report feeds the job summary's per-spec timing
+  // (scripts/e2e-timing.mjs)
+  reporter: isCI
+    ? [
+        ['github'],
+        ['html', {open: 'never'}],
+        ['json', {outputFile: 'e2e-timing.json'}],
+      ]
+    : 'list',
   globalSetup: './e2e/globalSetup.ts',
   use: {
     baseURL: BASE_URL,
-    storageState: E2E_STORAGE_STATE,
     trace: 'retain-on-failure',
     launchOptions: {
       executablePath: existsSync(PREINSTALLED_CHROMIUM)
@@ -45,43 +56,30 @@ export default defineConfig({
     // Contracts run first and alone, so a landed or broken contract fails the
     // run in seconds instead of after every other project
     {name: 'contract', testMatch: /contract\/.*\.spec\.ts/, use: DESKTOP},
+    // The product specs, one per flow doc, at both widths
     {
-      name: 'smoke-desktop',
-      testMatch: /smoke\.spec\.ts/,
+      name: 'desktop',
+      testIgnore: PRODUCT_SPECS_IGNORE,
       use: DESKTOP,
       dependencies: ['contract'],
     },
     {
-      name: 'smoke-mobile',
-      testMatch: /smoke\.spec\.ts/,
+      name: 'mobile',
+      testIgnore: PRODUCT_SPECS_IGNORE,
       use: MOBILE,
       dependencies: ['contract'],
     },
+    // A developer tool that draws phone widths in its own frames: desktop only
     {
       name: 'design-console',
       testMatch: /designConsole\.spec\.ts/,
       use: DESKTOP,
       dependencies: ['contract'],
     },
-    // Journeys change the e2e user's week, so they run after the smokes
-    {
-      name: 'journeys',
-      testMatch: /journeys\.spec\.ts/,
-      use: DESKTOP,
-      dependencies: ['smoke-desktop', 'smoke-mobile', 'design-console'],
-    },
-    // Flipped contracts: a feature's own specs, after the journeys for the
-    // same reason
-    {
-      name: 'features',
-      testMatch: /features\/.*\.spec\.ts/,
-      use: DESKTOP,
-      dependencies: ['journeys'],
-    },
   ],
   webServer: {
     // Locally, a running `npm run dev` is reused: it serves the same database,
-    // and the e2e user keeps the dev user's week untouched.
+    // and each e2e user's rows stay apart from the dev user's.
     command: isCI ? 'npm run build && npm run start' : 'npm run dev',
     url: `${BASE_URL}/auth/login`,
     reuseExistingServer: !isCI,
