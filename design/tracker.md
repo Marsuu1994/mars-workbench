@@ -49,7 +49,9 @@ How agents work on this repository: the experiments under `experiments/` (rules 
   - [ ] Root `AGENTS.md` — once every folder has moved, rewrite *Adding a rule* and *Where the rules live* for the new split
 - [ ] e2e after isolation — every e2e test now runs as its own fresh user, one spec per flow doc, in parallel at both widths (spike `design/spike/archived/e2e-data-isolation.md`); what it left open
   - [ ] Review the flow docs against the product, then add or update the e2e tests each flow needs; the gaps known today are in `e2e/not-implemented.md`
-  - [ ] Which e2e specs a PR runs — only the features it touches plus a regular full run, or everything every time: decide from the per-spec times CI's e2e job summary now reports (spike Q8)
+  - [ ] Which e2e specs a PR runs — only the features it touches plus a regular full run, or everything every time: decide from the per-spec times CI's e2e job summary now reports (spike Q8). Where the job's time goes (2026-11-02, 2 m 53 s): the local stack 100 s, Chromium 16 s, build and start ~19 s, the tests ~30 s — so the cheap wins come first
+    - [ ] Skip e2e when a push changes nothing the app runs (only Markdown, `design/`, `reviews/`, `experiments/`): a path-filter job, and the e2e job skipped by a job-level `if` so a required check still passes (a workflow-level `paths` would leave it pending); each docs-only push saves the whole ~3 min
+    - [ ] Cache the Supabase stack's Docker images between CI runs (`docker save` into `actions/cache`, `docker load` before `supabase start`), cutting the stack step's pulls and the registries' rate limits; measure how much of its 100 s the pulls are first
 
 ## Board
 
