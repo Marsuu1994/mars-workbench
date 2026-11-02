@@ -19,16 +19,6 @@ export const DEV_USER = {
   password: 'mars-dev-password',
 };
 
-/**
- * The e2e suite's own user (`npm run test:e2e`): it shares the dev database
- * with the dev user, so a local run never touches the dev user's week.
- */
-export const E2E_USER = {
-  id: '00000000-0000-4000-8000-0000000000e2',
-  email: 'e2e@mars.local',
-  password: 'mars-e2e-password',
-};
-
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
 
 // What would point local work at a database or Auth server.
@@ -63,8 +53,7 @@ export const assertLocalServices = (context: string) => {
   );
 };
 
-/** The local stack's secret key (admin API), read from `supabase status`. */
-export const getLocalSecretKey = (): string => {
+const readSecretKeyFromStatus = (): string => {
   try {
     const status = JSON.parse(
       execFileSync(
@@ -82,4 +71,21 @@ export const getLocalSecretKey = (): string => {
       'The local Supabase stack is not running: start it with npm run db:setup.',
     );
   }
+};
+
+/** Where the secret key is kept once read, for this process and its children. */
+const SECRET_KEY_ENV = 'LOCAL_SUPABASE_SECRET_KEY';
+
+/**
+ * The local stack's secret key (admin API), read from `supabase status` once
+ * — that spawns the CLI, about 2.5 s — and kept in the environment: later
+ * calls, and processes started afterwards (the e2e global setup's workers),
+ * read it from there.
+ */
+export const getLocalSecretKey = (): string => {
+  const cachedKey = process.env[SECRET_KEY_ENV];
+  if (cachedKey) return cachedKey;
+  const secretKey = readSecretKeyFromStatus();
+  process.env[SECRET_KEY_ENV] = secretKey;
+  return secretKey;
 };

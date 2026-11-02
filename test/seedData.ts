@@ -1,6 +1,6 @@
 /**
- * The seed's week as plain data: what `test/seedWeek.ts` writes, and what the
- * e2e specs expect to see. No service imports, so Playwright can load it.
+ * The seed's week as plain data: what `test/seedWeek.ts` writes for the dev
+ * user. e2e tests don't read it: each builds its own data.
  */
 import {PriorityQuadrant, TaskSize, TaskType} from '@/utils/enums';
 
