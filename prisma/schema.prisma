@@ -2,8 +2,11 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  // CommonJS, so Playwright (which loads TypeScript as CommonJS) can import
+  // the services and DAL that e2e tests build their data with
+  moduleFormat = "cjs"
 }
 
 datasource db {

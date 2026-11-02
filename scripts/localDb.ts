@@ -102,17 +102,39 @@ const loadLocalEnv = (context: string) => {
   assertLocalServices(context);
 };
 
+/**
+ * Where `supabase start` pulls its images from, in order. Both serve the same
+ * images and both refuse anonymous pulls from a shared cloud IP past their own
+ * limit — Docker Hub answers 429 after a few pulls an hour, ECR stops at a
+ * data cap — so when one refuses, the other usually still serves.
+ */
+const IMAGE_REGISTRIES = ['docker.io', 'public.ecr.aws'];
+
+/** `supabase start`, trying the next registry when a pull is refused. */
+const startStack = () => {
+  const pinnedRegistry = process.env.SUPABASE_INTERNAL_IMAGE_REGISTRY;
+  const registries = pinnedRegistry ? [pinnedRegistry] : IMAGE_REGISTRIES;
+  for (const [index, registry] of registries.entries()) {
+    const nextRegistry = registries[index + 1];
+    try {
+      runSupabase(['start'], {
+        ...process.env,
+        SUPABASE_INTERNAL_IMAGE_REGISTRY: registry,
+      });
+      return;
+    } catch (error) {
+      if (!nextRegistry) throw error;
+      console.warn(
+        `supabase start failed pulling from ${registry}; retrying from ${nextRegistry}.`,
+      );
+    }
+  }
+};
+
 const setup = async () => {
   loadLocalEnv('db:setup');
   await ensureDocker();
-  // The CLI pulls from public.ecr.aws by default, which refuses anonymous
-  // pulls past its data limit from shared cloud IPs; Docker Hub serves the
-  // same images.
-  runSupabase(['start'], {
-    ...process.env,
-    SUPABASE_INTERNAL_IMAGE_REGISTRY:
-      process.env.SUPABASE_INTERNAL_IMAGE_REGISTRY ?? 'docker.io',
-  });
+  startStack();
   migrateAndSeed();
 };
 

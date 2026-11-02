@@ -18,6 +18,7 @@
     "check:themes": "node scripts/check-theme-vars.mjs",
     "check:review-log": "node scripts/check-review-log.mjs",
     "check:mockup-links": "node scripts/check-mockup-links.mjs",
+    "e2e:timing": "node scripts/e2e-timing.mjs",
     "contract:flip": "tsx scripts/flipContract.ts",
     "test": "vitest run",
     "test:unit": "vitest run --project 'unit-*'",
@@ -30,8 +31,7 @@
     "db:stop": "tsx scripts/localDb.ts stop",
     "db:seed": "tsx --env-file=.env.local scripts/seed.ts",
     "db:deploy:prod": "PRISMA_ENV_FILE=.env.prod prisma migrate deploy",
-    "dev:session": "tsx --env-file=.env.local scripts/devSession.ts",
-    "e2e:session": "tsx --env-file=.env.local scripts/e2eSession.ts"
+    "dev:session": "tsx --env-file=.env.local scripts/devSession.ts"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
