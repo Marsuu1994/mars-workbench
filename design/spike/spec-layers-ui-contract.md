@@ -6,6 +6,8 @@
 
 回答 tracker 的两条：Cross-cutting › Future 的 *Spike: leverage the UI flows table*，以及 Harness engineering › *e2e after isolation* 的第一个 sub-bullet（*Review the flow docs against the product*）的审查那一半。
 
+**第 1 轮之后**（2026-11-02，owner 在对话里）：先把旧 flow 的错漏修好，这是关键；新的 flow，以及改动到的旧 flow，按新标准写 Interactions；没改动的旧 flow 不回填。为此要一套增量迁移的机制：旧的放进一份 allowlist，assert 它只减不增。最近对 workflow 的改进很多，每次都把旧的全修一遍代价太大，这套机制以后的新规则也要用。见 *增量迁移 · Ratchet*。表格因此从页面级改成每个 flow 下的一节（原来的 Q2）。
+
 ## 起因 · Trigger
 
 Owner 要转向更严格的 spec driven + TDD：先定 design doc 和 mockup，再写 e2e 定下行为，implementation 只需要把 CI 做绿。按这个顺序走，spec 必须**准确**，而且**能逐条对上测试**。现在有两个问题：
@@ -50,8 +52,8 @@ Tracker 那条的设想是：每个改 server state 的用户动作，按页面�
 | 层 | 回答 | 写在哪 | 测试 |
 | --- | --- | --- | --- |
 | **Flows** | 数据怎么走，规则和不变量 | flow 的 `##` 段（只写数据和导航） | integration；e2e 的 `describe` |
-| **Interactions** | 每个用户动作：入口 → 写入 → 是否乐观 → 之后（包括 toast、计时、回滚、选中、导航） | 每页一张表 | **一行一个 e2e test**；design 阶段是 `contractTest` |
-| **Displays** | 每个衍生指示物用什么数据、按什么规则编码 | 每页一张表 | 编码的边界情况由纯 helper 的 unit test 覆盖；接线由一条 e2e 覆盖（可选） |
+| **Interactions** | 每个用户动作：入口 → 写入 → 是否乐观 → 之后（包括 toast、计时、回滚、选中、导航） | 每个 flow 下的 `### Interactions` | **一行一个 e2e test**；design 阶段是 `contractTest` |
+| **Displays** | 每个衍生指示物用什么数据、按什么规则编码 | 所属 flow 下的 `### Displays`（可选） | 编码的边界情况由纯 helper 的 unit test 覆盖；接线由一条 e2e 覆盖（可选） |
 | **Visual** | 长什么样 | mockup → scenario tab | console smoke + owner 验收 |
 
 文字 spec 只负责 **意义**（Displays）和 **行为**（Interactions、Flows），这三层都能测；像素留给能画像素的地方。
@@ -69,62 +71,80 @@ Tracker 那条的设想是：每个改 server state 的用户动作，按页面�
 > 1. Complete the task: `status = DONE`, `doneAt = now`; an unassigned task joins the current-week `ACTIVE` plan when there is one.
 > 2. Undo restores the snapshot taken before step 1 — `status` back to `BACKLOG` / `TODO`, `doneAt` cleared, the plan link detached only if step 1 added it.
 
-UI 的部分进 Interactions：
+UI 的部分进这个 flow 的 `### Interactions`：
 
-| Flow | Action | Entry | Writes | Optimistic | After |
-| --- | --- | --- | --- | --- | --- |
-| Complete One-off | Done | Move-to 的 Done 行（desktop popover / mobile sheet），有没有 plan、是否 tracked 都可以 | `completeTaskAction` | 是：卡片离开，title bar 的计数下降 | Undo toast 显示 5 s，hover 时暂停，有 plan 时带 +N pts；第二次 Done 会顶掉它；写入失败时卡片回来，toast 撤回 |
-| Complete One-off | Undo | Undo toast，5 s 之内 | `undoCompleteTaskAction`，等 Done 的写入落地之后才发 | 是：卡片回到原位 | toast 关闭 |
+| Action | Entry | Writes | Optimistic | After |
+| --- | --- | --- | --- | --- |
+| Done | Move-to 的 Done 行（desktop popover / mobile sheet），有没有 plan、是否 tracked 都可以 | `completeTaskAction` | 是：卡片离开，title bar 的计数下降 | Undo toast 显示 5 s，hover 时暂停，有 plan 时带 +N pts；第二次 Done 会顶掉它；写入失败时卡片回来，toast 撤回 |
+| Undo | Undo toast，5 s 之内 | `undoCompleteTaskAction`，等 Done 的写入落地之后才发 | 是：卡片回到原位 | toast 关闭 |
 
-Board 的 habit dots 进 Displays：
+Board 的 habit dots 进 Progress Tracking Flow 的 `### Displays`：
 
 | Display | Shows on | Encodes | Rule | Tested |
 | --- | --- | --- | --- | --- |
 | Habit dots | board 卡片、backlog 卡片（mini 版） | 这一周这个 habit 的每个 instance | 按顺序一个 instance 一个 dot，done 的填满，本卡的 dot 带环；超过 `HABIT_DOTS_MAX` 只显示 `done/target` | unit：`computeHabitWeeks`（`taskUtils.test.ts`）；scenario：Board |
 
-Tracker 设想的列（入口、action、是否乐观、之后）全都保留。加了一列 Flow：每一行挂在一个 flow 下面，e2e 也就知道这条 test 应该放进哪个 `describe`。
-
-### 让表格不会再过时：一个 check
-
-Flow 会过时，是因为文档和测试之间没有任何机械的联系。表格可以有：
-
-- **`npm run check:spec`**（CI）：Interactions 的每一行，在 `e2e/<feature>.spec.ts` 的 `describe('<Flow>')` 里都要有一个 title 以 `<Action>:` 开头的 test，或者在 `e2e/contract/<feature>.spec.ts` 里有一条同名的 `contractTest`。Displays 的 Tested 一列指名的 test 文件和 scenario tab 都要存在。
-- **`e2e/not-implemented.md` 会消失。** 「哪些 flow 还没有 e2e」就是 check 列出的、找不到 test 的行。暂时不写的行在 Tested 一列写 `—` 并给出原因，check 只是报出来，不让 CI 变红。
-- **代价**：现有 e2e 的 title 要按 `<Action>: <assert 什么>` 改名，大约 10 条。
+Tracker 设想的列（入口、action、是否乐观、之后）全都保留。表放在它所属的 flow 下面（`### Interactions`、`### Displays`，和 Trigger / Steps / Rules 并列），所以 e2e 知道这条 test 进哪个 `describe`，迁移也能按 flow 一个一个来。Interactions 的 Entry 一列取代了 Trigger 里按断点写的长句，Trigger 只剩一句「谁、在哪个页面、因为什么」。
 
 ### 套进 TDD 的顺序
 
-1. **Design PR**：改 flow 的数据步骤；新增或改动的 Interactions / Displays 行标上 `planned`；像素画进 mockup；每个 `planned` 行写一条 `contractTest`。Check 保证两件事一致：行标了 `planned`，当且仅当它的 test 在 `e2e/contract/`。
-2. **Implementation PR**：实现到 contract 通过之后，`contract:flip` 除了把 contract 移到 `e2e/features/`，也去掉这个 feature 的行上的 `planned`，仍然是机械动作。Mockup 删掉之后，文字 spec 依然在：Interactions 和 Displays 两张表，加上 scenario tab。
+1. **Design PR**：改 flow 的数据步骤；在受影响的 flow 下写新的或改动的 Interactions / Displays 行；像素画进 mockup；每个新的 Interactions 行写一条 `contractTest`，title 是 `<Action>: …`。
+2. **Implementation PR**：实现到 contract 通过，`contract:flip` 把它移进 `e2e/features/`，和现在一样是机械动作。Mockup 删掉之后，文字 spec 仍然在：flow 下的两张表，加上 scenario tab。
+
+第 1 轮提的 `planned` 标记不要了：一行的 test 还是 `contractTest`，就说明它还没实现，`check:ratchet` 的 summary 会列出来。代价是 design PR 和 implementation PR 之间，living doc 里会有几行写的是还没做的东西；这段时间通常只有几天，而且 contract 文件就在旁边。
 
 ### 随时间变化的行为也能进 e2e
 
-`test/README.md` 写着「Dates stay out of e2e」，原因是 server 在另一个进程里，它的时钟冻结不了。但 toast 的 5 s 是浏览器的计时器。Playwright 1.64（本 repo 的版本）的 `page.clock` 可以在页面加载之前 `install()`，再用 `runFor(5000)` 快进，所以「Undo 窗口过了以后 Undo 消失」这类断言可以写成 e2e，不会变慢，也不会 flaky。这条规则要在 test/README 里讲清楚：server 的日期仍然不进 e2e，客户端的计时器可以进。
+`test/README.md` 写着「Dates stay out of e2e」，原因是 server 在另一个进程里，它的时钟冻结不了。但 toast 的 5 s 是浏览器的计时器。Playwright 1.64（本 repo 的版本）的 `page.clock` 可以在页面加载之前 `install()`，再用 `runFor(5000)` 快进，所以「Undo 窗口过了以后 Undo 消失」这类断言可以写成 e2e，不会变慢，也不会 flaky。这条规则要在 test/README 里讲清楚：server 的日期仍然不进 e2e，客户端的计时器可以进。不急，第一次给 toast 写 e2e 时加上就行。
 
-## 放在哪：三个方案
+## 增量迁移 · Ratchet
 
-### A · 放进 flow doc，作为页面级的两节（推荐）
+### 问题
 
-每个 `flows/<feature>.md` 的开头，在第一个 flow 之前，加上 `## Interactions` 和 `## Displays` 两张表；下面的各个 flow 去掉 UI 的文字，Trigger 改成指向表里的行。
+每加一条新规则（page structure、e2e 隔离、design PR……），都面临同一个选择：要么在同一个 PR 里把所有旧代码修一遍，PR 很大、很慢；要么只对新代码执行，但没有任何东西记录哪些旧代码还没迁、也挡不住新代码照着旧代码写。`e2e/not-implemented.md` 是第二种做法的手写版：一份要人手维护的清单，CI 不检查它，它会过时。
 
-- 优点：一个 feature 一个文件，和 e2e 的「一个 spec 对一个 flow doc」保持 1:1；改一个 feature 只要打开一个文件；flow 本身变短，因为按断点写的 Trigger 长句和 toast 的结构都搬进了表里。
-- 缺点：`flows/` 这个名字不再准确（文件里不只有 flow）；`flows/README.md` 要重新定义「一个 feature doc = Interactions + Displays + Flows」。
+### 机制
 
-### B · 单独一个目录 `design/ui/<feature>.md`
+一个 **ratchet**（棘轮：只能往一个方向转）由三样东西组成：
 
-两张表放在它自己的文件里，flow doc 一字不提 UI。
+- **一个 checker**：一个函数，算出当前所有违反这条规则的地方，每个用一个稳定的 key 表示（例如 `board.md#Drag and Drop Flow`）。
+- **一份 baseline**：`scripts/ratchet/baseline/<rule>.txt`，一行一个 key，按字母排序，就是还没迁移的旧东西，可以加 `#` 注释。
+- **（可选）内容指纹**：一个 key 对应的内容（例如 flow 那一节的正文，空白折叠之后），用来判断这个 PR 有没有动它。
 
-- 优点：flow 字面上保持纯粹的 data path，这正是 owner 说的定位。
-- 缺点：一个 feature 两份文档，改一个动作时两边都要记得改；e2e spec 的对应关系变成一对二。表格离数据步骤远了，读 flow 的时候看不到动作从哪里触发。
+`npm run check:ratchet`（CI）对每条规则做四个比较。V 是当前的违规，B 是这个 PR 的 baseline，B₀ 是 `main` 上的 baseline：
 
-### C · 不新增表格，让 Design Console 当视觉契约
+| # | 条件 | 结果 | 保证什么 |
+| --- | --- | --- | --- |
+| 1 | key 在 V，不在 B | fail：「新的违规，按新标准写」 | 新东西一律按新标准 |
+| 2 | key 在 B，不在 V | fail：「已经迁好了，跑 `npm run ratchet:prune`」 | baseline 永远准确 |
+| 3 | key 在 B，不在 B₀ | fail：「baseline 只能缩小」 | 旧债不增加（你要的 assertion） |
+| 4 | key 在 B，且它的内容相对 `main` 改了 | fail：「改了一个旧的，顺手迁过去」 | 碰到就迁，不碰不迁 |
 
-把 scenario tab 的 `note` 扩成几条规则，Interactions 的「之后」只写在 e2e 的 title 里。
+- **引入规则的 PR** 在 `main` 上还没有 baseline，3 和 4 都不适用：它一次性写入全部旧的 key。
+- **`ratchet:prune`** 只删除已经迁好的行，从不添加，所以和 `contract:flip` 一样是机械动作。
+- **改名也算碰到**：把一个旧 flow 的标题改掉，旧 key 消失（触发 2），新 key 是新违规（触发 1），所以改名的 PR 也要迁移它。
+- **Job summary** 打印每条规则还剩几个，迁移进度不用另记。规则全部迁完之后，删掉它的 baseline 文件，这条规则就成了普通的 check。
+- **Lint 规则不重造。** ESLint 9.39（本 repo 的版本）自带 bulk suppressions：`eslint-suppressions.json` 加上 `--suppress-rule`、`--prune-suppressions`，suppression 用不上时 ESLint 自己会报错（对应第 2 条）。Ratchet 只对它补上第 3 条：每条规则的 suppression 数不能比 `main` 多。新的 lint 规则因此可以直接开成 error，旧的违规一次 suppress 掉。
+- **什么时候不用 ratchet**：机械的改动（Prettier 排序 Tailwind class、改名）用 codemod 一次改完，不留旧债。Ratchet 只给需要判断的迁移用，比如写 Interactions、改 page structure。
 
-- 优点：只有一个 source，就在代码旁边。
-- 缺点：console 只在**实现之后**才存在，design 阶段没有可以 review 的文字 spec，这和 TDD 的顺序正好相反。e2e 的 title 散在几十个 test 里，不能当成一张表来 review。时间行为仍然没有地方写。
+### 第一条规则：`flow-interactions`
 
-**推荐 A**：两张表都很紧凑，搬进来之后 flow 的 UI prose 会减少，不会增加，「啰嗦」的问题反而解决了。对 owner 来说，一个 feature 只有一个地方可看。如果 owner 更看重 flow 的纯粹，B 的实施计划只是换个目录，其余部分完全相同。
+- **规则**：`design/flows/` 里的每个 `##` flow 都有 `### Interactions`；其中每一行，在 `e2e/<feature>.spec.ts` 的 `describe('<Flow>')` 里都有一个 title 以 `<Action>:` 开头的 test，或者在 `e2e/contract/<feature>.spec.ts` 里有同样 title 开头的 `contractTest`。
+- **没有用户动作的 flow**（MCP 的三个、`shared.md` 的三个 sync）不是旧债，它们的 `### Interactions` 只写一行 `None — <在哪里测>`，在这个 PR 里写好，不进 baseline。
+- **key** 是 `<file>#<heading>`，指纹是那一节的正文。
+- **Baseline**：大约 25 个有用户动作的旧 flow，在这个 PR 修完错漏之后写入。
+- **取代 `e2e/not-implemented.md`**：它的「Not covered yet」就是 baseline，「Not for e2e」就是那些 `None — …` 行。
+- **Displays 不进 ratchet。** 只在 design 引入或改动指示物时写；它没有像 Interactions 那样一行对一个 test 的结构，硬加 check 不划算。
+
+### 以后的候选规则
+
+Tracker 上已经有几条适合用 ratchet，而不是一次全修：
+
+- *Rules the page-structure runs were missing* › 一个页面的 input type 是 `<Feature>PageData`：key 是页面，baseline 是还没改的页面（Plan 本来就要等 Phase 2）。
+- 新的 ESLint 规则（例如 helper 和 handler 统一函数写法）：直接开成 error，加上 bulk suppression。
+- Docs split by reader：key 是还没拆的目录。
+
+规则写进 AGENTS.md › *Adding a rule*，一行：旧代码一时达不到的新标准作为 ratchet 落地，新代码遵守，旧的只减不增，碰到就迁；做法在 `scripts/ratchet/README.md`。
 
 ## Flow 过时清单（审查结果）
 
@@ -203,30 +223,31 @@ Flow 会过时，是因为文档和测试之间没有任何机械的联系。表
 
 - Priorities 的「Move-to sheet (mobile)」scenario tab 的 note 还写着「the two board columns」，实际只剩 Todo 一列（`src/app/design/scenarios/priorities/page.tsx`）。
 
-## 实施计划（按推荐的方案 A）
+## 实施计划
 
 都放在这个 PR 里（AGENTS.md › *One task, one branch, one PR*），决定之后按顺序做：
 
-1. **规则**：重写 `flows/README.md`，定义一个 feature doc 由 Interactions、Displays、Flows 组成，写清两张表的列、每列写什么、`planned` 标记，以及 Bad / Good 例子（例子就用上面 toast 的 Before / After）。`test/README.md` 加两条：e2e 的 title 用 `<Action>: …`；客户端计时器可以用 `page.clock`，server 的日期仍然不进 e2e。`ui-design` skill 的 Design PR 第 4 步改成「`planned` 行 + 每行一条 contract」。
-2. **修 flow**：按上面的清单逐个文档修；每个文档加上两张表，各个 flow 的 UI prose 搬进表里。`shared.md` 没有 UI，不加表。
-3. **Check**：`scripts/check-spec.ts` 加上它的 unit test，接进 CI；`contract:flip` 学会去掉 `planned`；删掉 `e2e/not-implemented.md`，AGENTS.md 的 Commands 里加一行。
-4. **e2e 改名**：现有大约 10 条 test 的 title 改成 `<Action>: …`。
-5. **疑似 bug**：Q7 里 owner 判定是 bug 的，每个开一条 tracker item（能写成 `it.fails` 的就写上）。
-6. **Tracker**：删掉 *Spike: leverage the UI flows table*；*e2e after isolation* 的 Review 那一条改成「按 check 列出的没有 test 的行补 e2e」。
+1. **修 flow**：按上面的清单修掉所有的「错」「名」「漏」；Q7 判定为有意的行为写进 flow，判定为 bug 的开 tracker item（能写成 `it.fails` 的写上）。标成「UI」的那些文字先不搬，等那个 flow 被碰到、迁移时再搬。`projects.md` 的 Status 块删掉。
+2. **规则**：`flows/README.md` 加上 `### Interactions`（新的和改动的 flow 必须有）和 `### Displays`（可选），列的定义和 Before / After 的例子（用 toast 那个）。`test/README.md`：e2e 的 title 用 `<Action>: …`。`ui-design` skill 的 Design PR 第 4 步改成「每个新的 Interactions 行一条 contract」。
+3. **Ratchet**：`scripts/ratchet/`（核心的四个比较，加上 `flow-interactions` 和 ESLint suppression 数两条规则）及其 unit test；`check:ratchet` 进 CI，`ratchet:prune` 进 Commands；`scripts/ratchet/README.md` 写怎么加一条规则。
+4. **Baseline**：MCP 和 sync 的 flow 写上 `None — …`，其余旧 flow 写进 `baseline/flow-interactions.txt`；删掉 `e2e/not-implemented.md`，改掉指向它的链接（`test/README.md`、tracker）。
+5. **AGENTS.md**：*Adding a rule* 加 ratchet 那一行；Commands 加两条命令。
+6. **Tracker**：删掉 *Spike: leverage the UI flows table*；*e2e after isolation* 的 Review 一条改成「补 e2e 时迁移那个 flow：baseline 是还没迁的」。
 
-如果 owner 想先看一个 feature 的效果，可以先只做 priorities（toast 是它的例子），其余的 feature 在下一轮 review 再做。
+不做：回填旧 flow 的表格，`planned` 标记，Displays 的 check，现在就加 `page.clock` 的规则。
 
 ## Open questions
 
-1. **分层**：同意文字 spec 分成 Flows（数据）、Interactions（动作）、Displays（编码）三层，像素留给 mockup 和 scenario tab 吗？
-2. **位置**：A（放进 flow doc，推荐）、B（`design/ui/<feature>.md`），还是 C（不加表）？
-3. **Interactions 的范围**：只收改 server state 的动作（tracker 的原设想），还是收所有带规则的用户动作，纯客户端的也算（推荐）？
-4. **Check**：用 `check:spec` 把每一行和一个 test 绑定，并取代 `e2e/not-implemented.md` 吗（推荐）？
-5. **`planned` 标记**：design PR 把新的行写进 living doc 并标上 `planned`，由 `contract:flip` 去掉，可以吗（推荐）？或者新的行只写在 mockup 和 contract 里，implementation PR 再补进文档？
-6. **`page.clock`**：同意客户端的计时器（toast 的窗口）进 e2e 吗？
+第 1 轮已定：分层（原 Q1）采用；旧 flow 的错漏全部修，旧的不回填（原 Q8）；用 ratchet 把每一行和 test 绑定，取代 `e2e/not-implemented.md`（原 Q4）。
+
+1. **表放在每个 flow 下面**（`### Interactions` / `### Displays`），而不是页面级的两张表，可以吗（推荐；ratchet 才能按 flow 一个一个迁）？
+2. **第 4 条「碰到就迁」是 fail 还是 warn？** fail 最严格，但修一个错字也要迁整个 flow；warn 只在 summary 里提醒。推荐 fail，改一个 flow 的正文本来就该顺手补上它的 Interactions；只改空白不算改动。
+3. **Interactions 的范围**（原 Q3）：只收改 server state 的动作，还是所有带规则的用户动作，纯客户端的也算（推荐后者）？
+4. **示范迁移**：在这个 PR 里迁一个 flow 作为 README 的例子吗？推荐 Complete One-off：它是 toast 的例子，而且现在没有 e2e，要写一条，顺带用上 `page.clock`。
+5. **`planned` 标记去掉**（原 Q5），用「test 还是 contract」表示没实现，可以吗？
+6. **ESLint suppression 的 ratchet** 现在就做，还是等第一条需要 suppress 的 lint 规则出现再做？推荐等，现在 repo 里没有 suppression。
 7. **疑似 bug**，每条判定是有意为之还是 bug：
    - a. Desktop 的 backlog 卡片可以直接拖到 Done，跳过 Todo。
    - b. Server 接受 DONE → TODO（并清空 `doneAt`），forward-only 只靠 UI 保证。
    - c. 表单的 Update Plan 不检查 plan 是否 `ACTIVE`、是否属于本周。
    - d. 在 matrix 里拖动，卡片落在 `createdAt` 的位置，不在放下的位置（象限内的顺序不保存）。
-8. **范围**：这个 PR 一次做完全部 feature，还是先只做 priorities 看效果？
