@@ -230,18 +230,18 @@ npm run format:check # Verify formatting (CI)
 npm run check:themes # Every theme declares the same CSS variables (CI)
 npm run check:review-log  # Every owner review on a PR has its entry in reviews/ (CI; GITHUB_REPOSITORY and PR_NUMBER locally)
 npm run check:mockup-links  # Every mockup a PR changes is linked from its description (CI; same env)
+npm run e2e:timing -- <report.json>  # Each e2e spec's time per project, from Playwright's JSON report (CI job summary)
 npm run contract:flip <feature>  # e2e/contract/<feature>.spec.ts → plain tests in e2e/features/ (CI names it when a contract passes)
 npm test             # Unit + integration tests in UTC and Los Angeles time (a local Postgres: test/README.md)
 npm run test:unit    # Unit tests only, no database
 npm run test:coverage  # Everything, failing below the coverage floors (CI)
-npm run test:e2e     # Playwright on the local stack as the e2e user (CI); reuses a running dev server
+npm run test:e2e     # Playwright on the local stack, each test as its own user, both widths (CI); reuses a running dev server
 npm run up           # One-click start: setup, then the dev server (fresh checkout or any day)
 npm run setup        # .env.local, npm install, db:setup — no dev server (`-- --no-db` stops after install)
 npm run db:setup     # Start the local Supabase stack, migrate, seed (safe to rerun)
 npm run db:reset     # Wipe the local stack, migrate, seed
 npm run db:stop      # Stop the local stack (data kept)
 npm run dev:session  # Sign in as the seeded dev user: Playwright storageState + Cookie header
-npm run e2e:session  # Reset the e2e user to the seed's week and sign it in (run by test:e2e)
 npm run db:deploy:prod  # Apply migrations to production (.env.prod) — only when the owner asks
 npx @modelcontextprotocol/inspector --cli http://localhost:3000/api/mcp --transport http --method tools/list  # MCP smoke test (or drop --cli for the UI)
 npx prisma studio
