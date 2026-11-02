@@ -179,9 +179,15 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
-      # Builds and starts production, reseeds the e2e user, runs every project.
+      # Builds and starts production, runs every project; each test signs in
+      # as its own fresh user.
       - name: Run end-to-end tests
         run: npm run test:e2e
+
+      # Each spec's time per project, for choosing what a PR runs.
+      - name: e2e timing
+        if: ${{ !cancelled() }}
+        run: npm run --silent e2e:timing -- e2e-timing.json >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload the report and traces
         if: failure()
