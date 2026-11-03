@@ -61,7 +61,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 
 ### Future
 
-- [ ] Per-kind risk rules — Phase 1 switched risk off (badges, borders, 15:00 / 20:00 clock thresholds); bring it back per kind, as a colour on the card's signal line (never the kind edge): habit pace (amber when what's left needs every remaining day), project step carried 2× (amber — split it?), one-off due date (amber within 2 days, red on the day — the only red). First explored in PR #47's initial mockup (commit `d3ecc25`, Cards & risk screen)
+- [ ] Per-kind risk rules — Phase 1 switched risk off (badges, borders, 15:00 / 20:00 clock thresholds); bring it back per kind, as a colour on the card's signal line (never the kind edge): habit pace (amber when what's left needs every remaining day), project step carried 2× (amber — split it?), one-off due date (amber within 2 days, red on the day — the only red). First explored in PR #47's initial mockup (commit `d3ecc25`, Cards & risk screen); the research behind the rules, the options and the two columns they need (`carriedCount`, `dueAt`) in `design/spike/week-model-phase2-pain-points.md` › 痛点 5
 
 ## Plan
 
@@ -78,7 +78,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
   - [ ] Plan week built on the page structure (AGENTS.md › Layers › *Page structure*): route adapter for the form's initial selections, a `PlanPage` container with a page context, the diff as a pure helper — the plan form keeps its current structure until then (`design/spike/archived/component-structure.md`, Q5)
   - [ ] Redesign the Review changes modal — large as it stands; rework it with the Plan week
   - [ ] UI component tests (React Testing Library or Vitest browser mode), and a second look at visual regression on the Design Console scenarios — deferred from the Quality gate's test baseline until Phase 2's pages settle (`design/spike/archived/test-baseline.md`, Q10)
-  - [ ] Investigate the app pain points before planning Phase 2 — a weekly time budget the LLM plans into (size as its estimate, points → hours), focus limits (habits per week, active projects) and one lifecycle for habits and projects (active / paused / completed). Spike `design/spike/week-model-phase2-pain-points.md` (draft)
+  - [ ] Investigate the app pain points before planning Phase 2 — a capacity learned from recent weeks that the LLM plans into (counts, not points), focus limits (habits per week, active projects), one lifecycle for habits and projects (active / paused / completed), what replaces points as feedback (the per-kind signals, a week strip of days, the day-grouped Done log, a quiet ✓) and per-kind risk rules. Spike `design/spike/week-model-phase2-pain-points.md` (draft; its 2026-11-03 round adds the competitor and literature research behind points, feedback and risk)
 - [ ] Habit-level days — let each habit run on weekdays, every day or custom days (after Phase 2 drops Plan Mode, Daily means every day)
 - [ ] One entry for habits and projects together — a single page (Habits · Projects) with the same lifecycle filters, instead of projects having their own nav item and habits living in the plan form; options in `design/spike/week-model-phase2-pain-points.md`
 
@@ -90,7 +90,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 
 ### Future
 
-- [ ] Optional due date on one-off tasks — set when adding or editing a priority task, shown on matrix and board cards; the one source of red once per-kind risk rules return (see Board › Future)
+- [ ] Optional due date on one-off tasks — set when adding or editing a priority task, shown on matrix and board cards; the one source of red once per-kind risk rules return (see Board › Future; `design/spike/week-model-phase2-pain-points.md` › 痛点 5 pairs it with `carriedCount` in one schema PR)
 - [ ] Move-to popover on a card near the bottom of the viewport is cut off — the panel now escapes its quadrant's scroll clip (fixed at its static position, no portal) but cannot flip upward; revisit with CSS anchor positioning (`position-try-fallbacks: flip-block`)
 
 ## Dump
@@ -135,7 +135,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
   - [ ] Step 14 — Code review agent: explored as Harness engineering › 3 (above), which settles its scope
 - [ ] Spike: tracking production errors — today a crash leaves nothing to debug (2026-10-30: dragging a daily card to Done on the phone PWA ended on Next's "Application error" page; the write had saved, and no log or report showed why)
 - [ ] Persist sidebar collapse state across page refreshes (localStorage with SSR hydration)
-- [ ] Daily rhythm — Open / Close-the-day rituals and phone notifications for unfinished tasks; starts after the Quality gate milestone. Spike `design/spike/daily-rhythm-notifications.md` in PR #33 (awaiting review, written before Phase 1); when picked up, regroup its sheets by kind, map "Still on it" to staying in Todo (the board has no Doing column), and re-derive the midday nudge's triggers (it keys off the risk clock and In Progress cards, both gone)
+- [ ] Daily rhythm — Open / Close-the-day rituals and phone notifications for unfinished tasks; starts after the Quality gate milestone. Spike `design/spike/daily-rhythm-notifications.md` in PR #33 (awaiting review, written before Phase 1); when picked up, regroup its sheets by kind, map "Still on it" to staying in Todo (the board has no Doing column), and re-derive the midday nudge's triggers (it keys off the risk clock and In Progress cards, both gone; the per-kind risk rules in `design/spike/week-model-phase2-pain-points.md` › 痛点 5 are the proposed replacement)
 
 ### Medium
 
@@ -143,7 +143,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 - [ ] Measure `ci-fixer` on the next red GitHub CI: delegate the failing job to it and compare the main-session context with reading the log inline; if it still comes out even, drop the agent (`design/spike/archived/subagent-delegation-pilot.md` › Decision, Q2)
 - [ ] `ui/` component-structure lookup in `reference.md` — a lean high-level map for agents (humans use the `/design` gallery); follow-up to the landed component library
 - [ ] Uniform page header across board / priorities / projects / dump / settings on both breakpoints (plan keeps its planning-mode header until Phase 2's Plan hub header); also resolves the BoardHeader green-vs-primary accent drift and revisits the mobile header type scale (current mobile header font size reads too large). Along the way (`design/spike/archived/board-prop-drilling.md` Part 2): fold BoardHeader's extra wrapper div and redraw the stale `kanban/loading.tsx` skeleton
-- [ ] Redesign the point system and metric tracking — how sizes map to points, and what the board's Today / Week / Daily avg metrics count now that a week mixes habits, project steps and one-offs (PR 3 only added a project bucket to the week projection). Direction proposed in `design/spike/week-model-phase2-pain-points.md` (points → hours of a weekly budget)
+- [ ] Redesign the point system and metric tracking — how sizes map to points, and what the board's Today / Week / Daily avg metrics count now that a week mixes habits, project steps and one-offs (PR 3 only added a project bucket to the week projection). Direction proposed in `design/spike/week-model-phase2-pain-points.md` › 痛点 1 and 痛点 4: size leaves the cards, the metrics become counts and a week strip of days, and `points` stays only as the LLM's hour estimate until Phase 2 cleanup decides whether to delete it
 
 ### Future
 
