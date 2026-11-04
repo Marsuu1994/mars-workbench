@@ -57,7 +57,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 
 ### Medium
 
-- [ ] Stack duplicate habit instances in the backlog — the kind-first card has landed; PR #44 implements stacking on the old card and needs moving onto the new face (project steps and one-offs never stack)
+- [ ] Group the backlog — one habit's staged instances, and one project's steps on this week, sit together as one group (desktop panel and mobile sheet); the backlog count becomes groups + one-offs. Design PR in review, four directions (stack, number, next-up + queue, per kind): mockup `design/mockup/mockup-board-backlog-grouping.html`. PR #44 built stacking on the old card face. The first flow written in the spec-layers format (Cross-cutting › Future)
 
 ### Future
 

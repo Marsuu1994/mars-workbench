@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="mars-dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Backlog Grouping</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Anton&display=swap');
+
+  /* ── Theme tokens (mirror globals.css: mars-dark / mars-light / p5-dark) ── */
+  :root, [data-theme='mars-dark'] {
+    --b1: oklch(0.19 0.03 265); --b2: oklch(0.155 0.028 265); --b3: oklch(0.125 0.026 268);
+    --bc: oklch(0.92 0.016 210); --p: oklch(0.83 0.135 205); --pc: oklch(0.2 0.04 225);
+    --s: oklch(0.74 0.15 295); --a: oklch(0.76 0.155 55); --in: oklch(0.79 0.115 235);
+    --su: oklch(0.8 0.165 155); --wa: oklch(0.84 0.155 85); --er: oklch(0.72 0.17 25);
+    --rc: 10px; --rs: 4px; --rf: 6px;
+    --edge: color-mix(in oklab, var(--bc) 12%, transparent);
+    --card-bg: color-mix(in oklab, var(--b1) 70%, transparent);
+    --card-solid: var(--b1);
+    --card-border: color-mix(in oklab, var(--bc) 10%, transparent);
+    --card-shadow: inset 0 1px 0 var(--edge);
+    --lip-1: color-mix(in oklab, var(--b1) 88%, var(--bc));
+    --lip-2: color-mix(in oklab, var(--b1) 94%, var(--bc));
+    --lip-border: color-mix(in oklab, var(--bc) 20%, transparent);
+    --page: radial-gradient(1200px 600px at 10% -10%, color-mix(in oklab, var(--p) 10%, transparent), transparent 60%),
+            radial-gradient(900px 500px at 110% 110%, color-mix(in oklab, var(--s) 10%, transparent), transparent 60%), var(--b2);
+    --display: 'Geist', system-ui, sans-serif;
+  }
+  [data-theme='mars-light'] {
+    --b1: oklch(0.955 0.018 80); --b2: oklch(0.925 0.024 78); --b3: oklch(0.885 0.03 76);
+    --bc: oklch(0.24 0.032 265); --p: oklch(0.5 0.085 215); --pc: oklch(0.975 0.01 90);
+    --s: oklch(0.5 0.185 295); --a: oklch(0.54 0.14 50); --in: oklch(0.5 0.115 240);
+    --su: oklch(0.5 0.13 152); --wa: oklch(0.49 0.1 75); --er: oklch(0.53 0.19 25);
+    --edge: oklch(1 0 0 / 0.7);
+    --card-border: color-mix(in oklab, var(--bc) 12%, transparent);
+    --lip-1: color-mix(in oklab, var(--b3) 70%, var(--b1));
+    --lip-2: color-mix(in oklab, var(--b3) 40%, var(--b1));
+    --lip-border: color-mix(in oklab, var(--bc) 22%, transparent);
+    --page: radial-gradient(1200px 600px at 10% -10%, color-mix(in oklab, var(--a) 14%, transparent), transparent 60%),
+            radial-gradient(900px 500px at 110% 110%, color-mix(in oklab, var(--s) 10%, transparent), transparent 60%), var(--b2);
+  }
+  [data-theme='p5-dark'] {
+    --b1: oklch(0.185 0.008 20); --b2: oklch(0.15 0.006 20); --b3: oklch(0.115 0.004 20);
+    --bc: oklch(0.96 0.005 20); --p: oklch(0.63 0.255 29); --pc: oklch(0.13 0.02 20);
+    --s: oklch(0.74 0.15 295); --a: oklch(0.74 0.17 55); --in: oklch(0.78 0.12 235);
+    --su: oklch(0.8 0.17 150); --wa: oklch(0.85 0.16 90); --er: oklch(0.63 0.22 12);
+    --rc: 0; --rs: 0; --rf: 0;
+    --card-bg: oklch(0.17 0.008 20); --card-solid: oklch(0.17 0.008 20);
+    --card-border: color-mix(in oklab, var(--bc) 14%, transparent);
+    --card-shadow: 3px 3px 0 var(--b3);
+    --lip-1: oklch(0.25 0.008 20); --lip-2: oklch(0.21 0.006 20);
+    --lip-border: color-mix(in oklab, var(--bc) 32%, transparent);
+    --page: repeating-radial-gradient(circle at 0 0, color-mix(in oklab, var(--bc) 4%, transparent) 0 1px, transparent 1px 6px), var(--b2);
+    --display: 'Anton', 'Arial Narrow', sans-serif;
+  }
+  [data-kind='habit'] { --k: var(--su); }
+  [data-kind='project'] { --k: var(--s); }
+  [data-kind='oneoff'] { --k: var(--in); }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { background: var(--b2); }
+  body { font-family: 'Geist', system-ui, sans-serif; background: var(--page); background-attachment: fixed; color: var(--bc); min-height: 100vh; padding: 24px 16px 110px; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  button { font-family: inherit; color: inherit; }
+  .mono { font-family: 'Geist Mono', ui-monospace, monospace; }
+  .icon { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  .icon.sm { width: 14px; height: 14px; } .icon.xs { width: 12px; height: 12px; stroke-width: 2; } .icon.xxs { width: 10px; height: 10px; stroke-width: 2.2; }
+
+  /* ── Page chrome ── */
+  .topbar { max-width: 1280px; margin: 0 auto 20px; display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: flex-end; justify-content: space-between; }
+  .eyebrow { font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--p); }
+  .topbar h1 { font-size: 22px; font-weight: 700; margin-top: 4px; }
+  .topbar p { font-size: 13px; color: color-mix(in oklab, var(--bc) 62%, transparent); margin-top: 4px; max-width: 760px; line-height: 1.55; }
+  .topbar p b { color: var(--bc); }
+  .seg { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 10px; background: color-mix(in oklab, var(--b1) 85%, transparent); border: 1px solid var(--card-border); }
+  [data-theme='p5-dark'] .seg, [data-theme='p5-dark'] .seg button { border-radius: 0; }
+  .seg button { border: 0; background: transparent; color: color-mix(in oklab, var(--bc) 60%, transparent); font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 7px; cursor: pointer; white-space: nowrap; }
+  .seg button.on { background: color-mix(in oklab, var(--p) 16%, transparent); color: var(--p); }
+  .screen-nav { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 100; box-shadow: 0 10px 30px oklch(0 0 0 / .35); max-width: calc(100vw - 32px); flex-wrap: nowrap; overflow-x: auto; }
+  .screen { display: none; max-width: 1280px; margin: 0 auto; }
+  .screen.on { display: block; }
+  .col-label { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 55%, transparent); flex-wrap: wrap; }
+  .col-label b { color: var(--bc); font-weight: 600; }
+  .col-label.after b { color: var(--p); }
+  .col-label .line { flex: 1; min-width: 20px; height: 1px; background: var(--card-border); }
+  .col-label.spaced { margin-top: 36px; }
+  .ghost-btn { border: 1px solid var(--card-border); background: transparent; color: color-mix(in oklab, var(--bc) 65%, transparent); font-size: 11px; padding: 3px 8px; border-radius: 6px; cursor: pointer; font-family: 'Geist Mono', monospace; letter-spacing: .04em; text-transform: none; }
+  .ghost-btn:hover { color: var(--p); border-color: var(--p); }
+  .note { font-size: 12.5px; line-height: 1.65; color: color-mix(in oklab, var(--bc) 65%, transparent); margin-top: 12px; max-width: 1000px; }
+  .note b { color: var(--bc); font-weight: 600; }
+  .note code, .tbl code { font-family: 'Geist Mono', monospace; font-size: 11.5px; }
+  .opt-tabs { margin-bottom: 12px; }
+
+  /* ── Board frame ── */
+  .board { border: 1px solid var(--card-border); border-radius: 14px; overflow: hidden; background: color-mix(in oklab, var(--b2) 60%, transparent); }
+  [data-theme='p5-dark'] .board { border-radius: 0; border-width: 1.5px; }
+  .board-main { display: flex; height: 600px; }
+  .board-cols { flex: 1; min-width: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 14px; }
+  .column { min-width: 0; display: flex; flex-direction: column; border: 1px solid var(--card-border); border-radius: 12px; background: color-mix(in oklab, var(--b2) 10%, transparent); overflow: hidden; transition: box-shadow .15s, border-color .15s; }
+  [data-theme='p5-dark'] .column { border-radius: 0; }
+  .column.drop-hot { border-color: var(--a); box-shadow: 0 0 0 2px color-mix(in oklab, var(--a) 40%, transparent) inset; }
+  .column-head { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-left: 4px solid var(--in); border-bottom: 1px solid var(--card-border); font-size: 14px; font-weight: 700; }
+  .column.done .column-head { border-left-color: var(--su); }
+  .count-ghost { margin-left: auto; font-family: 'Geist Mono', monospace; font-size: 11px; padding: 1px 7px; border-radius: 999px; background: color-mix(in oklab, var(--bc) 8%, transparent); color: color-mix(in oklab, var(--bc) 70%, transparent); }
+  .column-body { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .badge-count { font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: var(--p); color: var(--pc); min-width: 20px; text-align: center; display: inline-block; }
+  [data-theme='p5-dark'] .badge-count { border-radius: 0; }
+  .badge-count.bump { animation: bump .35s cubic-bezier(.2,0,0,1); }
+  @keyframes bump { 40% { transform: scale(1.3); } }
+
+  .backlog { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; border-left: 1px solid var(--card-border); background: color-mix(in oklab, var(--b1) 10%, transparent); }
+  .backlog.standalone { border: 1px solid var(--card-border); border-radius: 12px; height: 560px; overflow: hidden; }
+  [data-theme='p5-dark'] .backlog.standalone { border-radius: 0; }
+  .backlog-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--card-border); background: color-mix(in oklab, var(--b2) 30%, transparent); }
+  .backlog-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; }
+  .backlog-title .icon { color: var(--p); }
+  .backlog-hint { display: flex; align-items: center; gap: 6px; padding: 10px 16px; font-size: 12px; color: color-mix(in oklab, var(--bc) 50%, transparent); border-bottom: 1px solid var(--card-border); }
+  .backlog-hint .icon { color: var(--p); }
+  .backlog-body { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .backlog-body.roomy { gap: 14px; }
+  .empty { font-size: 12px; text-align: center; color: color-mix(in oklab, var(--bc) 45%, transparent); padding: 24px 6px; }
+
+  /* ── The kind-first TaskCard (production face) ── */
+  .tc { position: relative; background: var(--card-bg); border: 1px solid var(--card-border); border-left: 3px solid var(--k); border-radius: var(--rc); box-shadow: var(--card-shadow); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; transition: transform .15s cubic-bezier(.2,0,0,1), opacity .2s; user-select: none; }
+  [data-theme='p5-dark'] .tc { border-width: 1.5px; border-left-width: 4px; }
+  .tc[data-drag] { cursor: grab; }
+  .tc[data-drag]:hover { transform: translateY(-2px); }
+  .tc.solid { background: var(--card-solid); }
+  .tc.is-done { opacity: .5; }
+  .tc.is-done .tc-title { text-decoration: line-through; color: color-mix(in oklab, var(--bc) 55%, transparent); }
+  .tc.rise { animation: rise .35s cubic-bezier(.2,0,0,1); }
+  @keyframes rise { from { transform: translateY(6px); opacity: .4; } }
+  .tc.fresh { animation: fresh .7s cubic-bezier(.2,0,0,1); }
+  @keyframes fresh { from { box-shadow: 0 0 0 2px var(--a); } }
+  .tc-head { display: flex; align-items: center; gap: 6px; min-width: 0; font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--k); }
+  .tc-head .name { text-transform: none; letter-spacing: .02em; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .tc-head .ctx { margin-left: auto; color: color-mix(in oklab, var(--bc) 50%, transparent); letter-spacing: .04em; text-transform: none; font-weight: 500; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
+  .tc-row { display: flex; align-items: flex-start; gap: 10px; }
+  .tc-title { flex: 1; min-width: 0; font-size: 14px; font-weight: 500; line-height: 1.3; }
+  .tc-desc { font-size: 12px; color: color-mix(in oklab, var(--bc) 58%, transparent); line-height: 1.4; margin-top: -2px; }
+  .tc-foot { display: flex; align-items: center; gap: 8px; min-height: 18px; flex-wrap: wrap; }
+  .size { margin-left: auto; font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; color: color-mix(in oklab, var(--bc) 55%, transparent); border: 1px solid var(--card-border); border-radius: var(--rs); padding: 1px 5px; }
+  .tc-pull { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 8px; border-radius: var(--rf); border: 1px solid var(--card-border); background: transparent; color: color-mix(in oklab, var(--bc) 60%, transparent); font-family: 'Geist Mono', monospace; font-size: 10.5px; font-weight: 600; cursor: pointer; flex-shrink: 0; }
+  .tc-pull:hover { color: var(--p); border-color: var(--p); }
+  .dots { display: inline-flex; gap: 6px; align-items: center; }
+  .dots i { width: 8px; height: 8px; border-radius: 99px; border: 1.5px solid color-mix(in oklab, var(--k) 65%, transparent); }
+  .dots i.on { background: var(--k); border-color: var(--k); }
+  .dots i.cur { border-color: var(--k); box-shadow: 0 0 0 2px color-mix(in oklab, var(--k) 30%, transparent); }
+  .dots i.cur2 { border-color: var(--k); box-shadow: 0 0 0 2px color-mix(in oklab, var(--k) 18%, transparent); }
+  [data-theme='p5-dark'] .dots i { border-radius: 0; transform: rotate(45deg) scale(.875); }
+  .sig { font-family: 'Geist Mono', monospace; font-size: 11px; color: color-mix(in oklab, var(--bc) 55%, transparent); white-space: nowrap; }
+  .stepbar { display: inline-flex; gap: 2px; width: 92px; }
+  .stepbar i { flex: 1; height: 4px; border-radius: 2px; background: color-mix(in oklab, var(--k) 20%, transparent); }
+  .stepbar i.on { background: var(--k); }
+  .stepbar i.cur { box-shadow: 0 0 0 1px var(--k); }
+  .stepbar i.wk { background: color-mix(in oklab, var(--k) 45%, transparent); }
+  [data-theme='p5-dark'] .stepbar i { border-radius: 0; }
+
+  /* chip shared by A / C / D: how many this group still holds */
+  .xn { display: inline-flex; align-items: center; gap: 3px; font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: .02em; padding: 1px 6px; border-radius: 999px; color: var(--k); background: color-mix(in oklab, var(--k) 14%, transparent); border: 1px solid color-mix(in oklab, var(--k) 35%, transparent); text-transform: none; }
+  [data-theme='p5-dark'] .xn { border-radius: 0; transform: skewX(-8deg); }
+  .xn.bump { animation: bump .35s cubic-bezier(.2,0,0,1); }
+  button.xn { cursor: pointer; }
+  button.xn:hover { background: color-mix(in oklab, var(--k) 24%, transparent); }
+
+  /* A — stacked pile: paper lips below the top card */
+  .stack { position: relative; margin-bottom: 6px; }
+  .stack[data-depth='2'] { margin-bottom: 11px; }
+  .stack .lip { position: absolute; top: 100%; height: 5px; border: 1px solid var(--lip-border); border-top: 0; border-radius: 0 0 var(--rc) var(--rc); pointer-events: none; }
+  [data-theme='p5-dark'] .stack .lip { border-width: 1.5px; border-top: 0; }
+  .stack .lip-1 { left: 6px; right: 6px; background: var(--lip-1); z-index: 1; }
+  .stack .lip-2 { left: 12px; right: 12px; top: calc(100% + 5px); background: var(--lip-2); }
+
+  /* B — numbered card: which instance / step this is */
+  .num { flex-shrink: 0; display: grid; place-items: center; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 999px; font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 700; color: var(--k); background: color-mix(in oklab, var(--k) 14%, transparent); border: 1px solid color-mix(in oklab, var(--k) 40%, transparent); margin-top: -1px; }
+  [data-theme='p5-dark'] .num { border-radius: 0; }
+  .more { font-family: 'Geist Mono', monospace; font-size: 10.5px; color: color-mix(in oklab, var(--bc) 50%, transparent); }
+  .redundant { outline: 1.5px dashed var(--wa); outline-offset: 2px; border-radius: 4px; }
+
+  /* C — next-up card + "+N" that opens an inline queue */
+  .queue { margin-top: -2px; border: 1px solid var(--card-border); border-top: 0; border-radius: 0 0 var(--rc) var(--rc); margin-left: 8px; margin-right: 8px; background: color-mix(in oklab, var(--b1) 40%, transparent); overflow: hidden; }
+  [data-theme='p5-dark'] .queue { border-width: 1.5px; border-top: 0; }
+  .q-row { display: flex; align-items: center; gap: 8px; padding: 7px 10px; font-size: 12.5px; border-top: 1px solid color-mix(in oklab, var(--bc) 6%, transparent); color: color-mix(in oklab, var(--bc) 72%, transparent); }
+  .q-row:first-child { border-top: 0; }
+  .q-row .n { font-family: 'Geist Mono', monospace; font-size: 10px; color: var(--k); min-width: 34px; }
+  .q-row .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .q-row .size { margin-left: 0; }
+  .grp { display: flex; flex-direction: column; }
+
+  /* D — habit quota row */
+  .quota { display: flex; align-items: center; gap: 10px; background: var(--card-bg); border: 1px solid var(--card-border); border-left: 3px solid var(--k); border-radius: var(--rc); box-shadow: var(--card-shadow); padding: 9px 12px; user-select: none; }
+  [data-theme='p5-dark'] .quota { border-width: 1.5px; border-left-width: 4px; }
+  .quota[data-drag] { cursor: grab; }
+  .quota .ic { color: var(--k); display: grid; }
+  .quota .qt { flex: 1; min-width: 0; }
+  .quota .qt b { display: block; font-size: 13.5px; font-weight: 500; }
+  .quota .qt span { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 3px; }
+  .quota .left { flex-shrink: 0; min-width: 34px; font-family: 'Geist Mono', monospace; font-size: 18px; font-weight: 700; color: var(--k); line-height: 1; text-align: right; }
+  .quota .left small { display: block; font-size: 9px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 45%, transparent); margin-top: 2px; }
+  .sheet .quota .plan { display: none; }
+  .sec-label { display: flex; align-items: center; gap: 7px; font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 50%, transparent); margin: 2px 2px -2px; }
+  .sec-label .line { flex: 1; height: 1px; background: var(--card-border); }
+
+  /* drag ghost */
+  .ghost { position: fixed; z-index: 999; pointer-events: none; width: 274px; transform: rotate(2deg) scale(1.02); box-shadow: 0 12px 30px oklch(0 0 0 / .4); opacity: .95; }
+  .lifted { opacity: .35; }
+
+  /* ── Mobile ── */
+  .phones { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px 20px; align-items: start; }
+  .phone-wrap { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .phone-cap { font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 55%, transparent); }
+  .phone-cap b { color: var(--p); }
+  .phone-cap.before b { color: var(--bc); }
+  .phone { width: 340px; max-width: 100%; height: 700px; border-radius: 38px; border: 8px solid color-mix(in oklab, var(--bc) 16%, var(--b3)); background: var(--b2); position: relative; overflow: hidden; }
+  [data-theme='p5-dark'] .phone { border-radius: 6px; }
+  .phone .peek { position: absolute; inset: 0 0 auto 0; height: 150px; padding: 40px 16px 0; background: linear-gradient(var(--b2), var(--b2)); }
+  .phone .peek .bar { height: 12px; border-radius: 6px; background: color-mix(in oklab, var(--bc) 10%, transparent); margin-bottom: 10px; }
+  .phone .scrim { position: absolute; inset: 0; background: oklch(0 0 0 / .45); }
+  .phone .sheet { position: absolute; left: 0; right: 0; bottom: 0; top: 110px; background: var(--b1); border-radius: 18px 18px 0 0; display: flex; flex-direction: column; overflow: hidden; }
+  [data-theme='p5-dark'] .phone .sheet { border-radius: 0; }
+  .sheet .grab { width: 36px; height: 4px; border-radius: 4px; background: color-mix(in oklab, var(--bc) 20%, transparent); margin: 8px auto 0; }
+  .sheet .backlog-head { background: transparent; }
+  .sheet .backlog-body { padding: 14px; gap: 10px; }
+  .sheet .backlog-body.roomy { gap: 14px; }
+  .pill { display: flex; align-items: center; gap: 10px; width: 300px; max-width: 100%; height: 44px; padding: 0 14px; border-radius: 16px; background: var(--b1); border: 1px solid var(--card-border); box-shadow: 0 6px 16px oklch(0 0 0 / .25); font-size: 14px; font-weight: 600; }
+  [data-theme='p5-dark'] .pill { border-radius: 0; }
+  .pill .icon { color: var(--p); }
+  .pill .chev { margin-left: auto; opacity: .4; }
+  .todo-tally { font-family: 'Geist Mono', monospace; font-size: 11px; color: color-mix(in oklab, var(--bc) 55%, transparent); }
+  .todo-tally b { color: var(--a); }
+
+  /* ── Compare / research ── */
+  .compare { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; align-items: start; }
+  .cmp-cap { font-size: 13px; font-weight: 700; margin-bottom: 8px; display: flex; gap: 8px; align-items: baseline; }
+  .cmp-cap span { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--p); }
+  .tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; line-height: 1.5; margin-top: 8px; }
+  .tbl th, .tbl td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--card-border); }
+  .tbl th { font-family: 'Geist Mono', monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 50%, transparent); font-weight: 600; }
+  .tbl td:first-child { font-weight: 600; white-space: nowrap; }
+  .tbl td { color: color-mix(in oklab, var(--bc) 80%, transparent); }
+  .tbl-wrap { overflow-x: auto; border: 1px solid var(--card-border); border-radius: 12px; background: color-mix(in oklab, var(--b1) 30%, transparent); }
+  [data-theme='p5-dark'] .tbl-wrap { border-radius: 0; }
+  .good { color: var(--su); } .bad { color: var(--er); } .meh { color: var(--wa); }
+  .patterns { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+  .pat { border: 1px solid var(--card-border); border-radius: 12px; padding: 14px 16px; background: color-mix(in oklab, var(--b1) 35%, transparent); font-size: 12.5px; line-height: 1.6; color: color-mix(in oklab, var(--bc) 75%, transparent); }
+  [data-theme='p5-dark'] .pat { border-radius: 0; }
+  .pat h4 { font-size: 14px; color: var(--bc); margin-bottom: 2px; }
+  .pat .who { font-family: 'Geist Mono', monospace; font-size: 10.5px; color: var(--p); letter-spacing: .04em; margin-bottom: 8px; }
+  .pat .fit { margin-top: 8px; }
+  .pat a { color: var(--p); }
+  @media (max-width: 900px) {
+    .board-main { flex-direction: column; height: auto; }
+    .board-cols { min-height: 360px; }
+    .backlog { width: 100%; border-left: 0; border-top: 1px solid var(--card-border); height: 520px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div>
+    <div class="eyebrow">Board · Backlog · design PR</div>
+    <h1>Backlog grouping — same habit, same project, one row</h1>
+    <p>Today every staged instance is its own card: two <b>Read</b>, two <b>LeetCode</b>, three <b>Biomedical course</b> lectures… After: one habit's instances, and one project's steps, sit together as <b>one group</b>, on desktop and mobile. The backlog count becomes <b>groups + one-offs</b> (11 → 6 here). Four directions to choose from — <b>A</b> stack, <b>B</b> number, <b>C</b> next-up + queue, <b>D</b> per kind. Drag a card onto Todo on desktop (or tap ↑ Todo on mobile) to see each one pull.</p>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+    <div class="seg" id="themes">
+      <button data-theme-btn="mars-dark" class="on">Mars dark</button>
+      <button data-theme-btn="mars-light">Mars light</button>
+      <button data-theme-btn="p5-dark">P5</button>
+    </div>
+    <button class="ghost-btn" id="reset">Reset all</button>
+  </div>
+</header>
+
+<!-- ═════════ 1 · Desktop ═════════ -->
+<section class="screen on" data-screen="desktop">
+  <div class="col-label"><b>Before</b> · today · one card per instance · count 11<span class="line"></span></div>
+  <div class="board" id="desk-before"></div>
+  <p class="note">The same fixture week throughout: Read and LeetCode each have two instances staged, System design one; Biomedical course has Lectures 4–6 scheduled this week, Protein 3D viewer steps 3–4; one tracked one-off (Renew passport). The badge counts cards.</p>
+
+  <div class="col-label spaced after"><b>After</b> · pick a direction<span class="line"></span></div>
+  <div class="seg opt-tabs" id="desk-opts"></div>
+  <div class="board" id="desk-after"></div>
+  <p class="note" id="desk-opt-note"></p>
+</section>
+
+<!-- ═════════ 2 · Mobile ═════════ -->
+<section class="screen" data-screen="mobile">
+  <div class="col-label"><b>Before and all four directions</b> · the backlog sheet, open · tap ↑ Todo to pull<span class="line"></span></div>
+  <div class="phones" id="phones"></div>
+  <p class="note">The pill above each phone is the peeking entry over the tab bar; its badge follows the same count as the sheet header. The sheet stays open between pulls, as today. In <b>C</b>, <b>+N</b> opens the queue in place; in <b>D</b>, habits become one quota row each.</p>
+</section>
+
+<!-- ═════════ 3 · Compare ═════════ -->
+<section class="screen" data-screen="compare">
+  <div class="col-label"><b>Side by side</b> · desktop panel, same week<span class="line"></span></div>
+  <div class="compare" id="compare"></div>
+
+  <div class="col-label spaced"><b>Tradeoffs</b><span class="line"></span></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <thead><tr><th></th><th>A · Stack</th><th>B · Number</th><th>C · Next-up + queue</th><th>D · Per kind</th></tr></thead>
+    <tbody>
+      <tr><td>Reads as "more behind it"</td><td class="good">At a glance — lips + ×N</td><td class="meh">Only via "+2 more" text</td><td class="good">+N chip, and the titles one tap away</td><td class="good">Habit: big "left" count · project: as C</td></tr>
+      <tr><td>Later steps' titles visible</td><td class="bad">Hidden until they rise</td><td class="bad">Hidden</td><td class="good">In the queue (expand)</td><td class="good">In the queue (expand)</td></tr>
+      <tr><td>New information on the card</td><td>×N chip only</td><td class="meh">Number duplicates <i>Step 4/9</i> and the ringed segment / dot</td><td>+N chip only</td><td class="meh">Habit gets a second face (quota row)</td></tr>
+      <tr><td>Card still = the board's card</td><td class="good">Yes — top card is a real TaskCard</td><td class="good">Yes</td><td class="good">Yes — next-up is a real TaskCard</td><td class="bad">No for habits — the row becomes a card only after the pull</td></tr>
+      <tr><td>Pull order</td><td>Always the next (lowest) instance / step</td><td>Always the next</td><td>Next by default; queue rows are read-only (open question)</td><td>Habit: any (identical) · project: the next</td></tr>
+      <tr><td>Mobile tap targets</td><td class="good">One: ↑ Todo</td><td class="good">One</td><td class="meh">Two: ↑ Todo and +N (kept apart)</td><td class="meh">Two on projects</td></tr>
+      <tr><td>Height in the 300px panel</td><td class="good">Card + 10px</td><td class="good">One card</td><td class="good">One card (queue opt-in)</td><td class="good">Habits shrink to ~48px rows</td></tr>
+      <tr><td>Build cost</td><td>Known — PR #44 built it on the old card (lips, ×n, one Droppable per stack)</td><td>Smallest</td><td>A's drag plumbing + an expandable queue</td><td>Two group faces</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note"><b>The count</b>, in every direction: one per group (a habit's staged instances, or a project's steps on this week) plus one per one-off. A group of one is still one. The badge on the collapsed desktop strip, the panel header, the mobile pill and the sheet header all show it. The column counts on the board don't change — they still count cards.</p>
+</section>
+
+<!-- ═════════ 4 · Research ═════════ -->
+<section class="screen" data-screen="research">
+  <div class="col-label"><b>How other products group repeats and sequences</b><span class="line"></span></div>
+  <div class="patterns">
+    <div class="pat"><h4>Collapsed stack</h4><div class="who">iOS notification stacks · Android group summary</div>One full card with one or two edges peeking below; tap to fan out, "Show less" to fold. Android keeps every child a full notification (<a href="https://developer.android.com/training/notify-user/group">docs</a>). iOS mostly implies the count by the layers.<div class="fit"><b>→ A.</b> Risk seen there: users tapping the stack expect it to open, not expand (<a href="https://discussions.apple.com/thread/253900982">Apple Community</a>) — keep expand and ↑ Todo as separate targets.</div></div>
+    <div class="pat"><h4>Thread row + count</h4><div class="who">Gmail conversations</div>One row, a "(3)" after the sender; open to see all. The densest form, but it never says which one is next.<div class="fit"><b>→ the ×N / +N chip</b> in A, C and D.</div></div>
+    <div class="pat"><h4>Next-action gating</h4><div class="who">OmniFocus sequential projects · Sunsama recurring tasks</div>A sequential project shows only its first available action; the rest wait behind it (<a href="https://support.omnigroup.com/documentation/omnifocus/ios/2.9/en/planning-with-projects">Omni manual</a>). Sunsama shows only the next instance of a recurring task, never a pile (<a href="https://help.sunsama.com/docs/tasks-recurring-tasks">help</a>).<div class="fit"><b>→ C.</b> Fits project steps exactly; the step path already says where it sits, so no number is needed.</div></div>
+    <div class="pat"><h4>Grouped section / accordion</h4><div class="who">Sunsama backlog folders · Todoist / Things headings</div>A header with a count, every item still its own draggable card underneath (<a href="https://help.sunsama.com/docs/usage-guides/backlog">Sunsama backlog</a>).<div class="fit">Clear drag semantics, but expanded it is the long list again — the problem moves, it doesn't go.</div></div>
+    <div class="pat"><h4>Quota counter</h4><div class="who">Anki deck list · Streaks</div>Anki's deck rows show New / Learning / Review counts that drop by one per card (<a href="https://docs.ankiweb.net/ankimobile/deck-list">docs</a>). Identical repeats don't need a card each.<div class="fit"><b>→ D's habit row.</b></div></div>
+    <div class="pat"><h4>Parent with fraction</h4><div class="who">Todoist subtasks · Linear sub-issues</div>Collapsible parent with "2/5"; Linear toggles sub-issues on and off in Display options (<a href="https://linear.app/docs/parent-and-sub-issues">docs</a>). Jira's board can't fold sub-tasks under their parent — a standing feature request (<a href="https://jira.atlassian.com/browse/JRACLOUD-86472">JRACLOUD-86472</a>).<div class="fit">A possible later add-on: a <i>Grouped / All</i> toggle, grouping as a view only.</div></div>
+  </div>
+  <p class="note"><b>Common thread:</b> counts say <i>how many are left</i>, not <i>which one this is</i> — B's number goes against that, and repeats what the step path already shows. The patterns that let you take one directly (gating, quota) expose exactly one actionable thing; the ones that must expand first (stacks on iOS) are where mis-taps happen on phones. Research by a subagent from public docs; the Streaks detail is unverified.</p>
+</section>
+
+<nav class="seg screen-nav" id="screens">
+  <button data-screen-btn="desktop" class="on">1 · Desktop</button>
+  <button data-screen-btn="mobile">2 · Mobile</button>
+  <button data-screen-btn="compare">3 · Compare</button>
+  <button data-screen-btn="research">4 · Research</button>
+</nav>
+
+<script>
+/* ── Icons (Heroicons outline paths) ── */
+const P = {
+  habit: 'M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99',
+  project: 'M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z',
+  oneoff: 'M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z',
+  inbox: 'm7.875 14.25 1.214 1.942a2.25 2.25 0 0 0 1.908 1.058h2.006c.776 0 1.497-.4 1.908-1.058l1.214-1.942M2.41 9h4.636a2.25 2.25 0 0 1 1.872 1.002l.164.246a2.25 2.25 0 0 0 1.872 1.002h2.092a2.25 2.25 0 0 0 1.872-1.002l.164-.246A2.25 2.25 0 0 1 16.954 9h4.636M2.41 9a2.25 2.25 0 0 0-.16.832V12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 12V9.832c0-.287-.055-.57-.16-.832M2.41 9a2.25 2.25 0 0 1 .382-.632l3.285-3.832a2.25 2.25 0 0 1 1.708-.786h8.43c.657 0 1.281.287 1.709.786l3.284 3.832c.163.19.291.404.382.632M4.5 20.25h15A2.25 2.25 0 0 0 21.75 18v-1.5a2.25 2.25 0 0 0-2.25-2.25h-15A2.25 2.25 0 0 0 2.25 16.5V18a2.25 2.25 0 0 0 2.25 2.25Z',
+  up: 'M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18',
+  left: 'M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18',
+  right: 'm8.25 4.5 7.5 7.5-7.5 7.5',
+  chevUp: 'm4.5 15.75 7.5-7.5 7.5 7.5',
+  chevDown: 'm19.5 8.25-7.5 7.5-7.5-7.5',
+  x: 'M6 18 18 6M6 6l12 12',
+};
+const icon = (name, cls = '') => `<svg class="icon ${cls}" viewBox="0 0 24 24"><path d="${P[name]}"/></svg>`;
+const KIND_LABEL = {habit: 'Habit', project: 'Project', oneoff: 'One-off'};
+
+/* ── Fixture week ──
+   Habits: slots = the week's instances in order; `done` marks finished ones.
+   Projects: `done` = step numbers finished; items = this week's staged steps. */
+const GROUPS = [
+  {id: 'read', kind: 'habit', title: 'Read', desc: '30 pages, any book', plan: 'Weekly × 3', target: 3, done: [0], size: 'XS',
+   items: [{slot: 1}, {slot: 2}]},
+  {id: 'lc', kind: 'habit', title: 'LeetCode', desc: 'One medium, 45-min timer', plan: 'Weekly × 4', target: 4, done: [0], size: 'XS',
+   items: [{slot: 2}, {slot: 3}]},
+  {id: 'sd', kind: 'habit', title: 'System design case', desc: 'One case study + a one-page diagram', plan: 'Weekly × 1', target: 1, done: [], size: 'S',
+   items: [{slot: 0}]},
+  {id: 'bio', kind: 'project', name: 'Biomedical course', total: 9, done: [1, 2, 3], size: 'XS',
+   items: [{n: 4, title: 'Lecture 4 — Cell signaling', desc: 'Watch + one-page notes'},
+           {n: 5, title: 'Lecture 5 — Immunity basics', desc: 'Watch + one-page notes'},
+           {n: 6, title: 'Lecture 6 — Neurons', desc: 'Watch + one-page notes'}]},
+  {id: 'pdb', kind: 'project', name: 'Protein 3D viewer', total: 4, done: [1], size: 'M',
+   items: [{n: 3, title: 'Add residue picking', desc: 'Click a residue → highlight + label'},
+           {n: 4, title: 'Deploy the viewer', desc: null}]},
+  {id: 'oo', kind: 'oneoff', title: 'Renew passport', desc: 'Photos first — form DS-82', quadrant: 'Do first', size: 'S',
+   items: [{}]},
+];
+const TODO_SEED = [
+  {kind: 'habit', title: 'Workout', desc: '45 min — gym or run', plan: 'Daily × 1', target: 5, doneSlots: [0, 1], cur: 4, size: 'XS'},
+  {kind: 'project', name: 'Protein 3D viewer', title: 'Render it with Mol*', n: 2, total: 4, doneSteps: [1], size: 'M'},
+  {kind: 'oneoff', title: 'File tax report', quadrant: 'Do first', size: 'S'},
+];
+const DONE_SEED = [
+  {kind: 'habit', title: 'Read', plan: 'Weekly × 3', target: 3, doneSlots: [0], cur: 0, size: 'XS', isDone: true},
+  {kind: 'habit', title: 'LeetCode', plan: 'Weekly × 4', target: 4, doneSlots: [0], cur: 0, size: 'XS', isDone: true},
+  {kind: 'project', name: 'Biomedical course', title: 'Lecture 3 — Membranes', n: 3, total: 9, doneSteps: [1, 2, 3], size: 'XS', isDone: true},
+];
+
+const OPTIONS = {
+  A: {label: 'A · Stack', note: '<b>A · Stack.</b> One card per group — the next instance or step, a real TaskCard — with paper lips below it (one at ×2, two from ×3) and a <b>×N</b> chip beside the plan line / step. Dragging takes the top card; the pile stays one count lower and the next instance rises (its ringed dot / segment moves). Later steps\' titles stay hidden until they come up. This is what PR #44 built on the old card face.'},
+  B: {label: 'B · Number', note: '<b>B · Number.</b> No pile: one flat card per group with a number before the title — <i>which</i> occurrence or step this is — and "+N more" in the footer. The dashed outlines mark the redundancy: on a step the number repeats <i>Step 4/9</i> and the ringed path segment; on a habit it repeats the ringed dot. What it adds is only the "+N more", and as plain text that reads weaker than A\'s pile.'},
+  C: {label: 'C · Next-up + queue', note: '<b>C · Next-up + queue</b> (from the research: OmniFocus / Sunsama next-action gating + Gmail\'s thread count). The group shows its next card only, with a <b>+N</b> chip; click it to open the queue in place — the later steps\' titles and sizes as quiet rows, read-only, so the order holds. Habits get the same chip; their queue is just the remaining slots. The step path already says where the card sits, so no number is needed.'},
+  D: {label: 'D · Per kind', note: '<b>D · Per kind</b> (research: Anki\'s quota counter). Each kind gets the shape its meaning needs: habit instances are identical, so a habit is one compact quota row — dots and "2 left" — and a pull drops a full card onto Todo; a project is C\'s next-up card with its queue; a one-off is unchanged. Densest of the four, but a habit no longer looks the same in the backlog and on the board.'},
+};
+
+/* ── Rendering ── */
+const clone = obj => JSON.parse(JSON.stringify(obj));
+const freshState = () => ({groups: clone(GROUPS).map(group => ({...group, pulled: 0, open: false})), todo: clone(TODO_SEED), fresh: null, bumped: null});
+const remaining = group => group.items.slice(group.pulled);
+const rowCount = (state, option) => option === 'before'
+  ? state.groups.reduce((sum, group) => sum + remaining(group).length, 0)
+  : state.groups.filter(group => remaining(group).length > 0).length;
+
+function dots({target, doneSlots, cur, pulledSlots = []}, markCls = '') {
+  let html = '';
+  for (let slot = 0; slot < target; slot++) {
+    const cls = doneSlots.includes(slot) ? 'on' : slot === cur ? 'cur' : '';
+    html += `<i class="${cls} ${slot === cur && markCls ? markCls : ''}"></i>`;
+  }
+  return `<span class="dots">${html}</span><span class="sig">${doneSlots.length}/${target}</span>`;
+}
+function path({total, doneSteps, cur, weekSteps = []}) {
+  let html = '';
+  for (let step = 1; step <= total; step++) {
+    const cls = doneSteps.includes(step) ? 'on' : weekSteps.includes(step) ? 'wk' : '';
+    html += `<i class="${cls} ${step === cur ? 'cur' : ''}"></i>`;
+  }
+  return `<span class="stepbar">${html}</span>`;
+}
+
+/* A card view model from a group + one of its items (or a seed card) */
+function cardModel(group, item) {
+  if (group.kind === 'habit') return {kind: 'habit', title: group.title, desc: group.desc, plan: group.plan, target: group.target, doneSlots: group.done, cur: item.slot, size: group.size, number: item.slot + 1};
+  if (group.kind === 'project') return {kind: 'project', name: group.name, title: item.title, desc: item.desc, n: item.n, total: group.total, doneSteps: group.done, size: group.size, number: item.n};
+  return {kind: 'oneoff', title: group.title, desc: group.desc, quadrant: group.quadrant, size: group.size};
+}
+
+/* The production face, plus each direction's additions */
+function card(model, {drag = '', action = '', chip = '', number = false, more = '', cls = ''} = {}) {
+  const {kind} = model;
+  const mark = number ? 'redundant' : '';
+  const head = kind === 'project'
+    ? `<span class="name">${model.name}</span><span class="ctx"><span class="${mark}">Step ${model.n}/${model.total}</span>${chip}</span>`
+    : `<span>${KIND_LABEL[kind]}</span><span class="ctx">${kind === 'habit' ? model.plan : model.quadrant}${chip}</span>`;
+  const signal = kind === 'habit' ? `<span class="${mark}" style="display:inline-flex;gap:8px;align-items:center;padding:0 2px">${dots(model)}</span>`
+    : kind === 'project' ? `<span class="${mark}" style="display:inline-flex;padding:2px">${path({...model, cur: model.n})}</span>` : '';
+  const numBadge = number && model.number ? `<span class="num">${kind === 'habit' ? '#' + model.number : model.number}</span>` : '';
+  return `<div class="tc ${model.isDone ? 'is-done' : ''} ${cls}" data-kind="${kind}" ${drag}>
+    <div class="tc-head">${icon(kind, 'xs')}${head}</div>
+    <div class="tc-row">${numBadge}<h3 class="tc-title">${model.title}</h3>${action}</div>
+    ${model.desc && !model.isDone ? `<p class="tc-desc">${model.desc}</p>` : ''}
+    <div class="tc-foot">${signal}${more}<span class="size">${model.size}</span></div>
+  </div>`;
+}
+
+const pullBtn = (groupId, index) => `<button class="tc-pull" data-pull="${groupId}" data-index="${index}">${icon('up', 'xxs')}Todo</button>`;
+
+/* One group in a given direction. `ctx` carries panel id + mobile flag */
+function renderGroup(group, option, ctx) {
+  const rest = remaining(group);
+  if (rest.length === 0) return '';
+  const top = rest[0];
+  const model = cardModel(group, top);
+  const index = group.pulled;
+  const isBumped = ctx.state.bumped === group.id;
+  const drag = ctx.mobile ? '' : `data-drag="${group.id}" data-index="${index}"`;
+  const action = ctx.mobile ? pullBtn(group.id, index) : '';
+  const rise = isBumped ? 'rise' : '';
+  const chipCls = `xn ${isBumped ? 'bump' : ''}`;
+  if (group.kind === 'project') model.weekSteps = group.items.slice(group.pulled).map(item => item.n);
+
+  if (option === 'before') {
+    return rest.map((item, offset) => card(cardModel(group, item), {
+      drag: ctx.mobile ? '' : `data-drag="${group.id}" data-index="${index + offset}"`,
+      action: ctx.mobile ? pullBtn(group.id, index + offset) : '',
+    })).join('');
+  }
+  if (group.kind === 'oneoff' || rest.length === 1) {
+    // A group of one is a plain card in every direction (D's habit row aside)
+    if (!(option === 'D' && group.kind === 'habit')) return card(model, {drag, action, cls: rise});
+  }
+  if (option === 'A') {
+    const depth = Math.min(rest.length - 1, 2);
+    return `<div class="stack" data-depth="${depth}">${card(model, {drag, action, cls: `solid ${rise}`, chip: `<span class="${chipCls}">×${rest.length}</span>`})}
+      <span class="lip lip-1"></span>${depth > 1 ? '<span class="lip lip-2"></span>' : ''}</div>`;
+  }
+  if (option === 'B') {
+    return card(model, {drag, action, cls: rise, number: true, more: `<span class="more">+${rest.length - 1} more</span>`});
+  }
+  const queueChip = `<button class="${chipCls}" data-toggle="${group.id}" title="${group.open ? 'Hide' : 'Show'} the rest">+${rest.length - 1}${icon(group.open ? 'chevUp' : 'chevDown', 'xxs')}</button>`;
+  const queue = group.open ? `<div class="queue">${rest.slice(1).map(item => group.kind === 'project'
+      ? `<div class="q-row" data-kind="project"><span class="n">Step ${item.n}</span><span class="t">${item.title}</span><span class="size">${group.size}</span></div>`
+      : `<div class="q-row" data-kind="habit"><span class="n">#${item.slot + 1}</span><span class="t">${group.title}</span><span class="size">${group.size}</span></div>`).join('')}</div>` : '';
+  if (option === 'C' || (option === 'D' && group.kind === 'project')) {
+    return `<div class="grp">${card(model, {drag, action, cls: `solid ${rise}`, chip: queueChip})}${queue}</div>`;
+  }
+  // D · habit quota row
+  const doneSlots = group.done;
+  return `<div class="quota ${rise}" data-kind="habit" ${drag}>
+    <span class="ic">${icon('habit', 'sm')}</span>
+    <span class="qt"><b>${group.title}</b><span>${dots({target: group.target, doneSlots, cur: top.slot})}<span class="sig plan">· ${group.plan}</span></span></span>
+    <span class="left ${isBumped ? 'bump' : ''}">${rest.length}<small>left</small></span>
+    ${ctx.mobile ? pullBtn(group.id, index) : ''}
+  </div>`;
+}
+
+function renderBacklogBody(state, option, mobile) {
+  const ctx = {state, mobile};
+  const groups = state.groups;
+  if (rowCount(state, option) === 0) return `<p class="empty">You're all caught up — no staged tasks.</p>`;
+  if (option === 'D') {
+    const habits = groups.filter(group => group.kind === 'habit').map(group => renderGroup(group, option, ctx)).join('');
+    const others = groups.filter(group => group.kind !== 'habit').map(group => renderGroup(group, option, ctx)).join('');
+    return (habits ? `<div class="sec-label">Habits<span class="line"></span></div>${habits}` : '')
+      + (others ? `<div class="sec-label">Projects · one-offs<span class="line"></span></div>${others}` : '');
+  }
+  return groups.map(group => renderGroup(group, option, ctx)).join('');
+}
+
+function renderBacklog(state, option, {mobile = false, standalone = false} = {}) {
+  const count = rowCount(state, option);
+  const roomy = option === 'A' || option === 'C' ? 'roomy' : '';
+  const bump = state.bumped ? 'bump' : '';
+  return `<div class="${mobile ? '' : 'backlog'} ${standalone ? 'standalone' : ''}" style="${mobile ? 'display:flex;flex-direction:column;min-height:0;flex:1' : ''}">
+    <div class="backlog-head"><div class="backlog-title">${icon('inbox')}<span>Backlog</span><span class="badge-count ${bump}">${count}</span></div>
+      <span class="muted" style="opacity:.5">${icon(mobile ? 'x' : 'right', 'sm')}</span></div>
+    <div class="backlog-hint">${icon(mobile ? 'up' : 'left', 'sm')}${mobile ? 'Tap to pull a task onto the board' : 'Drag tasks left to Todo to start working'}</div>
+    <div class="backlog-body ${roomy}">${renderBacklogBody(state, option, mobile)}</div>
+  </div>`;
+}
+
+function renderBoard(el, state, option) {
+  const todo = state.todo.map((model, index) => card(model, {cls: index === state.fresh ? 'fresh' : ''})).join('');
+  const done = DONE_SEED.map(model => card(model)).join('');
+  el.innerHTML = `<div class="board-main">
+    <div class="board-cols">
+      <div class="column" data-drop="todo"><div class="column-head">Todo<span class="count-ghost">${state.todo.length}</span></div><div class="column-body">${todo}</div></div>
+      <div class="column done"><div class="column-head">Done<span class="count-ghost">${DONE_SEED.length}</span></div><div class="column-body">${done}</div></div>
+    </div>
+    ${renderBacklog(state, option)}
+  </div>`;
+}
+
+function renderPhone(state, option) {
+  const count = rowCount(state, option);
+  const label = option === 'before' ? 'Before · today' : OPTIONS[option].label;
+  return `<div class="phone-wrap" data-phone="${option}">
+    <div class="phone-cap ${option === 'before' ? 'before' : ''}"><b>${label}</b></div>
+    <div class="pill">${icon('inbox')}<span>Backlog</span><span class="badge-count">${count}</span><span class="chev">${icon('chevUp', 'sm')}</span></div>
+    <div class="phone">
+      <div class="peek"><div class="bar" style="width:60%"></div><div class="bar" style="width:85%"></div></div>
+      <div class="scrim"></div>
+      <div class="sheet"><div class="grab"></div>${renderBacklog(state, option, {mobile: true})}</div>
+    </div>
+    <div class="todo-tally">Pulled onto Todo this session: <b>${state.todo.length - TODO_SEED.length}</b></div>
+  </div>`;
+}
+
+/* ── State per surface ── */
+const surfaces = {};
+let deskOption = 'A';
+function resetAll() {
+  surfaces.deskBefore = freshState();
+  surfaces.deskAfter = Object.fromEntries(Object.keys(OPTIONS).map(key => [key, freshState()]));
+  surfaces.phones = Object.fromEntries(['before', ...Object.keys(OPTIONS)].map(key => [key, freshState()]));
+  surfaces.compare = Object.fromEntries(Object.keys(OPTIONS).map(key => [key, freshState()]));
+  // compare: show C and D with one queue open so the queue is visible
+  surfaces.compare.C.groups.find(group => group.id === 'bio').open = true;
+  surfaces.compare.D.groups.find(group => group.id === 'bio').open = true;
+  renderAll();
+}
+function renderAll() {
+  renderBoard(document.getElementById('desk-before'), surfaces.deskBefore, 'before');
+  renderBoard(document.getElementById('desk-after'), surfaces.deskAfter[deskOption], deskOption);
+  document.getElementById('desk-opt-note').innerHTML = OPTIONS[deskOption].note;
+  document.getElementById('desk-opts').innerHTML = Object.entries(OPTIONS).map(([key, {label}]) => `<button data-opt="${key}" class="${key === deskOption ? 'on' : ''}">${label}</button>`).join('');
+  document.getElementById('phones').innerHTML = Object.entries(surfaces.phones).map(([key, state]) => renderPhone(state, key)).join('');
+  document.getElementById('compare').innerHTML = Object.entries(OPTIONS).map(([key, {label}]) =>
+    `<div data-cmp="${key}"><div class="cmp-cap">${label}<span>count ${rowCount(surfaces.compare[key], key)}</span></div>${renderBacklog(surfaces.compare[key], key, {standalone: true})}</div>`).join('');
+  for (const all of [[surfaces.deskBefore], Object.values(surfaces.deskAfter), Object.values(surfaces.phones), Object.values(surfaces.compare)]) {
+    for (const state of all) { state.bumped = null; state.fresh = null; }
+  }
+}
+
+function stateFor(el) {
+  if (el.closest('#desk-before')) return surfaces.deskBefore;
+  if (el.closest('#desk-after')) return surfaces.deskAfter[deskOption];
+  const phone = el.closest('[data-phone]');
+  if (phone) return surfaces.phones[phone.dataset.phone];
+  const cmp = el.closest('[data-cmp]');
+  if (cmp) return surfaces.compare[cmp.dataset.cmp];
+  return null;
+}
+
+/* Pull: the group's item at `index` goes to Todo. Before pulls any card;
+   the grouped directions always pull the group's next (lowest) one. */
+function pull(state, groupId, index) {
+  const group = state.groups.find(candidate => candidate.id === groupId);
+  const [item] = group.items.splice(index, 1);
+  group.items.splice(group.pulled, 0, item);
+  const model = cardModel(group, item);
+  group.pulled += 1;
+  if (remaining(group).length <= 1) group.open = false;
+  state.todo.push(model);
+  state.fresh = state.todo.length - 1;
+  state.bumped = groupId;
+  renderAll();
+}
+
+/* ── Events ── */
+document.addEventListener('click', event => {
+  const themeBtn = event.target.closest('[data-theme-btn]');
+  if (themeBtn) {
+    document.documentElement.setAttribute('data-theme', themeBtn.dataset.themeBtn);
+    document.querySelectorAll('[data-theme-btn]').forEach(btn => btn.classList.toggle('on', btn === themeBtn));
+    return;
+  }
+  const screenBtn = event.target.closest('[data-screen-btn]');
+  if (screenBtn) {
+    document.querySelectorAll('[data-screen-btn]').forEach(btn => btn.classList.toggle('on', btn === screenBtn));
+    document.querySelectorAll('[data-screen]').forEach(screen => screen.classList.toggle('on', screen.dataset.screen === screenBtn.dataset.screenBtn));
+    window.scrollTo(0, 0);
+    return;
+  }
+  const opt = event.target.closest('[data-opt]');
+  if (opt) { deskOption = opt.dataset.opt; renderAll(); return; }
+  if (event.target.closest('#reset')) { resetAll(); return; }
+  const toggle = event.target.closest('[data-toggle]');
+  if (toggle) {
+    const state = stateFor(toggle);
+    const group = state.groups.find(candidate => candidate.id === toggle.dataset.toggle);
+    group.open = !group.open;
+    renderAll();
+    return;
+  }
+  const pullEl = event.target.closest('[data-pull]');
+  if (pullEl) pull(stateFor(pullEl), pullEl.dataset.pull, Number(pullEl.dataset.index));
+});
+
+/* Desktop drag: pointer-driven, drop onto the Todo column of the same board */
+let drag = null;
+document.addEventListener('pointerdown', event => {
+  if (event.target.closest('button')) return;
+  const source = event.target.closest('[data-drag]');
+  if (!source || !source.closest('.board')) return;
+  drag = {source, board: source.closest('.board'), startX: event.clientX, startY: event.clientY, ghost: null};
+});
+document.addEventListener('pointermove', event => {
+  if (!drag) return;
+  if (!drag.ghost) {
+    if (Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) < 5) return;
+    drag.ghost = drag.source.cloneNode(true);
+    drag.ghost.classList.add('ghost');
+    document.body.appendChild(drag.ghost);
+    drag.source.classList.add('lifted');
+  }
+  drag.ghost.style.left = `${event.clientX - 130}px`;
+  drag.ghost.style.top = `${event.clientY - 30}px`;
+  const over = document.elementFromPoint(event.clientX, event.clientY)?.closest('[data-drop="todo"]');
+  drag.board.querySelector('[data-drop="todo"]').classList.toggle('drop-hot', Boolean(over && drag.board.contains(over)));
+});
+document.addEventListener('pointerup', event => {
+  if (!drag) return;
+  const {source, board, ghost} = drag;
+  drag = null;
+  if (!ghost) return;
+  ghost.remove();
+  source.classList.remove('lifted');
+  const target = board.querySelector('[data-drop="todo"]');
+  target.classList.remove('drop-hot');
+  const over = document.elementFromPoint(event.clientX, event.clientY)?.closest('[data-drop="todo"]');
+  if (over === target) pull(stateFor(source), source.dataset.drag, Number(source.dataset.index));
+});
+
+resetAll();
+</script>
+</body>
+</html>
