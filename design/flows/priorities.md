@@ -1,6 +1,6 @@
 # Priorities Flows
 
-Flows for the priority matrix page (`/kanban/priorities`) — Eisenhower-matrix organization of Ad-hoc tasks, tracking them into the current week's plan or completing them in place. Sibling docs: `design/flows/board.md`, `design/flows/plan.md`, `design/flows/projects.md`, `design/flows/shared.md`, `design/flows/auth.md`.
+Flows for the priority matrix page (`/kanban/priorities`) — Eisenhower-matrix organization of Ad-hoc tasks, tracking them into the current week's plan or completing them in place.
 
 ---
 
@@ -12,15 +12,15 @@ User navigates to `/kanban/priorities` via the "Priorities" sidebar item (deskto
 
 ### Steps
 
-1. Fetch all of the user's Ad-hoc tasks with `status !== DONE` (both unassigned and tracked).
-2. Group tasks by `quadrant` and render the 2×2 matrix (Do First / Schedule / Squeeze In / Maybe Later) with per-quadrant counts.
-3. Render the title bar summary: total count and "tracking this week" count.
+1. Await `ensureSynced` (see `design/flows/shared.md`).
+2. Fetch all of the user's Ad-hoc tasks with `status !== DONE` (unassigned, tracked, and those still on last week's plan).
+3. Group tasks by `quadrant`, oldest first within a quadrant (`createdAt`, then `id`) — the matrix order — and render the 2×2 matrix (Do First / Schedule / Squeeze In / Maybe Later) with per-quadrant counts.
+4. Render the title bar summary: total count and "tracking this week" count.
 
 ### Rules
 
 - DONE Ad-hoc tasks never show on the matrix.
 - A task counts as **tracked this week** only when its `planId` equals the current `ACTIVE` plan's id: it renders dimmed with a "This Week" tag (mobile: ★), and its Move-to chooser offers Done only. Tasks still pointing at a `PENDING_UPDATE` plan (period ended) render as normal cards.
-- **Stale-plan guard:** an `ACTIVE` plan whose `periodKey` differs from the current ISO week is treated as no active plan, and the matrix runs the same End of Period Sync as the board (`ACTIVE → PENDING_UPDATE`; see `design/flows/shared.md`). Without the sync, the no-plan hint's "Create Plan" CTA would dead-end — plan creation rejects while a stale plan is still `ACTIVE`.
 
 ---
 
@@ -39,6 +39,7 @@ User drags a card to a different quadrant (desktop and mobile).
 ### Rules
 
 - Cards move freely between all four quadrants — no ordering restriction.
+- Only the quadrant is stored: a moved card takes its place in the new quadrant's matrix order (by creation), not where it was dropped, and dropping it back in its own quadrant changes nothing.
 - Tracked ("This Week") cards are draggable too: dragging only changes `quadrant`, never `status`/`planId`.
 
 ---
@@ -47,19 +48,17 @@ User drags a card to a different quadrant (desktop and mobile).
 
 ### Trigger / Entry Point
 
-- **Desktop:** hover a card → click the "→" send button on its right edge → the "Move to" popover offers the board's "Todo" column and, under a hairline, "Done" (see the Complete One-off Flow).
-- **Mobile:** tap a card → a bottom sheet shows the card summary and the same rows.
+Choose **Todo** in an untracked matrix card's Move-to popover (desktop, via the hover "→") or Move-to sheet (mobile, tap the card).
 
 ### Steps
 
-1. User picks Todo.
-2. UI updates optimistically: the card dims, the "This Week" tag appears, the send button hides, and the "tracking this week" count increments.
-3. Server Action associates the task with the current `ACTIVE` plan and changes its status `BACKLOG → TODO`; rollback on failure.
-4. Revalidate `/kanban` so the board renders the card in Todo.
+1. UI closes the chooser and updates optimistically: the card dims, the "This Week" tag takes the size chip's place, and the "tracking this week" count increments. Its chooser now offers Done only.
+2. Server Action associates the task with the current `ACTIVE` plan and changes its status `BACKLOG → TODO`; rollback on failure.
+3. Revalidate `/kanban` (the card in Todo) and `/kanban/priorities`.
 
 ### Rules
 
-- Requires an `ACTIVE` plan (current-week per the stale-plan guard, enforced server-side too). When none exists (period ended, next plan not yet created), the chooser still opens on both breakpoints — the Todo row renders disabled under a "No active plan yet" note while Done stays enabled — and the matrix hint bar shows a "No active plan — Create Plan to track tasks this week · you can still mark tasks done" notice on **both** breakpoints (the instruction variant of the bar stays desktop-only — this warning is the only case where mobile renders the bar, and its Create Plan link is mobile's only in-page path to plan creation).
+- Requires a current-week `ACTIVE` plan (`ensureSynced`, server-side too). When none exists (period ended, next plan not yet created), the chooser still opens on both breakpoints — the Todo row renders disabled under a "No active plan yet" note while Done stays enabled — and the matrix hint bar shows a "No active plan — Create Plan to track tasks this week · you can still mark tasks done" notice on **both** breakpoints (the instruction variant of the bar stays desktop-only — this warning is the only case where mobile renders the bar, and its Create Plan link is mobile's only in-page path to plan creation).
 - Already-tracked cards cannot be sent again: their chooser drops the Todo row and offers Done only.
 - There is no untrack from the matrix — detaching happens via the Update Plan flow's ad-hoc deselection (`planId = null`, status back to `BACKLOG`; see `design/flows/plan.md`).
 
@@ -83,7 +82,7 @@ Choose **Done** in a matrix card's Move-to popover (desktop, via the hover "→"
 - Works without an active plan — that is the point of the flow; the no-plan hint bar says so. Without a plan the task keeps `planId = null` and its points are credited nowhere.
 - `planId` is only ever added (`null → active plan`), never re-attributed: an already-tracked card keeps its plan link. DONE tasks never return to the matrix except via Undo.
 - Tracked cards complete exactly like a board drag to Done — same Done column, same Today / Week credit.
-- No confirm; Undo is the only reverse path (a client can only ever detach a plan link, never attach one), and there is no "un-complete" on the board (Done cards are drag-locked). A second completion replaces the toast — the first task's undo window ends.
+- No confirm; Undo is the only reverse path (a client can only ever detach a plan link, never attach one), and there is no "un-complete" on the board (Done cards are drag-locked, and the server refuses any move out of Done). A second completion replaces the toast — the first task's undo window ends.
 
 ---
 
@@ -103,27 +102,4 @@ Choose **Done** in a matrix card's Move-to popover (desktop, via the hover "→"
 ### Rules
 
 - Reuses the existing Ad-hoc task creation modal; only the submit wiring differs (quadrant + unassigned, instead of column status + plan link). The quadrant picker renders only when no source quadrant is preset.
-- Tasks created here reach the board only via the "Track This Week Flow" (or Claude's `addOneOffTaskIds`, the same write).
-
----
-
-## Manage One-offs with Claude (MCP) Flow
-
-### Trigger / Entry Point
-
-The user asks Claude, connected to the `/api/mcp` server, about their one-offs: what's on the matrix, to note a few tasks down, that some are done, to move one to another quadrant, or to put some on this week.
-
-### Steps
-
-1. Claude reads the guide and calls `get_planning_context`, whose `oneOffTasks` lists every unfinished one-off in matrix order with its quadrant, its state (`UNTRACKED` on no week, `THIS_WEEK`, `LAST_WEEK`) and the day it was created (see "Plan with Claude (MCP) Flow" in `design/flows/plan.md`).
-2. Claude proposes; nothing is written before the user agrees.
-3. `create_one_off_tasks`: 1–20 tasks, each a title, size, quadrant and optional description, created exactly as the Add Priority Task Flow creates one (`AD_HOC`, `BACKLOG`, `planId = null`) in one INSERT, listed on the matrix in the order given.
-4. `update_one_off_tasks`: `completeTaskIds` completes tasks exactly as the Complete One-off Flow does (a task on no week joins the current ACTIVE plan when there is one), and `reprioritizeTasks` moves tasks between quadrants; one transaction.
-5. Putting one-offs on this week goes through the plan tools' `addOneOffTaskIds` — `create_plan` for a new plan, `update_plan` for the active one — which tracks them as the Track This Week Flow does (see "Plan with Claude (MCP) Flow" in `design/flows/plan.md`); `update_plan`'s `removeOneOffTaskIds` sends a tracked one-off back to the matrix.
-6. Each write returns the tasks as they now stand, for Claude to report back.
-
-### Rules
-
-- Only an untracked one-off (on no week) can be added to a week; one left on last week's plan moves by carry-over instead.
-- Only unfinished one-offs of the user can be completed or moved; an unknown, done or repeated id rejects the whole call, and nothing is written.
-- Completing is final, as on the matrix (whose Undo lives only in its toast): there is no reopen.
+- Tasks created here reach the board's Todo only via the "Track This Week Flow" (or Claude's `addOneOffTaskIds`, the same write); completing one while a plan is active puts it straight into Done ("Complete One-off Flow").

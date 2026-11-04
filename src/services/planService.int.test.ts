@@ -1,23 +1,34 @@
 import {beforeEach, describe, expect, it} from 'vitest';
 import {prisma} from '@/lib/prisma';
-import {planPatchSchema} from '@/schemas';
-import {PeriodType, PlanMode, TaskStatus, TaskType} from '@/utils/enums';
+import {planPatchSchema, updatePlanSchema} from '@/schemas';
+import {
+  PeriodType,
+  PlanMode,
+  TaskSize,
+  TaskStatus,
+  TaskType,
+} from '@/utils/enums';
 import {
   createOneOff,
   createProjectWithSteps,
   createWeek,
+  moveTasksByTitle,
   newHabit,
   newUserId,
 } from '../../test/factories';
 import {MOMENTS, freezeTime} from '../../test/time';
-import {trackTaskThisWeek} from './matrixService';
+import {completeMatrixTask, trackTaskThisWeek} from './matrixService';
 import {
+  countIncompleteInstancesByTemplateId,
   createPlan,
+  createTemplate,
   fetchEditPlanForm,
   fetchNewPlanForm,
   updatePlan,
+  updateTemplate,
 } from './planService';
 import {getPlanningContext, patchActivePlan} from './planningService';
+import {archiveProject} from './projectService';
 
 let userId: string;
 
@@ -92,13 +103,17 @@ describe('fetchNewPlanForm / fetchEditPlanForm (plan form pages)', () => {
 
 describe('createPlan (plan form)', () => {
   it('creates the week from existing templates, one-offs and steps', async () => {
-    // Last week leaves templates behind to pick from
+    // Last week leaves a template, a one-off and a step behind to carry over
     freezeTime(MOMENTS.MONDAY_NOON);
-    await createWeek(userId, {newTemplates: [newHabit('Run', TaskType.DAILY)]});
-    freezeTime(MOMENTS.NEXT_MONDAY_NOON);
-    const [{templateId}] = (await getPlanningContext(userId)).templates;
     const passport = await createOneOff(userId, {title: 'Renew passport'});
     const {steps} = await createProjectWithSteps(userId, 'Course', ['Unit 1']);
+    await createWeek(userId, {
+      newTemplates: [newHabit('Run', TaskType.DAILY)],
+      addProjectStepIds: [steps[0].id],
+    });
+    await trackTaskThisWeek(userId, passport.id, TaskStatus.TODO);
+    freezeTime(MOMENTS.NEXT_MONDAY_NOON);
+    const [{templateId}] = (await getPlanningContext(userId)).templates;
 
     const plan = await createPlan(userId, {
       periodType: PeriodType.WEEKLY,
@@ -123,6 +138,60 @@ describe('createPlan (plan form)', () => {
     ]);
   });
 
+  it("carries only last week's unfinished one-offs and steps; any other id stays where it is", async () => {
+    freezeTime(MOMENTS.MONDAY_NOON);
+    const passport = await createOneOff(userId, {title: 'Renew passport'});
+    const dentist = await createOneOff(userId, {title: 'Book the dentist'});
+    const photos = await createOneOff(userId, {title: 'Sort old photos'});
+    const course = await createProjectWithSteps(userId, 'Course', ['Unit 1']);
+    const book = await createProjectWithSteps(userId, 'Book', ['Chapter 1']);
+    const {plan: lastWeek} = await createWeek(userId, {
+      newTemplates: [newHabit('Run', TaskType.WEEKLY)],
+      addProjectStepIds: [course.steps[0].id],
+    });
+    await trackTaskThisWeek(userId, passport.id, TaskStatus.TODO);
+    await trackTaskThisWeek(userId, dentist.id, TaskStatus.TODO);
+    await archiveProject(userId, book.id);
+    const [run] = await prisma.task.findMany({
+      where: {userId, planId: lastWeek.planId, type: TaskType.WEEKLY},
+      select: {id: true},
+    });
+
+    // The form loads, then the dentist is completed on the matrix
+    freezeTime(MOMENTS.NEXT_MONDAY_NOON);
+    await completeMatrixTask(userId, dentist.id);
+    const completed = await prisma.task.findUniqueOrThrow({
+      where: {id: dentist.id},
+      select: {doneAt: true},
+    });
+
+    const plan = await createPlan(userId, {
+      periodType: PeriodType.WEEKLY,
+      mode: PlanMode.NORMAL,
+      templates: [],
+      adhocTaskIds: [passport.id, dentist.id, photos.id, run.id],
+      projectStepIds: [course.steps[0].id, book.steps[0].id],
+    });
+    const planId = 'id' in plan ? plan.id : '';
+
+    const readTask = (id: string) =>
+      prisma.task.findUniqueOrThrow({
+        where: {id},
+        select: {planId: true, status: true, doneAt: true},
+      });
+    expect(await readTask(passport.id)).toMatchObject({planId});
+    expect(await readTask(course.steps[0].id)).toMatchObject({planId});
+    // Completed after the form loaded: its points stay on last week
+    expect(await readTask(dentist.id)).toEqual({
+      planId: lastWeek.planId,
+      status: TaskStatus.DONE,
+      doneAt: completed.doneAt,
+    });
+    expect(await readTask(photos.id)).toMatchObject({planId: null});
+    expect(await readTask(run.id)).toMatchObject({planId: lastWeek.planId});
+    expect(await readTask(book.steps[0].id)).toMatchObject({planId: null});
+  });
+
   it('answers the form with an error while a plan is active', async () => {
     await createWeek(userId, {newTemplates: [newHabit('Run', TaskType.DAILY)]});
     const [{templateId}] = await readFormTemplates();
@@ -132,9 +201,7 @@ describe('createPlan (plan form)', () => {
         mode: PlanMode.NORMAL,
         templates: [{templateId, type: TaskType.DAILY, frequency: 1}],
       }),
-    ).toEqual({
-      error: {formErrors: ['An active plan already exists'], fieldErrors: {}},
-    });
+    ).toEqual({error: 'activePlanExists'});
   });
 });
 
@@ -181,8 +248,64 @@ describe('updatePlan (plan form)', () => {
       newTemplates: [newHabit('Run', TaskType.DAILY)],
     });
     expect(await updatePlan(userId, plan.planId, {description: 'x'})).toEqual({
-      error: {formErrors: ['Plan not found'], fieldErrors: {}},
+      error: 'planNotActive',
     });
+  });
+
+  it('clears the description when the form sends it empty', async () => {
+    const {plan} = await createWeek(userId, {
+      description: 'Light week',
+      newTemplates: [newHabit('Run', TaskType.DAILY)],
+    });
+    await updatePlan(userId, plan.planId, {description: ''});
+    expect(
+      await prisma.plan.findUniqueOrThrow({
+        where: {id: plan.planId},
+        select: {description: true},
+      }),
+    ).toEqual({description: null});
+  });
+
+  it("changes nothing once the plan's week has ended, nor an older plan", async () => {
+    freezeTime(MOMENTS.MONDAY_NOON);
+    const {plan: lastWeek} = await createWeek(userId, {
+      newTemplates: [newHabit('Run', TaskType.WEEKLY)],
+    });
+    const [run] = await readFormTemplates();
+    const readLastWeek = () =>
+      prisma.task.findMany({
+        where: {planId: lastWeek.planId},
+        select: {id: true, status: true},
+      });
+
+    // The form was left open across the week's end
+    freezeTime(MOMENTS.NEXT_MONDAY_NOON);
+    expect(await fetchEditPlanForm(userId, lastWeek.planId)).toBeNull();
+    const before = await readLastWeek();
+    const save = () =>
+      updatePlan(
+        userId,
+        lastWeek.planId,
+        updatePlanSchema.parse({
+          description: 'Too late',
+          templates: [{...run, frequency: 3}],
+        }),
+      );
+    expect(await save()).toEqual({error: 'planNotActive'});
+
+    // Once the new week has its plan, last week's is completed: still locked
+    await createWeek(userId, {
+      newTemplates: [newHabit('Read', TaskType.DAILY)],
+    });
+    expect(await save()).toEqual({error: 'planNotActive'});
+
+    expect(await readLastWeek()).toEqual(before);
+    expect(
+      await prisma.plan.findUniqueOrThrow({
+        where: {id: lastWeek.planId},
+        select: {description: true},
+      }),
+    ).toEqual({description: null});
   });
 
   // Known bug (tracker › Plan › Medium): the form saves its full template
@@ -204,10 +327,45 @@ describe('updatePlan (plan form)', () => {
         }),
       );
 
-      await updatePlan(userId, plan.planId, {templates: formTemplates});
+      await updatePlan(
+        userId,
+        plan.planId,
+        updatePlanSchema.parse({templates: formTemplates}),
+      );
 
       const [review] = await readFormTemplates();
       expect(review.frequency).toBe(3);
     },
   );
+});
+
+describe('task templates (plan form)', () => {
+  it("edits the user's own template; another user's is not found", async () => {
+    const template = await createTemplate(userId, {
+      title: 'Run',
+      description: 'Easy pace',
+      size: TaskSize.SMALL,
+    });
+
+    expect(
+      await updateTemplate(userId, template.id, {title: 'Long run'}),
+    ).toEqual({success: true});
+    expect(
+      await updateTemplate(newUserId(), template.id, {title: 'Taken'}),
+    ).toEqual({error: 'templateNotFound'});
+  });
+
+  it("counts each template's unfinished instances for the review", async () => {
+    const {plan} = await createWeek(userId, {
+      newTemplates: [newHabit('Review', TaskType.WEEKLY, 3)],
+    });
+    const [{templateId}] = await readFormTemplates();
+    await moveTasksByTitle(userId, plan.planId, [['Review', TaskStatus.DONE]]);
+
+    expect(
+      await countIncompleteInstancesByTemplateId(userId, plan.planId, [
+        templateId,
+      ]),
+    ).toEqual({[templateId]: 2});
+  });
 });

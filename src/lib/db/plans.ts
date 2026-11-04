@@ -141,7 +141,7 @@ export async function createPlan(
 export async function updatePlan(
   userId: string,
   planId: string,
-  data: {description?: string; mode?: PlanMode},
+  data: {description?: string | null; mode?: PlanMode},
   tx?: Prisma.TransactionClient,
 ): Promise<{count: number}> {
   const db = tx ?? prisma;

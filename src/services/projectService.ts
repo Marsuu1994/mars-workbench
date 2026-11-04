@@ -154,8 +154,8 @@ export async function unarchiveProject(
 // ── Steps ────────────────────────────────────────────────────────────────────
 
 /**
- * Append a step to the end of the path, off the week (planId = null). A path
- * holds at most PROJECT_STEP_LIMIT steps.
+ * Append a step to the end of an active project's path, off the week
+ * (planId = null). A path holds at most PROJECT_STEP_LIMIT steps.
  */
 export async function addProjectStep(
   userId: string,
@@ -165,7 +165,9 @@ export async function addProjectStep(
   if (!isUuid(projectId)) return {error: 'projectNotFound'};
   return prisma.$transaction(async tx => {
     const project = await getProjectWithStepsById(userId, projectId, tx);
-    if (!project) return {error: 'projectNotFound'} as const;
+    if (!project || project.isArchived) {
+      return {error: 'projectNotFound'} as const;
+    }
     if (project.steps.length >= PROJECT_STEP_LIMIT) {
       return {error: 'stepLimitReached'} as const;
     }
@@ -233,7 +235,9 @@ export async function moveProjectStep(
   if (!isUuid(projectId)) return {error: 'projectNotFound'};
   return prisma.$transaction(async tx => {
     const project = await getProjectWithStepsById(userId, projectId, tx);
-    if (!project) return {error: 'projectNotFound'} as const;
+    if (!project || project.isArchived) {
+      return {error: 'projectNotFound'} as const;
+    }
 
     const {path, conflicts} = applyStepPatch(project.steps, {
       addSteps: [],
@@ -274,12 +278,14 @@ export async function scheduleProjectStep(
   return step ? {step} : {error: 'stepNotFound'};
 }
 
-/** Take back a scheduled step still in the backlog (planId = null). */
+/** Take back a step still in this week's backlog (planId = null). */
 export async function unscheduleProjectStep(
   userId: string,
   stepId: string,
 ): Promise<ProjectStepResult> {
   if (!isUuid(stepId)) return {error: 'stepNotFound'};
-  const step = await dalUnscheduleProjectStep(userId, stepId);
+  const activePlan = await ensureSynced(userId);
+  if (!activePlan) return {error: 'stepNotFound'};
+  const step = await dalUnscheduleProjectStep(userId, stepId, activePlan.id);
   return step ? {step} : {error: 'stepNotFound'};
 }

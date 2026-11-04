@@ -1,6 +1,6 @@
 # Flows
 
-One doc per feature — `board.md`, `plan.md`, `priorities.md`, `projects.md`, `dump.md`, `auth.md` — plus `shared.md` for the cross-page sync lifecycle. A flow is a step contract: what triggers it, what happens, and the rules that hold.
+One doc per feature — `board.md`, `plan.md`, `priorities.md`, `projects.md`, `dump.md`, `auth.md` (auth and settings) — plus `shared.md` for the cross-page sync lifecycle and `mcp.md` for planning with Claude over MCP. A flow is a step contract: what triggers it, what happens, and the rules that hold.
 
 ## Format
 

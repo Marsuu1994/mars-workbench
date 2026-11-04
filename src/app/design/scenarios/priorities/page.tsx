@@ -113,7 +113,7 @@ const PRIORITIES_SCENARIOS: ScenarioTab[] = [
   {
     label: 'Move-to sheet (mobile)',
     title: 'Move-to sheet (mobile)',
-    note: 'The tap-a-card bottom sheet — summary line plus the two board columns and Done — shown inline (not as a top-layer modal).',
+    note: 'The tap-a-card bottom sheet — summary line plus the board’s Todo and, under a rule, Done — shown inline (not as a top-layer modal).',
     display: 'fit',
     content: (
       <MobileMoveToPanelScenario

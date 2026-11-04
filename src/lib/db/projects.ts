@@ -98,7 +98,11 @@ export async function createProject(
   });
 }
 
-/** Update title / goal, owner-scoped. Null when not found or not owned. */
+/**
+ * Update title / goal of an active project, owner-scoped. Null when not
+ * found, not owned or archived — an archived project changes only by being
+ * unarchived.
+ */
 export async function updateProject(
   userId: string,
   projectId: string,
@@ -107,7 +111,7 @@ export async function updateProject(
 ): Promise<ProjectItem | null> {
   const db = tx ?? prisma;
   const [project] = await db.project.updateManyAndReturn({
-    where: {id: projectId, userId},
+    where: {id: projectId, userId, isArchived: false},
     data,
     select: projectSelect,
   });
@@ -172,7 +176,8 @@ export async function createProjectSteps(
 
 /**
  * Edit a step that isn't done (done steps are locked: they carry points
- * history). The same row is the board card when the step is on the week.
+ * history) of an active project. The same row is the board card when the
+ * step is on the week.
  */
 export async function updateProjectStep(
   userId: string,
@@ -192,6 +197,7 @@ export async function updateProjectStep(
       userId,
       type: TaskType.PROJECT,
       status: {not: TaskStatus.DONE},
+      project: {isArchived: false},
     },
     data,
     select: taskSelect,
@@ -199,7 +205,7 @@ export async function updateProjectStep(
   return step ?? null;
 }
 
-/** Delete a step that isn't done; count 0 when nothing matched. */
+/** Delete a step that isn't done, of an active project; count 0 when nothing matched. */
 export async function deleteProjectStep(
   userId: string,
   stepId: string,
@@ -212,11 +218,12 @@ export async function deleteProjectStep(
       userId,
       type: TaskType.PROJECT,
       status: {not: TaskStatus.DONE},
+      project: {isArchived: false},
     },
   });
 }
 
-/** Delete several steps of a project that aren't done; count of deleted. */
+/** Delete several steps of an active project that aren't done; count of deleted. */
 export async function deleteProjectSteps(
   userId: string,
   projectId: string,
@@ -232,6 +239,7 @@ export async function deleteProjectSteps(
       projectId,
       type: TaskType.PROJECT,
       status: {not: TaskStatus.DONE},
+      project: {isArchived: false},
     },
   });
 }
@@ -258,7 +266,7 @@ export async function shiftStepsAfterIndex(
 /**
  * Renumber a project's path in one statement: stepIds[i] gets stepNumbers[i].
  * Done steps are renumbered too (they keep their place in the path; only the
- * numbers close up). Scoped to the owner and the project. uq_task_daily /
+ * numbers close up). Scoped to the owner and an active project. uq_task_daily /
  * uq_task_weekly include templateId, which is NULL for steps, so no
  * intermediate numbering can collide.
  */
@@ -280,6 +288,10 @@ export async function renumberProjectPath(
       AND task.user_id = ${userId}::uuid
       AND task.project_id = ${projectId}::uuid
       AND task.type = 'PROJECT'
+      AND EXISTS (
+        SELECT 1 FROM projects AS project
+        WHERE project.id = task.project_id AND NOT project.is_archived
+      )
   `;
 }
 
@@ -309,13 +321,14 @@ export async function scheduleProjectStep(
 }
 
 /**
- * Take back a scheduled step that is still in the backlog: it returns to its
- * place in the project (planId = null). Steps already on the board leave the
- * week only through the plan's deselect.
+ * Take back a step scheduled on a plan that is still in its backlog: it
+ * returns to its place in the project (planId = null). Steps already on the
+ * board stay; so do last week's, which the next plan carries over or returns.
  */
 export async function unscheduleProjectStep(
   userId: string,
   stepId: string,
+  planId: string,
 ): Promise<TaskItem | null> {
   return updateOrNull(
     prisma.task.update({
@@ -323,7 +336,7 @@ export async function unscheduleProjectStep(
         id: stepId,
         userId,
         type: TaskType.PROJECT,
-        planId: {not: null},
+        planId,
         status: TaskStatus.BACKLOG,
       },
       data: {planId: null},
@@ -333,12 +346,15 @@ export async function unscheduleProjectStep(
 }
 
 /**
- * Link steps to a plan (plan creation / update), owner-scoped and limited to
- * unfinished steps. Status is kept: a carried-over step stays where it was.
+ * Link steps to a plan (plan creation / update), status kept: a carried-over
+ * step stays where it was. Only the user's unfinished steps that are on
+ * `fromPlanId` (carried over, or already on the plan) or upcoming (on no week,
+ * project not archived) link; any other id is left where it is.
  */
 export async function linkProjectStepsToPlan(
   userId: string,
   stepIds: string[],
+  fromPlanId: string | null,
   planId: string,
   tx?: Prisma.TransactionClient,
 ): Promise<{count: number}> {
@@ -350,6 +366,10 @@ export async function linkProjectStepsToPlan(
       id: {in: stepIds},
       type: TaskType.PROJECT,
       status: {not: TaskStatus.DONE},
+      OR: [
+        ...(fromPlanId ? [{planId: fromPlanId}] : []),
+        {planId: null, project: {isArchived: false}},
+      ],
     },
     data: {planId},
   });

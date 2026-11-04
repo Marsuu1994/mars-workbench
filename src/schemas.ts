@@ -26,10 +26,25 @@ const V = messages.Validation;
 
 // ── Plan Schemas ───────────────────────────────────────────────────────
 
+// A template's line on a plan, the same for the plan form and the MCP tools
+// (whose model reads the descriptions).
+const planLineFields = {
+  type: z
+    .enum([TaskType.DAILY, TaskType.WEEKLY])
+    .describe(
+      'DAILY: `frequency` instances every day. WEEKLY: `frequency` instances for the whole week',
+    ),
+  frequency: z
+    .number()
+    .int()
+    .min(FREQ_MIN)
+    .max(FREQ_MAX)
+    .describe('Instances per day (DAILY) or per week (WEEKLY)'),
+};
+
 const planTemplateInputSchema = z.object({
   templateId: z.string().uuid(),
-  type: z.nativeEnum(TaskType),
-  frequency: z.number().int().positive(V.frequencyPositive),
+  ...planLineFields,
 });
 
 export const createPlanSchema = z
@@ -39,8 +54,7 @@ export const createPlanSchema = z
     mode: z.nativeEnum(PlanMode).default(PlanMode.NORMAL),
     templates: z.array(planTemplateInputSchema),
     adhocTaskIds: z.array(z.string().uuid()).optional(),
-    // Project steps to put on the new week: the pending plan's carried-over
-    // steps plus any upcoming ones. Unlisted pending steps return to their
+    // The pending plan's steps to carry over; unlisted ones return to their
     // projects.
     projectStepIds: z.array(z.string().uuid()).optional(),
   })
@@ -72,16 +86,18 @@ export const createTemplateSchema = z.object({
   description: z.string().min(1, V.descriptionRequired),
   size: z.nativeEnum(TaskSize),
 });
+export type CreateTemplateInput = z.infer<typeof createTemplateSchema>;
 
 export const updateTemplateSchema = z
   .object({
-    title: z.string().min(1).optional(),
-    description: z.string().min(1).optional(),
+    title: z.string().min(1, V.titleRequired).optional(),
+    description: z.string().min(1, V.descriptionRequired).optional(),
     size: z.nativeEnum(TaskSize).optional(),
   })
   .refine(data => Object.values(data).some(value => value !== undefined), {
     message: V.atLeastOneField,
   });
+export type UpdateTemplateInput = z.infer<typeof updateTemplateSchema>;
 
 // ── Task Schemas ───────────────────────────────────────────────────────
 
@@ -216,20 +232,6 @@ export const submitConsentDecisionSchema = z.object({
 
 // Inputs of the planning tools (src/mcp/tools). The descriptions are read by
 // the model, so they say what a field means, not how it is validated.
-
-const planLineFields = {
-  type: z
-    .enum([TaskType.DAILY, TaskType.WEEKLY])
-    .describe(
-      'DAILY: `frequency` instances every day. WEEKLY: `frequency` instances for the whole week',
-    ),
-  frequency: z
-    .number()
-    .int()
-    .min(FREQ_MIN)
-    .max(FREQ_MAX)
-    .describe('Instances per day (DAILY) or per week (WEEKLY)'),
-};
 
 const existingPlanLineSchema = z.object({
   templateId: z

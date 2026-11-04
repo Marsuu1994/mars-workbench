@@ -117,6 +117,14 @@ export async function patchProject(
       }
       const {numberByStepId, addedStepNumbers} = numberStepPath(path);
 
+      // An archived project takes changes only once it is active again, so
+      // unarchiving goes first and archiving last
+      const isArchiveChanging =
+        archived !== undefined && archived !== project.isArchived;
+      if (isArchiveChanging && !archived) {
+        await updateProjectArchived(userId, projectId, false, tx);
+      }
+
       await deleteProjectSteps(userId, projectId, removeStepIds, tx);
       for (const {stepId, title, description, size} of updateSteps) {
         await updateProjectStep(
@@ -154,14 +162,10 @@ export async function patchProject(
           tx,
         );
       }
-      const isArchiveChanging =
-        archived !== undefined && archived !== project.isArchived;
-      if (isArchiveChanging) {
-        await updateProjectArchived(userId, projectId, archived, tx);
+      if (isArchiveChanging && archived) {
+        await updateProjectArchived(userId, projectId, true, tx);
         // Archiving takes the unfinished steps off any week
-        if (archived) {
-          await unlinkUnfinishedStepsByProjectId(userId, projectId, tx);
-        }
+        await unlinkUnfinishedStepsByProjectId(userId, projectId, tx);
       }
 
       return {

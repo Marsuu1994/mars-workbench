@@ -1,12 +1,13 @@
 import {randomUUID} from 'node:crypto';
 import {describe, expect, it} from 'vitest';
 import {
+  createPlanSchema,
   habitPatchSchema,
   planPatchSchema,
   planSpecSchema,
   projectSpecSchema,
 } from './schemas';
-import {PlanMode, TaskSize, TaskType} from './utils/enums';
+import {PeriodType, PlanMode, TaskSize, TaskType} from './utils/enums';
 import {FREQ_MAX, FREQ_MIN} from './utils/planUtils';
 import {PROJECT_STEP_LIMIT} from './utils/projectUtils';
 
@@ -23,21 +24,41 @@ describe('planSpecSchema', () => {
       addProjectStepIds: [],
     });
   });
+});
+
+// The MCP tools and the plan form take the same plan lines
+describe.each([
+  {name: 'planSpecSchema (MCP)', schema: planSpecSchema, base: {}},
+  {
+    name: 'createPlanSchema (plan form)',
+    schema: createPlanSchema,
+    base: {periodType: PeriodType.WEEKLY},
+  },
+])('$name: plan lines', ({schema, base}) => {
+  const withLine = (type: TaskType, frequency: number) => ({
+    ...base,
+    templates: [{templateId, type, frequency}],
+  });
+
+  it('takes a habit line', () => {
+    expect(schema.safeParse(withLine(TaskType.WEEKLY, 3)).success).toBe(true);
+  });
 
   it.each([FREQ_MIN - 1, FREQ_MAX + 1, 1.5])(
     'rejects a frequency of %s',
     frequency => {
-      const spec = {templates: [{templateId, type: TaskType.DAILY, frequency}]};
-      expect(planSpecSchema.safeParse(spec).success).toBe(false);
+      expect(
+        schema.safeParse(withLine(TaskType.DAILY, frequency)).success,
+      ).toBe(false);
     },
   );
 
-  it('takes only habit types for a plan line', () => {
-    const spec = {
-      templates: [{templateId, type: TaskType.PROJECT, frequency: 1}],
-    };
-    expect(planSpecSchema.safeParse(spec).success).toBe(false);
-  });
+  it.each([TaskType.AD_HOC, TaskType.PROJECT])(
+    'takes only habit types, not %s',
+    type => {
+      expect(schema.safeParse(withLine(type, 1)).success).toBe(false);
+    },
+  );
 });
 
 describe('planPatchSchema', () => {

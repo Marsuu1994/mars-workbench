@@ -189,6 +189,8 @@
   "Errors": {
     "taskNotFound": "Task not found",
     "noActivePlan": "No active plan found",
+    "activePlanExists": "An active plan already exists",
+    "planNotActive": "This plan's week has ended. Create the new week's plan from the board.",
     "templateNotFound": "Template not found",
     "projectNotFound": "Project not found",
     "stepNotFound": "Step not found",
@@ -197,8 +199,7 @@
     "invalidCursor": "Invalid feed cursor"
   },
   "Validation": {
-    "frequencyPositive": "Frequency must be a positive integer",
-    "selectAtLeastOne": "Select at least one template or one-off task",
+    "selectAtLeastOne": "Select at least one template, one-off task or project step",
     "titleRequired": "Title is required",
     "descriptionRequired": "Description is required",
     "atLeastOneField": "At least one field must be provided",
@@ -273,8 +274,6 @@
     "removedNoteNoTasks": "No active tasks on the board",
     "modifiedNote": "{hasTasks, select, yes {Existing unfinished tasks deleted} other {No active tasks to remove}} — {count, plural, one {# new {type} instance} other {# new {type} instances}} will be generated",
     "adhocHeading": "One-off Tasks",
-    "addedToBoard": "Added to board",
-    "adhocAddedNote": "Will appear on the board",
     "removedFromBoard": "Removed from board",
     "adhocRemovedNote": "Will return to the Priorities matrix",
     "stepsHeading": "Project Steps",

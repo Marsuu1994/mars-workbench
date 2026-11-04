@@ -272,11 +272,8 @@ export const PlanForm = ({
         };
       });
 
-    // Ad-hoc diff
+    // One-off diff: the form only lets one-offs go (back to the matrix)
     const initialAdhocSet = new Set(initialAdhocTaskIds);
-    const addedAdhoc = adhocTasks.filter(
-      task => selectedAdhocIds.has(task.id) && !initialAdhocSet.has(task.id),
-    );
     const removedAdhoc = adhocTasks.filter(
       task => !selectedAdhocIds.has(task.id) && initialAdhocSet.has(task.id),
     );
@@ -302,7 +299,6 @@ export const PlanForm = ({
       added,
       removed,
       modified,
-      addedAdhoc,
       removedAdhoc,
       removedSteps,
       modeChanged,
@@ -320,7 +316,6 @@ export const PlanForm = ({
         added,
         removed,
         modified,
-        addedAdhoc,
         removedAdhoc,
         removedSteps,
         modeChanged,
@@ -329,7 +324,6 @@ export const PlanForm = ({
         added.length > 0 ||
         removed.length > 0 ||
         modified.length > 0 ||
-        addedAdhoc.length > 0 ||
         removedAdhoc.length > 0 ||
         removedSteps.length > 0 ||
         modeChanged;
@@ -390,7 +384,8 @@ export const PlanForm = ({
         // (tracked, scheduled or added by Claude meanwhile) stays
         result = await awaitPlanWrite(
           updatePlanAction(planId!, {
-            description: description.trim() || undefined,
+            // Sent even when empty: clearing the description saves
+            description: description.trim(),
             mode: planMode,
             templates: templatesPayload,
             removeAdhocTaskIds: initialAdhocTaskIds.filter(
@@ -422,7 +417,6 @@ export const PlanForm = ({
           added: [],
           removed: [],
           modified: [],
-          addedAdhoc: [],
           removedAdhoc: [],
           removedSteps: [],
           modeChanged: false,
@@ -693,7 +687,6 @@ export const PlanForm = ({
         added={diff.added}
         removed={diff.removed}
         modified={diff.modified}
-        addedAdhoc={diff.addedAdhoc}
         removedAdhoc={diff.removedAdhoc}
         removedSteps={diff.removedSteps}
         incompleteCounts={incompleteCounts}

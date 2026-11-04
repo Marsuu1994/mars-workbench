@@ -13,15 +13,18 @@ import {
 } from '@/lib/db/planTemplates';
 import {
   createManyTaskTemplates,
+  createTaskTemplate,
   getOwnedTemplateIds,
   getTaskTemplates,
+  updateTaskTemplate,
   type TaskTemplateItem,
 } from '@/lib/db/taskTemplates';
 import {
+  countIncompleteTasksByTemplateId,
   createManyTasks,
   deleteIncompleteTasksByTemplateIds,
   getNonDoneAdhocTasks,
-  updateTasksPlanId,
+  carryOverOneOffs,
   unlinkTasksFromPlan,
 } from '@/lib/db/tasks';
 import {
@@ -39,7 +42,12 @@ import {
   PlanStatus,
 } from '@/generated/prisma/client';
 import {prisma} from '@/lib/prisma';
-import {getTodayDate, getISOWeekKey, isWeekend} from '@/utils/dateUtils';
+import {
+  getTodayDate,
+  getISOWeekKey,
+  isPeriodCurrent,
+  isWeekend,
+} from '@/utils/dateUtils';
 import {sizeToPoints} from '@/utils/sizeUtils';
 import {diffPlanTemplates} from '@/utils/planUtils';
 import {ensureSynced} from './syncService';
@@ -52,22 +60,22 @@ import type {
   PlanTemplateDiff,
   PlanTemplateInput,
 } from '../types/plan';
-import type {CreatePlanInput, UpdatePlanInput} from '@/schemas';
+import type {
+  CreatePlanInput,
+  CreateTemplateInput,
+  UpdatePlanInput,
+  UpdateTemplateInput,
+} from '@/schemas';
 
 /**
- * The update core's input: each list is the plan's full new selection —
- * listed one-offs and steps link, the plan's other unfinished ones leave — and
- * an omitted field is left untouched.
+ * The update core's input: each list is the plan's full new selection — listed
+ * steps link, listed one-offs stay (new ones are tracked by the caller), the
+ * plan's other unfinished ones leave — and an omitted field is left untouched.
  */
-type UpdatePlanData = Pick<
-  UpdatePlanInput,
-  'description' | 'mode' | 'templates'
-> & {
+type UpdatePlanData = Pick<UpdatePlanInput, 'description' | 'mode'> & {
+  templates?: PlanTemplateInput[];
   adhocTaskIds?: string[];
   projectStepIds?: string[];
-};
-type FormError = {
-  error: {formErrors: string[]; fieldErrors: Record<string, never>};
 };
 
 const uuidSchema = z.string().uuid();
@@ -84,6 +92,18 @@ export class TemplateNotFoundError extends Error {
     super(`Template not found: ${templateIds.join(', ')}`);
     this.name = 'TemplateNotFoundError';
     this.templateIds = templateIds;
+  }
+}
+
+/**
+ * A plan write aimed at a plan that isn't this week's ACTIVE one (a form left
+ * open across the week's end, an old plan's URL). Thrown before anything is
+ * written; each entry point checks first to answer with its own error.
+ */
+export class PlanNotActiveError extends Error {
+  constructor(planId: string) {
+    super(`Plan is not this week's active plan: ${planId}`);
+    this.name = 'PlanNotActiveError';
   }
 }
 
@@ -220,15 +240,16 @@ interface EditPlanFormData extends PlanFormData {
 }
 
 /**
- * The edit-plan form's inputs, or null when the plan isn't the user's. Only
- * this plan's one-offs are editable here; this week's unfinished steps come
- * with it.
+ * The edit-plan form's inputs, or null unless the plan is the user's ACTIVE
+ * plan of this week. Only this plan's one-offs are editable here; this week's
+ * unfinished steps come with it.
  */
 export async function fetchEditPlanForm(
   userId: string,
   planId: string,
 ): Promise<EditPlanFormData | null> {
-  await ensureSynced(userId);
+  const activePlan = await ensureSynced(userId);
+  if (activePlan?.id !== planId) return null;
 
   const [plan, templates, allAdhocTasks, projectSteps] = await Promise.all([
     getPlanWithTemplates(userId, planId),
@@ -340,11 +361,23 @@ export async function createPlanInTx(
       tx,
     );
   }
-  // Link selected ad-hoc tasks and project steps to the new plan (status kept)
-  if (adhocTaskIds && adhocTaskIds.length > 0) {
-    await updateTasksPlanId(userId, adhocTaskIds, newPlan.id, tx);
+  // Carry the selected one-offs and steps onto the new plan (status kept)
+  if (pendingPlan) {
+    await carryOverOneOffs(
+      userId,
+      adhocTaskIds ?? [],
+      pendingPlan.id,
+      newPlan.id,
+      tx,
+    );
   }
-  await linkProjectStepsToPlan(userId, projectStepIds ?? [], newPlan.id, tx);
+  await linkProjectStepsToPlan(
+    userId,
+    projectStepIds ?? [],
+    pendingPlan?.id ?? null,
+    newPlan.id,
+    tx,
+  );
   // Return what the pending plan didn't carry — one-offs to the matrix, steps
   // to their projects — then complete it
   if (pendingPlan) {
@@ -454,7 +487,7 @@ export async function createPlanFromEntries(
 export async function createPlan(
   userId: string,
   data: CreatePlanInput,
-): Promise<PlanItem | FormError> {
+): Promise<PlanItem | {error: 'activePlanExists'}> {
   const {
     periodType,
     description,
@@ -467,9 +500,7 @@ export async function createPlan(
   const {activePlan, pendingPlan, today, periodKey} =
     await getPlanCreationContext(userId);
   if (activePlan) {
-    return {
-      error: {formErrors: ['An active plan already exists'], fieldErrors: {}},
-    };
+    return {error: 'activePlanExists'};
   }
 
   return prisma.$transaction(tx =>
@@ -510,6 +541,12 @@ export async function updatePlanInTx(
 ): Promise<PlanTemplateDiff> {
   const {description, mode, templates, adhocTaskIds, projectStepIds} = data;
   const planId = ownedPlan.id;
+  if (
+    ownedPlan.status !== PlanStatus.ACTIVE ||
+    !isPeriodCurrent(ownedPlan.periodKey, today)
+  ) {
+    throw new PlanNotActiveError(planId);
+  }
   const currentLinks = ownedPlan.planTemplates;
   const diff = diffPlanTemplates(currentLinks, templates ?? currentLinks);
 
@@ -582,11 +619,9 @@ export async function updatePlanInTx(
     await updateLastSyncDate(userId, planId, today, tx);
   }
 
-  // Ad-hoc task changes: link new, unlink removed
+  // Ad-hoc task changes: the listed ones are already on the plan (new ones
+  // are tracked by the caller); unlink the rest
   if (adhocTaskIds !== undefined) {
-    if (adhocTaskIds.length > 0) {
-      await updateTasksPlanId(userId, adhocTaskIds, planId, tx);
-    }
     await unlinkTasksFromPlan(
       userId,
       planId,
@@ -598,7 +633,7 @@ export async function updatePlanInTx(
 
   // Project-step changes: link the selection, return the rest to their projects
   if (projectStepIds !== undefined) {
-    await linkProjectStepsToPlan(userId, projectStepIds, planId, tx);
+    await linkProjectStepsToPlan(userId, projectStepIds, planId, planId, tx);
     await unlinkTasksFromPlan(
       userId,
       planId,
@@ -613,7 +648,8 @@ export async function updatePlanInTx(
       userId,
       planId,
       {
-        ...(description !== undefined && {description}),
+        // An empty description clears it
+        ...(description !== undefined && {description: description || null}),
         ...(mode !== undefined && {mode}),
       },
       tx,
@@ -624,16 +660,17 @@ export async function updatePlanInTx(
 }
 
 /**
- * The plan form's update. The form sends only the one-offs and steps the user
- * let go, so the plan's selection is read here, at save time: whatever else is
- * on the week by now stays — including what the matrix, the Projects page or
- * Claude put on it while the form was open.
+ * The plan form's update, of this week's ACTIVE plan only. The form sends only
+ * the one-offs and steps the user let go, so the plan's selection is read
+ * here, at save time: whatever else is on the week by now stays — including
+ * what the matrix, the Projects page or Claude put on it while the form was
+ * open.
  */
 export async function updatePlan(
   userId: string,
   planId: string,
   input: UpdatePlanInput,
-): Promise<FormError | {diff: PlanTemplateDiff}> {
+): Promise<{error: 'planNotActive'} | {diff: PlanTemplateDiff}> {
   const {
     description,
     mode,
@@ -642,11 +679,14 @@ export async function updatePlan(
     removeProjectStepIds = [],
   } = input;
 
-  // Ownership gate: loading the owned plan authorizes every downstream mutation.
-  const ownedPlan = await getPlanWithTemplates(userId, planId);
-  if (!ownedPlan) {
-    return {error: {formErrors: ['Plan not found'], fieldErrors: {}}};
-  }
+  // Ownership + current-week gate: ensureSynced returns the user's own
+  // current-week ACTIVE plan (a finished week's plan is flipped first)
+  const activePlan = await ensureSynced(userId);
+  const ownedPlan =
+    activePlan?.id === planId
+      ? await getPlanWithTemplates(userId, planId)
+      : null;
+  if (!ownedPlan) return {error: 'planNotActive'};
 
   const [adhocTaskIds, projectStepIds] = await Promise.all([
     removeAdhocTaskIds.length > 0
@@ -666,32 +706,53 @@ export async function updatePlan(
       : undefined,
   ]);
 
-  if (
-    templates !== undefined ||
-    adhocTaskIds !== undefined ||
-    projectStepIds !== undefined
-  ) {
-    const today = getTodayDate();
-    const diff = await prisma.$transaction(tx =>
-      updatePlanInTx(
-        tx,
-        userId,
-        ownedPlan,
-        {description, mode, templates, adhocTaskIds, projectStepIds},
-        today,
-      ),
-    );
-    return {diff};
-  }
+  const today = getTodayDate();
+  const diff = await prisma.$transaction(tx =>
+    updatePlanInTx(
+      tx,
+      userId,
+      ownedPlan,
+      {description, mode, templates, adhocTaskIds, projectStepIds},
+      today,
+    ),
+  );
+  return {diff};
+}
 
-  if (description !== undefined || mode !== undefined) {
-    // Description/mode-only update — single write, no transaction overhead needed
-    await dalUpdatePlan(userId, planId, {
-      ...(description !== undefined && {description}),
-      ...(mode !== undefined && {mode}),
-    });
-  }
-  return {
-    diff: diffPlanTemplates(ownedPlan.planTemplates, ownedPlan.planTemplates),
-  };
+/** Create Task Template (plan form): a template to pick for any plan. */
+export async function createTemplate(
+  userId: string,
+  input: CreateTemplateInput,
+): Promise<TaskTemplateItem> {
+  return createTaskTemplate(userId, input);
+}
+
+/**
+ * Update Task Template (plan form): instances already generated keep their
+ * title and size; ones generated from now on use the new values.
+ */
+export async function updateTemplate(
+  userId: string,
+  templateId: string,
+  input: UpdateTemplateInput,
+): Promise<{error: 'templateNotFound'} | {success: true}> {
+  const {count} = await updateTaskTemplate(userId, templateId, input);
+  return count > 0 ? {success: true} : {error: 'templateNotFound'};
+}
+
+/**
+ * For the plan form's review: how many unfinished instances of each template
+ * the save would delete, keyed by templateId (templates with none left out).
+ */
+export async function countIncompleteInstancesByTemplateId(
+  userId: string,
+  planId: string,
+  templateIds: string[],
+): Promise<Record<string, number>> {
+  const counts = await countIncompleteTasksByTemplateId(
+    userId,
+    planId,
+    templateIds,
+  );
+  return Object.fromEntries(counts);
 }

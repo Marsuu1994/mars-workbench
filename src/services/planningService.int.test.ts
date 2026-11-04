@@ -14,6 +14,7 @@ import {
   createOneOff,
   createProjectWithSteps,
   createWeek,
+  finishStepsThisWeek,
   moveTasks,
   newHabit,
   newUserId,
@@ -205,7 +206,8 @@ describe('createPlanFromSpec', () => {
   it('refuses a step that is done or already on a week', async () => {
     const {steps} = await createProjectWithSteps(userId, 'Course', ['Unit 1']);
     const [step] = steps;
-    await moveTasks(userId, [[step.id, TaskStatus.DONE]]);
+    await finishStepsThisWeek(userId, [step.id]);
+    freezeTime(MOMENTS.NEXT_MONDAY_NOON);
     await expect(
       createWeek(userId, {newTemplates: [RUN], addProjectStepIds: [step.id]}),
     ).rejects.toThrow(PLANNING_ERROR.PROJECT_STEPS_NOT_UPCOMING([step.id]));

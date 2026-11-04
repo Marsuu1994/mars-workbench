@@ -6,7 +6,7 @@
  * the e2e user.
  */
 import {createDumpEntry} from '@/lib/db/dumpEntries';
-import {getBoardTasksByPlanId} from '@/lib/db/tasks';
+import {getBoardTasksByPlanId, type BoardMoveStatus} from '@/lib/db/tasks';
 import {completeMatrixTask, trackTaskThisWeek} from '@/services/matrixService';
 import {PlanMode, TaskStatus} from '@/utils/enums';
 import {
@@ -67,7 +67,7 @@ const seedPlan = async (userId: string) => {
     [firstReview.id, TaskStatus.TODO],
     [unitOne.id, TaskStatus.DONE],
     [unitTwo.id, TaskStatus.TODO],
-    ...bookSteps.map((step): [string, TaskStatus] => [
+    ...bookSteps.map((step): [string, BoardMoveStatus] => [
       step.id,
       TaskStatus.DONE,
     ]),

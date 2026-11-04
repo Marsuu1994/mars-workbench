@@ -11,9 +11,9 @@ import {
   fetchPriorityMatrix,
   trackTaskThisWeek,
   completeMatrixTask,
+  reprioritizeMatrixTask,
   undoCompleteMatrixTask,
 } from '../services/matrixService';
-import {updateAdhocTaskQuadrants} from '@/lib/db/tasks';
 import {getCurrentUserId} from '@/lib/auth/getCurrentUserId';
 
 export async function fetchPriorityMatrixAction() {
@@ -26,18 +26,18 @@ export async function updateTaskQuadrantAction(taskId: string, input: unknown) {
   if (!parsed.success) return {error: parsed.error.flatten()};
 
   const userId = await getCurrentUserId();
-  const [task] = await updateAdhocTaskQuadrants(
+  const result = await reprioritizeMatrixTask(
     userId,
-    [taskId],
+    taskId,
     parsed.data.quadrant,
   );
-  if (!task) {
+  if ('error' in result) {
     const t = await getTranslations('Errors');
-    return {error: {formErrors: [t('taskNotFound')], fieldErrors: {}}};
+    return {error: {formErrors: [t(result.error)], fieldErrors: {}}};
   }
 
   revalidatePath('/kanban/priorities');
-  return {data: task};
+  return {data: result.task};
 }
 
 export async function trackTaskAction(taskId: string, input: unknown) {

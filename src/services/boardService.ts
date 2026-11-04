@@ -5,6 +5,9 @@ import {
   getBoardMetricsByPlanId,
   getBoardTasksByPlanId,
   getPlanTemplateStats,
+  updateTaskStatus,
+  type BoardMoveStatus,
+  type TaskItem,
 } from '@/lib/db/tasks';
 import type {OverallStats} from '@/types/plan';
 import type {BoardData} from '@/types/board';
@@ -168,4 +171,19 @@ export async function fetchBoard(userId: string): Promise<BoardData | null> {
       daysElapsed,
     },
   };
+}
+
+/**
+ * Move a board card forward (Drag and Drop): the moves the board allows are
+ * the DAL's `WHERE` (`updateTaskStatus`), so a refused move is not found.
+ */
+export async function moveBoardTask(
+  userId: string,
+  taskId: string,
+  status: BoardMoveStatus,
+): Promise<{task: TaskItem} | {error: 'taskNotFound'}> {
+  const task = await updateTaskStatus(userId, taskId, status);
+  if (!task) return {error: 'taskNotFound'};
+
+  return {task};
 }
