@@ -1,6 +1,6 @@
 # Board Flows
 
-Flows for the kanban board page (`/kanban`) — landing, drag and drop, progress tracking, risk visuals (switched off), and the backlog. Sibling docs: `design/flows/shared.md` (sync lifecycle), `design/flows/plan.md`, `design/flows/priorities.md`, `design/flows/projects.md`, `design/flows/auth.md`.
+Flows for the kanban board page (`/kanban`) — landing, drag and drop, progress tracking, risk visuals (switched off), and the backlog.
 
 ---
 
@@ -12,12 +12,10 @@ User navigates to `/kanban`.
 
 ### Steps
 
-1. Fetch active plan. If none exists, show "Create Plan" prompt → stop.
-2. If current ISO week key differs from `plan.periodKey`, run End of Period Sync → return empty board with "Create Plan" prompt → stop.
-3. If `plan.lastSyncDate` is earlier than today, run Daily Sync.
-4. Return board data and render the kanban.
+1. Await `ensureSynced` (see `design/flows/shared.md`). No current-week `ACTIVE` plan → show the empty board → stop.
+2. Return board data and render the kanban.
 
-Steps 1–3 are the shared `ensureSynced` entry point — see the "Ensure Synced Flow" (plus the Daily Sync and End of Period Sync flows) in `design/flows/shared.md`.
+The empty board leads to creating this week's plan. A user whose last plan is `PENDING_UPDATE` (the week that just closed) first sees its recap — completion rate, tasks done, points; a user with no plan yet is asked to create their first.
 
 ---
 
@@ -36,7 +34,7 @@ User drags a task card to a different column.
 ### Rules
 
 - The board has two columns, Todo · Done; work in progress stays in Todo.
-- Allowed transitions: BACKLOG → TODO → DONE only (no backwards movement). `BACKLOG → TODO` is the backlog pull (drop onto the Todo column); see "Backlog Flow".
+- Allowed transitions: BACKLOG → TODO, BACKLOG → DONE (finished straight from the backlog) and TODO → DONE — forward only: the server refuses any move out of Done, so done points are append-only. `BACKLOG → TODO` is the backlog pull (drop onto the Todo column); see "Backlog Flow".
 - `DOING` is no longer written; tasks that were `DOING` when the column went were moved to `TODO`.
 - Project steps move like every other task.
 
@@ -46,15 +44,17 @@ User drags a task card to a different column.
 
 ### Trigger / Entry Point
 
-Computed server-side on every board page load as part of `fetchBoard()`.
+Every board page load. The server computes the counts and point sums as part of `fetchBoard()`; the dashboard derives the percentages and the Daily Avg from them on the client.
 
 ### Steps
 
-Two parallel queries run after sync:
+After sync, every read the board needs hangs off the active plan's id and runs in parallel, so the board loads in two database round trips: the sync's plan read, then the rest. Progress draws on three of them:
 
-1. `getBoardTasksByPlanId` — all non-expired tasks for the plan (`BACKLOG/TODO/DONE`). Today's total count/points exclude `BACKLOG` (filtered in-memory, not a separate query/field).
-2. `getBoardMetricsByPlanId` — a single raw SQL aggregate query that computes all historical counts and point sums using `FILTER` clauses. No in-memory aggregation for past data. Projection buckets (weekly-by-type, daily-past-by-`forDate`) count `BACKLOG` identically to `TODO`, so the Week projection includes backlog tasks unchanged.
-3. Future projections are then derived in-memory from the plan's current templates.
+1. The plan's non-expired tasks. Today's total count and points sum the non-`BACKLOG` ones in memory.
+2. One raw SQL aggregate over the plan's tasks computes every historical count and point sum with `FILTER` clauses — no in-memory aggregation for past data. Projection buckets (weekly-by-type, daily-past-by-`forDate`) count `BACKLOG` identically to `TODO`, so the Week projection includes backlog tasks unchanged.
+3. The plan's current templates, from which future projections are derived in memory.
+
+The client then turns the server's numbers into Today %, Week % and the Daily Avg, with no further read.
 
 **Points derivation:** Each task stores a denormalized `points` field derived from `size` via `SIZE_TO_POINTS` at creation time. All DB aggregation operates on this column directly — no runtime size-to-points conversion needed.
 
@@ -75,14 +75,14 @@ Two parallel queries run after sync:
 - Done points: `SUM(points)` where `status = DONE` across the entire plan (from DB aggregate).
 - Projected total: `dailyPastPoints + dailyFuturePoints + weeklyPoints + adhocPoints + projectPoints`
   - `dailyPastPoints` (DB): `SUM(points)` where `forDate < today` — points from daily tasks already generated on previous days.
-  - `dailyFuturePoints` (in-memory): `SUM(template.points × frequency)` for all daily plan templates × remaining days. Remaining days respects plan mode: NORMAL counts only weekdays via `countWeekdaysInRange`, EXTREME counts all calendar days.
+  - `dailyFuturePoints` (in-memory): `SUM(sizeToPoints(size) × frequency)` over the plan's daily templates × remaining days. Remaining days follow the plan mode: NORMAL counts the weekdays left via `countWeekdaysInRange`, EXTREME every calendar day left (at least 1).
   - `weeklyPoints` (DB): `SUM(points)` where `type = WEEKLY`.
   - `adhocPoints` (DB): `SUM(points)` where `type = AD_HOC`.
   - `projectPoints` (DB): `SUM(points)` where `type = PROJECT`. Steps count in Today and Week like any task, and the Week projection includes the steps waiting in the backlog.
 
-  **Daily Avg** — rolling average of points earned per elapsed day.
+**Daily Avg** — rolling average of points earned per elapsed day.
 
-- `weekDonePoints / daysElapsed`, where `daysElapsed` = days since the period's Monday (clamped 1–7).
+- `weekDonePoints / daysElapsed` (client), where `daysElapsed` = days since the period's Monday, clamped 1–7 (server).
 
 **Week Progress Bar** — percentage of projected task count completed this period.
 
@@ -148,7 +148,7 @@ Computed client-side on every board render, based on `forDate`, `createdAt`, tas
 - Risk level only escalates, never regresses (rollover tasks maintain at minimum Warning)
 - DONE, EXPIRED tasks never trigger any risk indicator
 - Ad-hoc task risk is based on days since creation (`daysElapsedSinceCreation`), not plan period.
-- Thresholds will be revisited once auto-clear logic is implemented (see Planned: Future in `design/baseline.md`).
+- Thresholds will be revisited once auto-clear logic is implemented (see *Ad-hoc task deletion and auto-clear logic* in `design/tracker.md`).
 
 ---
 
@@ -167,9 +167,9 @@ The backlog (desktop panel / mobile sheet) holds the plan's template-generated t
 
 1. The collapsed strip shows the backlog count.
 
-2. On expand, render the backlog tasks (`status === BACKLOG`) as a flat list, ordered like a column (daily then weekly, by `instanceIndex`/`createdAt`).
+2. On expand, render the backlog tasks (`status === BACKLOG`) as a flat list, ordered like every column: daily tasks first, then the rest. A group — one template's instances, or one project's steps — stays together; groups rank by their earliest `createdAt`, and a group's cards follow `instanceIndex` (copy number, step number).
 
-3. Drag a card onto the Todo column to move it to the board: optimistic update, then `updateTaskStatusAction(taskId, { status: TODO })`, rollback on failure. Todo is the only drop target; no un-pull (forward-only, per "Drag and Drop Flow").
+3. Drag a card onto the Todo column to move it to the board, or straight onto Done to finish it: optimistic update, then `updateTaskStatusAction(taskId, { status })`, rollback on failure. The backlog takes no drops; no un-pull (forward-only, per "Drag and Drop Flow").
 
 #### Mobile
 

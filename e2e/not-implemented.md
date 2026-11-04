@@ -26,6 +26,6 @@ Which layer tests what: an e2e test proves a journey is wired end to end (the ac
 
 | Flow | Tested where |
 | --- | --- |
-| Plan with Claude (MCP), Manage One-offs with Claude (MCP), Draft Steps with Claude (MCP) | Integration: `/api/mcp` in process, and the services it calls |
+| Draft Projects, Manage One-offs and Plan with Claude (MCP), in `mcp.md` | Integration: `/api/mcp` in process, and the services it calls |
 | Ensure Synced, Daily Sync, End of Period Sync (`shared.md`) | Integration: date logic, since the server's clock can't be frozen from Playwright |
 | Login, Sign-Up (Google) and OAuth Consent (claude.ai) | By hand: each needs an outside account |

@@ -15,7 +15,6 @@ interface ReviewChangesScenarioProps {
   added: TemplateChange[];
   removed: TemplateChange[];
   modified: ModifiedTemplate[];
-  addedAdhoc: AdhocTaskChange[];
   removedAdhoc: AdhocTaskChange[];
   removedSteps: ProjectStepChange[];
   incompleteCounts: Record<string, number>;

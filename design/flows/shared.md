@@ -1,6 +1,6 @@
 # Shared Flows
 
-Cross-page sync lifecycle, centralized in `syncService` (`src/services/syncService.ts`). Every kanban page — board (`design/flows/board.md`), priorities matrix (`design/flows/priorities.md`), plan create/edit (`design/flows/plan.md`), and the Projects page (`design/flows/projects.md`) — and the root layout (the sidebar and dock's Board / Plan state) await `ensureSynced` before reading plan state, so no page carries its own sync branching and page-visit order never matters.
+Cross-page sync lifecycle, centralized in `syncService` (`src/services/syncService.ts`). Everything that depends on the active plan — the board (`design/flows/board.md`), priorities matrix (`design/flows/priorities.md`), plan create/edit (`design/flows/plan.md`) and Projects (`design/flows/projects.md`) pages, their writes, the MCP planning tools — and the root layout (the sidebar and dock's Board / Plan state) await `ensureSynced` before reading plan state, so no caller carries its own sync branching and page-visit order never matters.
 
 ---
 
@@ -8,7 +8,7 @@ Cross-page sync lifecycle, centralized in `syncService` (`src/services/syncServi
 
 ### Trigger / Entry Point
 
-Awaited by every kanban page's data fetch before reading plan state: board (`fetchBoard`, first line), priorities (`fetchPriorityMatrix` and `trackTaskThisWeek`), the plan create/edit pages (top of the page loaders) and Projects (`fetchProjectsPage`, `scheduleProjectStep`). The root layout awaits it too, for the sidebar and dock's Board / Plan state, so they never point at a week that has ended. Single implementation: `syncService.ensureSynced(userId)`.
+Awaited first by every read or write that depends on the active plan — a page's data fetch, a write that puts work on the week, an MCP planning tool. The root layout awaits it too, for the sidebar and dock's Board / Plan state, so they never point at a week that has ended. Single implementation: `syncService.ensureSynced(userId)`; a new caller that reads or writes the active plan awaits it.
 
 ### Steps
 
@@ -34,14 +34,14 @@ Awaited by every kanban page's data fetch before reading plan state: board (`fet
 
 ### Steps
 
-1. Set `lastSyncDate = today` first to prevent concurrent re-runs.
-2. Expire all daily tasks where `forDate` is **before today** and status is not DONE.
-3. If today is a weekend day and plan mode is NORMAL, skip daily task generation.
-4. Otherwise, generate new daily task instances for today **with `status = BACKLOG`** (staged in the backlog; the user pulls them onto the board — see the "Backlog Flow" in `design/flows/board.md`).
+1. Expire all daily tasks where `forDate` is **before today** and status is not DONE.
+2. If today is a weekend day and plan mode is NORMAL, skip daily task generation.
+3. Otherwise, generate new daily task instances for today **with `status = BACKLOG`** (staged in the backlog; the user pulls them onto the board — see the "Backlog Flow" in `design/flows/board.md`).
+4. Set `lastSyncDate = today`. Steps 1–4 commit in one transaction.
 
 ### Rules
 
-- Idempotent — safe to re-run multiple times.
+- Idempotent — safe to re-run, even concurrently. `lastSyncDate` doesn't stop two requests that both read it stale from syncing at once; the unique key on a daily instance (plan, template, `forDate`, `instanceIndex`) does: the second run's inserts are skipped as duplicates, and expiring again changes nothing.
 - Plan creation and template updates also set `lastSyncDate` to avoid redundant sync on next page load.
 - A missed day's unfinished daily tasks expire with the day: they leave the board, and their dot in the habit's week stays empty.
 - During weekends, daily task generation is skipped unless plan mode is EXTREME.
@@ -59,7 +59,7 @@ Current ISO week key differs from `plan.periodKey` (checked by Ensure Synced).
 
 1. Expire all remaining non-DONE template instances; one-offs (`AD_HOC`) and project steps (`PROJECT`) never expire.
 2. Set plan status: `ACTIVE` → `PENDING_UPDATE`.
-3. Return null → the calling page renders its no-plan state (board: "Create Plan" prompt; matrix: warn hint bar + disabled send).
+3. Return null → the calling page renders its no-plan state (board: the empty board, see "Landing Flow" in `design/flows/board.md`; matrix: warn hint bar + disabled send).
 
 ### Rules
 

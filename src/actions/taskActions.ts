@@ -3,9 +3,9 @@
 import {revalidatePath} from 'next/cache';
 import {getTranslations} from 'next-intl/server';
 import {updateTaskStatusSchema, createAdhocTaskSchema} from '../schemas';
-import {updateTaskStatus, createMatrixTasks} from '@/lib/db/tasks';
-import {TaskType} from '@/generated/prisma/client';
-import {toMatrixTaskRow} from '../utils/oneOffUtils';
+import {moveBoardTask} from '../services/boardService';
+import {addMatrixTask} from '../services/matrixService';
+import {TaskType} from '../utils/enums';
 import {getCurrentUserId} from '@/lib/auth/getCurrentUserId';
 
 export async function updateTaskStatusAction(taskId: string, input: unknown) {
@@ -13,11 +13,12 @@ export async function updateTaskStatusAction(taskId: string, input: unknown) {
   if (!parsed.success) return {error: parsed.error.flatten()};
 
   const userId = await getCurrentUserId();
-  const task = await updateTaskStatus(userId, taskId, parsed.data.status);
-  if (!task) {
+  const result = await moveBoardTask(userId, taskId, parsed.data.status);
+  if ('error' in result) {
     const t = await getTranslations('Errors');
-    return {error: {formErrors: [t('taskNotFound')], fieldErrors: {}}};
+    return {error: {formErrors: [t(result.error)], fieldErrors: {}}};
   }
+  const {task} = result;
 
   revalidatePath('/kanban');
   // Only AD_HOC tasks appear on the matrix (e.g. a tracked task marked DONE
@@ -38,9 +39,7 @@ export async function createAdhocTaskAction(input: unknown) {
   if (!parsed.success) return {error: parsed.error.flatten()};
 
   const userId = await getCurrentUserId();
-  const [task] = await createMatrixTasks(userId, [
-    toMatrixTaskRow(parsed.data),
-  ]);
+  const task = await addMatrixTask(userId, parsed.data);
 
   revalidatePath('/kanban/priorities');
   return {data: task};

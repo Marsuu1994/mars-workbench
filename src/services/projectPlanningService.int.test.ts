@@ -1,10 +1,15 @@
 import {beforeEach, describe, expect, it} from 'vitest';
 import {prisma} from '@/lib/prisma';
 import {projectPatchSchema, projectSpecSchema} from '@/schemas';
-import {TaskSize, TaskStatus, TaskType} from '@/utils/enums';
+import {TaskSize, TaskType} from '@/utils/enums';
 import {PLANNING_ERROR} from '@/utils/errorMessages';
 import {PROJECT_STEP_LIMIT} from '@/utils/projectUtils';
-import {createWeek, moveTasks, newHabit, newUserId} from '../../test/factories';
+import {
+  createWeek,
+  finishStepsThisWeek,
+  newHabit,
+  newUserId,
+} from '../../test/factories';
 import {MOMENTS, freezeTime} from '../../test/time';
 import {createProjectFromSpec, patchProject} from './projectPlanningService';
 
@@ -92,7 +97,7 @@ describe('patchProject', () => {
   it('rejects the whole patch when a step is done, and writes nothing', async () => {
     const project = await createCourse();
     const [unitOne, unitTwo] = project.steps;
-    await moveTasks(userId, [[unitOne.stepId, TaskStatus.DONE]]);
+    await finishStepsThisWeek(userId, [unitOne.stepId]);
 
     await expect(
       patch({

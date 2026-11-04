@@ -166,6 +166,7 @@ export const TaskModalPanel = ({
       <FieldRow
         label={t('descriptionLabel')}
         labelHint={!isAdhoc ? t('descriptionClaudeHint') : undefined}
+        required={!isAdhoc}
       >
         <textarea
           className="textarea textarea-bordered w-full"
@@ -177,6 +178,7 @@ export const TaskModalPanel = ({
           }
           value={description}
           onChange={event => setDescription(event.target.value)}
+          required={!isAdhoc}
         />
       </FieldRow>
 

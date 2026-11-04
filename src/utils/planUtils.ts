@@ -7,6 +7,8 @@ import type {
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 
+/** The board: where a saved plan lands. */
+export const BOARD_PATH = '/kanban';
 const PLANS_PATH = '/kanban/plans';
 
 /** The Plan nav item: the active plan's form, or a new plan's when there is

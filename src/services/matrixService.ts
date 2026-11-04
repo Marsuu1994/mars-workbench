@@ -2,17 +2,21 @@ import {
   getNonDoneAdhocTasks,
   trackAdhocTasks,
   completeAdhocTasks,
+  createMatrixTasks,
   revertAdhocCompletion,
+  updateAdhocTaskQuadrants,
   type TaskItem,
 } from '@/lib/db/tasks';
-import {TaskStatus} from '@/generated/prisma/client';
-import type {UndoCompleteTaskInput} from '@/schemas';
+import {TaskStatus, type PriorityQuadrant} from '@/generated/prisma/client';
+import type {CreateAdhocTaskInput, UndoCompleteTaskInput} from '@/schemas';
+import {toMatrixTaskRow} from '@/utils/oneOffUtils';
 import {ensureSynced} from '@/services/syncService';
 import type {MatrixData} from '@/types/priorities';
 
 type MatrixTaskResult<E extends string> = {task: TaskItem} | {error: E};
 export type TrackTaskResult = MatrixTaskResult<'noActivePlan' | 'taskNotFound'>;
 export type CompleteTaskResult = MatrixTaskResult<'taskNotFound'>;
+type ReprioritizeTaskResult = MatrixTaskResult<'taskNotFound'>;
 
 export async function fetchPriorityMatrix(userId: string): Promise<MatrixData> {
   // ensureSynced flips an ended ACTIVE plan to PENDING_UPDATE (same lifecycle
@@ -27,6 +31,34 @@ export async function fetchPriorityMatrix(userId: string): Promise<MatrixData> {
     tasks,
     activePlan: plan ? {id: plan.id, periodKey: plan.periodKey} : null,
   };
+}
+
+/**
+ * Add Priority Task: a one-off on the matrix in the given quadrant, on no
+ * week (`planId = null`, `BACKLOG`). It reaches the board only through Track
+ * This Week.
+ */
+export async function addMatrixTask(
+  userId: string,
+  input: CreateAdhocTaskInput,
+): Promise<TaskItem> {
+  const [task] = await createMatrixTasks(userId, [toMatrixTaskRow(input)]);
+  return task;
+}
+
+/**
+ * Reprioritize: move an unfinished one-off to another quadrant; its status
+ * and week stay as they are.
+ */
+export async function reprioritizeMatrixTask(
+  userId: string,
+  taskId: string,
+  quadrant: PriorityQuadrant,
+): Promise<ReprioritizeTaskResult> {
+  const [task] = await updateAdhocTaskQuadrants(userId, [taskId], quadrant);
+  if (!task) return {error: 'taskNotFound'};
+
+  return {task};
 }
 
 /**

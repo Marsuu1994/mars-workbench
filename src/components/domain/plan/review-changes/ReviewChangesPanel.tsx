@@ -61,7 +61,6 @@ export interface ReviewChangesPanelProps {
   added: TemplateChange[];
   removed: TemplateChange[];
   modified: ModifiedTemplate[];
-  addedAdhoc?: AdhocTaskChange[];
   removedAdhoc?: AdhocTaskChange[];
   removedSteps?: ProjectStepChange[];
   incompleteCounts: Record<string, number>;
@@ -82,7 +81,6 @@ export const ReviewChangesPanel = ({
   added,
   removed,
   modified,
-  addedAdhoc = [],
   removedAdhoc = [],
   removedSteps = [],
   incompleteCounts,
@@ -109,8 +107,6 @@ export const ReviewChangesPanel = ({
     mode === PlanMode.NORMAL
       ? tr('normalModeDescription')
       : tr('extremeModeDescription');
-
-  const totalAdhocChanges = addedAdhoc.length + removedAdhoc.length;
 
   // ── Meta-line builders (need tr, so they live in component scope) ──
   const templateMeta = (
@@ -171,13 +167,12 @@ export const ReviewChangesPanel = ({
     rows: Row[],
     accent: Accent,
     noteFor: (row: Row) => string,
-    trailingGap: boolean,
   ) => (
     <>
       <div className={`text-[11px] font-semibold ${labelClass} mb-1 pl-0.5`}>
         {label}
       </div>
-      <div className={`flex flex-col gap-1.5${trailingGap ? ' mb-2' : ''}`}>
+      <div className="flex flex-col gap-1.5">
         {rows.map(row => (
           <ChangeRow
             key={row.id}
@@ -278,31 +273,20 @@ export const ReviewChangesPanel = ({
           </ChangeSection>
         )}
 
-        {totalAdhocChanges > 0 && (
+        {removedAdhoc.length > 0 && (
           <ChangeSection
             icon={<BoltIcon className="size-3.5 text-warning" />}
             heading={tr('adhocHeading')}
             accent="warning"
-            count={totalAdhocChanges}
+            count={removedAdhoc.length}
           >
-            {addedAdhoc.length > 0 &&
-              renderTaskGroup(
-                tr('addedToBoard'),
-                'text-info',
-                addedAdhoc,
-                'info',
-                () => tr('adhocAddedNote'),
-                removedAdhoc.length > 0,
-              )}
-            {removedAdhoc.length > 0 &&
-              renderTaskGroup(
-                tr('removedFromBoard'),
-                'text-error',
-                removedAdhoc,
-                'error',
-                () => tr('adhocRemovedNote'),
-                false,
-              )}
+            {renderTaskGroup(
+              tr('removedFromBoard'),
+              'text-error',
+              removedAdhoc,
+              'error',
+              () => tr('adhocRemovedNote'),
+            )}
           </ChangeSection>
         )}
 
@@ -323,7 +307,6 @@ export const ReviewChangesPanel = ({
                   project: step.projectTitle,
                   number: step.stepNumber,
                 }),
-              false,
             )}
           </ChangeSection>
         )}

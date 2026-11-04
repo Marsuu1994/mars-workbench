@@ -10,6 +10,7 @@ import {
   createMatrixTasks,
   getBoardTasksByPlanId,
   updateTaskStatus,
+  type BoardMoveStatus,
 } from '@/lib/db/tasks';
 import {planSpecSchema} from '@/schemas';
 import {createPlanFromSpec} from '@/services/planningService';
@@ -79,7 +80,7 @@ export const createOneOff = async (
 export const moveTasksByTitle = async (
   userId: string,
   planId: string,
-  moves: [title: string, status: TaskStatus][],
+  moves: [title: string, status: BoardMoveStatus][],
 ) => {
   const tasks = await getBoardTasksByPlanId(userId, planId);
   await moveTasks(
@@ -95,9 +96,28 @@ export const moveTasksByTitle = async (
 /** Moves tasks across the board, in order. */
 export const moveTasks = async (
   userId: string,
-  moves: [taskId: string, status: TaskStatus][],
+  moves: [taskId: string, status: BoardMoveStatus][],
 ) => {
   for (const [taskId, status] of moves) {
     await updateTaskStatus(userId, taskId, status);
   }
+};
+
+/**
+ * Finishes project steps the way the app does: this week's plan takes them
+ * (with a daily run beside them), then they move to Done on the board.
+ */
+export const finishStepsThisWeek = async (
+  userId: string,
+  stepIds: string[],
+) => {
+  const week = await createWeek(userId, {
+    newTemplates: [newHabit('Run', TaskType.DAILY)],
+    addProjectStepIds: stepIds,
+  });
+  await moveTasks(
+    userId,
+    stepIds.map(stepId => [stepId, TaskStatus.DONE]),
+  );
+  return week;
 };

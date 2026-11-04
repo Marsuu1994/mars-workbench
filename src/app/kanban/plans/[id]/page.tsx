@@ -1,6 +1,7 @@
-import {notFound} from 'next/navigation';
+import {redirect} from 'next/navigation';
 import {fetchEditPlanFormAction} from '@/actions/planActions';
 import {PlanForm} from '@/components/domain/plan/PlanForm';
+import {BOARD_PATH} from '@/utils/planUtils';
 
 export default async function EditPlanPage({
   params,
@@ -10,9 +11,9 @@ export default async function EditPlanPage({
   const {id} = await params;
   const planForm = await fetchEditPlanFormAction(id);
 
-  if (!planForm) {
-    notFound();
-  }
+  // Not this week's active plan (an old link, or the week has ended): the
+  // board shows the week as it is, with Create plan when there's none
+  if (!planForm) redirect(BOARD_PATH);
   const {templates, plan, adhocTasks, projectSteps} = planForm;
 
   const initialPlanTemplates = plan.planTemplates.map(planTemplate => ({
