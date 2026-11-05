@@ -4,6 +4,34 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Backlog Grouping</title>
+<script data-mockup-latest>
+/* Mockup freshness (design/README.md › Mockups) — copy as is into every mockup.
+   A branch link on raw.githack can serve a copy minutes old (GitHub raw caches
+   it behind githack; a phone restores the old tab). Opened there, this asks
+   GitHub for the newest commit touching this file on the branch and moves to
+   that commit's link, which never goes stale; #branch= keeps the branch so a
+   refresh keeps checking. Anywhere else (a local file) it does nothing. */
+(async () => {
+  if (location.hostname !== 'raw.githack.com') return;
+  const [owner, repo, ...rest] = location.pathname.slice(1).split('/');
+  const fileStart = rest.indexOf('design');
+  if (fileStart < 1) return;
+  const ref = rest.slice(0, fileStart).join('/');
+  const path = rest.slice(fileStart).join('/');
+  const isCommit = /^[0-9a-f]{40}$/.test(ref);
+  const branch = isCommit ? new URLSearchParams(location.hash.slice(1)).get('branch') : ref;
+  if (!branch) return;
+  try {
+    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?sha=${encodeURIComponent(branch)}&path=${encodeURIComponent(path)}&per_page=1`, {cache: 'no-store'});
+    const [latest] = response.ok ? await response.json() : [];
+    if (latest && latest.sha !== ref) {
+      location.replace(`https://raw.githack.com/${owner}/${repo}/${latest.sha}/${path}#branch=${encodeURIComponent(branch)}`);
+    }
+  } catch {
+    // Offline or rate-limited: stay on what loaded
+  }
+})();
+</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Anton&display=swap');
 
@@ -175,7 +203,6 @@
   .bk-bot { display: flex; align-items: center; gap: 8px; min-height: 18px; }
   .bk-bot .sp { flex: 1; }
   .bk.habit .bk-bot { padding-left: 22px; }
-  .frac { font-family: 'Geist Mono', monospace; font-size: 11px; color: color-mix(in oklab, var(--bc) 55%, transparent); white-space: nowrap; }
 
   /* "+N more": how many sit behind the next one */
   .more { display: inline-flex; align-items: baseline; gap: 3px; white-space: nowrap; flex-shrink: 0; font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 600; color: color-mix(in oklab, var(--bc) 55%, transparent); }
@@ -297,9 +324,9 @@
 
 <header class="topbar">
   <div>
-    <div class="eyebrow">Board · Backlog · design PR · round 5</div>
+    <div class="eyebrow">Board · Backlog · design PR · round 6</div>
     <h1>Backlog grouping — direction D, a quieter card</h1>
-    <p>Round 1 picked <b>D</b>: a habit is one row; a project is its next step with the rest one tap away. Round 2 trims the backlog card: no <b>Weekly × 3</b> / <b>Step 4/9</b> line, no <b>size</b>; a habit's top right says how many more are staged and on mobile <b>↑ Todo sits bottom-right</b>. Dots and the path both carry their <b>done / total</b> (1/3, 3/9). The badge counts <b>every staged task</b>, capped at <b>8+</b>. Both kinds say <b>+N more</b> at the top right — how many sit behind the next one; a project's opens its queue (⌄). Round 5: under a project with steps behind, a thin <b>pile</b> of up to three sheets, decoration only (screen 3).</p>
+    <p>Round 1 picked <b>D</b>: a habit is one row; a project is its next step with the rest one tap away. The backlog card has no <b>Weekly × 3</b> / <b>Step 4/9</b> line, no <b>size</b> and no <b>done / total</b> fraction — the dots and the path say it; on the board a habit card drops its fraction too. Both kinds say <b>+N more</b> at the top right — how many sit behind the next one; a project's opens its queue (⌄), and a thin <b>pile</b> of up to three sheets sits under it (screen 3). On mobile <b>↑ Todo</b> sits bottom right. The badge counts <b>every staged task</b>, capped at <b>8+</b>.</p>
   </div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
     <div class="seg" id="themes">
@@ -319,7 +346,7 @@
 
   <div class="col-label spaced after"><b>After</b> · D, round 2 · drag onto Todo · count 8+<span class="line"></span></div>
   <div class="board" id="desk-after"></div>
-  <p class="note">Habits first, each one row: its dots, and <b>+N more</b> at the top right when more than one is staged. A project shows its next step; <b>+2 more ⌄</b> at the top right opens the steps behind it, read-only, so the order holds; a drag always takes the next one. A thin pile under the card shows there are more. A one-off keeps its quadrant at the top right; it has nothing behind it. Drag three tasks across to watch the badge go <b>8+ → 8</b>. The board's own cards are untouched in this PR (question 3).</p>
+  <p class="note">Habits first, each one row: its dots, and <b>+N more</b> at the top right when more than one is staged. A project shows its next step; <b>+2 more ⌄</b> at the top right opens the steps behind it, read-only, so the order holds; a drag always takes the next one. A thin pile under the card shows there are more. A one-off keeps its quadrant at the top right; it has nothing behind it. Drag three tasks across to watch the badge go <b>8+ → 8</b>. On the board, a habit card drops its done / target too; the rest of the board's cards stay as they are.</p>
 </section>
 
 <!-- ═════════ 2 · Mobile ═════════ -->
@@ -344,7 +371,7 @@
   <div class="col-label spaced"><b>What changed on the card</b><span class="line"></span></div>
   <ul class="changes">
     <li><span class="k">① context text</span><b>Plan line and step n/N are gone</b>The dots already show a habit's week; the path already shows where a step sits. The project name stays — it is the step's identity, not a restatement.</li>
-    <li><span class="k">② done / total</span><b>On both kinds</b>1/3 after a habit's dots, 3/9 after a project's path — never on one kind only. The same fraction is the signal's accessible name ("1 of 3 done this week").</li>
+    <li><span class="k">② done / total</span><b>No fraction, on either kind</b>The dots and the path carry it; 1/3 and 3/9 are gone from the backlog, and a habit card on the board drops its 1/3 too. The fraction lives on as the signal's accessible name ("1 of 3 done this week").</li>
     <li><span class="k">③ size</span><b>No size chip</b>On desktop and mobile alike. Points still count on the dashboard.</li>
     <li><span class="k">④ corners</span><b>+N more · ↑ Todo bottom right</b>Both kinds count what sits <i>behind</i> the next one, so a project's number matches the rows its queue opens: Read with two staged reads <i>+1 more</i>; Biomedical course, three steps on the week, <i>+2 more ⌄</i>; the last one shows nothing. A project with steps behind it sits on a thin pile, at most three sheets (screen 3). One-off: its quadrant. On mobile ↑ Todo moves to the bottom right on every card.</li>
   </ul>
@@ -358,7 +385,7 @@
 <section class="screen" data-screen="research">
   <div class="col-label"><b>Round 2 · a fraction beside a progress mark, and capped counts</b><span class="line"></span></div>
   <div class="patterns">
-    <div class="pat"><h4>Visible "x of y" — only when it adds meaning</h4><div class="who">Primer · Carbon · WCAG guidance</div>Design systems agree a progress bar needs an <i>accessible name</i> either way, but treat a visible value as optional: Primer skips a separate label when the value already shows as text next to it (<a href="https://primer.style/product/components/progress-bar/accessibility">Primer</a>); Carbon drops the visible label only where the context is already clear (<a href="https://carbon.preventx.com/docs/components/progress-bar/">Carbon</a>); a bare number without a name is the failure case (<a href="https://getwcag.com/accessibility-guide/aria-progressbar-name">getwcag</a>).<div class="fit"><b>→ Decided: shown on both kinds</b>, and the same text as the accessible name (aria-valuetext "1 of 3 done this week").</div></div>
+    <div class="pat"><h4>Visible "x of y" — only when it adds meaning</h4><div class="who">Primer · Carbon · WCAG guidance</div>Design systems agree a progress bar needs an <i>accessible name</i> either way, but treat a visible value as optional: Primer skips a separate label when the value already shows as text next to it (<a href="https://primer.style/product/components/progress-bar/accessibility">Primer</a>); Carbon drops the visible label only where the context is already clear (<a href="https://carbon.preventx.com/docs/components/progress-bar/">Carbon</a>); a bare number without a name is the failure case (<a href="https://getwcag.com/accessibility-guide/aria-progressbar-name">getwcag</a>).<div class="fit"><b>→ Decided: not on screen</b> — the dots and the path are the signal; the fraction is their accessible name (aria-valuetext "1 of 3 done this week").</div></div>
     <div class="pat"><h4>Capped badges</h4><div class="who">MUI · Flutter · Braze</div>Count badges cap with a "+": MUI defaults to 99+ (<a href="https://v3.mui.com/demos/badges/">MUI</a>), Flutter's Material badge to 999+. Braze's iOS guidance notes people stop reading badge counts once they pass double digits (<a href="https://www.braze.com/docs/user_guide/channels/push/platform_specific_resources/ios/utilizing_badge_count">Braze</a>).<div class="fit"><b>→ 8+.</b> Those caps exist for width; ours is about how the week feels, so it sits much lower — a deliberate product choice, not a convention. The panel itself still shows everything.</div></div>
   </div>
 
@@ -447,12 +474,12 @@ function cardModel(group, item) {
   if (group.kind === 'project') return {kind: 'project', name: group.name, title: item.title, desc: item.desc, n: item.n, total: group.total, doneSteps: group.done, size: group.size};
   return {kind: 'oneoff', title: group.title, desc: group.desc, quadrant: group.quadrant, size: group.size};
 }
-function card(model, {drag = '', action = '', cls = ''} = {}) {
+function card(model, {drag = '', action = '', cls = '', fraction = true} = {}) {
   const {kind} = model;
   const head = kind === 'project'
     ? `<span class="name">${model.name}</span><span class="ctx">Step ${model.n}/${model.total}</span>`
     : `<span>${KIND_LABEL[kind]}</span><span class="ctx">${kind === 'habit' ? model.plan : model.quadrant}</span>`;
-  const signal = kind === 'habit' ? `${dots(model)}<span class="sig">${model.doneSlots.length}/${model.target}</span>`
+  const signal = kind === 'habit' ? `${dots(model)}${fraction ? `<span class="sig">${model.doneSlots.length}/${model.target}</span>` : ''}`
     : kind === 'project' ? path({...model, cur: model.n}) : '';
   return `<div class="tc ${model.isDone ? 'is-done' : ''} ${cls}" data-kind="${kind}" ${drag}>
     <div class="tc-head">${icon(kind, 'xs')}${head}</div>
@@ -474,7 +501,7 @@ function habitRow(group, ctx) {
   const drag = ctx.mobile ? '' : `data-drag="${group.id}" data-index="${group.pulled}"`;
   return `<div class="bk habit ${bumped ? 'rise' : ''}" data-kind="habit" ${drag}>
     <div class="bk-top"><span class="ic">${icon('habit', 'sm')}</span><span class="ttl">${group.title}</span>${rest.length > 1 ? moreText(rest.length - 1, bumped) : ''}</div>
-    <div class="bk-bot">${dots({target: group.target, doneSlots: group.done, cur: top.slot})}<span class="frac">${group.done.length}/${group.target}</span><span class="sp"></span>${ctx.mobile ? pullBtn(group.id, group.pulled) : ''}</div>
+    <div class="bk-bot">${dots({target: group.target, doneSlots: group.done, cur: top.slot})}<span class="sp"></span>${ctx.mobile ? pullBtn(group.id, group.pulled) : ''}</div>
   </div>`;
 }
 
@@ -494,7 +521,7 @@ function projectCard(group, ctx) {
     <div class="bk-top"><span class="ic">${icon('project', 'xs')}</span><span class="kname">${group.name}</span>${toggle}</div>
     <div class="bk-title">${top.title}</div>
     ${top.desc ? `<p class="bk-desc">${top.desc}</p>` : ''}
-    <div class="bk-bot">${path({total: group.total, doneSteps: group.done, cur: top.n})}<span class="frac">${group.done.length}/${group.total}</span><span class="sp"></span>${ctx.mobile ? pullBtn(group.id, group.pulled) : ''}</div>
+    <div class="bk-bot">${path({total: group.total, doneSteps: group.done, cur: top.n})}<span class="sp"></span>${ctx.mobile ? pullBtn(group.id, group.pulled) : ''}</div>
   </div>${below}</div>`;
 }
 
@@ -538,21 +565,23 @@ function renderBacklog(state, option, {mobile = false} = {}) {
 }
 
 function renderBoard(el, state, option) {
-  const todo = state.todo.map((model, index) => card(model, {cls: index === state.fresh ? 'fresh' : ''})).join('');
+  // After: the board's habit cards lose their done / target too
+  const fraction = option === 'before';
+  const todo = state.todo.map((model, index) => card(model, {cls: index === state.fresh ? 'fresh' : '', fraction})).join('');
   el.innerHTML = `<div class="board-main">
     <div class="board-cols">
       <div class="column" data-drop="todo"><div class="column-head">Todo<span class="count-ghost">${state.todo.length}</span></div><div class="column-body">${todo}</div></div>
-      <div class="column done"><div class="column-head">Done<span class="count-ghost">${DONE_SEED.length}</span></div><div class="column-body">${DONE_SEED.map(model => card(model)).join('')}</div></div>
+      <div class="column done"><div class="column-head">Done<span class="count-ghost">${DONE_SEED.length}</span></div><div class="column-body">${DONE_SEED.map(model => card(model, {fraction})).join('')}</div></div>
     </div>
     ${renderBacklog(state, option)}
   </div>`;
 }
 
 const PHONES = [
-  {key: 'before', label: 'Before · today', option: 'before', frac: null},
-  {key: 'after', label: 'After', option: 'after', frac: null},
+  {key: 'before', label: 'Before · today', option: 'before'},
+  {key: 'after', label: 'After', option: 'after'},
 ];
-function renderPhone({key, label, option, frac}) {
+function renderPhone({key, label, option}) {
   const state = surfaces.phones[key];
   const count = stagedCount(state);
   return `<div class="phone-wrap" data-phone="${key}" >
