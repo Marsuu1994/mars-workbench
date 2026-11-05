@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="mars-dark">
+<html lang="zh-Hans" data-theme="mars-dark">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -325,8 +325,8 @@
 <header class="topbar">
   <div>
     <div class="eyebrow">Board · Backlog · design PR · final version · decided 2026-11-05</div>
-    <h1>Backlog grouping — final version, decided</h1>
-    <p>Round 1 picked <b>D</b>: a habit is one row; a project is its next step with the rest one tap away. The backlog card has no <b>Weekly × 3</b> / <b>Step 4/9</b> line, no <b>size</b> and no <b>done / total</b> fraction — the dots and the path say it; on the board a habit card drops its fraction too. Both kinds say <b>+N more</b> at the top right — how many sit behind the next one; a project's opens its queue (⌄), and a thin <b>pile</b> of up to three sheets sits under it (screen 3). On mobile <b>↑ Todo</b> sits bottom right. The badge counts <b>every staged task</b>, capped at <b>8+</b>.</p>
+    <h1>Backlog grouping — 定稿</h1>
+    <p>第 1 轮选了 <b>D</b>：一个 habit 一行；一个 project 只露出下一步，其余的点一下展开。Backlog 卡片去掉了 <b>Weekly × 3</b> / <b>Step 4/9</b> 这行文字、<b>size</b>，以及 <b>done / total</b> 分数：dots 和 path 已经表达了进度；board 上的 habit 卡也去掉分数。两种卡片的右上角都是 <b>+N more</b>，表示下一个后面还排着几个；project 的那个带 ⌄，点开是它的 queue，卡片下面垫着最多三层的薄 <b>pile</b>（第 3 页）。Mobile 上 <b>↑ Todo</b> 在右下角。Badge 数的是 <b>backlog 里所有 task</b>，超过 8 显示 <b>8+</b>。</p>
   </div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
     <div class="seg" id="themes">
@@ -340,61 +340,61 @@
 
 <!-- ═════════ 1 · Desktop ═════════ -->
 <section class="screen on" data-screen="desktop">
-  <div class="col-label"><b>Before</b> · today · one card per instance · count 11<span class="line"></span></div>
+  <div class="col-label"><b>Before</b> · 现在 · 一个 instance 一张卡 · 计数 11<span class="line"></span></div>
   <div class="board" id="desk-before"></div>
-  <p class="note">The fixture week: Read and LeetCode each have two instances staged, System design one; Biomedical course has Lectures 4–6 on this week, Protein 3D viewer steps 3–4; one one-off. Eleven staged tasks, eleven cards.</p>
+  <p class="note">示例 week：Read 和 LeetCode 各有两个 instance 在 backlog，System design 一个；Biomedical course 这周排了 Lecture 4–6，Protein 3D viewer 排了 step 3–4；另有一个 one-off。一共 11 个 task，11 张卡。</p>
 
-  <div class="col-label spaced after"><b>After</b> · D, round 2 · drag onto Todo · count 8+<span class="line"></span></div>
+  <div class="col-label spaced after"><b>After</b> · 定稿 · 拖到 Todo · 计数 8+<span class="line"></span></div>
   <div class="board" id="desk-after"></div>
-  <p class="note">Habits first, each one row: its dots, and <b>+N more</b> at the top right when more than one is staged. A project shows its next step; <b>+2 more ⌄</b> at the top right opens the steps behind it, read-only, so the order holds; a drag always takes the next one. A thin pile under the card shows there are more. A one-off keeps its quadrant at the top right; it has nothing behind it. Drag three tasks across to watch the badge go <b>8+ → 8</b>. On the board, a habit card drops its done / target too; the rest of the board's cards stay as they are.</p>
+  <p class="note">Habit 排在前面，一个 habit 一行：dots，排了不止一个时右上角显示 <b>+N more</b>。Project 只露出下一步；右上角的 <b>+2 more ⌄</b> 展开它后面的 step，只读，顺序不会乱，拖走的永远是下一步。卡片下面的薄 pile 表示后面还有。One-off 右上角保留 quadrant，它后面没有别的。拖三个到 Todo，看 badge 从 <b>8+</b> 变成 <b>8</b>。Board 上 habit 卡的 done / target 也去掉了，board 上其余的卡不变。</p>
 </section>
 
 <!-- ═════════ 2 · Mobile ═════════ -->
 <section class="screen" data-screen="mobile">
-  <div class="col-label"><b>Before and after</b> · the backlog sheet, open · tap ↑ Todo, tap N left this week ⌄<span class="line"></span></div>
+  <div class="col-label"><b>Before 和 After</b> · backlog sheet 展开 · 点 ↑ Todo，点 +N more ⌄<span class="line"></span></div>
   <div class="phones" id="phones"></div>
-  <p class="note">A project card has two tap targets: <b>+N more ⌄</b> top right (text, with an invisible tap area 8px around it) and <b>↑ Todo</b> bottom right (32px), at opposite corners. The pile under it takes no taps. A habit row's <b>+N more</b> is plain text — it has nothing to open. The pill above each phone is the entry over the tab bar; its badge is the sheet header's count.</p>
+  <p class="note">Project 卡上有两个点按目标，分在对角：右上角的 <b>+N more ⌄</b>（文字，四周各有 8px 看不见的点按区域）和右下角的 <b>↑ Todo</b>（32px）。下面的 pile 不响应点按。Habit 行的 <b>+N more</b> 只是文字，没有可展开的东西。每台手机上方的 pill 是 tab bar 上方的入口，它的 badge 和 sheet header 的计数一样。</p>
 </section>
 
 <!-- ═════════ 3 · The pile ═════════ -->
 <section class="screen" data-screen="pile">
-  <div class="col-label"><b>A project's pile</b> · one sheet per step behind the next, at most three · tap +N more ⌄ to open<span class="line"></span></div>
+  <div class="col-label"><b>Project 的 pile</b> · 下一步后面每有一步垫一层，最多三层 · 点 +N more ⌄ 展开<span class="line"></span></div>
   <div class="xgrid" id="xgrid" style="grid-template-columns:repeat(2,minmax(0,340px))"></div>
-  <p class="note">The pile only says "there are more underneath": no text, no tap target, three sheets at most however many steps wait (six behind looks like three). The control stays <b>+N more ⌄</b> at the top right, the same spot as a habit's <b>+N more</b>, so both kinds read alike. Opening swaps the pile for the queue; pulling the last step behind leaves a plain card. On mobile, tap ↑ Todo to watch the pile thin out.</p>
+  <p class="note">Pile 只表达"下面还有"：没有文字，不能点，不管后面排了几步最多三层（后面 6 步看起来也是三层）。控件始终是右上角的 <b>+N more ⌄</b>，和 habit 的 <b>+N more</b> 在同一个位置，两种卡片读起来一致。展开时 pile 换成 queue；后面最后一步被拉走后，只剩一张普通卡片。在 mobile 上点 ↑ Todo，可以看 pile 一层层变薄。</p>
 </section>
 
 <!-- ═════════ 4 · Card anatomy ═════════ -->
 <section class="screen" data-screen="anatomy">
-  <div class="col-label"><b>Each kind, before and after</b><span class="line"></span></div>
+  <div class="col-label"><b>每种 kind 的 before 和 after</b><span class="line"></span></div>
   <div class="anat" id="anat"></div>
 
-  <div class="col-label spaced"><b>What changed on the card</b><span class="line"></span></div>
+  <div class="col-label spaced"><b>卡片上改了什么</b><span class="line"></span></div>
   <ul class="changes">
-    <li><span class="k">① context text</span><b>Plan line and step n/N are gone</b>The dots already show a habit's week; the path already shows where a step sits. The project name stays — it is the step's identity, not a restatement.</li>
-    <li><span class="k">② done / total</span><b>No fraction, on either kind</b>The dots and the path carry it; 1/3 and 3/9 are gone from the backlog, and a habit card on the board drops its 1/3 too. The fraction lives on as the signal's accessible name ("1 of 3 done this week").</li>
-    <li><span class="k">③ size</span><b>No size chip</b>On desktop and mobile alike. Points still count on the dashboard.</li>
-    <li><span class="k">④ corners</span><b>+N more · ↑ Todo bottom right</b>Both kinds count what sits <i>behind</i> the next one, so a project's number matches the rows its queue opens: Read with two staged reads <i>+1 more</i>; Biomedical course, three steps on the week, <i>+2 more ⌄</i>; the last one shows nothing. A project with steps behind it sits on a thin pile, at most three sheets (screen 3). One-off: its quadrant. On mobile ↑ Todo moves to the bottom right on every card.</li>
+    <li><span class="k">① context text</span><b>去掉 plan line 和 step n/N</b>Dots 已经表达了 habit 这一周的进度；path 已经表达了 step 在 project 里的位置。Project 名保留：它是这个 step 属于谁，不是在重复进度。</li>
+    <li><span class="k">② done / total</span><b>两种卡片都不显示分数</b>由 dots 和 path 表达；backlog 里不再有 1/3 和 3/9，board 上 habit 卡的 1/3 也去掉。分数留作进度的 accessible name（"1 of 3 done this week"）。</li>
+    <li><span class="k">③ size</span><b>去掉 size chip</b>Desktop 和 mobile 都去掉。Points 仍计入 dashboard。</li>
+    <li><span class="k">④ corners</span><b>+N more · ↑ Todo 在右下角</b>两种卡片数的都是下一个<i>后面</i>还有几个，所以 project 的数字和它展开的行数一致：Read 排了两个，显示 <i>+1 more</i>；Biomedical course 这周三步，显示 <i>+2 more ⌄</i>；最后一个什么都不显示。后面还有 step 的 project 垫着一层薄 pile，最多三层（第 3 页）。One-off 显示 quadrant。Mobile 上每张卡的 ↑ Todo 都移到右下角。</li>
   </ul>
 
-  <div class="col-label spaced"><b>The count</b> · every staged task, capped at 8+<span class="line"></span></div>
+  <div class="col-label spaced"><b>计数</b> · backlog 里所有 task，超过 8 显示 8+<span class="line"></span></div>
   <div class="count-row" id="counts"></div>
-  <p class="note">The badge counts staged tasks — every habit instance, every step on this week, every one-off — not groups. Up to 8 it shows the number; past 8 it shows <b>8+</b>, so a heavy week never opens on a 16 or a 20. The same badge sits on the collapsed desktop strip, the panel header, the mobile pill and the sheet header. Its accessible name keeps the real number ("11 staged tasks"), so a screen reader still hears it.</p>
+  <p class="note">Badge 数的是 backlog 里的 task：每个 habit instance、这周排上的每个 step、每个 one-off，不是 group 数。8 以内显示真实数字；超过 8 显示 <b>8+</b>，任务多的一周打开时不会看到 16、20 这种数字。同一个 badge 出现在 desktop 收起的 strip、panel header、mobile pill 和 sheet header。它的 accessible name 保留真实数字（"11 staged tasks"），读屏照样能听到。</p>
 </section>
 
-<!-- ═════════ 4 · Research ═════════ -->
+<!-- ═════════ 5 · Research ═════════ -->
 <section class="screen" data-screen="research">
-  <div class="col-label"><b>Round 2 · a fraction beside a progress mark, and capped counts</b><span class="line"></span></div>
+  <div class="col-label"><b>第 2 轮 · 进度标记旁的分数，以及封顶计数</b><span class="line"></span></div>
   <div class="patterns">
-    <div class="pat"><h4>Visible "x of y" — only when it adds meaning</h4><div class="who">Primer · Carbon · WCAG guidance</div>Design systems agree a progress bar needs an <i>accessible name</i> either way, but treat a visible value as optional: Primer skips a separate label when the value already shows as text next to it (<a href="https://primer.style/product/components/progress-bar/accessibility">Primer</a>); Carbon drops the visible label only where the context is already clear (<a href="https://carbon.preventx.com/docs/components/progress-bar/">Carbon</a>); a bare number without a name is the failure case (<a href="https://getwcag.com/accessibility-guide/aria-progressbar-name">getwcag</a>).<div class="fit"><b>→ Decided: not on screen</b> — the dots and the path are the signal; the fraction is their accessible name (aria-valuetext "1 of 3 done this week").</div></div>
-    <div class="pat"><h4>Capped badges</h4><div class="who">MUI · Flutter · Braze</div>Count badges cap with a "+": MUI defaults to 99+ (<a href="https://v3.mui.com/demos/badges/">MUI</a>), Flutter's Material badge to 999+. Braze's iOS guidance notes people stop reading badge counts once they pass double digits (<a href="https://www.braze.com/docs/user_guide/channels/push/platform_specific_resources/ios/utilizing_badge_count">Braze</a>).<div class="fit"><b>→ 8+.</b> Those caps exist for width; ours is about how the week feels, so it sits much lower — a deliberate product choice, not a convention. The panel itself still shows everything.</div></div>
+    <div class="pat"><h4>Visible "x of y"：只在有意义时显示</h4><div class="who">Primer · Carbon · WCAG guidance</div>各家 design system 都要求 progress bar 必须有 <i>accessible name</i>，但屏幕上显示数值是可选的：数值已经以文字形式出现在旁边时，Primer 不再加单独的 label（<a href="https://primer.style/product/components/progress-bar/accessibility">Primer</a>）；Carbon 只在上下文已经清楚时才省略可见 label（<a href="https://carbon.preventx.com/docs/components/progress-bar/">Carbon</a>）；只有数字、没有 name 是不合格的写法（<a href="https://getwcag.com/accessibility-guide/aria-progressbar-name">getwcag</a>）。<div class="fit"><b>→ 定了：屏幕上不显示</b>，dots 和 path 就是进度；分数作为它们的 accessible name（aria-valuetext "1 of 3 done this week"）。</div></div>
+    <div class="pat"><h4>Capped badges</h4><div class="who">MUI · Flutter · Braze</div>计数 badge 用 "+" 封顶：MUI 默认 99+（<a href="https://v3.mui.com/demos/badges/">MUI</a>），Flutter 的 Material badge 是 999+。Braze 的 iOS 指南提到，badge 数超过两位数后用户就不再看了（<a href="https://www.braze.com/docs/user_guide/channels/push/platform_specific_resources/ios/utilizing_badge_count">Braze</a>）。<div class="fit"><b>→ 8+。</b>那些上限是为了宽度；我们的上限是为了这一周给人的感觉，所以低得多。这是有意的产品选择，不是惯例。展开 panel 仍能看到全部。</div></div>
   </div>
 
-  <div class="col-label spaced"><b>Round 1 · how other products group repeats and sequences</b><span class="line"></span></div>
+  <div class="col-label spaced"><b>第 1 轮 · 其他产品怎么分组重复项和顺序项</b><span class="line"></span></div>
   <div class="patterns">
-    <div class="pat"><h4>Next-action gating</h4><div class="who">OmniFocus sequential projects · Sunsama recurring tasks</div>A sequential project shows only its first available action (<a href="https://support.omnigroup.com/documentation/omnifocus/ios/2.9/en/planning-with-projects">Omni manual</a>); Sunsama shows only the next instance of a recurring task (<a href="https://help.sunsama.com/docs/tasks-recurring-tasks">help</a>).<div class="fit"><b>→ D's project card.</b></div></div>
-    <div class="pat"><h4>Quota counter</h4><div class="who">Anki deck list</div>Deck rows show New / Learning / Review counts that drop by one per card (<a href="https://docs.ankiweb.net/ankimobile/deck-list">docs</a>).<div class="fit"><b>→ D's habit row.</b></div></div>
-    <div class="pat"><h4>Collapsed stack</h4><div class="who">iOS notification stacks · Android group summary</div>Tap to fan out (<a href="https://developer.android.com/training/notify-user/group">Android docs</a>); users tapping a stack expect it to open, not expand (<a href="https://discussions.apple.com/thread/253900982">Apple Community</a>).<div class="fit">Why D keeps expand and ↑ Todo at opposite corners.</div></div>
-    <div class="pat"><h4>Thread count · parent fraction · sections</h4><div class="who">Gmail · Todoist / Linear · Sunsama folders</div>A "(3)" after a thread; "2/5" on a collapsible parent (<a href="https://linear.app/docs/parent-and-sub-issues">Linear</a>); folders with every item still draggable (<a href="https://help.sunsama.com/docs/usage-guides/backlog">Sunsama</a>).<div class="fit">Round 1's A–C drew these; see the PR's first commit.</div></div>
+    <div class="pat"><h4>Next-action gating</h4><div class="who">OmniFocus sequential projects · Sunsama recurring tasks</div>Sequential project 只显示第一个可做的 action（<a href="https://support.omnigroup.com/documentation/omnifocus/ios/2.9/en/planning-with-projects">Omni manual</a>）；Sunsama 的重复任务只显示下一个 instance（<a href="https://help.sunsama.com/docs/tasks-recurring-tasks">help</a>）。<div class="fit"><b>→ D 的 project 卡。</b></div></div>
+    <div class="pat"><h4>Quota counter</h4><div class="who">Anki deck list</div>Deck 每行显示 New / Learning / Review 三个计数，学一张减一（<a href="https://docs.ankiweb.net/ankimobile/deck-list">docs</a>）。<div class="fit"><b>→ D 的 habit 行。</b></div></div>
+    <div class="pat"><h4>Collapsed stack</h4><div class="who">iOS notification stacks · Android group summary</div>点一下展开（<a href="https://developer.android.com/training/notify-user/group">Android docs</a>）；用户点通知堆时以为会打开，而不是展开（<a href="https://discussions.apple.com/thread/253900982">Apple Community</a>）。<div class="fit">这就是 D 把展开和 ↑ Todo 放在对角的原因；定稿的 pile 也借了它的样子。</div></div>
+    <div class="pat"><h4>Thread count · parent fraction · sections</h4><div class="who">Gmail · Todoist / Linear · Sunsama folders</div>会话后面的 "(3)"；可折叠的父任务显示 "2/5"（<a href="https://linear.app/docs/parent-and-sub-issues">Linear</a>）；folder 里每一项仍能单独拖（<a href="https://help.sunsama.com/docs/usage-guides/backlog">Sunsama</a>）。<div class="fit">第 1 轮的 A–C 画的就是这些，见 PR 的第一个 commit。</div></div>
   </div>
 </section>
 
@@ -578,8 +578,8 @@ function renderBoard(el, state, option) {
 }
 
 const PHONES = [
-  {key: 'before', label: 'Before · today', option: 'before'},
-  {key: 'after', label: 'After', option: 'after'},
+  {key: 'before', label: 'Before · 现在', option: 'before'},
+  {key: 'after', label: 'After · 定稿', option: 'after'},
 ];
 function renderPhone({key, label, option}) {
   const state = surfaces.phones[key];
@@ -592,7 +592,7 @@ function renderPhone({key, label, option}) {
       <div class="scrim"></div>
       <div class="sheet"><div class="grab"></div>${renderBacklog(state, option, {mobile: true})}</div>
     </div>
-    <div class="todo-tally">Pulled onto Todo: <b>${state.todo.length - TODO_SEED.length}</b></div>
+    <div class="todo-tally">已拉到 Todo：<b>${state.todo.length - TODO_SEED.length}</b></div>
   </div>`;
 }
 
@@ -609,7 +609,7 @@ function renderPiles() {
     const key = `${behindCount}${mobile ? 'm' : ''}`;
     const state = surfaces.piles[key];
     const live = state.groups[0];
-    return `<div data-pile="${key}"><div class="sub" style="margin:0 0 6px">${remaining(live).length - 1} behind</div>${remaining(live).length ? projectCard(live, {state, mobile}) : '<p class="empty">All pulled</p>'}</div>`;
+    return `<div data-pile="${key}"><div class="sub" style="margin:0 0 6px">后面 ${remaining(live).length - 1} 步</div>${remaining(live).length ? projectCard(live, {state, mobile}) : '<p class="empty">已全部拉走</p>'}</div>`;
   }).join('')}</div>`;
   document.getElementById('xgrid').innerHTML = column(false) + column(true);
 }
@@ -631,15 +631,15 @@ function renderAnatomy() {
     + column('Mobile · before', beforeOf, true) + column('Mobile · <b>after</b>', afterOf, true);
 
   const examples = [
-    {count: 3, note: 'a light week'},
-    {count: 8, note: 'at the cap'},
-    {count: 11, note: 'this fixture week'},
-    {count: 20, note: 'a heavy week'},
+    {count: 3, note: '轻松的一周'},
+    {count: 8, note: '正好到上限'},
+    {count: 11, note: '这个示例 week'},
+    {count: 20, note: '繁重的一周'},
   ];
   document.getElementById('counts').innerHTML = examples.map(({count, note}) => `<div class="count-ex">
       <div class="strip">${icon('chevLeft', 'sm')}<span class="badge-count">${capped(count)}</span><span class="v">Backlog</span></div>
       <div class="pill" style="width:180px">${icon('inbox')}<span>Backlog</span><span class="badge-count">${capped(count)}</span></div>
-      <div class="cap"><b>${count}</b> staged → <b>${capped(count)}</b><br>${note}</div>
+      <div class="cap"><b>${count}</b> 个 task → <b>${capped(count)}</b><br>${note}</div>
     </div>`).join('');
 }
 
