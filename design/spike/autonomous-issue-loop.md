@@ -1,6 +1,6 @@
 # Spike: Autonomous issue loop — issue 进、PR 出，owner 只管 design phase
 
-**Status: awaiting owner review** · 2026-11-02 · 回答 tracker 条目 *Harness engineering › Autonomous issue loop* · 基于 main `d779127`（#102）· 相关：PR #104（`ui-feature` skill、带 tag 的 `test.fail` contract）、PR #105（e2e data isolation spike）、PR #82（`code-reviewer` spike）、`reviews/`（owner 的 review log）、`design/spike/README.md`（什么时候写 spike）
+**Status: awaiting owner review** · 2026-11-02 · 回答 tracker 条目 *Harness engineering › Autonomous issue loop* · 基于 main `d779127`（#102）· 相关：PR #104（`ui-feature` skill、带 tag 的 `test.fail` contract）、PR #105（e2e data isolation spike）、PR #82（`code-reviewer` spike）、`reviews/`（owner 的 review log）、`design/spike/README.md`（什么时候写 spike） · **2026-11-05 加了 *补充 · Design phase 的内部*：** PR #109（backlog grouping 的 design PR）走了 8 轮 review 才定稿，context 几乎全是 design；复盘时 owner 质疑 `ui-design` skill 把 design 和 spec 放在一起、spec 一步写得太薄，并提出 design → spec → implementation → review → deliver → human validation 的 loop 和以后的 agent team。review 这份 spike 时一并参考，它修正了本文 Part 3 的一个前提：design phase 不是一步
 
 > 语言说明：正文中文；GitHub 的功能名、label、文件名和代码标识保留英文（issue type / sub-issue / label / milestone / auto-merge / `ready` / `check:risk`），和 GitHub 界面、仓库里的叫法一一对应。
 
@@ -14,7 +14,8 @@
   - spike 的判断标准从"任务大不大"改成一条：**开工前能不能写出验收标准，且不留需要 owner 决定的问题**。能写出来，issue 直接 `ready`；写不出来，就要 design PR（UI 改动有 mockup 就够，其余写 spike）。另外列出 5 种最常产生开放问题的情况（数据形状、对外契约、新依赖或基础设施、跨页面的模式、多 PR），作为检查清单。
   - 升级规则分两层：机器能查的（改了 design phase 定下的东西：`prisma/`、MCP 契约、contract 断言、auth、依赖）由 CI 的 `check:risk` 拦住，等 owner 加 `owner-approved`；只能判断的（需求有歧义、做着做着撞上清单里的情况、CI 修 3 次仍红）由 agent 停下来打 `needs-decision`。
 - **推出**：先跑第 0 阶段（影子模式：loop 开 PR，一律由 owner 合，同时攒 reviewer 的数据），达到 Q8 的门槛后进入第 1 阶段（低风险 PR 由 GitHub auto-merge 合并）。
-- **开放问题**：Q1–Q11，在文末。
+- **补充（2026-11-05，来自 PR #109）**：design phase 内部要拆成 design → spec 两段，各有 review 轮，中间靠 handoff 交接，不靠 compact；完整的 loop 是 design → spec → implementation → review → deliver → human validation，owner 只守 design 和 validation 两道门；agent team 放在推出阶段 2 之后。见文末前的 *补充 · Design phase 的内部*。
+- **开放问题**：Q1–Q14，在文末（Q12–Q14 来自补充）。
 
 ## 起因
 
@@ -257,6 +258,91 @@ owner 设想的流程是：先定 spec（mockup、user flow、数据），这一
 4. **Loop**：`.claude/skills/issue-runner/`（选 issue、分支、实现、检查、reviewer、PR、升级、合并），以及 Routine（开新 session，频率见 Q7），从第 0 阶段开始跑。
 5. **owner 在 GitHub 上做的**：auto-merge 开关、`main` 的 ruleset 和 required checks，对哪些 issue 打 `ready`（Q4）。
 
+## 补充 · Design phase 的内部（2026-11-05，来自 PR #109）
+
+本文 Part 3 把 design phase 当成一步：一个 design PR 交出 spike / mockup / flow / contract，owner 批准即可。PR #109 是第一个按 `ui-design` skill 完整走下来的 design PR，它说明这一步内部还有结构。这一节记下当时的对话原文和由此得出的建议，review 本文时一并决定（Q12–Q14）。
+
+### 起因：PR #109 走了什么
+
+| 轮 | agent 交出 | owner 的决定 |
+| --- | --- | --- |
+| 0 | 四个方向 A–D，以及一份 research | 选 D；卡片去掉 4 项；计数改成剩余总数，超过 8 显示 8+ |
+| 2 | 精简后的卡片；fraction 画了 none / both 两版 | 选 both；文案改成 "3 left this week"；按钮缩小 |
+| 3 | 缩小后的按钮 | 太丑；先讨论文案和 chevron 放哪 |
+| 4 | a–d 四种放法并排 | 选 a，再加 Apple 通知那样的装饰性堆叠 |
+| 5–6 | 堆叠 | fraction 全部去掉，board 上也去掉；顺带解决 mockup 缓存问题 |
+| 7 | 定稿 | — |
+
+- **agent 推荐的选项被推翻了三次**：方向推荐 C，owner 选 D；fraction 推荐 none，owner 先选 both；按钮位置推荐 c，owner 选 a。agent 每次都偏向"更明显、更好点"，owner 每次都偏向"更少、更统一"。
+- **选项并排摆在一个屏幕上的轮次推进最快**；用开关切换来比较，就要多来回几轮。
+- **owner 否掉的东西有共同点**：要么在重复别的元素已经表达的信息（编号、plan line、fraction），要么一眼看不出是什么（加了描边的 pill 按钮）。
+- **定稿时这个 session 用了约 320k token，几乎全是 design**，spec（contract、flow 文件）一行还没写。
+
+### 对话原文
+
+**owner：**
+
+> 听起来不错，其实我现在对ui design这个skill有些存疑，第一我在想我们应不应该把design和spec write放在同一个skill里面，因为你看第三轮，review round要花很多时间到最后定稿。这个时候context已经基本都是design的东西了，虽然现在model很强但是是不是compact或者新开一个session比较好呢？然后我们接下来做的第二步也就是第四步第五步，是不是会有新的一轮review和更改，其实并没有我们skill里面这么thin？假设未来我们要上全自动开发尽量减少human介入，是不是先走design -> spec(quality assurance) -> implementation -> review -> deliver -> human validation，这么一个loop比较好？未来我想当我们积累了足够的我的preference像今天的design language之后，是不是渐渐的就可以做成agent team然后并行互相沟通提升效率和质量呢，这只是一个想法，你觉得如何。我们等下再来了第一条还有第二条
+
+**agent：**
+
+> 我基本都同意，下面按你的四个问题说我的看法，最后给一个建议的顺序。
+>
+> **1. design 和 spec 应该分开，而且最好开新 session，不要靠 compact**
+>
+> 这个 session 现在用了 320k token，几乎全是 design 的来回。但写 spec 需要的输入完全是另一套：flow 文档、`test/README`、e2e fixtures、DAL 和 service。design 里真正要带过去的其实很少：定稿的 mockup，加上"定了什么、否了什么、为什么"。
+>
+> - **compact 的问题**：哪些东西被压掉不可控。比如"pull 只能拿下一个"这条，到底是我们明确定下的，还是 mockup 碰巧这么画的？压缩之后分不清。
+> - **我的建议**：design 结束时产出一份 **handoff**，包括定稿 mockup，和一页 decision record（现在这些散在 review log 里）。spec 开一个新 session，只读这份 handoff。
+> - **好处**：handoff 本身变成可以检验的东西。新 session 如果靠它写不出 spec，就说明 handoff 漏了东西，这比 compact 后靠运气好得多。
+>
+> **2. spec 不会这么薄，它会有自己的一轮 review**
+>
+> 拿这次的 backlog grouping 来说，写 spec 时马上会冒出几个需要你拍板的问题：
+> - **"只能拉下一步"是不是数据规则？** 现在 server 允许拉任意一步，UI 只露出下一步。按 AGENTS.md 的规定，数据规则要写在每条写入路径都经过的地方，否则 MCP 那条路径可以绕过去。所以要么在 server 上加这条规则，要么明确"这只是 UI 上的顺序"。这是一个产品决定。
+> - **habit 按什么分组**：只按 template，还是 template 加日期？昨天滚过来的 Daily 要不要单独成组？mockup 里没画到这种情况。
+> - **8+ 封顶**算衍生规则，要配一个 unit test；分组排序要放进 Rules。
+>
+> 所以 spec 阶段应该有自己的 skill 和自己的 review 轮，产出是 flow 文件、contract、以及 Rules 对应的测试。在 skill 里一笔带过是不够的。
+>
+> **3. 那个 loop 的形状是对的，我补三点**
+>
+> - **每个阶段都产出一个放在 repo 里的东西**：mockup、flow + contract、code、PR。阶段之间通过这些东西交接，不靠对话上下文。这样每个阶段都能重新开始，也能分给不同的 agent 去做。
+> - **人只守两道门**：design 需要你的品味判断，validation 需要你验收。中间的 spec review 和 code review，等规则和偏好写下来以后，可以先由 agent 按清单去审；implementation 这一关由 CI 守，contract 变绿就算过。
+> - **validation 不通过时，要退回到出问题的那个阶段**：是 design 错了、spec 漏了，还是实现有 bug。review log 里的 kind（design / rule / bug）已经在做这种分类，可以直接拿来决定退回哪里。
+>
+> **4. agent team 可行，但先要有一把能衡量的尺子**
+>
+> - **天然适合并行的部分**：design 的几个方案可以各给一个 agent 画（这次的 A–D、a–d）；research 可以并行；互不依赖的 PR 可以并行实现。
+> - **前提是你的偏好先写成文档**，也就是我们等下要写的 Principles。
+> - **然后用 `reviews/` 当数据集去测**：一个按 Principles 审 mockup 的 agent，能不能提前说中你会否掉什么？这次就是现成的考题：pill 按钮、fraction、编号方案，你都否了；我推荐的方向也有三次和你的选择相反。如果审稿 agent 能把这些都提前标出来，就说明它可以替你挡掉第一轮。
+> - **agent 之间通过文件和 PR 沟通，不靠互相聊天**。AGENTS.md 里关于 subagent 的结论（交接有损耗、冷启动有成本）对 agent team 同样成立。
+>
+> **建议的顺序**
+>
+> 1. 先做你说的第一、二条：写 Principles，补 Mockups 的规则。
+> 2. 再写一个 spike，主题是拆分 `ui-design`：design skill 产出 handoff，spec skill 带自己的 review 轮，以及阶段之间怎么交接。按 AGENTS.md 的规矩，改 workflow、又有取舍的事要先写 spike。
+> 3. backlog grouping 的 spec 就用新流程来走一遍，作为第一次实测。
+
+（"第一条、第二条"指同一次复盘里的另一个提议：把 owner 的视觉偏好写成 `design/design-language/README.md` 的 Principles，并在 `design/README.md` › Mockups 写明 mockup 怎么出：选项并排、Before / After、research 带来源、叙述中英结合、定稿只留选中的方案。它们在 PR #109 里做。上面第 2 步的"再写一个 spike"后来决定不另开，而是写进本文，也就是这一节。）
+
+### 对本文的建议
+
+1. **Design phase 拆成两段，各有 review 轮，中间靠 handoff 交接**：
+   - **design**：mockup 审到定稿，产出 handoff，即定稿的 mockup 加一页 decision record（定了什么、否了什么、为什么）。
+   - **spec**：开新 session，只读 handoff，写 flow 文件（spec-layers 的四节格式）、contract 和 Rules 测试，有自己的一轮 owner review。
+   - 不用 compact：handoff 是可以检验的交接物，新 session 靠它写不出 spec，就说明 handoff 漏了东西。
+   - 对 `ui-design` skill 的影响：拆成 design skill 和 spec skill（Q12）。
+2. **完整的 loop 是 design → spec → implementation → review → deliver → human validation**：
+   - owner 只守两道门：design 的品味判断，最后的 validation。spec review 和 code review 在规则和偏好写下来以后先交给 agent（Q14）；implementation 由 CI 守，contract 变绿就算过。
+   - 每个阶段都产出 repo 里的东西（mockup、flow + contract、code、PR），所以每段都能在新 session 里重新开始，也能分给不同的 agent。
+   - validation 不通过时，按 review log 的 kind 退回到出问题的阶段（`design` → design，`rule` → spec，`bug` → implementation）。
+   - 这修正了「闭环长什么样」里 design PR 那一格：它内部是 design 和 spec 两段，可能是同一个 PR 里的两个 session，也可能是两个 PR（Q13）。
+3. **agent team 放在推出阶段 2 之后**：
+   - 前提：owner 的偏好已经写成 Principles，可以拿来审稿。
+   - 衡量方法：用 `reviews/` 测一个 design reviewer agent 能不能提前说中 owner 会否掉什么；#109 的 pill 按钮、fraction、编号方案就是第一批 golden case，和 Part 2 里 code reviewer 的 golden set 是同一个思路。
+   - 并行的单位是互不依赖的产物：几个 design 方案、几份 research、几个实现 PR；agent 之间通过文件和 PR 交接。
+
 ## 开放问题
 
 1. **迁移范围**：tracker 全部迁到 issue、`tracker.md` 删除（建议），还是只迁 High 和 Medium，Future 留在 tracker 当想法池？后者的代价是两个来源。
@@ -270,3 +356,6 @@ owner 设想的流程是：先定 spec（mockup、user flow、数据），这一
 9. **两段式**：design PR 加实现 PR 推广到所有需要 design 的任务，相应改掉 *One task, one PR* 和 spike README 里"spike 和实现在同一个 PR"，可以吗？
 10. **`check:risk` 的路径**：上表有没有多或漏？`e2e/` 先粗后细，可以吗？
 11. **harness 系列**：迁移后，tracker 里 Harness engineering 下的实验条目（1b、2、4、5、6、evals 仓库等）以 `priority:low` 迁过去，还是以 "not planned" 关掉、需要时再开？
+12. **拆 `ui-design`**（补充）：拆成 design skill（mockup 审到定稿，产出 handoff）和 spec skill（flow 文件、contract、Rules 测试，自己一轮 review），可以吗？
+13. **design 和 spec 的边界**（补充）：同一个 design PR 里的两个 session，还是两个 PR（design PR 定稿即合并，spec PR 再开）？handoff 里除了定稿 mockup 和 decision record，还要什么？
+14. **什么时候让 agent 先审**（补充）：design 和 spec 的 review 由 agent 按 Principles 先审一轮、owner 再审，从什么时候开始？门槛用 `reviews/` 里 agent 能否提前说中 owner 的否决来定，例如 #109 的那几条？
