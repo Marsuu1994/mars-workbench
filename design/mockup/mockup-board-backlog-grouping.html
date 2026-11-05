@@ -176,21 +176,19 @@
   .bk-bot .sp { flex: 1; }
   .bk.habit .bk-bot { padding-left: 22px; }
   .frac { font-family: 'Geist Mono', monospace; font-size: 11px; color: color-mix(in oklab, var(--bc) 55%, transparent); white-space: nowrap; }
-  [data-frac='none'] .frac { display: none; }
-  .frac-hl .frac { outline: 1.5px dashed var(--wa); outline-offset: 2px; border-radius: 3px; }
 
   /* "N left": plain on a habit, a button on a project that can open */
   .left { display: inline-flex; align-items: baseline; gap: 4px; white-space: nowrap; flex-shrink: 0; color: var(--k); font-family: 'Geist Mono', monospace; }
   .left b { font-size: 15px; font-weight: 700; line-height: 1; }
   .left span { font-size: 10.5px; font-weight: 600; color: color-mix(in oklab, var(--bc) 55%, transparent); }
   .left.bump b { display: inline-block; animation: bump .35s cubic-bezier(.2,0,0,1); }
-  .more-btn { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 8px 0 10px; border-radius: 999px; border: 1px solid color-mix(in oklab, var(--k) 45%, transparent); background: color-mix(in oklab, var(--k) 12%, transparent); cursor: pointer; flex-shrink: 0; }
-  .more-btn .left { align-items: center; }
+  .more-btn { position: relative; display: inline-flex; align-items: center; gap: 4px; padding: 0 5px 0 7px; line-height: 1; border-radius: 999px; border: 0; box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--k) 45%, transparent); background: color-mix(in oklab, var(--k) 12%, transparent); cursor: pointer; flex-shrink: 0; }
+  .more-btn .left { align-items: baseline; }
+  /* drawn the height of a habit's count line; the tap area reaches 8px around it */
+  .more-btn::before { content: ''; position: absolute; inset: -8px -6px; }
   .more-btn .icon { color: var(--k); }
-  .more-btn:hover, .more-btn.open { background: color-mix(in oklab, var(--k) 22%, transparent); border-color: var(--k); }
-  .sheet .more-btn { height: 34px; padding: 0 10px 0 12px; gap: 7px; }
-  .sheet .more-btn .left b { font-size: 16px; }
-  [data-theme='p5-dark'] .more-btn { border-radius: 0; border-width: 1.5px; transform: skewX(-6deg); }
+  .more-btn:hover, .more-btn.open { background: color-mix(in oklab, var(--k) 22%, transparent); box-shadow: inset 0 0 0 1px var(--k); }
+  [data-theme='p5-dark'] .more-btn { border-radius: 0; box-shadow: inset 0 0 0 1.5px var(--k); transform: skewX(-6deg); }
   [data-theme='p5-dark'] .more-btn > * { transform: skewX(6deg); }
   .sheet .bk .tc-pull { height: 32px; padding: 0 12px; font-size: 11.5px; }
 
@@ -228,8 +226,6 @@
   [data-theme='p5-dark'] .changes li { border-radius: 0; }
   .changes li b { color: var(--bc); display: block; margin-bottom: 2px; }
   .changes li .k { font-family: 'Geist Mono', monospace; font-size: 10.5px; color: var(--p); }
-  .phone-wrap[data-frac='both'] .frac { display: inline; }
-  .phone-wrap[data-frac='none'] .frac { display: none; }
   /* drag ghost */
   .ghost { position: fixed; z-index: 999; pointer-events: none; width: 274px; transform: rotate(2deg) scale(1.02); box-shadow: 0 12px 30px oklch(0 0 0 / .4); opacity: .95; }
   .lifted { opacity: .35; }
@@ -284,19 +280,15 @@
   }
 </style>
 </head>
-<body data-frac="none">
+<body>
 
 <header class="topbar">
   <div>
-    <div class="eyebrow">Board · Backlog · design PR · round 2</div>
+    <div class="eyebrow">Board · Backlog · design PR · round 3</div>
     <h1>Backlog grouping — direction D, a quieter card</h1>
-    <p>Round 1 picked <b>D</b>: a habit is one row with how many are left; a project is its next step with the rest one tap away. Round 2 trims the backlog card: no <b>Weekly × 3</b> / <b>Step 4/9</b> line, no <b>size</b>; on every card the <b>top-right says what's left</b> (a project's is the button that opens its queue) and on mobile <b>↑ Todo sits bottom-right</b>. The badge counts <b>every staged task</b>, capped at <b>8+</b>. The one open look: whether dots and the path carry a <b>done / total</b> fraction — switch it below.</p>
+    <p>Round 1 picked <b>D</b>: a habit is one row with how many are left; a project is its next step with the rest one tap away. Round 2 trims the backlog card: no <b>Weekly × 3</b> / <b>Step 4/9</b> line, no <b>size</b>; on every card the <b>top-right says what's left</b> (a project's is the button that opens its queue) and on mobile <b>↑ Todo sits bottom-right</b>. Dots and the path both carry their <b>done / total</b> (1/3, 3/9). The badge counts <b>every staged task</b>, capped at <b>8+</b>. Round 3: a project's count reads <b>3 left this week</b>, and its button shrinks to the height of a habit's <i>2 left</i>.</p>
   </div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-    <div class="seg" id="fracs">
-      <button data-frac-btn="none" class="on">Fraction: none</button>
-      <button data-frac-btn="both">Fraction: both</button>
-    </div>
     <div class="seg" id="themes">
       <button data-theme-btn="mars-dark" class="on">Mars dark</button>
       <button data-theme-btn="mars-light">Mars light</button>
@@ -314,27 +306,27 @@
 
   <div class="col-label spaced after"><b>After</b> · D, round 2 · drag onto Todo · count 8+<span class="line"></span></div>
   <div class="board" id="desk-after"></div>
-  <p class="note">Habits first, each one row: its dots, and how many are left at the top right. A project shows its next step; <b>3 left ⌄</b> opens the steps behind it, read-only, so the order holds — a drag always takes the next one. A one-off keeps its quadrant at the top right; it has nothing behind it. Drag three tasks across to watch the badge go <b>8+ → 8</b>. The board's own cards are untouched in this PR (question 3).</p>
+  <p class="note">Habits first, each one row: its dots, and how many are left at the top right. A project shows its next step; <b>3 left this week ⌄</b> opens the steps behind it, read-only, so the order holds — a drag always takes the next one. A one-off keeps its quadrant at the top right; it has nothing behind it. Drag three tasks across to watch the badge go <b>8+ → 8</b>. The board's own cards are untouched in this PR (question 3).</p>
 </section>
 
 <!-- ═════════ 2 · Mobile ═════════ -->
 <section class="screen" data-screen="mobile">
-  <div class="col-label"><b>Before, and after with each fraction</b> · the backlog sheet, open · tap ↑ Todo, tap N left ⌄<span class="line"></span></div>
+  <div class="col-label"><b>Before and after</b> · the backlog sheet, open · tap ↑ Todo, tap N left this week ⌄<span class="line"></span></div>
   <div class="phones" id="phones"></div>
-  <p class="note">Each card has two tap targets, kept at opposite corners: <b>N left ⌄</b> top right (projects only — 34px tall, tinted in the kind colour so it reads as a control) and <b>↑ Todo</b> bottom right (32px). On a habit the top right is the same count without the button chrome. The pill above each phone is the entry over the tab bar; its badge is the sheet header's count.</p>
+  <p class="note">Each card has two tap targets, kept at opposite corners: <b>N left this week ⌄</b> top right (projects only — drawn no taller than a habit's count line, tinted in the kind colour so it reads as a control, with an invisible tap area reaching 8px around it) and <b>↑ Todo</b> bottom right (32px). On a habit the top right is the same count without the button chrome. The pill above each phone is the entry over the tab bar; its badge is the sheet header's count.</p>
 </section>
 
 <!-- ═════════ 3 · Card anatomy ═════════ -->
 <section class="screen" data-screen="anatomy">
-  <div class="col-label"><b>Each kind, before and after</b> · current fraction setting<span class="line"></span></div>
+  <div class="col-label"><b>Each kind, before and after</b><span class="line"></span></div>
   <div class="anat" id="anat"></div>
 
   <div class="col-label spaced"><b>What changed on the card</b><span class="line"></span></div>
   <ul class="changes">
     <li><span class="k">① context text</span><b>Plan line and step n/N are gone</b>The dots already show a habit's week; the path already shows where a step sits. The project name stays — it is the step's identity, not a restatement.</li>
-    <li><span class="k">② done / total</span><b>None or both — never one kind only</b>"Fraction: both" adds 1/3 after the dots and 3/9 after the path. Recommendation: <b>none</b> — the card already carries one number, <i>N left</i>, and a second fraction beside it invites arithmetic that doesn't add up (Read: 1/3 done, 2 left — of the week, not of the backlog).</li>
+    <li><span class="k">② done / total</span><b>On both kinds</b>1/3 after a habit's dots, 3/9 after a project's path — never on one kind only. The same fraction is the signal's accessible name ("1 of 3 done this week").</li>
     <li><span class="k">③ size</span><b>No size chip</b>On desktop and mobile alike. Points still count on the dashboard.</li>
-    <li><span class="k">④ corners</span><b>Top right = what's left · bottom right = ↑ Todo</b>Habit: <i>2 left</i>. Project: the <i>3 left ⌄</i> button, which opens the queue; a project with one step left shows plain <i>1 left</i>. One-off: its quadrant. On mobile ↑ Todo moves from beside the title to the bottom right on every card.</li>
+    <li><span class="k">④ corners</span><b>Top right = what's left · bottom right = ↑ Todo</b>Habit: <i>2 left</i>. Project: the <i>3 left this week ⌄</i> button, which opens the queue — "this week" because the project itself has more (Biomedical course: 6 to go); with one step left it shows plain <i>1 left this week</i>. One-off: its quadrant. On mobile ↑ Todo moves from beside the title to the bottom right on every card.</li>
   </ul>
 
   <div class="col-label spaced"><b>The count</b> · every staged task, capped at 8+<span class="line"></span></div>
@@ -346,7 +338,7 @@
 <section class="screen" data-screen="research">
   <div class="col-label"><b>Round 2 · a fraction beside a progress mark, and capped counts</b><span class="line"></span></div>
   <div class="patterns">
-    <div class="pat"><h4>Visible "x of y" — only when it adds meaning</h4><div class="who">Primer · Carbon · WCAG guidance</div>Design systems agree a progress bar needs an <i>accessible name</i> either way, but treat a visible value as optional: Primer skips a separate label when the value already shows as text next to it (<a href="https://primer.style/product/components/progress-bar/accessibility">Primer</a>); Carbon drops the visible label only where the context is already clear (<a href="https://carbon.preventx.com/docs/components/progress-bar/">Carbon</a>); a bare number without a name is the failure case (<a href="https://getwcag.com/accessibility-guide/aria-progressbar-name">getwcag</a>).<div class="fit"><b>→ none on screen, the fraction in the accessible name</b> (aria-valuetext "1 of 3 done this week"). The card's context — a habit row, a project's path — is clear; the visible number the card needs is <i>N left</i>.</div></div>
+    <div class="pat"><h4>Visible "x of y" — only when it adds meaning</h4><div class="who">Primer · Carbon · WCAG guidance</div>Design systems agree a progress bar needs an <i>accessible name</i> either way, but treat a visible value as optional: Primer skips a separate label when the value already shows as text next to it (<a href="https://primer.style/product/components/progress-bar/accessibility">Primer</a>); Carbon drops the visible label only where the context is already clear (<a href="https://carbon.preventx.com/docs/components/progress-bar/">Carbon</a>); a bare number without a name is the failure case (<a href="https://getwcag.com/accessibility-guide/aria-progressbar-name">getwcag</a>).<div class="fit"><b>→ Decided: shown on both kinds</b>, and the same text as the accessible name (aria-valuetext "1 of 3 done this week").</div></div>
     <div class="pat"><h4>Capped badges</h4><div class="who">MUI · Flutter · Braze</div>Count badges cap with a "+": MUI defaults to 99+ (<a href="https://v3.mui.com/demos/badges/">MUI</a>), Flutter's Material badge to 999+. Braze's iOS guidance notes people stop reading badge counts once they pass double digits (<a href="https://www.braze.com/docs/user_guide/channels/push/platform_specific_resources/ios/utilizing_badge_count">Braze</a>).<div class="fit"><b>→ 8+.</b> Those caps exist for width; ours is about how the week feels, so it sits much lower — a deliberate product choice, not a convention. The panel itself still shows everything.</div></div>
   </div>
 
@@ -451,7 +443,8 @@ function card(model, {drag = '', action = '', cls = ''} = {}) {
 const pullBtn = (groupId, index) => `<button class="tc-pull" data-pull="${groupId}" data-index="${index}">${icon('up', 'xxs')}Todo</button>`;
 
 /* ── AFTER: the backlog faces ── */
-const leftText = (count, bumped) => `<span class="left ${bumped ? 'bump' : ''}"><b>${count}</b><span>left</span></span>`;
+const leftText = (count, bumped, suffix = 'left') => `<span class="left ${bumped ? 'bump' : ''}"><b>${count}</b><span>${suffix}</span></span>`;
+const WEEK_LEFT = 'left this week';
 
 function habitRow(group, ctx) {
   const rest = remaining(group);
@@ -470,8 +463,8 @@ function projectCard(group, ctx) {
   const bumped = ctx.state.bumped === group.id;
   const drag = ctx.mobile ? '' : `data-drag="${group.id}" data-index="${group.pulled}"`;
   const corner = behind.length > 0
-    ? `<button class="more-btn ${group.open ? 'open' : ''}" data-toggle="${group.id}" title="${group.open ? 'Hide' : 'Show'} the steps behind it">${leftText(rest.length, bumped)}${icon(group.open ? 'chevUp' : 'chevDown', 'xs')}</button>`
-    : leftText(1, bumped);
+    ? `<button class="more-btn ${group.open ? 'open' : ''}" data-toggle="${group.id}" title="${group.open ? 'Hide' : 'Show'} the steps behind it">${leftText(rest.length, bumped, WEEK_LEFT)}${icon(group.open ? 'chevUp' : 'chevDown', 'xs')}</button>`
+    : leftText(1, bumped, WEEK_LEFT);
   const queue = group.open && behind.length > 0
     ? `<div class="queue">${behind.map(item => `<div class="q-row" data-kind="project"><span class="n">${item.n}</span><span class="t">${item.title}</span></div>`).join('')}</div>` : '';
   return `<div class="grp"><div class="bk project ${bumped ? 'rise' : ''}" data-kind="project" ${drag}>
@@ -534,13 +527,12 @@ function renderBoard(el, state, option) {
 
 const PHONES = [
   {key: 'before', label: 'Before · today', option: 'before', frac: null},
-  {key: 'none', label: 'After · fraction: none', option: 'after', frac: 'none'},
-  {key: 'both', label: 'After · fraction: both', option: 'after', frac: 'both'},
+  {key: 'after', label: 'After', option: 'after', frac: null},
 ];
 function renderPhone({key, label, option, frac}) {
   const state = surfaces.phones[key];
   const count = stagedCount(state);
-  return `<div class="phone-wrap" data-phone="${key}" ${frac ? `data-frac="${frac}"` : ''}>
+  return `<div class="phone-wrap" data-phone="${key}" >
     <div class="phone-cap ${option === 'before' ? 'before' : ''}"><b>${label}</b></div>
     <div class="pill">${icon('inbox')}<span>Backlog</span><span class="badge-count">${option === 'before' ? count : capped(count)}</span><span class="chev">${icon('chevUp', 'sm')}</span></div>
     <div class="phone">
@@ -623,12 +615,6 @@ document.addEventListener('click', event => {
   if (themeBtn) {
     document.documentElement.setAttribute('data-theme', themeBtn.dataset.themeBtn);
     document.querySelectorAll('[data-theme-btn]').forEach(btn => btn.classList.toggle('on', btn === themeBtn));
-    return;
-  }
-  const fracBtn = event.target.closest('[data-frac-btn]');
-  if (fracBtn) {
-    document.body.dataset.frac = fracBtn.dataset.fracBtn;
-    document.querySelectorAll('[data-frac-btn]').forEach(btn => btn.classList.toggle('on', btn === fracBtn));
     return;
   }
   const screenBtn = event.target.closest('[data-screen-btn]');
