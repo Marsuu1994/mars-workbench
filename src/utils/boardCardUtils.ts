@@ -190,21 +190,12 @@ export interface BacklogGroups {
   otherGroups: (ProjectBacklogGroup | OneOffBacklogGroup)[];
 }
 
-/** A card's group: its template, its project, or (a one-off) itself. */
-function getBacklogGroupKey({kind, task}: BoardCard): string {
-  switch (kind) {
-    case TaskKind.HABIT:
-      return `${kind}:${task.templateId ?? task.id}`;
-    case TaskKind.PROJECT:
-      return `${kind}:${task.projectId ?? task.id}`;
-    case TaskKind.ONE_OFF:
-      return `${kind}:${task.id}`;
-    default: {
-      const unhandled: never = kind;
-      throw new Error(`Unhandled task kind: ${unhandled}`);
-    }
-  }
-}
+/** What a card groups by — its template, its project — or null to stand alone. */
+const GROUP_ID_BY_KIND: Record<TaskKind, (task: TaskItem) => string | null> = {
+  [TaskKind.HABIT]: task => task.templateId,
+  [TaskKind.PROJECT]: task => task.projectId,
+  [TaskKind.ONE_OFF]: () => null,
+};
 
 /**
  * The staged cards (toBoardCards' BACKLOG, already sorted) → the backlog's
@@ -215,7 +206,8 @@ function getBacklogGroupKey({kind, task}: BoardCard): string {
 export function toBacklogGroups(cards: BoardCard[]): BacklogGroups {
   const cardsByKey = new Map<string, BoardCard[]>();
   for (const card of cards) {
-    const key = getBacklogGroupKey(card);
+    const {kind, task} = card;
+    const key = `${kind}:${GROUP_ID_BY_KIND[kind](task) ?? task.id}`;
     const groupCards = cardsByKey.get(key) ?? [];
     groupCards.push(card);
     cardsByKey.set(key, groupCards);
@@ -224,30 +216,11 @@ export function toBacklogGroups(cards: BoardCard[]): BacklogGroups {
   const groups: BacklogGroups = {habitGroups: [], otherGroups: []};
   for (const [key, [next, ...behind]] of cardsByKey) {
     // A group's cards share its kind — the key starts with it
-    switch (next.kind) {
-      case TaskKind.HABIT:
-        groups.habitGroups.push({
-          kind: next.kind,
-          key,
-          next,
-          behind: behind as HabitCard[],
-        });
-        break;
-      case TaskKind.PROJECT:
-        groups.otherGroups.push({
-          kind: next.kind,
-          key,
-          next,
-          behind: behind as ProjectStepCard[],
-        });
-        break;
-      case TaskKind.ONE_OFF:
-        groups.otherGroups.push({kind: next.kind, key, next, behind: []});
-        break;
-      default: {
-        const unhandled: never = next;
-        throw new Error(`Unhandled card: ${JSON.stringify(unhandled)}`);
-      }
+    const group = {kind: next.kind, key, next, behind} as BacklogGroup;
+    if (group.kind === TaskKind.HABIT) {
+      groups.habitGroups.push(group);
+    } else {
+      groups.otherGroups.push(group);
     }
   }
   return groups;
