@@ -4,19 +4,21 @@ import type {ReactNode} from 'react';
 import {useTranslations} from 'next-intl';
 import {InboxStackIcon, ArrowUpIcon} from '@heroicons/react/24/outline';
 import {OverlayHeader} from '@/components/ui/overlay/OverlayHeader';
+import {useScrollHold} from '@/components/ui/scroll-hold/useScrollHold';
+import {ScrollHoldContext} from '@/components/ui/scroll-hold/ScrollHoldContext';
 import {BacklogCountBadge} from './BacklogCountBadge';
 
 interface MobileBacklogPanelProps {
-  /** Staged cards — the header badge and the empty state */
+  /** Staged tasks — the header badge and the empty state */
   count: number;
   onClose: () => void;
-  /** The staged cards, rendered by BoardPage */
+  /** The staged groups, rendered by BoardPage */
   children: ReactNode;
 }
 
 /**
  * The mobile backlog sheet's content: the header with the count, the
- * tap-to-pull hint and the staged cards (or an empty state). Shell-free, so
+ * tap-to-pull hint and the staged groups (or an empty state). Shell-free, so
  * the live sheet and the design scenario render the identical panel — the
  * scenario shows it inline, without the top-layer dialog.
  */
@@ -26,6 +28,7 @@ export const MobileBacklogPanel = ({
   children,
 }: MobileBacklogPanelProps) => {
   const t = useTranslations('Board.Backlog');
+  const {scrollRef, contentRef, onScroll, holdScrollHeight} = useScrollHold();
 
   const renderHint = () => (
     <div className="flex flex-shrink-0 items-center gap-1.5 px-4 py-2.5 text-xs text-base-content/50 border-b border-base-content/10">
@@ -34,14 +37,24 @@ export const MobileBacklogPanel = ({
     </div>
   );
 
+  // Only the user moves the scrollbar: no scroll anchoring, and a queue
+  // closing holds its space (useScrollHold)
   const renderBody = () => (
-    <div className="min-h-0 flex-1 overflow-y-auto p-4">
+    <div
+      ref={scrollRef}
+      onScroll={onScroll}
+      className="min-h-0 flex-1 overflow-y-auto [overflow-anchor:none] p-3.5"
+    >
       {count === 0 ? (
         <p className="text-center text-sm text-base-content/40 mt-10 px-6">
           {t('emptyState')}
         </p>
       ) : (
-        <div className="flex flex-col gap-2.5">{children}</div>
+        <div ref={contentRef} className="flex flex-col gap-3.5">
+          <ScrollHoldContext value={holdScrollHeight}>
+            {children}
+          </ScrollHoldContext>
+        </div>
       )}
     </div>
   );

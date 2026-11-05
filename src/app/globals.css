@@ -259,6 +259,23 @@ body {
   );
   --fx-depth: var(--color-base-300);
   --fx-card-bg: var(--color-base-100);
+  /* Backlog pile — the thin sheets under a project card */
+  --fx-pile-front: color-mix(
+    in oklab,
+    var(--color-base-100) 88%,
+    var(--color-base-content)
+  );
+  --fx-pile-back: color-mix(
+    in oklab,
+    var(--color-base-100) 94%,
+    var(--color-base-content)
+  );
+  --fx-pile-border: color-mix(
+    in oklab,
+    var(--color-base-content) 20%,
+    transparent
+  );
+  --fx-pile-shadow: 0 2px 5px oklch(0 0 0 / 0.22);
   /* Ink on gradient fills — brand tiles, badges, avatars (text-on-gradient) */
   --fx-on-gradient: oklch(1 0 0); /* white */
   /* Geometry */
@@ -319,6 +336,23 @@ body {
   );
   --fx-depth: var(--color-base-300);
   --fx-card-bg: var(--color-base-100);
+  /* Backlog pile — the thin sheets under a project card */
+  --fx-pile-front: color-mix(
+    in oklab,
+    var(--color-base-300) 70%,
+    var(--color-base-100)
+  );
+  --fx-pile-back: color-mix(
+    in oklab,
+    var(--color-base-300) 40%,
+    var(--color-base-100)
+  );
+  --fx-pile-border: color-mix(
+    in oklab,
+    var(--color-base-content) 22%,
+    transparent
+  );
+  --fx-pile-shadow: 0 2px 5px oklch(0 0 0 / 0.22);
   /* Ink on gradient fills — brand tiles, badges, avatars (text-on-gradient) */
   --fx-on-gradient: oklch(1 0 0); /* white */
   /* Geometry */
@@ -380,6 +414,16 @@ body {
   --fx-field: oklch(0.53 0.2 26); /* large red fields   #c51d24 */
   --fx-depth: oklch(0.36 0.13 25); /* depth layer       #721216 */
   --fx-card-bg: oklch(0.17 0.008 20); /* raised card     #191313 */
+  /* Backlog pile — the thin sheets under a project card: flat, with a
+     hard offset like the cards */
+  --fx-pile-front: oklch(0.25 0.008 20);
+  --fx-pile-back: oklch(0.21 0.006 20);
+  --fx-pile-border: color-mix(
+    in oklab,
+    var(--color-base-content) 32%,
+    transparent
+  );
+  --fx-pile-shadow: 2px 2px 0 var(--color-base-300);
   /* Ink on gradient fills — brand tiles, badges, avatars (text-on-gradient) */
   --fx-on-gradient: oklch(1 0 0); /* white */
   /* Geometry — P5 has no rounded corners */
@@ -535,6 +579,30 @@ body {
     box-shadow:
       var(--fx-glow-primary),
       0 14px 32px color-mix(in oklab, var(--color-base-300) 70%, transparent);
+  }
+
+  /* ── Backlog pile: the thin sheets under a project card (one per step
+        behind its next, at most three) — decoration only ── */
+  .fx-pile-sheet {
+    border: 1px solid var(--fx-pile-border);
+    border-top: 0;
+    border-radius: 0 0 var(--radius-card) var(--radius-card);
+    background: var(--fx-pile-front);
+    box-shadow: var(--fx-pile-shadow);
+  }
+  .fx-pile-sheet-back {
+    background: var(--fx-pile-back);
+  }
+
+  /* ── Backlog motion: the next card rises in after a pull, and the
+        counts (the badge, the card's +N) bump ── */
+  .fx-rise {
+    animation: fx-rise 0.35s cubic-bezier(0.2, 0, 0, 1);
+  }
+  .fx-bump,
+  .fx-rise .fx-more-mark {
+    display: inline-block;
+    animation: fx-bump 0.35s cubic-bezier(0.2, 0, 0, 1);
   }
 
   /* ── Signal pip: one mark of a card's progress signal (habit dots) ── */
@@ -979,6 +1047,11 @@ body {
   transform: rotate(45deg) scale(0.875);
 }
 
+[data-theme='p5-dark'] .fx-pile-sheet,
+[data-theme='p5-dark'] .fx-queue {
+  border-width: 0 1.5px 1.5px;
+}
+
 /* ── Hazard target: flat diagonal stripes, dashed edge ── */
 [data-theme='p5-dark'] .fx-target {
   border-radius: 0;
@@ -1264,6 +1337,17 @@ body {
     transform: translateY(0) scale(1);
   }
 }
+@keyframes fx-rise {
+  from {
+    opacity: 0.4;
+    transform: translateY(6px);
+  }
+}
+@keyframes fx-bump {
+  40% {
+    transform: scale(1.3);
+  }
+}
 @keyframes fx-orbit {
   to {
     transform: rotate(360deg);
@@ -1281,7 +1365,10 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .fx-led-pulse,
   .fx-boot-in,
-  .fx-grid-flow {
+  .fx-grid-flow,
+  .fx-rise,
+  .fx-bump,
+  .fx-rise .fx-more-mark {
     animation: none;
   }
   .fx-orbit::before,

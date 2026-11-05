@@ -66,6 +66,8 @@ disables them.
 | `fx-card` / `fx-card-lift` | Card edge-light + hover lift (shadow only — the kind edge always wins); lift = drag state class swap | `TaskCard` |
 | `fx-kind-edge` + `fx-k-{success,secondary,info}` | A card's 3px left border in its kind's colour. Unlayered, so it beats the card's own Tailwind border utilities | task cards (via `TASK_KIND_STYLE`) |
 | `fx-pip` | One round mark of a card's progress signal; colour and size come from utilities | habit week dots |
+| `fx-pile-sheet` (+`-back`) | One thin sheet of the pile under a backlog project card — `--fx-pile-*` fill, border and shadow, rounded at the bottom only; `-back` is a sheet further behind | `BacklogPile` |
+| `fx-rise` / `fx-bump` | Backlog motion: the next card rises in after a pull (its `+N` bumps with it); a count badge bumps when it changes. Mount animations, transform/opacity only | backlog group card, `BacklogCountBadge` |
 | `fx-target` | Drop-zone highlight, mars-orange channel; pulse = pseudo-element opacity (`@utility`, composes as `md:fx-target`) | board columns, gallery |
 | `fx-glow` / `fx-glow-accent` | Powered-up CTA halo | primary CTAs, sidebar logo |
 | `fx-chip` | Console chip from `currentColor` (border 28% / fill 10% / inset highlight) — pair with any `text-*` token | `SizeChip`, date pill |

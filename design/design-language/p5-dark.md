@@ -154,6 +154,7 @@ did.
 | `fx-glow` / `fx-glow-accent` | Soft luminous halo | **Pop shadow**: hard `4px 4px 0` **ink** offset at rest; hover/focus deepens to `5px 5px 0` blood-red (blood-orange for the accent variant). Depth stays ink/blood — a channel-colored offset under a same-channel fill would vanish. ⚠ skew-and-cut buttons need an inner `<span>` for counter-skewed glyphs and a wrapper for the `drop-shadow` — a markup change on existing `btn-primary` sites |
 | `fx-chip` | currentColor rounded chip | currentColor **parallelogram**: `skewX(-10deg)`, 1.5px full-strength currentColor border, fill at 12%; text stays skewed (P5 labels are oblique). Derivation from `currentColor` unchanged — `text-*` pairing still works |
 | `fx-pip` | Round signal mark | Flat **diamond**: square corners rotated 45° (the `fx-led` stud language) |
+| `fx-pile-sheet` | Thin rounded-bottom sheet | Square sheet with a 1.5px paper border and a hard `2px 2px 0` ink offset, like the cards; the backlog's step queue (`fx-queue`, no HUD skin of its own) takes the same 1.5px border |
 | `fx-label` (+`-bright`) | 11px mono uppercase | Unchanged (telemetry voice is load-bearing for readability). Brightness steps re-tuned to paper |
 | `fx-num` | Mono tabular numerals | Unchanged |
 | `fx-led` (+`fx-led-pulse`) | Glowing dot | **Diamond stud**: 7px square rotated 45°, flat `currentColor`, 1px ink outline, no glow. Pulse stays opacity-only |

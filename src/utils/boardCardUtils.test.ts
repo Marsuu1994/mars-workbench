@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {buildTask} from '../../test/buildTask';
 import {WEEK_KEY} from '../../test/time';
-import {toBoardCards} from './boardCardUtils';
+import {toBacklogGroups, toBoardCards} from './boardCardUtils';
 import {PlanMode, TaskStatus, TaskType} from './enums';
 import {TaskKind} from './taskUtils';
 
@@ -103,5 +103,81 @@ describe('toBoardCards', () => {
       kind: TaskKind.ONE_OFF,
       task: tasks[4],
     });
+  });
+});
+
+describe('toBacklogGroups', () => {
+  const backlogPlan = {
+    periodKey: WEEK_KEY,
+    mode: PlanMode.NORMAL,
+    planTemplates: [
+      {templateId: 'read', type: TaskType.WEEKLY, frequency: 2},
+      {templateId: 'stretch', type: TaskType.DAILY, frequency: 1},
+    ],
+  };
+  const staged = [
+    buildTask({
+      id: 'unit-4',
+      projectId: 'course',
+      type: TaskType.PROJECT,
+      instanceIndex: 4,
+    }),
+    buildTask({
+      id: 'read-2',
+      templateId: 'read',
+      type: TaskType.WEEKLY,
+      instanceIndex: 1,
+    }),
+    buildTask({
+      id: 'unit-5',
+      projectId: 'course',
+      type: TaskType.PROJECT,
+      instanceIndex: 5,
+    }),
+    buildTask({
+      id: 'read-1',
+      templateId: 'read',
+      type: TaskType.WEEKLY,
+      instanceIndex: 0,
+    }),
+    buildTask({id: 'stretch', templateId: 'stretch', type: TaskType.DAILY}),
+  ];
+  const backlogCards = toBoardCards(staged, {
+    plan: backlogPlan,
+    projects: [course],
+  })[TaskStatus.BACKLOG];
+  const {habitGroups, otherGroups} = toBacklogGroups(backlogCards);
+  const idsOfGroup = ({next, behind}: (typeof habitGroups)[number]) => [
+    next.task.id,
+    ...behind.map(card => card.task.id),
+  ];
+
+  it('makes one group per habit, habits first, its next the earliest instance', () => {
+    expect(habitGroups.map(group => group.key)).toEqual([
+      'HABIT:stretch',
+      'HABIT:read',
+    ]);
+    expect(idsOfGroup(habitGroups[1])).toEqual(['read-1', 'read-2']);
+  });
+
+  it("puts a project's steps behind its next, in step order", () => {
+    expect(otherGroups).toHaveLength(1);
+    const [projectGroup] = otherGroups;
+    expect(projectGroup.kind).toBe(TaskKind.PROJECT);
+    expect(projectGroup.next.task.id).toBe('unit-4');
+    expect(projectGroup.behind.map(card => card.task.id)).toEqual(['unit-5']);
+  });
+
+  it('gives each one-off a group of its own', () => {
+    const oneOffs = toBacklogGroups(
+      toBoardCards([buildTask({id: 'passport'}), buildTask({id: 'dentist'})], {
+        plan: backlogPlan,
+        projects: [],
+      })[TaskStatus.BACKLOG],
+    ).otherGroups;
+    expect(oneOffs.map(group => [group.kind, group.behind.length])).toEqual([
+      [TaskKind.ONE_OFF, 0],
+      [TaskKind.ONE_OFF, 0],
+    ]);
   });
 });

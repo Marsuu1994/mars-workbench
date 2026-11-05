@@ -8,7 +8,9 @@ import {
   MID_WEEK_PROGRESS,
   SCENARIO_PLAN,
   SCENARIO_PROJECTS,
-  BACKLOG_CARDS,
+  BACKLOG_GROUPS,
+  BACKLOG_TASK_COUNT,
+  BIO_QUEUE_TOGGLE_NAME,
 } from './fixtures';
 
 const BOARD_SCENARIOS: ScenarioTab[] = [
@@ -39,7 +41,7 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
   {
     label: 'Board',
     title: 'Board — active plan',
-    note: "Todo · Done with kind-first cards: habits with their plan line and week dots (each card rings its own dot; Workout shows a missed day), project steps with their project, step n/N and the path (the card's own step outlined), one-offs with their quadrant. Backlog collapsed.",
+    note: "Todo · Done with kind-first cards: habits with their plan line and week dots (each card rings its own dot; Workout shows a missed day; no done / total), project steps with their project, step n/N and the path (the card's own step outlined), one-offs with their quadrant. Backlog collapsed, its badge capped at 8+ for ten staged tasks.",
     content: (
       <BoardPage
         plan={SCENARIO_PLAN}
@@ -52,7 +54,7 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
   {
     label: 'Board — backlog open (desktop)',
     title: 'Board — backlog open (desktop)',
-    note: 'A play step opens the backlog: habit instances and a scheduled project step staged, ready to pull onto the board.',
+    note: 'A play step opens the backlog, grouped: one row per habit (its dots, +N more for the instances behind the next), then each project as its next step on a thin pile (+N more ⌄). Drag a card onto Todo: its next one rises in.',
     content: (
       <BoardPage
         plan={SCENARIO_PLAN}
@@ -64,11 +66,46 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
     play: [{click: {label: 'Board.Backlog.openLabel'}}],
   },
   {
+    label: 'Board — backlog queue open (desktop)',
+    title: 'Board — backlog queue open (desktop)',
+    note: "Play steps open the backlog and Biomedical course's +2 more ⌄: its queue lists the steps behind the next, read-only, in place of the pile. Opening grows the list below; closing keeps the scrollbar where it is.",
+    content: (
+      <BoardPage
+        plan={SCENARIO_PLAN}
+        progress={MID_WEEK_PROGRESS}
+        tasks={MID_WEEK_TASKS}
+        projects={SCENARIO_PROJECTS}
+      />
+    ),
+    play: [
+      {click: {label: 'Board.Backlog.openLabel'}},
+      {click: {name: BIO_QUEUE_TOGGLE_NAME}},
+    ],
+  },
+  {
     label: 'Backlog (mobile)',
     title: 'Backlog (mobile)',
-    note: 'The mobile backlog bottom sheet — staged habit instances and a project step on the full card face with a tap-to-pull action — shown inline (not as a top-layer modal).',
+    note: "The mobile backlog bottom sheet, grouped like the desktop panel, with each group's ↑ Todo at its bottom right — shown inline (not as a top-layer modal).",
     display: 'fit',
-    content: <MobileBacklogSheetFrame cards={BACKLOG_CARDS} />,
+    content: (
+      <MobileBacklogSheetFrame
+        count={BACKLOG_TASK_COUNT}
+        groups={BACKLOG_GROUPS}
+      />
+    ),
+  },
+  {
+    label: 'Backlog (mobile) — queue open',
+    title: 'Backlog (mobile) — queue open',
+    note: "A play step taps Biomedical course's +2 more ⌄: the queue opens under its card and the sheet's content grows below it.",
+    display: 'fit',
+    content: (
+      <MobileBacklogSheetFrame
+        count={BACKLOG_TASK_COUNT}
+        groups={BACKLOG_GROUPS}
+      />
+    ),
+    play: [{click: {name: BIO_QUEUE_TOGGLE_NAME}}],
   },
 ];
 

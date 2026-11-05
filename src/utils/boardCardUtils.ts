@@ -154,3 +154,101 @@ export function toBoardCards(
     [TaskStatus.DONE]: toSortedCards(tasksByStatus[TaskStatus.DONE]),
   };
 }
+
+// ─── Backlog groups ────────────────────────────────────────────────────────
+
+interface BacklogGroupBase<Card extends BoardCard> {
+  /** Stable across pulls: the template, the project, or the task itself */
+  key: string;
+  /** The one a pull takes — the group's first staged card */
+  next: Card;
+  /** The staged cards queued behind the next, in order */
+  behind: Card[];
+}
+
+/** One habit's staged instances: one row in the backlog. */
+export interface HabitBacklogGroup extends BacklogGroupBase<HabitCard> {
+  kind: typeof TaskKind.HABIT;
+}
+
+/** One project's steps on this week: its next step, the rest behind it. */
+export interface ProjectBacklogGroup extends BacklogGroupBase<ProjectStepCard> {
+  kind: typeof TaskKind.PROJECT;
+}
+
+/** A one-off stands alone: nothing ever sits behind it. */
+export interface OneOffBacklogGroup extends BacklogGroupBase<OneOffCard> {
+  kind: typeof TaskKind.ONE_OFF;
+}
+
+export type BacklogGroup =
+  HabitBacklogGroup | ProjectBacklogGroup | OneOffBacklogGroup;
+
+/** The backlog's two sections: habits first, then projects and one-offs. */
+export interface BacklogGroups {
+  habitGroups: HabitBacklogGroup[];
+  otherGroups: (ProjectBacklogGroup | OneOffBacklogGroup)[];
+}
+
+/** A card's group: its template, its project, or (a one-off) itself. */
+function getBacklogGroupKey({kind, task}: BoardCard): string {
+  switch (kind) {
+    case TaskKind.HABIT:
+      return `${kind}:${task.templateId ?? task.id}`;
+    case TaskKind.PROJECT:
+      return `${kind}:${task.projectId ?? task.id}`;
+    case TaskKind.ONE_OFF:
+      return `${kind}:${task.id}`;
+    default: {
+      const unhandled: never = kind;
+      throw new Error(`Unhandled task kind: ${unhandled}`);
+    }
+  }
+}
+
+/**
+ * The staged cards (toBoardCards' BACKLOG, already sorted) → the backlog's
+ * groups: one per habit, one per project, one per one-off, each keeping its
+ * cards' order so `next` is the one a pull takes. Groups keep the order
+ * their first card had; habits come first.
+ */
+export function toBacklogGroups(cards: BoardCard[]): BacklogGroups {
+  const cardsByKey = new Map<string, BoardCard[]>();
+  for (const card of cards) {
+    const key = getBacklogGroupKey(card);
+    const groupCards = cardsByKey.get(key) ?? [];
+    groupCards.push(card);
+    cardsByKey.set(key, groupCards);
+  }
+
+  const groups: BacklogGroups = {habitGroups: [], otherGroups: []};
+  for (const [key, [next, ...behind]] of cardsByKey) {
+    // A group's cards share its kind — the key starts with it
+    switch (next.kind) {
+      case TaskKind.HABIT:
+        groups.habitGroups.push({
+          kind: next.kind,
+          key,
+          next,
+          behind: behind as HabitCard[],
+        });
+        break;
+      case TaskKind.PROJECT:
+        groups.otherGroups.push({
+          kind: next.kind,
+          key,
+          next,
+          behind: behind as ProjectStepCard[],
+        });
+        break;
+      case TaskKind.ONE_OFF:
+        groups.otherGroups.push({kind: next.kind, key, next, behind: []});
+        break;
+      default: {
+        const unhandled: never = next;
+        throw new Error(`Unhandled card: ${JSON.stringify(unhandled)}`);
+      }
+    }
+  }
+  return groups;
+}

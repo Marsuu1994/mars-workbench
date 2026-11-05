@@ -9,16 +9,16 @@ import {BacklogCountBadge} from './BacklogCountBadge';
 import {MobileBacklogPanel} from './MobileBacklogPanel';
 
 interface MobileBacklogProps {
-  /** Staged cards — the pill's badge; the pill hides at zero */
+  /** Staged tasks — the pill's badge; the pill hides at zero */
   count: number;
-  /** The staged cards, rendered by BoardPage */
+  /** The staged groups, rendered by BoardPage */
   children: ReactNode;
 }
 
 /**
  * Mobile-only backlog entry: a peeking pill docked above the bottom tab bar
  * that opens the backlog bottom sheet. The sheet stages BACKLOG tasks; tapping
- * a card's "↑ Todo" button pulls it onto the board (BACKLOG → TODO). The
+ * a group's "↑ Todo" button pulls its next task onto the board (BACKLOG → TODO). The
  * desktop equivalent is DesktopBacklog (drag-based); at md and up this
  * renders nothing.
  */
