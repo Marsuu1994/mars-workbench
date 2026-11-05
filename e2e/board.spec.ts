@@ -43,10 +43,17 @@ test.describe('Landing Flow', () => {
   });
 });
 
+/** How long one Space press gets to lift the card before the lift is retried. */
+const LIFT_TIMEOUT_MS = 1000;
+
 /**
  * @hello-pangea/dnd's keyboard drag — lift, one column on, drop — stepping
  * on its screen-reader announcements. Todo and Done sit side by side on
  * desktop and stacked on mobile, so "on" is right or down.
+ *
+ * The lift retries until dnd announces it: a Space pressed before dnd has
+ * wired the card's drag handle is ignored, and CI's slower runner sometimes
+ * presses that early (the run on PR #109 waited 5 s on an empty announcer).
  */
 const dragOneColumnOn = async (
   page: Page,
@@ -54,11 +61,16 @@ const dragOneColumnOn = async (
   title: string,
 ) => {
   const announcements = page.locator('[aria-live]');
-  await findBoardColumn(page, 'TODO')
-    .getByRole('button', {name: new RegExp(title)})
-    .focus();
-  await page.keyboard.press('Space');
-  await expect(announcements).toContainText([/lifted/]);
+  const card = findBoardColumn(page, 'TODO').getByRole('button', {
+    name: new RegExp(title),
+  });
+  await expect(async () => {
+    await card.focus();
+    await page.keyboard.press('Space');
+    await expect(announcements).toContainText([/lifted/], {
+      timeout: LIFT_TIMEOUT_MS,
+    });
+  }).toPass();
   await page.keyboard.press(isMobile ? 'ArrowDown' : 'ArrowRight');
   await expect(announcements).toContainText([/to list DONE/]);
   const statusSaved = waitForServerAction(page, '/kanban');
