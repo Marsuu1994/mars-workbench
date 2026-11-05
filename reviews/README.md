@@ -1,6 +1,6 @@
 # Reviews
 
-The owner's code reviews, one file per pull request: which branch and commit was reviewed, every comment left, and what became of it. GitHub keeps the comments too; this log adds what GitHub doesn't — what kind of problem each comment caught and how it ended — and keeps it with the code, where later work can read it.
+The owner's code reviews — on GitHub, or given in a local session's chat — one file per pull request: which branch and commit was reviewed, every comment left, and what became of it. GitHub keeps the comments too; this log adds what GitHub doesn't — what kind of problem each comment caught and how it ended — and keeps it with the code, where later work can read it.
 
 ## Why
 
