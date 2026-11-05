@@ -185,18 +185,16 @@
   button.xp::before { content: ''; position: absolute; inset: -8px -6px; }
   button.xp .icon { color: var(--k); }
   button.xp:hover .more { color: var(--bc); }
-  /* c · drawer handle under the card · d · paper lip under the card */
-  .handle { display: flex; align-items: center; justify-content: center; gap: 6px; width: auto; margin: 0 8px; height: 26px; border: 1px solid var(--card-border); border-top: 0; border-radius: 0 0 var(--rc) var(--rc); background: color-mix(in oklab, var(--k) 8%, var(--b1)); cursor: pointer; }
-  .handle:hover { background: color-mix(in oklab, var(--k) 16%, var(--b1)); }
-  .sheet .handle { height: 34px; }
-  [data-theme='p5-dark'] .handle { border-width: 1.5px; border-top: 0; }
-  .lip-tab { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0 6px; height: 22px; border: 1px solid var(--lip-border); border-top: 0; border-radius: 0 0 var(--rc) var(--rc); background: var(--lip-1); cursor: pointer; position: relative; z-index: 1; }
-  .sheet .lip-tab { height: 30px; }
-  .lip-tab:hover { background: color-mix(in oklab, var(--k) 12%, var(--lip-1)); }
-  .lip-under { margin: 0 12px; height: 5px; border: 1px solid var(--lip-border); border-top: 0; border-radius: 0 0 var(--rc) var(--rc); background: var(--lip-2); }
-  [data-theme='p5-dark'] .lip-tab, [data-theme='p5-dark'] .lip-under { border-width: 1.5px; border-top: 0; }
-  .grp.xc .queue, .grp.xd .queue { border-radius: 0; }
-  /* expand options screen */
+  /* the pile under a project card: decoration only, one sheet per step
+     behind it, at most three — like a notification stack */
+  .pile { display: flex; flex-direction: column; align-items: stretch; pointer-events: none; }
+  .pile i { display: block; height: 6px; margin-top: -1px; border: 1px solid var(--lip-border); border-top: 0; border-radius: 0 0 var(--rc) var(--rc); background: var(--lip-1); box-shadow: 0 2px 5px oklch(0 0 0 / .22); }
+  .pile i:nth-child(1) { margin-left: 8px; margin-right: 8px; }
+  .pile i:nth-child(2) { margin-left: 16px; margin-right: 16px; height: 5px; background: var(--lip-2); opacity: .85; }
+  .pile i:nth-child(3) { margin-left: 24px; margin-right: 24px; height: 5px; background: var(--lip-2); opacity: .6; }
+  [data-theme='p5-dark'] .pile i { border-width: 1.5px; border-top: 0; box-shadow: 2px 2px 0 var(--b3); }
+  .grp .bk.project { position: relative; z-index: 1; }
+  /* pile screen */
   .xgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 18px; align-items: start; }
   .xgrid .cell { display: flex; flex-direction: column; gap: 10px; }
   .xgrid .cell.sheet { position: static; background: transparent; }
@@ -299,12 +297,11 @@
 
 <header class="topbar">
   <div>
-    <div class="eyebrow">Board · Backlog · design PR · round 4</div>
+    <div class="eyebrow">Board · Backlog · design PR · round 5</div>
     <h1>Backlog grouping — direction D, a quieter card</h1>
-    <p>Round 1 picked <b>D</b>: a habit is one row; a project is its next step with the rest one tap away. Round 2 trims the backlog card: no <b>Weekly × 3</b> / <b>Step 4/9</b> line, no <b>size</b>; a habit's top right says how many more are staged and on mobile <b>↑ Todo sits bottom-right</b>. Dots and the path both carry their <b>done / total</b> (1/3, 3/9). The badge counts <b>every staged task</b>, capped at <b>8+</b>. Round 4: both kinds say <b>+N more</b> — how many sit behind the next one — and a project's expand control comes in four placements, <b>a–d</b>: switch above, or see all four on screen 3.</p>
+    <p>Round 1 picked <b>D</b>: a habit is one row; a project is its next step with the rest one tap away. Round 2 trims the backlog card: no <b>Weekly × 3</b> / <b>Step 4/9</b> line, no <b>size</b>; a habit's top right says how many more are staged and on mobile <b>↑ Todo sits bottom-right</b>. Dots and the path both carry their <b>done / total</b> (1/3, 3/9). The badge counts <b>every staged task</b>, capped at <b>8+</b>. Both kinds say <b>+N more</b> at the top right — how many sit behind the next one; a project's opens its queue (⌄). Round 5: under a project with steps behind, a thin <b>pile</b> of up to three sheets, decoration only (screen 3).</p>
   </div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-    <div class="seg" id="xopts"></div>
     <div class="seg" id="themes">
       <button data-theme-btn="mars-dark" class="on">Mars dark</button>
       <button data-theme-btn="mars-light">Mars light</button>
@@ -322,30 +319,21 @@
 
   <div class="col-label spaced after"><b>After</b> · D, round 2 · drag onto Todo · count 8+<span class="line"></span></div>
   <div class="board" id="desk-after"></div>
-  <p class="note">Habits first, each one row: its dots, and <b>+N more</b> at the top right when more than one is staged. A project shows its next step; <b>+2 more ⌄</b> — placed per the a–d switch — opens the steps behind it, read-only, so the order holds; a drag always takes the next one. A one-off keeps its quadrant at the top right; it has nothing behind it. Drag three tasks across to watch the badge go <b>8+ → 8</b>. The board's own cards are untouched in this PR (question 3).</p>
+  <p class="note">Habits first, each one row: its dots, and <b>+N more</b> at the top right when more than one is staged. A project shows its next step; <b>+2 more ⌄</b> at the top right opens the steps behind it, read-only, so the order holds; a drag always takes the next one. A thin pile under the card shows there are more. A one-off keeps its quadrant at the top right; it has nothing behind it. Drag three tasks across to watch the badge go <b>8+ → 8</b>. The board's own cards are untouched in this PR (question 3).</p>
 </section>
 
 <!-- ═════════ 2 · Mobile ═════════ -->
 <section class="screen" data-screen="mobile">
   <div class="col-label"><b>Before and after</b> · the backlog sheet, open · tap ↑ Todo, tap N left this week ⌄<span class="line"></span></div>
   <div class="phones" id="phones"></div>
-  <p class="note">A project card has two tap targets: <b>+N more ⌄</b>, placed per the a–d switch (a and b are text with an invisible tap area 8px around; c and d are full-width strips, 34px and 30px tall on mobile), and <b>↑ Todo</b> bottom right (32px). A habit row's <b>+N more</b> is plain text — it has nothing to open. The pill above each phone is the entry over the tab bar; its badge is the sheet header's count.</p>
+  <p class="note">A project card has two tap targets: <b>+N more ⌄</b> top right (text, with an invisible tap area 8px around it) and <b>↑ Todo</b> bottom right (32px), at opposite corners. The pile under it takes no taps. A habit row's <b>+N more</b> is plain text — it has nothing to open. The pill above each phone is the entry over the tab bar; its badge is the sheet header's count.</p>
 </section>
 
-<!-- ═════════ 3 · Expand a–d ═════════ -->
-<section class="screen" data-screen="expand">
-  <div class="col-label"><b>Where a project's ⌄ goes</b> · Biomedical course open, Protein 3D viewer closed · tap to toggle<span class="line"></span></div>
-  <div class="xgrid" id="xgrid"></div>
-  <div class="tbl-wrap" style="margin-top:22px"><table class="tbl">
-    <thead><tr><th></th><th>a · Top right</th><th>b · Beside the path</th><th>c · Drawer handle</th><th>d · Paper lip</th></tr></thead>
-    <tbody>
-      <tr><td>Project name</td><td class="meh">Shares its line, truncates sooner</td><td class="good">Full width</td><td class="good">Full width</td><td class="good">Full width</td></tr>
-      <tr><td>Reads as a control (mobile)</td><td class="meh">Text + ⌄ only</td><td class="meh">Text + ⌄ only</td><td class="good">A full-width strip</td><td class="good">The lip itself</td></tr>
-      <tr><td>Next to ↑ Todo</td><td class="good">Opposite corner</td><td class="meh">Same row, other end</td><td class="good">Below the card</td><td class="good">Below the card</td></tr>
-      <tr><td>Says "more underneath" without words</td><td class="bad">No</td><td class="bad">No</td><td class="meh">A drawer</td><td class="good">A pile</td></tr>
-      <tr><td>Extra height</td><td class="good">0</td><td class="good">0</td><td class="meh">26px · 34px mobile</td><td class="meh">22–27px · 30–35px mobile</td></tr>
-    </tbody>
-  </table></div>
+<!-- ═════════ 3 · The pile ═════════ -->
+<section class="screen" data-screen="pile">
+  <div class="col-label"><b>A project's pile</b> · one sheet per step behind the next, at most three · tap +N more ⌄ to open<span class="line"></span></div>
+  <div class="xgrid" id="xgrid" style="grid-template-columns:repeat(2,minmax(0,340px))"></div>
+  <p class="note">The pile only says "there are more underneath": no text, no tap target, three sheets at most however many steps wait (six behind looks like three). The control stays <b>+N more ⌄</b> at the top right, the same spot as a habit's <b>+N more</b>, so both kinds read alike. Opening swaps the pile for the queue; pulling the last step behind leaves a plain card. On mobile, tap ↑ Todo to watch the pile thin out.</p>
 </section>
 
 <!-- ═════════ 4 · Card anatomy ═════════ -->
@@ -358,7 +346,7 @@
     <li><span class="k">① context text</span><b>Plan line and step n/N are gone</b>The dots already show a habit's week; the path already shows where a step sits. The project name stays — it is the step's identity, not a restatement.</li>
     <li><span class="k">② done / total</span><b>On both kinds</b>1/3 after a habit's dots, 3/9 after a project's path — never on one kind only. The same fraction is the signal's accessible name ("1 of 3 done this week").</li>
     <li><span class="k">③ size</span><b>No size chip</b>On desktop and mobile alike. Points still count on the dashboard.</li>
-    <li><span class="k">④ corners</span><b>+N more · ↑ Todo bottom right</b>Both kinds count what sits <i>behind</i> the next one, so a project's number matches the rows its queue opens: Read with two staged reads <i>+1 more</i>; Biomedical course, three steps on the week, <i>+2 more ⌄</i>; the last one shows nothing. Where a project's ⌄ goes is a–d (screen 3). One-off: its quadrant. On mobile ↑ Todo moves to the bottom right on every card.</li>
+    <li><span class="k">④ corners</span><b>+N more · ↑ Todo bottom right</b>Both kinds count what sits <i>behind</i> the next one, so a project's number matches the rows its queue opens: Read with two staged reads <i>+1 more</i>; Biomedical course, three steps on the week, <i>+2 more ⌄</i>; the last one shows nothing. A project with steps behind it sits on a thin pile, at most three sheets (screen 3). One-off: its quadrant. On mobile ↑ Todo moves to the bottom right on every card.</li>
   </ul>
 
   <div class="col-label spaced"><b>The count</b> · every staged task, capped at 8+<span class="line"></span></div>
@@ -386,7 +374,7 @@
 <nav class="seg screen-nav" id="screens">
   <button data-screen-btn="desktop" class="on">1 · Desktop</button>
   <button data-screen-btn="mobile">2 · Mobile</button>
-  <button data-screen-btn="expand">3 · Expand a–d</button>
+  <button data-screen-btn="pile">3 · Project pile</button>
   <button data-screen-btn="anatomy">4 · Card & count</button>
   <button data-screen-btn="research">5 · Research</button>
 </nav>
@@ -478,13 +466,6 @@ const pullBtn = (groupId, index) => `<button class="tc-pull" data-pull="${groupI
 /* ── AFTER: the backlog faces ── */
 /* "+N more" = the staged ones behind the next; nothing when it is the last */
 const moreText = (count, bumped) => `<span class="more ${bumped ? 'bump' : ''}"><b>+${count}</b>more</span>`;
-let expandOption = 'c';
-const EXPAND = {
-  a: {label: 'a · Top right', note: 'top right, plain text — no pill'},
-  b: {label: 'b · Beside the path', note: 'bottom left, after the path'},
-  c: {label: 'c · Drawer handle', note: 'a full-width strip under the card'},
-  d: {label: 'd · Paper lip', note: 'the stack\'s lip is the control'},
-};
 
 function habitRow(group, ctx) {
   const rest = remaining(group);
@@ -497,28 +478,23 @@ function habitRow(group, ctx) {
   </div>`;
 }
 
+const PILE_MAX = 3;
 function projectCard(group, ctx) {
-  const variant = ctx.variant ?? expandOption;
   const rest = remaining(group);
   const [top, ...behind] = rest;
   const bumped = ctx.state.bumped === group.id;
   const drag = ctx.mobile ? '' : `data-drag="${group.id}" data-index="${group.pulled}"`;
   const hasMore = behind.length > 0;
-  const chevron = icon(group.open ? 'chevUp' : 'chevDown', 'xs');
-  const toggleAttrs = `data-toggle="${group.id}" title="${group.open ? 'Hide' : 'Show'} the steps behind it"`;
-  const more = hasMore ? moreText(behind.length, bumped) : '';
-  const inlineToggle = hasMore ? `<button class="xp" ${toggleAttrs}>${more}${chevron}</button>` : '';
-  const queue = group.open && hasMore
-    ? `<div class="queue">${behind.map(item => `<div class="q-row" data-kind="project"><span class="n">${item.n}</span><span class="t">${item.title}</span></div>`).join('')}</div>` : '';
+  const toggle = hasMore
+    ? `<button class="xp" data-toggle="${group.id}" title="${group.open ? 'Hide' : 'Show'} the steps behind it">${moreText(behind.length, bumped)}${icon(group.open ? 'chevUp' : 'chevDown', 'xs')}</button>` : '';
   const below = !hasMore ? ''
-    : variant === 'c' ? `${queue}<button class="handle" ${toggleAttrs}>${group.open ? `<span class="more">Hide</span>` : more}${chevron}</button>`
-    : variant === 'd' ? `${queue}<button class="lip-tab" ${toggleAttrs}>${group.open ? `<span class="more">Hide</span>` : more}${chevron}</button>${!group.open && behind.length > 1 ? '<span class="lip-under"></span>' : ''}`
-    : queue;
-  return `<div class="grp x${variant}"><div class="bk project ${bumped ? 'rise' : ''}" data-kind="project" ${drag}>
-    <div class="bk-top"><span class="ic">${icon('project', 'xs')}</span><span class="kname">${group.name}</span>${variant === 'a' ? inlineToggle : ''}</div>
+    : group.open ? `<div class="queue">${behind.map(item => `<div class="q-row" data-kind="project"><span class="n">${item.n}</span><span class="t">${item.title}</span></div>`).join('')}</div>`
+    : `<span class="pile" aria-hidden="true">${'<i></i>'.repeat(Math.min(behind.length, PILE_MAX))}</span>`;
+  return `<div class="grp"><div class="bk project ${bumped ? 'rise' : ''}" data-kind="project" ${drag}>
+    <div class="bk-top"><span class="ic">${icon('project', 'xs')}</span><span class="kname">${group.name}</span>${toggle}</div>
     <div class="bk-title">${top.title}</div>
     ${top.desc ? `<p class="bk-desc">${top.desc}</p>` : ''}
-    <div class="bk-bot">${path({total: group.total, doneSteps: group.done, cur: top.n})}<span class="frac">${group.done.length}/${group.total}</span>${variant === 'b' && hasMore ? `<span class="frac">·</span>${inlineToggle}` : ''}<span class="sp"></span>${ctx.mobile ? pullBtn(group.id, group.pulled) : ''}</div>
+    <div class="bk-bot">${path({total: group.total, doneSteps: group.done, cur: top.n})}<span class="frac">${group.done.length}/${group.total}</span><span class="sp"></span>${ctx.mobile ? pullBtn(group.id, group.pulled) : ''}</div>
   </div>${below}</div>`;
 }
 
@@ -591,18 +567,22 @@ function renderPhone({key, label, option, frac}) {
   </div>`;
 }
 
-/* Expand options screen: a–d side by side, closed and open, desktop and mobile */
-function renderExpandOptions() {
-  const cell = (key, mobile) => {
-    const state = surfaces.expand[key];
-    const pick = id => state.groups.find(group => group.id === id);
-    const ctx = {state, mobile, variant: key[0]};
-    return `<div class="cell ${mobile ? 'sheet' : ''}" data-expand="${key}">
-      <div class="sub">${mobile ? 'Mobile' : 'Desktop'}</div>
-      ${habitRow(pick('read'), ctx)}${projectCard(pick('bio'), ctx)}${projectCard(pick('pdb'), ctx)}</div>`;
-  };
-  document.getElementById('xgrid').innerHTML = Object.entries(EXPAND).map(([key, {label, note}]) =>
-    `<div class="cell"><div class="hd">${label}<span>${note}</span></div>${cell(key, false)}${cell(key + 'm', true)}</div>`).join('');
+/* Pile screen: one project with 0, 1, 2, 3 and 6 steps behind its next */
+const PILE_CASES = [0, 1, 2, 3, 6];
+function pileState(behindCount) {
+  const state = freshState();
+  const items = Array.from({length: behindCount + 1}, (_, offset) => ({n: 4 + offset, title: `Lecture ${4 + offset}`, desc: null}));
+  state.groups = [{id: 'pile', kind: 'project', name: 'Biomedical course', total: 12, done: [1, 2, 3], items, pulled: 0, open: false}];
+  return state;
+}
+function renderPiles() {
+  const column = mobile => `<div class="cell ${mobile ? 'sheet' : ''}"><div class="sub">${mobile ? 'Mobile' : 'Desktop'}</div>${PILE_CASES.map(behindCount => {
+    const key = `${behindCount}${mobile ? 'm' : ''}`;
+    const state = surfaces.piles[key];
+    const live = state.groups[0];
+    return `<div data-pile="${key}"><div class="sub" style="margin:0 0 6px">${remaining(live).length - 1} behind</div>${remaining(live).length ? projectCard(live, {state, mobile}) : '<p class="empty">All pulled</p>'}</div>`;
+  }).join('')}</div>`;
+  document.getElementById('xgrid').innerHTML = column(false) + column(true);
 }
 
 /* Card & count screen: one of each kind, before vs after, desktop vs mobile */
@@ -640,12 +620,7 @@ function resetAll() {
   surfaces.deskBefore = freshState();
   surfaces.deskAfter = freshState();
   surfaces.phones = Object.fromEntries(PHONES.map(({key}) => [key, freshState()]));
-  // a–d screen: Biomedical course open, Protein 3D viewer closed
-  surfaces.expand = Object.fromEntries(['a', 'b', 'c', 'd', 'am', 'bm', 'cm', 'dm'].map(key => {
-    const state = freshState();
-    state.groups.find(group => group.id === 'bio').open = true;
-    return [key, state];
-  }));
+  surfaces.piles = Object.fromEntries(PILE_CASES.flatMap(behindCount => [[`${behindCount}`, pileState(behindCount)], [`${behindCount}m`, pileState(behindCount)]]));
   renderAll();
 }
 function renderAll() {
@@ -653,8 +628,7 @@ function renderAll() {
   renderBoard(document.getElementById('desk-after'), surfaces.deskAfter, 'after');
   document.getElementById('phones').innerHTML = PHONES.map(renderPhone).join('');
   renderAnatomy();
-  renderExpandOptions();
-  document.getElementById('xopts').innerHTML = Object.entries(EXPAND).map(([key, {label}]) => `<button data-xopt="${key}" class="${key === expandOption ? 'on' : ''}">${label}</button>`).join('');
+  renderPiles();
   for (const state of [surfaces.deskBefore, surfaces.deskAfter, ...Object.values(surfaces.phones)]) { state.bumped = null; state.fresh = null; }
 }
 function stateFor(el) {
@@ -662,8 +636,8 @@ function stateFor(el) {
   if (el.closest('#desk-after')) return surfaces.deskAfter;
   const phone = el.closest('[data-phone]');
   if (phone) return surfaces.phones[phone.dataset.phone];
-  const expand = el.closest('[data-expand]');
-  if (expand) return surfaces.expand[expand.dataset.expand];
+  const pile = el.closest('[data-pile]');
+  if (pile) return surfaces.piles[pile.dataset.pile];
   return null;
 }
 
@@ -697,8 +671,6 @@ document.addEventListener('click', event => {
     return;
   }
   if (event.target.closest('#reset')) { resetAll(); return; }
-  const xopt = event.target.closest('[data-xopt]');
-  if (xopt) { expandOption = xopt.dataset.xopt; renderAll(); return; }
   const toggle = event.target.closest('[data-toggle]');
   if (toggle) {
     const state = stateFor(toggle);
