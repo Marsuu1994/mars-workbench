@@ -13,19 +13,17 @@ import {StepPath} from './StepPath';
 
 interface TaskCardFaceProps {
   card: BoardCard;
-  /** Optional action beside the title (the mobile sheet's ↑ Todo) */
-  action?: ReactNode;
   /** Visibility from the host card (TaskCard swaps faces at md) */
   className?: string;
 }
 
 /**
- * The full kind-first card face — desktop board, desktop backlog and the
- * mobile backlog sheet. Line 1: kind (a step's project name) + context. Then
+ * The full kind-first card face of the board's columns from md up (the
+ * backlog draws its own faces, backlog-group/). Line 1: kind (a step's project name) + context. Then
  * the title (and its description until done). Last line: the kind's signal —
  * a habit's week dots, a step's path — and a neutral size.
  */
-export const TaskCardFace = ({card, action, className}: TaskCardFaceProps) => {
+export const TaskCardFace = ({card, className}: TaskCardFaceProps) => {
   const tCard = useTranslations('Board.Card');
   const {task} = card;
   const isDone = task.status === TaskStatus.DONE;
@@ -83,16 +81,13 @@ export const TaskCardFace = ({card, action, className}: TaskCardFaceProps) => {
         context={renderContext()}
       />
 
-      <div className="flex items-start gap-2.5">
-        <h3
-          className={`flex-1 min-w-0 text-sm font-medium leading-snug ${
-            isDone ? 'line-through text-base-content/50' : ''
-          }`}
-        >
-          {task.title}
-        </h3>
-        {action}
-      </div>
+      <h3
+        className={`text-sm font-medium leading-snug ${
+          isDone ? 'line-through text-base-content/50' : ''
+        }`}
+      >
+        {task.title}
+      </h3>
 
       {task.description && !isDone && (
         <p className="-mt-0.5 text-xs leading-snug text-base-content/60 line-clamp-2 break-words">

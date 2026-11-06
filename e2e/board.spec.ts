@@ -7,8 +7,10 @@ import {newHabit} from '../test/factories';
 import {PlanMode, TaskStatus, TaskType} from '@/utils/enums';
 import {
   expectTodayDoneCount,
+  findBacklogCard,
   findBoardCard,
   findBoardColumn,
+  openBacklog,
 } from './actions/board';
 import {
   expect,
@@ -21,6 +23,7 @@ import {
 const HABIT_TITLE = 'Flashcards';
 const PROJECT_TITLE = 'Spanish course';
 const STEP_TITLE = 'Unit 1 — Daily routines';
+const NEXT_STEP_TITLE = 'Unit 2 — Ordering food';
 
 test.describe('Landing Flow', () => {
   test('the board shows the week', async ({page, seed}) => {
@@ -105,7 +108,60 @@ test.describe('Drag and Drop Flow', () => {
   });
 });
 
+/**
+ * Pulls a backlog group's next task onto Todo: on desktop a keyboard drag
+ * from the panel, two columns left (Done, then Todo); on mobile the sheet's
+ * ↑ Todo.
+ */
+const pullToTodo = async (page: Page, isMobile: boolean, title: string) => {
+  const statusSaved = waitForServerAction(page, '/kanban');
+  if (isMobile) {
+    await page.getByRole('dialog').getByRole('button', {name: 'Todo'}).click();
+  } else {
+    const announcements = page.locator('[aria-live]');
+    await findBoardColumn(page, 'BACKLOG')
+      .getByRole('button', {name: new RegExp(title)})
+      .focus();
+    await page.keyboard.press('Space');
+    await expect(announcements).toContainText([/lifted/]);
+    await page.keyboard.press('ArrowLeft');
+    await expect(announcements).toContainText([/to list DONE/]);
+    await page.keyboard.press('ArrowLeft');
+    await expect(announcements).toContainText([/to list TODO/]);
+    await page.keyboard.press('Space');
+    await expect(announcements).toContainText([/dropped/]);
+  }
+  await statusSaved;
+};
+
 test.describe('Backlog Flow', () => {
+  test('a project shows only its next step, and a pull brings the one behind it up', async ({
+    page,
+    seed,
+    isMobile,
+  }) => {
+    const project = await seed.createProjectWithSteps(PROJECT_TITLE, [
+      STEP_TITLE,
+      NEXT_STEP_TITLE,
+    ]);
+    await seed.createWeek({
+      addProjectStepIds: project.steps.map(step => step.id),
+    });
+    await openPage(page, '/kanban');
+    await openBacklog(page);
+    await expect(findBacklogCard(page, isMobile, STEP_TITLE)).toBeVisible();
+    await expect(findBacklogCard(page, isMobile, NEXT_STEP_TITLE)).toHaveCount(
+      0,
+    );
+
+    await pullToTodo(page, isMobile, STEP_TITLE);
+    await expect(
+      findBacklogCard(page, isMobile, NEXT_STEP_TITLE),
+    ).toBeVisible();
+    await expect(findBacklogCard(page, isMobile, STEP_TITLE)).toHaveCount(0);
+    await expect(findBoardCard(page, 'TODO', STEP_TITLE)).toBeVisible();
+  });
+
   test('the backlog takes focus only while it is open', async ({
     page,
     seed,

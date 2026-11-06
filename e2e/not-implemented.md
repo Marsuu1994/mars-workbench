@@ -9,7 +9,6 @@ Which layer tests what: an e2e test proves a journey is wired end to end (the ac
 | Flow doc | Flow | What's missing |
 | --- | --- | --- |
 | `board.md` | Progress Tracking Flow | Only the day's count after one drag to Done is asserted (Drag and Drop Flow); the week's progress isn't |
-| `board.md` | Backlog Flow | Pulling a card: dragging it onto Todo (desktop), `↑ Todo` in the sheet (mobile) |
 | `plan.md` | Create Task Template Flow | All of it |
 | `plan.md` | Update Task Template Flow | All of it |
 | `plan.md` | Create Plan Flow | All of it |

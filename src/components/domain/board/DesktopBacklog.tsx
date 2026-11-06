@@ -10,12 +10,14 @@ import {
   ArrowLeftIcon,
 } from '@heroicons/react/24/outline';
 import {TaskStatus} from '@/utils/enums';
+import {useScrollHold} from '@/components/ui/scroll-hold/useScrollHold';
+import {ScrollHoldContext} from '@/components/ui/scroll-hold/ScrollHoldContext';
 import {BacklogCountBadge} from './BacklogCountBadge';
 
 interface DesktopBacklogProps {
-  /** Staged cards — the count pill and the empty state */
+  /** Staged tasks — the count pill and the empty state */
   count: number;
-  /** The staged cards, rendered by BoardPage */
+  /** The staged groups, rendered by BoardPage */
   children: ReactNode;
 }
 
@@ -32,6 +34,7 @@ export const DesktopBacklog = ({count, children}: DesktopBacklogProps) => {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   // Set by the toggles, so the first render leaves focus where it is
   const hasToggledRef = useRef(false);
+  const {scrollRef, contentRef, onScroll, holdScrollHeight} = useScrollHold();
 
   // The side that fades out turns inert, so focus moves to the toggle that
   // just appeared — once committed, since it is inert until then
@@ -91,26 +94,41 @@ export const DesktopBacklog = ({count, children}: DesktopBacklogProps) => {
   );
 
   const renderBody = () => (
-    // isDropDisabled: cards only leave the backlog. Without it, the collapsed
-    // backlog's invisible panel (kept mounted for the cross-fade, overlapping
-    // the Done column) wins dnd's geometric hit-test and steals Done drops.
-    <Droppable droppableId={TaskStatus.BACKLOG} isDropDisabled>
-      {provided => (
-        <div
-          ref={provided.innerRef}
-          {...provided.droppableProps}
-          className="flex-1 overflow-y-auto p-3 flex flex-col gap-2"
-        >
-          {count === 0 && (
-            <p className="text-center text-xs text-base-content/40 mt-6 px-4">
-              {t('emptyState')}
-            </p>
-          )}
-          {children}
-          {provided.placeholder}
-        </div>
-      )}
-    </Droppable>
+    // Scrolls on its own, without scroll anchoring: only the user moves the
+    // scrollbar — a queue opening grows below, one closing holds its space
+    // (useScrollHold). The droppable is the content box inside it.
+    <div
+      ref={scrollRef}
+      onScroll={onScroll}
+      className="flex-1 overflow-y-auto [overflow-anchor:none] p-3"
+    >
+      {/* isDropDisabled: cards only leave the backlog. Without it, the
+          collapsed backlog's invisible panel (kept mounted for the
+          cross-fade, overlapping the Done column) wins dnd's geometric
+          hit-test and steals Done drops. */}
+      <Droppable droppableId={TaskStatus.BACKLOG} isDropDisabled>
+        {provided => (
+          <div
+            ref={element => {
+              provided.innerRef(element);
+              contentRef(element);
+            }}
+            {...provided.droppableProps}
+            className="flex flex-col gap-3.5"
+          >
+            {count === 0 && (
+              <p className="text-center text-xs text-base-content/40 mt-6 px-4">
+                {t('emptyState')}
+              </p>
+            )}
+            <ScrollHoldContext value={holdScrollHeight}>
+              {children}
+            </ScrollHoldContext>
+            {provided.placeholder}
+          </div>
+        )}
+      </Droppable>
+    </div>
   );
 
   return (

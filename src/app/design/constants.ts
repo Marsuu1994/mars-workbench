@@ -10,7 +10,12 @@ import {
 import type {TaskItem} from '@/lib/db/tasks';
 import type {DumpEntryItem} from '@/lib/db/dumpEntries';
 import {TaskKind, type HabitWeek} from '@/utils/taskUtils';
-import type {BoardCard, ProjectStepContext} from '@/utils/boardCardUtils';
+import {
+  toBacklogGroups,
+  type BacklogGroups,
+  type BoardCard,
+  type ProjectStepContext,
+} from '@/utils/boardCardUtils';
 import type {BoardPageContextValue} from '@/components/domain/board/BoardPageContext';
 import type {PrioritiesPageContextValue} from '@/components/domain/priorities/PrioritiesPageContext';
 import type {ProjectsPageContextValue} from '@/components/domain/projects/ProjectsPageContext';
@@ -197,8 +202,6 @@ const WORKOUT_WEEK = habitWeek(TaskType.DAILY, 1, [
   false,
   false,
 ]);
-// Read 2× / week, both still in the backlog; the card is #1.
-const READ_WEEK = habitWeek(TaskType.WEEKLY, 2, [false, false]);
 
 /** A habit card: its week, and the slot of its own (ringed) dot. */
 const habitCard = (
@@ -228,7 +231,7 @@ const stepContext = (
 
 // Protein 3D viewer: step 1 done, the Todo card is step 2 of 4.
 const PROTEIN_PATH = [true, false, false, false];
-// Biomedical course: Lectures 1–3 done, 4 is staged, 5 not scheduled.
+// Biomedical course: Lectures 1–3 done, 4 and 5 still to come.
 const BIOMEDICAL_PATH = [true, true, true, false, false];
 
 /** A project step card: its project, number and path. */
@@ -245,8 +248,8 @@ export interface TaskCardFixture {
   card: BoardCard;
 }
 
-/** Every kind in every place it can sit (a one-off never reaches the
-    backlog — Track This Week sends it straight to Todo). */
+/** Every kind in both columns (the backlog draws its own faces:
+    BACKLOG_GROUP_FIXTURES). */
 export const TASK_CARD_FIXTURES: TaskCardFixture[] = [
   {
     label: 'Habit · Todo (weekly)',
@@ -279,21 +282,6 @@ export const TASK_CARD_FIXTURES: TaskCardFixture[] = [
     ),
   },
   {
-    label: 'Habit · Backlog',
-    card: habitCard(
-      baseTask({
-        id: 't-backlog',
-        templateId: 'tpl-read',
-        type: TaskType.WEEKLY,
-        title: 'Read',
-        status: TaskStatus.BACKLOG,
-        ...xs,
-      }),
-      READ_WEEK,
-      0,
-    ),
-  },
-  {
     label: 'Habit · Done',
     card: habitCard(
       baseTask({
@@ -321,21 +309,6 @@ export const TASK_CARD_FIXTURES: TaskCardFixture[] = [
         description: 'Rotate + zoom works in the page',
       }),
       stepContext('Protein 3D viewer', 2, PROTEIN_PATH),
-    ),
-  },
-  {
-    label: 'Project step · Backlog',
-    card: projectStepCard(
-      stepTask({
-        id: 't-step-backlog',
-        projectId: 'prj-bio',
-        instanceIndex: 4,
-        title: 'Lecture 4 — Cell signaling',
-        description: 'Watch + one-page notes',
-        status: TaskStatus.BACKLOG,
-        ...xs,
-      }),
-      stepContext('Biomedical course', 4, BIOMEDICAL_PATH),
     ),
   },
   {
@@ -387,8 +360,8 @@ export const TASK_CARD_FIXTURES: TaskCardFixture[] = [
 export const MINI_CARD_FIXTURES: TaskCardFixture[] = [
   TASK_CARD_FIXTURES[0],
   TASK_CARD_FIXTURES[1],
-  TASK_CARD_FIXTURES[4],
-  TASK_CARD_FIXTURES[7],
+  TASK_CARD_FIXTURES[3],
+  TASK_CARD_FIXTURES[5],
 ];
 
 /** StepPath specimens: path lengths and where the card's step sits. */
@@ -563,11 +536,74 @@ export const inertPrioritiesPageContext = (
   completeTask: () => undefined,
 });
 
-/** The page context a MobileBacklogCard renders in, outside the board page:
+/** The page context a backlog group renders in, outside the board page:
     inert handlers (the frame swallows clicks). */
 export const inertBoardPageContext = (): BoardPageContextValue => ({
   pullToTodo: () => undefined,
 });
+
+/** Backlog groups, one per face and pile depth: a habit with one instance
+    behind its next, a project's last step (no pile), then 1, 2 and 6 steps
+    behind (the pile stops at three sheets), and a one-off. */
+const READ_3_WEEK = habitWeek(TaskType.WEEKLY, 3, [true, false, false]);
+const readInstance = (instanceIndex: number): BoardCard =>
+  habitCard(
+    baseTask({
+      id: `b-read-${instanceIndex}`,
+      templateId: 'tpl-read',
+      type: TaskType.WEEKLY,
+      title: 'Read',
+      description: '30 pages, any book',
+      status: TaskStatus.BACKLOG,
+      instanceIndex,
+      ...xs,
+    }),
+    READ_3_WEEK,
+    instanceIndex,
+  );
+const BIOMEDICAL_12_PATH = [true, true, true, ...Array<boolean>(9).fill(false)];
+const lecture = (number: number): BoardCard =>
+  projectStepCard(
+    stepTask({
+      id: `b-lecture-${number}`,
+      projectId: 'prj-bio',
+      title: `Lecture ${number}`,
+      description: number === 4 ? 'Watch + one-page notes' : null,
+      status: TaskStatus.BACKLOG,
+      instanceIndex: number,
+      ...xs,
+    }),
+    stepContext('Biomedical course', number, BIOMEDICAL_12_PATH),
+  );
+const lectures = (behindCount: number) =>
+  Array.from({length: behindCount + 1}, (_, offset) => lecture(4 + offset));
+
+export const BACKLOG_GROUP_FIXTURES: {label: string; groups: BacklogGroups}[] =
+  [
+    {label: 'Habit · +1 more', cards: [readInstance(1), readInstance(2)]},
+    {label: 'Project · last step', cards: lectures(0)},
+    {label: 'Project · 1 behind', cards: lectures(1)},
+    {label: 'Project · 2 behind', cards: lectures(2)},
+    {label: 'Project · 6 behind', cards: lectures(6)},
+    {
+      label: 'One-off',
+      cards: [
+        oneOffCard(
+          baseTask({
+            id: 'b-passport',
+            type: TaskType.AD_HOC,
+            title: 'Renew passport',
+            description: 'Photos first — form DS-82',
+            quadrant: PriorityQuadrant.DO_FIRST,
+            status: TaskStatus.BACKLOG,
+          }),
+        ),
+      ],
+    },
+  ].map(({label, cards}) => ({label, groups: toBacklogGroups(cards)}));
+
+/** BacklogCountBadge: a light week, the cap, past it, a heavy week. */
+export const BACKLOG_COUNT_FIXTURES = [3, 8, 11, 20];
 
 /** PlanTaskRow — tasks already on the plan the form keeps or lets go. */
 export const PLAN_TASK_ROW_FIXTURES = [

@@ -4,14 +4,18 @@ import {useState, useMemo} from 'react';
 import {DragDropContext, type DropResult} from '@hello-pangea/dnd';
 import type {BoardData} from '@/types/board';
 import {TaskStatus} from '@/utils/enums';
-import {toBoardCards, type BoardCard} from '@/utils/boardCardUtils';
+import {
+  toBacklogGroups,
+  toBoardCards,
+  type BoardCard,
+} from '@/utils/boardCardUtils';
 import {updateTaskStatusAction} from '@/actions/taskActions';
 import {useOptimisticTasks} from '@/hooks/useOptimisticTasks';
 import {BoardHeader} from '@/components/domain/shared/BoardHeader';
 import {BoardColumn} from './BoardColumn';
 import {DesktopBacklog} from './DesktopBacklog';
 import {MobileBacklog} from './MobileBacklog';
-import {MobileBacklogCard} from './MobileBacklogCard';
+import {BacklogGroupList} from './backlog-group/BacklogGroupList';
 import {ProgressDashboard} from './ProgressDashboard';
 import {TaskCard} from './TaskCard';
 import {BoardPageContext, type BoardPageContextValue} from './BoardPageContext';
@@ -22,7 +26,7 @@ import {BoardPageContext, type BoardPageContextValue} from './BoardPageContext';
  * as state, derives the cards with toBoardCards, and renders them into the
  * columns and backlogs — frames that know nothing about cards. Moves are
  * optimistic and roll back per task on failure; the mobile pull reaches its
- * cards through BoardPageContext.
+ * backlog groups through BoardPageContext.
  */
 export const BoardPage = ({plan, progress, tasks, projects}: BoardData) => {
   const {localTasks, runOptimisticTaskUpdate} = useOptimisticTasks(tasks);
@@ -37,6 +41,7 @@ export const BoardPage = ({plan, progress, tasks, projects}: BoardData) => {
     [TaskStatus.DONE]: doneCards,
     [TaskStatus.BACKLOG]: backlogCards,
   } = cardsByStatus;
+  const backlogGroups = toBacklogGroups(backlogCards);
 
   function moveTask(taskId: string, status: TaskStatus, errorLabel: string) {
     runOptimisticTaskUpdate(
@@ -76,11 +81,6 @@ export const BoardPage = ({plan, progress, tasks, projects}: BoardData) => {
       <TaskCard key={card.task.id} card={card} index={index} />
     ));
 
-  const renderMobileBacklogCards = () =>
-    backlogCards.map(card => (
-      <MobileBacklogCard key={card.task.id} card={card} />
-    ));
-
   const renderBoard = () => (
     <DragDropContext
       onDragStart={() => setIsDragging(true)}
@@ -111,11 +111,11 @@ export const BoardPage = ({plan, progress, tasks, projects}: BoardData) => {
           </BoardColumn>
         </div>
         <DesktopBacklog count={backlogCards.length}>
-          {renderDraggableCards(backlogCards)}
+          <BacklogGroupList groups={backlogGroups} variant="desktop" />
         </DesktopBacklog>
       </div>
       <MobileBacklog count={backlogCards.length}>
-        {renderMobileBacklogCards()}
+        <BacklogGroupList groups={backlogGroups} variant="mobile" />
       </MobileBacklog>
     </DragDropContext>
   );

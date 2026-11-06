@@ -154,3 +154,74 @@ export function toBoardCards(
     [TaskStatus.DONE]: toSortedCards(tasksByStatus[TaskStatus.DONE]),
   };
 }
+
+// ─── Backlog groups ────────────────────────────────────────────────────────
+
+interface BacklogGroupBase<Card extends BoardCard> {
+  /** Stable across pulls: the template, the project, or the task itself */
+  key: string;
+  /** The one a pull takes — the group's first staged card */
+  next: Card;
+  /** The staged cards queued behind the next, in order */
+  behind: Card[];
+}
+
+/** One habit's staged instances: one row in the backlog. */
+export interface HabitBacklogGroup extends BacklogGroupBase<HabitCard> {
+  kind: typeof TaskKind.HABIT;
+}
+
+/** One project's steps on this week: its next step, the rest behind it. */
+export interface ProjectBacklogGroup extends BacklogGroupBase<ProjectStepCard> {
+  kind: typeof TaskKind.PROJECT;
+}
+
+/** A one-off stands alone: nothing ever sits behind it. */
+export interface OneOffBacklogGroup extends BacklogGroupBase<OneOffCard> {
+  kind: typeof TaskKind.ONE_OFF;
+}
+
+export type BacklogGroup =
+  HabitBacklogGroup | ProjectBacklogGroup | OneOffBacklogGroup;
+
+/** The backlog's two sections: habits first, then projects and one-offs. */
+export interface BacklogGroups {
+  habitGroups: HabitBacklogGroup[];
+  otherGroups: (ProjectBacklogGroup | OneOffBacklogGroup)[];
+}
+
+/** What a card groups by — its template, its project — or null to stand alone. */
+const GROUP_ID_BY_KIND: Record<TaskKind, (task: TaskItem) => string | null> = {
+  [TaskKind.HABIT]: task => task.templateId,
+  [TaskKind.PROJECT]: task => task.projectId,
+  [TaskKind.ONE_OFF]: () => null,
+};
+
+/**
+ * The staged cards (toBoardCards' BACKLOG, already sorted) → the backlog's
+ * groups: one per habit, one per project, one per one-off, each keeping its
+ * cards' order so `next` is the one a pull takes. Groups keep the order
+ * their first card had; habits come first.
+ */
+export function toBacklogGroups(cards: BoardCard[]): BacklogGroups {
+  const cardsByKey = new Map<string, BoardCard[]>();
+  for (const card of cards) {
+    const {kind, task} = card;
+    const key = `${kind}:${GROUP_ID_BY_KIND[kind](task) ?? task.id}`;
+    const groupCards = cardsByKey.get(key) ?? [];
+    groupCards.push(card);
+    cardsByKey.set(key, groupCards);
+  }
+
+  const groups: BacklogGroups = {habitGroups: [], otherGroups: []};
+  for (const [key, [next, ...behind]] of cardsByKey) {
+    // A group's cards share its kind — the key starts with it
+    const group = {kind: next.kind, key, next, behind} as BacklogGroup;
+    if (group.kind === TaskKind.HABIT) {
+      groups.habitGroups.push(group);
+    } else {
+      groups.otherGroups.push(group);
+    }
+  }
+  return groups;
+}

@@ -167,19 +167,21 @@ The backlog (desktop panel / mobile sheet) holds the plan's template-generated t
 
 1. The collapsed strip shows the backlog count.
 
-2. On expand, render the backlog tasks (`status === BACKLOG`) as a flat list, ordered like every column: daily tasks first, then the rest. A group — one template's instances, or one project's steps — stays together; groups rank by their earliest `createdAt`, and a group's cards follow `instanceIndex` (copy number, step number).
+2. On expand, render the backlog tasks (`status === BACKLOG`) grouped: one group per habit (its template's staged instances) and one per project (its steps on this week), habits first, then projects. Within each, groups keep the column order — daily first, then by the group's earliest `createdAt` — and a group's tasks follow `instanceIndex` (copy number, step number). A group shows as one card for its next task, with how many wait behind it; a project's card opens the steps behind its next as a read-only list.
 
-3. Drag a card onto the Todo column to move it to the board, or straight onto Done to finish it: optimistic update, then `updateTaskStatusAction(taskId, { status })`, rollback on failure. The backlog takes no drops; no un-pull (forward-only, per "Drag and Drop Flow").
+3. Drag a group's card onto the Todo column to move its next task to the board, or straight onto Done to finish it: optimistic update, then `updateTaskStatusAction(taskId, { status })`, rollback on failure. The task behind it becomes the group's next. The backlog takes no drops; no un-pull (forward-only, per "Drag and Drop Flow").
 
 #### Mobile
 
 1. The pill shows the backlog count; it is hidden entirely when the backlog is empty.
-2. On tap, open a `modal-bottom` sheet (covers the tab bar as a standard modal; the board peeks behind the scrim). Render the same backlog list as full-width rows.
-3. Tap a card's `↑ Todo` button to pull it: same optimistic `updateTaskStatusAction(taskId, { status: TODO })` + rollback. The sheet stays open for consecutive pulls; tap-to-pull replaces drag (a sheet over the board makes drag-out unreliable; backlog is forward-only anyway).
+2. On tap, open a `modal-bottom` sheet (covers the tab bar as a standard modal; the board peeks behind the scrim). Render the same groups as full-width rows.
+3. Tap a group's `↑ Todo` button to pull its next task: same optimistic `updateTaskStatusAction(taskId, { status: TODO })` + rollback. The sheet stays open for consecutive pulls; tap-to-pull replaces drag (a sheet over the board makes drag-out unreliable; backlog is forward-only anyway).
 
 ### Rules
 
-- Backlog cards are the board's cards (desktop drags the board `TaskCard`; mobile shows the same face, non-draggable, with the pull action), so a card reads the same before and after the pull.
+- A pull always takes a group's next task — the habit's earliest staged instance, the project's lowest staged step — so a project's steps reach the board in order.
+- The count (strip, panel, pill, sheet) is the number of staged tasks, not groups, capped in display past 8; its accessible name keeps the real number.
+- Opening or closing a project's list never moves the backlog's scroll position: only the user's own scrolling does.
 - A habit's week dots, computed from the loaded tasks, show each of the week's instances in order: a dot fills when its instance is done, and the card's own dot is ringed.
 - The backlog open state (panel or sheet) is local UI state, default closed.
 - Only the visible side of the desktop backlog can take focus: Tab and screen readers never reach the collapsed panel, or the strip while the panel is open. Opening moves focus to the panel's close control and closing moves it back to the strip; the first render leaves focus where it is.

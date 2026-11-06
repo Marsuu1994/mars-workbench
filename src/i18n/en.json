@@ -47,7 +47,14 @@
       "openLabel": "Open backlog",
       "closeLabel": "Close backlog",
       "hintTapToTodo": "Tap to pull a task onto the board",
-      "pullToTodoLabel": "Todo"
+      "pullToTodoLabel": "Todo",
+      "stagedCount": "{count, plural, one {# staged task} other {# staged tasks}}",
+      "countCapped": "{cap}+",
+      "habitsSection": "Habits",
+      "othersSection": "Projects · one-offs",
+      "moreCount": "<mark>+{count}</mark> more",
+      "showStepsLabel": "Show the steps behind {project}'s next",
+      "hideStepsLabel": "Hide the steps behind {project}'s next"
     },
     "Header": {
       "titlePrefix": "Kanban",
@@ -63,7 +70,8 @@
         "SCHEDULE": "Schedule",
         "SQUEEZE_IN": "Squeeze in",
         "MAYBE_LATER": "Maybe later"
-      }
+      },
+      "habitProgress": "{done} of {target} done this week"
     },
     "Dashboard": {
       "today": "Today",

@@ -9,7 +9,8 @@ import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {BoardHeader} from '@/components/domain/shared/BoardHeader';
 import {TaskCard} from '@/components/domain/board/TaskCard';
 import {TaskCardMiniFace} from '@/components/domain/board/TaskCardMiniFace';
-import {MobileBacklogCard} from '@/components/domain/board/MobileBacklogCard';
+import {BacklogGroupList} from '@/components/domain/board/backlog-group/BacklogGroupList';
+import {BacklogCountBadge} from '@/components/domain/board/BacklogCountBadge';
 import {BoardPageContext} from '@/components/domain/board/BoardPageContext';
 import {BoardColumn} from '@/components/domain/board/BoardColumn';
 import {ProgressDashboard} from '@/components/domain/board/ProgressDashboard';
@@ -25,7 +26,7 @@ import {ThemePicker} from '@/components/domain/auth/ThemePicker';
 import type {ThemeName} from '@/utils/theme';
 
 import {Zone, Section, Variant, Row} from '../GalleryParts';
-import {SIZE_TO_POINTS, TaskStatus, TaskType} from '@/utils/enums';
+import {SIZE_TO_POINTS, TaskType} from '@/utils/enums';
 import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
 import {
   SIZE_FIXTURES,
@@ -44,6 +45,8 @@ import {
   SCENARIO_HREFS,
   PROJECT_STEP_FIXTURES,
   inertBoardPageContext,
+  BACKLOG_GROUP_FIXTURES,
+  BACKLOG_COUNT_FIXTURES,
   inertPrioritiesPageContext,
   inertProjectsPageContext,
 } from '../constants';
@@ -100,7 +103,7 @@ export const DomainTab = () => {
   const renderTaskCards = () => (
     <Section
       title="TaskCard"
-      description="The board's kind-first card, every kind in every place it sits: kind + context (plan line, step n/N, quadrant), the title, then the kind's signal and a neutral size — a habit's week dots in order, filled when done, with the card's own dot ringed; a project step's path, its own step outlined. A step names its project in place of the kind label. No risk. Below md the same card shows its 136px mini face (next section)."
+      description="The board's kind-first card, every kind in both columns: kind + context (plan line, step n/N, quadrant), the title, then the kind's signal and a neutral size — a habit's week dots in order, filled when done, with the card's own dot ringed (no done / total — it is the dots' accessible name); a project step's path, its own step outlined. A step names its project in place of the kind label. No risk. Below md the same card shows its 136px mini face (next section)."
     >
       <DragDropContext onDragEnd={() => undefined}>
         <Droppable droppableId="gallery-cards">
@@ -164,21 +167,61 @@ export const DomainTab = () => {
     </Section>
   );
 
-  const renderMobileBacklogCard = () => (
+  const renderBacklogGroups = () => (
     <Section
-      title="MobileBacklogCard"
-      description="The mobile backlog sheet's card: the full face on a plain card, with the ↑ Todo pull beside the title."
+      title="BacklogGroupCard"
+      description="One backlog group as one card standing for its next task — a habit's row (dots, +N more for the instances behind the next), a project's next step on a thin pile of up to three sheets (+N more ⌄ opens the queue), a one-off with its quadrant. No plan line, step n/N or size. Desktop drags the card; mobile pulls with ↑ Todo at the bottom right."
     >
-      <BoardPageContext value={inertBoardPageContext()}>
-        <div className="flex max-w-sm flex-col gap-2.5">
-          {MINI_CARD_FIXTURES.slice(0, 2).map(({card}) => (
-            <MobileBacklogCard
-              key={card.task.id}
-              card={{...card, task: {...card.task, status: TaskStatus.BACKLOG}}}
-            />
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="flex flex-col gap-4">
+          <span className="fx-label">Desktop</span>
+          {BACKLOG_GROUP_FIXTURES.map(({label, groups}) => (
+            <Variant key={label} label={label}>
+              <DragDropContext onDragEnd={() => undefined}>
+                <Droppable droppableId={`gallery-backlog-${label}`}>
+                  {provided => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className="flex w-[276px] flex-col gap-3.5"
+                    >
+                      <BacklogGroupList groups={groups} variant="desktop" />
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            </Variant>
           ))}
         </div>
-      </BoardPageContext>
+        <div className="flex flex-col gap-4">
+          <span className="fx-label">Mobile</span>
+          <BoardPageContext value={inertBoardPageContext()}>
+            {BACKLOG_GROUP_FIXTURES.map(({label, groups}) => (
+              <Variant key={label} label={label}>
+                <div className="flex w-[340px] max-w-full flex-col gap-3.5">
+                  <BacklogGroupList groups={groups} variant="mobile" />
+                </div>
+              </Variant>
+            ))}
+          </BoardPageContext>
+        </div>
+      </div>
+    </Section>
+  );
+
+  const renderBacklogCountBadge = () => (
+    <Section
+      title="BacklogCountBadge"
+      description="The backlog's count — the desktop strip and panel header, the mobile pill and sheet header. It counts staged tasks, not groups, and reads 8+ past eight; its accessible name keeps the real number."
+    >
+      <Row>
+        {BACKLOG_COUNT_FIXTURES.map(count => (
+          <Variant key={count} label={`${count} staged`}>
+            <BacklogCountBadge count={count} />
+          </Variant>
+        ))}
+      </Row>
     </Section>
   );
 
@@ -361,7 +404,8 @@ export const DomainTab = () => {
         {renderTaskCards()}
         {renderMiniFaces()}
         {renderStepPath()}
-        {renderMobileBacklogCard()}
+        {renderBacklogGroups()}
+        {renderBacklogCountBadge()}
         {renderBoardColumn()}
         {renderProgress()}
       </Zone>

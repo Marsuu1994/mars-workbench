@@ -1,3 +1,4 @@
+import {useTranslations} from 'next-intl';
 import type {HabitWeek} from '@/utils/taskUtils';
 import {TaskKind} from '@/utils/taskUtils';
 import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
@@ -9,7 +10,7 @@ interface HabitSignalProps {
   habitWeek: HabitWeek;
   /** This card's own slot, ringed; absent when it has none */
   currentSlot?: number;
-  /** Full card: dots + done / target · mini card: dots alone */
+  /** Full card: 8px dots · mini card: 6px dots */
   variant: HabitSignalVariant;
 }
 
@@ -37,18 +38,19 @@ const {fill, outline, current} = TASK_KIND_STYLE[TaskKind.HABIT];
 /**
  * A habit card's signal: one dot per instance this week in order, filled
  * when that instance is done, with this card's own dot ringed — so each card
- * shows where it sits in the week. Past HABIT_DOTS_MAX the dots give way to
- * the done / target count alone.
+ * shows where it sits in the week. The dots are the progress: done / target
+ * is only their accessible name, and shows on its own once a busy week passes
+ * HABIT_DOTS_MAX.
  */
 export const HabitSignal = ({
   habitWeek,
   currentSlot,
   variant,
 }: HabitSignalProps) => {
+  const t = useTranslations('Board.Card');
   const {slots, done, target} = habitWeek;
   const {row, dot, ring, count} = VARIANT_STYLE[variant];
   const showDots = target <= HABIT_DOTS_MAX;
-  const showCount = variant === 'card' || !showDots;
 
   const renderDot = (isDone: boolean, slot: number) => {
     const isCurrent = slot === currentSlot;
@@ -62,20 +64,23 @@ export const HabitSignal = ({
     );
   };
 
+  if (!showDots) {
+    return (
+      <span
+        className={`fx-num text-base-content/55 whitespace-nowrap ${count}`}
+      >
+        {done}/{target}
+      </span>
+    );
+  }
+
   return (
-    <span className="inline-flex items-center gap-2">
-      {showDots && (
-        <span className={`inline-flex items-center ${row}`}>
-          {slots.map(renderDot)}
-        </span>
-      )}
-      {showCount && (
-        <span
-          className={`fx-num text-base-content/55 whitespace-nowrap ${count}`}
-        >
-          {done}/{target}
-        </span>
-      )}
+    <span
+      role="img"
+      aria-label={t('habitProgress', {done, target})}
+      className={`inline-flex items-center ${row}`}
+    >
+      {slots.map(renderDot)}
     </span>
   );
 };
