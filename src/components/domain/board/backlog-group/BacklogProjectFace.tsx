@@ -7,6 +7,7 @@ import type {ProjectBacklogGroup} from '@/utils/boardCardUtils';
 import {TaskKind} from '@/utils/taskUtils';
 import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
 import {StepPath} from '../StepPath';
+import {BacklogDescription} from './BacklogDescription';
 import {BacklogMoreCount} from './BacklogMoreCount';
 
 interface BacklogProjectFaceProps {
@@ -70,11 +71,7 @@ export const BacklogProjectFace = ({
         {behind.length > 0 && renderQueueToggle()}
       </div>
       <h3 className="text-sm font-medium leading-[1.3]">{task.title}</h3>
-      {task.description && (
-        <p className="-mt-0.5 line-clamp-2 break-words text-xs leading-[1.4] text-base-content/58">
-          {task.description}
-        </p>
-      )}
+      <BacklogDescription description={task.description} />
       <div className="flex min-h-[18px] items-center gap-2">
         {step && <StepPath step={step} variant="card" />}
         <span className="flex-1" />
