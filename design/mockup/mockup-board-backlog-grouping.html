@@ -202,7 +202,6 @@
   .bk-desc { font-size: 12px; color: color-mix(in oklab, var(--bc) 58%, transparent); line-height: 1.4; margin-top: -2px; }
   .bk-bot { display: flex; align-items: center; gap: 8px; min-height: 18px; }
   .bk-bot .sp { flex: 1; }
-  .bk.habit .bk-bot { padding-left: 22px; }
 
   /* "+N more": how many sit behind the next one */
   .more { display: inline-flex; align-items: baseline; gap: 3px; white-space: nowrap; flex-shrink: 0; font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 600; color: color-mix(in oklab, var(--bc) 55%, transparent); }
@@ -324,9 +323,10 @@
 
 <header class="topbar">
   <div>
-    <div class="eyebrow">Board · Backlog · design PR · final version · decided 2026-11-05</div>
+    <div class="eyebrow">Board · Backlog · design PR · final version · decided 2026-11-05 · 修订 2026-11-05</div>
     <h1>Backlog grouping — 定稿</h1>
     <p>第 1 轮选了 <b>D</b>：一个 habit 一行；一个 project 只露出下一步，其余的点一下展开。Backlog 卡片去掉了 <b>Weekly × 3</b> / <b>Step 4/9</b> 这行文字、<b>size</b>，以及 <b>done / total</b> 分数：dots 和 path 已经表达了进度；board 上的 habit 卡也去掉分数。两种卡片的右上角都是 <b>+N more</b>，表示下一个后面还排着几个；project 的那个带 ⌄，点开是它的 queue，卡片下面垫着最多三层的薄 <b>pile</b>（第 3 页）。Mobile 上 <b>↑ Todo</b> 在右下角。Badge 数的是 <b>backlog 里所有 task</b>，超过 8 显示 <b>8+</b>。</p>
+    <p><b>修订（2026-11-05，定稿后发现）：</b>habit 卡补回 description，布局和 project 卡对齐：标题行、description、进度行（habit 是 dots，project 是 path），mobile 上 ↑ Todo 在同样的右下角。同一组逻辑上相近的卡片保持同一套结构，只用颜色和进度标记的样式区分。</p>
   </div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
     <div class="seg" id="themes">
@@ -372,6 +372,7 @@
   <ul class="changes">
     <li><span class="k">① context text</span><b>去掉 plan line 和 step n/N</b>Dots 已经表达了 habit 这一周的进度；path 已经表达了 step 在 project 里的位置。Project 名保留：它是这个 step 属于谁，不是在重复进度。</li>
     <li><span class="k">② done / total</span><b>两种卡片都不显示分数</b>由 dots 和 path 表达；backlog 里不再有 1/3 和 3/9，board 上 habit 卡的 1/3 也去掉。分数留作进度的 accessible name（"1 of 3 done this week"）。</li>
+    <li><span class="k">⑤ 结构</span><b>habit 和 project 卡同一套结构</b>标题行（右上角 +N more）、description、进度行（dots / path），mobile 上 ↑ Todo 在右下角；habit 的 description 在定稿后补回（修订 2026-11-05）。</li>
     <li><span class="k">③ size</span><b>去掉 size chip</b>Desktop 和 mobile 都去掉。Points 仍计入 dashboard。</li>
     <li><span class="k">④ corners</span><b>+N more · ↑ Todo 在右下角</b>两种卡片数的都是下一个<i>后面</i>还有几个，所以 project 的数字和它展开的行数一致：Read 排了两个，显示 <i>+1 more</i>；Biomedical course 这周三步，显示 <i>+2 more ⌄</i>；最后一个什么都不显示。后面还有 step 的 project 垫着一层薄 pile，最多三层（第 3 页）。One-off 显示 quadrant。Mobile 上每张卡的 ↑ Todo 都移到右下角。</li>
   </ul>
@@ -501,6 +502,7 @@ function habitRow(group, ctx) {
   const drag = ctx.mobile ? '' : `data-drag="${group.id}" data-index="${group.pulled}"`;
   return `<div class="bk habit ${bumped ? 'rise' : ''}" data-kind="habit" ${drag}>
     <div class="bk-top"><span class="ic">${icon('habit', 'sm')}</span><span class="ttl">${group.title}</span>${rest.length > 1 ? moreText(rest.length - 1, bumped) : ''}</div>
+    ${group.desc ? `<p class="bk-desc">${group.desc}</p>` : ''}
     <div class="bk-bot">${dots({target: group.target, doneSlots: group.done, cur: top.slot})}<span class="sp"></span>${ctx.mobile ? pullBtn(group.id, group.pulled) : ''}</div>
   </div>`;
 }
