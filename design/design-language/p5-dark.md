@@ -5,15 +5,7 @@
 > (`design/flows/auth.md`, Theme Change Flow). All geometry is gated under
 > `[data-theme='p5-dark']` in `globals.css` (the "P5 DARK — geometry fork"
 > section). Skeleton, `fx-*` API and shared voices: [README.md](./README.md).
->
-> **Implementation deviations from the map below** (all deliberate):
-> panels ship rectangular (2px paper border + 8px blood offset) — oblique
-> cuts kill box-shadows, so `fx-cut` stays opt-in with a parent
-> `drop-shadow` instead of being baked into `fx-panel`; buttons skew
-> without inner counter-skew spans (oblique chrome text is sanctioned) and
-> without clip cuts; `fx-text-gradient` renders flat phantom red in this
-> theme with `fx-tile` as the opt-in ransom treatment, not an automatic
-> substitution.
+> There is no P5 light variant; mars-light is the only light theme.
 
 ## Concept
 
@@ -48,12 +40,17 @@ distilled from that research and carry the identity:
    stays level. Cards, form fields, and body text never tilt — labels, chips, rails,
    and chrome do.
 
+Two consequences worth knowing: the theme uses **no backdrop blur** anywhere
+(cheaper on mobile), and its shell is **fully token-derived** — no baked art
+URI, so a palette change here never means hand-regenerating SVGs (unlike the
+mars `--fx-art`).
+
 ## Palette
 
 Seven OKLCH hue-wheel stops, re-anchored on the P5 triad. Wheel:
 **12 error · 29 primary · 55 accent · 90 warning · 150 success · 235 info · 295 secondary.**
-All values verified in-sRGB-gamut and WCAG-checked numerically (the shared
-script method — see README).
+All values are in the sRGB gamut; the contrast figures below were measured
+when the palette was set (method and bars: README).
 
 ### Channel continuity
 
@@ -89,6 +86,10 @@ This is a **documented, deliberate deviation** from the HUD skins' all-AAA bar;
 both reds stay comfortably above the 4.5:1 body-text line. Their content colors are
 near-ink (the P5 black-on-red layering), not white.
 
+The two reds also sit close on the wheel (primary hue 29, error hue 12). They read
+apart side by side, but check error next to primary CTAs whenever error comes back
+on cards (per-kind risk, tracker); if they blur, push error toward magenta (hue ~5).
+
 ### Surface-only vars (never text)
 
 Like `--fx-art`, these live outside the daisyUI token set. They are role variables
@@ -122,17 +123,16 @@ overlay scrims.
 P5 has no rounded corners. All radius tokens collapse to 0 **inside this theme's
 own `@plugin "daisyui/theme"` block** (`--radius-selector/field/box` are
 per-theme already), and `--radius-card` — declared by every theme's variable
-block — is 0 here while the mars themes keep their 10px cards. Softness is replaced by **oblique cuts** (see
-`fx-cut`) — a corner sliced at an irregular angle reads "scissor-cut paper",
-which is the P5 shape language (the calling cards are newspaper cutouts). Pills
-(`rounded-full` chips) become **skewed parallelograms**.
+block — is 0 here while the mars themes keep their 10px cards. Corners are square;
+**oblique cuts** are opt-in (`fx-cut`) — a corner sliced at an irregular angle reads
+"scissor-cut paper", the P5 shape language (the calling cards are newspaper cutouts).
+Pills (`rounded-full` chips) become **skewed parallelograms**.
 
 ## FX utility layer (`fx-*`) — skin map
 
-**API contract: every existing `fx-*` class name and its usage sites survive**
-(README). Only the skin changes, so adoption is CSS-first (markup exceptions
-flagged ⚠ below). All utilities keep deriving from daisyUI tokens via
-`color-mix()`. Loops still animate opacity/transform only.
+**API contract: every `fx-*` class name and its usage sites are shared with the
+mars themes** (README); only the skin changes. All utilities derive from daisyUI
+tokens via `color-mix()`. Loops animate opacity/transform only.
 
 **Scoping:** `fx-*` classes are theme-shared — only `--fx-*` *variables* fork
 per theme. The geometry changes below (offset shadows, clip cuts, diamond LEDs,
@@ -147,11 +147,11 @@ did.
 | --- | --- | --- |
 | `fx-shell-bg` | Star chart + nebula SVG + corner blooms | **Metaverse ground**: flat ink field + two staggered halftone dot layers (screentone, base-content at ≈4–5%) + faint diagonal speed-lines + one flat red corner band (`--fx-field` at low alpha via a hard-stop gradient). Fully token-derived — this theme has **no baked `--fx-art` URI** (the mars themes keep theirs) |
 | `fx-chrome` / `fx-chrome-glass` | Solid slab / blur-capable slab | Both opaque ink slabs with 2px paper-at-10% hairline edges. **No backdrop blur in this theme** (P5 is opaque paper; also a mobile perf win) |
-| `fx-panel` / `fx-panel-solid` | Glass console panel | **Paper-cut panel**: base-100 fill, 2px solid paper border at 85%, two oblique corner cuts (opposite corners, unequal sizes), hard offset shadow `8px 8px 0` blood-red via `filter: drop-shadow` on a wrapper (box-shadow is clipped away by clip-path). Both names = same opaque skin |
+| `fx-panel` / `fx-panel-solid` | Glass console panel | **Paper panel**: base-100 fill, 2px solid paper border at 85%, hard `8px 8px 0` blood-red offset shadow; rectangular. Corner cuts are opt-in via `fx-cut` with a parent `drop-shadow` (a clip-path clips the box-shadow away). Both names = same opaque skin |
 | `fx-corners` | Cyan reticle brackets | **Crop marks**: same 8-stroke bracket geometry, 2px, phantom red — the calling card's print marks |
 | `fx-card` / `fx-card-lift` | Edge-light + glow hover | **Sticker card**: `--fx-card-bg` fill, 1.5px paper border at 14%, `3px 3px 0` ink offset at rest; hover = `4px 4px 0` primary offset + `translate(-1px,-1px)` (no border-color change — the kind edge still wins, at 4px here); lift (drag) = `7px 7px 0` blood-red + `rotate(-1.2deg)` class swap |
 | `fx-target` | Orange dashed outline + pulsing halo | **Hazard target**: orange 2px dashed outline + flat diagonal hazard stripes (repeating-linear-gradient, hard stops — stripes are flat fills, not gradations) + opacity pulse. Channel unchanged |
-| `fx-glow` / `fx-glow-accent` | Soft luminous halo | **Pop shadow**: hard `4px 4px 0` **ink** offset at rest; hover/focus deepens to `5px 5px 0` blood-red (blood-orange for the accent variant). Depth stays ink/blood — a channel-colored offset under a same-channel fill would vanish. ⚠ skew-and-cut buttons need an inner `<span>` for counter-skewed glyphs and a wrapper for the `drop-shadow` — a markup change on existing `btn-primary` sites |
+| `fx-glow` / `fx-glow-accent` | Soft luminous halo | **Pop shadow**: hard `4px 4px 0` **ink** offset at rest; hover/focus deepens to `5px 5px 0` blood-red (blood-orange for the accent variant). Depth stays ink/blood — a channel-colored offset under a same-channel fill would vanish. Buttons skew as a whole (oblique button text is allowed) and have no corner cuts |
 | `fx-chip` | currentColor rounded chip | currentColor **parallelogram**: `skewX(-10deg)`, 1.5px full-strength currentColor border, fill at 12%; text stays skewed (P5 labels are oblique). Derivation from `currentColor` unchanged — `text-*` pairing still works |
 | `fx-pip` | Round signal mark | Flat **diamond**: square corners rotated 45° (the `fx-led` stud language) |
 | `fx-pile-sheet` | Thin rounded-bottom sheet | Square sheet with a 1.5px paper border and a hard `2px 2px 0` ink offset, like the cards; the backlog's step queue (`fx-queue`, no HUD skin of its own) takes the same 1.5px border |
@@ -161,7 +161,7 @@ did.
 | `fx-rule` / `fx-hairline-top` | Luminous gradient hairlines | **Slash rules**: flat 2px `--fx-field` strip with parallelogram-clipped ends; `fx-hairline-top` = flat 2px red top strip. No gradients |
 | `fx-orbit` | Rotating conic tail | **Comet tick**: flat red arc segment (border-slice, no gradient) rotating — still transform-only on a masked layer; reduced-motion off |
 | `fx-glow-pulse` | Breathing halo (login icon) | Breathing **double offset**: red + blood-red stacked hard shadows, opacity loop on pseudo-element |
-| `fx-text-gradient` | Cyan→violet gradient text | ⚠ **Replaced by `fx-tile`** in this theme (gradients banned): one word sits in an inverted tile — paper bg + ink text, or the red variant (field-red bg + paper text), tilted −2.5° to −4° — the ransom-note "one inverted letter/word" treatment. Restraint rule unchanged: one tile per heading |
+| `fx-text-gradient` | Cyan→violet gradient text | **Flat phantom red** (gradients banned). The ransom-note treatment — one word in an inverted tile, tilted −2.5° to −4° — is `fx-tile`, opted into separately, never substituted automatically. Restraint rule unchanged: one per heading |
 | `fx-boot-in` | 420ms rise+fade | **Snap-in**: 240ms slide from −14px/−2.5° with overshoot settle (keyframed past rest, no bounce library). P5's stated principle is zero-latency UI — entrances get *faster* |
 | `fx-nav-rail` | Luminous left rail | **White flip**: active item becomes paper bg + ink text on a skewed clip wedge + red `3px 3px 0` offset — the P5 selection flip (selected items invert, not underline) |
 | `fx-quadrant` + `fx-q-*` | Radial corner bloom | **Corner wedge**: flat clip-path triangle in the quadrant channel color at ≈8% + halftone overlay. Same `fx-q-{hue}` / `fx-q-{corner}` keying |
@@ -177,10 +177,9 @@ did.
 | `fx-slash` | Flat skewed red underline-strip for emphasis under display headings |
 | `fx-burst` | Decorative star-burst (clip-path polygon, flat fill) behind hero numerals — results-screen garnish, max one per view |
 
-⚠ All five are **additive markup** that must be inert outside this theme (they
-key off `[data-theme='p5-dark']`; in the mars themes the classes render as
-plain text/nothing). They only take effect where chrome JSX opts in — one
-reason adoption is a real (if mechanical) component pass, not a pure CSS swap.
+All five key off `[data-theme='p5-dark']` and are inert in the mars themes (the
+classes render as plain text or nothing); they take effect only where chrome JSX
+opts in.
 
 ## Typography
 
@@ -219,50 +218,15 @@ shape, it may speak Anton; if it is *content*, it must not.
 In this theme the `:focus-visible` ring is **paper white**
 (`2px solid base-content, offset 2px`): red is the ambient structure color, so a
 red ring would vanish on red fields; the white ring reads on ink, red, and every
-channel fill (≥ 3:1 non-text contrast everywhere). Today's rule targets the mars
-themes in one selector (`globals.css`) — split it so they keep their cyan ring.
+channel fill (≥ 3:1 non-text contrast everywhere). The mars themes keep their
+primary (cyan) ring; the two rings are separate selectors in `globals.css`.
 Hover motion never replaces focus styling.
 
-## What this buys beyond style
+## Sync points
 
-- **Perf (within this theme)**: no backdrop blur (mobile dock/sidebar win); no
-  baked shell SVG; shadows are 0-blur (cheaper than layered glows).
-- **Sync-point-free shell**: the p5-dark shell is fully token-derived — a palette
-  change here never requires hand-regenerating art (unlike the mars `--fx-art`
-  URIs).
-- **Stable component API**: daisyUI semantic classes (`btn-primary`,
-  `text-warning`, `border-l-error`) and `fx-*` names are untouched. The work is
-  one `globals.css` pass (a third theme block + a `[data-theme='p5-dark']`-gated
-  fx fork) **plus** a mechanical chrome-markup pass: button glyph wrappers and
-  the five opt-in utilities above.
-
-## Open questions / risks
-
-- **Red primary vs rose error adjacency** (hue 29 vs 12): distinct side-by-side in the
-  exploration, but audit error next to primary CTAs (board risk is switched off until per-kind
-  rules return; when it does, re-check its colours here).
-  Escape hatch: push error toward magenta (hue ~5) if real screens confuse.
-- **Zero radius** changes daisyUI-styled controls (inputs, toggles, checkboxes)
-  across this theme — the exploration covered the main ones; a full `/design` gallery
-  pass in p5-dark is required at implementation.
-- **AA (not AAA) red pairs** — see palette section; accepted here, veto-able.
-- **No P5 light variant is planned** — mars-light remains the only light theme;
-  a "daylight Shibuya" companion would be its own exploration.
-
-## Sync points (at implementation)
-
-`src/app/globals.css` (new `p5-dark` theme block + the `[data-theme='p5-dark']`
-fx fork + the focus-ring selector split + `--login-*` vars for this theme), the
-Anton font subset added to the font pipeline next to Geist, and:
-
-- `public/manifest.json` / `viewport.themeColor` stay keyed to the default
-  (mars-dark); consider making the runtime `theme-color` meta follow the active
-  theme cookie so PWA chrome matches;
-- `public/icons/` PWA icons carry mars branding — decide whether they stay
-  theme-neutral or get a p5 variant (out of scope by default);
-- verification pass: `/design` gallery (every token swatch, fx specimen,
-  primitive) and the board/priorities/plan/auth scenarios, all in `p5-dark`,
-  both breakpoints;
-- re-run the contrast script against shipped values to refresh this doc's
-  tables (the exploration mockup is retired; the gallery + scenarios cover the
-  theme).
+Changing this theme's palette means touching, together: its daisyUI block and its
+`[data-theme='p5-dark']` variable block in `src/app/globals.css` (plus its
+`--login-*` vars), and the tables in this file (re-measure the contrast, README ›
+Contrast). `public/manifest.json` and `viewport.themeColor` follow the default
+theme, mars-dark, so they don't change. The Anton subset sits in the font pipeline
+next to Geist.

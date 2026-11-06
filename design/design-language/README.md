@@ -92,15 +92,48 @@ disables them.
   measured. Decorative glyphs (`·`, `↩`, `★`) stay in JSX per the i18n rule.
 - p5-dark adds a third, theme-scoped **display voice** (Anton) — see its spec.
 
-## Visual rules
+## Principles
 
-- **Status marks must not look like controls.** A state the user can't change by
-  clicking it is never drawn as a control shape — no hollow or filled circles or
-  squares that read as a radio or checkbox. Show it with what the element already
-  has: a tint, a border, a pill, muted text, an inline ✓ glyph beside text. Bad:
-  every project step row led by a circle that fills when the step is on this week —
-  it looks clickable and only repeats the pill. Good: this week's row is tinted with
-  a "This week · todo" pill; a done row reads muted with "✓ Mon, Oct 5" on the right.
+How a screen should feel, whatever the theme. An agent checks a design against
+these before proposing it, and ranks its options by them. Each came from a call the
+owner made on a real design — most from PR #109's backlog grouping.
+
+1. **Only the necessary elements, and one element per meaning.** If the dots, the
+   path or another mark already says something, no text or number says it again;
+   if removing an element loses nothing, remove it. Bad: `Weekly × 3` and `1/3`
+   beside a habit's dots, `Step 4/9` beside a project's path, a size chip on a
+   backlog card, an outlined pill around `3 left this week ⌄`. Good: the dots and
+   the path carry progress; the card keeps kind, title, description, progress and
+   the next action.
+2. **Similar groups share one structure.** Cards in one logical group keep the same
+   skeleton — title line, description, progress mark, other indicators, and on
+   mobile the action button in the same spot — and tell themselves apart by colour
+   or the style of a mark (a habit's dots, a project's segmented path), never by a
+   different layout. Bad: a backlog habit row without its description beside
+   project cards that have one. Good: both read title (`+N more` at the right),
+   description, progress line, `↑ Todo` bottom right.
+3. **Status marks must not look like controls.** A state the user can't change by
+   clicking it is never drawn as a control shape — no hollow or filled circles or
+   squares that read as a radio or checkbox. Show it with what the element already
+   has: a tint, a border, a pill, muted text, an inline ✓ glyph beside text. Bad:
+   every project step row led by a circle that fills when the step is on this week —
+   it looks clickable and only repeats the pill. Good: this week's row is tinted with
+   a "This week · todo" pill; a done row reads muted with "✓ Mon, Oct 5" on the right.
+4. **Small visual details carry state; words don't explain it.** Good: the thin pile
+   under a project card says more steps wait behind it; a Done card dims and strikes
+   through, so it reads settled.
+5. **Don't crowd when there is room.** Where space is free, elements sit apart —
+   at opposite corners if need be; apart from text itself, nothing should feel
+   cramped. Bad: `+N more` and `↑ Todo` squeezed into one row with space left below.
+   Good: `+N more` top right, `↑ Todo` bottom right.
+6. **Numbers serve motivation.** A big number overwhelms, and in this product the
+   design is there to keep the user going: small numbers are fine, large ones
+   discourage. A count stops at 8 and shows `8+` beyond it; the real number stays in
+   the accessible name.
+7. **The fewest actions, the least friction.** Every extra step is a reason to stop
+   using the app; ask first whether a step can go. This is Phase 2's direction too.
+   Bad: the old three columns, a card walking Backlog → Todo → Doing → Done. Good:
+   no Doing column, and a backlog card dragged straight to Done.
 
 ## Motion (shared baseline)
 
@@ -113,11 +146,13 @@ opacity/transform-only rule or the `prefers-reduced-motion` opt-out.
 
 ## Contrast method & bars
 
-All palette values are verified in-sRGB-gamut and WCAG-checked **numerically**
-(conversion script: OKLCH → linear sRGB → relative luminance → contrast ratio) —
-never by eye. Bars: every signal color body-text grade (≥ 4.5:1) on its bases;
-X/X-content pairs AAA (≥ 7:1) unless a theme documents a deliberate deviation
-(see p5-dark's reds). Each theme file carries its own measured table.
+Every palette value stays in the sRGB gamut, and contrast is measured as numbers
+(OKLCH → linear sRGB → relative luminance → contrast ratio), never judged by eye.
+Bars: every signal color body-text grade (≥ 4.5:1) on its bases; X/X-content pairs
+AAA (≥ 7:1) unless a theme documents a deliberate deviation (see p5-dark's reds).
+Each theme file carries the table measured when its palette was set. No script for
+it lives in the repository, so a palette change re-measures by hand and updates
+the table.
 
 ## Sync points
 
@@ -125,6 +160,6 @@ Changing any theme's base colors requires touching, in lockstep:
 `src/app/globals.css` (theme block — for the mars themes also the baked
 `--fx-art` SVG data-URIs), `public/manifest.json` (`background_color` /
 `theme_color` follow the **default** theme, mars-dark), `src/app/layout.tsx`
-(`viewport.themeColor`), and the theme file here (re-run the contrast script,
+(`viewport.themeColor`), and the theme file here (re-measure the contrast,
 update the table). Verification surface: the `/design` gallery (Tokens & FX tab)
 and the scenario pages.
