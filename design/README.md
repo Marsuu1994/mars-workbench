@@ -26,7 +26,7 @@ A file in `mockup/` is a design that isn't fully implemented yet. A mockup is se
 - Back a choice with a research screen: how other products solve it, each point with its source.
 - Write the narrative (notes, labels, research) in Chinese with English product terms, like the spikes; the product's own UI copy on the drawn screens stays English.
 - Once the owner picks, the mockup keeps only the chosen design — the rest stay in its commit history — and the final round says so at the top (`final version · decided <date>`); a change after that is marked as an amendment with its date.
-- New UI lands in two PRs: a **design PR** (the mockup, the owner's review rounds, then the e2e contract in `e2e/contract/`; merged once the design is settled) and an **implementation PR** from `main` afterwards (build it, flip the contract, delete the mockup). The `ui-design` skill (`.claude/skills/ui-design/`) walks the design PR, and points to the rest; the decision record is `spike/archived/mockup-hosting-design-workflow.md`.
+- New UI starts with a **design PR**: the mockup and the owner's review rounds until it is decided, walked by the `ui-design` skill (`.claude/skills/ui-design/`); the decision record is `spike/archived/mockup-hosting-design-workflow.md`. What follows it — the spec (e2e contract, flow doc) and the implementation PR — is open in PR #106 (Q12–Q13).
 - A design built over several PRs keeps its mockup until the last one lands. Once it is fully implemented, the mockup is deleted and the Design Console's scenario pages are its source of truth (AGENTS.md › UI Workflow).
 
 ## App README

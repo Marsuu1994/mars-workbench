@@ -13,22 +13,23 @@ Read AGENTS.md › UI Workflow, then `design/README.md` › Mockups (how a mocku
 
 ## 2. What exists
 
-- The feature's flow (`design/flows/<feature>.md`) and its Design Console scenario pages (`src/app/design/scenarios/<feature>/`): the states the design starts from.
+- The current flow doc (`design/flows/<feature>.md`): where it covers the area, design within it; where it doesn't yet — the flow may come after the mockup — the owner's prompt is the requirement. Either way, list what the flow will need to say as a question on the PR, for the spec to write.
+- The feature's Design Console scenario pages (`src/app/design/scenarios/<feature>/`): the states the screen is in today.
 - The components the change touches: their structure, tokens and `fx-*` utilities. Draw Before from them exactly, and grow After out of the same parts — the same card faces, kind colours and signals — rather than new ones.
 
 ## 3. Research
 
-Before drawing, find how other products solve the same problem: patterns rather than products, each point with its source, and what it means for this design. A subagent can do the reading so the pages stay out of this session; ask it for the patterns, sources and fit, not the page contents.
+Before drawing, find how other products solve the same problem — what the research screen needs is in `design/README.md` › Mockups. A subagent can do the reading so the pages stay out of this session; ask it for patterns rather than products, each with its source and its fit for this design, not the page contents.
 
 ## 4. Options
 
-Draw `design/mockup/mockup-<area>.html` (one name from the first draft): every option side by side on one screen, each with its Before / After at desktop and mobile width, ranked by the Principles, with your recommendation; the research on its own screen; the freshness script in `<head>`. Check it renders before pushing — every screen, every theme, no console errors.
+Draw `design/mockup/mockup-<area>.html` as `design/README.md` › Mockups says — options, research, language, the freshness script — ranked by the Principles, with your recommendation. Check it renders before pushing: every screen, every theme, no console errors.
 
 Rewrite the tracker item to say what the design does and link the mockup. Open the PR with the mockup's raw.githack link at the top of the description and the questions the owner has to decide under it; the Mockup links check prints the exact line when it is missing.
 
 ## 5. Review rounds
 
-The owner answers on the PR or in a local session. Each round: change the mockup, push, answer each point, and log the round in `reviews/pr-<NNN>.md` (`reviews/AGENTS.md`; local-session rounds too). Once the owner picks an option, the mockup keeps only that one. When the owner says it is decided, mark the final round at the top of the mockup (`final version · decided <date>`) and the tracker item as decided; a change after that is an amendment with its date.
+The owner answers on the PR or in a local session. Each round: change the mockup, push, answer each point, and log the round in `reviews/pr-<NNN>.md` (`reviews/AGENTS.md`; local-session rounds too). When the owner picks and when the owner calls it decided, the mockup follows `design/README.md` › Mockups, and the tracker item says decided.
 
 ## 6. Handoff
 
@@ -36,7 +37,4 @@ The decided mockup and the review log are the handoff: together they say what wa
 
 ## After the design is decided
 
-Until PR #106 settles whether the spec gets its own skill (its Q12–Q13), the rest follows the current rules:
-
-- **Contract**: `e2e/contract/<feature>.spec.ts`, one `contractTest(title, failsAt, body)` per behaviour the mockup promises (`test/README.md` › e2e); each must fail at its `failsAt`. It lands in the design PR, which merges once CI is green and the owner approves.
-- **Implementation**: a new branch from `main`, never stacked on the design PR. Build the mockup exactly (AGENTS.md › UI Workflow) with its scenario pages and gallery entries; when the contract passes, run the `npm run contract:flip <feature>` CI names; then delete the mockup and the tracker item.
+What follows — the spec (e2e contract, flow doc) and the implementation PR — is open in PR #106 (Q12–Q13). Until it is settled, the current rules are in `test/README.md` › e2e (the contract) and AGENTS.md › UI Workflow (the implementation PR).
