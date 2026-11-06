@@ -6,14 +6,19 @@
  * Every mockup a pull request adds or changes under design/mockup/ must be
  * linked from its description, rendered through raw.githack on the PR's
  * branch, so the owner opens it from the PR without a checkout. A missing
- * link fails the check and prints the line to paste.
+ * link fails the check and prints the line to paste. Each must also carry the
+ * freshness script (`<script data-mockup-latest>`), which moves that branch
+ * link to the newest commit's, so a cached copy never shows an old round.
+ * The workflow checks out the PR's head, so the files are read from disk.
  *
  * Locally: GITHUB_REPOSITORY=owner/repo PR_NUMBER=100 node scripts/check-mockup-links.mjs
  */
+import {readFileSync} from 'node:fs';
 import {fetchAll, fetchJson, findPullNumber, repository} from './githubApi.mjs';
 
 const MOCKUP_FILE = /^design\/mockup\/[^/]+\.html$/;
 const RENDERER = 'https://raw.githack.com';
+const FRESHNESS_SCRIPT = '<script data-mockup-latest>';
 
 const pullNumber = await findPullNumber();
 if (!pullNumber) {
@@ -30,6 +35,15 @@ const mockups = files
 const linkFor = path => `${RENDERER}/${repository}/${pull.head.ref}/${path}`;
 const description = pull.body ?? '';
 const unlinked = mockups.filter(path => !description.includes(linkFor(path)));
+const stale = mockups.filter(
+  path => !readFileSync(path, 'utf8').includes(FRESHNESS_SCRIPT),
+);
+
+for (const path of stale) {
+  console.log(
+    `::error file=${path}::No freshness script. Copy the ${FRESHNESS_SCRIPT} block of any current mockup into its <head> (design/README.md › Mockups).`,
+  );
+}
 
 if (unlinked.length > 0) {
   for (const path of unlinked) {
@@ -42,4 +56,12 @@ if (unlinked.length > 0) {
   );
   process.exit(1);
 }
-console.log(`PR #${pullNumber}: all ${mockups.length} mockups linked.`);
+if (stale.length > 0) {
+  console.error(
+    `PR #${pullNumber}: ${stale.length} of ${mockups.length} mockups lack the freshness script (design/README.md › Mockups).`,
+  );
+  process.exit(1);
+}
+console.log(
+  `PR #${pullNumber}: all ${mockups.length} mockups linked, each with the freshness script.`,
+);
