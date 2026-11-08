@@ -519,12 +519,12 @@
   @keyframes halo { from { box-shadow: 0 0 0 0 color-mix(in oklab, var(--su) 60%, transparent); } to { box-shadow: 0 0 0 16px transparent; } }
   .pz-day.big-a .ring-check path, .pz-day.big-b .ring-check path { animation: draw .3s .25s var(--ease) backwards; }
   @keyframes draw { from { stroke-dashoffset: 1; } }
-  .pz-day.big-b .pz-ringwrap svg { animation: spin .7s var(--ease); }
+  .pz-day.big-b .ring-svg { animation: spin .7s var(--ease); }
   @keyframes spin { from { transform: rotate(-90deg); } to { transform: rotate(270deg); } }
   .spark { position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px; border-radius: 99px; background: var(--color); animation: spark .7s var(--ease) forwards; pointer-events: none; }
   @keyframes spark { from { transform: rotate(var(--angle)) translateY(-18px); opacity: 1; } to { transform: rotate(var(--angle)) translateY(-40px) scale(.4); opacity: 0; } }
   .cel-summary { display: block; margin-bottom: 4px; }
-  @media (prefers-reduced-motion: reduce) { .pz-day.tick .pz-ringwrap, .pz-day.big-a .pz-ringwrap, .pz-day.big-b .pz-ringwrap svg, .cel-empty.enter { animation: none; } .pz-day.big-a .pz-ringwrap::after, .spark { display: none; } .pz-mark circle { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .pz-day.tick .pz-ringwrap, .pz-day.big-a .pz-ringwrap, .pz-day.big-b .ring-svg, .cel-empty.enter { animation: none; } .pz-day.big-a .pz-ringwrap::after, .spark { display: none; } .pz-mark circle { transition: none; } }
 </style>
 </head>
 <body>
@@ -1262,7 +1262,7 @@ function ring(day, size) {
   }
   const track = `<circle cx="${size / 2}" cy="${size / 2}" r="${radius}" fill="none" stroke="var(--ink-10)" stroke-width="${stroke}"/>`;
   const check = planned > 0 && done === planned ? `<svg class="icon ring-check" viewBox="0 0 24 24" style="width:${size * 0.42}px;height:${size * 0.42}px"><path d="${P.check}" pathLength="1"/></svg>` : '';
-  return `<span class="pz-ringwrap pz-mark"><svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="transform:rotate(-90deg)">${track}${arcs}</svg>${check}</span>`;
+  return `<span class="pz-ringwrap pz-mark"><svg class="ring-svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="transform:rotate(-90deg)">${track}${arcs}</svg>${check}</span>`;
 }
 
 /* which days a row shows: the whole week on desktop; on a phone, as many days before today as fit (later days fill in early in the week) */
