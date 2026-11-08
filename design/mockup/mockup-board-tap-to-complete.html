@@ -439,6 +439,48 @@
   .desk .snack { left: auto; right: 16px; bottom: 16px; width: 320px; }
   .desk .backlog-body { max-height: 440px; }
   @media (max-width: 900px) { .backlog { width: 100%; border-left: 0; border-top: 1px solid var(--card-border); } .board-wrap { flex-direction: column; } }
+  /* ══ Progress tab (round 2): the progress area alone ══ */
+  .pz-tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 0 0 14px; }
+  .pz-tools .hint { font-size: 12px; color: var(--ink-55); }
+  .pz-opt { border: 1px solid var(--card-border); border-radius: 14px; padding: 16px 18px 18px; background: color-mix(in oklab, var(--b1) 30%, transparent); margin-bottom: 18px; }
+  .pz-opt.rec { border-color: color-mix(in oklab, var(--p) 45%, transparent); }
+  .pz-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 340px); gap: 22px; align-items: start; margin-top: 12px; }
+  @media (max-width: 1000px) { .pz-pair { grid-template-columns: 1fr; } }
+  .pz-pair > div { min-width: 0; }
+  .pz-desk { overflow-x: auto; }
+  .pz-cap { font-family: 'Geist Mono', monospace; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-45); margin-bottom: 6px; }
+  .pz-desk { border: 1px solid var(--card-border); border-radius: 12px; overflow: hidden; background: var(--b2); }
+  .pz-phone { box-sizing: border-box; width: 340px; max-width: 100%; border: 8px solid color-mix(in oklab, var(--bc) 16%, var(--b3)); border-bottom: 0; border-radius: 38px 38px 0 0; background: var(--b2); overflow: hidden; position: relative; }
+  .pz-phone::after { content: ''; display: block; height: 28px; background: linear-gradient(var(--b2), transparent); }
+  .pz-row { display: flex; align-items: flex-end; gap: 6px; padding: 10px 16px; border-bottom: 1px solid var(--card-border); background: color-mix(in oklab, var(--b2) 50%, transparent); }
+  .pz-phone .pz-row { padding: 8px 12px; gap: 4px; }
+  .pz-day { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 6px 2px 7px; border-radius: 10px; border: 1px solid transparent; }
+  .pz-day .dn { font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-45); line-height: 1; }
+  .pz-day.future { opacity: .8; }
+  .pz-day.future .dn { color: var(--ink-30); }
+  .pz-day.today { flex: 2.4; flex-direction: row; justify-content: center; gap: 10px; border-color: color-mix(in oklab, var(--p) 50%, transparent); box-shadow: 0 0 14px color-mix(in oklab, var(--p) 10%, transparent); }
+  .pz-day.today .tl { display: flex; flex-direction: column; gap: 3px; align-items: flex-start; }
+  .pz-day.today .dn { color: var(--p); }
+  .pz-day.today .v { font-size: 13px; color: var(--ink-80); white-space: nowrap; }
+  .pz-day.today .v b { font-family: 'Geist Mono', monospace; color: var(--bc); }
+  .pz-phone .pz-day.today { flex: 2; }
+  .pz-phone .pz-day.today .v { font-size: 12px; }
+  .pz-mark { display: block; flex-shrink: 0; }
+  .pz-mark circle { transition: stroke-dasharray .5s var(--ease), stroke-dashoffset .5s var(--ease); }
+  .pz-day.closed .pz-mark { filter: drop-shadow(0 0 4px color-mix(in oklab, var(--su) 45%, transparent)); }
+  /* C: stacked columns */
+  .pz-col { display: flex; flex-direction: column-reverse; gap: 2px; justify-content: flex-start; }
+  .pz-col i { display: block; width: 100%; border-radius: 2px; transition: height .5s var(--ease); }
+  .pz-colbox { display: flex; align-items: flex-end; }
+  .pz-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--ink-65); margin: 0 0 14px; }
+  .pz-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .pz-legend i { width: 10px; height: 10px; border-radius: 3px; background: var(--k); }
+  .pz-zoom { display: flex; gap: 22px; flex-wrap: wrap; align-items: flex-end; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--card-border); }
+  .pz-zoom figure { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .pz-zoom figcaption { font-family: 'Geist Mono', monospace; font-size: 10px; color: var(--ink-45); text-align: center; max-width: 120px; line-height: 1.4; }
+  .pz-ringwrap { display: inline-grid; place-items: center; flex-shrink: 0; }
+  .pz-ringwrap > * { grid-area: 1 / 1; }
+  .pz-ringwrap .icon { color: var(--su); stroke-width: 3; }
 </style>
 </head>
 <body>
@@ -455,7 +497,7 @@
 </header>
 
 <!-- ═════════ 1 · Desktop ═════════ -->
-<section class="screen on" data-screen="s1">
+<section class="screen" data-screen="s1">
   <div class="col-label"><b>Before</b> · 现在 · BoardHeader → ProgressDashboard（%、points、avg）→ Todo · Done → 右侧 Backlog<span class="line"></span></div>
   <div id="s1-before"></div>
   <p class="note">现状从真实组件画：<b>ProgressDashboard</b> 是 Today ring（%）+ Today Points + Week Points + Daily Avg + Week Progress bar，五个数字说的其实是两件事（今天做到哪、这周做到哪）。卡片是 <b>TaskCardFace</b>：kind 行右端带 context（Daily · 4× / week · 4/9 · Do first），底行 signal（habit 的 dots 后面跟 done / target）+ size chip（size · points）。右侧 Backlog 是 main 上现在的 <b>DesktopBacklog</b>：每个 task 一张同样的卡，没有分组、没有 pile。完成 = 把卡片拖进 Done 列。</p>
@@ -539,8 +581,31 @@
   </ul>
 </section>
 
+<!-- ═════════ P · Progress (round 2) ═════════ -->
+<section class="screen on" data-screen="progress">
+  <div class="col-label"><b>第 2 轮 · 2026-11-08</b> · 只看进度区：Today + 日条 · 其他屏这一轮不动，最后再整合<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:14px">Owner 的意见：第 1 轮的日条用一颗颗填满的 pip，和 habit 卡上的 dots 是同一个样子，读起来会混（Principle 1：一种样子只表达一个意思）。这一轮把 pip 全部拿掉，换成按 kind 着色的图形——habit 绿、step 紫、one-off 蓝，和卡片的左边框同一套颜色——画了三个方向并排比较。手机只放<b>最近三天</b>（前天 · 昨天 · 今天）。三个方向都把<b>今天那格放大</b>，把「1 of 5 done」写在它旁边，代替第 1 轮左边单独的 Today ring：第 1 轮里今天说了两遍（一个 ring、一个格子）。<br>
+  Fixture 和第 1 轮一样：W45，今天 Thu Nov 5。Mon 做完 2 个 habit + 1 个 one-off；Tue 2 个 habit；Wed 1 / 2 个 habit（Workout 没做）+ 1 个 step；Thu 计划 2 个 habit、2 个 step、1 个 one-off，已经做了 LeetCode；Fri–Sun 只有每天的 Workout。点下面的 <b>✓ Complete next</b>，三个方向会一起往前走，一直到今天全部做完。</p>
+  <div class="pz-tools"><button class="ghost-btn" id="pz-next">✓ Complete next</button><button class="ghost-btn" id="pz-reset">Reset</button><span class="hint" id="pz-hint"></span></div>
+  <div class="pz-legend"><span data-kind="habit"><i></i>Habit</span><span data-kind="project"><i></i>Project step</span><span data-kind="oneoff"><i></i>One-off</span><span style="color:var(--ink-45)">（图例只在 mockup 里，产品里要不要见问题 4）</span></div>
+
+  <div class="pz-opt">
+    <div class="col-label" style="margin:0"><b>Before</b> · 第 1 轮 · 今天一个 ring + 七格 pip（pip 和 habit 的 dots 长得一样）<span class="line"></span></div>
+    <div class="pz-pair"><div><div class="pz-cap">Desktop</div><div class="pz-desk" id="pz-before-desk"></div></div><div><div class="pz-cap">Phone · 七格</div><div class="pz-phone" id="pz-before-phone"></div></div></div>
+  </div>
+
+  <div id="pz-options"></div>
+
+  <div class="col-label spaced"><b>Research</b> · 别的产品怎么画每天的完成度 · 研究怎么说<span class="line"></span></div>
+  <div class="patterns" id="pz-patterns"></div>
+
+  <div class="col-label spaced"><b>这一轮要 owner 拍板的</b><span class="line"></span></div>
+  <ul class="openq" id="pz-questions"></ul>
+</section>
+
 <nav class="seg screen-nav" id="screens">
-  <button data-screen-btn="s1" class="on">1 · Desktop</button>
+  <button data-screen-btn="progress" class="on">P · Progress</button>
+  <button data-screen-btn="s1">1 · Desktop</button>
   <button data-screen-btn="s2">2 · Phone</button>
   <button data-screen-btn="s3">3 · Celebration</button>
   <button data-screen-btn="s4">4 · Where done goes</button>
@@ -1072,6 +1137,170 @@ const PATTERNS = [
   ['Done list 的文献偏弱', 'Koo & Fishbach 2008 · Fishbach & Dhar 2005 · Schultz 1997', 'committed 用户看 to-go 比 to-date 更有效（Koo & Fishbach, JPSP 2008）；突出 progress 会 license 松懈（Fishbach & Dhar, JCR 2005）；每次一样的奖励很快被预期掉（Schultz, Science 1997, DOI 10.1126/science.275.5306.1593）。', '→ 推荐 B（去掉 Done 列）和 A（不做大庆祝）的依据。'],
 ];
 document.getElementById('s6-patterns').innerHTML = PATTERNS.map(([title, who, body, fit]) => `<div class="pat"><h4>${title}</h4><div class="who">${who}</div>${body}<div class="fit"><b>${fit}</b></div></div>`).join('');
+
+/* ═══════════ P · Progress (round 2): the progress area alone ═══════════
+   One day = how many of each kind were planned and done. No pips: the
+   marks below are rings and columns coloured by kind, so nothing on the
+   strip looks like a habit's dots. */
+const PZ_KINDS = ['habit', 'project', 'oneoff'];
+const PZ_KIND_COLOR = {habit: 'var(--su)', project: 'var(--s)', oneoff: 'var(--in)'};
+const PZ_KIND_NAME = {habit: 'habits', project: 'steps', oneoff: 'one-offs'};
+const PZ_SEED = [
+  {habit: [2, 2], project: [0, 0], oneoff: [1, 1]},
+  {habit: [2, 2], project: [0, 0], oneoff: [0, 0]},
+  {habit: [1, 2], project: [1, 1], oneoff: [0, 0]},
+  {habit: [1, 2], project: [0, 2], oneoff: [0, 1]},
+  {habit: [0, 1], project: [0, 0], oneoff: [0, 0]},
+  {habit: [0, 1], project: [0, 0], oneoff: [0, 0]},
+  {habit: [0, 1], project: [0, 0], oneoff: [0, 0]},
+];
+/* Thu's Todo in the board's order: Workout, Lecture 4, Render it with Mol*, File tax report */
+const PZ_NEXT = [['habit', 'Workout'], ['project', 'Lecture 4 — Cell signaling'], ['project', 'Render it with Mol*'], ['oneoff', 'File tax report']];
+const PZ_PHONE_DAYS = 3;
+const pz = {days: clone(PZ_SEED), step: 0};
+
+const dayTotals = day => PZ_KINDS.reduce((sum, kind) => [sum[0] + day[kind][0], sum[1] + day[kind][1]], [0, 0]);
+function dayLabel(index, day) {
+  const [done, planned] = dayTotals(day);
+  const parts = PZ_KINDS.filter(kind => day[kind][1] > 0).map(kind => `${PZ_KIND_NAME[kind]} ${day[kind][0]} of ${day[kind][1]}`);
+  return `${FIX.week.dayNames[index]}: ${done} of ${planned} done${parts.length ? ` — ${parts.join(', ')}` : ''}`;
+}
+const dayState = index => (index === FIX.todayIndex ? 'today' : index > FIX.todayIndex ? 'future' : 'past');
+
+/* A · Apple-style concentric rings: one ring per kind, outer habit → inner one-off; a kind with nothing planned has no ring */
+function concentric(day, size) {
+  const stroke = size * 0.11;
+  const gap = Math.max(1, size * 0.035);
+  let radius = size / 2 - stroke / 2;
+  let html = '';
+  for (const kind of PZ_KINDS) {
+    const [done, planned] = day[kind];
+    const circumference = 2 * Math.PI * radius;
+    if (planned > 0) {
+      const length = (done / planned) * circumference;
+      html += `<circle cx="${size / 2}" cy="${size / 2}" r="${radius}" fill="none" stroke="color-mix(in oklab, ${PZ_KIND_COLOR[kind]} 20%, transparent)" stroke-width="${stroke}"/>`;
+      html += `<circle cx="${size / 2}" cy="${size / 2}" r="${radius}" fill="none" stroke="${PZ_KIND_COLOR[kind]}" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${done ? length : 0} ${circumference}" style="${done ? '' : 'opacity:0'}"/>`;
+    }
+    radius -= stroke + gap;
+  }
+  return `<svg class="pz-mark" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="transform:rotate(-90deg)">${html}</svg>`;
+}
+
+/* B · one ring per day: its circumference is the day's plan; done work fills it clockwise in a fixed kind order */
+function segmented(day, size) {
+  const stroke = size * 0.15;
+  const radius = size / 2 - stroke / 2;
+  const circumference = 2 * Math.PI * radius;
+  const [, planned] = dayTotals(day);
+  const gap = 1.6;
+  let offset = 0;
+  let arcs = '';
+  for (const kind of PZ_KINDS) {
+    const [done] = day[kind];
+    const length = planned ? (done / planned) * circumference : 0;
+    const visible = Math.max(length - gap, 0);
+    arcs += `<circle cx="${size / 2}" cy="${size / 2}" r="${radius}" fill="none" stroke="${PZ_KIND_COLOR[kind]}" stroke-width="${stroke}" stroke-dasharray="${visible} ${circumference}" stroke-dashoffset="${-offset}"/>`;
+    offset += length;
+  }
+  const track = `<circle cx="${size / 2}" cy="${size / 2}" r="${radius}" fill="none" stroke="var(--ink-10)" stroke-width="${stroke}"/>`;
+  const [done] = dayTotals(day);
+  const check = planned > 0 && done === planned ? `<svg class="icon" viewBox="0 0 24 24" style="width:${size * 0.42}px;height:${size * 0.42}px"><path d="${P.check}"/></svg>` : '';
+  return `<span class="pz-ringwrap pz-mark"><svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="transform:rotate(-90deg)">${track}${arcs}</svg>${check}</span>`;
+}
+
+/* C · one column per day: its height is the day's plan; done work stacks from the bottom in kind order */
+function columns(day, size) {
+  const unit = size / 5;
+  const width = Math.round(size * 0.42);
+  const [done, planned] = dayTotals(day);
+  const fills = PZ_KINDS.filter(kind => day[kind][0] > 0).map(kind => `<i style="height:${day[kind][0] * unit - 2}px;background:${PZ_KIND_COLOR[kind]}"></i>`).join('');
+  const rest = planned - done > 0 ? `<i style="height:${(planned - done) * unit - 2}px;background:var(--ink-10)"></i>` : '';
+  return `<span class="pz-colbox pz-mark" style="height:${size}px;width:${width}px"><span class="pz-col" style="width:100%">${fills}${rest}</span></span>`;
+}
+
+const PZ_OPTIONS = [
+  {
+    key: 'a', letter: 'A', title: 'Apple 式同心三环：一种 kind 一圈', tag: '备选', mark: concentric, sizes: {desk: [30, 46], phone: [30, 44]},
+    why: `<b>做法</b>：每天三圈，外绿 habit、中紫 step、内蓝 one-off，每一圈是这一类的 done / planned；那天没排这一类，就不画这一圈（Mon 没有紫圈，Tue 只有一圈绿）。<br><b>好在哪</b>：最像 owner 说的 Apple ring，彩色，三类 work 各自看得见。<br><b>差在哪</b>：三圈等于三个目标，可这里只有一个目标——把今天排的做完；step 和 one-off 没有「每天要做几个」的目标，一圈 0 / 1 的蓝环像在欠账。30 px 里放三圈，内圈直径只剩 8 px 左右，看不清（右下角的放大图）。外圈比内圈长，同样是 1 / 2，外圈看起来更多——环形条的长度会失真。Apple 的 HIG 明确说不要把 Activity rings 用在别的数据上，也要和它区分开（Research 第 1 条）。三圈的个数还会每天变，一会儿一圈、一会儿三圈，同一个位置的样子在变（Principle 2）。`,
+  },
+  {
+    key: 'b', letter: 'B', title: '一天一圈，做完的部分按 kind 分段着色', tag: '推荐', mark: segmented, sizes: {desk: [30, 46], phone: [30, 44]},
+    why: `<b>做法</b>：一圈 = 那天排的全部，没做的是灰色的轨道；做完一个，就按 habit → step → one-off 的固定顺序，从 12 点顺时针接上一段自己的颜色。整圈接满 = 那天全做完。今天那格放大，旁边写 <b>1 of 5 done</b>。<br><b>好在哪</b>：一个图形一个意思（Principle 1）：圈有多满 = 做到哪了，颜色 = 做的是哪类；只有一个目标，就是把这一圈接满（和 Apple 的「close your ring」一样的动力，只是一天一圈）。30 px 也看得清，和 8 px 的 dots 完全是两种样子。<br><b>差在哪</b>：每类各占多少只能大概看出来，精确数字放在 hover 和点开那天的清单里；紫和蓝在色盲下会混，所以颜色不能是唯一线索：段的顺序固定，一天做完时圈中心出现 ✓（借 Google Fit「达标换形状」）。`,
+  },
+  {
+    key: 'c', letter: 'C', title: '一天一根小柱，按 kind 从下往上叠（Screen Time 式）', tag: '备选', mark: columns, sizes: {desk: [30, 40], phone: [30, 40]},
+    why: `<b>做法</b>：柱子的高度 = 那天排了几个，做完的从下往上按 kind 叠颜色，没做的是灰色。<br><b>好在哪</b>：比较长度比比较角度准（Cleveland & McGill），哪天排得多一眼就能看出来。<br><b>差在哪</b>：柱子的高度又多说了一件事——「这天排了多少」，这是一个新的意思（Principle 1），排得满的一天看起来更有压力（Principle 6）；Fri–Sun 只有一个 Workout，柱子矮得几乎看不见；也不是 owner 想要的 ring。`,
+  },
+];
+
+function pzDay(option, index, mode) {
+  const day = pz.days[index];
+  const state = dayState(index);
+  const [small, large] = option.sizes[mode];
+  const [done, planned] = dayTotals(day);
+  const closed = option.key === 'b' && planned > 0 && done === planned ? 'closed' : '';
+  if (state === 'today') {
+    return `<div class="pz-day today ${closed}" role="img" aria-label="${dayLabel(index, day)}" title="${dayLabel(index, day)}">${option.mark(day, large)}<div class="tl"><span class="dn">Today</span><span class="v"><b>${done}</b> of ${planned} done</span></div></div>`;
+  }
+  return `<div class="pz-day ${state} ${closed}" role="img" aria-label="${dayLabel(index, day)}" title="${dayLabel(index, day)}"><span class="dn">${FIX.week.dayNames[index]}</span>${option.mark(day, small)}</div>`;
+}
+function pzRow(option, mode) {
+  const first = mode === 'phone' ? FIX.todayIndex - (PZ_PHONE_DAYS - 1) : 0;
+  const last = mode === 'phone' ? FIX.todayIndex : 6;
+  let html = '';
+  for (let index = first; index <= last; index++) html += pzDay(option, index, mode);
+  return `<div class="pz-row">${html}</div>`;
+}
+/* the small marks at 2× and at the real size, so the owner can judge legibility */
+function pzZoom(option) {
+  const samples = [[2, 'Wed · 2 of 3'], [3, 'Thu · now'], [0, 'Mon · all done']];
+  return `<div class="pz-zoom">${samples.map(([index, caption]) => `<figure>${option.mark(pz.days[index], 64)}<figcaption>${caption} · 64 px</figcaption></figure><figure>${option.mark(pz.days[index], 30)}<figcaption>实际 30 px</figcaption></figure>`).join('')}</div>`;
+}
+function renderProgress() {
+  const before = clone(FIX.stripNow);
+  before[FIX.todayIndex] = {done: dayTotals(pz.days[FIX.todayIndex])[0], planned: 5};
+  const [todayDoneCount] = dayTotals(pz.days[FIX.todayIndex]);
+  document.getElementById('pz-before-desk').innerHTML = `<div class="top7" style="border-bottom:0">${todayRing(todayDoneCount, 5)}<span class="vsep"></span>${dayStrip(before, {todayIndex: FIX.todayIndex})}</div>`;
+  document.getElementById('pz-before-phone').innerHTML = `${statusBar('12:40')}${appHead()}<div class="mtop7" style="border-bottom:0"><div class="tline"><span class="k">Today</span><span class="v"><b>${todayDoneCount}</b> of 5 done</span></div>${dayStrip(before, {todayIndex: FIX.todayIndex})}</div>`;
+  document.getElementById('pz-options').innerHTML = PZ_OPTIONS.map(option => `<div class="pz-opt ${option.tag === '推荐' ? 'rec' : ''}" data-pz="${option.key}">
+    <div class="opt-head"><span class="letter">${option.letter}</span><h3>${option.title}</h3><span class="tag ${option.tag === '推荐' ? '' : 'muted'}">${option.tag}</span></div>
+    <div class="pz-pair"><div><div class="pz-cap">Desktop · Mon – Sun</div><div class="pz-desk">${appHead()}${pzRow(option, 'desk')}</div>${pzZoom(option)}</div><div><div class="pz-cap">Phone · 最近三天</div><div class="pz-phone">${statusBar('12:40')}${appHead()}${pzRow(option, 'phone')}</div></div></div>
+    <p class="why" style="margin-top:12px">${option.why}</p></div>`).join('');
+  const next = PZ_NEXT[pz.step];
+  document.getElementById('pz-hint').textContent = next ? `Next: ${next[1]}` : 'Thu · all 5 done — Reset to start over';
+  document.getElementById('pz-next').disabled = !next;
+}
+document.getElementById('pz-next').addEventListener('click', () => {
+  const next = PZ_NEXT[pz.step];
+  if (!next) return;
+  pz.days[FIX.todayIndex][next[0]][0] += 1;
+  pz.step += 1;
+  renderProgress();
+});
+document.getElementById('pz-reset').addEventListener('click', () => { pz.days = clone(PZ_SEED); pz.step = 0; renderProgress(); });
+renderProgress();
+
+/* research behind the options (round 2) */
+const PZ_PATTERNS = [
+  ['同心三环只给 Move / Exercise / Stand', 'Apple Fitness · HIG', 'HIG 原文：「Never use Activity rings to display other types of data」「Differentiate other ring-like elements from Activity rings」（<a href="https://developer.apple.com/design/human-interface-guidelines/activity-rings">HIG</a>）。超过 100% 时环继续绕；历史是月历，每天一组三环（<a href="https://support.apple.com/guide/watch/track-daily-activity-with-apple-watch-apd3bf6d85a6/watchos">Apple</a>）。', '→ A 读起来像照搬；要做 ring，一天一圈（B）更像我们自己的。'],
+  ['今天一个小饼 + 7 天堆叠柱', 'Todoist Productivity', '右上角一个小饼是今天的目标，目标设 0 就算「永远完成」；7 天图「colors represent the colors of the projects where you completed tasks」，灰线是每天的目标（<a href="https://todoist.com/help/articles/use-the-productivity-view-in-todoist-6S63uAa9">Todoist</a>）。', '→ C 的来源；没排东西的一天照 Todoist：不画欠账。'],
+  ['达标时换形状', 'Google Fit', '两圈达标时「the circles morph into octagons」（<a href="https://9to5google.com/2018/08/22/hands-on-google-fit-redesign/">9to5Google</a>）——完成不只靠颜色。', '→ B 一天做完时圈中心出现 ✓，色盲和黑白下也看得出。'],
+  ['部分填满的圆 = 部分完成', 'Habitify grid', '「a partially filled circle means a partially completed habit」（<a href="https://feedback.habitify.me/changelog/new-grid-view-for-extended-tracking-on-website-app">Habitify</a>）。', '→ 正是第 1 轮的问题：和 habit 的 dots 是同一种样子，所以 pip 全部拿掉。'],
+  ['角度不如长度，但 donut 在小屏上够快', 'Cleveland & McGill · Skau & Kosara · Blascheck 2018', '精度：位置 > 长度 > 角度 > 面积（<a href="https://info3312.infosci.cornell.edu/ae/graphical-perception.html">Cornell 课程摘要</a>）；donut 和 pie 一样准（<a href="https://diglib.eg.org/handle/10.1111/cgf12888">Skau & Kosara 2016</a>）；手表尺寸上 bar &lt; 300 ms、donut &lt; 220 ms，radial bar（同心环）1.5–1.8 s，人看的是首尾的缺口而不是弧长（<a href="https://www.microsoft.com/en-us/research/uploads/prod/2018/08/GlanceableVis-InfoVis2018.pdf">Blascheck et al.</a>）。', '→ B（donut）和 C（bar）都能一眼读；A（radial bar）最慢、外圈显得多。'],
+  ['紫和蓝在色盲下会混', 'WebExhibits', '红绿色盲「Violet… indistinguishable from various shades of blue」（<a href="https://webexhibits.org/causesofcolor/2B.html">WebExhibits</a>）。', '→ 颜色不能是唯一线索：B 的段顺序固定（habit → step → one-off），明细在 hover 和那天的清单里。'],
+  ['闭合的形状会拉人回来', 'Ovsiankina · Goal gradient · Stuck in the middle', '未完成的事有「想回去做完」的倾向，比 Zeigarnik 的记忆效应稳（<a href="https://ideas.repec.org/a/pal/palcom/v12y2025i1d10.1057_s41599-025-05000-w.html">2025 meta-analysis</a>）；越接近终点越努力（Kivetz et al. 2006）；进度在一半时最没劲（<a href="https://pubmed.ncbi.nlm.nih.gov/21474842/">Bonezzi et al. 2011</a>）。Apple「close your rings」有效是行业共识，没找到发表的研究。', '→ 一天一个可以接满的圈，比三个分开的目标更集中。'],
+  ['今天放大，其他天放小格', 'Apple Fitness · 日历的 3 天视图', 'Fitness 一天放大 + 上方一周的小格（<a href="https://www.imore.com/how-view-your-past-activity-rings-and-workouts-activity-iphone">iMore</a>）；手机日历常见 3 天视图；没找到哪个 habit app 在顶部只放最近三天。', '→ 手机最近三天，今天放大；要不要换成昨天 · 今天 · 明天，见问题 2。'],
+];
+const PZ_QUESTIONS = [
+  ['1 · 选哪个方向？', 'A 同心三环 · <b>B 一天一圈、按 kind 分段（推荐）</b> · C 堆叠小柱。'],
+  ['2 · 手机的三天是哪三天？', '这里画的是前天 · 昨天 · 今天（「最近三天」）；另一种是昨天 · 今天 · 明天，能看到明天排了什么，但看不到前天。'],
+  ['3 · 今天那格放大，取代单独的 Today ring？', '第 1 轮里今天出现两次（左边的 ring 和日条里的一格）；这一轮只剩一个：今天那格放大，旁边写 1 of 5 done。'],
+  ['4 · 产品里要不要图例？', '颜色和卡片左边框是同一套，所以这里没放图例；具体数字在 hover（桌面）和点开那天的清单里。要的话可以在桌面日条右端放三个小色块。'],
+  ['5 · 一天做完时圈中心出现 ✓', 'B 借了 Google Fit 的「达标换形状」：颜色以外再给一个完成的线索。Principle 3 允许「文字旁的 ✓」，这里的 ✓ 在圈里、不可点——会不会像一个可以点的按钮？'],
+  ['6 · 蓝和紫离得太近（产品现有的 kind 颜色）', '用 dataviz 的配色检查跑了三种 kind 颜色：one-off 蓝和 step 紫正常视力下 ΔE 14.4（低于 15 的下限），绿色弱 6.1——在卡片的 3 px 边上问题不大，在日条的小圈里会更明显。这一轮先靠颜色以外的线索（固定顺序、段间缝、✓）；要不要以后把蓝或紫拉开一点（全 app 的 kind 颜色，改它是 design-language 的事），owner 定。'],
+];
+document.getElementById('pz-patterns').innerHTML = PZ_PATTERNS.map(([title, who, body, fit]) => `<div class="pat"><h4>${title}</h4><div class="who">${who}</div>${body}<div class="fit">${fit}</div></div>`).join('');
+document.getElementById('pz-questions').innerHTML = PZ_QUESTIONS.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 </script>
 </body>
 </html>
