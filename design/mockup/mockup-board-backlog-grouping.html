@@ -211,15 +211,15 @@
   button.xp::before { content: ''; position: absolute; inset: -8px -6px; }
   button.xp .icon { color: var(--k); }
   button.xp:hover .more { color: var(--bc); }
-  /* the pile under a project card: decoration only, one sheet per step
-     behind it, at most three — like a notification stack */
+  /* the pile under a habit or project card: decoration only, one sheet per
+     task behind the next, at most three — like a notification stack */
   .pile { display: flex; flex-direction: column; align-items: stretch; pointer-events: none; }
   .pile i { display: block; height: 6px; margin-top: -1px; border: 1px solid var(--lip-border); border-top: 0; border-radius: 0 0 var(--rc) var(--rc); background: var(--lip-1); box-shadow: 0 2px 5px oklch(0 0 0 / .22); }
   .pile i:nth-child(1) { margin-left: 8px; margin-right: 8px; }
   .pile i:nth-child(2) { margin-left: 16px; margin-right: 16px; height: 5px; background: var(--lip-2); opacity: .85; }
   .pile i:nth-child(3) { margin-left: 24px; margin-right: 24px; height: 5px; background: var(--lip-2); opacity: .6; }
   [data-theme='p5-dark'] .pile i { border-width: 1.5px; border-top: 0; box-shadow: 2px 2px 0 var(--b3); }
-  .grp .bk.project { position: relative; z-index: 1; }
+  .grp .bk { position: relative; z-index: 1; }
   /* pile screen */
   .xgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 18px; align-items: start; }
   .xgrid .cell { display: flex; flex-direction: column; gap: 10px; }
@@ -323,10 +323,11 @@
 
 <header class="topbar">
   <div>
-    <div class="eyebrow">Board · Backlog · design PR · final version · decided 2026-11-05 · 修订 2026-11-05</div>
+    <div class="eyebrow">Board · Backlog · design PR · final version · decided 2026-11-05 · 修订 2026-11-05 · 修订 2026-11-07</div>
     <h1>Backlog grouping — 定稿</h1>
-    <p>第 1 轮选了 <b>D</b>：一个 habit 一行；一个 project 只露出下一步，其余的点一下展开。Backlog 卡片去掉了 <b>Weekly × 3</b> / <b>Step 4/9</b> 这行文字、<b>size</b>，以及 <b>done / total</b> 分数：dots 和 path 已经表达了进度；board 上的 habit 卡也去掉分数。两种卡片的右上角都是 <b>+N more</b>，表示下一个后面还排着几个；project 的那个带 ⌄，点开是它的 queue，卡片下面垫着最多三层的薄 <b>pile</b>（第 3 页）。Mobile 上 <b>↑ Todo</b> 在右下角。Badge 数的是 <b>backlog 里所有 task</b>，超过 8 显示 <b>8+</b>。</p>
+    <p>第 1 轮选了 <b>D</b>：一个 habit 一行；一个 project 只露出下一步，其余的点一下展开。Backlog 卡片去掉了 <b>Weekly × 3</b> / <b>Step 4/9</b> 这行文字、<b>size</b>，以及 <b>done / total</b> 分数：dots 和 path 已经表达了进度；board 上的 habit 卡也去掉分数。两种卡片的右上角都是 <b>+N more</b>，表示下一个后面还排着几个，卡片下面垫着最多三层的薄 <b>pile</b>（第 3 页）；只有 project 的那个带 ⌄，点开是它的 queue。Mobile 上 <b>↑ Todo</b> 在右下角。Badge 数的是 <b>backlog 里所有 task</b>，超过 8 显示 <b>8+</b>。</p>
     <p><b>修订（2026-11-05，定稿后发现）：</b>habit 卡补回 description，布局和 project 卡对齐：标题行、description、进度行（habit 是 dots，project 是 path），mobile 上 ↑ Todo 在同样的右下角。同一组逻辑上相近的卡片保持同一套结构，只用颜色和进度标记的样式区分。</p>
+    <p><b>修订（2026-11-07）：</b>habit 也垫 <b>pile</b>，和 project 一样：后面每排着一个 instance 垫一层，最多三层。两种卡片剩下的唯一区别是能不能展开：project 的 <b>+N more ⌄</b> 打开它后面的 step，每一步标题不同、顺序要看得见；habit 的 <b>+N more</b> 只是文字，后面的 instance 是同一件事，展开没有新信息。</p>
   </div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
     <div class="seg" id="themes">
@@ -346,21 +347,21 @@
 
   <div class="col-label spaced after"><b>After</b> · 定稿 · 拖到 Todo · 计数 8+<span class="line"></span></div>
   <div class="board" id="desk-after"></div>
-  <p class="note">Habit 排在前面，一个 habit 一行：dots，排了不止一个时右上角显示 <b>+N more</b>。Project 只露出下一步；右上角的 <b>+2 more ⌄</b> 展开它后面的 step，只读，顺序不会乱，拖走的永远是下一步。卡片下面的薄 pile 表示后面还有。One-off 右上角保留 quadrant，它后面没有别的。拖三个到 Todo，看 badge 从 <b>8+</b> 变成 <b>8</b>。Board 上 habit 卡的 done / target 也去掉了，board 上其余的卡不变。</p>
+  <p class="note">Habit 排在前面，一个 habit 一张卡：dots，排了不止一个时右上角显示 <b>+N more</b>。Project 只露出下一步；右上角的 <b>+2 more ⌄</b> 展开它后面的 step，只读，顺序不会乱，拖走的永远是下一步。两种卡片下面的薄 pile 都表示后面还有；habit 的不能展开。One-off 右上角保留 quadrant，它后面没有别的。拖三个到 Todo，看 badge 从 <b>8+</b> 变成 <b>8</b>。Board 上 habit 卡的 done / target 也去掉了，board 上其余的卡不变。</p>
 </section>
 
 <!-- ═════════ 2 · Mobile ═════════ -->
 <section class="screen" data-screen="mobile">
   <div class="col-label"><b>Before 和 After</b> · backlog sheet 展开 · 点 ↑ Todo，点 +N more ⌄<span class="line"></span></div>
   <div class="phones" id="phones"></div>
-  <p class="note">Project 卡上有两个点按目标，分在对角：右上角的 <b>+N more ⌄</b>（文字，四周各有 8px 看不见的点按区域）和右下角的 <b>↑ Todo</b>（32px）。下面的 pile 不响应点按。Habit 行的 <b>+N more</b> 只是文字，没有可展开的东西。每台手机上方的 pill 是 tab bar 上方的入口，它的 badge 和 sheet header 的计数一样。</p>
+  <p class="note">Project 卡上有两个点按目标，分在对角：右上角的 <b>+N more ⌄</b>（文字，四周各有 8px 看不见的点按区域）和右下角的 <b>↑ Todo</b>（32px）。下面的 pile 不响应点按。Habit 卡一样垫着 pile，但它的 <b>+N more</b> 只是文字，没有可展开的东西。每台手机上方的 pill 是 tab bar 上方的入口，它的 badge 和 sheet header 的计数一样。</p>
 </section>
 
 <!-- ═════════ 3 · The pile ═════════ -->
 <section class="screen" data-screen="pile">
-  <div class="col-label"><b>Project 的 pile</b> · 下一步后面每有一步垫一层，最多三层 · 点 +N more ⌄ 展开<span class="line"></span></div>
-  <div class="xgrid" id="xgrid" style="grid-template-columns:repeat(2,minmax(0,340px))"></div>
-  <p class="note">Pile 只表达"下面还有"：没有文字，不能点，不管后面排了几步最多三层（后面 6 步看起来也是三层）。控件始终是右上角的 <b>+N more ⌄</b>，和 habit 的 <b>+N more</b> 在同一个位置，两种卡片读起来一致。展开时 pile 换成 queue；后面最后一步被拉走后，只剩一张普通卡片。在 mobile 上点 ↑ Todo，可以看 pile 一层层变薄。</p>
+  <div class="col-label"><b>Habit 和 project 的 pile</b> · 下一个后面每排着一个垫一层，最多三层 · 只有 project 的 +N more ⌄ 能展开<span class="line"></span></div>
+  <div class="xgrid" id="xgrid"></div>
+  <p class="note">Pile 只表达"下面还有"：没有文字，不能点，不管后面排了几个最多三层（后面 6 个看起来也是三层）。Habit 和 project 的 pile 一模一样，<b>+N more</b> 也在同一个位置；区别只在 project 多一个 ⌄：点开时 pile 换成 queue，habit 没有可以展开的。后面最后一个被拉走后，只剩一张普通卡片。在 mobile 上点 ↑ Todo，可以看 pile 一层层变薄。</p>
 </section>
 
 <!-- ═════════ 4 · Card anatomy ═════════ -->
@@ -372,9 +373,9 @@
   <ul class="changes">
     <li><span class="k">① context text</span><b>去掉 plan line 和 step n/N</b>Dots 已经表达了 habit 这一周的进度；path 已经表达了 step 在 project 里的位置。Project 名保留：它是这个 step 属于谁，不是在重复进度。</li>
     <li><span class="k">② done / total</span><b>两种卡片都不显示分数</b>由 dots 和 path 表达；backlog 里不再有 1/3 和 3/9，board 上 habit 卡的 1/3 也去掉。分数留作进度的 accessible name（"1 of 3 done this week"）。</li>
-    <li><span class="k">⑤ 结构</span><b>habit 和 project 卡同一套结构</b>标题行（右上角 +N more）、description、进度行（dots / path），mobile 上 ↑ Todo 在右下角；habit 的 description 在定稿后补回（修订 2026-11-05）。</li>
+    <li><span class="k">⑤ 结构</span><b>habit 和 project 卡同一套结构</b>标题行（右上角 +N more）、description、进度行（dots / path）、下面的 pile，mobile 上 ↑ Todo 在右下角；habit 的 description 在定稿后补回（修订 2026-11-05），pile 也补上（修订 2026-11-07）。唯一的区别：project 能展开，habit 不能。</li>
     <li><span class="k">③ size</span><b>去掉 size chip</b>Desktop 和 mobile 都去掉。Points 仍计入 dashboard。</li>
-    <li><span class="k">④ corners</span><b>+N more · ↑ Todo 在右下角</b>两种卡片数的都是下一个<i>后面</i>还有几个，所以 project 的数字和它展开的行数一致：Read 排了两个，显示 <i>+1 more</i>；Biomedical course 这周三步，显示 <i>+2 more ⌄</i>；最后一个什么都不显示。后面还有 step 的 project 垫着一层薄 pile，最多三层（第 3 页）。One-off 显示 quadrant。Mobile 上每张卡的 ↑ Todo 都移到右下角。</li>
+    <li><span class="k">④ corners</span><b>+N more · ↑ Todo 在右下角</b>两种卡片数的都是下一个<i>后面</i>还有几个，所以 project 的数字和它展开的行数一致：Read 排了两个，显示 <i>+1 more</i>；Biomedical course 这周三步，显示 <i>+2 more ⌄</i>；最后一个什么都不显示。后面还有的 habit 和 project 都垫着薄 pile，最多三层（第 3 页）。One-off 显示 quadrant。Mobile 上每张卡的 ↑ Todo 都移到右下角。</li>
   </ul>
 
   <div class="col-label spaced"><b>计数</b> · backlog 里所有 task，超过 8 显示 8+<span class="line"></span></div>
@@ -402,7 +403,7 @@
 <nav class="seg screen-nav" id="screens">
   <button data-screen-btn="desktop" class="on">1 · Desktop</button>
   <button data-screen-btn="mobile">2 · Mobile</button>
-  <button data-screen-btn="pile">3 · Project pile</button>
+  <button data-screen-btn="pile">3 · Pile</button>
   <button data-screen-btn="anatomy">4 · Card & count</button>
   <button data-screen-btn="research">5 · Research</button>
 </nav>
@@ -495,19 +496,23 @@ const pullBtn = (groupId, index) => `<button class="tc-pull" data-pull="${groupI
 /* "+N more" = the staged ones behind the next; nothing when it is the last */
 const moreText = (count, bumped) => `<span class="more ${bumped ? 'bump' : ''}"><b>+${count}</b>more</span>`;
 
+/* the pile: one sheet per task behind the next, at most three; no text, no taps */
+const PILE_MAX = 3;
+const pile = behindCount => (behindCount > 0 ? `<span class="pile" aria-hidden="true">${'<i></i>'.repeat(Math.min(behindCount, PILE_MAX))}</span>` : '');
+
+/* A habit sits on the same pile as a project, but never opens: the
+   instances behind it are the same task, so there is nothing to show */
 function habitRow(group, ctx) {
-  const rest = remaining(group);
-  const top = rest[0];
+  const [top, ...behind] = remaining(group);
   const bumped = ctx.state.bumped === group.id;
   const drag = ctx.mobile ? '' : `data-drag="${group.id}" data-index="${group.pulled}"`;
-  return `<div class="bk habit ${bumped ? 'rise' : ''}" data-kind="habit" ${drag}>
-    <div class="bk-top"><span class="ic">${icon('habit', 'sm')}</span><span class="ttl">${group.title}</span>${rest.length > 1 ? moreText(rest.length - 1, bumped) : ''}</div>
+  return `<div class="grp"><div class="bk habit ${bumped ? 'rise' : ''}" data-kind="habit" ${drag}>
+    <div class="bk-top"><span class="ic">${icon('habit', 'sm')}</span><span class="ttl">${group.title}</span>${behind.length > 0 ? moreText(behind.length, bumped) : ''}</div>
     ${group.desc ? `<p class="bk-desc">${group.desc}</p>` : ''}
     <div class="bk-bot">${dots({target: group.target, doneSlots: group.done, cur: top.slot})}<span class="sp"></span>${ctx.mobile ? pullBtn(group.id, group.pulled) : ''}</div>
-  </div>`;
+  </div>${pile(behind.length)}</div>`;
 }
 
-const PILE_MAX = 3;
 function projectCard(group, ctx) {
   const rest = remaining(group);
   const [top, ...behind] = rest;
@@ -516,9 +521,9 @@ function projectCard(group, ctx) {
   const hasMore = behind.length > 0;
   const toggle = hasMore
     ? `<button class="xp" data-toggle="${group.id}" title="${group.open ? 'Hide' : 'Show'} the steps behind it">${moreText(behind.length, bumped)}${icon(group.open ? 'chevUp' : 'chevDown', 'xs')}</button>` : '';
-  const below = !hasMore ? ''
-    : group.open ? `<div class="queue">${behind.map(item => `<div class="q-row" data-kind="project"><span class="n">${item.n}</span><span class="t">${item.title}</span></div>`).join('')}</div>`
-    : `<span class="pile" aria-hidden="true">${'<i></i>'.repeat(Math.min(behind.length, PILE_MAX))}</span>`;
+  const below = hasMore && group.open
+    ? `<div class="queue">${behind.map(item => `<div class="q-row" data-kind="project"><span class="n">${item.n}</span><span class="t">${item.title}</span></div>`).join('')}</div>`
+    : pile(behind.length);
   return `<div class="grp"><div class="bk project ${bumped ? 'rise' : ''}" data-kind="project" ${drag}>
     <div class="bk-top"><span class="ic">${icon('project', 'xs')}</span><span class="kname">${group.name}</span>${toggle}</div>
     <div class="bk-title">${top.title}</div>
@@ -598,22 +603,28 @@ function renderPhone({key, label, option}) {
   </div>`;
 }
 
-/* Pile screen: one project with 0, 1, 2, 3 and 6 steps behind its next */
+/* Pile screen: a habit and a project, each with 0, 1, 2, 3 and 6 behind its next */
 const PILE_CASES = [0, 1, 2, 3, 6];
-function pileState(behindCount) {
+const PILE_KINDS = ['habit', 'project'];
+const PILE_VIEWS = PILE_KINDS.flatMap(kind => [{kind, mobile: false}, {kind, mobile: true}]);
+const pileKey = (kind, behindCount, mobile) => `${kind}-${behindCount}${mobile ? 'm' : ''}`;
+function pileState(kind, behindCount) {
   const state = freshState();
-  const items = Array.from({length: behindCount + 1}, (_, offset) => ({n: 4 + offset, title: `Lecture ${4 + offset}`, desc: null}));
-  state.groups = [{id: 'pile', kind: 'project', name: 'Biomedical course', total: 12, done: [1, 2, 3], items, pulled: 0, open: false}];
+  const count = behindCount + 1;
+  state.groups = [kind === 'habit'
+    ? {id: 'pile', kind, title: 'LeetCode', desc: 'One medium, 45-min timer', target: count + 1, done: [0], items: Array.from({length: count}, (_, offset) => ({slot: 1 + offset})), pulled: 0, open: false}
+    : {id: 'pile', kind, name: 'Biomedical course', total: 12, done: [1, 2, 3], items: Array.from({length: count}, (_, offset) => ({n: 4 + offset, title: `Lecture ${4 + offset}`, desc: null})), pulled: 0, open: false}];
   return state;
 }
 function renderPiles() {
-  const column = mobile => `<div class="cell ${mobile ? 'sheet' : ''}"><div class="sub">${mobile ? 'Mobile' : 'Desktop'}</div>${PILE_CASES.map(behindCount => {
-    const key = `${behindCount}${mobile ? 'm' : ''}`;
+  const column = ({kind, mobile}) => `<div class="cell ${mobile ? 'sheet' : ''}"><div class="sub">${KIND_LABEL[kind]} · ${mobile ? 'Mobile' : 'Desktop'}</div>${PILE_CASES.map(behindCount => {
+    const key = pileKey(kind, behindCount, mobile);
     const state = surfaces.piles[key];
     const live = state.groups[0];
-    return `<div data-pile="${key}"><div class="sub" style="margin:0 0 6px">后面 ${remaining(live).length - 1} 步</div>${remaining(live).length ? projectCard(live, {state, mobile}) : '<p class="empty">已全部拉走</p>'}</div>`;
+    const left = remaining(live).length;
+    return `<div data-pile="${key}"><div class="sub" style="margin:0 0 6px">后面 ${Math.max(left - 1, 0)} 个</div>${left ? FACE[kind](live, {state, mobile}) : '<p class="empty">已全部拉走</p>'}</div>`;
   }).join('')}</div>`;
-  document.getElementById('xgrid').innerHTML = column(false) + column(true);
+  document.getElementById('xgrid').innerHTML = PILE_VIEWS.map(column).join('');
 }
 
 /* Card & count screen: one of each kind, before vs after, desktop vs mobile */
@@ -651,7 +662,7 @@ function resetAll() {
   surfaces.deskBefore = freshState();
   surfaces.deskAfter = freshState();
   surfaces.phones = Object.fromEntries(PHONES.map(({key}) => [key, freshState()]));
-  surfaces.piles = Object.fromEntries(PILE_CASES.flatMap(behindCount => [[`${behindCount}`, pileState(behindCount)], [`${behindCount}m`, pileState(behindCount)]]));
+  surfaces.piles = Object.fromEntries(PILE_VIEWS.flatMap(({kind, mobile}) => PILE_CASES.map(behindCount => [pileKey(kind, behindCount, mobile), pileState(kind, behindCount)])));
   renderAll();
 }
 function renderAll() {
