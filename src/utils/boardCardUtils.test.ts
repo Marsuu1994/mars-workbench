@@ -35,6 +35,7 @@ const tasks = [
     type: TaskType.PROJECT,
     instanceIndex: 2,
     status: TaskStatus.DONE,
+    doneAt: new Date('2026-10-12T18:00:00Z'),
   }),
   buildTask({
     id: 'unit-3',
@@ -48,7 +49,11 @@ const tasks = [
     type: TaskType.PROJECT,
     status: TaskStatus.TODO,
   }),
-  buildTask({id: 'passport', status: TaskStatus.DONE}),
+  buildTask({
+    id: 'passport',
+    status: TaskStatus.DONE,
+    doneAt: new Date('2026-10-12T17:00:00Z'),
+  }),
   buildTask({id: 'old-run', status: TaskStatus.EXPIRED}),
 ];
 
@@ -56,16 +61,21 @@ describe('toBoardCards', () => {
   const cards = toBoardCards(tasks, {plan, projects: [course]});
   const idsOf = (status: keyof typeof cards) =>
     cards[status].map(card => card.task.id);
+  const findCard = (status: keyof typeof cards, id: string) =>
+    cards[status].find(card => card.task.id === id);
 
   it('groups cards by status and skips EXPIRED', () => {
     expect(idsOf(TaskStatus.BACKLOG)).toEqual(['unit-3']);
-    expect(idsOf(TaskStatus.TODO)).toEqual(['orphan-step', 'review']);
-    expect(idsOf(TaskStatus.DONE)).toEqual(['passport', 'unit-2']);
+    expect(idsOf(TaskStatus.TODO)).toEqual(['review', 'orphan-step']);
+  });
+
+  it('sorts Done by when each task was done', () => {
+    // unit-2 was done after the passport, though a step sorts after a one-off
+    expect(idsOf(TaskStatus.DONE)).toEqual(['unit-2', 'passport']);
   });
 
   it('gives a habit card its plan line and its own dot', () => {
-    const [, reviewCard] = cards[TaskStatus.TODO];
-    expect(reviewCard).toMatchObject({
+    expect(findCard(TaskStatus.TODO, 'review')).toMatchObject({
       kind: TaskKind.HABIT,
       habitWeek: {target: 1, done: 0},
       currentSlot: 0,
@@ -73,10 +83,7 @@ describe('toBoardCards', () => {
   });
 
   it("draws a step's path from the board's latest statuses", () => {
-    const unitTwoCard = cards[TaskStatus.DONE].find(
-      card => card.task.id === 'unit-2',
-    );
-    expect(unitTwoCard).toEqual({
+    expect(findCard(TaskStatus.DONE, 'unit-2')).toEqual({
       kind: TaskKind.PROJECT,
       task: tasks[1],
       step: {
@@ -90,8 +97,7 @@ describe('toBoardCards', () => {
   });
 
   it('leaves a step without context when its project is not in the lookup', () => {
-    const [orphanCard] = cards[TaskStatus.TODO];
-    expect(orphanCard).toEqual({
+    expect(findCard(TaskStatus.TODO, 'orphan-step')).toEqual({
       kind: TaskKind.PROJECT,
       task: tasks[3],
       step: undefined,
@@ -99,7 +105,7 @@ describe('toBoardCards', () => {
   });
 
   it('gives a one-off card nothing but the task', () => {
-    expect(cards[TaskStatus.DONE][0]).toEqual({
+    expect(findCard(TaskStatus.DONE, 'passport')).toEqual({
       kind: TaskKind.ONE_OFF,
       task: tasks[4],
     });

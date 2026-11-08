@@ -6,6 +6,7 @@ import {
   TaskKind,
   computeHabitWeeks,
   getTaskKind,
+  sortDoneTasks,
   sortTasks,
   type BoardPlan,
 } from './taskUtils';
@@ -138,7 +139,37 @@ describe('computeHabitWeeks', () => {
 describe('sortTasks', () => {
   const at = (minute: number) => new Date(Date.UTC(2026, 9, 12, 16, minute));
 
-  it('puts DAILY first, keeps groups together and orders them by number', () => {
+  it('runs one-offs, daily habits, weekly habits, then steps', () => {
+    const tasks = [
+      buildTask({
+        id: 'step',
+        projectId: 'course',
+        type: TaskType.PROJECT,
+        createdAt: at(1),
+      }),
+      buildTask({
+        id: 'review',
+        templateId: 'review',
+        type: TaskType.WEEKLY,
+        createdAt: at(2),
+      }),
+      buildTask({
+        id: 'run',
+        templateId: 'run',
+        type: TaskType.DAILY,
+        createdAt: at(3),
+      }),
+      buildTask({id: 'one-off', createdAt: at(4)}),
+    ];
+    expect(sortTasks(tasks).map(task => task.id)).toEqual([
+      'one-off',
+      'run',
+      'review',
+      'step',
+    ]);
+  });
+
+  it('keeps a group together, in instance order', () => {
     const tasks = [
       buildTask({
         id: 'review-2',
@@ -148,10 +179,10 @@ describe('sortTasks', () => {
         createdAt: at(3),
       }),
       buildTask({
-        id: 'run',
-        templateId: 'run',
-        type: TaskType.DAILY,
-        createdAt: at(5),
+        id: 'stretch',
+        templateId: 'stretch',
+        type: TaskType.WEEKLY,
+        createdAt: at(2),
       }),
       buildTask({
         id: 'review-1',
@@ -160,13 +191,12 @@ describe('sortTasks', () => {
         instanceIndex: 0,
         createdAt: at(4),
       }),
-      buildTask({id: 'one-off', createdAt: at(1)}),
       buildTask({
         id: 'step-2',
         projectId: 'course',
         type: TaskType.PROJECT,
         instanceIndex: 2,
-        createdAt: at(2),
+        createdAt: at(1),
       }),
       buildTask({
         id: 'step-1',
@@ -176,13 +206,13 @@ describe('sortTasks', () => {
         createdAt: at(6),
       }),
     ];
+    // Review's earliest instance (minute 3) ranks it after stretch (minute 2)
     expect(sortTasks(tasks).map(task => task.id)).toEqual([
-      'run',
-      'one-off',
-      'step-1',
-      'step-2',
+      'stretch',
       'review-1',
       'review-2',
+      'step-1',
+      'step-2',
     ]);
   });
 
@@ -200,5 +230,24 @@ describe('sortTasks', () => {
     ];
     sortTasks(tasks);
     expect(tasks.map(task => task.id)).toEqual(['late', 'early']);
+  });
+});
+
+describe('sortDoneTasks', () => {
+  const at = (minute: number) => new Date(Date.UTC(2026, 9, 12, 16, minute));
+
+  it('puts the latest done first', () => {
+    const tasks = [
+      buildTask({id: 'first', status: TaskStatus.DONE, doneAt: at(1)}),
+      buildTask({id: 'last', status: TaskStatus.DONE, doneAt: at(9)}),
+      buildTask({id: 'unstamped', status: TaskStatus.DONE}),
+      buildTask({id: 'middle', status: TaskStatus.DONE, doneAt: at(5)}),
+    ];
+    expect(sortDoneTasks(tasks).map(task => task.id)).toEqual([
+      'last',
+      'middle',
+      'first',
+      'unstamped',
+    ]);
   });
 });
