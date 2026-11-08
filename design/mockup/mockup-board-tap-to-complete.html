@@ -184,6 +184,8 @@
   .tc-foot { display: flex; align-items: center; gap: 8px; min-height: 18px; flex-wrap: wrap; }
   .size { margin-left: auto; font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; color: var(--ink-55); border: 1px solid var(--card-border); border-radius: var(--rs); padding: 1px 5px; } /* Before only — never on an After card */
   .dots { display: inline-flex; gap: 6px; align-items: center; }
+  .sig { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--ink-55); white-space: nowrap; }
+  .size i { font-style: normal; opacity: .4; margin: 0 3px; }
   .dots i { width: 8px; height: 8px; border-radius: 99px; border: 1.5px solid color-mix(in oklab, var(--k) 65%, transparent); }
   .dots i.on { background: var(--k); border-color: var(--k); }
   .dots i.cur { border-color: var(--k); box-shadow: 0 0 0 2px color-mix(in oklab, var(--k) 30%, transparent); }
@@ -443,7 +445,7 @@
 
 <header class="topbar">
   <div>
-    <div class="eyebrow">Board · Phase 2 · design PR · 第 1 轮 · 2026-11-06</div>
+    <div class="eyebrow">Board · Phase 2 · design PR · 第 1 轮 · 2026-11-06（2026-11-08 同步 main：Backlog 按 #114，Before 按现在的组件）</div>
     <h1>Board：点一下 ✓ 就完成</h1>
     <p>有 active plan 的白天，默认屏就是 board。<b>已定</b>：手机上点卡片的 ✓ 就完成、卡片消失，不用拖；桌面点 ✓ 和拖拽都保留；顶部的 ProgressDashboard 换成 Today ring + 7 格日条（Mon–Sun，一格一天，做了几个 / 计划几个），去掉所有 points；卡片保留 dots / path，去掉 size chip；错过的 instance 是空心 dot，不做 streak。<b>要 owner 选</b>：完成时的 celebration（第 3 屏，可点）和完成的卡片去哪（第 4 屏）。Fixture：<b>W45 · Mon Nov 2 – Sun Nov 8 2026</b>，今天是 Thu Nov 5 中午，LeetCode #3 刚做完。</p>
   </div>
@@ -456,13 +458,13 @@
 <section class="screen on" data-screen="s1">
   <div class="col-label"><b>Before</b> · 现在 · BoardHeader → ProgressDashboard（%、points、avg）→ Todo · Done → 右侧 Backlog<span class="line"></span></div>
   <div id="s1-before"></div>
-  <p class="note">现状从真实组件画：<b>ProgressDashboard</b> 是 Today ring（%）+ Today Points + Week Points + Daily Avg + Week Progress bar，五个数字说的其实是两件事（今天做到哪、这周做到哪）。卡片是 <b>TaskCardFace</b>：kind 行右端带 context（Daily · Step 4/9 · Do first），底行 signal + size chip。完成 = 把卡片拖进 Done 列。</p>
+  <p class="note">现状从真实组件画：<b>ProgressDashboard</b> 是 Today ring（%）+ Today Points + Week Points + Daily Avg + Week Progress bar，五个数字说的其实是两件事（今天做到哪、这周做到哪）。卡片是 <b>TaskCardFace</b>：kind 行右端带 context（Daily · 4× / week · 4/9 · Do first），底行 signal（habit 的 dots 后面跟 done / target）+ size chip（size · points）。右侧 Backlog 是 main 上现在的 <b>DesktopBacklog</b>：每个 task 一张同样的卡，没有分组、没有 pile。完成 = 把卡片拖进 Done 列。</p>
 
   <div class="col-label spaced after"><b>After</b> · 已定 · 顶部换成 Today ring + 7 格日条；卡片去掉 size 和 context；✓ 和拖拽并存<span class="line"></span></div>
   <div id="s1-after"></div>
   <p class="note"><b>顶部</b>：左边 Today ring 按个数（<b>1 of 5 done</b>），右边 Mon–Sun 七格，一格一天，planned 几个就几颗 pip，做了的填实，没做的空心；今天那格带环。没有 %、没有 points、没有 avg、没有 progress bar。Wed 的空心 pip 是那天没做的 Workout —— 它只是空心，不是红色，也没有「漏了」的字样。<br>
-  <b>卡片</b>：同一张 TaskCardFace，去掉 size chip、去掉「Daily / 4× / week / Step 4/9」（dots 和 path 已经说了进度，PR #109 已定），project 名和 one-off 的 quadrant 保留。右侧多一个 <b>✓</b>（28 px 圆，hover 时亮起；hit region 44 × 44），点一下完成；拖到 Done 也照样可以。hello-pangea/dnd 默认不从嵌套的 button 起拖，所以两者天然并存，不需要新手势。<br>
-  <b>Done 列</b>这里先按现状保留，去不去、去哪，见第 4 屏。Backlog 面板按 PR #109 定稿：habit 一行、project 只露下一步 + pile、右上角 +N more。</p>
+  <b>卡片</b>：同一张 TaskCardFace，去掉 size chip、去掉「Daily / 4× / week / 4/9」和 habit 的 done / target（dots 和 path 已经说了进度，PR #109 已定），project 名和 one-off 的 quadrant 保留。右侧多一个 <b>✓</b>（28 px 圆，hover 时亮起；hit region 44 × 44），点一下完成；拖到 Done 也照样可以。hello-pangea/dnd 默认不从嵌套的 button 起拖，所以两者天然并存，不需要新手势。<br>
+  <b>Done 列</b>这里先按现状保留，去不去、去哪，见第 4 屏。Backlog 面板按 main 上的 backlog grouping 定稿（PR #109，#114 修订）：一个 habit 一张卡、project 只露下一步；右上角 +N more 数下一个后面还有几个，habit 和 project 都垫着最多三层的 pile，只有 project 的 +N more ⌄ 能展开。</p>
 </section>
 
 <!-- ═════════ 2 · Phone ═════════ -->
@@ -577,6 +579,7 @@ const P = {
   dots3: 'M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z',
 };
 const icon = (name, cls = '') => `<svg class="icon ${cls}" viewBox="0 0 24 24"><path d="${P[name]}"/></svg>`;
+const SIZE_POINTS = {XS: 1, S: 2, M: 3, L: 5, XL: 8};
 const KIND_LABEL = {habit: 'Habit', project: 'Project', oneoff: 'One-off'};
 const COUNT_CAP = 8;
 const capped = count => (count > COUNT_CAP ? `${COUNT_CAP}+` : String(count));
@@ -646,14 +649,14 @@ function path({total, doneSteps, cur}) {
 function card(model, {drag = '', action = '', cls = '', showSize = false} = {}) {
   const {kind} = model;
   const head = kind === 'project'
-    ? `<span class="name">${model.name}</span><span class="ctx">${showSize ? `Step ${model.n}/${model.total}` : ''}</span>`
+    ? `<span class="name">${model.name}</span><span class="ctx">${showSize ? `${model.n}/${model.total}` : ''}</span>`
     : `<span>${KIND_LABEL[kind]}</span><span class="ctx">${kind === 'habit' ? (showSize ? (model.cadence || '') : '') : (model.quadrant || '')}</span>`;
-  const signal = kind === 'habit' ? dots(model) : kind === 'project' ? path({...model, cur: model.n}) : '';
+  const signal = kind === 'habit' ? `${dots(model)}${showSize ? `<span class="sig">${model.doneSlots.length}/${model.target}</span>` : ''}` : kind === 'project' ? path({...model, cur: model.n}) : '';
   return `<div class="tc ${model.isDone ? 'is-done' : ''} ${cls}" data-kind="${kind}" ${drag}>
     <div class="tc-head">${icon(kind, 'xs')}${head}</div>
     <div class="tc-row"><h3 class="tc-title">${model.title}</h3>${action}</div>
     ${model.desc && !model.isDone ? `<p class="tc-desc">${model.desc}</p>` : ''}
-    <div class="tc-foot">${signal}${showSize ? `<span class="size">${model.size || 'XS'}</span>` : ''}</div>
+    <div class="tc-foot">${signal}${showSize ? `<span class="size">${model.size || 'XS'}<i>·</i>${SIZE_POINTS[model.size || 'XS']}</span>` : ''}</div>
   </div>`;
 }
 
@@ -720,11 +723,11 @@ function dashBefore() {
   return `<div class="dash">
     <div style="display:flex;align-items:center;gap:12px"><div class="ring"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="22" fill="none" stroke-width="7" stroke="color-mix(in oklab, var(--p) 15%, transparent)"/><circle cx="26" cy="26" r="22" fill="none" stroke-width="4" stroke="var(--ink-20)"/><circle cx="26" cy="26" r="22" fill="none" stroke-width="4" stroke="var(--su)" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * 0.8}"/></svg><span class="pct">20%</span></div><div class="lbl"><span class="k">Today</span><span class="sub">1 of 5 tasks</span></div></div>
     <span class="vsep"></span>
-    <div class="stat"><b style="color:var(--su)">2 / 13</b><span class="k">Today points</span></div>
-    <div class="stat"><b style="color:var(--in)">14 / 38</b><span class="k">Week points</span></div>
-    <div class="stat"><b style="color:var(--wa)">3.5</b><span class="k">Daily avg</span></div>
+    <div class="stat"><b style="color:var(--su)">2 / 13</b><span class="k">Today Points</span></div>
+    <div class="stat"><b style="color:var(--in)">14 / 38</b><span class="k">Week Points</span></div>
+    <div class="stat"><b style="color:var(--wa)">3.5</b><span class="k">Daily Avg</span></div>
     <span class="vsep"></span>
-    <div class="wk"><div class="row"><span class="k">Week progress</span><span class="mono" style="font-size:11px;color:var(--in);font-weight:600">42%</span></div><div class="bar2"><b style="width:42%;background:linear-gradient(90deg,var(--in),var(--su))"></b></div><span class="sub">8 of 19 tasks</span></div>
+    <div class="wk"><div class="row"><span class="k">Week Progress</span><span class="mono" style="font-size:11px;color:var(--in);font-weight:600">42%</span></div><div class="bar2"><b style="width:42%;background:linear-gradient(90deg,var(--in),var(--su))"></b></div><span class="sub">8 of 19 tasks</span></div>
   </div>`;
 }
 const dashBeforePhone = () => `<div class="mdash">
@@ -739,7 +742,7 @@ function mini(model, {done = false} = {}) {
   const {kind} = model;
   const head = kind === 'project' ? `<span class="name">${model.name}</span>` : `<span>${KIND_LABEL[kind]}</span>`;
   const signal = kind === 'habit' ? dots(model) : kind === 'project' ? path({...model, cur: model.n}) : '';
-  return `<div class="mini ${done ? 'is-done' : ''}" data-kind="${kind}"><div class="tc-head">${icon(kind, 'xxs')}${head}</div><h3 class="tc-title">${model.title}</h3><div class="tc-foot">${signal}<span class="size" style="font-size:8px;padding:0 4px">${model.size}</span></div></div>`;
+  return `<div class="mini ${done ? 'is-done' : ''}" data-kind="${kind}"><div class="tc-head">${icon(kind, 'xxs')}${head}</div><h3 class="tc-title">${model.title}</h3><div class="tc-foot">${signal}<span class="size" style="font-size:8px;padding:0 4px">${model.size}<i>·</i>${SIZE_POINTS[model.size]}</span></div></div>`;
 }
 const BACKLOG_BEFORE = [
   {kind: 'habit', title: 'LeetCode', desc: 'One medium, 45-min timer', cadence: '4× / week', target: 4, doneSlots: [0, 1, 2], cur: 3},
@@ -751,12 +754,17 @@ const BACKLOG_BEFORE = [
   {kind: 'project', name: 'Protein 3D viewer', title: 'Deploy the viewer', n: 4, total: 4, doneSteps: [1]},
   {kind: 'oneoff', title: 'Renew passport', desc: 'Photos first — form DS-82', quadrant: 'Do first'},
 ];
-const backlogFrame = (count, body) => `<div class="backlog"><div class="backlog-head"><div class="backlog-title">${icon('inbox')}<span>Backlog</span><span class="badge-count" title="${count} staged tasks">${capped(count)}</span></div></div><div class="backlog-hint">${icon('left', 'sm')}Drag tasks left to Todo to start working</div><div class="backlog-body">${body}</div></div>`;
-const backlogBefore = () => backlogFrame(8, BACKLOG_BEFORE.map(model => card(withSize(model), {showSize: true, drag: 'data-drag', cls: 'solid'})).join(''));
+const backlogFrame = (count, body, shown = capped) => `<div class="backlog"><div class="backlog-head"><div class="backlog-title">${icon('inbox')}<span>Backlog</span><span class="badge-count" title="${count} staged tasks">${shown(count)}</span></div><span style="opacity:.5">${icon('right', 'sm')}</span></div><div class="backlog-hint">${icon('left', 'sm')}Drag tasks left to Todo to start working</div><div class="backlog-body">${body}</div></div>`;
+const backlogBefore = () => backlogFrame(8, BACKLOG_BEFORE.map(model => card(withSize(model), {showSize: true, drag: 'data-drag', cls: 'solid'})).join(''), String);
+/* main's mockup-board-backlog-grouping.html (PR #109, revised in #114): "+N more" counts what sits
+   behind the next one; a habit and a project both sit on a pile of at most three sheets; only the
+   project's "+N more ⌄" opens (its steps differ), a habit's is text */
+const PILE_MAX = 3;
 const moreText = (count, chev = false) => `<span class="more"><b>+${count}</b>more${chev ? icon('chevDown', 'xs') : ''}</span>`;
+const pile = behindCount => (behindCount > 0 ? `<span class="pile" aria-hidden="true">${'<i></i>'.repeat(Math.min(behindCount, PILE_MAX))}</span>` : '');
 function backlogAfter() {
-  const habit = model => `<div class="tc solid" data-kind="habit" data-drag><div class="tc-top">${icon('habit', 'sm')}<span class="ttl">${model.title}</span>${model.more ? moreText(model.more) : ''}</div><p class="tc-desc">${model.desc}</p><div class="tc-foot">${dots(model)}</div></div>`;
-  const project = model => `<div class="grp"><div class="tc solid" data-kind="project" data-drag><div class="tc-head">${icon('project', 'xs')}<span class="name">${model.name}</span>${model.more ? moreText(model.more, true) : ''}</div><h3 class="tc-title">${model.title}</h3>${model.desc ? `<p class="tc-desc">${model.desc}</p>` : ''}<div class="tc-foot">${path({...model, cur: model.n})}</div></div>${model.more ? `<span class="pile" aria-hidden="true">${'<i></i>'.repeat(Math.min(model.more, 3))}</span>` : ''}</div>`;
+  const habit = model => `<div class="grp"><div class="tc solid" data-kind="habit" data-drag><div class="tc-top">${icon('habit', 'sm')}<span class="ttl">${model.title}</span>${model.more ? moreText(model.more) : ''}</div><p class="tc-desc">${model.desc}</p><div class="tc-foot">${dots(model)}</div></div>${pile(model.more || 0)}</div>`;
+  const project = model => `<div class="grp"><div class="tc solid" data-kind="project" data-drag><div class="tc-head">${icon('project', 'xs')}<span class="name">${model.name}</span>${model.more ? moreText(model.more, true) : ''}</div><h3 class="tc-title">${model.title}</h3>${model.desc ? `<p class="tc-desc">${model.desc}</p>` : ''}<div class="tc-foot">${path({...model, cur: model.n})}</div></div>${pile(model.more || 0)}</div>`;
   const oneoff = model => card(model, {drag: 'data-drag', cls: 'solid'});
   const habits = FIX.backlog.filter(item => item.kind === 'habit').map(item => habit({...item, desc: FIX.habits.find(h => h.id === item.id).desc})).join('');
   const others = FIX.backlog.filter(item => item.kind !== 'habit').map(item => (item.kind === 'project' ? project({...item, desc: item.title === 'Add residue picking' ? 'Click a residue → highlight + label' : ''}) : oneoff(item))).join('');
