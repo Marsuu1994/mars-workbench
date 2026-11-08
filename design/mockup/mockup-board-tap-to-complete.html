@@ -504,6 +504,15 @@
   .idea b { color: var(--bc); }
   .idea code { font-family: 'Geist Mono', monospace; font-size: 11.5px; }
   .pz-ringwrap { position: relative; }
+  .cmp-wrap { overflow-x: auto; margin-bottom: 4px; }
+  .cmp { display: grid; grid-template-columns: 110px repeat(6, minmax(168px, 1fr)); gap: 10px; align-items: center; min-width: 1130px; }
+  .cmp-head { display: flex; flex-direction: column; gap: 2px; font-size: 12.5px; }
+  .cmp-head b { color: var(--bc); }
+  .cmp-head span { font-family: 'Geist Mono', monospace; font-size: 10.5px; color: var(--ink-55); }
+  .cmp-rowlabel { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-80); }
+  .cmp-cell { border: 1px solid var(--card-border); border-radius: 12px; background: var(--b2); overflow: hidden; }
+  .cmp-cell .pz-row { border-bottom: 0; justify-content: center; padding: 12px 10px; }
+  .cmp-cell .pz-day.today { flex: 0 1 auto; padding: 8px 12px; }
   .pz-day.big-a .pz-ringwrap { animation: bigPulse .4s var(--ease); border-radius: 99px; }
   .pz-day.big-a .pz-ringwrap::after { content: ''; position: absolute; inset: -2px; border-radius: 99px; animation: halo .6s var(--ease) forwards; pointer-events: none; }
   @keyframes bigPulse { 45% { transform: scale(1.15); } }
@@ -645,10 +654,15 @@
   <div class="patterns" id="pz-patterns"></div>
 </section>
 
-<!-- ═════════ C · Celebration (round 2) ═════════ -->
+<!-- ═════════ C · Celebration (round 2–3) ═════════ -->
 <section class="screen on" data-screen="celebration">
-  <div class="col-label"><b>C · Celebration · 第 2 轮 · 2026-11-08</b> · 每完成一个是小反馈，今天排的全部做完时一次大反馈，之后留下一个看得见的「今天做完了」<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px">Owner 选了第 1 轮 celebration 的 B，并且要求做完以后有一个一直留着的视觉标记。三个方向的<b>小反馈完全一样</b>：✓ 150 ms 填满，卡片 240 ms 收起，今天的圈接上一段自己颜色的弧（500 ms），格子轻轻一跳。<b>不一样的是两件事</b>：最后一个做完的那一下（大反馈），以及之后一直留在屏幕上的样子（Todo 空了以后，和今天那格）。每个方向都可以直接点 ✓，也可以点 Complete all。</p>
+  <div class="col-label"><b>C · Celebration · 第 3 轮 · 2026-11-08</b> · 每完成一个是小反馈，今天排的全部做完时一次大反馈，之后留下一个看得见的「今天做完了」<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:14px">Owner 选了第 1 轮 celebration 的 B，并且要求做完以后有一个一直留着的视觉标记；第 2 轮的 C（Todo 里的小结卡）已排除，见 commit <code>2d59d33</code>。两个方向的<b>小反馈完全一样</b>：✓ 150 ms 填满，卡片 240 ms 收起，今天的圈接上一段自己颜色的弧（500 ms），格子轻轻一跳。<b>不一样的是两件事</b>：最后一个做完的那一下（大反馈），以及之后一直留在屏幕上的样子（Todo 空了以后，和今天那格）。每个方向都可以直接点 ✓，也可以点 Complete all。</p>
+  <div class="col-label"><b>A · B 并排</b> · 只有今天那格 · 每一列是一种当天的颜色组合 · 先一个个接上，最后一个合上时播大反馈<span class="line"></span></div>
+  <div class="pz-tools"><button class="ghost-btn" id="cmp-play">▶ Play</button><span class="hint">一个个做完，约 0.6 s 一个；最后一个做完时 A、B 同时播大反馈。可以反复点。</span></div>
+  <div class="cmp-wrap"><div class="cmp" id="cmp"></div></div>
+  <p class="note">多数日子 habit 是大头（第 2 列），有时 step 多（第 3 列），也常有只有一两种的一天（第 4–6 列）。<b>A</b> 的大反馈和颜色无关：每种组合都是同一个绿色光晕 + ✓，完成的意思不随那天做了什么改变。<b>B</b> 的火花跟着那天做完的比例走：只有 habit 的一天全是绿色，step 多的一天紫色多，所以每天的样子不一样——好处是「把今天回放一遍」，代价是一种颜色的那天火花比较单调。</p>
+  <div class="col-label spaced"><b>完整的样子</b> · 桌面今天那格 + 手机的 Todo · 可以直接点 ✓<span class="line"></span></div>
   <div id="cel-options"></div>
   <div class="col-label spaced"><b>Research</b> · Apple 和其他产品怎么庆祝「做完了」<span class="line"></span></div>
   <div class="patterns" id="cel-patterns"></div>
@@ -1343,6 +1357,12 @@ document.getElementById('pz-patterns').innerHTML = PZ_PATTERNS.map(([title, who,
 
 /* ── C · Celebration: small every time, one big beat when today's plan is done, then a state that stays ── */
 const CEL_T = {hit: 150, leave: 240};
+/* B's sparks take the day's own colours, in proportion to what got done */
+const SPARK_COUNT = 12;
+function sparkColors(day, count) {
+  const done = PZ_KINDS.flatMap(kind => Array(day[kind][0]).fill(PZ_KIND_COLOR[kind]));
+  return Array.from({length: count}, (_, index) => done[Math.floor((index * done.length) / count)] || PZ_KIND_COLOR.habit);
+}
 const CEL_VARIANTS = [
   {
     key: 'a', letter: 'A', title: '圈合上的那一下：一拍光晕 + ✓ 画出来', tag: '推荐',
@@ -1352,23 +1372,15 @@ const CEL_VARIANTS = [
     why: `<b>大反馈</b>：最后一段弧接上的同时，今天的圈放大 1.15× 再回来（400 ms），外面一圈绿色光晕扩散后消失（600 ms），圈中心的 ✓ 一笔画出来（300 ms）；文案从 <b>4 of 5 done</b> 变成 <b>All 5 done</b>；Android 一个「成功」振动。只用 transform / opacity，不飞东西。<br><b>留下来的</b>：今天那格的框从青色变成绿色，圈带 ✓；Todo 空了的地方是一张安静的卡 <b>Today's plan is done</b> · Pull more from the backlog, or call it a day.——一直留到今天结束或者又拉了新卡。<br><b>好在哪</b>：大反馈是小反馈的放大版，同一个圈、同一种颜色，不需要学新东西，也看得出是刚才那一下带来的（Kao 2024）；分量和 HIG 说的一致：一天一次的 Success 振动 + 一拍。留下来的文案说的是「今天定的守住了」，不夸人（Deci 1999；Fishbach & Dhar 2005）。Sunsama 就是这么拆的。<br><b>差在哪</b>：比 Apple 的安静；喜欢热闹的人会觉得不够。`,
   },
   {
-    key: 'b', letter: 'B', title: 'Apple 式：圈合上时转一圈，迸出三种颜色的火花', tag: '备选',
+    key: 'b', letter: 'B', title: 'Apple 式：圈合上时转一圈，迸出今天做过的颜色的火花', tag: '备选',
     doneCopy: planned => `<b class="all">All ${planned} done</b>`,
     empty: `<b>Today's plan is done</b><small>Pull more from the backlog, or call it a day.</small>`,
-    onBig: root => root.querySelectorAll('.pz-day.today').forEach(cell => {
+    onBig: (root, day) => root.querySelectorAll('.pz-day.today').forEach(cell => {
       cell.classList.add('big-b');
-      const wrap = cell.querySelector('.pz-ringwrap');
-      const colors = ['var(--su)', 'var(--s)', 'var(--in)'];
-      wrap.insertAdjacentHTML('beforeend', Array.from({length: 12}, (_, index) => `<i class="spark" style="--angle:${index * 30}deg;--color:${colors[index % 3]}"></i>`).join(''));
+      const colors = sparkColors(day, SPARK_COUNT);
+      cell.querySelector('.pz-ringwrap').insertAdjacentHTML('beforeend', colors.map((color, index) => `<i class="spark" style="--angle:${index * (360 / SPARK_COUNT)}deg;--color:${color}"></i>`).join(''));
     }),
-    why: `<b>大反馈</b>：圈合上时整圈顺时针转一圈（700 ms），12 颗小火花按 habit / step / one-off 三种颜色从圈边迸出、淡掉，然后 ✓ 出现；文案变成 <b>All 5 done</b>，一个「成功」振动。<br><b>留下来的</b>：和 A 一样——绿色的框、带 ✓ 的圈、Todo 里那张 <b>Today's plan is done</b>。<br><b>好在哪</b>：最接近 Apple 合环时的热闹，一天一次，值得被记住；火花用的是今天做的三类事的颜色，等于把今天又回放一遍。<br><b>差在哪</b>：要在 Settings 里加一个开关（Sunsama、Todoist 都有）；飞东西——每天都一样的大动画很快会被预期掉（Schultz 1997），之后只剩「这次怎么没有」；在 board 顶部转动会抢 undo snackbar 的注意力；reduced motion 要另画一套（只留 ✓ 和颜色）。`,
-  },
-  {
-    key: 'c', letter: 'C', title: '大反馈落在 Todo 里：一张今天的小结卡', tag: '备选',
-    doneCopy: () => '<b class="all">Done for today</b>',
-    empty: `<span class="cel-summary">__RING__</span><b>Done for today</b><small>2 habits · 2 steps · 1 one-off</small>`,
-    onBig: root => root.querySelectorAll('.pz-day.today').forEach(cell => cell.classList.add('big-a')),
-    why: `<b>大反馈</b>：圈和 A 一样合上、光晕一拍；同时 Todo 空了的地方升起一张小结卡：一个 64 px 的今天的圈，下面一行 <b>2 habits · 2 steps · 1 one-off</b>。今天那格的文案变成 <b>Done for today</b>。<br><b>留下来的</b>：这张小结卡一直留在 Todo 里，直到今天结束或者又拉了新卡；今天那格是绿框。<br><b>好在哪</b>：手指刚点完最后一个 ✓，眼睛就在 Todo 那里，大反馈出现在眼睛所在的地方；小结卡把「今天做了什么」完整地说一遍，是一种「记录」的反馈（Harkin 2016 的 recording）。<br><b>差在哪</b>：小结卡里的计数又说了一遍圈已经说过的事（Principle 1）；Todo 里多了一张不是任务的卡。`,
+    why: `<b>大反馈</b>：圈合上时整圈顺时针转一圈（700 ms），12 颗小火花从圈边迸出、淡掉，颜色按今天做完的比例分（只做了 habit 的一天，火花全是绿色），然后 ✓ 出现；文案变成 <b>All 5 done</b>，一个「成功」振动。<br><b>留下来的</b>：和 A 一样——绿色的框、带 ✓ 的圈、Todo 里那张 <b>Today's plan is done</b>。<br><b>好在哪</b>：最接近 Apple 合环时的热闹，一天一次，值得被记住；火花用的是今天做的三类事的颜色，等于把今天又回放一遍。<br><b>差在哪</b>：要在 Settings 里加一个开关（Sunsama、Todoist 都有）；飞东西——每天都一样的大动画很快会被预期掉（Schultz 1997），之后只剩「这次怎么没有」；在 board 顶部转动会抢 undo snackbar 的注意力；reduced motion 要另画一套（只留 ✓ 和颜色）。`,
   },
 ]
 ;
@@ -1411,7 +1423,7 @@ function celComplete(key, button) {
       root.querySelectorAll('.pz-day.today').forEach(cell => { cell.classList.remove('tick'); void cell.offsetWidth; cell.classList.add('tick'); });
       if (state.todo.length === 0) {
         navigator.vibrate?.([20, 60, 40]);
-        CEL_VARIANTS.find(item => item.key === key).onBig(root);
+        CEL_VARIANTS.find(item => item.key === key).onBig(root, state.days[FIX.todayIndex]);
         root.querySelectorAll('.cel-empty').forEach(el => el.classList.add('enter'));
       }
       state.busy = false;
@@ -1439,6 +1451,54 @@ document.addEventListener('click', event => {
   const allBtn = event.target.closest('[data-cel-all]');
   if (allBtn) celAll(allBtn.dataset.celAll);
 });
+/* A and B side by side, one column per mix of kinds in a day */
+const CMP_COMBOS = [
+  {label: '三种都有', sub: '2 habit · 2 step · 1 one-off', day: {habit: [0, 2], project: [0, 2], oneoff: [0, 1]}},
+  {label: 'habit 为主', sub: '4 habit · 1 step', day: {habit: [0, 4], project: [0, 1], oneoff: [0, 0]}},
+  {label: 'step 为主', sub: '1 habit · 3 step', day: {habit: [0, 1], project: [0, 3], oneoff: [0, 0]}},
+  {label: '两种', sub: '2 habit · 1 one-off', day: {habit: [0, 2], project: [0, 0], oneoff: [0, 1]}},
+  {label: '只有 habit', sub: '3 habit', day: {habit: [0, 3], project: [0, 0], oneoff: [0, 0]}},
+  {label: '只有 step', sub: '2 step', day: {habit: [0, 0], project: [0, 2], oneoff: [0, 0]}},
+];
+const CMP_STEP_MS = 600;
+/* the order a day gets done in: round-robin across its kinds, so arcs grow in different places */
+function completionOrder(day) {
+  const queues = PZ_KINDS.map(kind => Array(day[kind][1]).fill(kind));
+  const order = [];
+  while (queues.some(queue => queue.length)) queues.forEach(queue => queue.length && order.push(queue.shift()));
+  return order;
+}
+const cmpDays = day => { const days = clone(PZ_SEED); days[FIX.todayIndex] = clone(day); return days; };
+function cmpCell(variant, combo, days) {
+  return `<div class="cmp-cell" data-cmp="${variant.key}-${combo.label}"><div class="pz-row">${dayCell(days, FIX.todayIndex, {todayCopy: celTodayCopy(variant)})}</div></div>`;
+}
+function renderCmp() {
+  const head = `<div class="cmp-corner"></div>${CMP_COMBOS.map(combo => `<div class="cmp-head"><b>${combo.label}</b><span>${combo.sub}</span></div>`).join('')}`;
+  const rows = CEL_VARIANTS.map(variant => `<div class="cmp-rowlabel"><span class="letter">${variant.letter}</span>${variant.key === 'a' ? '光晕 + ✓' : '转一圈 + 火花'}</div>${CMP_COMBOS.map(combo => cmpCell(variant, combo, cmpDays(combo.day))).join('')}`).join('');
+  document.getElementById('cmp').innerHTML = head + rows;
+}
+let cmpTimers = [];
+function playCmp() {
+  cmpTimers.forEach(clearTimeout);
+  cmpTimers = [];
+  renderCmp();
+  CEL_VARIANTS.forEach(variant => CMP_COMBOS.forEach(combo => {
+    const days = cmpDays(combo.day);
+    const order = completionOrder(combo.day);
+    order.forEach((kind, step) => cmpTimers.push(setTimeout(() => {
+      const cell = document.querySelector(`[data-cmp="${variant.key}-${combo.label}"]`);
+      const before = arcsOf(cell);
+      days[FIX.todayIndex][kind][0] += 1;
+      cell.innerHTML = `<div class="pz-row">${dayCell(days, FIX.todayIndex, {todayCopy: celTodayCopy(variant)})}</div>`;
+      animateArcs(cell, before);
+      cell.querySelector('.pz-day.today').classList.add('tick');
+      if (step === order.length - 1) variant.onBig(cell, days[FIX.todayIndex]);
+    }, (step + 1) * CMP_STEP_MS)));
+  }));
+}
+document.getElementById('cmp-play').addEventListener('click', playCmp);
+renderCmp();
+
 const CEL_PATTERNS = [
   ['合环：振动 + 一小段动画，超过就绕第二圈', 'Apple Watch · Fitness', 'Apple 只写了「An overlapping ring means you exceeded your goal」（<a href="https://support.apple.com/guide/watch/track-daily-activity-apd3bf6d85a6/watchos">Apple</a>）；用户描述合环时先振动、表盘上 2–3 s 的烟花，三环都合上另有一条通知，好几条同时来会互相打断（<a href="https://discussions.apple.com/thread/252009834">Apple Community · 用户描述</a>）。确切文案和时长没有找到官方来源。', '→ 一天只合一次环；做完计划外的，像 Apple 一样绕第二圈（问题 4）。'],
   ['频繁的交互不加动画，反馈要短', 'Apple HIG · Motion / Feedback / Haptics', '「generally avoid adding motion to UI interactions that occur frequently」「Aim for brevity and precision」「Make motion optional」（<a href="https://developer.apple.com/design/human-interface-guidelines/motion">Motion</a>）；反馈的分量要和事情的分量相当（<a href="https://developer.apple.com/design/human-interface-guidelines/feedback">Feedback</a>）；Success 振动「indicates that a task or action has completed」，偶尔一次刚好，频繁了就烦（<a href="https://developer.apple.com/design/human-interface-guidelines/playing-haptics">Haptics</a>）。', '→ 每个 ✓ 只给小反馈；一天一次的 Success 振动只留给合环。'],
@@ -1452,7 +1512,7 @@ const CEL_PATTERNS = [
 ];
 document.getElementById('cel-patterns').innerHTML = CEL_PATTERNS.map(([title, who, body, fit]) => `<div class="pat"><h4>${title}</h4><div class="who">${who}</div>${body}<div class="fit">${fit}</div></div>`).join('');
 const CEL_QUESTIONS = [
-  ['1 · 大反馈选哪个？', '<b>A 一拍光晕 + ✓（推荐）</b> · B Apple 式转一圈 + 火花 · C Todo 里的小结卡。'],
+  ['1 · 大反馈选 A 还是 B？', 'C（Todo 里的小结卡）已排除。上面的并排比较里，每种颜色组合下 A 和 B 各播一遍：<b>A 一拍光晕 + ✓（推荐）</b> · B Apple 式转一圈 + 火花。'],
   ['2 · 大反馈要不要能关？', 'Sunsama 和 Todoist 都能关，HIG 也说 make motion optional。A 很安静，可以只跟着 reduced motion 走；选 B 的话要在 Settings 里加一个开关。'],
   ['3 · 「今日既定任务」的分母', '大反馈绑在「今天排的全部做完」上，分母是什么还没定（Ideas 2）。分母定了，这里才算真正定稿。'],
   ['4 · 做完以后又拉了新卡、或做完计划外的事', '两种画法：拉了新卡，圈重新留一段灰、绿框暂时消失，再做完时只恢复绿框、不再来一次大反馈（推荐）；或者像 Apple，计划外做完的接在第二圈上，环不再打开。和 Ideas 2 的「今天的总数」一起定。'],
