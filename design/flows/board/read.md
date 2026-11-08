@@ -12,13 +12,17 @@ No `ACTIVE` plan and none waiting to close. Nothing more is read: the empty boar
 
 ### Returning user — last week's plan waiting to close
 
-No `ACTIVE` plan, but a `PENDING_UPDATE` one. One more read: last week's recap, over that plan's habit instances.
+No `ACTIVE` plan, but a `PENDING_UPDATE` one. One more read: last week's recap, over all that plan's tasks — habit instances, project steps and one-offs.
 
 - **completion rate** — the done ones ÷ all of them, expired included
 - **tasks done** — done / all
 - **points earned** — the done ones' points
 
-Tests: `boardService.int` › getEmptyBoardState › greets a new user; › recaps a returning user's finished week.
+Tests:
+
+- `boardService.int` › getEmptyBoardState › greets a new user
+- `boardService.int` › getEmptyBoardState › recaps a returning user's finished week
+- Bug: the recap counts habit instances only, leaving out the week's steps and one-offs — a failing test (`it.fails`) to add
 
 ### Active plan — this week
 
@@ -49,7 +53,7 @@ The server counts; the client turns the counts into percentages and the daily av
 
 ## Columns — Todo and Done
 
-Two columns of the same card: a task sits in Todo while `TODO` and in Done once `DONE`; `BACKLOG` tasks are the backlog's, `EXPIRED` ones aren't shown. Each column's header counts its cards.
+Two columns for two statuses: a `TODO` task's card sits in Todo, a `DONE` one's in Done. `BACKLOG` tasks are in the backlog (see Backlog); `EXPIRED` ones aren't shown. Each column's header counts its cards.
 
 Test: `boardCardUtils` › groups cards by status and skips EXPIRED.
 
@@ -57,15 +61,53 @@ Test: `boardCardUtils` › groups cards by status and skips EXPIRED.
 
 Daily habits first, then everything else. A group — one habit's instances, or one project's steps — stays together: groups rank by their earliest `createdAt` and run in instance order (copy number, step number); a one-off ranks by its own `createdAt`. Ties go to `createdAt`, then id.
 
-Tests: `taskUtils` › sortTasks › puts DAILY first, keeps groups together and orders them by number; › breaks ties by createdAt, then id.
+Tests:
+
+- `taskUtils` › sortTasks › puts DAILY first, keeps groups together and orders them by number
+- `taskUtils` › sortTasks › breaks ties by createdAt, then id
 
 ### Cards
 
-Every card shows its kind (a step names its project instead), its title and description, its size, and its kind's context and progress mark. A Done card is the same card, settled: dimmed, its title struck through, its description hidden.
+Every card has the same layout, top to bottom and left to right:
 
-- **Habit** — its plan line (Daily × N, Weekly × N) and its week dots, one per instance the line generates this week, in order: a weekly line one per instance; a daily line its frequency on every generating day (weekdays in `NORMAL`, every day in `EXTREME`), so a plan started mid-week still shows the whole week. A dot fills when its instance is done, and the card's own dot is ringed. A done instance past a frequency cut keeps its dot; an instance outside the line (a mode switch, a cut) has none. No done / target count: the dots are the progress.
-  Tests: `taskUtils` › computeHabitWeeks › gives a daily line a dot for every weekday of a NORMAL week; › counts every day of an EXTREME week; › gives a weekly line one dot per instance; › keeps a DONE instance past a frequency cut; › leaves a daily instance past the frequency without a dot; › gives a template with no instances an empty line. `boardCardUtils` › gives a habit card its plan line and its own dot.
-- **Project step** — step n of N and its project's path, one mark per step: filled when done, this step's ringed. The path reads the board's latest statuses, so a step dragged to Done fills its mark at once; a step whose project isn't loaded shows no path.
-  Tests: `boardCardUtils` › draws a step's path from the board's latest statuses; › leaves a step without context when its project is not in the lookup. `boardService.int` › draws each step card's whole path, for this week's projects only.
-- **One-off** — its quadrant.
-  Test: `boardCardUtils` › gives a one-off card nothing but the task.
+- **Kind** — the kind's icon and name; a step shows its project's name instead
+- **Properties** (top right) — by kind, below
+- **Title**
+- **Description** — hidden once done
+- **Progress** (bottom left) — by kind, below; a one-off has none
+- **Size** — the task's size and its points
+
+A Done card is the same card, settled: dimmed, its title struck through.
+
+**Habit**
+
+- Properties: its plan line — Daily × N or Weekly × N, from the plan's line for its template
+- Progress: one dot per instance the line has this week, in order (a daily line: N on each day it runs — weekdays in `NORMAL`, every day in `EXTREME`). A dot is filled when that instance is done, empty when not, and ringed on the card's own instance.
+
+Tests:
+
+- `taskUtils` › computeHabitWeeks › gives a daily line a dot for every weekday of a NORMAL week
+- `taskUtils` › computeHabitWeeks › counts every day of an EXTREME week
+- `taskUtils` › computeHabitWeeks › gives a weekly line one dot per instance
+- `taskUtils` › computeHabitWeeks › keeps a DONE instance past a frequency cut
+- `taskUtils` › computeHabitWeeks › leaves a daily instance past the frequency without a dot
+- `taskUtils` › computeHabitWeeks › gives a template with no instances an empty line
+- `boardCardUtils` › gives a habit card its plan line and its own dot
+
+**Project step**
+
+- Properties: Step n/N — its number, and its project's count of steps
+- Progress: its project's path, one segment per step in order. A segment is filled when that step is done, empty when not, and ringed on the card's own step; a step dragged to Done fills at once.
+
+Tests:
+
+- `boardCardUtils` › draws a step's path from the board's latest statuses
+- `boardCardUtils` › leaves a step without context when its project is not in the lookup
+- `boardService.int` › draws each step card's whole path, for this week's projects only
+
+**One-off**
+
+- Properties: its quadrant on the priority matrix
+- Progress: none
+
+Test: `boardCardUtils` › gives a one-off card nothing but the task.
