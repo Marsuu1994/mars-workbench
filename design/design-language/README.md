@@ -118,7 +118,7 @@ owner made on a real design — most from PR #109's backlog grouping.
    it looks clickable and only repeats the pill. Good: this week's row is tinted with
    a "This week · todo" pill; a done row reads muted with "✓ Mon, Oct 5" on the right.
 4. **Small visual details carry state; words don't explain it.** Good: the thin pile
-   under a project card says more steps wait behind it; a Done card dims and strikes
+   under a backlog card says more wait behind it; a Done card dims and strikes
    through, so it reads settled.
 5. **Don't crowd when there is room.** Where space is free, elements sit apart —
    at opposite corners if need be; apart from text itself, nothing should feel

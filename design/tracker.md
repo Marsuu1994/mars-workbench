@@ -57,7 +57,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 
 ### Medium
 
-- [ ] Group the backlog — one habit's staged instances, and one project's steps on this week, sit together as one group (desktop panel and mobile sheet); a habit is one row, a project its next step on a thin pile with "+N more ⌄" opening the rest; the backlog card drops the plan line, step n/N, size and the done / total fraction (the board's habit card drops its fraction too); the badge counts staged tasks, capped at 8+. Design decided (PR #109): mockup `design/mockup/mockup-board-backlog-grouping.html`. PR #44 built stacking on the old card face. The first flow written in the spec-layers format (Cross-cutting › Future)
+- [ ] Group the backlog — one habit's staged instances, and one project's steps on this week, sit together as one group (desktop panel and mobile sheet); a habit and a project each show their next one on a thin pile, "+N more" top right, and only a project's "+N more ⌄" opens the rest; the backlog card drops the plan line, step n/N, size and the done / total fraction (the board's habit card drops its fraction too); the badge counts staged tasks, capped at 8+. Design decided (PR #109; habits' pile added 2026-11-07): mockup `design/mockup/mockup-board-backlog-grouping.html`. PR #44 built stacking on the old card face. The first flow written in the spec-layers format (Cross-cutting › Future)
 
 ### Future
 
