@@ -59,12 +59,17 @@ Test: `boardCardUtils` › groups cards by status and skips EXPIRED.
 
 ### Order
 
-Daily habits first, then everything else. A group — one habit's instances, or one project's steps — stays together: groups rank by their earliest `createdAt` and run in instance order (copy number, step number); a one-off ranks by its own `createdAt`. Ties go to `createdAt`, then id.
+Todo runs by kind: one-offs first, then daily habits, then weekly habits, then project steps. Within a kind, a group — one habit's instances, or one project's steps — stays together: groups rank by their earliest `createdAt` and run in instance order (copy number, step number); a one-off ranks by its own `createdAt`. Ties go to `createdAt`, then id.
+
+Done runs by when each task was done, the latest first; a card dragged to Done lands on top at once.
 
 Tests:
 
-- `taskUtils` › sortTasks › puts DAILY first, keeps groups together and orders them by number
+- `taskUtils` › sortTasks › runs one-offs, daily habits, weekly habits, then steps
+- `taskUtils` › sortTasks › keeps a group together, in instance order
 - `taskUtils` › sortTasks › breaks ties by createdAt, then id
+- `taskUtils` › sortDoneTasks › puts the latest done first
+- `boardCardUtils` › sorts Done by when each task was done
 
 ### Cards
 
