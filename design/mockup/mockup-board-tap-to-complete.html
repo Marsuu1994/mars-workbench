@@ -806,11 +806,11 @@
 <!-- ═════════ D · Done (rounds 5–6, amended rounds 10 and 14) ═════════ -->
 <section class="screen on" data-screen="done">
   <div class="col-label"><b>D · Done · 定稿 · decided 2026-11-09 · 修订 · amended 2026-11-09（第 14–15 轮）</b> · 一天的清单两端都藏在圈后面；桌面就是现在的产品：Todo · Done（这周的卡片）· Backlog 收起<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px">第 5 轮画了三个方向（commit <code>2211b07</code>），第 6 轮定了「一天的清单藏在那天的圈后面：桌面浮窗、手机 sheet」。第 10 轮按 spike 把桌面改成常驻的 Done pane（按天分组、每组带圈），第 11–13 轮比较了五种桌面排法（commit <code>13628f5</code>），owner 都没选；第 14 轮把 Done 画成按 kind 分组的清单（commit <code>9594f3f</code>）。<b>第 15 轮定稿</b>：<b>一天的清单</b>两端同一个 journey——点某天的圈，看那天做完的（桌面浮在圈下面，手机是 sheet）。<b>桌面就按现在的产品</b>：Todo 和 Done 两列并排，Done 放这周做完的所有卡片，顺序和产品一样（habit 在前，同一个 habit / project 的卡在一起，然后是 one-off），表头右边加 <b>This week</b>；Backlog 默认收起，点开后卡片上有 <b>↑ Todo</b>，也能拖。唯一大的改动是<b>完成的卡片</b>：和产品一样变暗、标题划掉、不显示 description，加上选中时卡片里面的那层光，但<b>没有高亮的边框，也没有右下角的 ✓</b>（第 16 轮拿掉：第 15 轮的实心 ✓ + Complete 太抢眼，见 commit <code>d17bbcb</code>）。清单都只读，没有撤回按钮（Ideas 8）。切到 <b>Long day</b> 看 Done 长了以后的样子。</p>
+  <p class="note" style="margin-top:0;margin-bottom:14px">第 5 轮画了三个方向（commit <code>2211b07</code>），第 6 轮定了「一天的清单藏在那天的圈后面：桌面浮窗、手机 sheet」。第 10 轮按 spike 把桌面改成常驻的 Done pane（按天分组、每组带圈），第 11–13 轮比较了五种桌面排法（commit <code>13628f5</code>），owner 都没选；第 14 轮把 Done 画成按 kind 分组的清单（commit <code>9594f3f</code>）。<b>第 15 轮定稿</b>：<b>一天的清单</b>两端同一个 journey——点某天的圈，看那天做完的（桌面浮在圈下面，手机是 sheet）。<b>桌面就按现在的产品</b>：Todo 和 Done 两列并排，Done 放这周做完的所有卡片，<b>不分组，按完成时间排，最新的在最上面</b>（第 17 轮；产品现在和 Todo 一样按 habit / project 分组排，这一条要写进 flow，见 Ideas 11），表头右边加 <b>This week</b>；Backlog 默认收起，点开后卡片上有 <b>↑ Todo</b>，也能拖。唯一大的改动是<b>完成的卡片</b>：和产品一样变暗、标题划掉、不显示 description，加上选中时卡片里面的那层光，但<b>没有高亮的边框，也没有右下角的 ✓</b>（第 16 轮拿掉：第 15 轮的实心 ✓ + Complete 太抢眼，见 commit <code>d17bbcb</code>）。清单都只读，没有撤回按钮（Ideas 8）。切到 <b>Long day</b> 看 Done 长了以后的样子。</p>
   <div class="pz-tools"><span class="seg"><button data-done-long="false" class="on">Normal day · Thu 1 done</button><button data-done-long="true">Long day · Thu 9 done</button></span></div>
 
   <div class="col-label"><b>Desktop · 定稿</b> · Todo · Done（This week）· Backlog 收起 · 和现在的产品一样<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:12px">用定稿的 tap twice 完成一张卡（点卡片 → 点 ✓ Complete）：卡片离开 Todo，以完成的样子出现在 Done 里它那一组，亮一下，圈接上一段。<b>点某天的圈</b>：那天的清单浮在圈下面；再点一次、点外面或 Esc 关上。<b>Backlog</b> 是右边的窄条，点开以后每张卡右下角有 ↑ Todo（点了就进 Todo）。拖拽和现在的产品一样。</p>
+  <p class="note" style="margin-top:0;margin-bottom:12px">用定稿的 tap twice 完成一张卡（点卡片 → 点 ✓ Complete）：卡片离开 Todo，以完成的样子出现在 Done 的<b>最上面</b>，亮一下，圈接上一段。<b>点某天的圈</b>：那天的清单浮在圈下面；再点一次、点外面或 Esc 关上。<b>Backlog</b> 是右边的窄条，点开以后每张卡右下角有 ↑ Todo（点了就进 Todo）。拖拽和现在的产品一样。</p>
   <div class="pz-desk dpane-desk" id="dpane"></div>
 
   <div class="col-label spaced"><b>Mobile</b> · 不变：点圈，那天的清单从底部升起<span class="line"></span></div>
@@ -1789,21 +1789,16 @@ function doneCard(item, habitSlot, fresh) {
     <div class="tc-foot">${signal}</div>
   </div>`;
 }
-/* the product's Done column: this week's done cards in the product's order (sortTasks: habits first, a template's
-   or a project's cards together, then one-offs), headed This week */
+/* the Done column: this week's done cards, not grouped, newest first — a card just completed lands on top
+   (round 17; the product sorts them like Todo today, so this goes into the flow doc — Ideas 11) */
 function doneColumn(state) {
   const habitCount = {};
   const entries = [];
-  state.lists.forEach((items, index) => items.forEach(item => {
+  state.lists.forEach((items, index) => items.forEach((item, order) => {
     const habitSlot = item.kind === 'habit' ? (habitCount[item.title] = (habitCount[item.title] ?? -1) + 1) : 0;
-    entries.push({item, index, habitSlot});
+    entries.push({item, index, order, habitSlot});
   }));
-  const rank = ({item}) => {
-    if (item.kind === 'habit') return FIX.habits.findIndex(habit => habit.title === item.title);
-    if (item.kind === 'project') return 10 + FIX.projects.findIndex(project => project.name === item.name);
-    return 100;
-  };
-  entries.sort((left, right) => rank(left) - rank(right) || left.index - right.index);
+  entries.sort((left, right) => right.index - left.index || right.order - left.order);
   const cards = entries.map(({item, habitSlot}) => doneCard(item, habitSlot, item === state.fresh)).join('');
   return column('Done', entries.length, cards, {done: true}).replace(`<span class="count-ghost">${entries.length}</span>`, `<span class="col-tags"><span class="wk-tag">This week</span><span class="count-ghost">${entries.length}</span></span>`);
 }
@@ -1993,7 +1988,7 @@ const DONE_PATTERNS = [
 ];
 document.getElementById('done-patterns').innerHTML = DONE_PATTERNS.map(([title, who, body, fit]) => `<div class="pat"><h4>${title}</h4><div class="who">${who}</div>${body}<div class="fit">${fit}</div></div>`).join('');
 const DONE_QUESTIONS = [
-  ['没有开着的', 'D 定稿。下一个模块是「今天的总数」（Ideas 2）。'],
+  ['没有开着的', 'D 定稿。Done 列的排序（Ideas 11）和今天的总数（Ideas 2）交给 flow，不在这个 session。'],
 ];
 document.getElementById('done-questions').innerHTML = DONE_QUESTIONS.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 
@@ -2116,7 +2111,7 @@ document.getElementById('tap-questions').innerHTML = TAP_QUESTIONS.map(([title, 
 /* ── I · Ideas: changes this design surfaced, to land elsewhere or later ── */
 const IDEAS = [
   ['1 · 三种 kind 的颜色拉开', '想法 · 全 app', `<p><b>现在</b>：habit 绿 <code>--su</code>、step 紫 <code>--s</code>、one-off 蓝 <code>--in</code>（mars-dark）。用 dataviz 的配色检查跑过：one-off 蓝和 step 紫正常视力 ΔE 14.4（低于 15 的下限），绿色弱 6.1；卡片 3 px 的边上还看得出来，日条里 30 px 的圈上就容易混。</p><p><b>方向</b>：把其中一个往别的色相或明度推（比如 one-off 往青、step 往品红），三个主题一起改；颜色的意思不变，只换值（design-language › Channel semantics）。改之前三个主题都要跑一遍检查。</p><p><b>归属</b>：design-language 的改动，单独一个 PR，不在这个 mockup 里改。</p>`],
-  ['2 · Today ring 的「今天的总数」到底是什么', '要想清楚 · 整合前定', `<p><b>现在 mockup 的算法</b>：今天 = Todo 里所有的卡 + 今天做完的（Thu：Todo 4 + 做完 1 = 5）。</p>
+  ['2 · Today ring 的「今天的总数」到底是什么', '不在这个 session · 交给 flow', `<p><b>现在 mockup 的算法</b>：今天 = Todo 里所有的卡 + 今天做完的（Thu：Todo 4 + 做完 1 = 5）。</p>
     <p><b>为什么不对劲</b></p><ul>
       <li>Todo 不是「今天的」：Phase 2 没有 Doing，Todo 是这周拿在手上的工作。昨天没做完的会留在 Todo 里，于是今天一打开分母就包含了昨天的欠账。</li>
       <li>从 backlog 拉一张卡上来，分母 +1，圈反而变空——多拿一件事像被罚。</li>
@@ -2146,6 +2141,7 @@ const IDEAS = [
     <li><b>两端一致，但桌面可以多</b>：桌面支持手机的每一条 journey，卡片长得一样；桌面多出来的空间可以放桌面独有的东西（Done this week、拖拽），只要不是另一条 journey。</li>
     <li><b>控件的反馈要克制</b>：hover 只做最少的（下划线），选中靠边框 + 光；「整格浮起」那种 button-like 太丑。</li>
   </ul>`],
+  ['11 · Done 列按完成时间排，不分组', '已定 · 第 17 轮 · 写进 flow', `<p>桌面的 Done 列不分组，所有卡片按完成时间倒序（<code>doneAt</code> 新的在上），刚完成的那张自然出现在最上面。产品现在的 Done 和 Todo 共用一个排序（<code>sortTasks</code>：daily 在前，同一个 template / project 的卡在一起）。这是行为，不是样子，所以写进 Board 的 flow doc 和实现 PR；<code>doneAt</code> 已经有了（移到 DONE 时写入），不用改数据。mockup 的 D · Done 已按这个顺序画。</p>`],
 ]
 ;
 document.getElementById('ideas').innerHTML = IDEAS.map(([title, status, body]) => `<div class="idea"><div class="idea-head"><h4>${title}</h4><span class="tag muted">${status}</span></div>${body}</div>`).join('');
