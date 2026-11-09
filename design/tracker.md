@@ -146,7 +146,6 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 ### Medium
 
 - [ ] Pull the kind colours apart — one-off blue and project-step purple are too close (ΔE 14.4 for normal vision, 6.1 for deutan); fine on a card's 3 px edge, easy to confuse on the board's 30 px rings (PR #115 mockup Ideas 1; `design/design-language/`)
-- [ ] Fold the owner's design preferences from PR #115 round 14 into `design/design-language/` Principles, with the owner: no over-design for a personal app (plan by the week, do by the day), minimum stress (the backlog stays collapsed), no repeated information, a layout that holds when collapsed, both widths alike with room for desktop extras, restrained control feedback (mockup Ideas 10)
 - [ ] First visit of a page still shows its skeleton for ~310 ms: once `loading.tsx` is up, React holds the content back 300 ms, while the data now arrives in ~30–85 ms locally (`design/spike/archived/mutation-layer.md`, Q4). Measure on production, then decide per page whether to drop the skeleton for a pending state on the link
 - [ ] Measure `ci-fixer` on the next red GitHub CI: delegate the failing job to it and compare the main-session context with reading the log inline; if it still comes out even, drop the agent (`design/spike/archived/subagent-delegation-pilot.md` › Decision, Q2)
 - [ ] `ui/` component-structure lookup in `reference.md` — a lean high-level map for agents (humans use the `/design` gallery); follow-up to the landed component library

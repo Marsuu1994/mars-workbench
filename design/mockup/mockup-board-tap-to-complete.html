@@ -1801,13 +1801,13 @@ const IDEAS = [
     </ul>
     <p><b>我的倾向</b>：目标是 <b>e</b>（「既定」= 自己早上定的），过去的天也用同一个定义回看；在 daily rhythm 落地前用 <b>c</b> 做 fallback，因为它不惩罚拉卡、不把昨天的欠账算进来。<b>还要一起定</b>：做完计划外的事，圈是满了就停，还是像 Apple 一样绕第二圈？</p>`],
   ['3 · 产品里要不要图例', '已定 · 不加 · 第 19 轮', `<p>不加。圈的颜色和卡片左边框是同一套，具体做了什么点开那天的清单就看得到。</p>`],
-  ['4 · 圈中心的 ✓ 会不会像按钮', '已解决', `<p>Done 定了「点某天看那天的清单」，日格本身就是按钮了（D 的第 6 轮把它画得像按钮），圈里的 ✓ 是按钮上的图案，不再是一个看起来能点、其实不能点的状态标记（Principle 3）。</p>`],
+  ['4 · 圈中心的 ✓ 会不会像按钮', '已解决', `<p>Done 定了「点某天看那天的清单」，日格本身就是按钮了（D 的第 6 轮把它画得像按钮），圈里的 ✓ 是按钮上的图案，不再是一个看起来能点、其实不能点的状态标记（Principle 5.1）。</p>`],
   ['5 · Celebration 的开关', '→ design/future-ideas.md', `<p>定稿的大反馈会转、会迸火花。Sunsama（Settings › Display）和 Todoist（Turn goal celebrations on or off）都能关，HIG：Make motion optional。Reduced motion 下只留颜色、✓ 和文字。第 19 轮：现在没必要做，记进 <code>design/future-ideas.md</code>；初步想法是 Settings 里一个开关，跟 Settings 的改版一起。</p>`],
   ['6 · 做完以后又拉了新卡、或者做完计划外的事', '已定 · 第 19 轮', `<p>最简单的那种：拉了新卡，圈重新留出一段灰，绿框消失；再做完时<b>再播一次大反馈</b>，没关系。F · Final 就是这样画的。「大反馈一天只播一次」这个想法记进 <code>design/future-ideas.md</code>，等第二次显得廉价了再说。</p>`],
   ['7 · Close the day 要列出今天做完的全部', '→ tracker · Daily rhythm', `<p>Board 的 Done 定了：一天的清单藏在那天的圈后面。Close the day 不在这个 mockup 里；daily rhythm 的 mockup（demo 分支）定稿时再看它要不要完整列出今天做完的、能不能改、没做完的怎么安排（Masicampo & Baumeister 2011），以及要不要一句反思（Di Stefano）。</p>`],
   ['8 · 撤回：怎么说、放在哪', '→ design/future-ideas.md', `<p>Done 的清单里先不放撤回按钮。去掉 snackbar 以后，完成没有撤回的路（状态只能往前走）；点两下完成让误触很少，所以现在先不做，记进 <code>design/future-ideas.md</code>。<b>初步想法</b>（第 19 轮）：撤回放在今天的清单里——点今天的圈，今天做完的每一行都可以放回 Todo；之前的天不行。叫什么（Undo · Put it back · Mark as not done）还没定。</p>`],
   ['9 · 桌面要不要保留拖拽', '已定 · 第 14–15 轮', `<p>保留，和现在的产品一样（Backlog → Todo，Todo → Done）。完成另有「点卡片 → 点 ✓ Complete」，两端一样。卡片两端统一：桌面的 backlog 卡也有 ↑ Todo。也就是：桌面支持手机的每一条 journey，外加拖拽。</p>`],
-  ['10 · 设计偏好（第 14 轮 owner 的理由，mockup 做完后整理进 design language）', '→ tracker · 和 owner 一起', `<p>Owner 否掉第 11–13 轮五种桌面排法时说的理由，是以后判断设计的标准：</p><ul>
+  ['10 · 设计偏好（第 14 轮 owner 的理由，mockup 做完后整理进 design language）', '已并入 · 第 20 轮', `<p>Owner 否掉第 11–13 轮五种桌面排法时说的理由，是以后判断设计的标准。第 20 轮整理进了 <code>design/design-language/README.md</code> › Principles（分成 Minimal · Calm · Hierarchy · Consistent · Honest controls 五组）；做事方式的那几条进了 <code>design/README.md</code> › Mockups 和 <code>ui-design</code> skill。</p><ul>
     <li><b>个人 app 不要 overdesign</b>：按周规划、按天执行。加一个「This week」列视觉上统一，但把「每周计划」的含义弄混了——哪些放 This week、要做时挪回 Today 还是挂着、daily rhythm 怎么排它——最后会变成不想做的事的 parking lot（否掉 1）。</li>
     <li><b>Minimum stress</b>：backlog 就是要收起来的，一直摊开看到这周一大堆事是压力；和数字到 8 以上写 8+ 是同一个思路，overhead 越少越好（否掉 2、4c）。</li>
     <li><b>不重复已有的信息</b>：桌面 Done 里每天一组、每组一个圈，是把顶上的进度条又画了一遍（第 14 轮把它改成按 kind 分组）。</li>

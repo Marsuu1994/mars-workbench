@@ -94,44 +94,112 @@ disables them.
 
 How a screen should feel, whatever the theme. An agent checks a design against
 these before proposing it, and ranks its options by them. Each came from a call the
-owner made on a real design — most from PR #109's backlog grouping.
+owner made on a real design — most from PR #109's backlog grouping and PR #115's
+board. They fall into five groups; the items in a group pull the same way.
 
-1. **Only the necessary elements, and one element per meaning.** If the dots, the
-   path or another mark already says something, no text or number says it again;
-   if removing an element loses nothing, remove it. Bad: `Weekly × 3` and `1/3`
-   beside a habit's dots, `Step 4/9` beside a project's path, a size chip on a
-   backlog card, an outlined pill around `3 left this week ⌄`. Good: the dots and
-   the path carry progress; the card keeps kind, title, description, progress and
-   the next action.
-2. **Similar groups share one structure.** Cards in one logical group keep the same
-   skeleton — title line, description, progress mark, other indicators, and on
-   mobile the action button in the same spot — and tell themselves apart by colour
-   or the style of a mark (a habit's dots, a project's segmented path), never by a
-   different layout. Bad: a backlog habit row without its description beside
-   project cards that have one. Good: both read title (`+N more` at the right),
-   description, progress line, `↑ Todo` bottom right.
-3. **Status marks must not look like controls.** A state the user can't change by
-   clicking it is never drawn as a control shape — no hollow or filled circles or
-   squares that read as a radio or checkbox. Show it with what the element already
-   has: a tint, a border, a pill, muted text, an inline ✓ glyph beside text. Bad:
-   every project step row led by a circle that fills when the step is on this week —
-   it looks clickable and only repeats the pill. Good: this week's row is tinted with
-   a "This week · todo" pill; a done row reads muted with "✓ Mon, Oct 5" on the right.
-4. **Small visual details carry state; words don't explain it.** Good: the thin pile
-   under a backlog card says more wait behind it; a Done card dims and strikes
-   through, so it reads settled.
-5. **Don't crowd when there is room.** Where space is free, elements sit apart —
-   at opposite corners if need be; apart from text itself, nothing should feel
-   cramped. Bad: `+N more` and `↑ Todo` squeezed into one row with space left below.
-   Good: `+N more` top right, `↑ Todo` bottom right.
-6. **Numbers serve motivation.** A big number overwhelms, and in this product the
-   design is there to keep the user going: small numbers are fine, large ones
-   discourage. A count stops at 8 and shows `8+` beyond it; the real number stays in
-   the accessible name.
-7. **The fewest actions, the least friction.** Every extra step is a reason to stop
-   using the app; ask first whether a step can go. This is Phase 2's direction too.
-   Bad: the old three columns, a card walking Backlog → Todo → Doing → Done. Good:
-   no Doing column, and a backlog card dragged straight to Done.
+### 1. Minimal — fewer elements, smaller changes, fewer steps
+
+**1.1 Only the necessary elements, and one element per meaning.** If the dots, the
+path or another mark already says something, no text, number or second component
+says it again; if removing an element loses nothing, remove it. Bad: `Weekly × 3`
+and `1/3` beside a habit's dots, `Step 4/9` beside a project's path, a size chip on
+a backlog card, an outlined pill around `3 left this week ⌄`; a Done pane whose day
+groups each carry a ring, redrawing the progress row above it. Good: the dots and
+the path carry progress; the card keeps kind, title, description, progress and the
+next action.
+
+**1.2 When what exists works, change it the least.** Prefer a small change to the
+current screen over a new layout, and the simplest behaviour over a clever one.
+Bad: five new desktop layouts to fill the room a moved Done column left. Good: the
+product's Todo and Done columns, Done gaining only a This week tag; a card pulled
+after the day is done simply reopens the ring grey.
+
+**1.3 The fewest actions, the least friction.** Every extra step is a reason to stop
+using the app; ask first whether a step can go. This is Phase 2's direction too.
+Bad: the old three columns, a card walking Backlog → Todo → Doing → Done. Good: no
+Doing column. The one exception: an action the user can't take back earns one
+confirming step, in place — never a dialog or a banner. Good: tap a card to select
+it, then its ✓ Complete; not one tap and a 5-second Undo snackbar.
+
+### 2. Calm — the design is there to keep the user going
+
+**2.1 Numbers serve motivation.** A big number overwhelms: small numbers are fine,
+large ones discourage. A count stops at 8 and shows `8+` beyond it; the real number
+stays in the accessible name.
+
+**2.2 A pile in plain sight is pressure.** What isn't for now stays folded away, and
+no layer is added that could fill up with work nobody wants to do: plan by the week,
+do by the day. Bad: the backlog always open beside Todo; a This week column between
+today's cards and the backlog — a parking lot for what keeps getting put off. Good:
+the backlog folded to an edge (a pill on phones) and opened to plan.
+
+**2.3 Achievement shows, quietly.** Done work stays in sight and finishing is felt —
+a small response to every card, a bigger one when the day's plan is done — but
+nothing shouts. Bad: a large filled ✓ with "Complete" on every done card. Good: done
+cards dimmed and struck through in a long Done column; today's ring growing an arc
+per card and spinning once when it closes.
+
+### 3. Hierarchy — the important at a glance
+
+**3.1 Order by importance.** What matters most is seen at a glance; what's secondary
+folds away, sits behind a tap or comes last. Phones run from most to least important
+top to bottom, desktops left to right, in the same order. Good: the ring row and
+Todo first; a day's done list behind its ring.
+
+**3.2 Small visual details carry state; words don't explain it.** Good: the thin pile
+under a backlog card says more wait behind it; a Done card dims and strikes through,
+so it reads settled.
+
+**3.3 Don't crowd when there is room.** Where space is free, elements sit apart —
+at opposite corners if need be; apart from text itself, nothing should feel
+cramped. Bad: `+N more` and `↑ Todo` squeezed into one row with space left below.
+Good: `+N more` top right, `↑ Todo` bottom right.
+
+**3.4 A layout holds when things fold.** Whatever can collapse, the screen still
+reads well collapsed. Bad: the backlog and Done folded into one edge strip, leaving a
+lone Todo column across the screen; two folded drawers side by side. Good: Todo and
+Done as two columns, the backlog folded to an edge.
+
+### 4. Consistent — one structure, one journey
+
+**4.1 Similar groups share one structure.** Cards in one logical group keep the same
+skeleton — title line, description, progress mark, other indicators, and on mobile
+the action button in the same spot — and tell themselves apart by colour or the
+style of a mark (a habit's dots, a project's segmented path), never by a different
+layout. Bad: a backlog habit row without its description beside project cards that
+have one. Good: both read title (`+N more` at the right), description, progress
+line, `↑ Todo` bottom right.
+
+**4.2 One journey on both widths; desktop may add, never subtract.** Everything a
+phone can do, desktop does the same way, on the same card faces; desktop's extra
+room may add a view or a gesture of its own. Good: tap twice to complete and
+`↑ Todo` on backlog cards on both widths, plus drag on desktop; desktop's Done
+column, where phones open a day's list from its ring.
+
+**4.3 Colours mean kinds.** Habit green, project-step purple, one-off blue — the
+same on card edges, rings and sparks — and told apart by people with
+colour-vision deficiency too (tracker: one-off blue and step purple are too close).
+
+### 5. Honest controls — controls look like controls, statuses don't, feedback stays small
+
+**5.1 Status marks must not look like controls.** A state the user can't change by
+clicking it is never drawn as a control shape — no hollow or filled circles or
+squares that read as a radio or checkbox. Show it with what the element already
+has: a tint, a border, a pill, muted text, an inline ✓ glyph beside text. Bad:
+every project step row led by a circle that fills when the step is on this week —
+it looks clickable and only repeats the pill; a filled ✓ circle on a done card. Good:
+this week's row is tinted with a "This week · todo" pill; a done row reads muted
+with "✓ Mon, Oct 5" on the right.
+
+**5.2 Controls look tappable, and their feedback stays small.** Hover is the least it
+can be; press and selection carry the weight; hover never changes how a selected
+element looks. Bad: a whole cell lighting up and lifting on hover; hover dimming a
+selected day's glow. Good: a day cell — hover an underline, press a slight shrink,
+selected a bright frame and an inner glow.
+
+**5.3 Interacting never changes size.** Bad: a card that grows taller when selected.
+Good: the selected card's ✓ scales up in place; rings keep one size on every phone
+width.
 
 ## Motion (shared baseline)
 
