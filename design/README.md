@@ -9,6 +9,7 @@ Centralized design documentation for Mars Workbench. Code is organized layer-fir
 | [baseline.md](./baseline.md) | The one app-wide design baseline: goal, implemented features, entities, full Prisma schema, architecture decisions. |
 | [design-language/](./design-language/README.md) | Per-theme visual specs (`mars-dark` · `mars-light` · `p5-dark`, one md per theme) + the shared skeleton: `fx-*` utility API, voices, motion, contrast method, sync points, visual rules. |
 | [tracker.md](./tracker.md) | Consolidated roadmap — open items only; closed work is recorded in the git history and PR descriptions. Its format rules are in its Conventions section. |
+| [future-ideas.md](./future-ideas.md) | Problems we have seen coming but chose to wait on, each with the first idea for a fix; one moves to the tracker once it is worth doing. Its rules are in its Conventions section. |
 | [reference.md](./reference.md) | Lean lookup tables for server actions, services, and DAL functions. |
 | [flows/](./flows/README.md) | Per-feature flow docs: `shared.md`, `board.md`, `plan.md`, `priorities.md`, `projects.md`, `dump.md`, `auth.md`. Format and rules in its README. |
 | [spike/](./spike/README.md) | Point-in-time spike docs for open questions; lifecycle and shape in its README. Implemented spikes move to [spike/archived/](./spike/archived/). |

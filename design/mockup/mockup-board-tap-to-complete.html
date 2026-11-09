@@ -782,7 +782,7 @@
 <!-- ═════════ I · Ideas ═════════ -->
 <section class="screen" data-screen="ideas">
   <div class="col-label"><b>I · Ideas</b> · 设计过程中冒出来、要在别处或以后改的想法<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px">这里记的是这个 mockup 自己不改、但不能忘的事。第 18 轮整合时逐条过了一遍：每条的标签写它去了哪——tracker 的哪一节、实现 PR 的 flow doc，或者已经解决。mockup 在实现后会删掉，所以还开着的都已经落到 tracker。只剩 3（图例）等 owner 一句话，建议不加。</p>
+  <p class="note" style="margin-top:0;margin-bottom:14px">这里记的是这个 mockup 自己不改、但不能忘的事。第 18 轮整合时逐条过了一遍：每条的标签写它去了哪——tracker 的哪一节、实现 PR 的 flow doc、<code>design/future-ideas.md</code>（看到了、但暂时没必要做的），或者已经定了。mockup 在实现后会删掉，所以还开着的都已经落到别处。</p>
   <div class="ideas" id="ideas"></div>
 </section>
 
@@ -1800,12 +1800,12 @@ const IDEAS = [
       <li><b>e · 早上自己选今天做哪几张</b>（Daily rhythm 的 Open the day）：分母就是自己当天的承诺，最接近「今日既定任务」；但要等 daily rhythm 那个 mockup，没打开的那天要有 fallback。</li>
     </ul>
     <p><b>我的倾向</b>：目标是 <b>e</b>（「既定」= 自己早上定的），过去的天也用同一个定义回看；在 daily rhythm 落地前用 <b>c</b> 做 fallback，因为它不惩罚拉卡、不把昨天的欠账算进来。<b>还要一起定</b>：做完计划外的事，圈是满了就停，还是像 Apple 一样绕第二圈？</p>`],
-  ['3 · 产品里要不要图例', '建议不加 · 待 owner', `<p>颜色和卡片左边框同一套，所以 Progress 没画图例；具体数字在 hover（桌面）和点开那天的清单里。要的话，桌面日条右端可以放三个小色块。整合 Done 去哪的时候一起看。</p>`],
+  ['3 · 产品里要不要图例', '已定 · 不加 · 第 19 轮', `<p>不加。圈的颜色和卡片左边框是同一套，具体做了什么点开那天的清单就看得到。</p>`],
   ['4 · 圈中心的 ✓ 会不会像按钮', '已解决', `<p>Done 定了「点某天看那天的清单」，日格本身就是按钮了（D 的第 6 轮把它画得像按钮），圈里的 ✓ 是按钮上的图案，不再是一个看起来能点、其实不能点的状态标记（Principle 3）。</p>`],
-  ['5 · Celebration 的开关', '→ tracker · Board', `<p>定稿的大反馈会转、会迸火花。Sunsama（Settings › Display）和 Todoist（Turn goal celebrations on or off）都能关，HIG：Make motion optional。Reduced motion 下只留颜色、✓ 和文字。开关放在 Settings 的哪里，和 Settings 的改版一起定。</p>`],
-  ['6 · 做完以后又拉了新卡、或者做完计划外的事', '→ 实现 PR 的 flow', `<p>两种做法：</p><ul><li>拉了新卡，圈重新留出一段灰，绿框暂时消失；再做完时只恢复绿框，不再来一次大反馈（推荐：大反馈一天只有一次，不会被预期掉）。</li><li>像 Apple 一样，计划外做完的接在第二圈上，圈不再打开。</li></ul><p>和 Ideas 2 的「今天的总数」一起定。</p>`],
+  ['5 · Celebration 的开关', '→ design/future-ideas.md', `<p>定稿的大反馈会转、会迸火花。Sunsama（Settings › Display）和 Todoist（Turn goal celebrations on or off）都能关，HIG：Make motion optional。Reduced motion 下只留颜色、✓ 和文字。第 19 轮：现在没必要做，记进 <code>design/future-ideas.md</code>；初步想法是 Settings 里一个开关，跟 Settings 的改版一起。</p>`],
+  ['6 · 做完以后又拉了新卡、或者做完计划外的事', '已定 · 第 19 轮', `<p>最简单的那种：拉了新卡，圈重新留出一段灰，绿框消失；再做完时<b>再播一次大反馈</b>，没关系。F · Final 就是这样画的。「大反馈一天只播一次」这个想法记进 <code>design/future-ideas.md</code>，等第二次显得廉价了再说。</p>`],
   ['7 · Close the day 要列出今天做完的全部', '→ tracker · Daily rhythm', `<p>Board 的 Done 定了：一天的清单藏在那天的圈后面。Close the day 不在这个 mockup 里；daily rhythm 的 mockup（demo 分支）定稿时再看它要不要完整列出今天做完的、能不能改、没做完的怎么安排（Masicampo & Baumeister 2011），以及要不要一句反思（Di Stefano）。</p>`],
-  ['8 · 撤回：怎么说、放在哪', '→ tracker · Phase 2', `<p>Done 的清单里先不放撤回按钮。现在能撤回的只有完成后 5 秒的 snackbar（Undo）。要一起想清楚的：</p><ul><li>叫什么：Undo · Put it back · Mark as not done · Move back to Todo——撤回之后它回到 Todo、圈退一格，说法要和这件事对得上。</li><li>放在哪：浮窗的行上（长按 / 右滑 / 菜单），还是只在 Close the day 里改。</li><li>研究里的线索：Todoist 只能在项目里撤回、历史是只读的，用户一直在抱怨；Sunsama 的 shutdown 可以改今天的记录。</li></ul>`],
+  ['8 · 撤回：怎么说、放在哪', '→ design/future-ideas.md', `<p>Done 的清单里先不放撤回按钮。去掉 snackbar 以后，完成没有撤回的路（状态只能往前走）；点两下完成让误触很少，所以现在先不做，记进 <code>design/future-ideas.md</code>。<b>初步想法</b>（第 19 轮）：撤回放在今天的清单里——点今天的圈，今天做完的每一行都可以放回 Todo；之前的天不行。叫什么（Undo · Put it back · Mark as not done）还没定。</p>`],
   ['9 · 桌面要不要保留拖拽', '已定 · 第 14–15 轮', `<p>保留，和现在的产品一样（Backlog → Todo，Todo → Done）。完成另有「点卡片 → 点 ✓ Complete」，两端一样。卡片两端统一：桌面的 backlog 卡也有 ↑ Todo。也就是：桌面支持手机的每一条 journey，外加拖拽。</p>`],
   ['10 · 设计偏好（第 14 轮 owner 的理由，mockup 做完后整理进 design language）', '→ tracker · 和 owner 一起', `<p>Owner 否掉第 11–13 轮五种桌面排法时说的理由，是以后判断设计的标准：</p><ul>
     <li><b>个人 app 不要 overdesign</b>：按周规划、按天执行。加一个「This week」列视觉上统一，但把「每周计划」的含义弄混了——哪些放 This week、要做时挪回 Today 还是挂着、daily rhythm 怎么排它——最后会变成不想做的事的 parking lot（否掉 1）。</li>
@@ -1828,7 +1828,7 @@ const finSeed = () => ({
   lists: [0, 1, 2, 3].map(index => (DONE_DAYS[index] || []).map(item => ({...item}))),
   todo: clone(FIX.todo),
   backlog: clone(FIX.backlog),
-  backlogOpen: false, armed: null, armedAt: 0, sel: null, fresh: null, pulled: null, busy: false, celebrated: false,
+  backlogOpen: false, armed: null, armedAt: 0, sel: null, fresh: null, pulled: null, busy: false,
 });
 const finCopy = (done, planned) => (done === planned ? FIN_VARIANT.doneCopy(planned) : `<b>${done}</b> of ${planned} done`);
 function finRow(state, mode) {
@@ -1876,7 +1876,7 @@ function finTap(mode, idx, onTarget) {
   if (performance.now() - state.armedAt < ARM_DEBOUNCE_MS) return;
   finComplete(mode, idx);
 }
-/* the small feedback on every card; the big one once, when today's plan is done */
+/* the small feedback on every card; the big one whenever today's ring closes — again after a pulled card is done (Ideas 6) */
 function finComplete(mode, idx) {
   const state = fin[mode];
   const root = document.getElementById(`fin-${mode}`);
@@ -1892,8 +1892,7 @@ function finComplete(mode, idx) {
     state.fresh = entry;
     renderFin(mode);
     root.querySelectorAll('.pz-day.today').forEach(cell => { cell.classList.remove('tick'); void cell.offsetWidth; cell.classList.add('tick'); });
-    if (isClosed(state.days[FIX.todayIndex]) && !state.celebrated) {
-      state.celebrated = true;
+    if (isClosed(state.days[FIX.todayIndex])) {
       navigator.vibrate?.([20, 60, 40]);
       FIN_VARIANT.onBig(root, state.days[FIX.todayIndex]);
       root.querySelectorAll('.cel-empty').forEach(el => el.classList.add('enter'));
@@ -1951,15 +1950,14 @@ const FIN_ANATOMY = [
   ['进度圈 · P', '一天一圈，周长 = 那天排的，做完的按 habit → step → one-off 顺时针着色，做完那天圈里一个 ✓。桌面 Mon–Sun 一排，今天是带框的长格；手机圈的大小不变，按宽度放今天前面的几天。'],
   ['日格是按钮 · D', 'Hover 只是一条下划线；选中是全亮的青色边框 + 里面的青光；按下缩一点。点今天或之前的某一格，看那天做完的——桌面浮在圈下面，手机是 sheet；再点一次、点外面或 Esc 关上。清单只读，按 kind 排。'],
   ['点两下完成 · T', '点卡面任何地方选中：确认边框，右下角的圈变成实心的 ✓ 和 Complete，卡片大小不变；只有点 ✓ Complete 才完成；选中时点卡片别处取消，点别的卡选中移过去；滚动不取消。没有 undo snackbar。两个宽度一样。'],
-  ['庆祝 · C', '每完成一张：卡片收起，今天的圈接上一段自己颜色的弧，格子轻轻一跳。今天排的全部做完：圈转一圈、迸出今天做过的颜色的火花，文案 All 5 done；之后今天的框变绿，Todo 留一张 Today\'s plan is done。一天只播一次。'],
+  ['庆祝 · C', '每完成一张：卡片收起，今天的圈接上一段自己颜色的弧，格子轻轻一跳。今天排的全部做完：圈转一圈、迸出今天做过的颜色的火花，文案 All 5 done；之后今天的框变绿，Todo 留一张 Today\'s plan is done。做完以后又拉了新卡：圈重新留出一段灰、绿框消失，再做完时再播一次。'],
   ['Done · D', '桌面就是现在产品的 Done 列，表头 This week，按完成时间排、最新的在最上面，不分组；完成的卡变暗、标题划掉、不显示 description，里面一层淡淡的光，没有边框和角标。手机没有 Done 列，点圈看。'],
   ['Backlog · D · T', '默认收起：桌面是右边的窄条，手机是底部的 pill。打开后每张卡右下角有 ↑ Todo，两个宽度一样；桌面还能拖（Backlog → Todo、Todo → Done），和现在的产品一样（没画）。'],
 ];
 const FIN_LATER = [
   ['今天的总数 · Ideas 2', '这里按 Todo + 今天做完的算，所以从 backlog 拉一张进 Todo，今天的分母 +1。到底怎么算交给 flow。'],
-  ['做完以后又拉了新卡 · Ideas 6', '这里画的是 Ideas 6 的推荐：圈重新留出一段、绿框消失，再做完时不再播大反馈。和今天的总数一起在 flow 里定。'],
   ['Done 列的排序 · Ideas 11', '按 doneAt 倒序是行为，写进 flow；这里照着画了。'],
-  ['撤回 · Ideas 8', '去掉 undo snackbar 以后，完成没有撤回的路（产品的状态只能往前走）。以后研究怎么说、放在哪。'],
+  ['撤回 · Ideas 8', '去掉 undo snackbar 以后，完成没有撤回的路。暂时不做，记在 design/future-ideas.md：初步想法是点今天的圈，今天做完的可以放回 Todo，之前的天不行。'],
 ];
 document.getElementById('fin-before-desk').innerHTML = deskBefore();
 document.getElementById('fin-phones').innerHTML = `${phoneBefore()}<div class="pz-phonewrap"><div class="pz-cap">After · 竖排全宽卡，点两下完成</div><div class="pz-phone done-phone fin-phone" data-fin="phone" id="fin-phone" style="width:359px"></div></div>`;

@@ -1,6 +1,6 @@
 # Tracker
 
-Single source of truth for open ideas and todos across the app — open items only; completed work is recorded in the git history and PR descriptions, not here.
+Single source of truth for open todos across the app — open items only; completed work is recorded in the git history and PR descriptions, not here. Problems we have seen coming but chose to wait on live in [future-ideas.md](./future-ideas.md).
 
 ## Conventions
 
@@ -57,7 +57,6 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 
 ### Medium
 
-- [ ] A Settings switch to turn the board's big celebration off (Sunsama and Todoist have one; HIG: make motion optional); reduced motion already keeps only the colour, ✓ and text — with Settings' next revision (PR #115 mockup Ideas 5)
 - [ ] Group the backlog — one habit's staged instances, and one project's steps on this week, sit together as one group (desktop panel and mobile sheet); a habit and a project each show their next one on a thin pile, "+N more" top right, and only a project's "+N more ⌄" opens the rest; the backlog card drops the plan line, step n/N, size and the done / total fraction (the board's habit card drops its fraction too); the badge counts staged tasks, capped at 8+. Design decided (PR #109; habits' pile added 2026-11-07): mockup `design/mockup/mockup-board-backlog-grouping.html`. PR #44 built stacking on the old card face. The first flow written in the spec-layers format (Cross-cutting › Future)
 
 ### Future
@@ -79,8 +78,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 - [ ] Week model Phase 2 (not planned yet; starts after Milestone — Quality gate before Phase 2, Cross-cutting) — habits own their cadence (Daily = every day, or N× per week; Plan Mode dropped) with a Plan › Habits page; a three-step Plan week replaces the plan form, with one Plan hub header for This week · Habits · Projects (Phase 1 keeps the plan form as it was and gives Projects its own page and nav entry); Done becomes the week's day-grouped log and cards get a ✓; cleanup of `DOING` and `Plan.mode`. Mockup `design/mockup/mockup-week-model-phase2.html`
   - [ ] Design PR — Board · tap to complete (PR #115, decided 2026-11-09; the owner merges): a tap selects a card and only its ✓ Complete completes it, no undo snackbar; one ring a day coloured by kind replaces the points dashboard, and closing today's ring spins it with sparks; a day's list opens from its ring (a popover on desktop, a sheet on phones); desktop keeps Todo and Done side by side, Done headed This week; the backlog stays collapsed, ↑ Todo on its cards on both widths. Mockup `design/mockup/mockup-board-tap-to-complete.html` (its F · Final tab); no e2e contract in this PR (the owner's call)
     - [ ] Spike `design/spike/board-desktop-phone-journeys.md` (decided) — one journey, two presentations; its pinned Done pane was replaced in PR #115's rounds 14–15 by the day popover and the product's Done column (the mockup holds the current design); archived with the board's implementation PR
-  - [ ] Board implementation PR — build the design PR's F · Final from `main` once it merges; its flow doc settles what today's ring counts and what happens when work is added after the day is done (mockup Ideas 2, 6), and orders the Done column by `doneAt`, newest first (Ideas 11)
-  - [ ] Undo a completion — with the snackbar gone and status moves forward-only, a card completed by mistake can't go back: the wording (Undo, Put it back, Mark as not done) and where it lives (mockup Ideas 8); before or with the implementation PR
+  - [ ] Board implementation PR — build the design PR's F · Final from `main` once it merges; its flow doc settles what today's ring counts (mockup Ideas 2), records that work added after the day is done reopens the ring and a second close celebrates again (Ideas 6), and orders the Done column by `doneAt`, newest first (Ideas 11)
   - [ ] Plan week built on the page structure (AGENTS.md › Layers › *Page structure*): route adapter for the form's initial selections, a `PlanPage` container with a page context, the diff as a pure helper — the plan form keeps its current structure until then (`design/spike/archived/component-structure.md`, Q5)
   - [ ] Redesign the Review changes modal — large as it stands; rework it with the Plan week
   - [ ] Rewrite `design/flows/plan.md`'s form flows for the Plan week
