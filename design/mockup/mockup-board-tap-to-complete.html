@@ -647,6 +647,20 @@
   .lay-rail { display: flex; flex-direction: column; align-items: center; gap: 14px; padding-top: 14px; height: 260px; border: 1px solid var(--card-border); border-radius: 12px; background: color-mix(in oklab, var(--b2) 30%, transparent); color: var(--ink-45); }
   .lay-rail .v { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 13px; font-weight: 600; color: var(--ink-65); }
   .lay-phone { min-height: 600px; }
+  .lay-phone .list { padding-bottom: 80px; }
+  /* round 12: by information priority */
+  .lay-prio { grid-template-columns: minmax(340px, 1.4fr) 300px 56px; }
+  .lay-prio.open { grid-template-columns: minmax(300px, 1.2fr) 300px minmax(260px, .9fr); }
+  .lay-done-rail { cursor: pointer; font: inherit; }
+  .lay-done-rail:hover { border-color: color-mix(in oklab, var(--su) 50%, transparent); color: var(--su); }
+  .lay-done-n { font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 700; color: var(--su); }
+  .lay-done-open { display: flex; flex-direction: column; gap: 8px; }
+  .lay-done-close { align-self: flex-end; display: inline-flex; align-items: center; gap: 4px; }
+  .prio { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 12.5px; }
+  .prio th { text-align: left; font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-45); font-weight: 600; padding: 6px 10px; border-bottom: 1px solid var(--card-border); }
+  .prio td { padding: 8px 10px; border-bottom: 1px solid color-mix(in oklab, var(--bc) 6%, transparent); color: var(--ink-80); vertical-align: top; }
+  .prio td.r { font-family: 'Geist Mono', monospace; color: var(--p); font-weight: 700; }
+  .prio b { color: var(--bc); }
 </style>
 </head>
 <body>
@@ -802,7 +816,7 @@
   <p class="note" style="margin-top:0;margin-bottom:12px"><b>Done pane</b> 在 Todo 和 backlog 之间，就是「那天的清单」一直开着：本周按天分组，今天在最上面展开，之前的天折叠（点组头展开 / 收起）。点某天的圈：那一组展开、高亮，pane 滚到它。用定稿的 tap twice 完成一张卡（点卡片 → 点 ✓ Complete）：卡片离开 Todo，<b>掉进今天那一组</b>，新的一行亮一下，圈接上一段。完成的卡往右落进 pane，backlog 在最右边往左拉。</p>
   <div class="pz-desk dpane-desk" id="dpane"></div>
 
-  <div class="col-label spaced"><b>第 11 轮 · 桌面多出来的地方做什么</b> · 和上面的「现在」比较 · 每一种都只是把手机上已有的东西摊开<span class="line"></span></div>
+  <div class="col-label spaced"><b>第 11–12 轮 · 桌面怎么排</b> · 和上面的「现在」比较 · 每一种都只是把手机上已有的东西摊开 · 4 是按设计师朋友的反馈和竞品研究加的<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:12px">Done 不再是一整列以后，桌面的 Todo 是一大片，一天的卡片其实不多。约束来自 spike（一套 journey、两种呈现）：桌面多出来的地方，只能放手机上也有的东西的展开版，不放只有桌面才有的新内容。下面三种都满足这一条；日历视图（按 Mon–Sun 排卡）和「本周总览」面板不满足，没画。注意：上面「现在」的画法里 backlog 是打开的 300 px 侧栏，产品里它默认收起成 48 px 的窄条；2 把它固定展开，3 用产品的默认。</p>
   <div id="dlayouts"></div>
 
@@ -1864,7 +1878,36 @@ const layCards = models => models.map((model, idx) => armCard(model, idx, 'desk'
 const LAY_TODAY = [FIX.todo[0], FIX.todo[1], FIX.todo[3]];
 const LAY_WEEK = [FIX.todo[2]];
 const layTodayDays = () => { const days = doneDays(); days[FIX.todayIndex] = {habit: [1, 2], project: [0, 1], oneoff: [0, 1]}; return days; };
+/* the Done edge on desktop remembers whether it was left open */
+let layDoneOpen = false;
+const doneWeekCount = state => [0, 1, 2, 3].reduce((sum, index) => sum + dayTotals(state.days[index])[0], 0);
+const doneRail = state => `<button class="lay-rail lay-done-rail" data-lay-done title="Show what's done this week">${icon('chevLeft', 'sm')}${ring(state.days[FIX.todayIndex], 22)}<span class="lay-done-n">${doneWeekCount(state)}</span><span class="v">Done</span></button>`;
+const PRIORITY_ROWS = [
+  ['1', 'Todo', '圈下面，全宽', '第 1 列，最宽，左边', '展开'],
+  ['2', '今天的圈', '最上面一条窄带，今天那格放大', '顶部横带，今天那格放大', '一直在'],
+  ['3', 'Backlog', '底部的 pill，点开是 sheet', '第 2 列，可以收起', '手机收起 · 桌面展开'],
+  ['4', '其他天的圈', '同一条带，按宽度放几天', '同一条横带，Mon–Sun', '只有圈'],
+  ['5', 'Done', '没有自己的一段：点某天的圈，sheet 升起', '最右边的窄条，带本周的个数；点开展开成清单', '收起；记住上次是开还是关'],
+];
+const priorityTable = () => `<table class="prio"><thead><tr><th>优先级</th><th>元素</th><th>手机 · 从上往下</th><th>桌面 · 从左往右</th><th>默认</th></tr></thead><tbody>${PRIORITY_ROWS.map(([rank, name, phone, desk, state]) => `<tr><td class="r">${rank}</td><td><b>${name}</b></td><td>${phone}</td><td>${desk}</td><td>${state}</td></tr>`).join('')}</tbody></table>`;
 const LAYOUTS = [
+  {
+    key: 'priority', letter: '4', title: '按信息优先级：Todo 最宽在左，Backlog 第二，Done 收在最右边', tag: '推荐',
+    desk(state) {
+      const cols = layDoneOpen ? 'lay-prio open' : 'lay-prio';
+      return `${appHead()}${layRingRow(state.days)}<div class="lay-grid ${cols}">
+        <div class="lay-col">${column('Todo', FIX.todo.length, layCards(FIX.todo))}</div>
+        ${backlogAfter()}
+        ${layDoneOpen ? `<div class="lay-done-open">${layDonePane(state)}<button class="ghost-btn lay-done-close" data-lay-done>${icon('right', 'xs')} Collapse</button></div>` : doneRail(state)}</div>`;
+    },
+    phone() {
+      const days = doneDays();
+      return `${statusBar('12:40')}${appHead()}<div class="pz-row">${dayCell(days, 1)}${dayCell(days, 2)}${dayCell(days, FIX.todayIndex)}</div>
+        <div class="list">${mrowHead('Todo', FIX.todo.length, 'var(--in)')}${FIX.todo.map((model, idx) => armCard(model, idx, 'phone', false)).join('')}</div>${mobilePill()}`;
+    },
+    extra: () => priorityTable(),
+    why: `<b>依据</b>：owner 的设计师朋友——手机从上往下、桌面从左往右，按重要到次要排；重要的一眼看到，次要的收起、点进去、或者放在不一眼看到的地方，不要抢戏。Done 的 mental model 看产品：个人的 to-do（Apple 提醒事项）做完就消失，二级菜单里找；Jira 留 Done 列是因为团队要追踪谁做完了什么。我们是个人的周计划，更接近前者。<br><b>做法</b>：桌面上 <b>Todo</b> 在最左、最宽（NN/g：80% 的注视落在屏幕左半边）；<b>Backlog</b> 紧挨着，因为要从它拉卡进 Todo，两个要同时看得见；<b>Done</b> 在最右边，默认收成一条窄边，只露出今天的小圈和本周做完的个数（这里是 <b>9</b>），点开展开成按天分组的清单，再点收起——收还是开会被记住，喜欢一直看着长 list 的话开一次就一直开着。手机就是现在的顺序：圈 → Todo → 底部的 Backlog pill；Done 没有自己的一段，点圈看。<br><b>好在哪</b>：每一层的位置和它的重要性一致，两端的顺序也一致（桌面的左→右 = 手机的上→下）；个人工具的通行做法（Reminders、Todoist、Things 的 Logbook 都把完成项收起来；Jira、Linear 的 Done 都在最右边）；Done 还在，只是不抢戏。<br><b>差在哪</b>：长 list 默认看不到，要点一下（之后会记住）；第 10 轮刚定的「Done pane 在中间」要改。点右边的窄条试试。`,
+  },
   {
     key: 'week', letter: '1', title: 'Todo 分成「今天」和「这周」两列', tag: '推荐（中期）',
     desk(state) {
@@ -1892,7 +1935,7 @@ const LAYOUTS = [
     why: `<b>做法</b>：产品里 backlog 默认是收起的 48 px 窄条；这里让它在桌面上一直开着、和 Todo、Done pane 一样宽，三栏等分。手机不变：backlog 还是底部的 pill + sheet。<br><b>好在哪</b>：和 Done pane 同一个思路——手机收起来的东西，桌面摊开；空间给了「下一张拉什么」，从 backlog 拖进 Todo 的距离也短了。<br><b>差在哪</b>：backlog 是规划时才看的东西，白天一直摊开会分散注意力；三栏等宽以后 Todo 不再是视觉重心。`,
   },
   {
-    key: 'center', letter: '3', title: '收窄、居中，留白', tag: '推荐（短期）',
+    key: 'center', letter: '3', title: '收窄、居中，留白', tag: '备选',
     desk(state) {
       return `${appHead()}<div class="lay-center">${layRingRow(state.days)}<div class="lay-grid lay-narrow">
         <div class="lay-col">${column('Todo', FIX.todo.length, layCards(FIX.todo))}</div>
@@ -1908,6 +1951,7 @@ function renderLayouts() {
     <div class="pz-cap" style="margin-top:12px">Desktop · 1280 px</div>
     <div class="pz-desk lay-desk">${layout.desk(state)}</div>
     ${layout.phone ? `<div class="pz-phonewrap" style="margin-top:14px"><div class="pz-cap">Phone · 375 px · 同一个结构</div><div class="pz-phone lay-phone" style="width:359px">${layout.phone()}</div></div>` : '<p class="pz-cap" style="margin-top:10px">Phone · 不变（见下面的 Mobile）</p>'}
+    ${layout.extra ? layout.extra() : ''}
     <p class="why" style="margin-top:12px">${layout.why}</p></div>`).join('');
 }
 function renderDone() {
@@ -1928,6 +1972,7 @@ function toggleDay(cell) {
 document.addEventListener('click', event => {
   const longBtn = event.target.closest('[data-done-long]');
   if (longBtn) { dn.long = longBtn.dataset.doneLong === 'true'; dn.open = {}; renderDone(); return; }
+  if (event.target.closest('[data-lay-done]')) { layDoneOpen = !layDoneOpen; renderLayouts(); return; }
   const pane = event.target.closest('#dpane');
   if (pane) {
     const toggle = event.target.closest('[data-dp-toggle]');
@@ -1970,10 +2015,14 @@ const DONE_PATTERNS = [
   ['干活时看「还剩」，收尾时看「做了」', 'Koo & Fishbach 2008 · Fishbach & Dhar 2005', '承诺已经确定的时候，看还剩多少比看已经做了多少更能推动人（<a href="https://bohrium.dp.tech/paper/arxiv/812065010711789569">摘要</a>）；只盯着进度会让人觉得可以松一下（<a href="https://econpapers.repec.org/RePEc:oup:jconrs:v:32:y:2005:i:3:p:370-377">JCR 2005</a>）。', '→ 白天 board 上是 Todo（还剩），done 清单放到点开和晚上。'],
   ['Bottom sheet 适合短的、跟当前有关的内容', 'NN/g', '长的、要花时间看的内容不要放 sheet；要有 Close 按钮、支持返回、不要叠 sheet（<a href="https://www.nngroup.com/articles/bottom-sheet/">NN/g</a>）；手机上的 accordion 省地方，但会让人迷失、要多滚（<a href="https://www.nngroup.com/videos/accordions-on-mobile/">NN/g</a>）。', '→ 白天的 sheet 只放一天的清单；长长的回顾放 Close the day 那一整屏。'],
   ['做完的清单里要能撤回', 'Todoist 的反例', 'Todoist 只能在项目里撤回，Reporting / Activity 里的历史是只读的（<a href="https://todoist.com/help/articles/view-completed-tasks-in-todoist-J19h2s">Todoist</a>）。点一下 ✓ 就完成，误点一定会有。', '→ 撤回怎么说、放在哪，以后单独研究（Ideas 8）；浮层里先不放撤回按钮。'],
-];;
+  ['个人工具把完成项收起来，团队工具留 Done 列', '竞品 · 第 12 轮', 'Apple 提醒事项完成就隐藏，Show Completed 才出现（<a href="https://support.apple.com/en-kg/guide/iphone/add-reminders-iph88463e18/15.0">Apple</a>）；Things 的 Logbook 在侧栏最后一个（<a href="https://culturedcode.com/things/support/articles/9596775/">Things</a>）；Todoist 完成后「removed from the active task list」（<a href="https://todoist.com/help/articles/view-completed-tasks-in-todoist-J19h2s">Todoist</a>）；Microsoft To Do 把完成的放在列表最下面，因为用户不喜欢混在一起（<a href="https://techcommunity.microsoft.com/blog/to-doblog/new-features-come-to-microsoft-to-do/1359840">Microsoft</a>）；Jira 只有最右边那列算完成，还能隐藏 1–4 周前的（<a href="https://support.atlassian.com/jira-software-cloud/docs/configure-columns/">Atlassian</a>）；Linear 的状态从左到右，完成的在最后（<a href="https://linear.app/docs/board-layout">Linear</a>）。', '→ 我们是个人工具：Done 收起来、放在最后（最右边 / 点圈）。'],
+  ['注意力偏左，第一屏说明「重要」', 'NN/g', '桌面上 80% 的注视在屏幕左半边，次要的放右边（<a href="https://www.nngroup.com/articles/horizontal-attention-leans-left/">NN/g</a>）；出现在第一屏本身就在告诉用户它重要（<a href="https://www.nngroup.com/articles/progressive-disclosure/">progressive disclosure</a>）；最大的元素应该是最重要的（<a href="https://www.nngroup.com/articles/visual-hierarchy-ux-definition/">visual hierarchy</a>）；手机上把次要的往后放（<a href="https://www.nngroup.com/articles/defer-secondary-content-for-mobile/">NN/g</a>）。', '→ Todo 最宽、在左；Done 在最右、收起。'],
+  ['收起的内容可能被错过——要留个线索', 'NN/g accordions', '「Valuable content that is hidden under an accordion may be missed altogether」；关键信息不要收起来（<a href="https://www.nngroup.com/articles/accordions-on-desktop/">NN/g</a>）。', '→ Done 的窄条上露出今天的小圈和本周的个数，收起了也知道它在、有多少。'],
+  ['Backlog 挨着主视图', 'Sunsama · Trello', 'Sunsama 的 backlog 在侧栏（<a href="https://help.sunsama.com/docs/usage-guides/backlog/">Sunsama</a>）；Trello 的 Inbox 和 board 并排打开，「stay focused on your priorities」（<a href="https://support.atlassian.com/trello/docs/trello-inbox/">Trello</a>）。', '→ Backlog 是第 2 列，从它往左拉进 Todo。'],
+];
 document.getElementById('done-patterns').innerHTML = DONE_PATTERNS.map(([title, who, body, fit]) => `<div class="pat"><h4>${title}</h4><div class="who">${who}</div>${body}<div class="fit">${fit}</div></div>`).join('');
 const DONE_QUESTIONS = [
-  ['1 · 桌面多出来的地方（第 11 轮）', '现在（Todo · Done pane · 打开的 backlog）· 1 Today / This week 两列 · 2 backlog 固定展开、等宽 · 3 收窄居中、backlog 收起。我的看法：短期 3，中期认真考虑 1（它顺带回答 Ideas 2，但要单独当一个模块定）。'],
+  ['1 · 桌面怎么排（第 11–12 轮）', '现在（Todo · Done pane · 打开的 backlog）· 1 Today / This week 两列 · 2 backlog 固定展开、等宽 · 3 收窄居中 · <b>4 按信息优先级（推荐）</b>：Todo 最宽在左、Backlog 第二、Done 收在最右边。1 可以叠在 4 上（Todo 那一列拆成 Today / This week），中期单独定。'],
   ['2 · 日格按钮的 hover', '<b>1 底部亮起（推荐）</b> · 2 整格浮起。按下和选中两种一样。'],
   ['3 · 今天的框和选中的框', '今天那格平时的框调淡到 35%，选中时才是全亮的边框 + 内部发光。'],
   ['4 · 周后半段 done 太长', '之前的天已经默认折叠；如果周五周六觉得 pane 太长，再调呈现，不改 journey。'],
