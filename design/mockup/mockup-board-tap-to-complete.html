@@ -634,6 +634,19 @@
   @keyframes freshRow { from { background: color-mix(in oklab, var(--su) 22%, transparent); } }
   .dpane-grid .backlog { width: auto; }
   @media (prefers-reduced-motion: reduce) { .done-row.fresh { animation: none; } }
+  /* round 11: desktop layouts */
+  .lay-desk { overflow-x: auto; }
+  .lay-grid { display: grid; align-items: start; gap: 14px; padding: 14px; min-width: 980px; }
+  .lay-week { grid-template-columns: minmax(220px, 1fr) minmax(200px, .8fr) minmax(240px, .9fr) 48px; }
+  .lay-backlog { grid-template-columns: repeat(3, minmax(260px, 1fr)); }
+  .lay-narrow { grid-template-columns: minmax(280px, 1.1fr) minmax(260px, 1fr) 48px; min-width: 0; }
+  .lay-center { max-width: 1000px; margin: 0 auto; border-left: 1px dashed var(--card-border); border-right: 1px dashed var(--card-border); }
+  .lay-grid .column-body { max-height: none; }
+  .lay-grid .dpane-done { margin: 0; }
+  .lay-grid .backlog { width: auto; border: 1px solid var(--card-border); border-radius: 12px; }
+  .lay-rail { display: flex; flex-direction: column; align-items: center; gap: 14px; padding-top: 14px; height: 260px; border: 1px solid var(--card-border); border-radius: 12px; background: color-mix(in oklab, var(--b2) 30%, transparent); color: var(--ink-45); }
+  .lay-rail .v { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 13px; font-weight: 600; color: var(--ink-65); }
+  .lay-phone { min-height: 600px; }
 </style>
 </head>
 <body>
@@ -785,9 +798,13 @@
   <p class="note" style="margin-top:0;margin-bottom:14px">第 5 轮画了三个方向（见 commit <code>2211b07</code>），第 6 轮定了「一天的清单藏在那天的圈后面：桌面浮窗、手机 sheet」。之后 owner 发现桌面光秃秃的，而且喜欢在桌面上看到一长串 done；spike <code>design/spike/board-desktop-phone-journeys.md</code> 的结论是<b>一套 journey、两种呈现</b>：什么算完成、完成算哪天、点某天的圈 = 看那天的清单，两边一样；只有清单放在哪不一样。第 10 轮按它修订：<b>手机</b>不变，<b>桌面</b>的浮窗换成常驻的 Done pane。清单都只读，按 kind 排，没有撤回按钮（Ideas 8）。切到 <b>Long day</b> 看清单长了以后的样子。</p>
   <div class="pz-tools"><span class="seg"><button data-done-long="false" class="on">Normal day · Thu 1 done</button><button data-done-long="true">Long day · Thu 9 done</button></span></div>
 
-  <div class="col-label"><b>Desktop</b> · Todo · Done pane · Backlog<span class="line"></span></div>
+  <div class="col-label"><b>Desktop · 现在</b> · Todo · Done pane · Backlog（spike 方案 A，第 10 轮）<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:12px"><b>Done pane</b> 在 Todo 和 backlog 之间，就是「那天的清单」一直开着：本周按天分组，今天在最上面展开，之前的天折叠（点组头展开 / 收起）。点某天的圈：那一组展开、高亮，pane 滚到它。用定稿的 tap twice 完成一张卡（点卡片 → 点 ✓ Complete）：卡片离开 Todo，<b>掉进今天那一组</b>，新的一行亮一下，圈接上一段。完成的卡往右落进 pane，backlog 在最右边往左拉。</p>
   <div class="pz-desk dpane-desk" id="dpane"></div>
+
+  <div class="col-label spaced"><b>第 11 轮 · 桌面多出来的地方做什么</b> · 和上面的「现在」比较 · 每一种都只是把手机上已有的东西摊开<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:12px">Done 不再是一整列以后，桌面的 Todo 是一大片，一天的卡片其实不多。约束来自 spike（一套 journey、两种呈现）：桌面多出来的地方，只能放手机上也有的东西的展开版，不放只有桌面才有的新内容。下面三种都满足这一条；日历视图（按 Mon–Sun 排卡）和「本周总览」面板不满足，没画。注意：上面「现在」的画法里 backlog 是打开的 300 px 侧栏，产品里它默认收起成 48 px 的窄条；2 把它固定展开，3 用产品的默认。</p>
+  <div id="dlayouts"></div>
 
   <div class="col-label spaced"><b>Mobile</b> · 不变：点圈，那天的清单从底部升起<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:12px">点今天或之前的某一格，sheet 升起（最高 70%），Todo 一动不动；再点一次或点外面关上。</p>
@@ -1829,9 +1846,74 @@ function renderBtnVariants() {
   }).join('');
 }
 
+/* ── Desktop layouts to compare (round 11): what the room left by the Done column holds, every one
+   an opened-up version of something the phone already has (one journey, two presentations) ── */
+const backlogRail = () => `<div class="lay-rail" title="Open backlog">${icon('chevLeft', 'sm')}<span class="badge-count">8</span><span class="v">Backlog</span></div>`;
+const layRingRow = days => {
+  let html = '';
+  for (let index = 0; index <= 6; index++) html += tapCell(days, index, '');
+  return `<div class="btnrow btn-glow"><div class="pz-row">${html}</div></div>`;
+};
+function layDonePane(state) {
+  const groups = [];
+  for (let index = FIX.todayIndex; index >= 0; index--) groups.push(dpaneGroup(state, index));
+  return `<div class="dpane-done"><div class="column-head" style="color:var(--su)"><span style="color:var(--bc)">Done</span><span class="count-ghost">This week</span></div><div class="dp-scroll">${groups.join('')}</div></div>`;
+}
+const layCards = models => models.map((model, idx) => armCard(model, idx, 'desk', false)).join('');
+/* option 1: today's cards are the ring's denominator; the rest of the week waits beside them */
+const LAY_TODAY = [FIX.todo[0], FIX.todo[1], FIX.todo[3]];
+const LAY_WEEK = [FIX.todo[2]];
+const layTodayDays = () => { const days = doneDays(); days[FIX.todayIndex] = {habit: [1, 2], project: [0, 1], oneoff: [0, 1]}; return days; };
+const LAYOUTS = [
+  {
+    key: 'week', letter: '1', title: 'Todo 分成「今天」和「这周」两列', tag: '推荐（中期）',
+    desk(state) {
+      const days = layTodayDays();
+      const paneState = {...state, days};
+      return `${appHead()}${layRingRow(days)}<div class="lay-grid lay-week">
+        <div class="lay-col">${column('Today', LAY_TODAY.length, layCards(LAY_TODAY))}</div>
+        <div class="lay-col">${column('This week', LAY_WEEK.length, layCards(LAY_WEEK))}</div>
+        ${layDonePane(paneState)}${backlogRail()}</div>`;
+    },
+    phone() {
+      const days = layTodayDays();
+      return `${statusBar('12:40')}${appHead()}<div class="pz-row">${dayCell(days, 1)}${dayCell(days, 2)}${dayCell(days, FIX.todayIndex)}</div>
+        <div class="list">${mrowHead('Today', LAY_TODAY.length, 'var(--su)')}${LAY_TODAY.map((model, idx) => armCard(model, idx, 'phone', false)).join('')}${mrowHead('This week', LAY_WEEK.length, 'var(--in)')}${LAY_WEEK.map((model, idx) => armCard(model, idx, 'phone', false)).join('')}</div>`;
+    },
+    why: `<b>做法</b>：Todo 拆成两列：<b>Today</b>（今天要做的）和 <b>This week</b>（这周拿在手上、但不是今天的）。今天那格圈的分母 = Today 那列 + 今天做完的（这里是 <b>1 of 4</b>，Render it with Mol* 在 This week，不算进今天）。手机上是同一个列表里的两节，顺序一样。<br><b>好在哪</b>：不只是填空间——它把「今天」落在了 Todo 上，Ideas 2（今天的总数）、Celebration 的「今天排的全部做完」、Close the day 都有了一个看得见的分母；拉卡进 This week 不再让今天的圈变空。<br><b>差在哪</b>：卡片怎么进 Today 要另外定（拖过去、点一下，或 daily rhythm 的 Open the day 早上挑）；Progress 和 Celebration 已定的「今天」含义要跟着改，最好单独当一个模块定。`,
+  },
+  {
+    key: 'backlog', letter: '2', title: 'Backlog 固定展开，和 Todo 一样宽', tag: '备选',
+    desk(state) {
+      return `${appHead()}${layRingRow(state.days)}<div class="lay-grid lay-backlog">
+        <div class="lay-col">${column('Todo', FIX.todo.length, layCards(FIX.todo))}</div>
+        ${layDonePane(state)}${backlogAfter()}</div>`;
+    },
+    why: `<b>做法</b>：产品里 backlog 默认是收起的 48 px 窄条；这里让它在桌面上一直开着、和 Todo、Done pane 一样宽，三栏等分。手机不变：backlog 还是底部的 pill + sheet。<br><b>好在哪</b>：和 Done pane 同一个思路——手机收起来的东西，桌面摊开；空间给了「下一张拉什么」，从 backlog 拖进 Todo 的距离也短了。<br><b>差在哪</b>：backlog 是规划时才看的东西，白天一直摊开会分散注意力；三栏等宽以后 Todo 不再是视觉重心。`,
+  },
+  {
+    key: 'center', letter: '3', title: '收窄、居中，留白', tag: '推荐（短期）',
+    desk(state) {
+      return `${appHead()}<div class="lay-center">${layRingRow(state.days)}<div class="lay-grid lay-narrow">
+        <div class="lay-col">${column('Todo', FIX.todo.length, layCards(FIX.todo))}</div>
+        ${layDonePane(state)}${backlogRail()}</div></div>`;
+    },
+    why: `<b>做法</b>：board 最宽 1000 px，居中；Todo 和 Done pane 两列，backlog 是收起的窄条（产品现在的默认）。大屏两边留白。手机不变。<br><b>好在哪</b>：最省事、最一致——什么都不加；内容集中在视线中间，眼睛不用左右扫（Principle 5：有空间就别挤）。<br><b>差在哪</b>：没有用上大屏的空间；大显示器上两边空得多。`,
+  },
+];
+function renderLayouts() {
+  const state = dpaneSeed();
+  document.getElementById('dlayouts').innerHTML = LAYOUTS.map(layout => `<div class="pz-opt ${layout.tag.startsWith('推荐') ? 'rec' : ''}">
+    <div class="opt-head"><span class="letter">${layout.letter}</span><h3>${layout.title}</h3><span class="tag ${layout.tag.startsWith('推荐') ? '' : 'muted'}">${layout.tag}</span></div>
+    <div class="pz-cap" style="margin-top:12px">Desktop · 1280 px</div>
+    <div class="pz-desk lay-desk">${layout.desk(state)}</div>
+    ${layout.phone ? `<div class="pz-phonewrap" style="margin-top:14px"><div class="pz-cap">Phone · 375 px · 同一个结构</div><div class="pz-phone lay-phone" style="width:359px">${layout.phone()}</div></div>` : '<p class="pz-cap" style="margin-top:10px">Phone · 不变（见下面的 Mobile）</p>'}
+    <p class="why" style="margin-top:12px">${layout.why}</p></div>`).join('');
+}
 function renderDone() {
   dp.desk = dpaneSeed();
   renderDpane();
+  renderLayouts();
   renderDoneMobile();
   renderBtnVariants();
   document.querySelectorAll('[data-done-long]').forEach(button => button.classList.toggle('on', (button.dataset.doneLong === 'true') === dn.long));
@@ -1891,11 +1973,11 @@ const DONE_PATTERNS = [
 ];;
 document.getElementById('done-patterns').innerHTML = DONE_PATTERNS.map(([title, who, body, fit]) => `<div class="pat"><h4>${title}</h4><div class="who">${who}</div>${body}<div class="fit">${fit}</div></div>`).join('');
 const DONE_QUESTIONS = [
-  ['1 · 日格按钮的 hover', '<b>1 底部亮起（推荐）</b> · 2 整格浮起。按下和选中两种一样。'],
-  ['2 · 今天的框和选中的框', '今天那格平时的框调淡到 35%，选中时才是全亮的边框 + 内部发光，今天和「正在看的那天」不会混。'],
-  ['3 · 手机上怎么让人发现能点', '没有 hover：按下的回弹 + 选中后发光、sheet 升起。第一次进 board 时要不要提示？（建议不要）'],
-  ['4 · 周后半段 done 太长', 'Koo & Fishbach：接近目标时，看还剩的比看做完的更推动人。之前的天已经默认折叠；如果周五周六觉得 pane 太长，再调呈现（比如只留今天和昨天展开），不改 journey。'],
-]
+  ['1 · 桌面多出来的地方（第 11 轮）', '现在（Todo · Done pane · 打开的 backlog）· 1 Today / This week 两列 · 2 backlog 固定展开、等宽 · 3 收窄居中、backlog 收起。我的看法：短期 3，中期认真考虑 1（它顺带回答 Ideas 2，但要单独当一个模块定）。'],
+  ['2 · 日格按钮的 hover', '<b>1 底部亮起（推荐）</b> · 2 整格浮起。按下和选中两种一样。'],
+  ['3 · 今天的框和选中的框', '今天那格平时的框调淡到 35%，选中时才是全亮的边框 + 内部发光。'],
+  ['4 · 周后半段 done 太长', '之前的天已经默认折叠；如果周五周六觉得 pane 太长，再调呈现，不改 journey。'],
+];
 document.getElementById('done-questions').innerHTML = DONE_QUESTIONS.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 
 /* ── T · Tap twice (decided): a tap anywhere on a card selects it — a confirm frame, and its corner
