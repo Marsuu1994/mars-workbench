@@ -525,13 +525,42 @@
   @keyframes spark { from { transform: rotate(var(--angle)) translateY(-18px); opacity: 1; } to { transform: rotate(var(--angle)) translateY(-40px) scale(.4); opacity: 0; } }
   .cel-summary { display: block; margin-bottom: 4px; }
   @media (prefers-reduced-motion: reduce) { .pz-day.tick .pz-ringwrap, .pz-day.big-a .pz-ringwrap, .pz-day.big-b .ring-svg, .cel-empty.enter { animation: none; } .pz-day.big-a .pz-ringwrap::after, .spark { display: none; } .pz-mark circle { transition: none; } }
+  /* D · Done */
+  .pz-day.tap { cursor: pointer; transition: background .15s; }
+  .pz-day.tap:hover { background: var(--ink-10); }
+  .pz-day.sel { outline: 1.5px solid var(--p); outline-offset: -1px; }
+  .done-desk { overflow: visible; position: relative; }
+  .done-anchor { position: relative; }
+  .done-desk-todo { padding: 12px 16px 16px; max-width: 420px; }
+  .done-desk-todo .column-body { max-height: none; }
+  .done-pop { position: absolute; top: calc(100% - 6px); width: 320px; z-index: 6; background: var(--b1); border: 1px solid var(--card-border); border-radius: 12px; box-shadow: 0 16px 36px oklch(0 0 0 / .45); overflow: hidden; }
+  .done-pop .dp-body { max-height: 320px; overflow-y: auto; }
+  .done-sheet { top: auto; max-height: 70%; }
+  .done-sheet .dp-body { overflow-y: auto; }
+  .done-pop .dp-head, .done-sheet .dp-head { display: flex; align-items: center; gap: 8px; padding: 10px 12px; font-family: 'Geist Mono', monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-55); border-bottom: 1px solid var(--card-border); }
+  .done-pop .dp-head b, .done-sheet .dp-head b { color: var(--bc); letter-spacing: .04em; }
+  .done-pop .dp-head .x, .done-sheet .dp-head .x { margin-left: auto; color: var(--ink-45); display: grid; }
+  .show-all { display: block; width: 100%; padding: 9px 12px; border: 0; border-top: 1px solid color-mix(in oklab, var(--bc) 6%, transparent); background: transparent; color: var(--p); font-size: 12.5px; text-align: left; cursor: pointer; }
+  .done-phone { min-height: 520px; }
+  .close-day { margin-top: 18px; display: flex; flex-direction: column; padding-bottom: 14px; }
+  .close-day::after { display: none; }
+  .cd-head { display: flex; flex-direction: column; gap: 2px; padding: 12px 16px 8px; }
+  .cd-head .k, .cd-left .k { font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-55); }
+  .cd-head b { font-size: 16px; }
+  .cd-list { padding: 0 12px; }
+  .cd-row { display: flex; align-items: center; gap: 8px; padding: 6px 4px; font-size: 13px; color: var(--ink-65); border-top: 1px solid color-mix(in oklab, var(--bc) 6%, transparent); }
+  .cd-row .icon { color: var(--k); }
+  .cd-row.todo { color: var(--bc); }
+  .cd-row .chip { margin-left: auto; font-family: 'Geist Mono', monospace; font-size: 10.5px; color: var(--p); border: 1px solid color-mix(in oklab, var(--p) 40%, transparent); border-radius: 6px; padding: 2px 6px; }
+  .cd-left { padding: 12px 16px 0; }
+  .cd-btn { margin: 14px 16px 0; height: 40px; border-radius: 10px; border: 0; background: var(--p); color: var(--pc); font-weight: 600; font-size: 14px; }
 </style>
 </head>
 <body>
 
 <header class="topbar">
   <div>
-    <div class="eyebrow">Board · Phase 2 · design PR · 第 1 轮 2026-11-06 · 第 2 轮 2026-11-08 起一个模块一个模块定：P · Progress 已定，C · Celebration 进行中，想法记在 I · Ideas</div>
+    <div class="eyebrow">Board · Phase 2 · design PR · 第 1 轮 2026-11-06 · 第 2 轮 2026-11-08 起一个模块一个模块定：P · Progress、C · Celebration 已定，D · Done 进行中，想法记在 I · Ideas</div>
     <h1>Board：点一下 ✓ 就完成</h1>
     <p>有 active plan 的白天，默认屏就是 board。<b>已定</b>：手机上点卡片的 ✓ 就完成、卡片消失，不用拖；桌面点 ✓ 和拖拽都保留；顶部的 ProgressDashboard 换成 Today ring + 7 格日条（Mon–Sun，一格一天，做了几个 / 计划几个），去掉所有 points；卡片保留 dots / path，去掉 size chip；错过的 instance 是空心 dot，不做 streak。<b>要 owner 选</b>：完成时的 celebration（第 3 屏，可点）和完成的卡片去哪（第 4 屏）。Fixture：<b>W45 · Mon Nov 2 – Sun Nov 8 2026</b>，今天是 Thu Nov 5 中午，LeetCode #3 刚做完。</p>
   </div>
@@ -655,19 +684,31 @@
 </section>
 
 <!-- ═════════ C · Celebration (round 2–3) ═════════ -->
-<section class="screen on" data-screen="celebration">
-  <div class="col-label"><b>C · Celebration · 第 3 轮 · 2026-11-08</b> · 每完成一个是小反馈，今天排的全部做完时一次大反馈，之后留下一个看得见的「今天做完了」<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px">Owner 选了第 1 轮 celebration 的 B，并且要求做完以后有一个一直留着的视觉标记；第 2 轮的 C（Todo 里的小结卡）已排除，见 commit <code>2d59d33</code>。两个方向的<b>小反馈完全一样</b>：✓ 150 ms 填满，卡片 240 ms 收起，今天的圈接上一段自己颜色的弧（500 ms），格子轻轻一跳。<b>不一样的是两件事</b>：最后一个做完的那一下（大反馈），以及之后一直留在屏幕上的样子（Todo 空了以后，和今天那格）。每个方向都可以直接点 ✓，也可以点 Complete all。</p>
-  <div class="col-label"><b>A · B 并排</b> · 只有今天那格 · 每一列是一种当天的颜色组合 · 先一个个接上，最后一个合上时播大反馈<span class="line"></span></div>
-  <div class="pz-tools"><button class="ghost-btn" id="cmp-play">▶ Play</button><span class="hint">一个个做完，约 0.6 s 一个；最后一个做完时 A、B 同时播大反馈。可以反复点。</span></div>
+<section class="screen" data-screen="celebration">
+  <div class="col-label"><b>C · Celebration · 定稿 · decided 2026-11-08</b> · 每完成一个是小反馈；今天排的全部做完时，圈转一圈、迸出火花；之后今天那格变绿、Todo 里留一张「Today's plan is done」<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:14px">Owner 选了第 1 轮 celebration 的 B，并且要求做完以后有一个一直留着的视觉标记；第 2 轮的 C（Todo 里的小结卡）已排除（commit <code>2d59d33</code>）；第 3 轮在各种颜色组合下并排比较了 A（光晕 + ✓）和 B，owner 选了 <b>B</b>，A 留在 commit <code>783b6b6</code>。<b>小反馈</b>：✓ 150 ms 填满，卡片 240 ms 收起，今天的圈接上一段自己颜色的弧（500 ms），格子轻轻一跳。<b>大反馈</b>：圈顺时针转一圈（700 ms），12 颗火花按今天做完的比例着色迸出、淡掉，✓ 画出来（✓ 本身不转），文案 <b>All 5 done</b>，一个 Success 振动。<b>留下来的</b>：今天那格的框变绿、圈带 ✓；Todo 空了的地方是 <b>Today's plan is done</b> · Pull more from the backlog, or call it a day.</p>
+  <div class="col-label"><b>不同的颜色组合</b> · 只有今天那格 · 一列一种当天的组合 · 先一个个接上，最后一个合上时播大反馈<span class="line"></span></div>
+  <div class="pz-tools"><button class="ghost-btn" id="cmp-play">▶ Play</button><span class="hint">一个个做完，约 0.6 s 一个；最后一个做完时播大反馈。可以反复点。</span></div>
   <div class="cmp-wrap"><div class="cmp" id="cmp"></div></div>
-  <p class="note">多数日子 habit 是大头（第 2 列），有时 step 多（第 3 列），也常有只有一两种的一天（第 4–6 列）。<b>A</b> 的大反馈和颜色无关：每种组合都是同一个绿色光晕 + ✓，完成的意思不随那天做了什么改变。<b>B</b> 的火花跟着那天做完的比例走：只有 habit 的一天全是绿色，step 多的一天紫色多，所以每天的样子不一样——好处是「把今天回放一遍」，代价是一种颜色的那天火花比较单调。</p>
+  <p class="note">多数日子 habit 是大头（第 2 列），有时 step 多（第 3 列），也常有只有一两种的一天（第 4–6 列）。火花跟着那天做完的比例走：只有 habit 的一天全是绿色，step 多的一天紫色多——每天的样子不一样，等于把今天回放一遍。</p>
   <div class="col-label spaced"><b>完整的样子</b> · 桌面今天那格 + 手机的 Todo · 可以直接点 ✓<span class="line"></span></div>
   <div id="cel-options"></div>
   <div class="col-label spaced"><b>Research</b> · Apple 和其他产品怎么庆祝「做完了」<span class="line"></span></div>
   <div class="patterns" id="cel-patterns"></div>
-  <div class="col-label spaced"><b>这一轮要 owner 拍板的</b><span class="line"></span></div>
+  <div class="col-label spaced"><b>定稿后还开着的</b> · 记在 I · Ideas<span class="line"></span></div>
   <ul class="openq" id="cel-questions"></ul>
+</section>
+
+<!-- ═════════ D · Done (round 5) ═════════ -->
+<section class="screen on" data-screen="done">
+  <div class="col-label"><b>D · Done · 第 5 轮 · 2026-11-08</b> · 没有 Done 列以后，做完的放在哪<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:14px">第 1 轮的两个方案里，A（手机一个 Done 入口、桌面保留 Done 列）已排除——换汤不换药。B（点某天看那天的清单）可以，但 owner 担心清单一长会挤到今天的事；另外 owner 上班时看到一长串 done 很有成就感，问这部分是不是交给 daily rhythm 更好。下面三个方向都建立在已定的 Progress（一天一圈）和 Celebration（B）上；点今天或之前的任何一格试试，切到 <b>Long day</b> 看清单长了以后各自的样子。</p>
+  <div class="pz-tools"><span class="seg"><button data-done-long="false" class="on">Normal day · Thu 1 done</button><button data-done-long="true">Long day · Thu 9 done</button></span></div>
+  <div id="done-options"></div>
+  <div class="col-label spaced"><b>Research</b> · 做完的事放在哪 · 回顾做完的事有什么用<span class="line"></span></div>
+  <div class="patterns" id="done-patterns"></div>
+  <div class="col-label spaced"><b>这一轮要 owner 拍板的</b><span class="line"></span></div>
+  <ul class="openq" id="done-questions"></ul>
 </section>
 
 <!-- ═════════ I · Ideas ═════════ -->
@@ -679,11 +720,12 @@
 
 <nav class="seg screen-nav" id="screens">
   <button data-screen-btn="progress">P · Progress ✓</button>
-  <button data-screen-btn="celebration" class="on">C · Celebration</button>
+  <button data-screen-btn="celebration">C · Celebration ✓</button>
+  <button data-screen-btn="done" class="on">D · Done</button>
   <button data-screen-btn="s1">1 · Desktop</button>
   <button data-screen-btn="s2">2 · Phone</button>
   <button data-screen-btn="s3">3 · Celebration (round 1)</button>
-  <button data-screen-btn="s4">4 · Where done goes</button>
+  <button data-screen-btn="s4">4 · Where done goes (round 1)</button>
   <button data-screen-btn="s5">5 · Anatomy</button>
   <button data-screen-btn="s6">6 · Research</button>
   <button data-screen-btn="ideas">I · Ideas</button>
@@ -1365,14 +1407,7 @@ function sparkColors(day, count) {
 }
 const CEL_VARIANTS = [
   {
-    key: 'a', letter: 'A', title: '圈合上的那一下：一拍光晕 + ✓ 画出来', tag: '推荐',
-    doneCopy: planned => `<b class="all">All ${planned} done</b>`,
-    empty: `<b>Today's plan is done</b><small>Pull more from the backlog, or call it a day.</small>`,
-    onBig: root => root.querySelectorAll('.pz-day.today').forEach(cell => cell.classList.add('big-a')),
-    why: `<b>大反馈</b>：最后一段弧接上的同时，今天的圈放大 1.15× 再回来（400 ms），外面一圈绿色光晕扩散后消失（600 ms），圈中心的 ✓ 一笔画出来（300 ms）；文案从 <b>4 of 5 done</b> 变成 <b>All 5 done</b>；Android 一个「成功」振动。只用 transform / opacity，不飞东西。<br><b>留下来的</b>：今天那格的框从青色变成绿色，圈带 ✓；Todo 空了的地方是一张安静的卡 <b>Today's plan is done</b> · Pull more from the backlog, or call it a day.——一直留到今天结束或者又拉了新卡。<br><b>好在哪</b>：大反馈是小反馈的放大版，同一个圈、同一种颜色，不需要学新东西，也看得出是刚才那一下带来的（Kao 2024）；分量和 HIG 说的一致：一天一次的 Success 振动 + 一拍。留下来的文案说的是「今天定的守住了」，不夸人（Deci 1999；Fishbach & Dhar 2005）。Sunsama 就是这么拆的。<br><b>差在哪</b>：比 Apple 的安静；喜欢热闹的人会觉得不够。`,
-  },
-  {
-    key: 'b', letter: 'B', title: 'Apple 式：圈合上时转一圈，迸出今天做过的颜色的火花', tag: '备选',
+    key: 'b', letter: 'B', title: 'Apple 式：圈合上时转一圈，迸出今天做过的颜色的火花', tag: '定稿',
     doneCopy: planned => `<b class="all">All ${planned} done</b>`,
     empty: `<b>Today's plan is done</b><small>Pull more from the backlog, or call it a day.</small>`,
     onBig: (root, day) => root.querySelectorAll('.pz-day.today').forEach(cell => {
@@ -1438,8 +1473,8 @@ function celAll(key) {
   celComplete(key, button);
   setTimeout(() => celAll(key), CEL_T.hit + CEL_T.leave + 200);
 }
-document.getElementById('cel-options').innerHTML = CEL_VARIANTS.map(variant => `<div class="pz-opt ${variant.tag === '推荐' ? 'rec' : ''}" data-cel="${variant.key}">
-  <div class="opt-head"><span class="letter">${variant.letter}</span><h3>${variant.title}</h3><span class="tag ${variant.tag === '推荐' ? '' : 'muted'}">${variant.tag}</span></div>
+document.getElementById('cel-options').innerHTML = CEL_VARIANTS.map(variant => `<div class="pz-opt ${variant.tag === '定稿' ? 'rec' : ''}" data-cel="${variant.key}">
+  <div class="opt-head"><span class="letter">${variant.letter}</span><h3>${variant.title}</h3><span class="tag">${variant.tag}</span></div>
   <div class="toolrow" style="margin-top:10px"><button class="ghost-btn" data-cel-reset="${variant.key}">Reset</button><button class="ghost-btn" data-cel-all="${variant.key}">Complete all →</button></div>
   <div class="pz-pair"><div><div class="pz-cap">Desktop · 今天那格</div><div class="pz-desk cel-desk"></div><p class="why" style="margin-top:12px">${variant.why}</p></div><div class="cel-phone"></div></div></div>`).join('');
 CEL_VARIANTS.forEach(variant => { cel[variant.key] = celSeed(); renderCel(variant.key); });
@@ -1512,12 +1547,148 @@ const CEL_PATTERNS = [
 ];
 document.getElementById('cel-patterns').innerHTML = CEL_PATTERNS.map(([title, who, body, fit]) => `<div class="pat"><h4>${title}</h4><div class="who">${who}</div>${body}<div class="fit">${fit}</div></div>`).join('');
 const CEL_QUESTIONS = [
-  ['1 · 大反馈选 A 还是 B？', 'C（Todo 里的小结卡）已排除。上面的并排比较里，每种颜色组合下 A 和 B 各播一遍：<b>A 一拍光晕 + ✓（推荐）</b> · B Apple 式转一圈 + 火花。'],
-  ['2 · 大反馈要不要能关？', 'Sunsama 和 Todoist 都能关，HIG 也说 make motion optional。A 很安静，可以只跟着 reduced motion 走；选 B 的话要在 Settings 里加一个开关。'],
-  ['3 · 「今日既定任务」的分母', '大反馈绑在「今天排的全部做完」上，分母是什么还没定（Ideas 2）。分母定了，这里才算真正定稿。'],
-  ['4 · 做完以后又拉了新卡、或做完计划外的事', '两种画法：拉了新卡，圈重新留一段灰、绿框暂时消失，再做完时只恢复绿框、不再来一次大反馈（推荐）；或者像 Apple，计划外做完的接在第二圈上，环不再打开。和 Ideas 2 的「今天的总数」一起定。'],
-];
+  ['Settings 里的开关', 'B 是一个会动的大反馈：Sunsama 和 Todoist 都能关，HIG 也说 make motion optional。要加一个开关（Ideas 5）。'],
+  ['「今天排的全部」是多少', '大反馈绑在今天的总数上，总数的定义见 Ideas 2。'],
+  ['做完以后又拉了新卡', '圈重新留一段灰、绿框暂时消失，再做完时只恢复绿框、不再来一次大反馈；还是像 Apple 绕第二圈（Ideas 6）。'],
+]
 document.getElementById('cel-questions').innerHTML = CEL_QUESTIONS.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
+
+/* ── D · Done: where finished work lives once the Done column is gone ── */
+const DONE_DAYS = [
+  [{kind: 'habit', title: 'Workout'}, {kind: 'habit', title: 'LeetCode'}, {kind: 'oneoff', title: 'Book dentist'}],
+  [{kind: 'habit', title: 'Workout'}, {kind: 'habit', title: 'Read'}],
+  [{kind: 'habit', title: 'LeetCode'}, {kind: 'project', name: 'Biomedical course', title: 'Lecture 3 — Membranes'}],
+  [{kind: 'habit', title: 'LeetCode'}],
+];
+/* a long Thursday: nine done of ten, to see what a long list does to the board */
+const DONE_LONG_THU = [
+  {kind: 'habit', title: 'Workout'}, {kind: 'habit', title: 'LeetCode'}, {kind: 'habit', title: 'Read'},
+  {kind: 'project', name: 'Biomedical course', title: 'Lecture 4 — Cell signaling'}, {kind: 'project', name: 'Biomedical course', title: 'Lecture 5 — Immunity basics'}, {kind: 'project', name: 'Protein 3D viewer', title: 'Render it with Mol*'},
+  {kind: 'oneoff', title: 'File tax report'}, {kind: 'oneoff', title: 'Renew passport'}, {kind: 'oneoff', title: 'Call the landlord'},
+];
+const DONE_INLINE_ROWS = 3;
+const DONE_TODO = FIX.todo.slice(1, 4);
+const dn = {long: false, open: {}, expanded: {}};
+const doneDays = () => {
+  const days = clone(PZ_SEED);
+  if (dn.long) days[FIX.todayIndex] = {habit: [3, 3], project: [3, 4], oneoff: [3, 3]};
+  return days;
+};
+const doneItems = index => (index === FIX.todayIndex && dn.long ? DONE_LONG_THU : DONE_DAYS[index] || []);
+const doneRowHtml = model => `<div class="lrow" data-kind="${model.kind}"><span class="ic">${icon(model.kind, 'xs')}</span><span class="t">${model.title}${model.name ? `<small>${model.name}</small>` : ''}</span><button class="undo-btn" title="Put it back">${icon('undo', 'xs')}</button></div>`;
+const doneHead = index => {
+  const [done, planned] = dayTotals(doneDays()[index]);
+  return `<div class="dp-head"><b>${index === FIX.todayIndex ? 'Today' : FIX.week.dayNames[index]}</b><span>${done} of ${planned} done</span><button class="x ghost-btn" data-done-close style="border:0;padding:4px" title="Close">${icon('x', 'xs')}</button></div>`;
+};
+function doneList(index, {cap = 0, key = ''} = {}) {
+  const items = doneItems(index);
+  if (!items.length) return '<div class="lrow"><span class="empty">Nothing yet</span></div>';
+  const ordered = [...items].sort((left, right) => PZ_KINDS.indexOf(left.kind) - PZ_KINDS.indexOf(right.kind));
+  const shown = cap && !dn.expanded[key] ? ordered.slice(0, cap) : ordered;
+  const more = cap && !dn.expanded[key] && items.length > cap ? `<button class="show-all" data-done-more="${key}">Show all ${items.length}</button>` : '';
+  return shown.map(doneRowHtml).join('') + more;
+}
+/* a ring row whose past and present days can be tapped */
+function tapRow(mode, width, selected) {
+  const days = doneDays();
+  const [first, last] = visibleDays(mode, width);
+  let html = '';
+  for (let index = first; index <= last; index++) {
+    const tappable = index <= FIX.todayIndex;
+    html += dayCell(days, index).replace('<div class="pz-day', `<div ${tappable ? `data-done-day="${index}"` : ''} class="pz-day ${tappable ? 'tap' : ''} ${selected === index ? 'sel' : ''}`);
+  }
+  return `<div class="pz-row">${html}</div>`;
+}
+const todoCards = () => `<div class="list">${mrowHead('Todo', DONE_TODO.length, 'var(--in)')}${DONE_TODO.map((model, idx) => afterCard(model, {idx}).replace('data-act="done"', 'disabled')).join('')}</div>`;
+const deskTodo = () => `<div class="done-desk-todo">${column('Todo', DONE_TODO.length, DONE_TODO.map((model, idx) => afterCard(model, {mode: 'desk', idx}).replace('data-act="done"', 'disabled')).join(''))}</div>`;
+
+const DONE_OPTIONS = [
+  {
+    key: 'sheet', letter: '1', title: '白天点某天 → 浮层；一长串留给 Close the day', tag: '推荐',
+    render(mode, width) {
+      const sel = dn.open[`${this.key}-${mode}`];
+      const overlay = sel == null ? '' : mode === 'desk'
+        ? `<div class="done-pop" style="--col:${sel}">${doneHead(sel)}<div class="dp-body">${doneList(sel)}</div></div>`
+        : `<div class="scrim" data-done-close></div><div class="sheet done-sheet"><div class="grab"></div>${doneHead(sel)}<div class="dp-body">${doneList(sel)}</div></div>`;
+      return mode === 'desk' ? `${appHead()}<div class="done-anchor">${tapRow(mode, width, sel)}${overlay}</div>${deskTodo()}` : `${tapRow(mode, width, sel)}${todoCards()}${overlay}`;
+    },
+    why: `<b>做法</b>：今天和过去的每一格都可以点。桌面上，点了在那格下方弹出一个 popover（320 px 宽，超过 8 行就在里面滚动）；手机上，从底部升起一张 sheet，最高到屏幕的 70%。清单按做完的顺序排，每行右端 ↩ 可以放回 Todo；点外面或 ✕ 关掉。<br><b>好在哪</b>：不管那天做了多少，Todo 都一动不动（owner 的担心）；Todoist、Reminders、Sunsama 都是「平时收起，点一下才看」；snackbar 过了还能 ↩（Todoist 的历史是只读的，用户一直在抱怨）。干活时眼前是还剩的，做完的点开才看（Koo & Fishbach）。<br><b>晚上</b>：Close the day 把今天做完的全部一行行列出来（右边方向 3 的那一屏，daily rhythm 的 mockup 也是这么画的），一周的在 wrap-up 里——一长串 done 的成就感在一天结束时出现。<br><b>差在哪</b>：白天要点一下才看得到；sheet 在一天做得很多时会变长，NN/g 说长内容不适合 sheet——所以白天的只放一天，长长的回顾交给 Close the day。`,
+    extra() { return DONE_OPTIONS.find(item => item.key === 'rhythm').extra(); },
+  },
+  {
+    key: 'inline', letter: '2', title: '点某天 → 原地展开，限 3 行', tag: '备选',
+    render(mode, width) {
+      const key = `${this.key}-${mode}`;
+      const sel = dn.open[key];
+      const panel = sel == null ? '' : `<div class="daypanel">${doneHead(sel)}${doneList(sel, {cap: DONE_INLINE_ROWS, key})}</div>`;
+      return mode === 'desk' ? `${appHead()}${tapRow(mode, width, sel)}${panel}${deskTodo()}` : `${tapRow(mode, width, sel)}${panel}${todoCards()}`;
+    },
+    why: `<b>做法</b>：第 1 轮 Done 方案 B 的样子：点某天，在圈下面展开那天的清单，把 Todo 往下推；最多 3 行，再多就是 <b>Show all 9</b>，点了才全部展开。<br><b>好在哪</b>：清单就在圈下面，和那一天的关系最直接；不遮东西。<br><b>差在哪</b>：展开时 Todo 一定会被往下推，Show all 以后可能推出屏幕（切到 Long day 看）——这正是 Done 列被排除的原因（Jira 社区的抱怨）；手机上本来就窄，3 行也要占掉大约 130 px。`,
+  },
+  {
+    key: 'rhythm', letter: '3', title: 'Board 上不放清单，一长串 done 交给 Close the day', tag: '备选',
+    render(mode, width) {
+      return mode === 'desk' ? `${appHead()}${tapRow(mode, width)}${deskTodo()}` : `${tapRow(mode, width)}${todoCards()}`;
+    },
+    extra() {
+      const items = doneItems(FIX.todayIndex);
+      return `<div class="pz-phonewrap"><div class="pz-cap">Daily rhythm · Close the day · 晚上</div><div class="pz-phone close-day" style="width:359px">${statusBar('21:00')}<div class="cd-head"><span class="k">Close the day</span><b>Thu Nov 5 · ${items.length} done</b></div><div class="cd-list">${items.map(model => `<div class="cd-row" data-kind="${model.kind}">${icon('check', 'xs')}<span>${model.title}</span></div>`).join('')}</div><div class="cd-left"><span class="k">1 left</span><div class="cd-row todo" data-kind="project">${icon('project', 'xs')}<span>Add residue picking</span><span class="chip">→ Tomorrow</span></div></div><button class="cd-btn">Close the day</button></div></div>`;
+    },
+    why: `<b>做法</b>：Board 白天只有圈，圈不能点（悬停只看到 <b>Wed · 2 of 3 done</b>）。今天做完的全部，在晚上的 Close the day 里一行一行列出来（daily rhythm 的 mockup 已经这么画了：做完的缩成 ✓ 行，下面是还剩的和「→ Tomorrow」）；一周的在周末的 wrap-up 里。<br><b>好在哪</b>：白天的 board 最干净；一长串 done 出现在一天结束、回头看的时候，正好是最有成就感的那个时刻。<br><b>差在哪</b>：白天想看「今天做了什么」只能等到晚上；snackbar 过了想撤回一个误点的 ✓，白天没有入口（研究里的子 agent 和 Todoist 的反例都指向这一点）；没有打开 Close the day 的那天，就看不到这串清单。方向 1 = 方向 3 + 白天的浮层。`,
+  },
+];
+
+function renderDone() {
+  document.getElementById('done-options').innerHTML = DONE_OPTIONS.map(option => `<div class="pz-opt ${option.tag === '推荐' ? 'rec' : ''}" data-done-opt="${option.key}">
+    <div class="opt-head"><span class="letter">${option.letter}</span><h3>${option.title}</h3><span class="tag ${option.tag === '推荐' ? '' : 'muted'}">${option.tag}</span></div>
+    <div class="pz-pair"><div><div class="pz-cap">Desktop · 点今天或之前的某一格</div><div class="pz-desk done-desk" data-mode="desk">${option.render('desk', 0)}</div><p class="why" style="margin-top:12px">${option.why}</p></div>
+    <div><div class="pz-phonewrap"><div class="pz-cap">Phone · 375 px</div><div class="pz-phone done-phone" data-mode="phone" style="width:359px">${statusBar('12:40')}${appHead()}${option.render('phone', 375)}</div></div>${option.extra ? option.extra() : ''}</div></div></div>`).join('');
+  /* the popover hangs under the day it belongs to */
+  document.querySelectorAll('.done-pop').forEach(pop => {
+    const cell = pop.parentElement.querySelector('.pz-day.sel');
+    if (cell) pop.style.left = `${Math.min(cell.offsetLeft, pop.parentElement.clientWidth - pop.offsetWidth - 8)}px`;
+  });
+  document.querySelectorAll('[data-done-long]').forEach(button => button.classList.toggle('on', (button.dataset.doneLong === 'true') === dn.long));
+}
+document.addEventListener('click', event => {
+  const longBtn = event.target.closest('[data-done-long]');
+  if (longBtn) { dn.long = longBtn.dataset.doneLong === 'true'; dn.expanded = {}; renderDone(); return; }
+  const optEl = event.target.closest('[data-done-opt]');
+  if (!optEl) return;
+  const option = DONE_OPTIONS.find(item => item.key === optEl.dataset.doneOpt);
+  const mode = event.target.closest('[data-mode]')?.dataset.mode;
+  const key = `${option.key}-${mode}`;
+  const more = event.target.closest('[data-done-more]');
+  if (more) { dn.expanded[more.dataset.doneMore] = true; renderDone(); return; }
+  if (event.target.closest('[data-done-close]')) { delete dn.open[key]; renderDone(); return; }
+  const day = event.target.closest('[data-done-day]');
+  if (day && option.key !== 'rhythm') {
+    const index = Number(day.dataset.doneDay);
+    dn.open[key] = dn.open[key] === index ? undefined : index;
+    dn.expanded[key] = false;
+    renderDone();
+  }
+});
+renderDone();
+const DONE_PATTERNS = [
+  ['没有人把整串 done 默认留在工作面上', 'Todoist · Apple Reminders · Sunsama · Things', 'Todoist 的「Completed tasks」是一个显示开关，平时藏着，另有一个跨项目的 Activity log（<a href="https://todoist.com/help/articles/view-completed-tasks-in-todoist-J19h2s">Todoist</a>）；Reminders 做完的藏起来，「Show Completed」才出现（<a href="https://www.macrumors.com/how-to/see-completed-reminders-ios/">MacRumors</a>）；Sunsama 可以设「Hide completed tasks」，底部留一个「N tasks completed」按钮（<a href="https://roadmap.sunsama.com/improvements/p/setting-to-hide-completed-tasks">Sunsama</a>）；Things 有「Move completed to Logbook」（<a href="https://kapeli.com/cheat_sheets/Things.docset/Contents/Resources/Documents/index">cheat sheet</a>）。', '→ 平时收起来，点一下才看：方向 1。'],
+  ['Done 列会把 board 塞满', 'Jira 社区', '用户抱怨 board「full of done tickets」，只能设「completed issues 在 board 上留多久」（<a href="https://community.atlassian.com/t5/New-to-Jira-questions/What-can-i-do-with-done-ticket-in-kanban-board/qaq-p/2575419">Atlassian Community</a>，只看到帖子标题）。', '→ 这就是 A 被排除的原因，也是方向 2（原地展开）的风险。'],
+  ['每天收尾时回顾做完的、安排没做完的', 'Sunsama daily shutdown', '晚上的 shutdown 回顾今天做了什么、没做什么，没做完的滚到明天（<a href="https://help.sunsama.com/docs/evening-daily-planning">Sunsama help</a>，搜索摘要）；第三方评测说里面有一大列做完的任务（未核实）。', '→ 一长串 done 放在 Close the day。'],
+  ['小进展是好日子里最常见的事', 'Amabile & Kramer · progress principle', '238 人、约 12,000 篇日记：最好的工作日里，最常见的事件就是有进展，哪怕很小（<a href="https://www.mindtools.com/a2s3f5g/the-progress-principle/">二手摘要</a>，HBR 原页打不开）。', '→ 要让人看到做完了什么；没说在哪里看。'],
+  ['记下来的进度比只看着有用', 'Harkin et al. 2016', '138 项研究的 meta-analysis：监控进度提高目标达成（d = 0.40），实际记录下来或公开时效果更大（<a href="https://eprints.whiterose.ac.uk/91437/">Psych Bulletin</a>）。', '→ 圈是监控；一行行的 done 清单是「记录」。'],
+  ['收尾时反思、并安排没做完的', 'Di Stefano et al. · Masicampo & Baumeister 2011', '写下学到了什么，比多做同样的工作更有效（<a href="https://papers.ssrn.com/abstract=2414478">SSRN</a>，细节未核实）；给没做完的目标定一个具体计划，能消除它反复冒出来的干扰（<a href="https://pubmed.ncbi.nlm.nih.gov/21688924/">JPSP 2011</a>）。', '→ Close the day 不只庆祝，还要把剩下的安排到明天（daily rhythm 的 mockup 已有「→ Tomorrow」）。'],
+  ['干活时看「还剩」，收尾时看「做了」', 'Koo & Fishbach 2008 · Fishbach & Dhar 2005', '承诺已经确定的时候，看还剩多少比看已经做了多少更能推动人（<a href="https://bohrium.dp.tech/paper/arxiv/812065010711789569">摘要</a>）；只盯着进度会让人觉得可以松一下（<a href="https://econpapers.repec.org/RePEc:oup:jconrs:v:32:y:2005:i:3:p:370-377">JCR 2005</a>）。', '→ 白天 board 上是 Todo（还剩），done 清单放到点开和晚上。'],
+  ['Bottom sheet 适合短的、跟当前有关的内容', 'NN/g', '长的、要花时间看的内容不要放 sheet；要有 Close 按钮、支持返回、不要叠 sheet（<a href="https://www.nngroup.com/articles/bottom-sheet/">NN/g</a>）；手机上的 accordion 省地方，但会让人迷失、要多滚（<a href="https://www.nngroup.com/videos/accordions-on-mobile/">NN/g</a>）。', '→ 白天的 sheet 只放一天的清单；长长的回顾放 Close the day 那一整屏。'],
+  ['做完的清单里要能撤回', 'Todoist 的反例', 'Todoist 只能在项目里撤回，Reporting / Activity 里的历史是只读的（<a href="https://todoist.com/help/articles/view-completed-tasks-in-todoist-J19h2s">Todoist</a>）。点一下 ✓ 就完成，误点一定会有。', '→ 浮层每一行都有 ↩；Close the day 里也要能改。'],
+];
+document.getElementById('done-patterns').innerHTML = DONE_PATTERNS.map(([title, who, body, fit]) => `<div class="pat"><h4>${title}</h4><div class="who">${who}</div>${body}<div class="fit">${fit}</div></div>`).join('');
+const DONE_QUESTIONS = [
+  ['1 · 做完的放在哪？', '<b>1 白天浮层 + 晚上 Close the day（推荐）</b> · 2 原地展开、限 3 行 · 3 Board 上不放，只交给 Close the day。'],
+  ['2 · 和 Close the day 的关系', '1 和 3 都把一长串 done 放在晚上的 Close the day（daily rhythm 的 mockup 已经这么画）。区别只在白天：board 上要不要也能看到、能撤回。'],
+  ['3 · 清单怎么排', '这里按 kind 排（habit → step → one-off），和圈的颜色顺序一致；也可以按做完的时间排。'],
+  ['4 · Close the day 要不要加一句反思', 'Di Stefano 的研究支持收尾时写下来；但 daily rhythm 的 mockup 刻意没有 journal（不想多一步）。这属于 daily rhythm 那个 mockup，记在 Ideas 7。'],
+]
+document.getElementById('done-questions').innerHTML = DONE_QUESTIONS.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 
 /* ── I · Ideas: changes this design surfaced, to land elsewhere or later ── */
 const IDEAS = [
@@ -1538,7 +1709,10 @@ const IDEAS = [
     </ul>
     <p><b>我的倾向</b>：目标是 <b>e</b>（「既定」= 自己早上定的），过去的天也用同一个定义回看；在 daily rhythm 落地前用 <b>c</b> 做 fallback，因为它不惩罚拉卡、不把昨天的欠账算进来。<b>还要一起定</b>：做完计划外的事，圈是满了就停，还是像 Apple 一样绕第二圈？</p>`],
   ['3 · 产品里要不要图例', '未定', `<p>颜色和卡片左边框同一套，所以 Progress 没画图例；具体数字在 hover（桌面）和点开那天的清单里。要的话，桌面日条右端可以放三个小色块。整合 Done 去哪的时候一起看。</p>`],
-  ['4 · 圈中心的 ✓ 会不会像按钮', '未定', `<p>✓ 是借鉴 Google Fit 达标时换形状：不只靠颜色说「做完了」。Principle 3 允许文字旁的 ✓；圈里的 ✓ 不能点。如果整合时日格变成可点（Done 去哪的 B），它就真的是控件了，到时候一起定。</p>`],
+  ['4 · 圈中心的 ✓ 会不会像按钮', '未定', `<p>✓ 是借鉴 Google Fit 达标时换形状：不只靠颜色说「做完了」。Principle 3 允许文字旁的 ✓；圈里的 ✓ 不能点。如果整合时日格变成可点（Done 去哪的 B），它就真的是控件了，到时候一起定。</p>`],,
+  ['5 · Celebration 的开关', '要加', `<p>定稿的大反馈会转、会迸火花。Sunsama（Settings › Display）和 Todoist（Turn goal celebrations on or off）都能关，HIG：Make motion optional。Reduced motion 下只留颜色、✓ 和文字。开关放在 Settings 的哪里，和 Settings 的改版一起定。</p>`],
+  ['6 · 做完以后又拉了新卡、或者做完计划外的事', '未定', `<p>两种做法：</p><ul><li>拉了新卡，圈重新留出一段灰，绿框暂时消失；再做完时只恢复绿框，不再来一次大反馈（推荐：大反馈一天只有一次，不会被预期掉）。</li><li>像 Apple 一样，计划外做完的接在第二圈上，圈不再打开。</li></ul><p>和 Ideas 2 的「今天的总数」一起定。</p>`],
+  ['7 · Close the day 要列出今天做完的全部', '交给 daily rhythm', `<p>Done 的决定依赖它：白天的 board 只在点开时看到一天的清单，一长串 done 的成就感放在晚上的 Close the day。daily rhythm 的 mockup（demo 分支）已经画了「做完的缩成 ✓ 行 + 还剩的 → Tomorrow」；它定稿时要保证：全部列出（不截断）、每行能改回没做完（Sunsama 的 shutdown 也能改）、没做完的有具体安排（Masicampo & Baumeister 2011）。要不要加一句反思（Di Stefano），由那个 mockup 定。</p>`]
 ]
 ;
 document.getElementById('ideas').innerHTML = IDEAS.map(([title, status, body]) => `<div class="idea"><div class="idea-head"><h4>${title}</h4><span class="tag muted">${status}</span></div>${body}</div>`).join('');
