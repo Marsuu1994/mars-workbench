@@ -602,13 +602,25 @@
   .arm-btn::after { content: ''; position: absolute; inset: -6px -4px; }
   .arm-btn .icon { stroke-width: 3; }
   .armed-reveal { border-color: color-mix(in oklab, var(--su) 70%, transparent); border-left-color: var(--k); box-shadow: inset 0 0 18px color-mix(in oklab, var(--su) 12%, transparent), 0 0 14px color-mix(in oklab, var(--su) 14%, transparent); }
+  /* T · decided: a confirm frame, and the corner turns into ✓ Complete; the card never changes size */
+  .arm-card.armed { border-color: color-mix(in oklab, var(--su) 70%, transparent); border-left-color: var(--k); box-shadow: inset 0 0 18px color-mix(in oklab, var(--su) 12%, transparent), 0 0 14px color-mix(in oklab, var(--su) 14%, transparent); }
+  .arm-go { margin-left: auto; position: relative; display: inline-flex; align-items: center; gap: 8px; height: 22px; padding: 0; border: 0; background: transparent; font: inherit; cursor: pointer; }
+  .arm-go::after { content: ''; position: absolute; inset: -11px -8px; }
+  .arm-go .arm-mark { transform-origin: center; transition: transform .18s var(--ease), background .18s, border-color .18s, color .18s, box-shadow .18s; }
+  .armed .arm-go .arm-mark { transform: scale(1.45); border-color: var(--su); background: var(--su); color: var(--suc); box-shadow: 0 0 10px color-mix(in oklab, var(--su) 40%, transparent); }
+  .armed .arm-go .arm-mark .icon { stroke-width: 3; }
+  .armed .arm-go .arm-word { margin-right: 4px; font-size: 12px; }
+  .tap-states { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-start; }
+  .tap-states figure { display: flex; flex-direction: column; gap: 6px; }
+  .tap-states figcaption { font-family: 'Geist Mono', monospace; font-size: 10px; color: var(--ink-45); }
+  @media (prefers-reduced-motion: reduce) { .arm-go .arm-mark { transition: none; } }
 </style>
 </head>
 <body>
 
 <header class="topbar">
   <div>
-    <div class="eyebrow">Board · Phase 2 · design PR · 第 1 轮 2026-11-06 · 第 2 轮 2026-11-08 起一个模块一个模块定：P · Progress、C · Celebration、D · Done 已定；日格按钮（在 D 里）待 owner 看；T · Tap twice 进行中；想法记在 I · Ideas</div>
+    <div class="eyebrow">Board · Phase 2 · design PR · 第 1 轮 2026-11-06 · 第 2 轮 2026-11-08 起一个模块一个模块定：P · Progress、C · Celebration、D · Done、T · Tap twice 已定；日格按钮（在 D 里）待 owner 看；想法记在 I · Ideas</div>
     <h1>Board：点一下 ✓ 就完成</h1>
     <p>有 active plan 的白天，默认屏就是 board。<b>已定</b>：手机上点卡片的 ✓ 就完成、卡片消失，不用拖；桌面点 ✓ 和拖拽都保留；顶部的 ProgressDashboard 换成 Today ring + 7 格日条（Mon–Sun，一格一天，做了几个 / 计划几个），去掉所有 points；卡片保留 dots / path，去掉 size chip；错过的 instance 是空心 dot，不做 streak。<b>要 owner 选</b>：完成时的 celebration（第 3 屏，可点）和完成的卡片去哪（第 4 屏）。Fixture：<b>W45 · Mon Nov 2 – Sun Nov 8 2026</b>，今天是 Thu Nov 5 中午，LeetCode #3 刚做完。</p>
   </div>
@@ -763,15 +775,15 @@
 
 <!-- ═════════ T · Tap twice (round 7) ═════════ -->
 <section class="screen on" data-screen="tap">
-  <div class="col-label"><b>T · Tap twice · 第 7 轮 · 2026-11-09</b> · 防误触：第一下选中，第二下完成；没有 undo snackbar<span class="line"></span></div>
+  <div class="col-label"><b>T · Tap twice · 定稿 · decided 2026-11-09</b> · 点卡面任何地方选中，只有点 ✓ Complete 才完成；没有 undo snackbar<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:14px">Owner 的意见：一下就完成很好，但 5 s 的 undo snackbar 烦人；在 Done 的清单里放撤回也不是好体验；误触一定要解决。思路是像 confirm button 那样「一下选中、两下完成」，但扩展到整张卡：手机上 tap 卡面任何地方（不是那个小圈），桌面可以统一。<br>
-  <b>四种做法共用的规则</b>：第一下选中这张卡（轻振动一下）；再点同一张就完成——卡片收起、今天的圈接上一段（Celebration 已定的小反馈）；点别的卡，选中就移过去；点空白处、点别的卡或按 Esc 取消——没有自动倒计时（HIG：不要做会自己消失的界面）。右下角的小圈不再是按钮，只是告诉你「这张能完成」。<b>不一样的只有「选中」时卡面的样子</b>：文字、效果、图案、组合。每种都可以直接点。</p>
+  <b>第 7 轮</b>画了四种「选中」的样子（文字 · 效果 · 图案 + 标签 · 揭出按钮，见 commit <code>450d6f9</code>）。owner 最喜欢 C 的图案，也喜欢 B 的边框，于是合在一起：<b>点卡面任何地方</b> → 选中：卡片出现确认边框（B），右下角的小圈变成实心的 ✓，旁边出现 <b>Complete</b>（C）；<b>只有点 ✓ Complete 才完成</b>，点卡片别的地方不会完成——眼睛和手指都被引到同一个地方，误触的风险最小。<b>卡片大小不变</b>：✓ 用 transform 放大，不占位置，也不浮起。点别的卡，选中移过去；点空白处或 Esc 取消；没有自动倒计时。✓ Complete 出现在原来小圈的位置，所以出现后 350 ms 内不接受点击，挡住在小圈上的连点。</p>
   <div id="tap-options"></div>
   <div class="col-label spaced"><b>桌面：统一，还是两套？</b><span class="line"></span></div>
   <div class="patterns" id="tap-desk"></div>
   <div class="col-label spaced"><b>Research</b> · 两步确认、选中的反馈、误触怎么防<span class="line"></span></div>
   <div class="patterns" id="tap-patterns"></div>
-  <div class="col-label spaced"><b>这一轮要 owner 拍板的</b><span class="line"></span></div>
+  <div class="col-label spaced"><b>定稿后还开着的</b><span class="line"></span></div>
   <ul class="openq" id="tap-questions"></ul>
 </section>
 
@@ -786,7 +798,7 @@
   <button data-screen-btn="progress">P · Progress ✓</button>
   <button data-screen-btn="celebration">C · Celebration ✓</button>
   <button data-screen-btn="done">D · Done ✓ · 日格按钮</button>
-  <button data-screen-btn="tap" class="on">T · Tap twice</button>
+  <button data-screen-btn="tap" class="on">T · Tap twice ✓</button>
   <button data-screen-btn="s1">1 · Desktop</button>
   <button data-screen-btn="s2">2 · Phone</button>
   <button data-screen-btn="s3">3 · Celebration (round 1)</button>
@@ -1751,46 +1763,32 @@ const DONE_QUESTIONS = [
 ];
 document.getElementById('done-questions').innerHTML = DONE_QUESTIONS.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 
-/* ── T · Tap twice: the first tap on a card arms it, the second completes it; no snackbar ── */
-/* a second tap on the same spot sooner than this is a reflex, not a decision */
+/* ── T · Tap twice (decided): a tap anywhere on a card selects it — a confirm frame, and its corner
+   turns into ✓ Complete; only that target completes. The card never changes size. No snackbar. ── */
+/* the target appears where the hint circle was: a second tap sooner than this is a reflex, not a decision */
 const ARM_DEBOUNCE_MS = 350;
-const ARM_VARIANTS = [
-  {key: 'text', letter: 'A', title: '文字：卡片底部滑出一行「Tap again to complete」', tag: '备选',
-   why: '<b>选中</b>：卡片底部滑出一条淡绿色的条，写着 <b>Tap again to complete</b>（桌面是 Click again）。<b>第二下</b>：点卡片任何地方都完成。<br><b>好在哪</b>：话说得最清楚，第一次用的人不用猜；文字 + 颜色，不只靠颜色（WCAG 1.4.1）。<br><b>差在哪</b>：卡片会变高、把下面的卡往下推一点；每次都要读同一句话，用久了就成了噪音；第二下和第一下点在同一个地方，手快的人会变成「点点」的反射，只能靠 350 ms 的防抖挡住。'},
-  {key: 'glow', letter: 'B', title: '效果：卡片亮起绿框和内光，轻轻浮起', tag: '备选',
-   why: '<b>选中</b>：卡片的边框变绿、里面发一层绿光、上浮 1 px——和 Done 里「选中的日格」是同一套语言。<b>第二下</b>：点卡片任何地方都完成。<br><b>好在哪</b>：最安静，卡片尺寸不变、不推东西；动画在手指的位置，最容易被注意到（NN/g change blindness）。<br><b>差在哪</b>：只有颜色和光——第一次看到的人不知道「亮了」是什么意思，也不符合「颜色不能是唯一线索」；同样有「点点」的反射问题。'},
-  {key: 'icon', letter: 'C', title: '图案 + 标签：右下的小圈变成实心 ✓，旁边写 Complete', tag: '备选',
-   why: '<b>选中</b>：右下角的小圈放大成一个实心的绿色 ✓，旁边出现 <b>Complete</b> 一词（NN/g：图标旁边要有文字）。<b>第二下</b>：点卡片任何地方都完成。<br><b>好在哪</b>：变化发生在原来那个小圈的位置，一眼看出「这张要完成了」；卡片尺寸不变；圈 → ✓ 正好是下一步的预告。<br><b>差在哪</b>：变化区域小，眼睛不在右下角时可能看不到；同样有「点点」的反射问题。'},
-  {key: 'reveal', letter: 'D', title: '揭出按钮：选中后卡片右侧滑出一个 ✓ Complete，第二下点它', tag: '推荐',
-   why: '<b>选中</b>：卡片亮起（和 B 一样），右下角的小圈展开成一个 44 px 高的 <b>✓ Complete</b> 按钮。<b>第二下</b>：要点这个按钮才完成；再点卡片别的地方不会完成。<br><b>好在哪</b>：第二下换了位置，手指的反射「点点」打不出完成——这是研究里唯一能挡住习惯性连点的做法（NN/g、Raskin：重复的确认会被习惯掉）；按钮上有字，读屏也能把它当成一个真正的按钮（选中 = toggle，Complete = button）。<br><b>差在哪</b>：和 owner 说的「再 tap 卡面就完成」不完全一样——第二下要点准一个按钮，多一点点精度；按钮在右下角，正好是右手拇指的位置。'},
-];
 const tp = {};
 const tapSeed = () => ({todo: clone(FIX.todo), days: clone(PZ_SEED), armed: null, armedAt: 0});
-const armCopy = mode => (mode === 'desk' ? 'Click again to complete' : 'Tap again to complete');
-function armCard(model, idx, variant, mode, armed) {
+function armCard(model, idx, mode, armed) {
   const {kind} = model;
   const head = kind === 'project' ? `<span class="name">${model.name}</span>` : `<span>${KIND_LABEL[kind]}</span><span class="ctx">${kind === 'oneoff' ? (model.quadrant || '') : ''}</span>`;
   const signal = kind === 'habit' ? dots(model) : kind === 'project' ? path({...model, cur: model.n}) : '';
-  const reveal = armed && variant === 'reveal';
-  const mark = reveal
-    ? `<button class="arm-btn" data-arm-complete aria-label="Complete ${model.title}">${icon('check', 'xs')}Complete</button>`
-    : `<span class="arm-mark" aria-hidden="true">${icon('check', 'xs')}</span>`;
-  const word = armed && variant === 'icon' ? '<span class="arm-word">Complete</span>' : '';
-  const text = armed && variant === 'text' ? `<div class="arm-text">${icon('check', 'xxs')}${armCopy(mode)}</div>` : '';
-  const label = armed ? `${model.title}, selected` : `Select ${model.title}`;
-  return `<div class="tc solid arm-card ${armed ? `armed armed-${variant}` : ''}" data-kind="${kind}" data-arm-idx="${idx}" role="button" tabindex="0" aria-pressed="${armed}" aria-label="${label}" ${mode === 'desk' ? 'data-drag' : ''}>
+  const mark = `<span class="arm-mark" aria-hidden="true">${icon('check', 'xs')}</span>`;
+  const corner = armed
+    ? `<button class="arm-go" data-arm-complete aria-label="Complete ${model.title}"><span class="arm-word">Complete</span>${mark}</button>`
+    : `<span class="arm-go">${mark}</span>`;
+  return `<div class="tc solid arm-card ${armed ? 'armed' : ''}" data-kind="${kind}" data-arm-idx="${idx}" role="button" tabindex="0" aria-pressed="${armed}" aria-label="${armed ? `${model.title}, selected` : `Select ${model.title}`}" ${mode === 'desk' ? 'data-drag' : ''}>
     <div class="tc-head">${icon(kind, 'xs')}${head}</div>
     <div class="tc-row"><h3 class="tc-title">${model.title}</h3></div>
     ${model.desc ? `<p class="tc-desc">${model.desc}</p>` : ''}
-    <div class="tc-foot">${signal}<span class="arm-right">${word}${mark}</span></div>
-    ${text}
+    <div class="tc-foot">${signal}${corner}</div>
   </div>`;
 }
 function renderTap(key, mode) {
   const state = tp[`${key}-${mode}`];
   const root = document.querySelector(`[data-tap="${key}"] [data-tap-mode="${mode}"]`);
   const before = arcsOf(root);
-  const cards = state.todo.length ? state.todo.map((model, idx) => armCard(model, idx, key, mode, state.armed === idx)).join('') : '<p class="empty" style="padding:12px;color:var(--ink-45);font-size:12.5px">All done — Reset to try again</p>';
+  const cards = state.todo.length ? state.todo.map((model, idx) => armCard(model, idx, mode, state.armed === idx)).join('') : '<p class="empty" style="padding:12px;color:var(--ink-45);font-size:12.5px">All done — Reset to try again</p>';
   const ringCell = `<div class="pz-row tap-ring">${dayCell(state.days, FIX.todayIndex)}</div>`;
   root.innerHTML = mode === 'desk'
     ? `${ringCell}<div class="done-desk-todo">${column('Todo', state.todo.length, cards)}</div>`
@@ -1803,8 +1801,7 @@ function disarm(key, mode) {
   state.armed = null;
   renderTap(key, mode);
 }
-/* first tap selects; the second completes — on the card itself (A–C, after the debounce) or on the revealed button (D) */
-function tapCard(key, mode, idx, onButton = false) {
+function tapCard(key, mode, idx, onTarget = false) {
   const state = tp[`${key}-${mode}`];
   if (state.armed !== idx) {
     state.armed = idx;
@@ -1812,9 +1809,8 @@ function tapCard(key, mode, idx, onButton = false) {
     renderTap(key, mode);
     return;
   }
-  if (key === 'reveal' && !onButton) return;
-  if (key !== 'reveal' && performance.now() - state.armedAt < ARM_DEBOUNCE_MS) return;
-  /* second tap: complete — the card leaves, today's ring grows */
+  if (!onTarget || performance.now() - state.armedAt < ARM_DEBOUNCE_MS) return;
+  /* the target: complete — the card leaves, today's ring grows */
   const root = document.querySelector(`[data-tap="${key}"] [data-tap-mode="${mode}"]`);
   root.querySelector(`[data-arm-idx="${idx}"]`).classList.add('leaving');
   navigator.vibrate?.(30);
@@ -1825,32 +1821,37 @@ function tapCard(key, mode, idx, onButton = false) {
     renderTap(key, mode);
   }, 240);
 }
-document.getElementById('tap-options').innerHTML = ARM_VARIANTS.map(variant => `<div class="pz-opt ${variant.tag === '推荐' ? 'rec' : ''}" data-tap="${variant.key}">
-  <div class="opt-head"><span class="letter">${variant.letter}</span><h3>${variant.title}</h3><span class="tag ${variant.tag === '推荐' ? '' : 'muted'}">${variant.tag}</span></div>
-  <div class="toolrow" style="margin-top:10px"><button class="ghost-btn" data-tap-reset="${variant.key}">Reset</button></div>
-  <div class="pz-pair"><div><div class="pz-cap">Desktop · 点卡片，再点一次</div><div class="pz-desk tap-desk" data-tap-mode="desk"></div><p class="why" style="margin-top:12px">${variant.why}</p></div>
-  <div><div class="pz-phonewrap"><div class="pz-cap">Phone · 375 px · tap 卡片，再 tap 一次</div><div class="pz-phone tap-phone" data-tap-mode="phone" style="width:359px"></div></div></div></div></div>`).join('');
-ARM_VARIANTS.forEach(variant => ['desk', 'phone'].forEach(mode => { tp[`${variant.key}-${mode}`] = tapSeed(); renderTap(variant.key, mode); }));
+/* the two states drawn still, so the owner can compare their height */
+function tapStates() {
+  const model = FIX.todo[0];
+  return `<div class="tap-states">${[['静止', false], ['选中', true]].map(([label, armed]) => `<figure><div style="width:320px">${armCard(model, 0, 'phone', armed).replace('data-arm-idx="0"', '')}</div><figcaption>${label}</figcaption></figure>`).join('')}</div>`;
+}
+document.getElementById('tap-options').innerHTML = `<div class="pz-opt rec" data-tap="final">
+  <div class="opt-head"><span class="letter">✓</span><h3>点卡面任何地方 → 选中（确认边框 + 右下角 ✓ Complete）→ 只有点 ✓ Complete 才完成</h3><span class="tag">定稿</span></div>
+  <div class="toolrow" style="margin-top:10px"><button class="ghost-btn" data-tap-reset="final">Reset</button></div>
+  <div class="pz-cap" style="margin-top:12px">两种状态 · 卡片高度一样</div>
+  ${tapStates()}
+  <div class="pz-pair" style="margin-top:14px"><div><div class="pz-cap">Desktop · 点卡片，再点 ✓ Complete</div><div class="pz-desk tap-desk" data-tap-mode="desk"></div></div>
+  <div><div class="pz-phonewrap"><div class="pz-cap">Phone · 375 px · tap 卡片，再 tap ✓ Complete</div><div class="pz-phone tap-phone" data-tap-mode="phone" style="width:359px"></div></div></div></div></div>`;
+['desk', 'phone'].forEach(mode => { tp[`final-${mode}`] = tapSeed(); renderTap('final', mode); });
 document.addEventListener('click', event => {
   const reset = event.target.closest('[data-tap-reset]');
-  if (reset) { ['desk', 'phone'].forEach(mode => { tp[`${reset.dataset.tapReset}-${mode}`] = tapSeed(); renderTap(reset.dataset.tapReset, mode); }); return; }
+  if (reset) { ['desk', 'phone'].forEach(mode => { tp[`final-${mode}`] = tapSeed(); renderTap('final', mode); }); return; }
   const modeEl = event.target.closest('[data-tap-mode]');
   if (!modeEl) return;
-  const key = modeEl.closest('[data-tap]').dataset.tap;
   const {tapMode: mode} = modeEl.dataset;
   const card = event.target.closest('[data-arm-idx]');
-  if (card) tapCard(key, mode, Number(card.dataset.armIdx), Boolean(event.target.closest('[data-arm-complete]')));
-  else disarm(key, mode);
+  if (card) tapCard('final', mode, Number(card.dataset.armIdx), Boolean(event.target.closest('[data-arm-complete]')));
+  else disarm('final', mode);
 });
 document.addEventListener('keydown', event => {
   const card = event.target.closest?.('[data-arm-idx]');
   if (!card) return;
-  const modeEl = card.closest('[data-tap-mode]');
-  const key = modeEl.closest('[data-tap]').dataset.tap;
-  if (event.key === 'Escape') { disarm(key, modeEl.dataset.tapMode); return; }
+  const {tapMode: mode} = card.closest('[data-tap-mode]').dataset;
+  if (event.key === 'Escape') { disarm('final', mode); return; }
   if (!(event.key === 'Enter' || event.key === ' ')) return;
   event.preventDefault();
-  tapCard(key, modeEl.dataset.tapMode, Number(card.dataset.armIdx), Boolean(event.target.closest('[data-arm-complete]')));
+  tapCard('final', mode, Number(card.dataset.armIdx), Boolean(event.target.closest('[data-arm-complete]')));
 });
 const TAP_DESK = [
   ['完成：手机和桌面统一', '推荐', '桌面也是「点一下选中、再点（或点 Complete）完成」。WCAG 2.5.7：拖拽能做的事，必须也能不拖拽做到——桌面本来就需要一条点击的路（<a href="https://www.w3.org/WAI/WCAG22/Understanding/dragging-movements.html">W3C</a>）。hello-pangea/dnd 在拖动距离不到门槛时「behaves just like a regular click」，所以点击和拖拽不会打架（<a href="https://github.com/hello-pangea/dnd/blob/main/docs/sensors/mouse.md">dnd docs</a>）。', '→ 一套完成的方式，两个宽度一样学。'],
@@ -1871,12 +1872,9 @@ const TAP_PATTERNS = [
 ];
 document.getElementById('tap-patterns').innerHTML = TAP_PATTERNS.map(([title, who, body, fit]) => `<div class="pat"><h4>${title}</h4><div class="who">${who}</div>${body}<div class="fit">${fit}</div></div>`).join('');
 const TAP_QUESTIONS = [
-  ['1 · 选中的样子选哪个？', 'A 文字 · B 效果 · C 图案 + 标签 · <b>D 揭出按钮（推荐，第二下换位置）</b>。也可以组合，比如 B 的光 + C 的 ✓。'],
-  ['2 · 第二下点哪里', 'owner 的原意是「再 tap 卡面」（A–C）；研究认为第二下换个位置（D）才挡得住习惯性的连点。A–C 用 350 ms 防抖兜底。'],
-  ['3 · 什么时候取消选中', '这里画的是：点空白处、点别的卡（选中移过去）、Esc。没有自动倒计时（HIG 不建议会自己消失的界面）。要不要滚动时也取消？'],
-  ['4 · 桌面', '完成统一走点击；拖拽保留，只管 Backlog → Todo（Done 列没了，拖拽不再用来完成）。还是完全拿掉桌面拖拽？'],
-  ['5 · 右下的小圈', '不再是按钮，只是「这张能完成」的提示（也是 C、D 变化的起点）。保留，还是去掉让卡面更干净？'],
-];
+  ['滚动时要不要取消选中', '这里画的是：点空白处、点别的卡（选中移过去）、Esc 才取消；没有自动倒计时。滚动时也取消，还是保持？'],
+  ['桌面的拖拽', '完成统一走点击；拖拽保留，只管 Backlog → Todo（Done 列没了，拖拽不再用来完成）。还是完全拿掉？（Ideas 9）'],
+]
 document.getElementById('tap-questions').innerHTML = TAP_QUESTIONS.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 
 /* ── I · Ideas: changes this design surfaced, to land elsewhere or later ── */
@@ -1902,7 +1900,8 @@ const IDEAS = [
   ['5 · Celebration 的开关', '要加', `<p>定稿的大反馈会转、会迸火花。Sunsama（Settings › Display）和 Todoist（Turn goal celebrations on or off）都能关，HIG：Make motion optional。Reduced motion 下只留颜色、✓ 和文字。开关放在 Settings 的哪里，和 Settings 的改版一起定。</p>`],
   ['6 · 做完以后又拉了新卡、或者做完计划外的事', '未定', `<p>两种做法：</p><ul><li>拉了新卡，圈重新留出一段灰，绿框暂时消失；再做完时只恢复绿框，不再来一次大反馈（推荐：大反馈一天只有一次，不会被预期掉）。</li><li>像 Apple 一样，计划外做完的接在第二圈上，圈不再打开。</li></ul><p>和 Ideas 2 的「今天的总数」一起定。</p>`],
   ['7 · Close the day 要列出今天做完的全部', '交给 daily rhythm', `<p>Board 的 Done 定了：一天的清单藏在那天的圈后面。Close the day 不在这个 mockup 里；daily rhythm 的 mockup（demo 分支）定稿时再看它要不要完整列出今天做完的、能不能改、没做完的怎么安排（Masicampo & Baumeister 2011），以及要不要一句反思（Di Stefano）。</p>`],
-  ['8 · 撤回：怎么说、放在哪', '以后研究', `<p>Done 的清单里先不放撤回按钮。现在能撤回的只有完成后 5 秒的 snackbar（Undo）。要一起想清楚的：</p><ul><li>叫什么：Undo · Put it back · Mark as not done · Move back to Todo——撤回之后它回到 Todo、圈退一格，说法要和这件事对得上。</li><li>放在哪：浮窗的行上（长按 / 右滑 / 菜单），还是只在 Close the day 里改。</li><li>研究里的线索：Todoist 只能在项目里撤回、历史是只读的，用户一直在抱怨；Sunsama 的 shutdown 可以改今天的记录。</li></ul>`]
+  ['8 · 撤回：怎么说、放在哪', '以后研究', `<p>Done 的清单里先不放撤回按钮。现在能撤回的只有完成后 5 秒的 snackbar（Undo）。要一起想清楚的：</p><ul><li>叫什么：Undo · Put it back · Mark as not done · Move back to Todo——撤回之后它回到 Todo、圈退一格，说法要和这件事对得上。</li><li>放在哪：浮窗的行上（长按 / 右滑 / 菜单），还是只在 Close the day 里改。</li><li>研究里的线索：Todoist 只能在项目里撤回、历史是只读的，用户一直在抱怨；Sunsama 的 shutdown 可以改今天的记录。</li></ul>`],
+  ['9 · 桌面要不要保留拖拽', '未定', `<p>完成已经统一成「点卡片 → 点 ✓ Complete」，手机和桌面一样（WCAG 2.5.7 本来就要求有不拖拽的路）。Done 列没了，拖拽只剩把 backlog 的卡拉进 Todo，不再用来完成，所以保留它不是「两套完成方式」。Linear、Trello 也都是拖拽 + 点击并存。owner 喜欢拖拽；拿掉的好处是只有一种交互、代码更少。</p>`]
 ]
 ;
 document.getElementById('ideas').innerHTML = IDEAS.map(([title, status, body]) => `<div class="idea"><div class="idea-head"><h4>${title}</h4><span class="tag muted">${status}</span></div>${body}</div>`).join('');
