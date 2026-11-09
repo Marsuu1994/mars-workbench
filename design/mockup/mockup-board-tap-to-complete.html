@@ -661,6 +661,22 @@
   .prio td { padding: 8px 10px; border-bottom: 1px solid color-mix(in oklab, var(--bc) 6%, transparent); color: var(--ink-80); vertical-align: top; }
   .prio td.r { font-family: 'Geist Mono', monospace; color: var(--p); font-weight: 700; }
   .prio b { color: var(--bc); }
+  /* round 13: how the backlog and Done collapse */
+  .col-grid .lay-rail, .col-grid .side-rail { align-self: stretch; height: auto; min-height: 260px; }
+  .col-grid .lay-rail { cursor: pointer; font: inherit; }
+  .col-grid .lay-rail:hover { border-color: color-mix(in oklab, var(--p) 45%, transparent); }
+  .col-panel .backlog-head { cursor: pointer; }
+  .col-panel .backlog-head:hover > span:last-child { opacity: 1 !important; color: var(--p); }
+  .fixed-backlog .col-panel .backlog-head { cursor: default; }
+  .fixed-backlog .col-panel .backlog-head > span:last-child { display: none; }
+  .todo-flow .column-body { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); align-items: start; }
+  .side-rail { display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 6px; border: 1px solid var(--card-border); border-radius: 12px; background: color-mix(in oklab, var(--b2) 30%, transparent); }
+  .rail-btn { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 10px 0 12px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: var(--ink-45); cursor: pointer; font: inherit; transition: background .15s, border-color .15s; }
+  .rail-btn .v { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 13px; font-weight: 600; color: var(--ink-65); }
+  .rail-btn:hover { background: color-mix(in oklab, var(--bc) 6%, transparent); }
+  .rail-btn.on { border-color: var(--p); color: var(--p); background: radial-gradient(ellipse 90% 80% at 50% 100%, color-mix(in oklab, var(--p) 22%, transparent), transparent 75%); box-shadow: inset 0 0 14px color-mix(in oklab, var(--p) 16%, transparent); }
+  .rail-btn.on .v { color: var(--p); }
+  .rail-sep { height: 1px; margin: 2px 6px; background: var(--card-border); }
 </style>
 </head>
 <body>
@@ -819,6 +835,10 @@
   <div class="col-label spaced"><b>第 11–12 轮 · 桌面怎么排</b> · 和上面的「现在」比较 · 每一种都只是把手机上已有的东西摊开 · 4 是按设计师朋友的反馈和竞品研究加的<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:12px">Done 不再是一整列以后，桌面的 Todo 是一大片，一天的卡片其实不多。约束来自 spike（一套 journey、两种呈现）：桌面多出来的地方，只能放手机上也有的东西的展开版，不放只有桌面才有的新内容。下面三种都满足这一条；日历视图（按 Mon–Sun 排卡）和「本周总览」面板不满足，没画。注意：上面「现在」的画法里 backlog 是打开的 300 px 侧栏，产品里它默认收起成 48 px 的窄条；2 把它固定展开，3 用产品的默认。</p>
   <div id="dlayouts"></div>
+
+  <div class="col-label spaced"><b>第 13 轮 · 4 里的 Backlog 能不能收、两个都收起来怎么办</b><span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:12px">上面的 4 把 backlog 画成一直开着、没有收起的按钮（表格里写了「可以收起」，但没画出来）。产品现在的 backlog 是能收的：默认收成 48 px 的窄条，点开是 300 px，刷新以后又回到收起，不记。所以只要 backlog 能收，就会有「Backlog 和 Done 都收起」的时候，下面是三种处理。每一种都可以用上面的按钮切四种状态，也可以直接点窄条、点列头的 ›。都收起时 Todo 占满整宽，卡片自动排成几列，这一点三种都一样。</p>
+  <div id="dcollapse"></div>
 
   <div class="col-label spaced"><b>Mobile</b> · 不变：点圈，那天的清单从底部升起<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:12px">点今天或之前的某一格，sheet 升起（最高 70%），Todo 一动不动；再点一次或点外面关上。</p>
@@ -1881,7 +1901,7 @@ const layTodayDays = () => { const days = doneDays(); days[FIX.todayIndex] = {ha
 /* the Done edge on desktop remembers whether it was left open */
 let layDoneOpen = false;
 const doneWeekCount = state => [0, 1, 2, 3].reduce((sum, index) => sum + dayTotals(state.days[index])[0], 0);
-const doneRail = state => `<button class="lay-rail lay-done-rail" data-lay-done title="Show what's done this week">${icon('chevLeft', 'sm')}${ring(state.days[FIX.todayIndex], 22)}<span class="lay-done-n">${doneWeekCount(state)}</span><span class="v">Done</span></button>`;
+const doneRail = (state, attr = 'data-lay-done') => `<button class="lay-rail lay-done-rail" ${attr} title="Show what's done this week">${icon('chevLeft', 'sm')}${ring(state.days[FIX.todayIndex], 22)}<span class="lay-done-n">${doneWeekCount(state)}</span><span class="v">Done</span></button>`;
 const PRIORITY_ROWS = [
   ['1', 'Todo', '圈下面，全宽', '第 1 列，最宽，左边', '展开'],
   ['2', '今天的圈', '最上面一条窄带，今天那格放大', '顶部横带，今天那格放大', '一直在'],
@@ -1954,10 +1974,65 @@ function renderLayouts() {
     ${layout.extra ? layout.extra() : ''}
     <p class="why" style="margin-top:12px">${layout.why}</p></div>`).join('');
 }
+/* ── Round 13: in layout 4, whether the backlog collapses too, and what two collapsed edges look like ── */
+const COLLAPSE_STATES = [['都展开', true, true], ['只开 Backlog', true, false], ['只开 Done', false, true], ['都收起', false, false]];
+const COLLAPSE_VARIANTS = [
+  {
+    key: 'rail', letter: '4a', title: '一条边栏放两个入口：收起的都进最右边那一条', tag: '推荐', start: [false, false],
+    why: `<b>做法</b>：Backlog 和 Done 收起来以后不各占一条，而是进同一条最右边的边栏：上面是 Backlog（图标 + 个数），下面是 Done（今天的小圈 + 本周的个数），从上到下 = 优先级。点边栏上的哪个，它就在 Todo 右边展开成一列，Backlog 总是挨着 Todo（方便往左拖），Done 在它后面；再点一次、或点列头的 ›，收回去。开着的那个在边栏上是「选中」的样子，和日格选中同一套：青色边框 + 里面从下往上发光。两个可以同时开。开还是收各自记住；第一次打开是 Backlog 开、Done 收，也就是上面 4 的样子。<br><b>好在哪</b>：都收起时右边只有一条边，不会出现两条一样的窄条；边栏的位置永远不变，东西在哪很好记；两个「次要的东西」收起来是同一种结构（Principle 2），以后再有次要的东西（比如 Close the day）也进这一条，不用再加一条。<br><b>差在哪</b>：Backlog 开着时，它的入口在最右边、内容在中间，隔了一段（列头也有 ›，所以收起不用回到边栏）；多了一个「边栏」的概念。`,
+  },
+  {
+    key: 'twin', letter: '4b', title: '各收各的：两条窄边并排', tag: '备选', start: [false, false],
+    why: `<b>做法</b>：两个各有自己的位置：Todo · Backlog · Done；收起的就在原位变成一条 56 px 的窄边。<br><b>好在哪</b>：最直接——在哪收，就在哪展开；入口和内容永远在同一个地方；没有新概念。<br><b>差在哪</b>：就是你担心的——两个都收起时，右边是两条一样的窄条并排，像两根柱子，只能靠竖排的字分清哪条是哪条；只开 Done 时，Backlog 的窄条夹在 Todo 和 Done 中间，把两大块隔开。`,
+  },
+  {
+    key: 'fixed', letter: '4c', title: 'Backlog 不能收，只有 Done 收', tag: '备选', start: [true, false], fixedBacklog: true,
+    why: `<b>做法</b>：Backlog 一直开着（300 px），只有 Done 能收。就是上面 4 现在画的样子。<br><b>好在哪</b>：最简单，永远只有一条窄边；规划时 backlog 永远在手边。<br><b>差在哪</b>：白天用不到 backlog 时它也占着 300 px，Todo 永远拿不到整宽；产品现在的 backlog 是能收的，这里等于去掉一个已有的功能；手机上 backlog 默认收着，两端不一样。`,
+  },
+];
+const collapseOpen = Object.fromEntries(COLLAPSE_VARIANTS.map(variant => [variant.key, {backlog: variant.start[0], done: variant.start[1]}]));
+const COLLAPSE_COLS = {todo: 'minmax(340px, 1fr)', backlog: '300px', done: 'minmax(260px, .9fr)', edge: '56px'};
+const collapseRailBacklog = () => `<button class="lay-rail" data-col-toggle="backlog" title="Show backlog">${icon('chevLeft', 'sm')}<span class="badge-count">8</span><span class="v">Backlog</span></button>`;
+const collapseDoneOpen = state => `<div class="lay-done-open">${layDonePane(state)}<button class="ghost-btn lay-done-close" data-col-toggle="done">${icon('right', 'xs')} Collapse</button></div>`;
+const sideRail = (state, open) => `<div class="side-rail">
+  <button class="rail-btn ${open.backlog ? 'on' : ''}" data-col-toggle="backlog" title="${open.backlog ? 'Hide' : 'Show'} backlog">${icon('inbox', 'sm')}<span class="badge-count">8</span><span class="v">Backlog</span></button>
+  <span class="rail-sep"></span>
+  <button class="rail-btn ${open.done ? 'on' : ''}" data-col-toggle="done" title="${open.done ? 'Hide' : 'Show'} what's done this week">${ring(state.days[FIX.todayIndex], 22)}<span class="lay-done-n">${doneWeekCount(state)}</span><span class="v">Done</span></button></div>`;
+function collapseDesk(variant, state) {
+  const open = collapseOpen[variant.key];
+  const todo = `<div class="lay-col">${column('Todo', FIX.todo.length, layCards(FIX.todo), {cls: 'todo-flow'})}</div>`;
+  const backlog = `<div class="col-panel">${backlogAfter()}</div>`;
+  let cols;
+  let body;
+  if (variant.key === 'rail') {
+    cols = ['todo', open.backlog && 'backlog', open.done && 'done', 'edge'].filter(Boolean);
+    body = `${todo}${open.backlog ? backlog : ''}${open.done ? collapseDoneOpen(state) : ''}${sideRail(state, open)}`;
+  } else {
+    cols = ['todo', open.backlog ? 'backlog' : 'edge', open.done ? 'done' : 'edge'];
+    body = `${todo}${open.backlog ? backlog : collapseRailBacklog()}${open.done ? collapseDoneOpen(state) : doneRail(state, 'data-col-toggle="done"')}`;
+  }
+  return `${appHead()}${layRingRow(state.days)}<div class="lay-grid col-grid ${variant.fixedBacklog ? 'fixed-backlog' : ''}" style="grid-template-columns:${cols.map(col => COLLAPSE_COLS[col]).join(' ')}">${body}</div>`;
+}
+function renderCollapse() {
+  const state = dpaneSeed();
+  document.getElementById('dcollapse').innerHTML = COLLAPSE_VARIANTS.map(variant => {
+    const open = collapseOpen[variant.key];
+    const states = COLLAPSE_STATES.filter(([, backlog]) => backlog || !variant.fixedBacklog);
+    const rec = variant.tag.startsWith('推荐');
+    return `<div class="pz-opt ${rec ? 'rec' : ''}" data-collapse="${variant.key}">
+    <div class="opt-head"><span class="letter">${variant.letter}</span><h3>${variant.title}</h3><span class="tag ${rec ? '' : 'muted'}">${variant.tag}</span></div>
+    <div class="pz-tools" style="margin-top:10px"><span class="seg">${states.map(([label, backlog, done]) => `<button data-col-set="${backlog ? 1 : 0}${done ? 1 : 0}" class="${open.backlog === backlog && open.done === done ? 'on' : ''}">${label}</button>`).join('')}</span></div>
+    <div class="pz-cap" style="margin-top:12px">Desktop · 1280 px</div>
+    <div class="pz-desk lay-desk">${collapseDesk(variant, state)}</div>
+    <p class="pz-cap" style="margin-top:10px">Phone · 不变：Backlog 是底部的 pill，Done 在圈后面</p>
+    <p class="why" style="margin-top:12px">${variant.why}</p></div>`;
+  }).join('');
+}
 function renderDone() {
   dp.desk = dpaneSeed();
   renderDpane();
   renderLayouts();
+  renderCollapse();
   renderDoneMobile();
   renderBtnVariants();
   document.querySelectorAll('[data-done-long]').forEach(button => button.classList.toggle('on', (button.dataset.doneLong === 'true') === dn.long));
@@ -1973,6 +2048,19 @@ document.addEventListener('click', event => {
   const longBtn = event.target.closest('[data-done-long]');
   if (longBtn) { dn.long = longBtn.dataset.doneLong === 'true'; dn.open = {}; renderDone(); return; }
   if (event.target.closest('[data-lay-done]')) { layDoneOpen = !layDoneOpen; renderLayouts(); return; }
+  const collapseEl = event.target.closest('[data-collapse]');
+  if (collapseEl) {
+    const {collapse: key} = collapseEl.dataset;
+    const open = collapseOpen[key];
+    const set = event.target.closest('[data-col-set]');
+    const toggle = event.target.closest('[data-col-toggle]');
+    if (set) { open.backlog = set.dataset.colSet[0] === '1'; open.done = set.dataset.colSet[1] === '1'; }
+    else if (toggle) open[toggle.dataset.colToggle] = !open[toggle.dataset.colToggle];
+    else if (event.target.closest('.backlog-head') && key !== 'fixed') open.backlog = false;
+    else return;
+    renderCollapse();
+    return;
+  }
   const pane = event.target.closest('#dpane');
   if (pane) {
     const toggle = event.target.closest('[data-dp-toggle]');
@@ -2023,6 +2111,7 @@ const DONE_PATTERNS = [
 document.getElementById('done-patterns').innerHTML = DONE_PATTERNS.map(([title, who, body, fit]) => `<div class="pat"><h4>${title}</h4><div class="who">${who}</div>${body}<div class="fit">${fit}</div></div>`).join('');
 const DONE_QUESTIONS = [
   ['1 · 桌面怎么排（第 11–12 轮）', '现在（Todo · Done pane · 打开的 backlog）· 1 Today / This week 两列 · 2 backlog 固定展开、等宽 · 3 收窄居中 · <b>4 按信息优先级（推荐）</b>：Todo 最宽在左、Backlog 第二、Done 收在最右边。1 可以叠在 4 上（Todo 那一列拆成 Today / This week），中期单独定。'],
+  ['1b · 4 里 Backlog 和 Done 怎么收（第 13 轮）', '<b>4a 一条边栏放两个入口（推荐）</b> · 4b 各收各的，两条窄边并排 · 4c Backlog 不能收。4a 第一次打开是 Backlog 开、Done 收，之后各自记住。'],
   ['2 · 日格按钮的 hover', '<b>1 底部亮起（推荐）</b> · 2 整格浮起。按下和选中两种一样。'],
   ['3 · 今天的框和选中的框', '今天那格平时的框调淡到 35%，选中时才是全亮的边框 + 内部发光。'],
   ['4 · 周后半段 done 太长', '之前的天已经默认折叠；如果周五周六觉得 pane 太长，再调呈现，不改 journey。'],
