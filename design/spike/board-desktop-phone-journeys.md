@@ -1,6 +1,6 @@
 # Spike: Board 在桌面和手机上，一套 journey 还是两套
 
-**Status: awaiting owner review** · 2026-11-09
+**Status: decided** · 2026-11-09（同日定；Q4–Q5 留给 native iOS 的 spike）
 
 > 语言约定：叙述用中文；产品名词、状态和代码标识保留英文（Todo / Done / backlog、`doneAt`、`BoardPage`、`useBreakpoint`），和代码、mockup、tracker 一一对应。
 
@@ -136,3 +136,15 @@ Owner 想要的差别只在**第三层**：同一份「这天做完了什么」�
 3. **Pane 放在哪**：Todo 和 backlog 之间（完成的卡往右「掉进」pane，推荐），还是最右边、backlog 之外？
 4. **Native iOS 什么时候开始**：现在只记下来（上面第 1–3 条留给 native 的 spike），还是现在就先做 API 层？推荐等 Phase 2 的 board 实现之后再开，因为 board 的 service 输出（`doneByDay`、今天的总数）要先定。
 5. **网页的手机布局在 native 之后的地位**：作为 fallback 维持、不再加新功能（推荐），还是继续和 native 同步？
+
+## Decision · 2026-11-09
+
+Owner（PR #115 第 10 轮，对话里）：「你把 done 那一节分成 desktop 和 mobile 两个部分，然后 mobile 部分就按现在的做法，desktop 按 spike 的来」。
+
+1. **A**：一套 journey，两种呈现。手机不变：点圈，那天的清单从 sheet 升起。桌面：D 定稿里的浮窗换成常驻的 Done pane。
+2. **Pane 放本周、按天分组**：今天在最上面展开，之前的天折叠；点某天的圈，那一组展开、高亮、滚到它（按推荐）。
+3. **Pane 在 Todo 和 backlog 之间**（按推荐）。
+4. 留给 native iOS 的 spike（tracker › Cross-cutting › Future）。
+5. 同上。
+
+画在 `mockup-board-tap-to-complete.html` 的 D · Done（修订 2026-11-09）：Desktop 和 Mobile 两节。

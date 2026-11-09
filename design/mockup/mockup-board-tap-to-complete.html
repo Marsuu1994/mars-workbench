@@ -614,13 +614,33 @@
   .tap-states figure { display: flex; flex-direction: column; gap: 6px; }
   .tap-states figcaption { font-family: 'Geist Mono', monospace; font-size: 10px; color: var(--ink-45); }
   @media (prefers-reduced-motion: reduce) { .arm-go .arm-mark { transition: none; } }
+  /* D · Done, desktop: Todo · Done pane · Backlog */
+  .dpane-desk { overflow-x: auto; }
+  .dpane-desk .btnrow .pz-row { border-bottom: 1px solid var(--card-border); }
+  .dpane-grid { display: grid; grid-template-columns: minmax(300px, 1.2fr) minmax(280px, 1fr) 300px; min-width: 900px; align-items: stretch; }
+  .dpane-todo { padding: 14px 7px 14px 14px; }
+  .dpane-todo .column-body { max-height: none; }
+  .dpane-done { margin: 14px 7px; border: 1px solid var(--card-border); border-radius: 12px; display: flex; flex-direction: column; min-height: 0; background: color-mix(in oklab, var(--b2) 10%, transparent); }
+  .dpane-done .column-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--card-border); border-left: 4px solid var(--su); border-radius: 12px 0 0 0; font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+  .dp-scroll { overflow-y: auto; max-height: 520px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .dp-group { border: 1px solid var(--card-border); border-radius: 10px; overflow: hidden; transition: border-color .15s, box-shadow .15s; }
+  .dp-group.sel { border-color: var(--p); box-shadow: inset 0 0 12px color-mix(in oklab, var(--p) 12%, transparent); }
+  .dp-ghead { width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 0; background: transparent; color: var(--ink-65); font-family: 'Geist Mono', monospace; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; text-align: left; }
+  .dp-ghead b { color: var(--bc); letter-spacing: .04em; }
+  .dp-ghead > span { flex: 1; }
+  .dp-ghead:hover { background: var(--ink-10); }
+  .dp-gbody { border-top: 1px solid var(--card-border); }
+  .done-row.fresh { animation: freshRow .9s var(--ease); }
+  @keyframes freshRow { from { background: color-mix(in oklab, var(--su) 22%, transparent); } }
+  .dpane-grid .backlog { width: auto; }
+  @media (prefers-reduced-motion: reduce) { .done-row.fresh { animation: none; } }
 </style>
 </head>
 <body>
 
 <header class="topbar">
   <div>
-    <div class="eyebrow">Board · Phase 2 · design PR · 第 1 轮 2026-11-06 · 第 2 轮 2026-11-08 起一个模块一个模块定：P · Progress、C · Celebration、D · Done、T · Tap twice 已定；日格按钮（在 D 里）待 owner 看；想法记在 I · Ideas</div>
+    <div class="eyebrow">Board · Phase 2 · design PR · 第 1 轮 2026-11-06 · 第 2 轮 2026-11-08 起一个模块一个模块定：P · Progress、C · Celebration、D · Done（桌面按 spike 修订）、T · Tap twice 已定；日格按钮（在 D 里）待 owner 看；想法记在 I · Ideas</div>
     <h1>Board：点一下 ✓ 就完成</h1>
     <p>有 active plan 的白天，默认屏就是 board。<b>已定</b>：手机上点卡片的 ✓ 就完成、卡片消失，不用拖；桌面点 ✓ 和拖拽都保留；顶部的 ProgressDashboard 换成 Today ring + 7 格日条（Mon–Sun，一格一天，做了几个 / 计划几个），去掉所有 points；卡片保留 dots / path，去掉 size chip；错过的 instance 是空心 dot，不做 streak。<b>要 owner 选</b>：完成时的 celebration（第 3 屏，可点）和完成的卡片去哪（第 4 屏）。Fixture：<b>W45 · Mon Nov 2 – Sun Nov 8 2026</b>，今天是 Thu Nov 5 中午，LeetCode #3 刚做完。</p>
   </div>
@@ -759,22 +779,31 @@
   <ul class="openq" id="cel-questions"></ul>
 </section>
 
-<!-- ═════════ D · Done (rounds 5–6) ═════════ -->
-<section class="screen" data-screen="done">
-  <div class="col-label"><b>D · Done · 定稿 · decided 2026-11-09</b> · 一天的清单藏在那天的圈后面：桌面浮窗，手机 overlay<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px">第 5 轮画了三个方向（浮层 · 原地展开 · 只交给 Close the day，见 commit <code>2211b07</code>），owner 选了<b>浮层</b>：点今天或之前的某一格，桌面在那格下方弹一个浮窗（320 px，超过 8 行在里面滚动），手机从底部升起一张 sheet（最高 70%）；Todo 一动不动，一长串 done 也都在里面。清单按 kind 排（habit → step → one-off），和圈的颜色顺序一致；<b>行里没有撤回按钮</b>——撤回怎么说、放在哪，以后单独研究（Ideas 8）。Close the day 不在这个 mockup 里。</p>
-  <div class="col-label"><b>第 6 轮 · 日格像按钮</b> · 进度条上的格子能点，就要看起来能点：hover 时底下亮起，按下去有按钮的回弹，选中加边框、里面亮起来<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px">两种 hover 的处理并排；按下和选中两种一样。每种先画一排静态的状态（静止 · hover · 按下 · 选中 · 今天 · 今天且选中 · 未来），下面是能用的桌面和手机：鼠标移上去、按住、点开、再点一次关上，键盘 Tab + Enter 也可以。切到 <b>Long day</b> 看长清单。</p>
+<!-- ═════════ D · Done (rounds 5–6, amended round 10) ═════════ -->
+<section class="screen on" data-screen="done">
+  <div class="col-label"><b>D · Done · 定稿 · decided 2026-11-09 · 修订 · amended 2026-11-09</b> · 一套 journey、两种呈现：桌面一直摊开，手机收在圈后面<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:14px">第 5 轮画了三个方向（见 commit <code>2211b07</code>），第 6 轮定了「一天的清单藏在那天的圈后面：桌面浮窗、手机 sheet」。之后 owner 发现桌面光秃秃的，而且喜欢在桌面上看到一长串 done；spike <code>design/spike/board-desktop-phone-journeys.md</code> 的结论是<b>一套 journey、两种呈现</b>：什么算完成、完成算哪天、点某天的圈 = 看那天的清单，两边一样；只有清单放在哪不一样。第 10 轮按它修订：<b>手机</b>不变，<b>桌面</b>的浮窗换成常驻的 Done pane。清单都只读，按 kind 排，没有撤回按钮（Ideas 8）。切到 <b>Long day</b> 看清单长了以后的样子。</p>
   <div class="pz-tools"><span class="seg"><button data-done-long="false" class="on">Normal day · Thu 1 done</button><button data-done-long="true">Long day · Thu 9 done</button></span></div>
+
+  <div class="col-label"><b>Desktop</b> · Todo · Done pane · Backlog<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:12px"><b>Done pane</b> 在 Todo 和 backlog 之间，就是「那天的清单」一直开着：本周按天分组，今天在最上面展开，之前的天折叠（点组头展开 / 收起）。点某天的圈：那一组展开、高亮，pane 滚到它。用定稿的 tap twice 完成一张卡（点卡片 → 点 ✓ Complete）：卡片离开 Todo，<b>掉进今天那一组</b>，新的一行亮一下，圈接上一段。完成的卡往右落进 pane，backlog 在最右边往左拉。</p>
+  <div class="pz-desk dpane-desk" id="dpane"></div>
+
+  <div class="col-label spaced"><b>Mobile</b> · 不变：点圈，那天的清单从底部升起<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:12px">点今天或之前的某一格，sheet 升起（最高 70%），Todo 一动不动；再点一次或点外面关上。</p>
+  <div id="done-mobile"></div>
+
+  <div class="col-label spaced"><b>第 6 轮 · 日格像按钮</b> · 待 owner 定：hover 时底下亮起，按下去有按钮的回弹，选中加边框、里面亮起来<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:14px">两种 hover 的处理并排；按下和选中两种一样。上面的桌面和手机暂时用方案 1。今天那格平时的框调淡到 35%，只有正在看的那一天是全亮的边框 + 内部发光。</p>
   <div id="done-options"></div>
   <div class="col-label spaced"><b>Research</b> · 做完的事放在哪 · 回顾做完的事有什么用<span class="line"></span></div>
   <div class="patterns" id="done-patterns"></div>
-  <div class="col-label spaced"><b>这一轮要 owner 拍板的</b><span class="line"></span></div>
+  <div class="col-label spaced"><b>还开着的</b><span class="line"></span></div>
   <ul class="openq" id="done-questions"></ul>
 </section>
 
 <!-- ═════════ T · Tap twice (round 7) ═════════ -->
-<section class="screen on" data-screen="tap">
+<section class="screen" data-screen="tap">
   <div class="col-label"><b>T · Tap twice · 定稿 · decided 2026-11-09（第 9 轮修订：再点一次取消）</b> · 点卡面任何地方选中，再点一次取消，只有点 ✓ Complete 才完成；没有 undo snackbar<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:14px">Owner 的意见：一下就完成很好，但 5 s 的 undo snackbar 烦人；在 Done 的清单里放撤回也不是好体验；误触一定要解决。思路是像 confirm button 那样「一下选中、两下完成」，但扩展到整张卡：手机上 tap 卡面任何地方（不是那个小圈），桌面可以统一。<br>
   <b>第 7 轮</b>画了四种「选中」的样子（文字 · 效果 · 图案 + 标签 · 揭出按钮，见 commit <code>450d6f9</code>）。owner 最喜欢 C 的图案，也喜欢 B 的边框，于是合在一起：<b>点卡面任何地方</b> → 选中：卡片出现确认边框（B），右下角的小圈变成实心的 ✓，旁边出现 <b>Complete</b>（C）；<b>只有点 ✓ Complete 才完成</b>；选中时再点卡片别的地方，取消选中、回到正常（第 9 轮）——眼睛和手指都被引到同一个地方，误触的风险最小。<b>卡片大小不变</b>：✓ 用 transform 放大，不占位置，也不浮起。点别的卡，选中移过去；再点同一张、点空白处或 Esc 取消；没有自动倒计时。✓ Complete 出现在原来小圈的位置，所以出现后 350 ms 内不接受点击，挡住在小圈上的连点。</p>
@@ -797,8 +826,8 @@
 <nav class="seg screen-nav" id="screens">
   <button data-screen-btn="progress">P · Progress ✓</button>
   <button data-screen-btn="celebration">C · Celebration ✓</button>
-  <button data-screen-btn="done">D · Done ✓ · 日格按钮</button>
-  <button data-screen-btn="tap" class="on">T · Tap twice ✓</button>
+  <button data-screen-btn="done" class="on">D · Done ✓ · 日格按钮</button>
+  <button data-screen-btn="tap">T · Tap twice ✓</button>
   <button data-screen-btn="s1">1 · Desktop</button>
   <button data-screen-btn="s2">2 · Phone</button>
   <button data-screen-btn="s3">3 · Celebration (round 1)</button>
@@ -1687,61 +1716,166 @@ function boardWithList(key, mode, width) {
   return `${tapRow(mode, width, sel)}${todoCards()}${sheet}`;
 }
 
+/* ── Desktop (amended 2026-11-09, spike board-desktop-phone-journeys, option A): the same day lists, pinned open
+   as a Done pane between Todo and the backlog — this week by day, today on top, earlier days folded. ── */
+const DPANE_DEBOUNCE_MS = 350;
+const dp = {};
+function dpaneSeed() {
+  return {
+    days: doneDays(),
+    lists: [0, 1, 2, 3].map(index => [...doneItems(index)]),
+    todo: clone(FIX.todo),
+    armed: null, armedAt: 0,
+    sel: FIX.todayIndex,
+    open: new Set([FIX.todayIndex]),
+    fresh: null,
+  };
+}
+function dpaneGroup(state, index) {
+  const day = state.days[index];
+  const [done, planned] = dayTotals(day);
+  const open = state.open.has(index);
+  const items = [...state.lists[index]].sort((left, right) => PZ_KINDS.indexOf(left.kind) - PZ_KINDS.indexOf(right.kind));
+  const rows = items.length
+    ? items.map(model => doneRowHtml(model).replace('class="lrow done-row"', `class="lrow done-row ${state.fresh === model ? 'fresh' : ''}"`)).join('')
+    : '<div class="lrow"><span class="empty">Nothing yet</span></div>';
+  return `<div class="dp-group ${open ? 'open' : ''} ${state.sel === index ? 'sel' : ''}" data-dp-group="${index}">
+    <button class="dp-ghead" data-dp-toggle="${index}" aria-expanded="${open}">${ring(day, 18)}<b>${index === FIX.todayIndex ? 'Today' : FIX.week.dayNames[index]}</b><span>${done} of ${planned} done</span>${icon(open ? 'chevUp' : 'chevDown', 'xs')}</button>
+    ${open ? `<div class="dp-gbody">${rows}</div>` : ''}
+  </div>`;
+}
+function renderDpane() {
+  const state = dp.desk;
+  const root = document.getElementById('dpane');
+  const before = arcsOf(root);
+  const row = (() => {
+    const [first, last] = visibleDays('desk');
+    let html = '';
+    for (let index = first; index <= last; index++) html += tapCell(state.days, index, state.sel === index ? 'sel' : '');
+    return `<div class="pz-row">${html}</div>`;
+  })();
+  const cards = state.todo.length ? state.todo.map((model, idx) => armCard(model, idx, 'desk', state.armed === idx)).join('') : '<p class="empty" style="padding:12px;color:var(--ink-45);font-size:12.5px">Today\'s plan is done</p>';
+  const groups = [];
+  for (let index = FIX.todayIndex; index >= 0; index--) groups.push(dpaneGroup(state, index));
+  root.innerHTML = `${appHead()}<div class="btnrow btn-glow">${row}</div>
+    <div class="dpane-grid">
+      <div class="dpane-todo">${column('Todo', state.todo.length, cards)}</div>
+      <div class="dpane-done"><div class="column-head" style="color:var(--su)"><span style="color:var(--bc)">Done</span><span class="count-ghost">This week</span></div><div class="dp-scroll">${groups.join('')}</div></div>
+      ${backlogAfter()}
+    </div>`;
+  animateArcs(root, before);
+  root.querySelector('.dp-group.sel')?.scrollIntoView({block: 'nearest'});
+}
+function dpaneSelectDay(index) {
+  const state = dp.desk;
+  state.sel = index;
+  state.open.add(index);
+  renderDpane();
+}
+function dpaneTapCard(idx, onTarget) {
+  const state = dp.desk;
+  if (state.armed !== idx) { state.armed = idx; state.armedAt = performance.now(); renderDpane(); return; }
+  if (!onTarget) { state.armed = null; renderDpane(); return; }
+  if (performance.now() - state.armedAt < DPANE_DEBOUNCE_MS) return;
+  document.querySelector(`#dpane [data-arm-idx="${idx}"]`).classList.add('leaving');
+  state.armed = null;
+  setTimeout(() => {
+    /* the card drops into today's group, which opens and lights up */
+    const [model] = state.todo.splice(idx, 1);
+    const entry = {kind: model.kind, title: model.title, name: model.name};
+    state.days[FIX.todayIndex][model.kind][0] += 1;
+    state.lists[FIX.todayIndex].push(entry);
+    state.fresh = entry;
+    state.sel = FIX.todayIndex;
+    state.open.add(FIX.todayIndex);
+    renderDpane();
+  }, 240);
+}
+
+/* ── Mobile (as decided in round 6): the day's list in a sheet behind its ring ── */
+function renderDoneMobile() {
+  document.getElementById('done-mobile').innerHTML = `<div class="pz-opt rec btnrow btn-glow" data-done-opt="glow">
+    <div class="pz-phonewrap"><div class="pz-cap">Phone · 375 px · 点今天或之前的某一格</div><div class="pz-phone done-phone" data-mode="phone" style="width:359px">${statusBar('12:40')}${appHead()}${boardWithList('glow', 'phone', 375)}</div></div></div>`;
+}
+
+/* ── The day cells as buttons (round 6, waiting on the owner): two hovers; pressed and selected the same ── */
 const BTN_VARIANTS = [
-  {
-    key: 'glow', letter: '1', title: '底部亮起：hover 时格子底下亮一条光', tag: '推荐',
-    why: `<b>Hover</b>：格子底部亮起一条 2 px 的青色光（primary），带一点向下的光晕，像 tab 的下划线（150 ms）；鼠标变成手。<b>按下</b>：格子缩到 0.96，里面压一层内阴影，像按钮被按进去（100 ms），松开回弹。<b>选中</b>（浮层开着的那一天）：一圈青色边框 + 里面从下往上的青色光，底部光条常亮。<br><b>好在哪</b>：hover 只动底边，不改格子本身，七个格子并排时最安静；底部光条和选中状态是同一个元素的「轻」和「重」，一看就是一套。<br><b>差在哪</b>：手机没有 hover，第一次只能靠按下的回弹和选中的样子发现它能点。`,
-  },
-  {
-    key: 'lift', letter: '2', title: '整格浮起：hover 时整个格子从底部亮起、轻轻上浮', tag: '备选',
-    why: `<b>Hover</b>：整个格子的背景从底部往上亮起一层淡青色的渐变，格子上浮 1 px（150 ms）。<b>按下</b>：格子下沉 1 px、缩到 0.98，背景变深一点（100 ms）。<b>选中</b>：和方案 1 一样，青色边框 + 里面发光。<br><b>好在哪</b>：hover 时整格都在回应，更像一个按钮，一眼就看出它能点。<br><b>差在哪</b>：鼠标划过一排七格时，每一格都在亮、在动，比方案 1 吵；上浮和今天那格的框叠在一起时有点挤。`,
-  },
+  {key: 'glow', letter: '1', title: '底部亮起：hover 时格子底下亮一条光', tag: '推荐', why: `<b>Hover</b>：格子底部亮起一条 2 px 的青色光（primary），带一点向下的光晕，像 tab 的下划线（150 ms）；鼠标变成手。<b>按下</b>：格子缩到 0.96，里面压一层内阴影，像按钮被按进去（100 ms），松开回弹。<b>选中</b>（正在看的那一天）：一圈青色边框 + 里面从下往上的青色光，底部光条常亮。<br><b>好在哪</b>：hover 只动底边，不改格子本身，七个格子并排时最安静；底部光条和选中状态是同一个元素的「轻」和「重」，一看就是一套。<br><b>差在哪</b>：手机没有 hover，第一次只能靠按下的回弹和选中的样子发现它能点。`},
+  {key: 'lift', letter: '2', title: '整格浮起：hover 时整个格子从底部亮起、轻轻上浮', tag: '备选', why: `<b>Hover</b>：整个格子的背景从底部往上亮起一层淡青色的渐变，格子上浮 1 px（150 ms）。<b>按下</b>：格子下沉 1 px、缩到 0.98，背景变深一点（100 ms）。<b>选中</b>：和方案 1 一样，青色边框 + 里面发光。<br><b>好在哪</b>：hover 时整格都在回应，更像一个按钮，一眼就看出它能点。<br><b>差在哪</b>：鼠标划过一排七格时，每一格都在亮、在动，比方案 1 吵；上浮和今天那格的框叠在一起时有点挤。`},
 ];
 const BTN_STATES = [
-  ['rest', '静止', 1, ''],
-  ['hover', 'Hover', 1, 'is-hover'],
-  ['press', '按下', 1, 'is-hover is-press'],
-  ['sel', '选中', 1, 'sel'],
-  ['today', '今天', FIX.todayIndex, ''],
-  ['today-sel', '今天 · 选中', FIX.todayIndex, 'sel'],
-  ['future', '未来 · 不能点', 5, ''],
+  ['静止', 1, ''],
+  ['Hover', 1, 'is-hover'],
+  ['按下', 1, 'is-hover is-press'],
+  ['选中', 1, 'sel'],
+  ['今天', FIX.todayIndex, ''],
+  ['今天 · 选中', FIX.todayIndex, 'sel'],
+  ['未来 · 不能点', 5, ''],
 ];
-function renderDone() {
+const btnSel = {};
+function renderBtnVariants() {
   const days = doneDays();
-  document.getElementById('done-options').innerHTML = BTN_VARIANTS.map(variant => `<div class="pz-opt btnrow btn-${variant.key} ${variant.tag === '推荐' ? 'rec' : ''}" data-done-opt="${variant.key}">
+  document.getElementById('done-options').innerHTML = BTN_VARIANTS.map(variant => {
+    const [first, last] = visibleDays('desk');
+    let live = '';
+    for (let index = first; index <= last; index++) live += tapCell(days, index, btnSel[variant.key] === index ? 'sel' : '');
+    return `<div class="pz-opt btnrow btn-${variant.key} ${variant.tag === '推荐' ? 'rec' : ''}" data-btn-variant="${variant.key}">
     <div class="opt-head"><span class="letter">${variant.letter}</span><h3>${variant.title}</h3><span class="tag ${variant.tag === '推荐' ? '' : 'muted'}">${variant.tag}</span></div>
     <div class="pz-cap" style="margin-top:12px">每种状态 · 静态</div>
-    <div class="btn-states">${BTN_STATES.map(([, label, index, forced]) => `<figure><div class="pz-row">${tapCell(days, index, forced)}</div><figcaption>${label}</figcaption></figure>`).join('')}</div>
-    <div class="pz-pair" style="margin-top:14px"><div><div class="pz-cap">Desktop · 鼠标移上去、按下、点开</div><div class="pz-desk done-desk" data-mode="desk">${boardWithList(variant.key, 'desk', 0)}</div><p class="why" style="margin-top:12px">${variant.why}</p></div>
-    <div><div class="pz-phonewrap"><div class="pz-cap">Phone · 375 px · 按下、点开</div><div class="pz-phone done-phone" data-mode="phone" style="width:359px">${statusBar('12:40')}${appHead()}${boardWithList(variant.key, 'phone', 375)}</div></div></div></div></div>`).join('');
-  /* the popover hangs under the day it belongs to */
-  document.querySelectorAll('.done-pop').forEach(pop => {
-    const cell = pop.parentElement.querySelector('.pz-day.sel');
-    if (cell) pop.style.left = `${Math.min(cell.offsetLeft, pop.parentElement.clientWidth - pop.offsetWidth - 8)}px`;
-  });
+    <div class="btn-states">${BTN_STATES.map(([label, index, forced]) => `<figure><div class="pz-row">${tapCell(days, index, forced)}</div><figcaption>${label}</figcaption></figure>`).join('')}</div>
+    <div class="pz-cap" style="margin-top:14px">Desktop · 鼠标移上去、按住、点选</div>
+    <div class="pz-desk"><div class="pz-row">${live}</div></div>
+    <p class="why" style="margin-top:12px">${variant.why}</p></div>`;
+  }).join('');
+}
+
+function renderDone() {
+  dp.desk = dpaneSeed();
+  renderDpane();
+  renderDoneMobile();
+  renderBtnVariants();
   document.querySelectorAll('[data-done-long]').forEach(button => button.classList.toggle('on', (button.dataset.doneLong === 'true') === dn.long));
 }
 function toggleDay(cell) {
-  const optEl = cell.closest('[data-done-opt]');
-  const key = `${optEl.dataset.doneOpt}-${cell.closest('[data-mode]').dataset.mode}`;
+  const key = `${cell.closest('[data-done-opt]').dataset.doneOpt}-phone`;
   const index = Number(cell.dataset.doneDay);
   dn.open[key] = dn.open[key] === index ? undefined : index;
   navigator.vibrate?.(10);
-  renderDone();
+  renderDoneMobile();
 }
 document.addEventListener('click', event => {
   const longBtn = event.target.closest('[data-done-long]');
-  if (longBtn) { dn.long = longBtn.dataset.doneLong === 'true'; renderDone(); return; }
+  if (longBtn) { dn.long = longBtn.dataset.doneLong === 'true'; dn.open = {}; renderDone(); return; }
+  const pane = event.target.closest('#dpane');
+  if (pane) {
+    const toggle = event.target.closest('[data-dp-toggle]');
+    if (toggle) { const index = Number(toggle.dataset.dpToggle); const {open} = dp.desk; if (open.has(index)) open.delete(index); else open.add(index); renderDpane(); return; }
+    const cell = event.target.closest('[data-done-day]');
+    if (cell) { dpaneSelectDay(Number(cell.dataset.doneDay)); return; }
+    const card = event.target.closest('[data-arm-idx]');
+    if (card) { dpaneTapCard(Number(card.dataset.armIdx), Boolean(event.target.closest('[data-arm-complete]'))); return; }
+    if (dp.desk.armed != null) { dp.desk.armed = null; renderDpane(); }
+    return;
+  }
+  const variantEl = event.target.closest('[data-btn-variant]');
+  if (variantEl) {
+    const cell = event.target.closest('[data-done-day]');
+    if (cell) { const {btnVariant: key} = variantEl.dataset; const index = Number(cell.dataset.doneDay); btnSel[key] = btnSel[key] === index ? undefined : index; renderBtnVariants(); }
+    return;
+  }
   const optEl = event.target.closest('[data-done-opt]');
-  const modeEl = event.target.closest('[data-mode]');
-  if (!optEl || !modeEl) return;
-  if (event.target.closest('[data-done-close]')) { delete dn.open[`${optEl.dataset.doneOpt}-${modeEl.dataset.mode}`]; renderDone(); return; }
+  if (!optEl || !event.target.closest('[data-mode]')) return;
+  if (event.target.closest('[data-done-close]')) { delete dn.open[`${optEl.dataset.doneOpt}-phone`]; renderDoneMobile(); return; }
   const cell = event.target.closest('[data-done-day]');
   if (cell) toggleDay(cell);
 });
 document.addEventListener('keydown', event => {
-  const cell = event.target.closest?.('[data-mode] [data-done-day]');
-  if (cell && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); toggleDay(cell); }
+  if (!(event.key === 'Enter' || event.key === ' ')) return;
+  const cell = event.target.closest?.('[data-done-day]');
+  if (!cell) return;
+  event.preventDefault();
+  if (cell.closest('#dpane')) dpaneSelectDay(Number(cell.dataset.doneDay));
+  else if (cell.closest('[data-mode]')) toggleDay(cell);
 });
 renderDone();
 const DONE_PATTERNS = [
@@ -1757,10 +1891,11 @@ const DONE_PATTERNS = [
 ];;
 document.getElementById('done-patterns').innerHTML = DONE_PATTERNS.map(([title, who, body, fit]) => `<div class="pat"><h4>${title}</h4><div class="who">${who}</div>${body}<div class="fit">${fit}</div></div>`).join('');
 const DONE_QUESTIONS = [
-  ['1 · Hover 选哪种？', '<b>1 底部亮起（推荐）</b> · 2 整格浮起。按下和选中两种一样。'],
-  ['2 · 今天的框和选中的框', '今天那格平时就有一个框（Progress 定稿）。这里把今天的框调淡（35%），选中时才是全亮的边框 + 内部发光，所以「今天」和「正在看的那天」不会混。今天被选中时两者合在一起。'],
-  ['3 · 手机上怎么让人发现能点', '手机没有 hover：按下的回弹 + 一下轻振动（Android），选中后格子发光、sheet 升起。要不要第一次进 board 时让今天那格轻轻呼吸一下提示？（建议不要，Principle 7 · 少一步、少打扰）'],
-];
+  ['1 · 日格按钮的 hover', '<b>1 底部亮起（推荐）</b> · 2 整格浮起。按下和选中两种一样。'],
+  ['2 · 今天的框和选中的框', '今天那格平时的框调淡到 35%，选中时才是全亮的边框 + 内部发光，今天和「正在看的那天」不会混。'],
+  ['3 · 手机上怎么让人发现能点', '没有 hover：按下的回弹 + 选中后发光、sheet 升起。第一次进 board 时要不要提示？（建议不要）'],
+  ['4 · 周后半段 done 太长', 'Koo & Fishbach：接近目标时，看还剩的比看做完的更推动人。之前的天已经默认折叠；如果周五周六觉得 pane 太长，再调呈现（比如只留今天和昨天展开），不改 journey。'],
+]
 document.getElementById('done-questions').innerHTML = DONE_QUESTIONS.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 
 /* ── T · Tap twice (decided): a tap anywhere on a card selects it — a confirm frame, and its corner
@@ -1847,7 +1982,7 @@ document.addEventListener('click', event => {
   else disarm('final', mode);
 });
 document.addEventListener('keydown', event => {
-  const card = event.target.closest?.('[data-arm-idx]');
+  const card = event.target.closest?.('[data-tap-mode] [data-arm-idx]');
   if (!card) return;
   const {tapMode: mode} = card.closest('[data-tap-mode]').dataset;
   if (event.key === 'Escape') { disarm('final', mode); return; }
