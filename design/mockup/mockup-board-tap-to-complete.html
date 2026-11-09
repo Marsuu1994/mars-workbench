@@ -650,6 +650,10 @@
   .dpane-grid.bk-closed { grid-template-columns: minmax(300px, 1fr) minmax(300px, 1fr) 48px; }
   .dpane-donecol { padding: 14px 14px 14px 7px; }
   .dpane-donecol .column-body { max-height: 680px; }
+  /* round 21: both columns run to the bottom of the board, whatever they hold */
+  .dpane-grid { min-height: 600px; }
+  .dpane-todo, .dpane-donecol { display: flex; flex-direction: column; min-height: 0; }
+  .dpane-todo > .column, .dpane-donecol > .column { flex: 1; }
   .col-tags { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; }
   .col-tags .count-ghost { margin-left: 0; }
   .wk-tag { font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-45); }
@@ -1509,6 +1513,8 @@ function renderDpane() {
   animateArcs(root, before);
   placePop(root);
   if (state.pulled != null) { root.querySelector(`.dpane-todo [data-arm-idx="${state.pulled}"]`)?.classList.add('pulled'); state.pulled = null; }
+  /* the highlight is one-shot: later renders (any click) must not replay it */
+  state.fresh = null;
 }
 function dpaneSelectDay(index) {
   const state = dp.desk;
@@ -1866,6 +1872,8 @@ function renderFin(mode) {
   }
   animateArcs(root, before);
   if (state.pulled != null) { root.querySelector(`[data-arm-idx="${state.pulled}"]`)?.classList.add('pulled'); state.pulled = null; }
+  /* the highlight is one-shot: later renders (any click) must not replay it */
+  state.fresh = null;
 }
 /* tap twice: a tap selects, a second tap elsewhere on the card cancels, ✓ Complete completes (after the debounce) */
 function finTap(mode, idx, onTarget) {
