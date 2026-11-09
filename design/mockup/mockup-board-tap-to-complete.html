@@ -571,10 +571,8 @@
   .btnrow .pz-day.sel .dn { color: var(--p); }
   .btnrow .pz-day.tap:focus-visible { box-shadow: 0 0 0 2px var(--p); }
   /* hover = an underline (both); selected = a bright frame + the cyan glow, no underline (round 14) */
-  .btn-glow .pz-day.tap::after, .btn-soft .pz-day.tap::after { content: ''; position: absolute; left: 22%; right: 22%; bottom: 2px; height: 2px; border-radius: 2px; background: var(--p); box-shadow: 0 2px 8px var(--p); opacity: 0; transition: opacity .15s var(--ease); }
-  .btn-glow .pz-day.tap:hover::after, .btn-glow .pz-day.is-hover::after, .btn-soft .pz-day.tap:hover::after, .btn-soft .pz-day.is-hover::after { opacity: 1; }
-  /* 1b · the underline plus a faint cyan glow; a selected cell keeps its own glow */
-  .btn-soft .pz-day.tap:not(.sel):hover, .btn-soft .pz-day.is-hover:not(.sel) { background: radial-gradient(ellipse 90% 70% at 50% 100%, color-mix(in oklab, var(--p) 10%, transparent), transparent 72%); }
+  .btn-glow .pz-day.tap::after { content: ''; position: absolute; left: 22%; right: 22%; bottom: 2px; height: 2px; border-radius: 2px; background: var(--p); box-shadow: 0 2px 8px var(--p); opacity: 0; transition: opacity .15s var(--ease); }
+  .btn-glow .pz-day.tap:hover::after, .btn-glow .pz-day.is-hover::after { opacity: 1; }
   .done-row .t { text-decoration: none; }
   @media (prefers-reduced-motion: reduce) { .btnrow .pz-day.tap { transition: none; } .btnrow .pz-day.tap:active, .btnrow .pz-day.is-press { transform: none; } }
   /* T · Tap twice */
@@ -637,16 +635,6 @@
   .dpane-grid.bk-closed { grid-template-columns: minmax(300px, 1.2fr) minmax(280px, 1fr) 48px; }
   .dpane-desk .done-anchor .pz-row { border-bottom: 1px solid var(--card-border); }
   .dpane-desk .done-pop { top: calc(100% - 4px); }
-  .wd-body { overflow-y: auto; max-height: 560px; padding: 4px 10px 12px; display: flex; flex-direction: column; gap: 1px; }
-  .wd-body .sec-label { margin: 12px 4px 4px; }
-  .wd-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; font-size: 13px; min-height: 32px; }
-  .wd-row > .icon { color: var(--k); flex-shrink: 0; }
-  .wd-t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .wd-when { font-family: 'Geist Mono', monospace; font-size: 10.5px; color: var(--ink-45); flex-shrink: 0; }
-  .wd-pname { display: flex; align-items: center; gap: 6px; padding: 8px 8px 2px; font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--k); }
-  .wd-pname .icon { flex-shrink: 0; }
-  .wd-step { padding-left: 28px; }
-  .wd-row.fresh { animation: freshRow .9s var(--ease); }
   .bk-rail { display: flex; flex-direction: column; align-items: center; gap: 14px; padding-top: 16px; border: 0; border-left: 1px solid var(--card-border); background: color-mix(in oklab, var(--b2) 30%, transparent); color: var(--ink-45); cursor: pointer; font: inherit; transition: background .15s; }
   .bk-rail:hover { background: var(--ink-10); }
   .bk-rail .v { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 13px; font-weight: 600; color: var(--ink-65); }
@@ -656,7 +644,24 @@
   .pull-btn:hover { background: color-mix(in oklab, var(--p) 18%, transparent); }
   .tc.pulled { animation: pulled .9s var(--ease); }
   @keyframes pulled { from { box-shadow: 0 0 0 2px var(--p), 0 0 18px color-mix(in oklab, var(--p) 40%, transparent); } }
-  @media (prefers-reduced-motion: reduce) { .wd-row.fresh, .tc.pulled { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .tc.pulled, .done-card.fresh { animation: none; } }
+  /* round 15: desktop as the product has it — Todo and Done side by side, the backlog collapsed at the edge */
+  .dpane-grid { grid-template-columns: minmax(300px, 1fr) minmax(300px, 1fr) 300px; }
+  .dpane-grid.bk-closed { grid-template-columns: minmax(300px, 1fr) minmax(300px, 1fr) 48px; }
+  .dpane-donecol { padding: 14px 14px 14px 7px; }
+  .dpane-donecol .column-body { max-height: 680px; }
+  .col-tags { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; }
+  .col-tags .count-ghost { margin-left: 0; }
+  .wk-tag { font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-45); }
+  /* a done card: the selected card's look without its frame — dimmed, the title struck through, no description */
+  .done-card { opacity: .5; cursor: default; box-shadow: inset 0 0 18px color-mix(in oklab, var(--su) 12%, transparent); }
+  .done-card .tc-title { text-decoration: line-through; color: var(--ink-55); }
+  .done-card .arm-go { cursor: default; }
+  .done-card .arm-go .arm-mark { transform: scale(1.45); border-color: var(--su); background: var(--su); color: var(--suc); box-shadow: 0 0 10px color-mix(in oklab, var(--su) 40%, transparent); }
+  .done-card .arm-go .arm-mark .icon { stroke-width: 3; }
+  .done-card .arm-go .arm-word { margin-right: 4px; font-size: 12px; animation: none; }
+  .done-card.fresh { animation: doneIn .9s var(--ease); }
+  @keyframes doneIn { from { opacity: 1; box-shadow: 0 0 0 2px var(--su), 0 0 18px color-mix(in oklab, var(--su) 40%, transparent); } }
 </style>
 </head>
 <body>
@@ -804,20 +809,20 @@
 
 <!-- ═════════ D · Done (rounds 5–6, amended rounds 10 and 14) ═════════ -->
 <section class="screen on" data-screen="done">
-  <div class="col-label"><b>D · Done · 定稿 · decided 2026-11-09 · 修订 · amended 2026-11-09（第 14 轮）</b> · 一天的清单两端都藏在圈后面；桌面多一列 Done this week<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px">第 5 轮画了三个方向（commit <code>2211b07</code>），第 6 轮定了「一天的清单藏在那天的圈后面：桌面浮窗、手机 sheet」。第 10 轮按 spike 把桌面改成常驻的 Done pane（按天分组、每组带圈），第 11–13 轮又比较了五种桌面排法（commit <code>13628f5</code>），owner 都没选。<b>第 14 轮</b>：一天的清单回到第 6 轮的定法，两端同一个 journey——<b>点某天的圈，看那天做完的</b>（桌面浮在圈下面，手机是 sheet）；<b>桌面保留一列 Done</b>，但定位变了：它是桌面多出来的「<b>这周做完了什么</b>」，按 habit / project / one-off 分组，不再按天、不再画圈（圈在顶上已经有了）。手机没有这一列也说得通：它是桌面的空间多给的一个视图，不是另一条 journey。Backlog 默认收起；点开后卡片上有 <b>↑ Todo</b>，和手机同一个按钮，也还能拖。清单都只读，没有撤回按钮（Ideas 8）。切到 <b>Long day</b> 看清单长了以后的样子。</p>
+  <div class="col-label"><b>D · Done · 定稿 · decided 2026-11-09 · 修订 · amended 2026-11-09（第 14–15 轮）</b> · 一天的清单两端都藏在圈后面；桌面就是现在的产品：Todo · Done（这周的卡片）· Backlog 收起<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:14px">第 5 轮画了三个方向（commit <code>2211b07</code>），第 6 轮定了「一天的清单藏在那天的圈后面：桌面浮窗、手机 sheet」。第 10 轮按 spike 把桌面改成常驻的 Done pane（按天分组、每组带圈），第 11–13 轮比较了五种桌面排法（commit <code>13628f5</code>），owner 都没选；第 14 轮把 Done 画成按 kind 分组的清单（commit <code>9594f3f</code>）。<b>第 15 轮定稿</b>：<b>一天的清单</b>两端同一个 journey——点某天的圈，看那天做完的（桌面浮在圈下面，手机是 sheet）。<b>桌面就按现在的产品</b>：Todo 和 Done 两列并排，Done 放这周做完的所有卡片，顺序和产品一样（habit 在前，同一个 habit / project 的卡在一起，然后是 one-off），表头右边加 <b>This week</b>；Backlog 默认收起，点开后卡片上有 <b>↑ Todo</b>，也能拖。唯一大的改动是<b>完成的卡片</b>：和产品一样变暗、标题划掉、不显示 description，右下角换成<b>选中时的样子</b>——实心的 ✓ + Complete——只是<b>不加高亮的边框</b>。清单都只读，没有撤回按钮（Ideas 8）。切到 <b>Long day</b> 看 Done 长了以后的样子。</p>
   <div class="pz-tools"><span class="seg"><button data-done-long="false" class="on">Normal day · Thu 1 done</button><button data-done-long="true">Long day · Thu 9 done</button></span></div>
 
-  <div class="col-label"><b>Desktop · 第 14 轮</b> · Todo · Done this week（按 kind 分组）· Backlog 收起<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:12px"><b>Done this week</b> 照 Phase 2 第 1 轮的 Week wrap-up mockup（<code>demo-11-06</code> 分支）里那份 summary 分组：<b>Habits</b> 一个 habit 一行，名字 + 这周的 dots（和卡片上同一个零件）；<b>Projects</b> 一个 project 一组，下面是这周做完的 step，右边写哪天；<b>One-offs</b> 一行一个，右边写哪天。没有圈、没有百分比和合计。用定稿的 tap twice 完成一张卡（点卡片 → 点 ✓ Complete）：卡片离开 Todo，habit 多一颗 dot，step 和 one-off 多一行，亮一下。<b>点某天的圈</b>：那天的清单浮在圈下面，和手机的 sheet 是同一个 journey；再点一次、点外面或 Esc 关上。<b>Backlog</b> 是右边的窄条，点开以后每张卡右下角有 ↑ Todo（点了就进 Todo），也可以拖。</p>
+  <div class="col-label"><b>Desktop · 定稿</b> · Todo · Done（This week）· Backlog 收起 · 和现在的产品一样<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:12px">用定稿的 tap twice 完成一张卡（点卡片 → 点 ✓ Complete）：卡片离开 Todo，以完成的样子出现在 Done 里它那一组，亮一下，圈接上一段。<b>点某天的圈</b>：那天的清单浮在圈下面；再点一次、点外面或 Esc 关上。<b>Backlog</b> 是右边的窄条，点开以后每张卡右下角有 ↑ Todo（点了就进 Todo）。拖拽和现在的产品一样。</p>
   <div class="pz-desk dpane-desk" id="dpane"></div>
 
   <div class="col-label spaced"><b>Mobile</b> · 不变：点圈，那天的清单从底部升起<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:12px">点今天或之前的某一格，sheet 升起（最高 70%），Todo 一动不动；再点一次或点外面关上。</p>
   <div id="done-mobile"></div>
 
-  <div class="col-label spaced"><b>第 6、14 轮 · 日格像按钮</b> · 待 owner 定：hover 只加下划线，还是下划线加一点青光<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px">第 14 轮 owner 选了底部亮起这一路，「整格浮起」去掉。两个都是：<b>hover</b> 只是 hover，不改选中的样子；<b>选中</b>（正在看的那一天）= 全亮的青色边框 + 里面的青光，<b>不带下划线</b>；鼠标移到选中的那一格上，只多一条下划线，青光不变暗（修了之前 hover 会把选中的光盖掉的问题）。按下两种一样。上面的桌面和手机暂时用 1a。今天那格平时的框调淡到 35%。</p>
+  <div class="col-label spaced"><b>日格像按钮 · 定稿 · decided 2026-11-09</b> · 第 6、14、15 轮：hover 只加下划线，选中是全亮的边框 + 青光<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:14px">第 6 轮画了两种 hover（底部亮起 / 整格浮起），第 14 轮 owner 选了底部亮起这一路、去掉了整格浮起，并加画了「下划线 + 一点青光」（1b，见 commit <code>9594f3f</code>）；第 15 轮定 <b>1a</b>。<b>Hover</b> 只是一条下划线，不改选中的样子；<b>选中</b>（正在看的那一天）= 全亮的青色边框 + 里面的青光，没有下划线；鼠标移到选中的那一格，只多一条下划线，青光不变暗。<b>按下</b>：缩到 0.96 + 内阴影。今天那格平时的框淡到 35%。</p>
   <div id="done-options"></div>
   <div class="col-label spaced"><b>Research</b> · 做完的事放在哪 · 回顾做完的事有什么用<span class="line"></span></div>
   <div class="patterns" id="done-patterns"></div>
@@ -1741,8 +1746,8 @@ function boardWithList(key, mode, width) {
   return `${tapRow(mode, width, sel)}${todoCards()}${sheet}`;
 }
 
-/* ── Desktop (amended round 14): the day's list floats under its ring, as phones show it in a sheet; a Done
-   column is desktop's extra — this week's done work grouped by kind, as the week wrap-up's summary groups it ── */
+/* ── Desktop (amended rounds 14–15): the product's board — Todo, Done (this week's cards), the backlog collapsed —
+   with a day's list floating under its ring, as phones show it in a sheet ── */
 const DPANE_DEBOUNCE_MS = 350;
 /* a long Thursday leaves one card in Todo */
 const DPANE_LONG_TODO = [{kind: 'project', name: 'Protein 3D viewer', title: 'Add residue picking', desc: 'Click a residue → highlight + label', n: 3, total: 4, doneSteps: [1, 2]}];
@@ -1761,32 +1766,50 @@ function dpaneSeed() {
   };
 }
 const dayName = index => (index === FIX.todayIndex ? 'Today' : FIX.week.dayNames[index]);
-/* this week's done work, grouped like the wrap-up: each habit once with its dots, each project with its steps, the one-offs */
-function weekDone(state) {
-  const habits = FIX.habits.map(habit => ({...habit, count: 0, fresh: false}));
-  const projects = [];
-  const oneOffs = [];
-  state.lists.forEach((items, index) => items.forEach(item => {
-    const fresh = item === state.fresh;
-    if (item.kind === 'habit') {
-      const habit = habits.find(candidate => candidate.title === item.title);
-      habit.count += 1;
-      habit.fresh = habit.fresh || fresh;
-    } else if (item.kind === 'project') {
-      let group = projects.find(candidate => candidate.name === item.name);
-      if (!group) projects.push(group = {name: item.name, steps: []});
-      group.steps.push({title: item.title, when: dayName(index), fresh});
-    } else oneOffs.push({title: item.title, when: dayName(index), fresh});
-  }));
-  return {habits: habits.filter(habit => habit.count), projects, oneOffs};
+/* the step a done project card was, for its path */
+function stepNumber(name, title) {
+  const project = FIX.projects.find(candidate => candidate.name === name);
+  const listed = Object.entries(project.steps).find(([, stepTitle]) => stepTitle === title);
+  return listed ? Number(listed[0]) : Math.max(...project.doneSteps);
 }
-function doneWeekHtml(state) {
-  const {habits, projects, oneOffs} = weekDone(state);
-  const habitRows = habits.map(habit => `<div class="wd-row ${habit.fresh ? 'fresh' : ''}" data-kind="habit">${icon('habit', 'xs')}<span class="wd-t">${habit.title}</span>${dots({target: habit.target, doneSlots: [...Array(habit.count).keys()], cur: -1})}</div>`).join('');
-  const projectGroups = projects.map(project => `<div data-kind="project"><div class="wd-pname">${icon('project', 'xs')}<span>${project.name}</span></div>${project.steps.map(step => `<div class="wd-row wd-step ${step.fresh ? 'fresh' : ''}"><span class="wd-t">${step.title}</span><span class="wd-when">${step.when}</span></div>`).join('')}</div>`).join('');
-  const oneOffRows = oneOffs.map(oneOff => `<div class="wd-row ${oneOff.fresh ? 'fresh' : ''}" data-kind="oneoff">${icon('oneoff', 'xs')}<span class="wd-t">${oneOff.title}</span><span class="wd-when">${oneOff.when}</span></div>`).join('');
-  const section = (label, body) => (body ? `<div class="sec-label">${label}<span class="line"></span></div>${body}` : '');
-  return `<div class="dpane-done"><div class="column-head" style="color:var(--su)"><span style="color:var(--bc)">Done</span><span class="count-ghost">This week</span></div><div class="wd-body">${section('Habits', habitRows)}${section('Projects', projectGroups)}${section('One-offs', oneOffRows)}</div></div>`;
+/* a done card: the selected card's look without its frame — dimmed, the title struck through, no description;
+   the corner keeps the filled ✓ and its word */
+function doneCard(item, habitSlot, fresh) {
+  const {kind} = item;
+  let head = `<span>${KIND_LABEL[kind]}</span>`;
+  let signal = '';
+  if (kind === 'habit') {
+    const {target} = FIX.habits.find(candidate => candidate.title === item.title);
+    signal = dots({target, doneSlots: [...Array(habitSlot + 1).keys()], cur: -1});
+  } else if (kind === 'project') {
+    const {total} = FIX.projects.find(candidate => candidate.name === item.name);
+    const step = stepNumber(item.name, item.title);
+    head = `<span class="name">${item.name}</span>`;
+    signal = path({total, doneSteps: [...Array(step).keys()].map(index => index + 1), cur: -1});
+  }
+  return `<div class="tc solid done-card ${fresh ? 'fresh' : ''}" data-kind="${kind}">
+    <div class="tc-head">${icon(kind, 'xs')}${head}</div>
+    <div class="tc-row"><h3 class="tc-title">${item.title}</h3></div>
+    <div class="tc-foot">${signal}<span class="arm-go" aria-hidden="true"><span class="arm-word">Complete</span><span class="arm-mark">${icon('check', 'xs')}</span></span></div>
+  </div>`;
+}
+/* the product's Done column: this week's done cards in the product's order (sortTasks: habits first, a template's
+   or a project's cards together, then one-offs), headed This week */
+function doneColumn(state) {
+  const habitCount = {};
+  const entries = [];
+  state.lists.forEach((items, index) => items.forEach(item => {
+    const habitSlot = item.kind === 'habit' ? (habitCount[item.title] = (habitCount[item.title] ?? -1) + 1) : 0;
+    entries.push({item, index, habitSlot});
+  }));
+  const rank = ({item}) => {
+    if (item.kind === 'habit') return FIX.habits.findIndex(habit => habit.title === item.title);
+    if (item.kind === 'project') return 10 + FIX.projects.findIndex(project => project.name === item.name);
+    return 100;
+  };
+  entries.sort((left, right) => rank(left) - rank(right) || left.index - right.index);
+  const cards = entries.map(({item, habitSlot}) => doneCard(item, habitSlot, item === state.fresh)).join('');
+  return column('Done', entries.length, cards, {done: true}).replace(`<span class="count-ghost">${entries.length}</span>`, `<span class="col-tags"><span class="wk-tag">This week</span><span class="count-ghost">${entries.length}</span></span>`);
 }
 /* the day's list, floating under its ring: the same journey as the phone's sheet */
 function dayPop(state) {
@@ -1813,7 +1836,7 @@ function renderDpane() {
   root.innerHTML = `${appHead()}<div class="done-anchor btnrow btn-glow"><div class="pz-row">${row}</div>${dayPop(state)}</div>
     <div class="dpane-grid ${state.backlogOpen ? '' : 'bk-closed'}">
       <div class="dpane-todo">${column('Todo', state.todo.length, cards)}</div>
-      ${doneWeekHtml(state)}
+      <div class="dpane-donecol">${doneColumn(state)}</div>
       ${deskBacklog(state)}
     </div>`;
   animateArcs(root, before);
@@ -1839,7 +1862,7 @@ function dpaneTapCard(idx, onTarget) {
   document.querySelector(`#dpane [data-arm-idx="${idx}"]`).classList.add('leaving');
   state.armed = null;
   setTimeout(() => {
-    /* the card lands in this week's Done, by kind, and in today's list */
+    /* the card lands in the Done column, done-styled, and in today's list */
     const [model] = state.todo.splice(idx, 1);
     const entry = {kind: model.kind, title: model.title, name: model.name};
     state.days[FIX.todayIndex][model.kind][0] += 1;
@@ -1876,8 +1899,7 @@ function renderDoneMobile() {
 
 /* ── The day cells as buttons (round 6, waiting on the owner): two hovers; pressed and selected the same ── */
 const BTN_VARIANTS = [
-  {key: 'glow', letter: '1a', title: 'Hover 只加下划线', tag: '推荐', why: `<b>Hover</b>：格子底部亮起一条 2 px 的青色下划线，带一点向下的光晕（150 ms），鼠标变成手；格子本身不变。<b>按下</b>：格子缩到 0.96，里面压一层内阴影，松开回弹。<b>选中</b>：全亮的青色边框 + 里面从下往上的青光，没有下划线；鼠标移到选中的那一格，只多一条下划线。<br><b>好在哪</b>：hover 只动底边，七个格子并排时最安静；hover 和选中是两样不同的东西（线 vs 框 + 光），不会混。<br><b>差在哪</b>：手机没有 hover，第一次只能靠按下的回弹和选中的样子发现它能点。`},
-  {key: 'soft', letter: '1b', title: 'Hover 加下划线和一点青光', tag: '备选', why: `<b>Hover</b>：同样的下划线，再加一层很淡的青光从格子底部往上（约是选中时的一半）。<b>按下</b>：和 1a 一样。<b>选中</b>：全亮的青色边框 + 现在的青光；hover 选中的那一格时只多下划线，光不变。<br><b>好在哪</b>：hover 时整格有一点回应，比 1a 更容易看出能点。<br><b>差在哪</b>：hover 的淡青光和选中的青光是同一种东西的深浅，两个靠近时（比如 hover 选中格旁边那格）要靠边框来分。`},
+  {key: 'glow', letter: '1a', title: 'Hover 只加下划线', tag: '定稿', why: `<b>Hover</b>：格子底部亮起一条 2 px 的青色下划线，带一点向下的光晕（150 ms），鼠标变成手；格子本身不变。<b>按下</b>：格子缩到 0.96，里面压一层内阴影，松开回弹。<b>选中</b>：全亮的青色边框 + 里面从下往上的青光，没有下划线；鼠标移到选中的那一格，只多一条下划线。<br><b>好在哪</b>：hover 只动底边，七个格子并排时最安静；hover 和选中是两样不同的东西（线 vs 框 + 光），不会混。<br><b>差在哪</b>：手机没有 hover，第一次只能靠按下的回弹和选中的样子发现它能点。`},
 ];
 const BTN_STATES = [
   ['静止', 1, ''],
@@ -1896,8 +1918,8 @@ function renderBtnVariants() {
     const [first, last] = visibleDays('desk');
     let live = '';
     for (let index = first; index <= last; index++) live += tapCell(days, index, btnSel[variant.key] === index ? 'sel' : '');
-    return `<div class="pz-opt btnrow btn-${variant.key} ${variant.tag === '推荐' ? 'rec' : ''}" data-btn-variant="${variant.key}">
-    <div class="opt-head"><span class="letter">${variant.letter}</span><h3>${variant.title}</h3><span class="tag ${variant.tag === '推荐' ? '' : 'muted'}">${variant.tag}</span></div>
+    return `<div class="pz-opt rec btnrow btn-${variant.key}" data-btn-variant="${variant.key}">
+    <div class="opt-head"><span class="letter">${variant.letter}</span><h3>${variant.title}</h3><span class="tag">${variant.tag}</span></div>
     <div class="pz-cap" style="margin-top:12px">每种状态 · 静态</div>
     <div class="btn-states">${BTN_STATES.map(([label, index, forced]) => `<figure><div class="pz-row">${tapCell(days, index, forced)}</div><figcaption>${label}</figcaption></figure>`).join('')}</div>
     <div class="pz-cap" style="margin-top:14px">Desktop · 鼠标移上去、按住、点选</div>
@@ -1971,13 +1993,11 @@ const DONE_PATTERNS = [
   ['干活时看「还剩」，收尾时看「做了」', 'Koo & Fishbach 2008 · Fishbach & Dhar 2005', '承诺已经确定的时候，看还剩多少比看已经做了多少更能推动人（<a href="https://bohrium.dp.tech/paper/arxiv/812065010711789569">摘要</a>）；只盯着进度会让人觉得可以松一下（<a href="https://econpapers.repec.org/RePEc:oup:jconrs:v:32:y:2005:i:3:p:370-377">JCR 2005</a>）。', '→ 白天 board 上是 Todo（还剩），done 清单放到点开和晚上。'],
   ['Bottom sheet 适合短的、跟当前有关的内容', 'NN/g', '长的、要花时间看的内容不要放 sheet；要有 Close 按钮、支持返回、不要叠 sheet（<a href="https://www.nngroup.com/articles/bottom-sheet/">NN/g</a>）；手机上的 accordion 省地方，但会让人迷失、要多滚（<a href="https://www.nngroup.com/videos/accordions-on-mobile/">NN/g</a>）。', '→ 白天的 sheet 只放一天的清单；长长的回顾放 Close the day 那一整屏。'],
   ['做完的清单里要能撤回', 'Todoist 的反例', 'Todoist 只能在项目里撤回，Reporting / Activity 里的历史是只读的（<a href="https://todoist.com/help/articles/view-completed-tasks-in-todoist-J19h2s">Todoist</a>）。点一下 ✓ 就完成，误点一定会有。', '→ 撤回怎么说、放在哪，以后单独研究（Ideas 8）；浮层里先不放撤回按钮。'],
-  ['个人工具把完成项收起来，团队工具留 Done 列', '竞品 · 第 12 轮', 'Apple 提醒事项完成就隐藏，Show Completed 才出现（<a href="https://support.apple.com/en-kg/guide/iphone/add-reminders-iph88463e18/15.0">Apple</a>）；Things 的 Logbook 在侧栏最后一个（<a href="https://culturedcode.com/things/support/articles/9596775/">Things</a>）；Todoist 完成后「removed from the active task list」（<a href="https://todoist.com/help/articles/view-completed-tasks-in-todoist-J19h2s">Todoist</a>）；Microsoft To Do 把完成的放在列表最下面，因为用户不喜欢混在一起（<a href="https://techcommunity.microsoft.com/blog/to-doblog/new-features-come-to-microsoft-to-do/1359840">Microsoft</a>）；Jira 只有最右边那列算完成，还能隐藏 1–4 周前的（<a href="https://support.atlassian.com/jira-software-cloud/docs/configure-columns/">Atlassian</a>）；Linear 的状态从左到右，完成的在最后（<a href="https://linear.app/docs/board-layout">Linear</a>）。', '→ 手机走 checklist 的模型：做完就离开 Todo，点圈看那天的。桌面多出来的「Done this week」是给喜欢看一长串的人的额外视图（第 14 轮），按 kind 分组、不按天。'],
+  ['个人工具把完成项收起来，团队工具留 Done 列', '竞品 · 第 12 轮', 'Apple 提醒事项完成就隐藏，Show Completed 才出现（<a href="https://support.apple.com/en-kg/guide/iphone/add-reminders-iph88463e18/15.0">Apple</a>）；Things 的 Logbook 在侧栏最后一个（<a href="https://culturedcode.com/things/support/articles/9596775/">Things</a>）；Todoist 完成后「removed from the active task list」（<a href="https://todoist.com/help/articles/view-completed-tasks-in-todoist-J19h2s">Todoist</a>）；Microsoft To Do 把完成的放在列表最下面，因为用户不喜欢混在一起（<a href="https://techcommunity.microsoft.com/blog/to-doblog/new-features-come-to-microsoft-to-do/1359840">Microsoft</a>）；Jira 只有最右边那列算完成，还能隐藏 1–4 周前的（<a href="https://support.atlassian.com/jira-software-cloud/docs/configure-columns/">Atlassian</a>）；Linear 的状态从左到右，完成的在最后（<a href="https://linear.app/docs/board-layout">Linear</a>）。', '→ 手机走 checklist 的模型：做完就离开 Todo，点圈看那天的。桌面保留产品里的 Done 列，表头写 This week（第 15 轮），给喜欢看一长串的人。'],
 ];
 document.getElementById('done-patterns').innerHTML = DONE_PATTERNS.map(([title, who, body, fit]) => `<div class="pat"><h4>${title}</h4><div class="who">${who}</div>${body}<div class="fit">${fit}</div></div>`).join('');
 const DONE_QUESTIONS = [
-  ['1 · Done this week 的分组（第 14 轮）', '照 Week wrap-up 的 summary：Habits 一行一个 + dots · Projects 一个 project 一组、step 带星期几 · One-offs 带星期几。看看分组和每一行带什么够不够。'],
-  ['2 · 日格按钮的 hover', '<b>1a 只加下划线（推荐）</b> · 1b 下划线 + 一点青光。选中两种一样：全亮的边框 + 青光，没有下划线。'],
-  ['3 · 今天的框和选中的框', '今天那格平时的框调淡到 35%，选中时才是全亮的边框 + 内部发光。'],
+  ['完成的卡片右下角的字', '照选中的样子保留了 <b>Complete</b>。它在选中时是按钮上的字，在完成的卡上是状态；如果读起来像还能点（Principle 3），可以只留实心的 ✓。'],
 ];
 document.getElementById('done-questions').innerHTML = DONE_QUESTIONS.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 
@@ -2075,7 +2095,7 @@ document.addEventListener('keydown', event => {
 });
 const TAP_DESK = [
   ['完成：手机和桌面统一', '推荐', '桌面也是「点一下选中、再点（或点 Complete）完成」。WCAG 2.5.7：拖拽能做的事，必须也能不拖拽做到——桌面本来就需要一条点击的路（<a href="https://www.w3.org/WAI/WCAG22/Understanding/dragging-movements.html">W3C</a>）。hello-pangea/dnd 在拖动距离不到门槛时「behaves just like a regular click」，所以点击和拖拽不会打架（<a href="https://github.com/hello-pangea/dnd/blob/main/docs/sensors/mouse.md">dnd docs</a>）。', '→ 一套完成的方式，两个宽度一样学。'],
-  ['拖拽只管 Backlog → Todo', '第 14 轮', '桌面的 Done 是按 kind 分组的「这周做完了什么」，是一份清单，不是看板的一列，不接受拖进来；拖拽只用来把 backlog 的卡拉进 Todo。所以「完成」和「拖拽」不会重叠：保留拖拽不等于做两套完成的方式。', '→ 桌面保留拖拽，只管搬卡；完成统一走 ✓ Complete。'],
+  ['拖拽和现在的产品一样', '第 15 轮', '桌面按现在的产品来：Todo 和 Done 两列并排，拖拽也照旧（Backlog → Todo，Todo → Done）。拖进 Done 是一个刻意的鼠标动作，不容易误触；手机上不拖，完成只走 ✓ Complete。', '→ 桌面：tap twice 和拖拽两条路都能完成；手机只有 tap twice。'],
   ['两种方式并存是常见做法', 'Linear · Trello', 'Linear 的 board 鼠标拖拽 + 快捷键 S + 命令面板（<a href="https://linear.app/docs/board-layout">Linear</a>）；Trello 拖拽 + 键盘 , / . 换列（<a href="https://trello.com/shortcuts">Trello</a>）。', '→ 拖拽是给鼠标用户的加速，不是唯一的路。'],
   ['手机上不拖', 'NN/g · hello-pangea touch', '触屏上的拖拽容易出错，只在用户预期会拖的地方用（<a href="https://www.nngroup.com/articles/drag-drop/">NN/g</a>）；hello-pangea 在触屏上要长按才开始拖（<a href="https://github.com/hello-pangea/dnd/blob/main/docs/sensors/touch.md">dnd docs</a>）。', '→ 手机维持现状：backlog 用 ↑ Todo 按钮，不拖。桌面的 backlog 卡也有同一个 ↑ Todo（第 14 轮）：桌面支持手机的每一条 journey，外加拖拽。'],
 ];
@@ -2093,7 +2113,7 @@ const TAP_PATTERNS = [
 document.getElementById('tap-patterns').innerHTML = TAP_PATTERNS.map(([title, who, body, fit]) => `<div class="pat"><h4>${title}</h4><div class="who">${who}</div>${body}<div class="fit">${fit}</div></div>`).join('');
 const TAP_QUESTIONS = [
   ['滚动时不取消选中', '选中的卡片在 Todo 滚动时保持选中；取消只有：再点同一张、点空白处、点别的卡（选中移过去）、Esc。'],
-  ['桌面保留拖拽，卡片两端统一', '桌面支持手机的每一条 journey（点卡片选中 → ✓ Complete；backlog 卡上的 ↑ Todo），外加拖拽（只管 Backlog → Todo）。桌面的 backlog 卡因此也有 ↑ Todo，见 D · Done 的桌面。'],
+  ['桌面保留拖拽，卡片两端统一', '桌面支持手机的每一条 journey（点卡片选中 → ✓ Complete；backlog 卡上的 ↑ Todo），外加拖拽，和现在的产品一样（Backlog → Todo，Todo → Done）。桌面的 backlog 卡因此也有 ↑ Todo，见 D · Done 的桌面。'],
 ];
 document.getElementById('tap-questions').innerHTML = TAP_QUESTIONS.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 
@@ -2121,7 +2141,7 @@ const IDEAS = [
   ['6 · 做完以后又拉了新卡、或者做完计划外的事', '未定', `<p>两种做法：</p><ul><li>拉了新卡，圈重新留出一段灰，绿框暂时消失；再做完时只恢复绿框，不再来一次大反馈（推荐：大反馈一天只有一次，不会被预期掉）。</li><li>像 Apple 一样，计划外做完的接在第二圈上，圈不再打开。</li></ul><p>和 Ideas 2 的「今天的总数」一起定。</p>`],
   ['7 · Close the day 要列出今天做完的全部', '交给 daily rhythm', `<p>Board 的 Done 定了：一天的清单藏在那天的圈后面。Close the day 不在这个 mockup 里；daily rhythm 的 mockup（demo 分支）定稿时再看它要不要完整列出今天做完的、能不能改、没做完的怎么安排（Masicampo & Baumeister 2011），以及要不要一句反思（Di Stefano）。</p>`],
   ['8 · 撤回：怎么说、放在哪', '以后研究', `<p>Done 的清单里先不放撤回按钮。现在能撤回的只有完成后 5 秒的 snackbar（Undo）。要一起想清楚的：</p><ul><li>叫什么：Undo · Put it back · Mark as not done · Move back to Todo——撤回之后它回到 Todo、圈退一格，说法要和这件事对得上。</li><li>放在哪：浮窗的行上（长按 / 右滑 / 菜单），还是只在 Close the day 里改。</li><li>研究里的线索：Todoist 只能在项目里撤回、历史是只读的，用户一直在抱怨；Sunsama 的 shutdown 可以改今天的记录。</li></ul>`],
-  ['9 · 桌面要不要保留拖拽', '已定 · 第 14 轮', `<p>保留，暂时。完成统一成「点卡片 → 点 ✓ Complete」，两端一样；拖拽只管 Backlog → Todo。卡片两端统一：桌面的 backlog 卡也有 ↑ Todo。也就是：桌面支持手机的每一条 journey，外加拖拽。</p>`],
+  ['9 · 桌面要不要保留拖拽', '已定 · 第 14–15 轮', `<p>保留，和现在的产品一样（Backlog → Todo，Todo → Done）。完成另有「点卡片 → 点 ✓ Complete」，两端一样。卡片两端统一：桌面的 backlog 卡也有 ↑ Todo。也就是：桌面支持手机的每一条 journey，外加拖拽。</p>`],
   ['10 · 设计偏好（第 14 轮 owner 的理由，mockup 做完后整理进 design language）', '要整理', `<p>Owner 否掉第 11–13 轮五种桌面排法时说的理由，是以后判断设计的标准：</p><ul>
     <li><b>个人 app 不要 overdesign</b>：按周规划、按天执行。加一个「This week」列视觉上统一，但把「每周计划」的含义弄混了——哪些放 This week、要做时挪回 Today 还是挂着、daily rhythm 怎么排它——最后会变成不想做的事的 parking lot（否掉 1）。</li>
     <li><b>Minimum stress</b>：backlog 就是要收起来的，一直摊开看到这周一大堆事是压力；和数字到 8 以上写 8+ 是同一个思路，overhead 越少越好（否掉 2、4c）。</li>
