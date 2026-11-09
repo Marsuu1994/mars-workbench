@@ -653,13 +653,9 @@
   .col-tags { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; }
   .col-tags .count-ghost { margin-left: 0; }
   .wk-tag { font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-45); }
-  /* a done card: the selected card's look without its frame — dimmed, the title struck through, no description */
+  /* a done card: the selected card's inner glow without its frame or its corner — dimmed, the title struck through, no description */
   .done-card { opacity: .5; cursor: default; box-shadow: inset 0 0 18px color-mix(in oklab, var(--su) 12%, transparent); }
   .done-card .tc-title { text-decoration: line-through; color: var(--ink-55); }
-  .done-card .arm-go { cursor: default; }
-  .done-card .arm-go .arm-mark { transform: scale(1.45); border-color: var(--su); background: var(--su); color: var(--suc); box-shadow: 0 0 10px color-mix(in oklab, var(--su) 40%, transparent); }
-  .done-card .arm-go .arm-mark .icon { stroke-width: 3; }
-  .done-card .arm-go .arm-word { margin-right: 4px; font-size: 12px; animation: none; }
   .done-card.fresh { animation: doneIn .9s var(--ease); }
   @keyframes doneIn { from { opacity: 1; box-shadow: 0 0 0 2px var(--su), 0 0 18px color-mix(in oklab, var(--su) 40%, transparent); } }
 </style>
@@ -810,7 +806,7 @@
 <!-- ═════════ D · Done (rounds 5–6, amended rounds 10 and 14) ═════════ -->
 <section class="screen on" data-screen="done">
   <div class="col-label"><b>D · Done · 定稿 · decided 2026-11-09 · 修订 · amended 2026-11-09（第 14–15 轮）</b> · 一天的清单两端都藏在圈后面；桌面就是现在的产品：Todo · Done（这周的卡片）· Backlog 收起<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px">第 5 轮画了三个方向（commit <code>2211b07</code>），第 6 轮定了「一天的清单藏在那天的圈后面：桌面浮窗、手机 sheet」。第 10 轮按 spike 把桌面改成常驻的 Done pane（按天分组、每组带圈），第 11–13 轮比较了五种桌面排法（commit <code>13628f5</code>），owner 都没选；第 14 轮把 Done 画成按 kind 分组的清单（commit <code>9594f3f</code>）。<b>第 15 轮定稿</b>：<b>一天的清单</b>两端同一个 journey——点某天的圈，看那天做完的（桌面浮在圈下面，手机是 sheet）。<b>桌面就按现在的产品</b>：Todo 和 Done 两列并排，Done 放这周做完的所有卡片，顺序和产品一样（habit 在前，同一个 habit / project 的卡在一起，然后是 one-off），表头右边加 <b>This week</b>；Backlog 默认收起，点开后卡片上有 <b>↑ Todo</b>，也能拖。唯一大的改动是<b>完成的卡片</b>：和产品一样变暗、标题划掉、不显示 description，右下角换成<b>选中时的样子</b>——实心的 ✓ + Complete——只是<b>不加高亮的边框</b>。清单都只读，没有撤回按钮（Ideas 8）。切到 <b>Long day</b> 看 Done 长了以后的样子。</p>
+  <p class="note" style="margin-top:0;margin-bottom:14px">第 5 轮画了三个方向（commit <code>2211b07</code>），第 6 轮定了「一天的清单藏在那天的圈后面：桌面浮窗、手机 sheet」。第 10 轮按 spike 把桌面改成常驻的 Done pane（按天分组、每组带圈），第 11–13 轮比较了五种桌面排法（commit <code>13628f5</code>），owner 都没选；第 14 轮把 Done 画成按 kind 分组的清单（commit <code>9594f3f</code>）。<b>第 15 轮定稿</b>：<b>一天的清单</b>两端同一个 journey——点某天的圈，看那天做完的（桌面浮在圈下面，手机是 sheet）。<b>桌面就按现在的产品</b>：Todo 和 Done 两列并排，Done 放这周做完的所有卡片，顺序和产品一样（habit 在前，同一个 habit / project 的卡在一起，然后是 one-off），表头右边加 <b>This week</b>；Backlog 默认收起，点开后卡片上有 <b>↑ Todo</b>，也能拖。唯一大的改动是<b>完成的卡片</b>：和产品一样变暗、标题划掉、不显示 description，加上选中时卡片里面的那层光，但<b>没有高亮的边框，也没有右下角的 ✓</b>（第 16 轮拿掉：第 15 轮的实心 ✓ + Complete 太抢眼，见 commit <code>d17bbcb</code>）。清单都只读，没有撤回按钮（Ideas 8）。切到 <b>Long day</b> 看 Done 长了以后的样子。</p>
   <div class="pz-tools"><span class="seg"><button data-done-long="false" class="on">Normal day · Thu 1 done</button><button data-done-long="true">Long day · Thu 9 done</button></span></div>
 
   <div class="col-label"><b>Desktop · 定稿</b> · Todo · Done（This week）· Backlog 收起 · 和现在的产品一样<span class="line"></span></div>
@@ -1772,8 +1768,8 @@ function stepNumber(name, title) {
   const listed = Object.entries(project.steps).find(([, stepTitle]) => stepTitle === title);
   return listed ? Number(listed[0]) : Math.max(...project.doneSteps);
 }
-/* a done card: the selected card's look without its frame — dimmed, the title struck through, no description;
-   the corner keeps the filled ✓ and its word */
+/* a done card: the selected card's inner glow without its frame or its corner — dimmed, the title struck through,
+   no description */
 function doneCard(item, habitSlot, fresh) {
   const {kind} = item;
   let head = `<span>${KIND_LABEL[kind]}</span>`;
@@ -1790,7 +1786,7 @@ function doneCard(item, habitSlot, fresh) {
   return `<div class="tc solid done-card ${fresh ? 'fresh' : ''}" data-kind="${kind}">
     <div class="tc-head">${icon(kind, 'xs')}${head}</div>
     <div class="tc-row"><h3 class="tc-title">${item.title}</h3></div>
-    <div class="tc-foot">${signal}<span class="arm-go" aria-hidden="true"><span class="arm-word">Complete</span><span class="arm-mark">${icon('check', 'xs')}</span></span></div>
+    <div class="tc-foot">${signal}</div>
   </div>`;
 }
 /* the product's Done column: this week's done cards in the product's order (sortTasks: habits first, a template's
@@ -1997,7 +1993,7 @@ const DONE_PATTERNS = [
 ];
 document.getElementById('done-patterns').innerHTML = DONE_PATTERNS.map(([title, who, body, fit]) => `<div class="pat"><h4>${title}</h4><div class="who">${who}</div>${body}<div class="fit">${fit}</div></div>`).join('');
 const DONE_QUESTIONS = [
-  ['完成的卡片右下角的字', '照选中的样子保留了 <b>Complete</b>。它在选中时是按钮上的字，在完成的卡上是状态；如果读起来像还能点（Principle 3），可以只留实心的 ✓。'],
+  ['没有开着的', 'D 定稿。下一个模块是「今天的总数」（Ideas 2）。'],
 ];
 document.getElementById('done-questions').innerHTML = DONE_QUESTIONS.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 
