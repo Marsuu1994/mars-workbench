@@ -775,9 +775,9 @@
 
 <!-- ═════════ T · Tap twice (round 7) ═════════ -->
 <section class="screen on" data-screen="tap">
-  <div class="col-label"><b>T · Tap twice · 定稿 · decided 2026-11-09</b> · 点卡面任何地方选中，只有点 ✓ Complete 才完成；没有 undo snackbar<span class="line"></span></div>
+  <div class="col-label"><b>T · Tap twice · 定稿 · decided 2026-11-09（第 9 轮修订：再点一次取消）</b> · 点卡面任何地方选中，再点一次取消，只有点 ✓ Complete 才完成；没有 undo snackbar<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:14px">Owner 的意见：一下就完成很好，但 5 s 的 undo snackbar 烦人；在 Done 的清单里放撤回也不是好体验；误触一定要解决。思路是像 confirm button 那样「一下选中、两下完成」，但扩展到整张卡：手机上 tap 卡面任何地方（不是那个小圈），桌面可以统一。<br>
-  <b>第 7 轮</b>画了四种「选中」的样子（文字 · 效果 · 图案 + 标签 · 揭出按钮，见 commit <code>450d6f9</code>）。owner 最喜欢 C 的图案，也喜欢 B 的边框，于是合在一起：<b>点卡面任何地方</b> → 选中：卡片出现确认边框（B），右下角的小圈变成实心的 ✓，旁边出现 <b>Complete</b>（C）；<b>只有点 ✓ Complete 才完成</b>，点卡片别的地方不会完成——眼睛和手指都被引到同一个地方，误触的风险最小。<b>卡片大小不变</b>：✓ 用 transform 放大，不占位置，也不浮起。点别的卡，选中移过去；点空白处或 Esc 取消；没有自动倒计时。✓ Complete 出现在原来小圈的位置，所以出现后 350 ms 内不接受点击，挡住在小圈上的连点。</p>
+  <b>第 7 轮</b>画了四种「选中」的样子（文字 · 效果 · 图案 + 标签 · 揭出按钮，见 commit <code>450d6f9</code>）。owner 最喜欢 C 的图案，也喜欢 B 的边框，于是合在一起：<b>点卡面任何地方</b> → 选中：卡片出现确认边框（B），右下角的小圈变成实心的 ✓，旁边出现 <b>Complete</b>（C）；<b>只有点 ✓ Complete 才完成</b>；选中时再点卡片别的地方，取消选中、回到正常（第 9 轮）——眼睛和手指都被引到同一个地方，误触的风险最小。<b>卡片大小不变</b>：✓ 用 transform 放大，不占位置，也不浮起。点别的卡，选中移过去；再点同一张、点空白处或 Esc 取消；没有自动倒计时。✓ Complete 出现在原来小圈的位置，所以出现后 350 ms 内不接受点击，挡住在小圈上的连点。</p>
   <div id="tap-options"></div>
   <div class="col-label spaced"><b>桌面：统一，还是两套？</b><span class="line"></span></div>
   <div class="patterns" id="tap-desk"></div>
@@ -1809,7 +1809,9 @@ function tapCard(key, mode, idx, onTarget = false) {
     renderTap(key, mode);
     return;
   }
-  if (!onTarget || performance.now() - state.armedAt < ARM_DEBOUNCE_MS) return;
+  /* the card again: back to normal; the target, after the debounce: complete */
+  if (!onTarget) { disarm(key, mode); return; }
+  if (performance.now() - state.armedAt < ARM_DEBOUNCE_MS) return;
   /* the target: complete — the card leaves, today's ring grows */
   const root = document.querySelector(`[data-tap="${key}"] [data-tap-mode="${mode}"]`);
   root.querySelector(`[data-arm-idx="${idx}"]`).classList.add('leaving');
@@ -1872,7 +1874,7 @@ const TAP_PATTERNS = [
 ];
 document.getElementById('tap-patterns').innerHTML = TAP_PATTERNS.map(([title, who, body, fit]) => `<div class="pat"><h4>${title}</h4><div class="who">${who}</div>${body}<div class="fit">${fit}</div></div>`).join('');
 const TAP_QUESTIONS = [
-  ['滚动时要不要取消选中', '这里画的是：点空白处、点别的卡（选中移过去）、Esc 才取消；没有自动倒计时。滚动时也取消，还是保持？'],
+  ['滚动时要不要取消选中', '这里画的是：再点同一张、点空白处、点别的卡（选中移过去）、Esc 才取消；没有自动倒计时。滚动时也取消，还是保持？'],
   ['桌面的拖拽', '完成统一走点击；拖拽保留，只管 Backlog → Todo（Done 列没了，拖拽不再用来完成）。还是完全拿掉？（Ideas 9）'],
 ]
 document.getElementById('tap-questions').innerHTML = TAP_QUESTIONS.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
