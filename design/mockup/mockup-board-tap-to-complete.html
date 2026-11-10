@@ -712,13 +712,14 @@
 <!-- ═════════ F · Final: the four modules on one board (round 18) ═════════ -->
 <section class="screen on" data-screen="final">
   <div class="col-label"><b>F · Final · final version · decided 2026-11-09 · 修订 · amended 2026-11-10（第 25 轮：合进 M；桌面 Todo 加 Today、Todo 空了的提醒，这两样等你 review）</b> · P 进度圈 · C 庆祝 · D 做完的去哪 · T 点两下完成 · M 完成动画，合在一块 board 上<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px">每一块怎么来的，见后面五个 tab 和 <code>reviews/pr-115.md</code>。下面的 After 都能直接操作：点卡片选中，再点 <b>✓ Complete</b> 完成（只点卡片别处是取消）——卡片随机来一种 juice，再飞进今天的圈（M）；全部做完会播大反馈，Todo 空了留一块提醒。点今天或之前的某一格，看那天做完的；Backlog 点开，卡片上有 <b>↑ Todo</b>。<b>Complete all →</b> 一张张做完，直接看大反馈。Fixture：Thu Nov 5 12:40，今天做完 1 / 5。</p>
-  <div class="pz-tools"><button class="ghost-btn" data-fin-reset>Reset</button><button class="ghost-btn" data-fin-all>Complete all →</button></div>
+  <p class="note" style="margin-top:0;margin-bottom:14px">每一块怎么来的，见后面五个 tab 和 <code>reviews/pr-115.md</code>。下面的 After 都能直接操作：点卡片选中，再点 <b>✓ Complete</b> 完成（只点卡片别处是取消）——卡片随机来一种 juice，再飞进今天的圈（M）；全部做完会播大反馈，Todo 空了留一块提醒。点今天或之前的某一格，看那天做完的；Backlog 点开，卡片上有 <b>↑ Todo</b>。桌面和手机的 After 上面各有 <b>Complete all →</b>（一张张做完，直接看大反馈，可以拿来录 demo）和 <b>Reset</b>。Fixture：Thu Nov 5 12:40，今天做完 1 / 5。</p>
   <div class="col-label"><b>Before</b> · 现在的产品 · Desktop<span class="line"></span></div>
   <div id="fin-before-desk"></div>
   <div class="col-label spaced after"><b>After</b> · Desktop · 1280 px<span class="line"></span></div>
+  <div class="pz-tools"><button class="ghost-btn" data-fin-all="desk">Complete all →</button><button class="ghost-btn" data-fin-reset="desk">Reset</button></div>
   <div class="pz-desk dpane-desk" data-fin="desk" id="fin-desk"></div>
   <div class="col-label spaced"><b>Before → After</b> · Phone · 375 px<span class="line"></span></div>
+  <div class="pz-tools"><button class="ghost-btn" data-fin-all="phone">Complete all → · Phone</button><button class="ghost-btn" data-fin-reset="phone">Reset</button></div>
   <div class="phones" id="fin-phones"></div>
   <div class="col-label spaced"><b>解剖</b> · 每一块来自哪个模块<span class="line"></span></div>
   <ul class="openq" id="fin-ana"></ul>
@@ -917,7 +918,6 @@ const FIX = {
     {kind: 'habit', id: 'rd', title: 'Read', target: 3, doneSlots: [0], cur: 1, more: 1},
     {kind: 'project', name: 'Biomedical course', title: 'Lecture 5 — Immunity basics', n: 5, total: 9, doneSteps: [1, 2, 3], more: 1},
     {kind: 'project', name: 'Protein 3D viewer', title: 'Add residue picking', n: 3, total: 4, doneSteps: [1], more: 1},
-    {kind: 'oneoff', title: 'Renew passport', desc: 'Photos first — form DS-82', quadrant: 'Do first'},
   ],
   /* 7-day strip, Thu morning: past days = daily instances + what got done; today = Todo + done; future = daily instances only */
   stripNow: [{done: 3, planned: 3}, {done: 2, planned: 2}, {done: 2, planned: 3}, {done: 1, planned: 5}, {done: 0, planned: 1}, {done: 0, planned: 1}, {done: 0, planned: 1}],
@@ -1011,7 +1011,7 @@ document.addEventListener('click', event => {
 <script>
 /* ═══════════ ① Board · tap to complete — this mockup's own JS ═══════════ */
 const clone = value => JSON.parse(JSON.stringify(value));
-const SIZE_BEFORE = {Workout: 'M', 'Lecture 4 — Cell signaling': 'M', 'Render it with Mol*': 'L', 'File tax report': 'S', LeetCode: 'S', Read: 'XS', 'Lecture 5 — Immunity basics': 'M', 'Lecture 6 — Neurons': 'M', 'Add residue picking': 'M', 'Deploy the viewer': 'S', 'Renew passport': 'S'};
+const SIZE_BEFORE = {Workout: 'M', 'Lecture 4 — Cell signaling': 'M', 'Render it with Mol*': 'L', 'File tax report': 'S', LeetCode: 'S', Read: 'XS', 'Lecture 5 — Immunity basics': 'M', 'Lecture 6 — Neurons': 'M', 'Add residue picking': 'M', 'Deploy the viewer': 'S'};
 const withSize = model => ({...model, cadence: model.kind === 'habit' ? (model.cadence || FIX.habits.find(habit => habit.id === model.id)?.cadence || '') : undefined, size: SIZE_BEFORE[model.title] || 'XS'});
 
 /* ── Before: ProgressDashboard, desktop and phone (today's production, points and all) ── */
@@ -1050,10 +1050,9 @@ const BACKLOG_BEFORE = [
   {kind: 'project', name: 'Biomedical course', title: 'Lecture 6 — Neurons', n: 6, total: 9, doneSteps: [1, 2, 3]},
   {kind: 'project', name: 'Protein 3D viewer', title: 'Add residue picking', desc: 'Click a residue → highlight + label', n: 3, total: 4, doneSteps: [1]},
   {kind: 'project', name: 'Protein 3D viewer', title: 'Deploy the viewer', n: 4, total: 4, doneSteps: [1]},
-  {kind: 'oneoff', title: 'Renew passport', desc: 'Photos first — form DS-82', quadrant: 'Do first'},
 ];
 const backlogFrame = (count, body, shown = capped) => `<div class="backlog"><div class="backlog-head"><div class="backlog-title">${icon('inbox')}<span>Backlog</span><span class="badge-count" title="${count} staged tasks">${shown(count)}</span></div><span style="opacity:.5">${icon('right', 'sm')}</span></div><div class="backlog-hint">${icon('left', 'sm')}Drag tasks left to Todo to start working</div><div class="backlog-body">${body}</div></div>`;
-const backlogBefore = () => backlogFrame(8, BACKLOG_BEFORE.map(model => card(withSize(model), {showSize: true, drag: 'data-drag', cls: 'solid'})).join(''), String);
+const backlogBefore = () => backlogFrame(BACKLOG_BEFORE.length, BACKLOG_BEFORE.map(model => card(withSize(model), {showSize: true, drag: 'data-drag', cls: 'solid'})).join(''), String);
 /* main's mockup-board-backlog-grouping.html (PR #109, revised in #114): "+N more" counts what sits
    behind the next one; a habit and a project both sit on a pile of at most three sheets; only the
    project's "+N more ⌄" opens (its steps differ), a habit's is text */
@@ -1064,14 +1063,14 @@ function backlogCards(items = FIX.backlog, {pull = false} = {}) {
   const pullOf = idx => (pull ? pullBtn(idx) : '');
   const habit = (model, idx) => `<div class="grp"><div class="tc solid" data-kind="habit" data-drag><div class="tc-top">${icon('habit', 'sm')}<span class="ttl">${model.title}</span>${model.more ? moreText(model.more) : ''}</div><p class="tc-desc">${model.desc}</p><div class="tc-foot">${dots(model)}${pullOf(idx)}</div></div>${pile(model.more || 0)}</div>`;
   const project = (model, idx) => `<div class="grp"><div class="tc solid" data-kind="project" data-drag><div class="tc-head">${icon('project', 'xs')}<span class="name">${model.name}</span>${model.more ? moreText(model.more, true) : ''}</div><h3 class="tc-title">${model.title}</h3>${model.desc ? `<p class="tc-desc">${model.desc}</p>` : ''}<div class="tc-foot">${path({...model, cur: model.n})}${pullOf(idx)}</div></div>${pile(model.more || 0)}</div>`;
-  const oneoff = (model, idx) => card(model, {drag: 'data-drag', cls: 'solid', foot: pullOf(idx)});
   const indexed = items.map((item, idx) => [item, idx]);
   const habits = indexed.filter(([item]) => item.kind === 'habit').map(([item, idx]) => habit({...item, desc: FIX.habits.find(h => h.id === item.id).desc}, idx)).join('');
-  const others = indexed.filter(([item]) => item.kind !== 'habit').map(([item, idx]) => (item.kind === 'project' ? project({...item, desc: item.title === 'Add residue picking' ? 'Click a residue → highlight + label' : item.desc || ''}, idx) : oneoff(item, idx))).join('');
-  return `${habits ? `<div class="sec-label">Habits<span class="line"></span></div>${habits}` : ''}${others ? `<div class="sec-label">Projects · one-offs<span class="line"></span></div>${others}` : ''}`;
+  /* one-offs never sit in the backlog: they go from the priority matrix straight to the board */
+  const projects = indexed.filter(([item]) => item.kind === 'project').map(([item, idx]) => project({...item, desc: item.title === 'Add residue picking' ? 'Click a residue → highlight + label' : item.desc || ''}, idx)).join('');
+  return `${habits ? `<div class="sec-label">Habits<span class="line"></span></div>${habits}` : ''}${projects ? `<div class="sec-label">Projects<span class="line"></span></div>${projects}` : ''}`;
 }
-const backlogAfter = (items = FIX.backlog, {pull = false, count = 8} = {}) => backlogFrame(count, backlogCards(items, {pull}));
-const mobilePill = () => `<div class="pill mpill">${icon('inbox', 'sm')}<span>Backlog</span><span class="badge-count">8</span>${icon('chevUp', 'sm')}</div>`;
+const backlogAfter = (items = FIX.backlog, {pull = false, count = backlogCount({backlog: items})} = {}) => backlogFrame(count, backlogCards(items, {pull}));
+const mobilePill = () => `<div class="pill mpill">${icon('inbox', 'sm')}<span>Backlog</span><span class="badge-count">${BACKLOG_BEFORE.length}</span>${icon('chevUp', 'sm')}</div>`;
 
 /* ── Before screens (static) ── */
 function deskBefore() {
@@ -1976,12 +1975,15 @@ async function finAll(mode) {
   }
   state.playingAll = false;
 }
-function finReset() {
-  ['desk', 'phone'].forEach(mode => { fin[mode] = finSeed(); renderFin(mode); });
+function finReset(mode) {
+  fin[mode] = finSeed();
+  renderFin(mode);
 }
 document.addEventListener('click', event => {
-  if (event.target.closest('[data-fin-reset]')) { finReset(); return; }
-  if (event.target.closest('[data-fin-all]')) { finAll('desk'); finAll('phone'); return; }
+  const resetBtn = event.target.closest('[data-fin-reset]');
+  if (resetBtn) { finReset(resetBtn.dataset.finReset); return; }
+  const allBtn = event.target.closest('[data-fin-all]');
+  if (allBtn) { finAll(allBtn.dataset.finAll); return; }
   if (fin.desk.sel != null && !event.target.closest('#fin-desk')) { fin.desk.sel = null; renderFin('desk'); }
   const root = event.target.closest('[data-fin]');
   if (!root) return;
@@ -2035,7 +2037,7 @@ document.getElementById('fin-before-desk').innerHTML = deskBefore();
 document.getElementById('fin-phones').innerHTML = `${phoneBefore()}<div class="pz-phonewrap"><div class="pz-cap">After · 竖排全宽卡，点两下完成</div><div class="pz-phone done-phone fin-phone" data-fin="phone" id="fin-phone" style="width:359px"></div></div>`;
 document.getElementById('fin-ana').innerHTML = FIN_ANATOMY.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 document.getElementById('fin-later').innerHTML = FIN_LATER.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
-finReset();
+['desk', 'phone'].forEach(mode => finReset(mode));
 /* D · Todo 空了 (round 25): every card of today done, drawn statically with Final's markup */
 function todoEmptySeed() {
   const state = finSeed();
