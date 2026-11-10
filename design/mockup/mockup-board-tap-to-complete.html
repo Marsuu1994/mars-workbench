@@ -798,11 +798,11 @@
 <!-- ═════════ M · Complete motion (round 22, open) ═════════ -->
 <section class="screen" data-screen="motion">
   <div class="col-label"><b>M · 完成动画 · 第 22 轮 · 待定</b> · 卡片 complete 时的又一个反馈：快速倾斜、放大，然后消失<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px">接在定稿的小反馈里：点 <b>✓ Complete</b> → <b>卡片的动画</b>（这里比较的部分）→ 下面的卡滑上来 → 今天的圈接上一段、格子一跳；桌面上卡片同时出现在 Done 列最上面（现在的做法）。四种并排，每种都有手机和桌面；可以直接点两下完成，也可以按 <b>▶ Play</b>，<b>Slow ×4</b> 放慢四倍看细节。动画只动 transform 和 opacity：卡片在原位不改变占位（Principle 5.3），它走了以后下面的卡才滑上来。系统开了「减少动态效果」时，四种都只淡出 150 ms。</p>
+  <p class="note" style="margin-top:0;margin-bottom:14px">接在定稿的小反馈里：点 <b>✓ Complete</b> → <b>卡片的动画</b>（这里比较的部分）→ 下面的卡滑上来 → 今天的圈接上一段、格子一跳；桌面上卡片同时出现在 Done 列最上面（现在的做法）。四种并排，每种都有手机和桌面；可以直接点两下完成，也可以按 <b>▶ Play</b>，<b>Slow ×4</b> 放慢四倍看细节。按研究定的节奏：先 100–150 ms 减速放大，再 150–250 ms 加速离开，合计 300–400 ms（NN/g、Material 3）。动画只动 transform 和 opacity：卡片在原位不改变占位（Principle 5.3），它走了以后下面的卡才滑上来。系统开了「减少动态效果」时，四种都只淡出 150 ms（Apple HIG、WCAG 2.3.3）。</p>
   <div class="pz-tools"><button class="ghost-btn" data-mo-all>▶ Play all</button><button class="ghost-btn" data-mo-reset>Reset</button><button class="ghost-btn" data-mo-slow>Slow ×4</button><span class="hint">Play 会先选中第一张卡，再完成它。</span></div>
   <div id="mo-options"></div>
   <div class="col-label spaced"><b>Research</b> · 在哪见过 · 动画多长 · 减少动态效果<span class="line"></span></div>
-  <div class="patterns" id="mo-patterns"><p class="note">研究还在路上，下一次推送补上。</p></div>
+  <div class="patterns" id="mo-patterns"></div>
   <div class="col-label spaced"><b>要你定的</b><span class="line"></span></div>
   <ul class="openq" id="mo-questions"></ul>
 </section>
@@ -1999,8 +1999,11 @@ document.getElementById('fin-later').innerHTML = FIN_LATER.map(([title, body]) =
 finReset();
 /* ═══════════ M · Complete motion (round 22, open): four exits for a completed card, phone and desktop ═══════════ */
 const MO_EASE = 'cubic-bezier(.2, 0, 0, 1)';
+/* Material 3's emphasized accelerate, for the part that leaves */
+const MO_EXIT = 'cubic-bezier(.3, 0, .8, .15)';
+const MO_ARC = 36;
 const MO_LIFT = 'rotate(-4deg) scale(1.07)';
-const MO_T = {lift: 120, flight: 340, slide: 200, fade: 150};
+const MO_T = {lift: 120, flight: 280, slide: 200, fade: 150};
 const MO_DONE_SHOWN = 6;
 let moSlow = 1;
 const moMs = ms => ms * moSlow;
@@ -2008,22 +2011,22 @@ const moReduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const MO_VARIANTS = [
   {
     key: 'toss', letter: 'B', title: '抛到做完的地方：桌面飞进 Done 列，手机飞进今天的圈', tag: '推荐',
-    why: `<b>动作</b>：先向左歪 4°、放大到 1.07、浮起（120 ms），然后飞过去——<b>桌面</b>飞进 Done 列的最上面，一边飞一边转正、变暗，落下就是完成的样子；<b>手机</b>飞进今天的圈、缩成一个点，圈在它落下的那一刻接上一段。合计约 460 ms。<br><b>好在哪</b>：动画说清楚了卡去了哪——桌面是 Done 列，手机是今天的圈（那天的清单就在圈后面），两端是同一个 journey（Principle 4.2）；进度长出来的那一刻正好是卡落下的那一刻，小反馈和进度连成一件事。<br><b>差在哪</b>：四种里最长；连着完成几张时要等上一张飞完；飞行路线跨过别的卡，屏幕上东西多时会显得乱。`,
+    why: `<b>动作</b>：先向左歪 4°、放大到 1.07、浮起（120 ms），然后沿一条小弧线飞过去（280 ms）——<b>桌面</b>飞进 Done 列的最上面，一边飞一边转正、变暗，落下就是完成的样子；<b>手机</b>飞进今天的圈、缩成一个点，圈在它落下的那一刻接上一段。合计约 400 ms。<br><b>好在哪</b>：动画说清楚了卡去了哪——桌面是 Done 列，手机是今天的圈（那天的清单就在圈后面），两端是同一个 journey（Principle 4.2）；进度长出来的那一刻正好是卡落下的那一刻，小反馈和进度连成一件事。<br><b>差在哪</b>：和 D 并列最长；连着完成几张时要等上一张飞完；飞行路线跨过别的卡，屏幕上东西多时会显得乱。`,
   },
   {
     key: 'pop', letter: 'A', title: '弹一下就没：倾斜、放大，然后缩小淡掉', tag: '备选',
-    exit: (el, ms) => el.animate([{transform: 'none'}, {transform: 'rotate(-3deg) scale(1.06)', offset: 0.35}, {transform: 'rotate(-4deg) scale(.8)', opacity: 0}], {duration: ms(300), easing: MO_EASE, fill: 'forwards'}),
-    why: `<b>动作</b>：向左歪 3°、放大到 1.06（约 100 ms），然后缩到 0.8、淡掉（约 200 ms），下面的卡滑上来。桌面上 Done 列最上面出现完成的卡、亮一下（现在的做法）。合计约 300 ms。<br><b>好在哪</b>：就是你描述的那个动作；最短、最安静（Principle 2.3），连着完成几张也不拖。<br><b>差在哪</b>：没交代卡去了哪；桌面上 Done 列里那张看起来像「另一张卡」。`,
+    exit: (el, ms) => el.animate([{transform: 'none', easing: MO_EASE}, {transform: 'rotate(-3deg) scale(1.06)', offset: 0.35, easing: MO_EXIT}, {transform: 'rotate(-4deg) scale(.8)', opacity: 0}], {duration: ms(300), fill: 'forwards'}),
+    why: `<b>动作</b>：向左歪 3°、放大到 1.06（约 100 ms），然后加速缩到 0.8、淡掉（约 200 ms），下面的卡滑上来。桌面上 Done 列最上面出现完成的卡、亮一下（现在的做法）。合计约 300 ms。<br><b>好在哪</b>：就是你描述的那个动作；最短、最安静（Principle 2.3），连着完成几张也不拖。<br><b>差在哪</b>：没交代卡去了哪；桌面上 Done 列里那张看起来像「另一张卡」。`,
   },
   {
     key: 'dissolve', letter: 'C', title: '浮起化开：倾斜、放大，然后往上飘、模糊、淡掉', tag: '备选',
-    exit: (el, ms) => el.animate([{transform: 'none', filter: 'blur(0px)'}, {transform: 'rotate(-3deg) scale(1.06)', filter: 'blur(0px)', offset: 0.35}, {transform: 'rotate(-3deg) scale(1.1) translateY(-10px)', filter: 'blur(8px)', opacity: 0}], {duration: ms(380), easing: MO_EASE, fill: 'forwards'}),
-    why: `<b>动作</b>：歪一下、放大，然后往上飘 10 px、模糊、淡掉（约 380 ms）。桌面同 A。<br><b>好在哪</b>：最柔和，像「放下了」，不需要目的地。<br><b>差在哪</b>：和 A 一样没交代去处；模糊（filter）在低端手机上可能掉帧。`,
+    exit: (el, ms) => el.animate([{transform: 'none', filter: 'blur(0px)', easing: MO_EASE}, {transform: 'rotate(-3deg) scale(1.06)', filter: 'blur(0px)', offset: 0.35, easing: MO_EXIT}, {transform: 'rotate(-3deg) scale(1.1) translateY(-10px)', filter: 'blur(8px)', opacity: 0}], {duration: ms(360), fill: 'forwards'}),
+    why: `<b>动作</b>：歪一下、放大，然后往上飘 10 px、模糊、淡掉（约 360 ms）。桌面同 A。<br><b>好在哪</b>：最柔和，像「放下了」，不需要目的地。<br><b>差在哪</b>：和 A 一样没交代去处；模糊（filter）在低端手机上可能掉帧。`,
   },
   {
     key: 'juice', letter: 'D', title: '抖一下再弹：左右晃两下、放大，然后弹缩成一个点', tag: '备选',
-    exit: (el, ms) => el.animate([{transform: 'none'}, {transform: 'rotate(-5deg) scale(1.08)', offset: 0.2}, {transform: 'rotate(4deg) scale(1.1)', offset: 0.4}, {transform: 'rotate(-2deg) scale(1.08)', offset: 0.55}, {transform: 'rotate(0deg) scale(0)', opacity: 0}], {duration: ms(440), easing: 'cubic-bezier(.3, 0, .3, 1)', fill: 'forwards'}),
-    why: `<b>动作</b>：左右晃两下、放大到 1.1，然后弹缩成一个点（约 440 ms），像卡牌游戏里打出一张牌。桌面同 A。<br><b>好在哪</b>：最有游戏感、最「爽」。<br><b>差在哪</b>：最吵，每完成一张都这么跳，和「成就感要安静」（Principle 2.3）相冲；风格接近大庆祝，抢它的戏。`,
+    exit: (el, ms) => el.animate([{transform: 'none', easing: MO_EASE}, {transform: 'rotate(-5deg) scale(1.08)', offset: 0.2, easing: 'ease-in-out'}, {transform: 'rotate(4deg) scale(1.1)', offset: 0.4, easing: 'ease-in-out'}, {transform: 'rotate(-2deg) scale(1.08)', offset: 0.55, easing: MO_EXIT}, {transform: 'rotate(0deg) scale(0)', opacity: 0}], {duration: ms(400), fill: 'forwards'}),
+    why: `<b>动作</b>：左右晃两下、放大到 1.1，然后弹缩成一个点（约 400 ms），像 Balatro 里的牌。桌面同 A。<br><b>好在哪</b>：最有游戏感、最「爽」。<br><b>差在哪</b>：最吵，每完成一张都这么跳，和「成就感要安静」（Principle 2.3）相冲；风格接近大庆祝，抢它的戏。`,
   },
 ];
 const MO_QUESTIONS = [
@@ -2082,7 +2085,7 @@ async function moComplete(key, mode, idx) {
       const to = root.querySelector('.pz-day.today .pz-ringwrap').getBoundingClientRect();
       const dx = to.left + to.width / 2 - (from.left + from.width / 2);
       const dy = to.top + to.height / 2 - (from.top + from.height / 2);
-      await cardEl.animate([{transform: MO_LIFT, opacity: 1}, {transform: `translate(${dx}px, ${dy}px) rotate(10deg) scale(.1)`, opacity: 0.3}], {duration: moMs(MO_T.flight), easing: 'cubic-bezier(.4, 0, 1, 1)', fill: 'forwards'}).finished;
+      await cardEl.animate([{transform: MO_LIFT, opacity: 1}, {transform: `translate(${dx / 2 + MO_ARC}px, ${dy / 2}px) rotate(4deg) scale(.55)`, opacity: 0.8, offset: 0.5}, {transform: `translate(${dx}px, ${dy}px) rotate(10deg) scale(.1)`, opacity: 0.3}], {duration: moMs(MO_T.flight), easing: MO_EXIT, fill: 'forwards'}).finished;
     } else landing = cardEl.getBoundingClientRect();
   } else {
     await variant.exit(cardEl, moMs).finished;
@@ -2102,7 +2105,10 @@ async function moComplete(key, mode, idx) {
     });
     if (landing && !moReduced()) {
       const to = doneEls[0].getBoundingClientRect();
-      doneEls[0].animate([{transform: `translate(${landing.left - to.left}px, ${landing.top - to.top}px) rotate(-4deg) scale(${landing.width / to.width})`, opacity: 1}, {transform: 'none', opacity: 0.5}], {duration: moMs(MO_T.flight), easing: MO_EASE});
+      const dx = landing.left - to.left;
+      const dy = landing.top - to.top;
+      const scale = landing.width / to.width;
+      doneEls[0].animate([{transform: `translate(${dx}px, ${dy}px) rotate(-4deg) scale(${scale})`, opacity: 1}, {transform: `translate(${dx / 2}px, ${dy / 2 - MO_ARC}px) rotate(-2deg) scale(${(scale + 1) / 2})`, opacity: 0.8, offset: 0.5}, {transform: 'none', opacity: 0.5}], {duration: moMs(MO_T.flight), easing: MO_EASE});
     }
   } else {
     root.querySelectorAll('.pz-day.today').forEach(cell => { cell.classList.remove('tick'); void cell.offsetWidth; cell.classList.add('tick'); });
@@ -2156,6 +2162,16 @@ document.addEventListener('click', event => {
   if (card) { moTap(key, mode, Number(card.dataset.armIdx), Boolean(event.target.closest('[data-arm-complete]'))); return; }
   if (mo[key][mode].armed != null) { mo[key][mode].armed = null; moRender(key, mode); }
 });
+const MO_PATTERNS = [
+  ['倾斜、晃动、放大：卡牌游戏的 juice', 'Balatro · Slay the Spire · Hearthstone', 'Balatro 的每张牌都会倾斜、晃动、放大；1.0.1f 加了 Reduced Motion 开关，关掉「gyrating card motion」（<a href="https://www.videogameschronicle.com/news/balatros-first-major-update-tweaks-difficulty-adds-new-joker-types/">VGC</a>）。角度和时长没有官方数字，第三方估计约 ±3°、300 ms（<a href="https://blakecrosley.com/guides/design/balatro">第三方</a>）。Slay the Spire、Hearthstone 打出一张牌时先放大再飞走——没找到描述它的来源，未核实。', '→ 你记得的很可能是卡牌游戏这一类：D 最像 Balatro，B 像「打出去、飞进弃牌堆」。'],
+  ['划走时跟着旋转、飞出', 'Tinder', '拖着卡往旁边走，卡跟着旋转，过了阈值就飞出去；没有官方规格（<a href="https://framer.university/blog/creating-tinder-like-swipe-cards-in-framer">复刻教程</a>）。', '→ B「歪着飞走」的另一个来源。'],
+  ['待办 app 自己的完成动画都很克制', 'Things 3 · Todoist · Clear · Asana', 'Things：圈填满、✓、整行滑走、空位合上（<a href="https://blakecrosley.com/guides/design/things">第三方分析</a>）；Todoist：做完就从列表消失，可选提示音（<a href="https://todoist.com/help/articles/complete-or-uncomplete-a-task">Todoist</a>）；Clear：清除已完成时字母抖一下再炸开（<a href="https://builtformars.com/company/clear">Built for Mars</a>）；Asana：连着完成几个，独角兽之类偶尔飞过屏幕，是叠在上面的一层，任务本身不动（<a href="https://asana.com/inside-asana/new-celebrations">Asana</a>）。Microsoft To Do 只有一声 ding；TickTick、Reminders、Trello、Sunsama 没找到倾斜放大的动画。', '→ 待办工具里没有现成的「倾斜放大再离开」，这是从游戏借来的手感，所以要短、要安静。'],
+  ['Juice 要有，但要合语境', 'GDC · Jonasson & Purho · Folmer Kelly', '「Juice it or lose it」（2012）现场把一个无聊的游戏加满反馈（<a href="https://www.gdcvault.com/play/1016487/Juice-It-or-Lose">GDC</a>）；两年后的「Don\'t juice it or lose it」提醒：不合语境的弹跳会伤害沉浸感（<a href="https://www.gdcvault.com/play/1020861/Don-t-Juice-It-or">GDC</a>）。', '→ 每天要做很多次的动作，juice 要轻；D 最重。'],
+  ['多长、怎么加速', 'NN/g · Material 3', 'NN/g：大多数动画 100–500 ms，简单反馈约 100 ms，500 ms 以上就拖；离开比进来短，离开用 ease-in；越常见的越短（<a href="https://www.nngroup.com/articles/animation-duration/">NN/g</a>）。M3：离开用加速曲线 <code>cubic-bezier(0.3, 0, 0.8, 0.15)</code>，短的 50–200 ms、中等 250–400 ms（<a href="https://github.com/material-components/material-components-android/blob/master/docs/theming/Motion.md">Material</a>）。', '→ 四种都收到 300–400 ms：先减速放大，再加速离开。'],
+  ['移到目的地：FLIP，走弧线', 'Paul Lewis · Material · View Transitions', 'FLIP：量出起点和终点，用 transform 反推再播放，只动 transform 和 opacity（<a href="https://aerotwist.com/blog/flip-your-animations/">aerotwist</a>）；View Transitions API 在 DOM 更新前后让同名元素变形过去（<a href="https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API">MDN</a>）；Material：屏幕里的移动走一条自然的凹弧线（<a href="https://m1.material.io/motion/movement.html">Material</a>）。', '→ B 的飞行用 FLIP，走一点弧线；实现时可以考虑 View Transitions。'],
+  ['减少动态效果：只淡出', 'Apple HIG · WCAG 2.3.3 · MDN', 'HIG：开了 Reduce Motion 就少用缩放、位移，换成淡入淡出（<a href="https://developer.apple.com/design/human-interface-guidelines/accessibility">Apple</a>）；WCAG：只改透明度或颜色不算动画（<a href="https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions.html">W3C</a>）；MDN 的例子把缩放换成淡出（<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion">MDN</a>）。', '→ 四种在减少动态效果下都只淡出 150 ms。'],
+];
+document.getElementById('mo-patterns').innerHTML = MO_PATTERNS.map(([title, who, body, fit]) => `<div class="pat"><h4>${title}</h4><div class="who">${who}</div>${body}<div class="fit">${fit}</div></div>`).join('');
 moReset();
 </script>
 </body>
