@@ -680,6 +680,7 @@
   .mo-list { padding: 10px 12px 16px; display: flex; flex-direction: column; gap: 8px; }
   .mo-desk { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px; min-height: 520px; border: 1px solid var(--card-border); border-radius: 14px; background: color-mix(in oklab, var(--b2) 60%, transparent); }
   .mo-desk .column, .mo-desk .column-body { overflow: visible; max-height: none; }
+  .mo-desk > .pz-row { grid-column: 1 / -1; margin: -12px -12px 0; border-radius: 14px 14px 0 0; }
   .mo-col { display: flex; flex-direction: column; }
   .mo-col > .column { flex: 1; }
   .mo-cap { font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-45); margin-bottom: 6px; }
@@ -700,7 +701,7 @@
 
 <header class="topbar">
   <div>
-    <div class="eyebrow">Board · Phase 2 · design PR · final version · decided 2026-11-09 · 第 1 轮 2026-11-06 · 第 2–18 轮一个模块一个模块定，最后合在一起 · 第 22–23 轮：M · 完成动画（基准定稿，juice 待定）</div>
+    <div class="eyebrow">Board · Phase 2 · design PR · final version · decided 2026-11-09 · 第 1 轮 2026-11-06 · 第 2–18 轮一个模块一个模块定，最后合在一起 · 第 22–24 轮：M · 完成动画（还没定稿，等 owner approve）</div>
     <h1>Board：点一下选中，✓ Complete 完成</h1>
     <p>有 active plan 的白天，默认屏就是 board。第一个 tab <b>F · Final</b> 是合在一起的定稿：Before 是现在的产品，After 是 P · Progress、C · Celebration、D · Done、T · Tap twice 四个模块合起来的样子，桌面和手机都能直接点。后面四个 tab 是每个模块的决定和研究；<b>I · Ideas</b> 记着这个设计带出来、要在别处或以后做的事。第 1 轮的 1–6 屏已被这些决定取代，留在 commit 历史里（<code>53d9220</code> 及以前）。</p>
   </div>
@@ -807,14 +808,14 @@
 
 <!-- ═════════ M · Complete motion (rounds 22–23) ═════════ -->
 <section class="screen" data-screen="motion">
-  <div class="col-label"><b>M · 完成动画 · 基准定稿 · decided 2026-11-10 · 变化待定（第 23 轮）</b> · 卡片抛到做完的地方，每次随机来一种 Balatro 式的「juice」<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px"><b>方向（第 23 轮）</b>：<b>削弱阻力，放大反馈</b>。还没做的事要安静、不压人；做完的那一刻要响、要像游戏，参照 Balatro。所以第 22 轮的 A（弹一下就没）、C（浮起化开）、D（抖一下再弹）删掉（留在 commit <code>c4ee0d8</code>），<b>B「抛到做完的地方」是基准</b>：手机飞进今天的圈，桌面飞进 Done 列最上面——桌面这一段放慢、走一条平滑的弧线（约 650 ms）。飞之前，卡片先来一下 <b>juice</b>，每次从下面四种里<b>随机挑一种</b>（不会连着两次一样），以后可以再加。系统开了「减少动态效果」时只淡出 150 ms。</p>
+  <div class="col-label"><b>M · 完成动画 · 第 22–24 轮 · 还没定稿，等你 approve</b> · 卡片先来一下随机的 Balatro 式「juice」，再飞进今天的圈<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:14px"><b>方向（第 23 轮）</b>：<b>削弱阻力，放大反馈</b>。还没做的事要安静、不压人；做完的那一刻要响、要像游戏，参照 Balatro。所以第 22 轮的 A（弹一下就没）、C（浮起化开）、D（抖一下再弹）删掉（留在 commit <code>c4ee0d8</code>），以 <b>B「抛到做完的地方」</b>为基准。<b>第 24 轮</b>：桌面不再飞进 Done 列（第 23 轮那版留在 commit <code>6a11869</code>），<b>两端统一飞进今天的圈</b>——桌面也画出一周的进度圈，卡片和手机一样沿一条弧线飞进今天那格（约 300 ms），圈接上一段；Done 列照现在的产品，新完成的卡出现在最上面、亮一下。飞之前，卡片先来一下 <b>juice</b>，每次从下面四种里<b>随机挑一种</b>（不会连着两次一样；四种都留，第 24 轮），以后可以再加。系统开了「减少动态效果」时只淡出 150 ms。<b>还没定稿</b>：等你 approve，之后再合进 F · Final。</p>
   <div class="pz-tools"><button class="ghost-btn" data-mo-play="random">▶ Play · 随机</button><span class="mo-pick">指定一种：<button class="ghost-btn" data-mo-play="wobble">Wobble</button><button class="ghost-btn" data-mo-play="shine">Shine</button><button class="ghost-btn" data-mo-play="burst">Burst</button><button class="ghost-btn" data-mo-play="flip">Flip</button></span><button class="ghost-btn" data-mo-reset>Reset</button><button class="ghost-btn" data-mo-slow>Slow ×4</button><span class="hint" id="mo-last">点两下卡片完成，或者按 Play。</span></div>
   <div class="pz-opt rec" data-motion="toss">
-    <div class="opt-head"><span class="letter">B</span><h3>抛到做完的地方 + 随机 juice</h3><span class="tag">基准定稿</span></div>
-    <div class="mo-row"><div><div class="mo-cap">Phone · 飞进今天的圈</div><div class="mo-phone" data-mo-mode="phone"></div></div><div><div class="mo-cap">Desktop · 飞进 Done 列</div><div class="mo-desk" data-mo-mode="desk"></div></div></div>
+    <div class="opt-head"><span class="letter">B</span><h3>随机 juice + 飞进今天的圈</h3><span class="tag">待 approve</span></div>
+    <div class="mo-row"><div><div class="mo-cap">Phone · 飞进今天的圈</div><div class="mo-phone" data-mo-mode="phone"></div></div><div><div class="mo-cap">Desktop · 飞进今天的圈，Done 列照旧</div><div class="mo-desk" data-mo-mode="desk"></div></div></div>
   </div>
-  <div class="col-label spaced"><b>四种 juice</b> · 仿 Balatro · 随机触发<span class="line"></span></div>
+  <div class="col-label spaced"><b>四种 juice</b> · 仿 Balatro · 随机触发 · 四种都留（第 24 轮）<span class="line"></span></div>
   <div class="patterns" id="mo-juice"></div>
   <div class="col-label spaced"><b>Research</b> · 在哪见过 · 节奏 · 减少动态效果<span class="line"></span></div>
   <div class="patterns" id="mo-patterns"></div>
@@ -835,7 +836,7 @@
   <button data-screen-btn="celebration">C · Celebration ✓</button>
   <button data-screen-btn="done">D · Done ✓</button>
   <button data-screen-btn="tap">T · Tap twice ✓</button>
-  <button data-screen-btn="motion">M · 完成动画 ✓</button>
+  <button data-screen-btn="motion">M · 完成动画</button>
   <button data-screen-btn="ideas">I · Ideas</button>
 </nav>
 
@@ -2012,15 +2013,13 @@ document.getElementById('fin-phones').innerHTML = `${phoneBefore()}<div class="p
 document.getElementById('fin-ana').innerHTML = FIN_ANATOMY.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 document.getElementById('fin-later').innerHTML = FIN_LATER.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 finReset();
-/* ═══════════ M · Complete motion (rounds 22–23): toss the card where done work lives, after a random juice ═══════════ */
+/* ═══════════ M · Complete motion (rounds 22–24, not decided): a random juice, then the card is tossed into today's ring ═══════════ */
 const MO_EASE = 'cubic-bezier(.2, 0, 0, 1)';
 /* Material 3's emphasized accelerate, for the part that leaves */
 const MO_EXIT = 'cubic-bezier(.3, 0, .8, .15)';
-/* a long, smooth landing for the desktop flight */
-const MO_GLIDE = 'cubic-bezier(.22, 1, .36, 1)';
 const MO_ARC = 48;
 const MO_LIFT = 'rotate(-4deg) scale(1.07)';
-const MO_T = {phoneFlight: 300, deskFlight: 650, slide: 220, fade: 150};
+const MO_T = {flight: 300, slide: 220, fade: 150};
 const MO_DONE_SHOWN = 6;
 let moSlow = 1;
 let moLast = null;
@@ -2086,10 +2085,9 @@ const MO_JUICE = [
   },
 ];
 const MO_QUESTIONS = [
-  ['四种 juice 都留吗', 'Wobble · Shine · Burst · Flip 随机，不连着重复。哪种不要、哪种要加强，或者再加新的（比如盖一个 ✓ 章、整块屏幕震一下）。'],
-  ['桌面的飞行速度', '现在约 650 ms，一条平滑的弧线，落下时转正、变暗。还要更慢还是刚好？'],
   ['要不要声音', 'Balatro 的爽感有一半来自声音。完成时加一声短促的音效（可关），要不要？要的话记进 future ideas 还是这次就画进来？'],
-];
+  ['M 可以定稿了吗', '你 approve 以后，M 才标成定稿，再合进 F · Final：Final 里完成一张卡，从现在的淡出换成 juice + 飞进今天的圈。'],
+]
 const mo = {};
 const moSeedMode = () => ({
   todo: clone(FIX.todo),
@@ -2107,7 +2105,7 @@ function moRender(key, mode) {
     root.innerHTML = `<div class="pz-row">${dayCell(state.days, FIX.todayIndex, {todayCopy: finCopy})}</div><div class="mo-list">${cards}</div>`;
   } else {
     const done = state.done.slice(0, MO_DONE_SHOWN).map((item, index) => doneCard(item, moHabitSlot(item), index === 0 && state.fresh === item)).join('');
-    root.innerHTML = `<div class="mo-col">${column('Todo', state.todo.length, cards)}</div><div class="mo-col">${column('Done', state.done.length, done, {done: true})}</div>`;
+    root.innerHTML = `${ringRow(state.days, 'desk', 0, {todayCopy: finCopy})}<div class="mo-col">${column('Todo', state.todo.length, cards)}</div><div class="mo-col">${column('Done', state.done.length, done, {done: true})}</div>`;
   }
   animateArcs(root, before);
   state.fresh = null;
@@ -2122,20 +2120,21 @@ function moSlide(root, selector, before) {
     if (shift) el.animate([{transform: `translateY(${shift}px)`}, {transform: 'none'}], {duration: moMs(MO_T.slide), easing: MO_EASE});
   });
 }
-/* a smooth arc: a quadratic curve sampled into keyframes, eased as a whole */
-function moArcFrames(dx, dy, {fromTransform = '', toScale = 1, fromScale = 1, fromRotate = -4, toRotate = 0, fromOpacity = 1, toOpacity = 1, lift = MO_ARC}) {
-  const control = {x: dx / 2, y: Math.min(dy, 0) / 2 - lift};
+/* the toss, the same on both widths: from the card (0, 0) to today's ring (dx, dy) along a quadratic arc, shrinking into it */
+function moToss(cardEl, ringEl) {
+  const from = cardEl.getBoundingClientRect();
+  const to = ringEl.getBoundingClientRect();
+  const dx = to.left + to.width / 2 - (from.left + from.width / 2);
+  const dy = to.top + to.height / 2 - (from.top + from.height / 2);
+  const control = {x: dx / 2, y: Math.min(dy, 0) / 2 - MO_ARC};
   const frames = [];
-  const steps = 16;
-  for (let step = 0; step <= steps; step++) {
-    const t = step / steps;
-    const x = (1 - t) * (1 - t) * dx + 2 * (1 - t) * t * control.x;
-    const y = (1 - t) * (1 - t) * dy + 2 * (1 - t) * t * control.y;
-    const scale = fromScale + (toScale - fromScale) * t;
-    const rotate = fromRotate + (toRotate - fromRotate) * t;
-    frames.push({transform: `${fromTransform}translate(${x}px, ${y}px) rotate(${rotate}deg) scale(${scale})`, opacity: fromOpacity + (toOpacity - fromOpacity) * t});
+  for (let step = 0; step <= 16; step++) {
+    const t = step / 16;
+    const x = 2 * (1 - t) * t * control.x + t * t * dx;
+    const y = 2 * (1 - t) * t * control.y + t * t * dy;
+    frames.push({transform: `translate(${x}px, ${y}px) rotate(${-4 + 16 * t}deg) scale(${1.07 - 0.97 * t})`, opacity: 1 - 0.7 * t});
   }
-  return frames;
+  return cardEl.animate(frames, {duration: moMs(MO_T.flight), easing: MO_EXIT, fill: 'forwards'}).finished;
 }
 function moPickJuice(forced) {
   if (forced && forced !== 'random') return MO_JUICE.find(juice => juice.key === forced);
@@ -2150,54 +2149,25 @@ async function moComplete(key, mode, idx, juice) {
   state.busy = true;
   state.armed = null;
   const todoBefore = moTitleRects(root, '[data-arm-idx]');
-  const doneBefore = [...root.querySelectorAll('.done-card')].map(el => el.getBoundingClientRect());
   navigator.vibrate?.([12, 40, 24]);
-  let landing = null;
   if (moReduced()) {
     await cardEl.animate([{opacity: 1}, {opacity: 0}], {duration: MO_T.fade, fill: 'forwards'}).finished;
   } else {
     await juice.play(cardEl, root, kind, moMs).finished;
-    if (mode === 'phone') {
-      const from = cardEl.getBoundingClientRect();
-      const to = root.querySelector('.pz-day.today .pz-ringwrap').getBoundingClientRect();
-      const dx = to.left + to.width / 2 - (from.left + from.width / 2);
-      const dy = to.top + to.height / 2 - (from.top + from.height / 2);
-      /* from the card (0, 0) to the ring (dx, dy), along the same kind of arc, shrinking into it */
-      const control = {x: dx / 2, y: Math.min(dy, 0) / 2 - MO_ARC};
-      const phoneFrames = [];
-      for (let step = 0; step <= 16; step++) {
-        const t = step / 16;
-        const x = 2 * (1 - t) * t * control.x + t * t * dx;
-        const y = 2 * (1 - t) * t * control.y + t * t * dy;
-        phoneFrames.push({transform: `translate(${x}px, ${y}px) rotate(${-4 + 16 * t}deg) scale(${1.07 - 0.97 * t})`, opacity: 1 - 0.7 * t});
-      }
-      await cardEl.animate(phoneFrames, {duration: moMs(MO_T.phoneFlight), easing: MO_EXIT, fill: 'forwards'}).finished;
-    } else landing = cardEl.getBoundingClientRect();
+    await moToss(cardEl, root.querySelector('.pz-day.today .pz-ringwrap'));
   }
   const [model] = state.todo.splice(idx, 1);
   const entry = {kind: model.kind, title: model.title, name: model.name};
   state.days[FIX.todayIndex][model.kind][0] += 1;
+  /* desktop's Done column as the product has it now: the new card on top, lit once */
   state.done.unshift(entry);
-  state.fresh = landing ? null : entry;
+  state.fresh = entry;
   moRender(key, mode);
   moSlide(root, '[data-arm-idx]', todoBefore);
-  if (mode === 'desk') {
-    const doneEls = [...root.querySelectorAll('.done-card')];
-    doneEls.slice(1).forEach((el, index) => {
-      const old = doneBefore[index];
-      if (old) el.animate([{transform: `translateY(${old.top - el.getBoundingClientRect().top}px)`}, {transform: 'none'}], {duration: moMs(MO_T.deskFlight * 0.6), easing: MO_GLIDE});
-    });
-    if (landing && !moReduced()) {
-      const to = doneEls[0].getBoundingClientRect();
-      const frames = moArcFrames(landing.left - to.left, landing.top - to.top, {fromScale: landing.width / to.width, toScale: 1, fromRotate: -4, toRotate: 0, fromOpacity: 1, toOpacity: 0.5});
-      doneEls[0].animate(frames, {duration: moMs(MO_T.deskFlight), easing: MO_GLIDE});
-    }
-  } else {
-    root.querySelectorAll('.pz-day.today').forEach(cell => { cell.classList.remove('tick'); void cell.offsetWidth; cell.classList.add('tick'); });
-    if (isClosed(state.days[FIX.todayIndex])) {
-      FIN_VARIANT.onBig(root, state.days[FIX.todayIndex]);
-      root.querySelectorAll('.cel-empty').forEach(el => el.classList.add('enter'));
-    }
+  root.querySelectorAll('.pz-day.today').forEach(cell => { cell.classList.remove('tick'); void cell.offsetWidth; cell.classList.add('tick'); });
+  if (isClosed(state.days[FIX.todayIndex])) {
+    FIN_VARIANT.onBig(root, state.days[FIX.todayIndex]);
+    root.querySelectorAll('.cel-empty').forEach(el => el.classList.add('enter'));
   }
   state.busy = false;
 }
@@ -2250,11 +2220,11 @@ document.addEventListener('click', event => {
   if (mo.toss[mode].armed != null) { mo.toss[mode].armed = null; moRender('toss', mode); }
 });
 const MO_PATTERNS = [
-  ['倾斜、晃动、放大、闪光：卡牌游戏的 juice', 'Balatro', 'Balatro 的每张牌都会倾斜、晃动、放大，闪卡有反光；1.0.1f 加了 Reduced Motion 开关，关掉「gyrating card motion」（<a href="https://www.videogameschronicle.com/news/balatros-first-major-update-tweaks-difficulty-adds-new-joker-types/">VGC</a>）。角度和时长没有官方数字，第三方估计约 ±3°、300 ms（<a href="https://blakecrosley.com/guides/design/balatro">第三方</a>）。Slay the Spire、Hearthstone 打出一张牌时先放大再飞走——没找到来源，未核实。', '→ 四种 juice 都从这里来；飞进 Done / 圈像「打出去、进弃牌堆」。'],
+  ['倾斜、晃动、放大、闪光：卡牌游戏的 juice', 'Balatro', 'Balatro 的每张牌都会倾斜、晃动、放大，闪卡有反光；1.0.1f 加了 Reduced Motion 开关，关掉「gyrating card motion」（<a href="https://www.videogameschronicle.com/news/balatros-first-major-update-tweaks-difficulty-adds-new-joker-types/">VGC</a>）。角度和时长没有官方数字，第三方估计约 ±3°、300 ms（<a href="https://blakecrosley.com/guides/design/balatro">第三方</a>）。Slay the Spire、Hearthstone 打出一张牌时先放大再飞走——没找到来源，未核实。', '→ 四种 juice 都从这里来；飞进今天的圈像「打出去、进弃牌堆」。'],
   ['Juice 要有，但要合语境', 'GDC · Jonasson & Purho · Folmer Kelly', '「Juice it or lose it」（2012）现场把一个无聊的游戏加满反馈（<a href="https://www.gdcvault.com/play/1016487/Juice-It-or-Lose">GDC</a>）；「Don\'t juice it or lose it」（2014）提醒：不合语境的效果会伤害体验（<a href="https://www.gdcvault.com/play/1020861/Don-t-Juice-It-or">GDC</a>）。', '→ 响只给「做完」这一刻；静态的界面照样安静（Principle 6.1）。'],
   ['待办 app 自己的完成动画都很克制', 'Things 3 · Todoist · Clear · Asana', 'Things：圈填满、整行滑走（<a href="https://blakecrosley.com/guides/design/things">第三方分析</a>）；Todoist：做完就消失，可选提示音（<a href="https://todoist.com/help/articles/complete-or-uncomplete-a-task">Todoist</a>）；Clear：清除时字母抖一下再炸开（<a href="https://builtformars.com/company/clear">Built for Mars</a>）；Asana：偶尔有独角兽飞过屏幕（<a href="https://asana.com/inside-asana/new-celebrations">Asana</a>）。', '→ 这些都不够响；我们故意往游戏那边走，这是差异。'],
   ['节奏', 'NN/g · Material 3', 'NN/g：大多数动画 100–500 ms，常见的动画要短（<a href="https://www.nngroup.com/articles/animation-duration/">NN/g</a>）；M3：离开用加速曲线 <code>cubic-bezier(0.3, 0, 0.8, 0.15)</code>（<a href="https://github.com/material-components/material-components-android/blob/master/docs/theming/Motion.md">Material</a>）。', '→ 我们故意更长（juice 340–440 ms + 飞行），因为这是奖励；实现时不能挡住下一次点击。'],
-  ['移到目的地：FLIP，走弧线', 'Paul Lewis · Material · View Transitions', 'FLIP：量出起点和终点，用 transform 反推再播放（<a href="https://aerotwist.com/blog/flip-your-animations/">aerotwist</a>）；View Transitions API 让同名元素在 DOM 更新前后变形过去（<a href="https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API">MDN</a>）；屏幕里的移动走一条自然的弧线（<a href="https://m1.material.io/motion/movement.html">Material</a>）。', '→ 飞行用 FLIP，弧线按二次曲线采样，整体缓动，所以更顺。'],
+  ['移到目的地：FLIP，走弧线', 'Paul Lewis · Material · View Transitions', 'FLIP：量出起点和终点，用 transform 反推再播放（<a href="https://aerotwist.com/blog/flip-your-animations/">aerotwist</a>）；View Transitions API 让同名元素在 DOM 更新前后变形过去（<a href="https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API">MDN</a>）；屏幕里的移动走一条自然的弧线（<a href="https://m1.material.io/motion/movement.html">Material</a>）。', '→ 飞行先量出卡片和今天那格的位置，只动 transform，沿一条按二次曲线采样的弧线飞过去。'],
   ['减少动态效果：只淡出', 'Apple HIG · WCAG 2.3.3 · MDN', 'HIG：开了 Reduce Motion 就把缩放、位移换成淡入淡出（<a href="https://developer.apple.com/design/human-interface-guidelines/accessibility">Apple</a>）；WCAG：只改透明度不算动画（<a href="https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions.html">W3C</a>）；Balatro 自己也有关掉卡牌动作的开关。', '→ 减少动态效果时只淡出 150 ms，没有 juice、没有飞行。'],
 ];
 document.getElementById('mo-patterns').innerHTML = MO_PATTERNS.map(([title, who, body, fit]) => `<div class="pat"><h4>${title}</h4><div class="who">${who}</div>${body}<div class="fit">${fit}</div></div>`).join('');

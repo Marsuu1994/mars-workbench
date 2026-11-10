@@ -158,8 +158,7 @@ gets the big one. Good: a card's toss, then the ring's spin and sparks when the 
 is done.
 
 **3.4 Feedback lands somewhere.** The reward shows where the work went. Good: the card
-flies into the Done column on desktop and into today's ring on phones, and the ring
-grows as it lands.
+flies into today's ring on both widths, and the ring grows as it lands.
 
 ### 4. Hierarchy — the important at a glance
 

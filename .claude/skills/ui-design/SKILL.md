@@ -29,7 +29,7 @@ Rewrite the tracker item to say what the design does and link the mockup. Open t
 
 ## 5. Review rounds
 
-The owner answers on the PR or in a local session, and often decides on seeing — "draw it and let me look", "take it out and let me see" — so answer a doubt with a drawing, not an argument. Each round: change the mockup, push, answer each point, and log the round in `reviews/pr-<NNN>.md` (`reviews/AGENTS.md`; local-session rounds too). When the owner picks and when the owner calls it decided, the mockup follows `design/README.md` › Mockups, and the tracker item says decided.
+The owner answers on the PR or in a local session, and often decides on seeing — "draw it and let me look", "take it out and let me see" — so answer a doubt with a drawing, not an argument. Each round: change the mockup, push, answer each point, and log the round in `reviews/pr-<NNN>.md` (`reviews/AGENTS.md`; local-session rounds too). A pick is not approval: only the owner's explicit approval makes a design or a module decided (`design/README.md` › Mockups); then the tracker item says decided.
 
 ## 6. Handoff
 
