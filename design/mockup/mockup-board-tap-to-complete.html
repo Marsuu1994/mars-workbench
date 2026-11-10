@@ -672,13 +672,25 @@
   .bk-sheet .dp-head span { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--ink-55); }
   .bk-sheet .dp-head .x { margin-left: auto; color: var(--ink-45); display: grid; }
   .bk-body { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+  /* round 22: completion motion */
+  .mo-row { display: grid; grid-template-columns: 300px minmax(600px, 1fr); gap: 16px; align-items: start; margin-top: 12px; overflow-x: auto; }
+  .mo-phone { box-sizing: border-box; width: 300px; min-height: 520px; border: 6px solid color-mix(in oklab, var(--bc) 16%, var(--b3)); border-radius: 30px; background: var(--b2); overflow: hidden; display: flex; flex-direction: column; }
+  .mo-phone .pz-row { padding: 10px 12px; border-bottom: 1px solid var(--card-border); }
+  .mo-phone .pz-day.today { flex: 1; }
+  .mo-list { padding: 10px 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .mo-desk { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px; min-height: 520px; border: 1px solid var(--card-border); border-radius: 14px; background: color-mix(in oklab, var(--b2) 60%, transparent); }
+  .mo-desk .column, .mo-desk .column-body { overflow: visible; max-height: none; }
+  .mo-col { display: flex; flex-direction: column; }
+  .mo-col > .column { flex: 1; }
+  .mo-cap { font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-45); margin-bottom: 6px; }
+  [data-mo-slow].on { color: var(--p); border-color: var(--p); }
 </style>
 </head>
 <body>
 
 <header class="topbar">
   <div>
-    <div class="eyebrow">Board · Phase 2 · design PR · final version · decided 2026-11-09 · 第 1 轮 2026-11-06 · 第 2–18 轮一个模块一个模块定，最后合在一起</div>
+    <div class="eyebrow">Board · Phase 2 · design PR · final version · decided 2026-11-09 · 第 1 轮 2026-11-06 · 第 2–18 轮一个模块一个模块定，最后合在一起 · 第 22 轮起：M · 完成动画（待定）</div>
     <h1>Board：点一下选中，✓ Complete 完成</h1>
     <p>有 active plan 的白天，默认屏就是 board。第一个 tab <b>F · Final</b> 是合在一起的定稿：Before 是现在的产品，After 是 P · Progress、C · Celebration、D · Done、T · Tap twice 四个模块合起来的样子，桌面和手机都能直接点。后面四个 tab 是每个模块的决定和研究；<b>I · Ideas</b> 记着这个设计带出来、要在别处或以后做的事。第 1 轮的 1–6 屏已被这些决定取代，留在 commit 历史里（<code>53d9220</code> 及以前）。</p>
   </div>
@@ -783,6 +795,18 @@
   <ul class="openq" id="tap-questions"></ul>
 </section>
 
+<!-- ═════════ M · Complete motion (round 22, open) ═════════ -->
+<section class="screen" data-screen="motion">
+  <div class="col-label"><b>M · 完成动画 · 第 22 轮 · 待定</b> · 卡片 complete 时的又一个反馈：快速倾斜、放大，然后消失<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:14px">接在定稿的小反馈里：点 <b>✓ Complete</b> → <b>卡片的动画</b>（这里比较的部分）→ 下面的卡滑上来 → 今天的圈接上一段、格子一跳；桌面上卡片同时出现在 Done 列最上面（现在的做法）。四种并排，每种都有手机和桌面；可以直接点两下完成，也可以按 <b>▶ Play</b>，<b>Slow ×4</b> 放慢四倍看细节。动画只动 transform 和 opacity：卡片在原位不改变占位（Principle 5.3），它走了以后下面的卡才滑上来。系统开了「减少动态效果」时，四种都只淡出 150 ms。</p>
+  <div class="pz-tools"><button class="ghost-btn" data-mo-all>▶ Play all</button><button class="ghost-btn" data-mo-reset>Reset</button><button class="ghost-btn" data-mo-slow>Slow ×4</button><span class="hint">Play 会先选中第一张卡，再完成它。</span></div>
+  <div id="mo-options"></div>
+  <div class="col-label spaced"><b>Research</b> · 在哪见过 · 动画多长 · 减少动态效果<span class="line"></span></div>
+  <div class="patterns" id="mo-patterns"><p class="note">研究还在路上，下一次推送补上。</p></div>
+  <div class="col-label spaced"><b>要你定的</b><span class="line"></span></div>
+  <ul class="openq" id="mo-questions"></ul>
+</section>
+
 <!-- ═════════ I · Ideas ═════════ -->
 <section class="screen" data-screen="ideas">
   <div class="col-label"><b>I · Ideas</b> · 设计过程中冒出来、要在别处或以后改的想法<span class="line"></span></div>
@@ -796,6 +820,7 @@
   <button data-screen-btn="celebration">C · Celebration ✓</button>
   <button data-screen-btn="done">D · Done ✓</button>
   <button data-screen-btn="tap">T · Tap twice ✓</button>
+  <button data-screen-btn="motion">M · 完成动画</button>
   <button data-screen-btn="ideas">I · Ideas</button>
 </nav>
 
@@ -1972,6 +1997,166 @@ document.getElementById('fin-phones').innerHTML = `${phoneBefore()}<div class="p
 document.getElementById('fin-ana').innerHTML = FIN_ANATOMY.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 document.getElementById('fin-later').innerHTML = FIN_LATER.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 finReset();
+/* ═══════════ M · Complete motion (round 22, open): four exits for a completed card, phone and desktop ═══════════ */
+const MO_EASE = 'cubic-bezier(.2, 0, 0, 1)';
+const MO_LIFT = 'rotate(-4deg) scale(1.07)';
+const MO_T = {lift: 120, flight: 340, slide: 200, fade: 150};
+const MO_DONE_SHOWN = 6;
+let moSlow = 1;
+const moMs = ms => ms * moSlow;
+const moReduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MO_VARIANTS = [
+  {
+    key: 'toss', letter: 'B', title: '抛到做完的地方：桌面飞进 Done 列，手机飞进今天的圈', tag: '推荐',
+    why: `<b>动作</b>：先向左歪 4°、放大到 1.07、浮起（120 ms），然后飞过去——<b>桌面</b>飞进 Done 列的最上面，一边飞一边转正、变暗，落下就是完成的样子；<b>手机</b>飞进今天的圈、缩成一个点，圈在它落下的那一刻接上一段。合计约 460 ms。<br><b>好在哪</b>：动画说清楚了卡去了哪——桌面是 Done 列，手机是今天的圈（那天的清单就在圈后面），两端是同一个 journey（Principle 4.2）；进度长出来的那一刻正好是卡落下的那一刻，小反馈和进度连成一件事。<br><b>差在哪</b>：四种里最长；连着完成几张时要等上一张飞完；飞行路线跨过别的卡，屏幕上东西多时会显得乱。`,
+  },
+  {
+    key: 'pop', letter: 'A', title: '弹一下就没：倾斜、放大，然后缩小淡掉', tag: '备选',
+    exit: (el, ms) => el.animate([{transform: 'none'}, {transform: 'rotate(-3deg) scale(1.06)', offset: 0.35}, {transform: 'rotate(-4deg) scale(.8)', opacity: 0}], {duration: ms(300), easing: MO_EASE, fill: 'forwards'}),
+    why: `<b>动作</b>：向左歪 3°、放大到 1.06（约 100 ms），然后缩到 0.8、淡掉（约 200 ms），下面的卡滑上来。桌面上 Done 列最上面出现完成的卡、亮一下（现在的做法）。合计约 300 ms。<br><b>好在哪</b>：就是你描述的那个动作；最短、最安静（Principle 2.3），连着完成几张也不拖。<br><b>差在哪</b>：没交代卡去了哪；桌面上 Done 列里那张看起来像「另一张卡」。`,
+  },
+  {
+    key: 'dissolve', letter: 'C', title: '浮起化开：倾斜、放大，然后往上飘、模糊、淡掉', tag: '备选',
+    exit: (el, ms) => el.animate([{transform: 'none', filter: 'blur(0px)'}, {transform: 'rotate(-3deg) scale(1.06)', filter: 'blur(0px)', offset: 0.35}, {transform: 'rotate(-3deg) scale(1.1) translateY(-10px)', filter: 'blur(8px)', opacity: 0}], {duration: ms(380), easing: MO_EASE, fill: 'forwards'}),
+    why: `<b>动作</b>：歪一下、放大，然后往上飘 10 px、模糊、淡掉（约 380 ms）。桌面同 A。<br><b>好在哪</b>：最柔和，像「放下了」，不需要目的地。<br><b>差在哪</b>：和 A 一样没交代去处；模糊（filter）在低端手机上可能掉帧。`,
+  },
+  {
+    key: 'juice', letter: 'D', title: '抖一下再弹：左右晃两下、放大，然后弹缩成一个点', tag: '备选',
+    exit: (el, ms) => el.animate([{transform: 'none'}, {transform: 'rotate(-5deg) scale(1.08)', offset: 0.2}, {transform: 'rotate(4deg) scale(1.1)', offset: 0.4}, {transform: 'rotate(-2deg) scale(1.08)', offset: 0.55}, {transform: 'rotate(0deg) scale(0)', opacity: 0}], {duration: ms(440), easing: 'cubic-bezier(.3, 0, .3, 1)', fill: 'forwards'}),
+    why: `<b>动作</b>：左右晃两下、放大到 1.1，然后弹缩成一个点（约 440 ms），像卡牌游戏里打出一张牌。桌面同 A。<br><b>好在哪</b>：最有游戏感、最「爽」。<br><b>差在哪</b>：最吵，每完成一张都这么跳，和「成就感要安静」（Principle 2.3）相冲；风格接近大庆祝，抢它的戏。`,
+  },
+];
+const MO_QUESTIONS = [
+  ['选哪一种', '<b>B 抛到做完的地方（推荐）</b> · A 弹一下就没 · C 浮起化开 · D 抖一下再弹。'],
+  ['手机上飞去哪', 'B 在手机上飞进今天的圈（那天的清单就在圈后面）；也可以和 A 一样原地消失，只有桌面飞进 Done。'],
+];
+const mo = {};
+const moSeedMode = () => ({
+  todo: clone(FIX.todo),
+  done: [...DONE_DAYS[1], ...DONE_DAYS[2], ...DONE_DAYS[3]].map(item => ({...item})).reverse().slice(0, 4),
+  days: clone(PZ_SEED), armed: null, armedAt: 0, busy: false, fresh: null,
+});
+const moRoot = (key, mode) => document.querySelector(`[data-motion="${key}"] [data-mo-mode="${mode}"]`);
+const moHabitSlot = item => (item.kind === 'habit' ? FIX.habits.find(habit => habit.title === item.title).doneSlots.length - 1 : 0);
+function moRender(key, mode) {
+  const state = mo[key][mode];
+  const root = moRoot(key, mode);
+  const before = arcsOf(root);
+  const cards = state.todo.length ? state.todo.map((model, idx) => armCard(model, idx, mode, state.armed === idx)).join('') : `<div class="cel-empty">${FIN_VARIANT.empty}</div>`;
+  if (mode === 'phone') {
+    root.innerHTML = `<div class="pz-row">${dayCell(state.days, FIX.todayIndex, {todayCopy: finCopy})}</div><div class="mo-list">${cards}</div>`;
+  } else {
+    const done = state.done.slice(0, MO_DONE_SHOWN).map((item, index) => doneCard(item, moHabitSlot(item), index === 0 && state.fresh === item)).join('');
+    root.innerHTML = `<div class="mo-col">${column('Todo', state.todo.length, cards)}</div><div class="mo-col">${column('Done', state.done.length, done, {done: true})}</div>`;
+  }
+  animateArcs(root, before);
+  state.fresh = null;
+}
+const moTitleRects = (root, selector) => Object.fromEntries([...root.querySelectorAll(selector)].map(el => [el.querySelector('.tc-title').textContent, el.getBoundingClientRect()]));
+/* the cards left behind slide into the gap instead of jumping */
+function moSlide(root, selector, before) {
+  root.querySelectorAll(selector).forEach(el => {
+    const old = before[el.querySelector('.tc-title').textContent];
+    if (!old) return;
+    const shift = old.top - el.getBoundingClientRect().top;
+    if (shift) el.animate([{transform: `translateY(${shift}px)`}, {transform: 'none'}], {duration: moMs(MO_T.slide), easing: MO_EASE});
+  });
+}
+async function moComplete(key, mode, idx) {
+  const state = mo[key][mode];
+  const root = moRoot(key, mode);
+  const variant = MO_VARIANTS.find(item => item.key === key);
+  const cardEl = root.querySelector(`[data-arm-idx="${idx}"]`);
+  state.busy = true;
+  state.armed = null;
+  const todoBefore = moTitleRects(root, '[data-arm-idx]');
+  const doneBefore = [...root.querySelectorAll('.done-card')].map(el => el.getBoundingClientRect());
+  navigator.vibrate?.(30);
+  let landing = null;
+  if (moReduced()) {
+    await cardEl.animate([{opacity: 1}, {opacity: 0}], {duration: MO_T.fade, fill: 'forwards'}).finished;
+  } else if (key === 'toss') {
+    await cardEl.animate([{transform: 'none'}, {transform: MO_LIFT, boxShadow: '0 16px 32px oklch(0 0 0 / .45)'}], {duration: moMs(MO_T.lift), easing: MO_EASE, fill: 'forwards'}).finished;
+    if (mode === 'phone') {
+      const from = cardEl.getBoundingClientRect();
+      const to = root.querySelector('.pz-day.today .pz-ringwrap').getBoundingClientRect();
+      const dx = to.left + to.width / 2 - (from.left + from.width / 2);
+      const dy = to.top + to.height / 2 - (from.top + from.height / 2);
+      await cardEl.animate([{transform: MO_LIFT, opacity: 1}, {transform: `translate(${dx}px, ${dy}px) rotate(10deg) scale(.1)`, opacity: 0.3}], {duration: moMs(MO_T.flight), easing: 'cubic-bezier(.4, 0, 1, 1)', fill: 'forwards'}).finished;
+    } else landing = cardEl.getBoundingClientRect();
+  } else {
+    await variant.exit(cardEl, moMs).finished;
+  }
+  const [model] = state.todo.splice(idx, 1);
+  const entry = {kind: model.kind, title: model.title, name: model.name};
+  state.days[FIX.todayIndex][model.kind][0] += 1;
+  state.done.unshift(entry);
+  state.fresh = landing ? null : entry;
+  moRender(key, mode);
+  moSlide(root, '[data-arm-idx]', todoBefore);
+  if (mode === 'desk') {
+    const doneEls = [...root.querySelectorAll('.done-card')];
+    doneEls.slice(1).forEach((el, index) => {
+      const old = doneBefore[index];
+      if (old) el.animate([{transform: `translateY(${old.top - el.getBoundingClientRect().top}px)`}, {transform: 'none'}], {duration: moMs(MO_T.slide), easing: MO_EASE});
+    });
+    if (landing && !moReduced()) {
+      const to = doneEls[0].getBoundingClientRect();
+      doneEls[0].animate([{transform: `translate(${landing.left - to.left}px, ${landing.top - to.top}px) rotate(-4deg) scale(${landing.width / to.width})`, opacity: 1}, {transform: 'none', opacity: 0.5}], {duration: moMs(MO_T.flight), easing: MO_EASE});
+    }
+  } else {
+    root.querySelectorAll('.pz-day.today').forEach(cell => { cell.classList.remove('tick'); void cell.offsetWidth; cell.classList.add('tick'); });
+    if (isClosed(state.days[FIX.todayIndex])) {
+      FIN_VARIANT.onBig(root, state.days[FIX.todayIndex]);
+      root.querySelectorAll('.cel-empty').forEach(el => el.classList.add('enter'));
+    }
+  }
+  state.busy = false;
+}
+function moTap(key, mode, idx, onTarget) {
+  const state = mo[key][mode];
+  if (state.busy) return;
+  if (state.armed !== idx) { state.armed = idx; state.armedAt = performance.now(); moRender(key, mode); return; }
+  if (!onTarget) { state.armed = null; moRender(key, mode); return; }
+  if (performance.now() - state.armedAt < ARM_DEBOUNCE_MS) return;
+  moComplete(key, mode, idx);
+}
+/* ▶ Play: select the first card, then complete it, on both widths */
+function moPlay(key) {
+  ['phone', 'desk'].forEach(mode => {
+    const state = mo[key][mode];
+    if (state.busy || !state.todo.length) return;
+    state.armed = 0;
+    moRender(key, mode);
+    setTimeout(() => moComplete(key, mode, 0), moMs(420));
+  });
+}
+function moReset() {
+  MO_VARIANTS.forEach(({key}) => { mo[key] = {phone: moSeedMode(), desk: moSeedMode()}; moRender(key, 'phone'); moRender(key, 'desk'); });
+}
+document.getElementById('mo-options').innerHTML = MO_VARIANTS.map(variant => `<div class="pz-opt ${variant.tag === '推荐' ? 'rec' : ''}" data-motion="${variant.key}">
+  <div class="opt-head"><span class="letter">${variant.letter}</span><h3>${variant.title}</h3><span class="tag ${variant.tag === '推荐' ? '' : 'muted'}">${variant.tag}</span></div>
+  <div class="pz-tools" style="margin-top:10px"><button class="ghost-btn" data-mo-play>▶ Play</button></div>
+  <div class="mo-row"><div><div class="mo-cap">Phone</div><div class="mo-phone" data-mo-mode="phone"></div></div><div><div class="mo-cap">Desktop · Todo · Done</div><div class="mo-desk" data-mo-mode="desk"></div></div></div>
+  <p class="why" style="margin-top:12px">${variant.why}</p></div>`).join('');
+document.getElementById('mo-questions').innerHTML = MO_QUESTIONS.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
+document.addEventListener('click', event => {
+  if (event.target.closest('[data-mo-all]')) { MO_VARIANTS.forEach(({key}) => moPlay(key)); return; }
+  if (event.target.closest('[data-mo-reset]')) { moReset(); return; }
+  const slowBtn = event.target.closest('[data-mo-slow]');
+  if (slowBtn) { moSlow = moSlow === 1 ? 4 : 1; slowBtn.classList.toggle('on', moSlow > 1); return; }
+  const root = event.target.closest('[data-motion]');
+  if (!root) return;
+  const {motion: key} = root.dataset;
+  if (event.target.closest('[data-mo-play]')) { moPlay(key); return; }
+  const modeEl = event.target.closest('[data-mo-mode]');
+  if (!modeEl) return;
+  const {moMode: mode} = modeEl.dataset;
+  const card = event.target.closest('[data-arm-idx]');
+  if (card) { moTap(key, mode, Number(card.dataset.armIdx), Boolean(event.target.closest('[data-arm-complete]'))); return; }
+  if (mo[key][mode].armed != null) { mo[key][mode].armed = null; moRender(key, mode); }
+});
+moReset();
 </script>
 </body>
 </html>
