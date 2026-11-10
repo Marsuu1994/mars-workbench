@@ -689,6 +689,8 @@
   .mo-phone, .mo-desk { position: relative; }
   .mo-pick { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-55); }
   .mo-fx { position: absolute; pointer-events: none; z-index: 8; }
+  .mo-ghost { position: absolute; margin: 0; box-sizing: border-box; z-index: 7; pointer-events: none; }
+  #fin-desk { position: relative; }
   .mo-chip { width: 10px; height: 10px; border-radius: 2px; box-shadow: 0 0 8px currentColor; }
   .mo-plus { font-family: 'Geist Mono', monospace; font-weight: 800; font-size: 26px; letter-spacing: -.02em; -webkit-text-stroke: 1px oklch(0 0 0 / .35); text-shadow: 0 2px 0 oklch(0 0 0 / .45), 0 0 14px currentColor; }
   .mo-shine { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; overflow: hidden; z-index: 3; }
@@ -701,16 +703,16 @@
 
 <header class="topbar">
   <div>
-    <div class="eyebrow">Board · Phase 2 · design PR · final version · decided 2026-11-09 · 第 1 轮 2026-11-06 · 第 2–18 轮一个模块一个模块定，最后合在一起 · 第 22–24 轮：M · 完成动画（还没定稿，等 owner approve）</div>
+    <div class="eyebrow">Board · Phase 2 · design PR · final version · decided 2026-11-09 · 第 1 轮 2026-11-06 · 第 2–18 轮一个模块一个模块定，最后合在一起 · 第 22–25 轮：M · 完成动画，第 25 轮定稿、合进 Final · 第 25 轮：桌面 Todo 加 Today、Todo 空了的提醒（等 owner review）</div>
     <h1>Board：点一下选中，✓ Complete 完成</h1>
-    <p>有 active plan 的白天，默认屏就是 board。第一个 tab <b>F · Final</b> 是合在一起的定稿：Before 是现在的产品，After 是 P · Progress、C · Celebration、D · Done、T · Tap twice 四个模块合起来的样子，桌面和手机都能直接点。后面四个 tab 是每个模块的决定和研究；<b>I · Ideas</b> 记着这个设计带出来、要在别处或以后做的事。第 1 轮的 1–6 屏已被这些决定取代，留在 commit 历史里（<code>53d9220</code> 及以前）。</p>
+    <p>有 active plan 的白天，默认屏就是 board。第一个 tab <b>F · Final</b> 是合在一起的定稿：Before 是现在的产品，After 是 P · Progress、C · Celebration、D · Done、T · Tap twice、M · 完成动画五个模块合起来的样子，桌面和手机都能直接点。后面五个 tab 是每个模块的决定和研究；<b>I · Ideas</b> 记着这个设计带出来、要在别处或以后做的事。第 1 轮的 1–6 屏已被这些决定取代，留在 commit 历史里（<code>53d9220</code> 及以前）。</p>
   </div>
 </header>
 
 <!-- ═════════ F · Final: the four modules on one board (round 18) ═════════ -->
 <section class="screen on" data-screen="final">
-  <div class="col-label"><b>F · Final · final version · decided 2026-11-09</b> · P 进度圈 · C 庆祝 · D 做完的去哪 · T 点两下完成，合在一块 board 上<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px">每一块怎么来的，见后面四个 tab 和 <code>reviews/pr-115.md</code>。下面的 After 都能直接操作：点卡片选中，再点 <b>✓ Complete</b> 完成（只点卡片别处是取消）；全部做完会播大反馈。点今天或之前的某一格，看那天做完的；Backlog 点开，卡片上有 <b>↑ Todo</b>。<b>Complete all →</b> 一张张做完，直接看大反馈。Fixture：Thu Nov 5 12:40，今天做完 1 / 5。</p>
+  <div class="col-label"><b>F · Final · final version · decided 2026-11-09 · 修订 · amended 2026-11-10（第 25 轮：合进 M；桌面 Todo 加 Today、Todo 空了的提醒，这两样等你 review）</b> · P 进度圈 · C 庆祝 · D 做完的去哪 · T 点两下完成 · M 完成动画，合在一块 board 上<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:14px">每一块怎么来的，见后面五个 tab 和 <code>reviews/pr-115.md</code>。下面的 After 都能直接操作：点卡片选中，再点 <b>✓ Complete</b> 完成（只点卡片别处是取消）——卡片随机来一种 juice，再飞进今天的圈（M）；全部做完会播大反馈，Todo 空了留一块提醒。点今天或之前的某一格，看那天做完的；Backlog 点开，卡片上有 <b>↑ Todo</b>。<b>Complete all →</b> 一张张做完，直接看大反馈。Fixture：Thu Nov 5 12:40，今天做完 1 / 5。</p>
   <div class="pz-tools"><button class="ghost-btn" data-fin-reset>Reset</button><button class="ghost-btn" data-fin-all>Complete all →</button></div>
   <div class="col-label"><b>Before</b> · 现在的产品 · Desktop<span class="line"></span></div>
   <div id="fin-before-desk"></div>
@@ -755,7 +757,7 @@
 
 <!-- ═════════ C · Celebration (round 2–3) ═════════ -->
 <section class="screen" data-screen="celebration">
-  <div class="col-label"><b>C · Celebration · 定稿 · decided 2026-11-08</b> · 每完成一个是小反馈；今天排的全部做完时，圈转一圈、迸出火花；之后今天那格变绿、Todo 里留一张「Today's plan is done」<span class="line"></span></div>
+  <div class="col-label"><b>C · Celebration · 定稿 · decided 2026-11-08</b> · 每完成一个是小反馈；今天排的全部做完时，圈转一圈、迸出火花；之后今天那格变绿、Todo 里留一张「Today's plan is done」（第 25 轮单独拿到 D · Done 的「Todo 空了」）<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:14px">Owner 选了第 1 轮 celebration 的 B，并且要求做完以后有一个一直留着的视觉标记；第 2 轮的 C（Todo 里的小结卡）已排除（commit <code>2d59d33</code>）；第 3 轮在各种颜色组合下并排比较了 A（光晕 + ✓）和 B，owner 选了 <b>B</b>，A 留在 commit <code>783b6b6</code>。<b>小反馈</b>：✓ 150 ms 填满，卡片 240 ms 收起，今天的圈接上一段自己颜色的弧（500 ms），格子轻轻一跳。<b>大反馈</b>：圈顺时针转一圈（700 ms），12 颗火花按今天做完的比例着色迸出、淡掉，✓ 画出来（✓ 本身不转），文案 <b>All 5 done</b>，一个 Success 振动。<b>留下来的</b>：今天那格的框变绿、圈带 ✓；Todo 空了的地方是 <b>Today's plan is done</b> · Pull more from the backlog, or call it a day.</p>
   <div class="col-label"><b>不同的颜色组合</b> · 只有今天那格 · 一列一种当天的组合 · 先一个个接上，最后一个合上时播大反馈<span class="line"></span></div>
   <div class="pz-tools"><button class="ghost-btn" id="cmp-play">▶ Play</button><span class="hint">一个个做完，约 0.6 s 一个；最后一个做完时播大反馈。可以反复点。</span></div>
@@ -771,17 +773,21 @@
 
 <!-- ═════════ D · Done (rounds 5–6, amended rounds 10 and 14) ═════════ -->
 <section class="screen" data-screen="done">
-  <div class="col-label"><b>D · Done · 定稿 · decided 2026-11-09 · 修订 · amended 2026-11-09（第 14–15 轮）</b> · 一天的清单两端都藏在圈后面；桌面就是现在的产品：Todo · Done（这周的卡片）· Backlog 收起<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px">第 5 轮画了三个方向（commit <code>2211b07</code>），第 6 轮定了「一天的清单藏在那天的圈后面：桌面浮窗、手机 sheet」。第 10 轮按 spike 把桌面改成常驻的 Done pane（按天分组、每组带圈），第 11–13 轮比较了五种桌面排法（commit <code>13628f5</code>），owner 都没选；第 14 轮把 Done 画成按 kind 分组的清单（commit <code>9594f3f</code>）。<b>第 15 轮定稿</b>：<b>一天的清单</b>两端同一个 journey——点某天的圈，看那天做完的（桌面浮在圈下面，手机是 sheet）。<b>桌面就按现在的产品</b>：Todo 和 Done 两列并排，Done 放这周做完的所有卡片，<b>不分组，按完成时间排，最新的在最上面</b>（第 17 轮；产品现在和 Todo 一样按 habit / project 分组排，这一条要写进 flow，见 Ideas 11），表头右边加 <b>This week</b>；Backlog 默认收起，点开后卡片上有 <b>↑ Todo</b>，也能拖。唯一大的改动是<b>完成的卡片</b>：和产品一样变暗、标题划掉、不显示 description，加上选中时卡片里面的那层光，但<b>没有高亮的边框，也没有右下角的 ✓</b>（第 16 轮拿掉：第 15 轮的实心 ✓ + Complete 太抢眼，见 commit <code>d17bbcb</code>）。清单都只读，没有撤回按钮（Ideas 8）。切到 <b>Long day</b> 看 Done 长了以后的样子。</p>
+  <div class="col-label"><b>D · Done · 定稿 · decided 2026-11-09 · 修订 · amended 2026-11-09（第 14–15 轮）· 修订 · amended 2026-11-10（第 25 轮：桌面 Todo 加 Today、Todo 空了的提醒，等你 review）</b> · 一天的清单两端都藏在圈后面；桌面就是现在的产品：Todo · Done（这周的卡片）· Backlog 收起<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:14px">第 5 轮画了三个方向（commit <code>2211b07</code>），第 6 轮定了「一天的清单藏在那天的圈后面：桌面浮窗、手机 sheet」。第 10 轮按 spike 把桌面改成常驻的 Done pane（按天分组、每组带圈），第 11–13 轮比较了五种桌面排法（commit <code>13628f5</code>），owner 都没选；第 14 轮把 Done 画成按 kind 分组的清单（commit <code>9594f3f</code>）。<b>第 15 轮定稿</b>：<b>一天的清单</b>两端同一个 journey——点某天的圈，看那天做完的（桌面浮在圈下面，手机是 sheet）。<b>桌面就按现在的产品</b>：Todo 和 Done 两列并排，Done 放这周做完的所有卡片，<b>不分组，按完成时间排，最新的在最上面</b>（第 17 轮；产品现在和 Todo 一样按 habit / project 分组排，这一条要写进 flow，见 Ideas 11），表头右边加 <b>This week</b>，Todo 的表头对应加 <b>Today</b>（第 25 轮，只在桌面，手机不改；等你 review）；Backlog 默认收起，点开后卡片上有 <b>↑ Todo</b>，也能拖。唯一大的改动是<b>完成的卡片</b>：和产品一样变暗、标题划掉、不显示 description，加上选中时卡片里面的那层光，但<b>没有高亮的边框，也没有右下角的 ✓</b>（第 16 轮拿掉：第 15 轮的实心 ✓ + Complete 太抢眼，见 commit <code>d17bbcb</code>）。清单都只读，没有撤回按钮（Ideas 8）。切到 <b>Long day</b> 看 Done 长了以后的样子。</p>
   <div class="pz-tools"><span class="seg"><button data-done-long="false" class="on">Normal day · Thu 1 done</button><button data-done-long="true">Long day · Thu 9 done</button></span></div>
 
-  <div class="col-label"><b>Desktop · 定稿</b> · Todo · Done（This week）· Backlog 收起 · 和现在的产品一样<span class="line"></span></div>
+  <div class="col-label"><b>Desktop · 定稿</b> · Todo（Today，第 25 轮）· Done（This week）· Backlog 收起 · 和现在的产品一样<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:12px">用定稿的 tap twice 完成一张卡（点卡片 → 点 ✓ Complete）：卡片离开 Todo，以完成的样子出现在 Done 的<b>最上面</b>，亮一下，圈接上一段。<b>点某天的圈</b>：那天的清单浮在圈下面；再点一次、点外面或 Esc 关上。<b>Backlog</b> 是右边的窄条，点开以后每张卡右下角有 ↑ Todo（点了就进 Todo）。拖拽和现在的产品一样。</p>
   <div class="pz-desk dpane-desk" id="dpane"></div>
 
   <div class="col-label spaced"><b>Mobile</b> · 不变：点圈，那天的清单从底部升起<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:12px">点今天或之前的某一格，sheet 升起（最高 70%），Todo 一动不动；再点一次或点外面关上。</p>
   <div id="done-mobile"></div>
+
+  <div class="col-label spaced"><b>Todo 空了 · 第 25 轮 · 等你 review</b> · Todo 一空就留一块提醒，两端一样<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:12px">这块原来是 C · Celebration 的一部分（今天排的做完以后，Todo 里留一张），第 25 轮单独拿出来：<b>只要 Todo 空了</b>就显示——虚线框，<b>Today's plan is done</b>，下面一句 <b>Pull more from the backlog, or call it a day.</b> 什么算「today」先不管（今天的总数怎么算是 Ideas 2，交给 flow），只看 Todo 空没空。桌面在 Todo 列里，手机在 Todo 列表里；最后一张卡飞走时它轻轻弹进来。下面是静态的；在 F · Final 里按 <b>Complete all</b> 看它出现。</p>
+  <div id="todo-empty"></div>
 
   <div class="col-label spaced"><b>日格像按钮 · 定稿 · decided 2026-11-09</b> · 第 6、14、15 轮：hover 只加下划线，选中是全亮的边框 + 青光<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:14px">第 6 轮画了两种 hover（底部亮起 / 整格浮起），第 14 轮 owner 选了底部亮起这一路、去掉了整格浮起，并加画了「下划线 + 一点青光」（1b，见 commit <code>9594f3f</code>）；第 15 轮定 <b>1a</b>。<b>Hover</b> 只是一条下划线，不改选中的样子；<b>选中</b>（正在看的那一天）= 全亮的青色边框 + 里面的青光，没有下划线；鼠标移到选中的那一格，只多一条下划线，青光不变暗。<b>按下</b>：缩到 0.96 + 内阴影。今天那格平时的框淡到 35%。</p>
@@ -808,19 +814,19 @@
 
 <!-- ═════════ M · Complete motion (rounds 22–23) ═════════ -->
 <section class="screen" data-screen="motion">
-  <div class="col-label"><b>M · 完成动画 · 第 22–24 轮 · 还没定稿，等你 approve</b> · 卡片先来一下随机的 Balatro 式「juice」，再飞进今天的圈<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px"><b>方向（第 23 轮）</b>：<b>削弱阻力，放大反馈</b>。还没做的事要安静、不压人；做完的那一刻要响、要像游戏，参照 Balatro。所以第 22 轮的 A（弹一下就没）、C（浮起化开）、D（抖一下再弹）删掉（留在 commit <code>c4ee0d8</code>），以 <b>B「抛到做完的地方」</b>为基准。<b>第 24 轮</b>：桌面不再飞进 Done 列（第 23 轮那版留在 commit <code>6a11869</code>），<b>两端统一飞进今天的圈</b>——桌面也画出一周的进度圈，卡片和手机一样沿一条弧线飞进今天那格（约 300 ms），圈接上一段；Done 列照现在的产品，新完成的卡出现在最上面、亮一下。飞之前，卡片先来一下 <b>juice</b>，每次从下面四种里<b>随机挑一种</b>（不会连着两次一样；四种都留，第 24 轮），以后可以再加。系统开了「减少动态效果」时只淡出 150 ms。<b>还没定稿</b>：等你 approve，之后再合进 F · Final。</p>
+  <div class="col-label"><b>M · 完成动画 · 定稿 · decided 2026-11-10（第 25 轮）</b> · 卡片先来一下随机的 Balatro 式「juice」，再飞进今天的圈<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:14px"><b>方向（第 23 轮）</b>：<b>削弱阻力，放大反馈</b>。还没做的事要安静、不压人；做完的那一刻要响、要像游戏，参照 Balatro。所以第 22 轮的 A（弹一下就没）、C（浮起化开）、D（抖一下再弹）删掉（留在 commit <code>c4ee0d8</code>），以 <b>B「抛到做完的地方」</b>为基准。<b>第 24 轮</b>：桌面不再飞进 Done 列（第 23 轮那版留在 commit <code>6a11869</code>），<b>两端统一飞进今天的圈</b>——桌面也画出一周的进度圈，卡片和手机一样沿一条弧线飞进今天那格（约 300 ms），圈接上一段；Done 列照现在的产品，新完成的卡出现在最上面、亮一下。飞之前，卡片先来一下 <b>juice</b>，每次从下面四种里<b>随机挑一种</b>（不会连着两次一样；四种都留，第 24 轮），以后可以再加。系统开了「减少动态效果」时只淡出 150 ms。<b>第 25 轮定稿</b>，不加声音，已合进 F · Final。</p>
   <div class="pz-tools"><button class="ghost-btn" data-mo-play="random">▶ Play · 随机</button><span class="mo-pick">指定一种：<button class="ghost-btn" data-mo-play="wobble">Wobble</button><button class="ghost-btn" data-mo-play="shine">Shine</button><button class="ghost-btn" data-mo-play="burst">Burst</button><button class="ghost-btn" data-mo-play="flip">Flip</button></span><button class="ghost-btn" data-mo-reset>Reset</button><button class="ghost-btn" data-mo-slow>Slow ×4</button><span class="hint" id="mo-last">点两下卡片完成，或者按 Play。</span></div>
   <div class="pz-opt rec" data-motion="toss">
-    <div class="opt-head"><span class="letter">B</span><h3>随机 juice + 飞进今天的圈</h3><span class="tag">待 approve</span></div>
+    <div class="opt-head"><span class="letter">B</span><h3>随机 juice + 飞进今天的圈</h3><span class="tag">定稿</span></div>
     <div class="mo-row"><div><div class="mo-cap">Phone · 飞进今天的圈</div><div class="mo-phone" data-mo-mode="phone"></div></div><div><div class="mo-cap">Desktop · 飞进今天的圈，Done 列照旧</div><div class="mo-desk" data-mo-mode="desk"></div></div></div>
   </div>
   <div class="col-label spaced"><b>四种 juice</b> · 仿 Balatro · 随机触发 · 四种都留（第 24 轮）<span class="line"></span></div>
   <div class="patterns" id="mo-juice"></div>
   <div class="col-label spaced"><b>Research</b> · 在哪见过 · 节奏 · 减少动态效果<span class="line"></span></div>
   <div class="patterns" id="mo-patterns"></div>
-  <div class="col-label spaced"><b>要你定的</b><span class="line"></span></div>
-  <ul class="openq" id="mo-questions"></ul>
+  <div class="col-label spaced"><b>第 24–25 轮定下的</b><span class="line"></span></div>
+  <ul class="openq" id="mo-decided"></ul>
 </section>
 
 <!-- ═════════ I · Ideas ═════════ -->
@@ -836,7 +842,7 @@
   <button data-screen-btn="celebration">C · Celebration ✓</button>
   <button data-screen-btn="done">D · Done ✓</button>
   <button data-screen-btn="tap">T · Tap twice ✓</button>
-  <button data-screen-btn="motion">M · 完成动画</button>
+  <button data-screen-btn="motion">M · 完成动画 ✓</button>
   <button data-screen-btn="ideas">I · Ideas</button>
 </nav>
 
@@ -1027,7 +1033,8 @@ const dashBeforePhone = () => `<div class="mdash">
 </div>`;
 
 /* ── Columns, backlog ── */
-const column = (label, count, body, {done = false, cls = ''} = {}) => `<div class="column ${done ? 'done' : ''} ${cls}"><div class="column-head" style="color:${done ? 'var(--su)' : 'var(--in)'}"><span style="color:var(--bc)">${label}</span><span class="count-ghost">${count}</span></div><div class="column-body">${body}</div></div>`;
+/* a tag beside the count names what a desktop column spans: Todo · Today (round 25), Done · This week (round 15) */
+const column = (label, count, body, {done = false, cls = '', tag = ''} = {}) => `<div class="column ${done ? 'done' : ''} ${cls}"><div class="column-head" style="color:${done ? 'var(--su)' : 'var(--in)'}"><span style="color:var(--bc)">${label}</span>${tag ? `<span class="col-tags"><span class="wk-tag">${tag}</span><span class="count-ghost">${count}</span></span>` : `<span class="count-ghost">${count}</span>`}</div><div class="column-body">${body}</div></div>`;
 const mrowHead = (label, count, color) => `<div class="mrow-head"><span class="lhs"><span class="led" style="color:${color}"></span>${label}</span><span class="count-ghost">${count}</span></div>`;
 function mini(model, {done = false} = {}) {
   const {kind} = model;
@@ -1333,6 +1340,8 @@ const CMP_COMBOS = [
   {label: '只有 habit', sub: '3 habit', day: {habit: [0, 3], project: [0, 0], oneoff: [0, 0]}},
   {label: '只有 step', sub: '2 step', day: {habit: [0, 0], project: [0, 2], oneoff: [0, 0]}},
 ];
+/* the reminder an empty Todo shows (round 25: its own section in D; it doesn't ask what counts as today — Ideas 2) */
+const TODO_EMPTY = `<div class="cel-empty">${CEL_VARIANTS[0].empty}</div>`;
 const CMP_STEP_MS = 600;
 /* the order a day gets done in: round-robin across its kinds, so arcs grow in different places */
 function completionOrder(day) {
@@ -1506,7 +1515,7 @@ function doneColumn(state) {
   }));
   entries.sort((left, right) => right.index - left.index || right.order - left.order);
   const cards = entries.map(({item, habitSlot}) => doneCard(item, habitSlot, item === state.fresh)).join('');
-  return column('Done', entries.length, cards, {done: true}).replace(`<span class="count-ghost">${entries.length}</span>`, `<span class="col-tags"><span class="wk-tag">This week</span><span class="count-ghost">${entries.length}</span></span>`);
+  return column('Done', entries.length, cards, {done: true, tag: 'This week'});
 }
 /* the day's list, floating under its ring: the same journey as the phone's sheet */
 /* a day's list: the same head and rows in the desktop popover and the phone sheet */
@@ -1544,10 +1553,10 @@ function renderDpane() {
   const before = arcsOf(root);
   let row = '';
   for (let index = 0; index <= 6; index++) row += tapCell(state.days, index, state.sel === index ? 'sel' : '');
-  const cards = state.todo.length ? state.todo.map((model, idx) => armCard(model, idx, 'desk', state.armed === idx)).join('') : '<p class="empty" style="padding:12px;color:var(--ink-45);font-size:12.5px">Today\'s plan is done</p>';
+  const cards = state.todo.length ? state.todo.map((model, idx) => armCard(model, idx, 'desk', state.armed === idx)).join('') : TODO_EMPTY;
   root.innerHTML = `${appHead()}<div class="done-anchor btnrow btn-glow"><div class="pz-row">${row}</div>${dayPop(state)}</div>
     <div class="dpane-grid ${state.backlogOpen ? '' : 'bk-closed'}">
-      <div class="dpane-todo">${column('Todo', state.todo.length, cards)}</div>
+      <div class="dpane-todo">${column('Todo', state.todo.length, cards, {tag: 'Today'})}</div>
       <div class="dpane-donecol">${doneColumn(state)}</div>
       ${deskBacklog(state)}
     </div>`;
@@ -1868,7 +1877,6 @@ const IDEAS = [
 document.getElementById('ideas').innerHTML = IDEAS.map(([title, status, body]) => `<div class="idea"><div class="idea-head"><h4>${title}</h4><span class="tag muted">${status}</span></div>${body}</div>`).join('');
 /* ═══════════ F · Final: the four modules on one board (round 18) ═══════════ */
 const FIN_VARIANT = CEL_VARIANTS[0];
-const FIN_LEAVE_MS = 240;
 const fin = {};
 const finSeed = () => ({
   days: clone(PZ_SEED),
@@ -1884,7 +1892,7 @@ function finRow(state, mode) {
   for (let index = first; index <= last; index++) html += tapCell(state.days, index, state.sel === index ? 'sel' : '', {todayCopy: finCopy});
   return `<div class="pz-row">${html}</div>`;
 }
-const finCards = (state, mode) => (state.todo.length ? state.todo.map((model, idx) => armCard(model, idx, mode, state.armed === idx)).join('') : `<div class="cel-empty">${FIN_VARIANT.empty}</div>`);
+const finCards = (state, mode) => (state.todo.length ? state.todo.map((model, idx) => armCard(model, idx, mode, state.armed === idx)).join('') : TODO_EMPTY);
 function finPhoneSheets(state) {
   if (state.sel != null) return `<div class="scrim" data-fin-close></div><div class="sheet done-sheet" role="dialog" aria-label="${dayName(state.sel)}"><div class="grab"></div>${dayListInner(state)}</div>`;
   if (!state.backlogOpen) return '';
@@ -1893,24 +1901,26 @@ function finPhoneSheets(state) {
     <div class="backlog-hint">${icon('up', 'sm')}Tap Todo to pull a task onto the board</div>
     <div class="bk-body">${backlogCards(state.backlog, {pull: true})}</div></div>`;
 }
+function finDeskHtml(state) {
+  return `${appHead()}<div class="done-anchor btnrow btn-glow">${finRow(state, 'desk')}${dayPop(state)}</div>
+      <div class="dpane-grid ${state.backlogOpen ? '' : 'bk-closed'}">
+        <div class="dpane-todo">${column('Todo', state.todo.length, finCards(state, 'desk'), {tag: 'Today'})}</div>
+        <div class="dpane-donecol">${doneColumn(state)}</div>
+        ${deskBacklog(state)}
+      </div>`;
+}
+function finPhoneHtml(state) {
+  return `${statusBar('12:40')}${appHead()}<div class="btnrow btn-glow">${finRow(state, 'phone')}</div>
+      <div class="list">${mrowHead('Todo', state.todo.length, 'var(--in)')}${finCards(state, 'phone')}</div>
+      <button class="pill mpill" data-bk-toggle>${icon('inbox', 'sm')}<span>Backlog</span><span class="badge-count">${capped(backlogCount(state))}</span>${icon('chevUp', 'sm')}</button>
+      ${finPhoneSheets(state)}`;
+}
 function renderFin(mode) {
   const state = fin[mode];
   const root = document.getElementById(`fin-${mode}`);
   const before = arcsOf(root);
-  if (mode === 'desk') {
-    root.innerHTML = `${appHead()}<div class="done-anchor btnrow btn-glow">${finRow(state, 'desk')}${dayPop(state)}</div>
-      <div class="dpane-grid ${state.backlogOpen ? '' : 'bk-closed'}">
-        <div class="dpane-todo">${column('Todo', state.todo.length, finCards(state, 'desk'))}</div>
-        <div class="dpane-donecol">${doneColumn(state)}</div>
-        ${deskBacklog(state)}
-      </div>`;
-    placePop(root);
-  } else {
-    root.innerHTML = `${statusBar('12:40')}${appHead()}<div class="btnrow btn-glow">${finRow(state, 'phone')}</div>
-      <div class="list">${mrowHead('Todo', state.todo.length, 'var(--in)')}${finCards(state, 'phone')}</div>
-      <button class="pill mpill" data-bk-toggle>${icon('inbox', 'sm')}<span>Backlog</span><span class="badge-count">${capped(backlogCount(state))}</span>${icon('chevUp', 'sm')}</button>
-      ${finPhoneSheets(state)}`;
-  }
+  moKeepFx(root, () => { root.innerHTML = mode === 'desk' ? finDeskHtml(state) : finPhoneHtml(state); });
+  if (mode === 'desk') placePop(root);
   animateArcs(root, before);
   if (state.pulled != null) { root.querySelector(`[data-arm-idx="${state.pulled}"]`)?.classList.add('pulled'); state.pulled = null; }
   /* the highlight is one-shot: later renders (any click) must not replay it */
@@ -1925,36 +1935,46 @@ function finTap(mode, idx, onTarget) {
   if (performance.now() - state.armedAt < ARM_DEBOUNCE_MS) return;
   finComplete(mode, idx);
 }
-/* the small feedback on every card; the big one whenever today's ring closes — again after a pulled card is done (Ideas 6) */
-function finComplete(mode, idx) {
+/* every card: a random juice, then the toss into today's ring (M); the big moment whenever today's ring closes —
+   again after a pulled card is done (Ideas 6); the reminder whenever Todo empties (round 25) */
+async function finComplete(mode, idx) {
   const state = fin[mode];
   const root = document.getElementById(`fin-${mode}`);
+  const cardEl = root.querySelector(`[data-arm-idx="${idx}"]`);
+  const juice = moPickJuice();
+  moLast = juice.key;
   state.busy = true;
   state.armed = null;
-  root.querySelector(`[data-arm-idx="${idx}"]`)?.classList.add('leaving');
-  navigator.vibrate?.(30);
-  setTimeout(() => {
-    const [model] = state.todo.splice(idx, 1);
-    const entry = {kind: model.kind, title: model.title, name: model.name};
-    state.days[FIX.todayIndex][model.kind][0] += 1;
-    state.lists[FIX.todayIndex].push(entry);
-    state.fresh = entry;
-    renderFin(mode);
-    root.querySelectorAll('.pz-day.today').forEach(cell => { cell.classList.remove('tick'); void cell.offsetWidth; cell.classList.add('tick'); });
-    if (isClosed(state.days[FIX.todayIndex])) {
-      navigator.vibrate?.([20, 60, 40]);
-      FIN_VARIANT.onBig(root, state.days[FIX.todayIndex]);
-      root.querySelectorAll('.cel-empty').forEach(el => el.classList.add('enter'));
-    }
-    state.busy = false;
-  }, FIN_LEAVE_MS);
+  const todoBefore = moTitleRects(root, '[data-arm-idx]');
+  navigator.vibrate?.([12, 40, 24]);
+  await moThrow(root, cardEl, state.todo[idx].kind, juice);
+  if (fin[mode] !== state) return;
+  const [model] = state.todo.splice(idx, 1);
+  const entry = {kind: model.kind, title: model.title, name: model.name};
+  state.days[FIX.todayIndex][model.kind][0] += 1;
+  state.lists[FIX.todayIndex].push(entry);
+  state.fresh = entry;
+  renderFin(mode);
+  moSlide(root, '[data-arm-idx]', todoBefore);
+  root.querySelectorAll('.pz-day.today').forEach(cell => { cell.classList.remove('tick'); void cell.offsetWidth; cell.classList.add('tick'); });
+  if (isClosed(state.days[FIX.todayIndex])) {
+    navigator.vibrate?.([20, 60, 40]);
+    FIN_VARIANT.onBig(root, state.days[FIX.todayIndex]);
+  }
+  if (!state.todo.length) root.querySelectorAll('.cel-empty').forEach(el => el.classList.add('enter'));
+  state.busy = false;
 }
-function finAll(mode) {
+const finWait = ms => new Promise(resolve => setTimeout(resolve, ms));
+async function finAll(mode) {
   const state = fin[mode];
-  if (!state.todo.length) return;
-  if (state.busy) { setTimeout(() => finAll(mode), 120); return; }
-  finComplete(mode, 0);
-  setTimeout(() => finAll(mode), FIN_LEAVE_MS + 450);
+  if (state.playingAll) return;
+  state.playingAll = true;
+  while (fin[mode] === state && state.todo.length) {
+    if (state.busy) { await finWait(120); continue; }
+    await finComplete(mode, 0);
+    await finWait(450);
+  }
+  state.playingAll = false;
 }
 function finReset() {
   ['desk', 'phone'].forEach(mode => { fin[mode] = finSeed(); renderFin(mode); });
@@ -1967,6 +1987,7 @@ document.addEventListener('click', event => {
   if (!root) return;
   const {fin: mode} = root.dataset;
   const state = fin[mode];
+  if (state.busy) return;
   if (event.target.closest('[data-done-close], [data-fin-close]')) { state.sel = null; if (mode === 'phone') state.backlogOpen = false; renderFin(mode); return; }
   const pull = event.target.closest('[data-pull]');
   if (pull) { pullFromBacklog(state, Number(pull.dataset.pull)); renderFin(mode); return; }
@@ -1999,12 +2020,14 @@ const FIN_ANATOMY = [
   ['进度圈 · P', '一天一圈，周长 = 那天排的，做完的按 habit → step → one-off 顺时针着色，做完那天圈里一个 ✓。桌面 Mon–Sun 一排，今天是带框的长格；手机圈的大小不变，按宽度放今天前面的几天。'],
   ['日格是按钮 · D', 'Hover 只是一条下划线；选中是全亮的青色边框 + 里面的青光；按下缩一点。点今天或之前的某一格，看那天做完的——桌面浮在圈下面，手机是 sheet；再点一次、点外面或 Esc 关上。清单只读，按 kind 排。'],
   ['点两下完成 · T', '点卡面任何地方选中：确认边框，右下角的圈变成实心的 ✓ 和 Complete，卡片大小不变；只有点 ✓ Complete 才完成；选中时点卡片别处取消，点别的卡选中移过去；滚动不取消。没有 undo snackbar。两个宽度一样。'],
-  ['庆祝 · C', '每完成一张：卡片收起，今天的圈接上一段自己颜色的弧，格子轻轻一跳。今天排的全部做完：圈转一圈、迸出今天做过的颜色的火花，文案 All 5 done；之后今天的框变绿，Todo 留一张 Today\'s plan is done。做完以后又拉了新卡：圈重新留出一段灰、绿框消失，再做完时再播一次。'],
-  ['Done · D', '桌面就是现在产品的 Done 列，表头 This week，按完成时间排、最新的在最上面，不分组；完成的卡变暗、标题划掉、不显示 description，里面一层淡淡的光，没有边框和角标。手机没有 Done 列，点圈看。'],
+  ['完成动画 · M', '每完成一张：卡片先来一下随机的 Balatro 式 juice——Wobble、Shine、Burst（碎片 + <b>+1</b>）、Flip，不连着重复——再沿一条弧线飞进今天的圈（约 300 ms），两个宽度一样。系统开了「减少动态效果」时只淡出 150 ms。'],
+  ['庆祝 · C', '卡片飞进今天的圈时，圈接上一段自己颜色的弧，格子轻轻一跳。今天排的全部做完：圈转一圈、迸出今天做过的颜色的火花，文案 All 5 done；之后今天的框变绿。做完以后又拉了新卡：圈重新留出一段灰、绿框消失，再做完时再播一次。'],
+  ['Todo 空了 · D（第 25 轮，等你 review）', 'Todo 一空就留一块虚线框：Today\'s plan is done · Pull more from the backlog, or call it a day.，最后一张飞走时弹进来；两个宽度一样。什么算 today 先不管，只看 Todo 空没空。'],
+  ['Todo · Done · D', '桌面 Todo 的表头右边是 Today（第 25 轮，等你 review），Done 列就是现在产品的 Done 列，表头 This week，按完成时间排、最新的在最上面，不分组；完成的卡变暗、标题划掉、不显示 description，里面一层淡淡的光，没有边框和角标。手机没有 Done 列，点圈看。'],
   ['Backlog · D · T', '默认收起：桌面是右边的窄条，手机是底部的 pill。打开后每张卡右下角有 ↑ Todo，两个宽度一样；桌面还能拖（Backlog → Todo、Todo → Done），和现在的产品一样（没画）。'],
 ];
 const FIN_LATER = [
-  ['今天的总数 · Ideas 2', '这里按 Todo + 今天做完的算，所以从 backlog 拉一张进 Todo，今天的分母 +1。到底怎么算交给 flow。'],
+  ['今天的总数 · Ideas 2', '这里按 Todo + 今天做完的算，所以从 backlog 拉一张进 Todo，今天的分母 +1。到底怎么算交给 flow。Todo 空了的提醒和桌面的 Today 也先不管什么算 today（第 25 轮）。'],
   ['Done 列的排序 · Ideas 11', '按 doneAt 倒序是行为，写进 flow；这里照着画了。'],
   ['撤回 · Ideas 8', '去掉 undo snackbar 以后，完成没有撤回的路。暂时不做，记在 design/future-ideas.md：初步想法是点今天的圈，今天做完的可以放回 Todo，之前的天不行。'],
 ];
@@ -2013,7 +2036,22 @@ document.getElementById('fin-phones').innerHTML = `${phoneBefore()}<div class="p
 document.getElementById('fin-ana').innerHTML = FIN_ANATOMY.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 document.getElementById('fin-later').innerHTML = FIN_LATER.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 finReset();
-/* ═══════════ M · Complete motion (rounds 22–24, not decided): a random juice, then the card is tossed into today's ring ═══════════ */
+/* D · Todo 空了 (round 25): every card of today done, drawn statically with Final's markup */
+function todoEmptySeed() {
+  const state = finSeed();
+  state.todo.forEach(model => {
+    state.days[FIX.todayIndex][model.kind][0] += 1;
+    state.lists[FIX.todayIndex].push({kind: model.kind, title: model.title, name: model.name});
+  });
+  state.todo = [];
+  return state;
+}
+{
+  const state = todoEmptySeed();
+  document.getElementById('todo-empty').innerHTML = `<div class="pz-cap">Desktop · 1280 px</div><div class="pz-desk dpane-desk">${finDeskHtml(state)}</div>
+    <div class="phones" style="margin-top:20px"><div class="pz-phonewrap"><div class="pz-cap">Phone · 375 px</div><div class="pz-phone done-phone fin-phone" style="width:359px">${finPhoneHtml(state)}</div></div></div>`;
+}
+/* ═══════════ M · Complete motion (rounds 22–25, decided): a random juice, then the card is tossed into today's ring ═══════════ */
 const MO_EASE = 'cubic-bezier(.2, 0, 0, 1)';
 /* Material 3's emphasized accelerate, for the part that leaves */
 const MO_EXIT = 'cubic-bezier(.3, 0, .8, .15)';
@@ -2034,7 +2072,7 @@ function moFx(root, html, x, y) {
 const moCenter = (root, el) => {
   const frame = root.getBoundingClientRect();
   const rect = el.getBoundingClientRect();
-  return {x: rect.left - frame.left + rect.width / 2, y: rect.top - frame.top + rect.height / 2, w: rect.width, h: rect.height};
+  return {x: rect.left - frame.left - root.clientLeft + rect.width / 2, y: rect.top - frame.top - root.clientTop + rect.height / 2, w: rect.width, h: rect.height};
 };
 /* each juice plays on the card in place and ends in the lift pose the flight starts from */
 const MO_JUICE = [
@@ -2084,10 +2122,12 @@ const MO_JUICE = [
       {transform: `perspective(700px) rotateY(360deg) ${MO_LIFT}`, boxShadow: MO_SHADOW}], {duration: ms(440), fill: 'forwards'}),
   },
 ];
-const MO_QUESTIONS = [
-  ['要不要声音', 'Balatro 的爽感有一半来自声音。完成时加一声短促的音效（可关），要不要？要的话记进 future ideas 还是这次就画进来？'],
-  ['M 可以定稿了吗', '你 approve 以后，M 才标成定稿，再合进 F · Final：Final 里完成一张卡，从现在的淡出换成 juice + 飞进今天的圈。'],
-]
+const MO_DECIDED = [
+  ['四种 juice 都留', 'Wobble · Shine · Burst · Flip 随机，不连着重复；以后可以再加（第 24 轮）。'],
+  ['两端都飞进今天的圈', '桌面也画出一周的进度圈，和手机一样沿弧线飞进今天那格；Done 列照现在的产品，新完成的卡出现在最上面、亮一下（第 24 轮）。'],
+  ['不加声音', '第 25 轮。'],
+  ['定稿，合进 F · Final', 'owner 第 25 轮 approve。'],
+];
 const mo = {};
 const moSeedMode = () => ({
   todo: clone(FIX.todo),
@@ -2100,13 +2140,15 @@ function moRender(key, mode) {
   const state = mo[key][mode];
   const root = moRoot(key, mode);
   const before = arcsOf(root);
-  const cards = state.todo.length ? state.todo.map((model, idx) => armCard(model, idx, mode, state.armed === idx)).join('') : `<div class="cel-empty">${FIN_VARIANT.empty}</div>`;
-  if (mode === 'phone') {
-    root.innerHTML = `<div class="pz-row">${dayCell(state.days, FIX.todayIndex, {todayCopy: finCopy})}</div><div class="mo-list">${cards}</div>`;
-  } else {
-    const done = state.done.slice(0, MO_DONE_SHOWN).map((item, index) => doneCard(item, moHabitSlot(item), index === 0 && state.fresh === item)).join('');
-    root.innerHTML = `${ringRow(state.days, 'desk', 0, {todayCopy: finCopy})}<div class="mo-col">${column('Todo', state.todo.length, cards)}</div><div class="mo-col">${column('Done', state.done.length, done, {done: true})}</div>`;
-  }
+  const cards = state.todo.length ? state.todo.map((model, idx) => armCard(model, idx, mode, state.armed === idx)).join('') : TODO_EMPTY;
+  moKeepFx(root, () => {
+    if (mode === 'phone') {
+      root.innerHTML = `<div class="pz-row">${dayCell(state.days, FIX.todayIndex, {todayCopy: finCopy})}</div><div class="mo-list">${cards}</div>`;
+    } else {
+      const done = state.done.slice(0, MO_DONE_SHOWN).map((item, index) => doneCard(item, moHabitSlot(item), index === 0 && state.fresh === item)).join('');
+      root.innerHTML = `${ringRow(state.days, 'desk', 0, {todayCopy: finCopy})}<div class="mo-col">${column('Todo', state.todo.length, cards)}</div><div class="mo-col">${column('Done', state.done.length, done, {done: true})}</div>`;
+    }
+  });
   animateArcs(root, before);
   state.fresh = null;
 }
@@ -2136,6 +2178,36 @@ function moToss(cardEl, ringEl) {
   }
   return cardEl.animate(frames, {duration: moMs(MO_T.flight), easing: MO_EXIT, fill: 'forwards'}).finished;
 }
+/* the card's double, laid over the frame, so a scrolling column can't clip the juice or the toss; the next render drops it */
+function moGhost(root, cardEl) {
+  const frame = root.getBoundingClientRect();
+  const rect = cardEl.getBoundingClientRect();
+  const ghost = cardEl.cloneNode(true);
+  ['data-arm-idx', 'role', 'tabindex', 'aria-pressed', 'aria-label'].forEach(name => ghost.removeAttribute(name));
+  ghost.querySelectorAll('[data-arm-complete]').forEach(el => el.removeAttribute('data-arm-complete'));
+  ghost.setAttribute('aria-hidden', 'true');
+  ghost.classList.add('mo-ghost');
+  Object.assign(ghost.style, {left: `${rect.left - frame.left - root.clientLeft + root.scrollLeft}px`, top: `${rect.top - frame.top - root.clientTop + root.scrollTop}px`, width: `${rect.width}px`, height: `${rect.height}px`});
+  root.append(ghost);
+  cardEl.style.visibility = 'hidden';
+  return ghost;
+}
+/* every completed card, on both widths and in M and Final alike: a juice, then the toss; reduced motion only fades */
+async function moThrow(root, cardEl, kind, juice) {
+  if (moReduced()) {
+    await cardEl.animate([{opacity: 1}, {opacity: 0}], {duration: MO_T.fade, fill: 'forwards'}).finished;
+    return;
+  }
+  const ghost = moGhost(root, cardEl);
+  await juice.play(ghost, root, kind, moMs).finished;
+  await moToss(ghost, root.querySelector('.pz-day.today .pz-ringwrap'));
+}
+/* particles and text outlast the render that follows them */
+function moKeepFx(root, render) {
+  const fx = [...root.querySelectorAll(':scope > .mo-fx')];
+  render();
+  root.append(...fx);
+}
 function moPickJuice(forced) {
   if (forced && forced !== 'random') return MO_JUICE.find(juice => juice.key === forced);
   const choices = MO_JUICE.filter(juice => juice.key !== moLast);
@@ -2150,12 +2222,8 @@ async function moComplete(key, mode, idx, juice) {
   state.armed = null;
   const todoBefore = moTitleRects(root, '[data-arm-idx]');
   navigator.vibrate?.([12, 40, 24]);
-  if (moReduced()) {
-    await cardEl.animate([{opacity: 1}, {opacity: 0}], {duration: MO_T.fade, fill: 'forwards'}).finished;
-  } else {
-    await juice.play(cardEl, root, kind, moMs).finished;
-    await moToss(cardEl, root.querySelector('.pz-day.today .pz-ringwrap'));
-  }
+  await moThrow(root, cardEl, kind, juice);
+  if (mo[key][mode] !== state) return;
   const [model] = state.todo.splice(idx, 1);
   const entry = {kind: model.kind, title: model.title, name: model.name};
   state.days[FIX.todayIndex][model.kind][0] += 1;
@@ -2203,7 +2271,7 @@ function moReset() {
   moRender('toss', 'desk');
 }
 document.getElementById('mo-juice').innerHTML = MO_JUICE.map(juice => `<div class="pat"><h4>${juice.name} · ${juice.title}</h4><div class="who">随机触发之一 · 约 ${juice.key === 'flip' ? 440 : juice.key === 'shine' ? 420 : juice.key === 'wobble' ? 360 : 340} ms，然后飞</div>${juice.why}<div class="fit"><button class="ghost-btn" data-mo-play="${juice.key}">▶ 只看这一种</button></div></div>`).join('');
-document.getElementById('mo-questions').innerHTML = MO_QUESTIONS.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
+document.getElementById('mo-decided').innerHTML = MO_DECIDED.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 document.addEventListener('click', event => {
   if (event.target.closest('[data-mo-reset]')) { moReset(); return; }
   const slowBtn = event.target.closest('[data-mo-slow]');
