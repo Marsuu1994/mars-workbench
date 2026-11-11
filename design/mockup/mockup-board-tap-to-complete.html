@@ -245,7 +245,6 @@
   .pat a { color: var(--p); }
   .pat ul { margin: 6px 0 0; padding-left: 16px; }
   .pat li { margin: 5px 0; }
-  .pat .review { color: var(--wa); }
   .kc-grid { display: grid; grid-template-columns: repeat(3, minmax(240px, 1fr)); gap: 16px; overflow-x: auto; align-items: start; }
   .kc-col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
   .kc-col > .mo-cap { margin: 6px 0 0; }
@@ -716,7 +715,7 @@
 
 <header class="topbar">
   <div>
-    <div class="eyebrow">Board · Phase 2 · design PR · final version · decided 2026-11-09 · 第 1 轮 2026-11-06 · 第 2–18 轮一个模块一个模块定，最后合在一起 · 第 22–25 轮：M · 完成动画，第 25 轮定稿、合进 Final · 第 25 轮：桌面 Todo 加 Today、Todo 空了的提醒，第 28 轮定稿 · 第 28 轮：K · Card，所有卡片合成一个组件（等 owner review）</div>
+    <div class="eyebrow">Board · Phase 2 · design PR · final version · decided 2026-11-11 · 第 1 轮 2026-11-06 · 第 2–18 轮一个模块一个模块定，2026-11-09 合在一起 · 第 22–25 轮：M · 完成动画 · 第 25–28 轮：桌面 Todo 加 Today、Todo 空了的提醒 · 第 28–29 轮：K · Card，所有卡片合成一个组件</div>
     <h1>Board：点一下选中，✓ Complete 完成</h1>
     <p>有 active plan 的白天，默认屏就是 board。第一个 tab <b>F · Final</b> 是合在一起的定稿：Before 是现在的产品，After 是 P · Progress、C · Celebration、D · Done、T · Tap twice、M · 完成动画五个模块合起来的样子，桌面和手机都能直接点。后面五个 tab 是每个模块的决定和研究，<b>K · Card</b> 把所有卡片放在一起对照，给实现用；<b>I · Ideas</b> 记着这个设计带出来、要在别处或以后做的事。第 1 轮的 1–6 屏已被这些决定取代，留在 commit 历史里（<code>53d9220</code> 及以前）。</p>
   </div>
@@ -724,7 +723,7 @@
 
 <!-- ═════════ F · Final: the four modules on one board (round 18) ═════════ -->
 <section class="screen on" data-screen="final">
-  <div class="col-label"><b>F · Final · final version · decided 2026-11-09 · 修订 · amended 2026-11-10（第 25 轮：合进 M，桌面 Todo 加 Today、Todo 空了的提醒，第 28 轮定稿）· 修订 · amended 2026-11-11（第 28 轮：卡片合成一个组件，one-off 的 quadrant 挪进标签，等你 review）</b> · P 进度圈 · C 庆祝 · D 做完的去哪 · T 点两下完成 · M 完成动画 · K 卡片，合在一块 board 上<span class="line"></span></div>
+  <div class="col-label"><b>F · Final · final version · decided 2026-11-09 · 修订 · amended 2026-11-10（第 25 轮：合进 M，桌面 Todo 加 Today、Todo 空了的提醒，第 28 轮定稿）· 修订 · amended 2026-11-11（第 28 轮：卡片合成一个组件，one-off 的 quadrant 挪进标签；第 29 轮定稿）</b> · P 进度圈 · C 庆祝 · D 做完的去哪 · T 点两下完成 · M 完成动画 · K 卡片，合在一块 board 上<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:14px">每一块怎么来的，见后面五个 tab 和 <code>reviews/pr-115.md</code>。下面的 After 都能直接操作：点卡片选中，再点 <b>✓ Complete</b> 完成（只点卡片别处是取消）——卡片随机来一种 juice，再飞进今天的圈（M）；全部做完会播大反馈，Todo 空了留一块提醒。点今天或之前的某一格，看那天做完的；Backlog 点开，卡片上有 <b>↑ Todo</b>。桌面和手机的 After 上面各有 <b>Complete all →</b>（一张张做完，直接看大反馈，可以拿来录 demo）和 <b>Reset</b>。Fixture：Thu Nov 5 12:40，今天做完 1 / 5。</p>
   <div class="col-label"><b>这次新加的</b> · 相对现在的产品，按 board 上的位置分，每块注明来自哪个模块（第 28 轮和原来的「解剖」合成一节）<span class="line"></span></div>
   <div class="patterns" id="fin-new" style="margin-bottom:22px;grid-template-columns:repeat(auto-fill, minmax(230px, 1fr))"></div>
@@ -845,7 +844,7 @@
 
 <!-- ═════════ K · Card (round 28) ═════════ -->
 <section class="screen" data-screen="card">
-  <div class="col-label"><b>K · Card · 第 28 轮 · 等你 review</b> · board 上的卡合成一个组件，放在 Todo、Done、Backlog 三个地方<span class="line"></span></div>
+  <div class="col-label"><b>K · Card · 定稿 · decided 2026-11-11</b>（第 28 轮画，第 29 轮定） · board 上的卡合成一个组件，放在 Todo、Done、Backlog 三个地方<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:14px">第 28 轮：board 上所有的卡合成<b>一个组件</b>，按放在哪分成 Todo、Done、Backlog 三组。卡面三处都一样——第一行是 kind（step 写 project 名，one-off 在后面加 <b>| quadrant</b>：<b>ONE-OFF | DO FIRST</b>），然后标题、description，最后一行左边是 signal（habit 的 dots、step 的 path，one-off 没有）。会变的只有三处：<b>右下角的 action</b>（Todo 是那个圈，选中后变成 ✓ Complete；Done 没有；Backlog 是 ↑ Todo）、<b>右上角</b>（只有 Backlog 有：+N more，project 的能展开，后面垫着一叠 pile），还有 <b>Done 的样子</b>（变暗、标题划掉、不显示 description、里面一层淡光）。两个宽度同一张卡。Backlog 里没有 one-off：它们从 priority matrix 直接上 board。这个 tab 是给实现用的对照；F · Final 和 D 里的卡已经是这一张。</p>
   <div class="col-label"><b>Before</b> · 现在的产品<span class="line"></span></div>
   <div class="kc-grid" id="kc-before"></div>
@@ -871,7 +870,7 @@
   <button data-screen-btn="done">D · Done ✓</button>
   <button data-screen-btn="tap">T · Tap twice ✓</button>
   <button data-screen-btn="motion">M · 完成动画 ✓</button>
-  <button data-screen-btn="card">K · Card</button>
+  <button data-screen-btn="card">K · Card ✓</button>
   <button data-screen-btn="ideas">I · Ideas</button>
 </nav>
 
@@ -2054,7 +2053,6 @@ document.addEventListener('keydown', event => {
   finTap(mode, idx, fin[mode].armed === idx);
 });
 /* what's new against the product today, by where it sits on the board (round 27; the anatomy folded in, round 28) */
-const FIN_REVIEW = '<span class="review">（第 28 轮，等你 review）</span>';
 const FIN_NEW = [
   ['Board', 'P · T · D', [
     '顶部的积分面板（Today ring、Today / Week points、Daily avg、Week progress）换成一排进度圈。',
@@ -2073,7 +2071,7 @@ const FIN_NEW = [
     '手机拿掉 Done 那一行：做完的藏在那天的圈后面。',
   ]],
   ['Card', 'T · M · K', [
-    `一个组件：Todo、Done、Backlog 同一张卡，只有右下角的 action、Backlog 右上角的 +N more 和 Done 的样子不同；one-off 的 quadrant 挪进标签：<b>ONE-OFF | DO FIRST</b>。对照见 K · Card${FIN_REVIEW}。`,
+    `一个组件：Todo、Done、Backlog 同一张卡，只有右下角的 action、Backlog 右上角的 +N more 和 Done 的样子不同；one-off 的 quadrant 挪进标签：<b>ONE-OFF | DO FIRST</b>。对照见 K · Card。`,
     '点两下完成：点卡面任何地方选中（确认边框，角上的圈变成实心 ✓ 和 Complete，卡片大小不变），只有点 ✓ Complete 才完成；再点一次取消，点别的卡选中移过去，滚动不取消。',
     '完成动画：随机一种 Balatro 式 juice（Wobble、Shine、Burst 碎片 + <b>+1</b>、Flip，不连着重复），再沿弧线飞进今天的圈（约 300 ms）；减少动态效果时只淡出 150 ms。',
     '完成的卡（桌面 Done 列）：变暗、标题划掉、不显示 description，里面一层淡光，没有边框和角标；刚完成的亮一下。',
@@ -2144,7 +2142,7 @@ function todoEmptySeed() {
     ['右下角的 action', '现在只有手机 backlog sheet 里有 ↑ Todo，在标题旁边。After 统一在右下角：Todo 是 ✓ 圈，Backlog 是 ↑ Todo，Done 没有。'],
     ['Size', '<code>M · 3</code> 这样的 size chip 不再显示；size 本身留不留是 Phase 2 spike（痛点 1、4）的事。'],
     ['Done', '现在是 opacity 50%、标题划掉、不显示 description，size 还在。After 再加里面一层淡光，刚完成的亮一下，没有 size。'],
-    ['Backlog 的 habit 卡 · 改了 PR #109', 'PR #109 定的 backlog habit 卡第一行就是标题（右上角 +N more），没有 HABIT 标签。合成一张卡以后，第一行是 HABIT（右边 +N more），标题在第二行，和其他卡一样。要你看一下。'],
+    ['Backlog 的 habit 卡 · 改了 PR #109', 'PR #109 定的 backlog habit 卡第一行就是标题（右上角 +N more），没有 HABIT 标签。合成一张卡以后，第一行是 HABIT（右边 +N more），标题在第二行，和其他卡一样（第 29 轮定；tracker 里 backlog grouping 那一条记着）。'],
   ];
   document.getElementById('kc-changes').innerHTML = KC_CHANGES.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 }

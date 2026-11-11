@@ -96,8 +96,10 @@ How a screen should feel, whatever the theme. An agent checks a design against
 these before proposing it, and ranks its options by them. Each came from a call the
 owner made on a real design — most from PR #109's backlog grouping and PR #115's
 board. The product's core, in one line: **take resistance away, amplify feedback** —
-the work still to do stays calm and small, the work done is celebrated loudly. The
-principles fall into six groups; the items in a group pull the same way.
+the work still to do stays calm and small, the work done is celebrated loudly. Under
+it runs one habit of craft: **one structure, reused** — what reads as the same thing
+is built as the same thing (group 5). The principles fall into six groups; the items
+in a group pull the same way.
 
 ### 1. Minimal — fewer elements, smaller changes, fewer steps
 
@@ -113,8 +115,8 @@ next action.
 **1.2 When what exists works, change it the least.** Prefer a small change to the
 current screen over a new layout, and the simplest behaviour over a clever one.
 Bad: five new desktop layouts to fill the room a moved Done column left. Good: the
-product's Todo and Done columns, Done gaining only a This week tag; a card pulled
-after the day is done simply reopens the ring grey.
+product's Todo and Done columns, each gaining only a tag (Today, This week); a card
+pulled after the day is done simply reopens the ring grey.
 
 **1.3 The fewest actions, the least friction.** Every extra step is a reason to stop
 using the app; ask first whether a step can go. This is Phase 2's direction too.
@@ -137,6 +139,11 @@ no layer is added that could fill up with work nobody wants to do: plan by the w
 do by the day. Bad: the backlog always open beside Todo; a This week column between
 today's cards and the backlog — a parking lot for what keeps getting put off. Good:
 the backlog folded to an edge (a pill on phones) and opened to plan.
+
+**2.3 An empty list is a finish line.** When the planned work runs out, the screen says
+it is done and offers what could come next without pushing it. Good: an empty Todo
+reads "Today's plan is done · Pull more from the backlog, or call it a day." — both
+choices weighed the same.
 
 ### 3. Loud wins — finishing feels like a game
 
@@ -181,25 +188,37 @@ reads well collapsed. Bad: the backlog and Done folded into one edge strip, leav
 lone Todo column across the screen; two folded drawers side by side. Good: Todo and
 Done as two columns, the backlog folded to an edge.
 
-### 5. Consistent — one structure, one journey
+### 5. Consistent — one structure, reused by the eye and by the code
 
-**5.1 Similar groups share one structure.** Cards in one logical group keep the same
-skeleton — title line, description, progress mark, other indicators, and on mobile
-the action button in the same spot — and tell themselves apart by colour or the
-style of a mark (a habit's dots, a project's segmented path), never by a different
-layout. Bad: a backlog habit row without its description beside project cards that
-have one. Good: both read title (`+N more` at the right), description, progress
-line, `↑ Todo` bottom right.
+Consistency pays twice: parts that share one structure read calm, and the same
+structure is built once — one component with slots, not a variant for each place.
+When a design seems to need a second version of something, first ask whether it is
+a slot of the first.
+
+**5.1 One component, many places: a place fills slots, never reshapes the skeleton.**
+Things of one kind keep one skeleton wherever they sit, and each slot keeps one job
+everywhere. A card is a kind line, a title, a description, the signal bottom left
+and the action bottom right: Todo puts the ✓ circle in the action, Backlog puts
+`↑ Todo` there and `+N more` top right, Done leaves the action empty and dims. A
+desktop column is a title with a tag beside its count: Todo · Today, Done · This
+week. Bad: three card faces — the board's, the phone's mini card, the backlog
+sheet's — each laid out its own way; a one-off's quadrant top right, the spot the
+backlog needs for `+N more`; a backlog habit card whose title sits where every other
+card has its kind. Good: one card across Todo, Done and Backlog (PR #115 mockup, tab
+K · Card), the quadrant inside the kind line — `ONE-OFF | DO FIRST`.
 
 **5.2 One journey on both widths; desktop may add, never subtract.** Everything a
-phone can do, desktop does the same way, on the same card faces; desktop's extra
-room may add a view or a gesture of its own. Good: tap twice to complete and
-`↑ Todo` on backlog cards on both widths, plus drag on desktop; desktop's Done
-column, where phones open a day's list from its ring.
+phone can do, desktop does the same way, on the same card — one face on both widths;
+desktop's extra room may add a view or a gesture of its own. Good: tap twice to
+complete and `↑ Todo` on backlog cards on both widths, plus drag on desktop;
+desktop's Done column, where phones open a day's list from its ring.
 
-**5.3 Colours mean kinds.** Habit green, project-step purple, one-off blue — the
-same on card edges, rings and sparks — and told apart by people with
-colour-vision deficiency too (tracker: one-off blue and step purple are too close).
+**5.3 Kinds differ by colour and mark, never by layout.** Habit green, project-step
+purple, one-off blue — the same on card edges, rings and sparks — and a habit's dots
+against a step's segmented path; the layout stays the card's. Told apart by people
+with colour-vision deficiency too (tracker: one-off blue and step purple are too
+close). Bad: a backlog habit card without the description its project neighbours
+have.
 
 ### 6. Honest controls — controls look like controls, statuses don't, feedback stays small
 
