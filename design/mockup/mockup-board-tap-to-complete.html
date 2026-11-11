@@ -177,6 +177,7 @@
   .tc.is-done .tc-title { text-decoration: line-through; color: var(--ink-55); }
   .tc-head { display: flex; align-items: center; gap: 6px; min-width: 0; font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--k); }
   .tc-head .name { text-transform: none; letter-spacing: .02em; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .tc-head .qd-bar { color: var(--ink-45); font-weight: 500; }
   .tc-head .ctx { margin-left: auto; color: var(--ink-55); letter-spacing: .04em; text-transform: none; font-weight: 500; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
   .tc-row { display: flex; align-items: flex-start; gap: 10px; }
   .tc-title { flex: 1; min-width: 0; font-size: 14px; font-weight: 500; line-height: 1.3; }
@@ -245,6 +246,17 @@
   .pat ul { margin: 6px 0 0; padding-left: 16px; }
   .pat li { margin: 5px 0; }
   .pat .review { color: var(--wa); }
+  .kc-grid { display: grid; grid-template-columns: repeat(3, minmax(240px, 1fr)); gap: 16px; overflow-x: auto; align-items: start; }
+  .kc-col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .kc-col > .mo-cap { margin: 6px 0 0; }
+  .kc-col > .mo-cap:first-child { margin-top: 0; font-size: 11px; color: var(--bc); }
+  .kc-col .mrow { display: flex; gap: 8px; overflow-x: auto; }
+  .kc-tablewrap { overflow-x: auto; }
+  .kc-table { width: 100%; min-width: 720px; border-collapse: collapse; font-size: 12.5px; line-height: 1.55; color: var(--ink-80); }
+  .kc-table th, .kc-table td { border-bottom: 1px solid var(--card-border); padding: 9px 10px; text-align: left; vertical-align: top; }
+  .kc-table thead th { font-family: 'Geist Mono', monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-55); }
+  .kc-table tbody th { color: var(--bc); font-weight: 600; white-space: nowrap; }
+  .kc-table .same { color: var(--ink-55); }
   .changes { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 4px; }
   .changes li { border: 1px solid var(--card-border); border-radius: 12px; padding: 12px 14px; font-size: 12.5px; line-height: 1.55; color: var(--ink-80); background: color-mix(in oklab, var(--b1) 30%, transparent); }
   .changes li b { color: var(--bc); display: block; margin-bottom: 2px; }
@@ -429,8 +441,6 @@
   .more b { color: var(--k); font-weight: 700; }
   .more .icon { color: var(--k); align-self: center; }
   .tc.solid .tc-head .name { flex: 1; }
-  .tc-top { display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--k); }
-  .tc-top .ttl { flex: 1; min-width: 0; font-size: 14px; font-weight: 500; color: var(--bc); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .grp { display: flex; flex-direction: column; }
   .grp .tc { position: relative; z-index: 1; }
   .pile { display: flex; flex-direction: column; align-items: stretch; pointer-events: none; }
@@ -706,17 +716,17 @@
 
 <header class="topbar">
   <div>
-    <div class="eyebrow">Board · Phase 2 · design PR · final version · decided 2026-11-09 · 第 1 轮 2026-11-06 · 第 2–18 轮一个模块一个模块定，最后合在一起 · 第 22–25 轮：M · 完成动画，第 25 轮定稿、合进 Final · 第 25 轮：桌面 Todo 加 Today、Todo 空了的提醒（等 owner review）</div>
+    <div class="eyebrow">Board · Phase 2 · design PR · final version · decided 2026-11-09 · 第 1 轮 2026-11-06 · 第 2–18 轮一个模块一个模块定，最后合在一起 · 第 22–25 轮：M · 完成动画，第 25 轮定稿、合进 Final · 第 25 轮：桌面 Todo 加 Today、Todo 空了的提醒，第 28 轮定稿 · 第 28 轮：K · Card，所有卡片合成一个组件（等 owner review）</div>
     <h1>Board：点一下选中，✓ Complete 完成</h1>
-    <p>有 active plan 的白天，默认屏就是 board。第一个 tab <b>F · Final</b> 是合在一起的定稿：Before 是现在的产品，After 是 P · Progress、C · Celebration、D · Done、T · Tap twice、M · 完成动画五个模块合起来的样子，桌面和手机都能直接点。后面五个 tab 是每个模块的决定和研究；<b>I · Ideas</b> 记着这个设计带出来、要在别处或以后做的事。第 1 轮的 1–6 屏已被这些决定取代，留在 commit 历史里（<code>53d9220</code> 及以前）。</p>
+    <p>有 active plan 的白天，默认屏就是 board。第一个 tab <b>F · Final</b> 是合在一起的定稿：Before 是现在的产品，After 是 P · Progress、C · Celebration、D · Done、T · Tap twice、M · 完成动画五个模块合起来的样子，桌面和手机都能直接点。后面五个 tab 是每个模块的决定和研究，<b>K · Card</b> 把所有卡片放在一起对照，给实现用；<b>I · Ideas</b> 记着这个设计带出来、要在别处或以后做的事。第 1 轮的 1–6 屏已被这些决定取代，留在 commit 历史里（<code>53d9220</code> 及以前）。</p>
   </div>
 </header>
 
 <!-- ═════════ F · Final: the four modules on one board (round 18) ═════════ -->
 <section class="screen on" data-screen="final">
-  <div class="col-label"><b>F · Final · final version · decided 2026-11-09 · 修订 · amended 2026-11-10（第 25 轮：合进 M；桌面 Todo 加 Today、Todo 空了的提醒，这两样等你 review）</b> · P 进度圈 · C 庆祝 · D 做完的去哪 · T 点两下完成 · M 完成动画，合在一块 board 上<span class="line"></span></div>
+  <div class="col-label"><b>F · Final · final version · decided 2026-11-09 · 修订 · amended 2026-11-10（第 25 轮：合进 M，桌面 Todo 加 Today、Todo 空了的提醒，第 28 轮定稿）· 修订 · amended 2026-11-11（第 28 轮：卡片合成一个组件，one-off 的 quadrant 挪进标签，等你 review）</b> · P 进度圈 · C 庆祝 · D 做完的去哪 · T 点两下完成 · M 完成动画 · K 卡片，合在一块 board 上<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:14px">每一块怎么来的，见后面五个 tab 和 <code>reviews/pr-115.md</code>。下面的 After 都能直接操作：点卡片选中，再点 <b>✓ Complete</b> 完成（只点卡片别处是取消）——卡片随机来一种 juice，再飞进今天的圈（M）；全部做完会播大反馈，Todo 空了留一块提醒。点今天或之前的某一格，看那天做完的；Backlog 点开，卡片上有 <b>↑ Todo</b>。桌面和手机的 After 上面各有 <b>Complete all →</b>（一张张做完，直接看大反馈，可以拿来录 demo）和 <b>Reset</b>。Fixture：Thu Nov 5 12:40，今天做完 1 / 5。</p>
-  <div class="col-label"><b>这次新加的</b> · 相对现在的产品，按 board 上的位置分<span class="line"></span></div>
+  <div class="col-label"><b>这次新加的</b> · 相对现在的产品，按 board 上的位置分，每块注明来自哪个模块（第 28 轮和原来的「解剖」合成一节）<span class="line"></span></div>
   <div class="patterns" id="fin-new" style="margin-bottom:22px;grid-template-columns:repeat(auto-fill, minmax(230px, 1fr))"></div>
   <div class="col-label"><b>Before</b> · 现在的产品 · Desktop<span class="line"></span></div>
   <div id="fin-before-desk"></div>
@@ -726,8 +736,6 @@
   <div class="col-label spaced"><b>Before → After</b> · Phone · 375 px<span class="line"></span></div>
   <div class="pz-tools"><button class="ghost-btn" data-fin-all="phone">Complete all → · Phone</button><button class="ghost-btn" data-fin-reset="phone">Reset</button></div>
   <div class="phones" id="fin-phones"></div>
-  <div class="col-label spaced"><b>解剖</b> · 每一块来自哪个模块<span class="line"></span></div>
-  <ul class="openq" id="fin-ana"></ul>
   <div class="col-label spaced"><b>没定在这里的</b> · 画法只是占位，交给 flow 或以后<span class="line"></span></div>
   <ul class="openq" id="fin-later"></ul>
 </section>
@@ -779,8 +787,8 @@
 
 <!-- ═════════ D · Done (rounds 5–6, amended rounds 10 and 14) ═════════ -->
 <section class="screen" data-screen="done">
-  <div class="col-label"><b>D · Done · 定稿 · decided 2026-11-09 · 修订 · amended 2026-11-09（第 14–15 轮）· 修订 · amended 2026-11-10（第 25 轮：桌面 Todo 加 Today、Todo 空了的提醒，等你 review）</b> · 一天的清单两端都藏在圈后面；桌面就是现在的产品：Todo · Done（这周的卡片）· Backlog 收起<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px">第 5 轮画了三个方向（commit <code>2211b07</code>），第 6 轮定了「一天的清单藏在那天的圈后面：桌面浮窗、手机 sheet」。第 10 轮按 spike 把桌面改成常驻的 Done pane（按天分组、每组带圈），第 11–13 轮比较了五种桌面排法（commit <code>13628f5</code>），owner 都没选；第 14 轮把 Done 画成按 kind 分组的清单（commit <code>9594f3f</code>）。<b>第 15 轮定稿</b>：<b>一天的清单</b>两端同一个 journey——点某天的圈，看那天做完的（桌面浮在圈下面，手机是 sheet）。<b>桌面就按现在的产品</b>：Todo 和 Done 两列并排，Done 放这周做完的所有卡片，<b>不分组，按完成时间排，最新的在最上面</b>（第 17 轮；产品现在和 Todo 一样按 habit / project 分组排，这一条要写进 flow，见 Ideas 11），表头右边加 <b>This week</b>，Todo 的表头对应加 <b>Today</b>（第 25 轮，只在桌面，手机不改；等你 review）；Backlog 默认收起，点开后卡片上有 <b>↑ Todo</b>，也能拖。唯一大的改动是<b>完成的卡片</b>：和产品一样变暗、标题划掉、不显示 description，加上选中时卡片里面的那层光，但<b>没有高亮的边框，也没有右下角的 ✓</b>（第 16 轮拿掉：第 15 轮的实心 ✓ + Complete 太抢眼，见 commit <code>d17bbcb</code>）。清单都只读，没有撤回按钮（Ideas 8）。切到 <b>Long day</b> 看 Done 长了以后的样子。</p>
+  <div class="col-label"><b>D · Done · 定稿 · decided 2026-11-09 · 修订 · amended 2026-11-09（第 14–15 轮）· 修订 · amended 2026-11-10（第 25 轮：桌面 Todo 加 Today、Todo 空了的提醒；第 28 轮定稿）</b> · 一天的清单两端都藏在圈后面；桌面就是现在的产品：Todo · Done（这周的卡片）· Backlog 收起<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:14px">第 5 轮画了三个方向（commit <code>2211b07</code>），第 6 轮定了「一天的清单藏在那天的圈后面：桌面浮窗、手机 sheet」。第 10 轮按 spike 把桌面改成常驻的 Done pane（按天分组、每组带圈），第 11–13 轮比较了五种桌面排法（commit <code>13628f5</code>），owner 都没选；第 14 轮把 Done 画成按 kind 分组的清单（commit <code>9594f3f</code>）。<b>第 15 轮定稿</b>：<b>一天的清单</b>两端同一个 journey——点某天的圈，看那天做完的（桌面浮在圈下面，手机是 sheet）。<b>桌面就按现在的产品</b>：Todo 和 Done 两列并排，Done 放这周做完的所有卡片，<b>不分组，按完成时间排，最新的在最上面</b>（第 17 轮；产品现在和 Todo 一样按 habit / project 分组排，这一条要写进 flow，见 Ideas 11），表头右边加 <b>This week</b>，Todo 的表头对应加 <b>Today</b>（第 25 轮，只在桌面，手机不改）；Backlog 默认收起，点开后卡片上有 <b>↑ Todo</b>，也能拖。唯一大的改动是<b>完成的卡片</b>：和产品一样变暗、标题划掉、不显示 description，加上选中时卡片里面的那层光，但<b>没有高亮的边框，也没有右下角的 ✓</b>（第 16 轮拿掉：第 15 轮的实心 ✓ + Complete 太抢眼，见 commit <code>d17bbcb</code>）。清单都只读，没有撤回按钮（Ideas 8）。切到 <b>Long day</b> 看 Done 长了以后的样子。</p>
   <div class="pz-tools"><span class="seg"><button data-done-long="false" class="on">Normal day · Thu 1 done</button><button data-done-long="true">Long day · Thu 9 done</button></span></div>
 
   <div class="col-label"><b>Desktop · 定稿</b> · Todo（Today，第 25 轮）· Done（This week）· Backlog 收起 · 和现在的产品一样<span class="line"></span></div>
@@ -791,7 +799,7 @@
   <p class="note" style="margin-top:0;margin-bottom:12px">点今天或之前的某一格，sheet 升起（最高 70%），Todo 一动不动；再点一次或点外面关上。</p>
   <div id="done-mobile"></div>
 
-  <div class="col-label spaced"><b>Todo 空了 · 第 25 轮 · 等你 review</b> · Todo 一空就留一块提醒，两端一样<span class="line"></span></div>
+  <div class="col-label spaced"><b>Todo 空了 · 定稿 · decided 2026-11-11</b>（第 25 轮画，第 28 轮定） · Todo 一空就留一块提醒，两端一样<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:12px">这块原来是 C · Celebration 的一部分（今天排的做完以后，Todo 里留一张），第 25 轮单独拿出来：<b>只要 Todo 空了</b>就显示——虚线框，<b>Today's plan is done</b>，下面一句 <b>Pull more from the backlog, or call it a day.</b> 什么算「today」先不管（今天的总数怎么算是 Ideas 2，交给 flow），只看 Todo 空没空。桌面在 Todo 列里，手机在 Todo 列表里；最后一张卡飞走时它轻轻弹进来。下面是静态的；在 F · Final 里按 <b>Complete all</b> 看它出现。</p>
   <div id="todo-empty"></div>
 
@@ -835,6 +843,20 @@
   <ul class="openq" id="mo-decided"></ul>
 </section>
 
+<!-- ═════════ K · Card (round 28) ═════════ -->
+<section class="screen" data-screen="card">
+  <div class="col-label"><b>K · Card · 第 28 轮 · 等你 review</b> · board 上的卡合成一个组件，放在 Todo、Done、Backlog 三个地方<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:14px">第 28 轮：board 上所有的卡合成<b>一个组件</b>，按放在哪分成 Todo、Done、Backlog 三组。卡面三处都一样——第一行是 kind（step 写 project 名，one-off 在后面加 <b>| quadrant</b>：<b>ONE-OFF | DO FIRST</b>），然后标题、description，最后一行左边是 signal（habit 的 dots、step 的 path，one-off 没有）。会变的只有三处：<b>右下角的 action</b>（Todo 是那个圈，选中后变成 ✓ Complete；Done 没有；Backlog 是 ↑ Todo）、<b>右上角</b>（只有 Backlog 有：+N more，project 的能展开，后面垫着一叠 pile），还有 <b>Done 的样子</b>（变暗、标题划掉、不显示 description、里面一层淡光）。两个宽度同一张卡。Backlog 里没有 one-off：它们从 priority matrix 直接上 board。这个 tab 是给实现用的对照；F · Final 和 D 里的卡已经是这一张。</p>
+  <div class="col-label"><b>Before</b> · 现在的产品<span class="line"></span></div>
+  <div class="kc-grid" id="kc-before"></div>
+  <div class="col-label spaced after"><b>After</b> · 一个组件 · 按放在哪分<span class="line"></span></div>
+  <div class="kc-grid" id="kc-after"></div>
+  <div class="col-label spaced"><b>哪里一样、哪里不一样</b> · 每个部位 × 三个地方<span class="line"></span></div>
+  <div class="kc-tablewrap"><table class="kc-table" id="kc-table"></table></div>
+  <div class="col-label spaced"><b>和现在的产品比，变了什么</b><span class="line"></span></div>
+  <ul class="openq" id="kc-changes"></ul>
+</section>
+
 <!-- ═════════ I · Ideas ═════════ -->
 <section class="screen" data-screen="ideas">
   <div class="col-label"><b>I · Ideas</b> · 设计过程中冒出来、要在别处或以后改的想法<span class="line"></span></div>
@@ -849,6 +871,7 @@
   <button data-screen-btn="done">D · Done ✓</button>
   <button data-screen-btn="tap">T · Tap twice ✓</button>
   <button data-screen-btn="motion">M · 完成动画 ✓</button>
+  <button data-screen-btn="card">K · Card</button>
   <button data-screen-btn="ideas">I · Ideas</button>
 </nav>
 
@@ -963,6 +986,16 @@ function card(model, {drag = '', action = '', cls = '', showSize = false, foot =
   </div>`;
 }
 
+/* ── After: one head for every card (round 28) — the kind's label (a step names its project, a one-off
+   adds its quadrant after a bar), and on the right only the backlog's "+N more" ── */
+function cardHead(model, right = '') {
+  const {kind} = model;
+  let label = `<span>${KIND_LABEL[kind]}</span>`;
+  if (kind === 'project') label = `<span class="name">${model.name}</span>`;
+  else if (kind === 'oneoff' && model.quadrant) label += `<span class="qd-bar">|</span><span>${model.quadrant}</span>`;
+  return `<div class="tc-head">${icon(kind, 'xs')}${label}${right}</div>`;
+}
+
 /* ── Shared: the 7-day week strip (briefs/shared-day-strip.md) ──
    days: [{done, planned}] × 7 · todayIndex: 0–6 or -1 (a finished week) · size: '' | 'lg' */
 function dayStrip(days, {todayIndex = -1, size = '', dayNames = FIX.week.dayNames} = {}) {
@@ -1066,12 +1099,12 @@ const moreText = (count, chev = false) => `<span class="more"><b>+${count}</b>mo
 const pile = behindCount => (behindCount > 0 ? `<span class="pile" aria-hidden="true">${'<i></i>'.repeat(Math.min(behindCount, PILE_MAX))}</span>` : '');
 function backlogCards(items = FIX.backlog, {pull = false} = {}) {
   const pullOf = idx => (pull ? pullBtn(idx) : '');
-  const habit = (model, idx) => `<div class="grp"><div class="tc solid" data-kind="habit" data-drag><div class="tc-top">${icon('habit', 'sm')}<span class="ttl">${model.title}</span>${model.more ? moreText(model.more) : ''}</div><p class="tc-desc">${model.desc}</p><div class="tc-foot">${dots(model)}${pullOf(idx)}</div></div>${pile(model.more || 0)}</div>`;
-  const project = (model, idx) => `<div class="grp"><div class="tc solid" data-kind="project" data-drag><div class="tc-head">${icon('project', 'xs')}<span class="name">${model.name}</span>${model.more ? moreText(model.more, true) : ''}</div><h3 class="tc-title">${model.title}</h3>${model.desc ? `<p class="tc-desc">${model.desc}</p>` : ''}<div class="tc-foot">${path({...model, cur: model.n})}${pullOf(idx)}</div></div>${pile(model.more || 0)}</div>`;
+  /* the board's one card (round 28): "+N more" on the right of its head — a project's opens — and ↑ Todo bottom right */
+  const backlogCard = (model, idx) => `<div class="grp"><div class="tc solid" data-kind="${model.kind}" data-drag>${cardHead(model, model.more ? moreText(model.more, model.kind === 'project') : '')}<div class="tc-row"><h3 class="tc-title">${model.title}</h3></div>${model.desc ? `<p class="tc-desc">${model.desc}</p>` : ''}<div class="tc-foot">${model.kind === 'habit' ? dots(model) : path({...model, cur: model.n})}${pullOf(idx)}</div></div>${pile(model.more || 0)}</div>`;
   const indexed = items.map((item, idx) => [item, idx]);
-  const habits = indexed.filter(([item]) => item.kind === 'habit').map(([item, idx]) => habit({...item, desc: FIX.habits.find(h => h.id === item.id).desc}, idx)).join('');
+  const habits = indexed.filter(([item]) => item.kind === 'habit').map(([item, idx]) => backlogCard({...item, desc: FIX.habits.find(h => h.id === item.id).desc}, idx)).join('');
   /* one-offs never sit in the backlog: they go from the priority matrix straight to the board */
-  const projects = indexed.filter(([item]) => item.kind === 'project').map(([item, idx]) => project({...item, desc: item.title === 'Add residue picking' ? 'Click a residue → highlight + label' : item.desc || ''}, idx)).join('');
+  const projects = indexed.filter(([item]) => item.kind === 'project').map(([item, idx]) => backlogCard({...item, desc: item.title === 'Add residue picking' ? 'Click a residue → highlight + label' : item.desc || ''}, idx)).join('');
   return `${habits ? `<div class="sec-label">Habits<span class="line"></span></div>${habits}` : ''}${projects ? `<div class="sec-label">Projects<span class="line"></span></div>${projects}` : ''}`;
 }
 const backlogAfter = (items = FIX.backlog, {pull = false, count = backlogCount({backlog: items})} = {}) => backlogFrame(count, backlogCards(items, {pull}));
@@ -1407,7 +1440,7 @@ document.getElementById('cel-questions').innerHTML = CEL_QUESTIONS.map(([title, 
 /* ── D · Done: a day's list hides behind its ring — a popover on desktop, a sheet on phones ──
    The day cells become buttons: they light up on hover, give on press, and glow when selected. */
 const DONE_DAYS = [
-  [{kind: 'habit', title: 'Workout'}, {kind: 'habit', title: 'LeetCode'}, {kind: 'oneoff', title: 'Book dentist'}],
+  [{kind: 'habit', title: 'Workout'}, {kind: 'habit', title: 'LeetCode'}, {kind: 'oneoff', title: 'Book dentist', quadrant: 'Schedule'}],
   [{kind: 'habit', title: 'Workout'}, {kind: 'habit', title: 'Read'}],
   [{kind: 'habit', title: 'LeetCode'}, {kind: 'project', name: 'Biomedical course', title: 'Lecture 3 — Membranes'}],
   [{kind: 'habit', title: 'LeetCode'}],
@@ -1416,7 +1449,7 @@ const DONE_DAYS = [
 const DONE_LONG_THU = [
   {kind: 'habit', title: 'Workout'}, {kind: 'habit', title: 'LeetCode'}, {kind: 'habit', title: 'Read'},
   {kind: 'project', name: 'Biomedical course', title: 'Lecture 4 — Cell signaling'}, {kind: 'project', name: 'Biomedical course', title: 'Lecture 5 — Immunity basics'}, {kind: 'project', name: 'Protein 3D viewer', title: 'Render it with Mol*'},
-  {kind: 'oneoff', title: 'File tax report'}, {kind: 'oneoff', title: 'Renew passport'}, {kind: 'oneoff', title: 'Call the landlord'},
+  {kind: 'oneoff', title: 'File tax report', quadrant: 'Do first'}, {kind: 'oneoff', title: 'Renew passport', quadrant: 'Schedule'}, {kind: 'oneoff', title: 'Call the landlord', quadrant: 'Squeeze in'},
 ];
 const DONE_TODO = FIX.todo.slice(1, 4);
 const dn = {long: false, open: {}};
@@ -1491,7 +1524,6 @@ function stepNumber(name, title) {
    no description */
 function doneCard(item, habitSlot, fresh) {
   const {kind} = item;
-  let head = `<span>${KIND_LABEL[kind]}</span>`;
   let signal = '';
   if (kind === 'habit') {
     const {target} = FIX.habits.find(candidate => candidate.title === item.title);
@@ -1499,11 +1531,10 @@ function doneCard(item, habitSlot, fresh) {
   } else if (kind === 'project') {
     const {total} = FIX.projects.find(candidate => candidate.name === item.name);
     const step = stepNumber(item.name, item.title);
-    head = `<span class="name">${item.name}</span>`;
     signal = path({total, doneSteps: [...Array(step).keys()].map(index => index + 1), cur: -1});
   }
   return `<div class="tc solid done-card ${fresh ? 'fresh' : ''}" data-kind="${kind}">
-    <div class="tc-head">${icon(kind, 'xs')}${head}</div>
+    ${cardHead(item)}
     <div class="tc-row"><h3 class="tc-title">${item.title}</h3></div>
     <div class="tc-foot">${signal}</div>
   </div>`;
@@ -1585,7 +1616,7 @@ function dpaneTapCard(idx, onTarget) {
   setTimeout(() => {
     /* the card lands in the Done column, done-styled, and in today's list */
     const [model] = state.todo.splice(idx, 1);
-    const entry = {kind: model.kind, title: model.title, name: model.name};
+    const entry = {kind: model.kind, title: model.title, name: model.name, quadrant: model.quadrant};
     state.days[FIX.todayIndex][model.kind][0] += 1;
     state.lists[FIX.todayIndex].push(entry);
     state.fresh = entry;
@@ -1734,14 +1765,13 @@ const tp = {};
 const tapSeed = () => ({todo: clone(FIX.todo), days: clone(PZ_SEED), armed: null, armedAt: 0});
 function armCard(model, idx, mode, armed) {
   const {kind} = model;
-  const head = kind === 'project' ? `<span class="name">${model.name}</span>` : `<span>${KIND_LABEL[kind]}</span><span class="ctx">${kind === 'oneoff' ? (model.quadrant || '') : ''}</span>`;
   const signal = kind === 'habit' ? dots(model) : kind === 'project' ? path({...model, cur: model.n}) : '';
   const mark = `<span class="arm-mark" aria-hidden="true">${icon('check', 'xs')}</span>`;
   const corner = armed
     ? `<button class="arm-go" data-arm-complete aria-label="Complete ${model.title}"><span class="arm-word">Complete</span>${mark}</button>`
     : `<span class="arm-go">${mark}</span>`;
   return `<div class="tc solid arm-card ${armed ? 'armed' : ''}" data-kind="${kind}" data-arm-idx="${idx}" role="button" tabindex="0" aria-pressed="${armed}" aria-label="${armed ? `${model.title}, selected` : `Select ${model.title}`}" ${mode === 'desk' ? 'data-drag' : ''}>
-    <div class="tc-head">${icon(kind, 'xs')}${head}</div>
+    ${cardHead(model)}
     <div class="tc-row"><h3 class="tc-title">${model.title}</h3></div>
     ${model.desc ? `<p class="tc-desc">${model.desc}</p>` : ''}
     <div class="tc-foot">${signal}${corner}</div>
@@ -1954,7 +1984,7 @@ async function finComplete(mode, idx) {
   await moThrow(root, cardEl, state.todo[idx].kind, juice);
   if (fin[mode] !== state) return;
   const [model] = state.todo.splice(idx, 1);
-  const entry = {kind: model.kind, title: model.title, name: model.name};
+  const entry = {kind: model.kind, title: model.title, name: model.name, quadrant: model.quadrant};
   state.days[FIX.todayIndex][model.kind][0] += 1;
   state.lists[FIX.todayIndex].push(entry);
   state.fresh = entry;
@@ -2023,18 +2053,8 @@ document.addEventListener('keydown', event => {
   const idx = Number(card.dataset.armIdx);
   finTap(mode, idx, fin[mode].armed === idx);
 });
-const FIN_ANATOMY = [
-  ['进度圈 · P', '一天一圈，周长 = 那天排的，做完的按 habit → step → one-off 顺时针着色，做完那天圈里一个 ✓。桌面 Mon–Sun 一排，今天是带框的长格；手机圈的大小不变，按宽度放今天前面的几天。'],
-  ['日格是按钮 · D', 'Hover 只是一条下划线；选中是全亮的青色边框 + 里面的青光；按下缩一点。点今天或之前的某一格，看那天做完的——桌面浮在圈下面，手机是 sheet；再点一次、点外面或 Esc 关上。清单只读，按 kind 排。'],
-  ['点两下完成 · T', '点卡面任何地方选中：确认边框，右下角的圈变成实心的 ✓ 和 Complete，卡片大小不变；只有点 ✓ Complete 才完成；选中时点卡片别处取消，点别的卡选中移过去；滚动不取消。没有 undo snackbar。两个宽度一样。'],
-  ['完成动画 · M', '每完成一张：卡片先来一下随机的 Balatro 式 juice——Wobble、Shine、Burst（碎片 + <b>+1</b>）、Flip，不连着重复——再沿一条弧线飞进今天的圈（约 300 ms），两个宽度一样。系统开了「减少动态效果」时只淡出 150 ms。'],
-  ['庆祝 · C', '卡片飞进今天的圈时，圈接上一段自己颜色的弧，格子轻轻一跳。今天排的全部做完：圈转一圈、迸出今天做过的颜色的火花，文案 All 5 done；之后今天的框变绿。做完以后又拉了新卡：圈重新留出一段灰、绿框消失，再做完时再播一次。'],
-  ['Todo 空了 · D（第 25 轮，等你 review）', 'Todo 一空就留一块虚线框：Today\'s plan is done · Pull more from the backlog, or call it a day.，最后一张飞走时弹进来；两个宽度一样。什么算 today 先不管，只看 Todo 空没空。'],
-  ['Todo · Done · D', '桌面 Todo 的表头右边是 Today（第 25 轮，等你 review），Done 列就是现在产品的 Done 列，表头 This week，按完成时间排、最新的在最上面，不分组；完成的卡变暗、标题划掉、不显示 description，里面一层淡淡的光，没有边框和角标。手机没有 Done 列，点圈看。'],
-  ['Backlog · D · T', '默认收起：桌面是右边的窄条，手机是底部的 pill。打开后每张卡右下角有 ↑ Todo，两个宽度一样；桌面还能拖（Backlog → Todo、Todo → Done），和现在的产品一样（没画）。'],
-];
-/* what's new against the product today, by where it sits on the board (round 27) */
-const FIN_REVIEW = '<span class="review">（第 25 轮，等你 review）</span>';
+/* what's new against the product today, by where it sits on the board (round 27; the anatomy folded in, round 28) */
+const FIN_REVIEW = '<span class="review">（第 28 轮，等你 review）</span>';
 const FIN_NEW = [
   ['Board', 'P · T · D', [
     '顶部的积分面板（Today ring、Today / Week points、Daily avg、Week progress）换成一排进度圈。',
@@ -2042,25 +2062,26 @@ const FIN_NEW = [
     '桌面和手机一套 journey：手机能做的桌面都能做，桌面另外保留拖拽。',
   ]],
   ['Progress bar', 'P · C · D', [
-    '一天一圈：周长是那天排的，做完的按 habit → step → one-off 顺时针着色，做完那天圈里一个 ✓。桌面 Mon–Sun，今天是带框的长格；手机按宽度放今天前面几天。',
-    '每一格是按钮：点今天或之前的某天，看那天做完的（桌面浮在圈下面，手机 sheet），只读。Hover 一条下划线，选中是亮框 + 青光。',
-    '每完成一张，今天的圈接上一段；今天排的全做完，圈转一圈、迸出火花、<b>All 5 done</b>，框变绿。之后又拉了卡，圈留出一段灰，再做完再庆祝一次。',
+    '一天一圈：周长是那天排的，做完的按 habit → step → one-off 顺时针着色，做完那天圈里一个 ✓。桌面 Mon–Sun 一排，今天是带框的长格；手机圈的大小不变，按宽度放今天前面几天。',
+    '每一格是按钮：点今天或之前的某天，看那天做完的——桌面浮在圈下面，手机是 sheet；再点一次、点外面或 Esc 关上。清单只读，按 kind 排。Hover 一条下划线，选中是亮框 + 青光，按下缩一点。',
+    '每完成一张，今天的圈接上一段自己颜色的弧，格子轻轻一跳；今天排的全做完，圈转一圈、迸出今天做过的颜色的火花、<b>All 5 done</b>，框变绿。之后又拉了卡，圈留出一段灰、绿框消失，再做完再庆祝一次。',
   ]],
   ['Column', 'D', [
-    `桌面 Todo · Done 两列都撑到底，表头右边各一个标签：Todo 是 <b>Today</b>${FIN_REVIEW}，Done 是 <b>This week</b>。`,
+    '桌面 Todo · Done 两列都撑到底，表头右边各一个标签：Todo 是 <b>Today</b>，Done 是 <b>This week</b>；手机不改。',
     'Done 列放这周做完的，不分组，最新的在最上面（排序写进 flow，Ideas 11）。',
-    `Todo 空了留一块虚线框：<b>Today's plan is done</b> · Pull more from the backlog, or call it a day.，两端一样${FIN_REVIEW}。`,
+    "Todo 空了留一块虚线框：<b>Today's plan is done</b> · Pull more from the backlog, or call it a day.，最后一张飞走时弹进来；两端一样，什么算 today 先不管。",
     '手机拿掉 Done 那一行：做完的藏在那天的圈后面。',
   ]],
-  ['Card', 'T · M · D', [
-    '点两下完成：点卡面任何地方选中（确认边框，角上的圈变成实心 ✓ 和 Complete，卡片大小不变），只有点 ✓ Complete 才完成；再点一次取消。',
-    '完成动画：随机一种 Balatro 式 juice（Wobble、Shine、Burst、Flip，不连着重复），再沿弧线飞进今天的圈；减少动态效果时只淡出。',
+  ['Card', 'T · M · K', [
+    `一个组件：Todo、Done、Backlog 同一张卡，只有右下角的 action、Backlog 右上角的 +N more 和 Done 的样子不同；one-off 的 quadrant 挪进标签：<b>ONE-OFF | DO FIRST</b>。对照见 K · Card${FIN_REVIEW}。`,
+    '点两下完成：点卡面任何地方选中（确认边框，角上的圈变成实心 ✓ 和 Complete，卡片大小不变），只有点 ✓ Complete 才完成；再点一次取消，点别的卡选中移过去，滚动不取消。',
+    '完成动画：随机一种 Balatro 式 juice（Wobble、Shine、Burst 碎片 + <b>+1</b>、Flip，不连着重复），再沿弧线飞进今天的圈（约 300 ms）；减少动态效果时只淡出 150 ms。',
     '完成的卡（桌面 Done 列）：变暗、标题划掉、不显示 description，里面一层淡光，没有边框和角标；刚完成的亮一下。',
     '手机从横滑的 mini 卡换成竖排的全宽卡，卡面和桌面一样；卡上不再显示 size（<code>M · 3</code>），size 本身留不留是 Phase 2 spike 的事。',
   ]],
   ['Backlog', 'D · T', [
     '默认收起：桌面是右边一条带数量的窄条，手机还是底部的 pill。',
-    '打开以后每张卡右下角有 <b>↑ Todo</b>，两端一样；桌面照样能拖进 Todo。',
+    '打开以后每张卡右下角有 <b>↑ Todo</b>，两端一样；桌面照样能拖（Backlog → Todo、Todo → Done），和现在的产品一样（没画）。',
   ]],
 ];
 const FIN_LATER = [
@@ -2070,7 +2091,6 @@ const FIN_LATER = [
 ];
 document.getElementById('fin-before-desk').innerHTML = deskBefore();
 document.getElementById('fin-phones').innerHTML = `${phoneBefore()}<div class="pz-phonewrap"><div class="pz-cap">After · 竖排全宽卡，点两下完成</div><div class="pz-phone done-phone fin-phone" data-fin="phone" id="fin-phone" style="width:359px"></div></div>`;
-document.getElementById('fin-ana').innerHTML = FIN_ANATOMY.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 document.getElementById('fin-new').innerHTML = FIN_NEW.map(([area, modules, items]) => `<div class="pat"><h4>${area}</h4><div class="who">${modules}</div><ul>${items.map(item => `<li>${item}</li>`).join('')}</ul></div>`).join('');
 document.getElementById('fin-later').innerHTML = FIN_LATER.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 ['desk', 'phone'].forEach(mode => finReset(mode));
@@ -2079,7 +2099,7 @@ function todoEmptySeed() {
   const state = finSeed();
   state.todo.forEach(model => {
     state.days[FIX.todayIndex][model.kind][0] += 1;
-    state.lists[FIX.todayIndex].push({kind: model.kind, title: model.title, name: model.name});
+    state.lists[FIX.todayIndex].push({kind: model.kind, title: model.title, name: model.name, quadrant: model.quadrant});
   });
   state.todo = [];
   return state;
@@ -2088,6 +2108,45 @@ function todoEmptySeed() {
   const state = todoEmptySeed();
   document.getElementById('todo-empty').innerHTML = `<div class="pz-cap">Desktop · 1280 px</div><div class="pz-desk dpane-desk">${finDeskHtml(state)}</div>
     <div class="phones" style="margin-top:20px"><div class="pz-phonewrap"><div class="pz-cap">Phone · 375 px</div><div class="pz-phone done-phone fin-phone" style="width:359px">${finPhoneHtml(state)}</div></div></div>`;
+}
+/* ═══════════ K · Card (round 28): the board's one card, by where it sits, against the product's ═══════════ */
+{
+  const cap = text => `<div class="mo-cap">${text}</div>`;
+  const col = (title, body) => `<div class="kc-col">${cap(title)}${body}</div>`;
+  const [habit, step, , oneoff] = FIX.todo;
+  const before = (model, options = {}) => card(withSize(model), {showSize: true, cls: 'solid', ...options});
+  const pullBefore = pullBtn(0).replace(' data-pull="0"', '');
+  document.getElementById('kc-before').innerHTML = [
+    col('Todo', `${before(habit)}${before(step)}${before(oneoff)}${cap('手机 · 横滑的 mini 卡（136 × 92）')}<div class="mrow">${mini(withSize(habit))}${mini(withSize(oneoff))}</div>`),
+    col('Done', `${before(FIX.doneToday[0])}${before({kind: 'oneoff', title: 'Book dentist', quadrant: 'Schedule', isDone: true})}${cap('只是 opacity 50%，标题划掉，size 还在')}`),
+    col('Backlog', `${before(BACKLOG_BEFORE[0])}${before(BACKLOG_BEFORE[3])}${cap('手机的 backlog sheet · ↑ Todo 在标题旁边')}${before(BACKLOG_BEFORE[5], {action: pullBefore})}`),
+  ].join('');
+  document.getElementById('kc-after').innerHTML = [
+    col('Todo', `${armCard(habit, 0, 'desk', false)}${armCard(step, 1, 'desk', false)}${armCard(oneoff, 3, 'desk', false)}${cap('选中 · 确认边框，右下角变成 ✓ Complete')}${armCard(oneoff, 3, 'desk', true)}`),
+    col('Done', `${doneCard({kind: 'habit', title: 'Workout'}, 1, false)}${doneCard({kind: 'project', name: 'Biomedical course', title: 'Lecture 3 — Membranes'}, 0, false)}${doneCard({kind: 'oneoff', title: 'Book dentist', quadrant: 'Schedule'}, 0, false)}${cap('刚完成的那张亮一下（只在完成那一刻）')}`),
+    col('Backlog', `${backlogCards(FIX.backlog, {pull: true})}${cap('没有 one-off')}`),
+  ].join('');
+  const KC_SLOTS = [
+    ['第一行 · 左', '<span class="same">三处一样</span>：kind 图标 + 标签；step 写 project 名；one-off 加 <b>| quadrant</b>', '', ''],
+    ['第一行 · 右', '—', '—', '<b>+N more</b>；project 的带 ⌄，点开看后面几步'],
+    ['标题', '一行，正常', '划掉、变暗', '一行，正常'],
+    ['Description', '显示，最多两行', '不显示', '显示，最多两行'],
+    ['最后一行 · 左', '<span class="same">三处一样</span>：habit 的 dots（这一次带环）、step 的 path；one-off 没有', '', ''],
+    ['最后一行 · 右（action）', '○；选中后变成 ✓ Complete，只有它能完成', '—', '<b>↑ Todo</b>'],
+    ['卡片本身', '选中时确认边框，大小不变', '变暗 + 里面一层淡光，没有边框和角标；刚完成的亮一下', '后面垫一叠 pile（最多三层）'],
+    ['交互', '点卡面选中，再点一次取消；桌面也能拖进 Done', '只读，不能拖', '点 ↑ Todo；桌面也能拖进 Todo'],
+    ['Size', '<span class="same">三处都不显示</span>（Phase 2 spike）', '', ''],
+  ];
+  document.getElementById('kc-table').innerHTML = `<thead><tr><th>部位</th><th>Todo</th><th>Done</th><th>Backlog</th></tr></thead><tbody>${KC_SLOTS.map(([slot, todo, done, backlog]) => (done === '' && backlog === '' ? `<tr><th>${slot}</th><td colspan="3">${todo}</td></tr>` : `<tr><th>${slot}</th><td>${todo}</td><td>${done}</td><td>${backlog}</td></tr>`)).join('')}</tbody>`;
+  const KC_CHANGES = [
+    ['一个卡面', '现在产品有三套：<code>TaskCardFace</code>（桌面 board、桌面 backlog）、<code>TaskCardMiniFace</code>（手机 board 的 136 px mini 卡）、<code>MobileBacklogCard</code>（手机 backlog sheet）。After 只剩一张，mini 卡去掉，按放在哪换右下角和右上角。'],
+    ['第一行右边', '现在放 habit 的 <code>3× / week</code>、step 的 <code>5/9</code>、one-off 的 quadrant。After 前两个拿掉（dots 和 path 已经说了），quadrant 挪进标签：<code>ONE-OFF | DO FIRST</code>；右边只留给 backlog 的 +N more。'],
+    ['右下角的 action', '现在只有手机 backlog sheet 里有 ↑ Todo，在标题旁边。After 统一在右下角：Todo 是 ✓ 圈，Backlog 是 ↑ Todo，Done 没有。'],
+    ['Size', '<code>M · 3</code> 这样的 size chip 不再显示；size 本身留不留是 Phase 2 spike（痛点 1、4）的事。'],
+    ['Done', '现在是 opacity 50%、标题划掉、不显示 description，size 还在。After 再加里面一层淡光，刚完成的亮一下，没有 size。'],
+    ['Backlog 的 habit 卡 · 改了 PR #109', 'PR #109 定的 backlog habit 卡第一行就是标题（右上角 +N more），没有 HABIT 标签。合成一张卡以后，第一行是 HABIT（右边 +N more），标题在第二行，和其他卡一样。要你看一下。'],
+  ];
+  document.getElementById('kc-changes').innerHTML = KC_CHANGES.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 }
 /* ═══════════ M · Complete motion (rounds 22–25, decided): a random juice, then the card is tossed into today's ring ═══════════ */
 const MO_EASE = 'cubic-bezier(.2, 0, 0, 1)';
@@ -2263,7 +2322,7 @@ async function moComplete(key, mode, idx, juice) {
   await moThrow(root, cardEl, kind, juice);
   if (mo[key][mode] !== state) return;
   const [model] = state.todo.splice(idx, 1);
-  const entry = {kind: model.kind, title: model.title, name: model.name};
+  const entry = {kind: model.kind, title: model.title, name: model.name, quadrant: model.quadrant};
   state.days[FIX.todayIndex][model.kind][0] += 1;
   /* desktop's Done column as the product has it now: the new card on top, lit once */
   state.done.unshift(entry);
