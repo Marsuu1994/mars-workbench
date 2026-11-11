@@ -242,6 +242,9 @@
   .pat .who { font-family: 'Geist Mono', monospace; font-size: 10.5px; color: var(--p); letter-spacing: .04em; margin-bottom: 8px; }
   .pat .fit { margin-top: 8px; }
   .pat a { color: var(--p); }
+  .pat ul { margin: 6px 0 0; padding-left: 16px; }
+  .pat li { margin: 5px 0; }
+  .pat .review { color: var(--wa); }
   .changes { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 4px; }
   .changes li { border: 1px solid var(--card-border); border-radius: 12px; padding: 12px 14px; font-size: 12.5px; line-height: 1.55; color: var(--ink-80); background: color-mix(in oklab, var(--b1) 30%, transparent); }
   .changes li b { color: var(--bc); display: block; margin-bottom: 2px; }
@@ -713,6 +716,8 @@
 <section class="screen on" data-screen="final">
   <div class="col-label"><b>F · Final · final version · decided 2026-11-09 · 修订 · amended 2026-11-10（第 25 轮：合进 M；桌面 Todo 加 Today、Todo 空了的提醒，这两样等你 review）</b> · P 进度圈 · C 庆祝 · D 做完的去哪 · T 点两下完成 · M 完成动画，合在一块 board 上<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:14px">每一块怎么来的，见后面五个 tab 和 <code>reviews/pr-115.md</code>。下面的 After 都能直接操作：点卡片选中，再点 <b>✓ Complete</b> 完成（只点卡片别处是取消）——卡片随机来一种 juice，再飞进今天的圈（M）；全部做完会播大反馈，Todo 空了留一块提醒。点今天或之前的某一格，看那天做完的；Backlog 点开，卡片上有 <b>↑ Todo</b>。桌面和手机的 After 上面各有 <b>Complete all →</b>（一张张做完，直接看大反馈，可以拿来录 demo）和 <b>Reset</b>。Fixture：Thu Nov 5 12:40，今天做完 1 / 5。</p>
+  <div class="col-label"><b>这次新加的</b> · 相对现在的产品，按 board 上的位置分<span class="line"></span></div>
+  <div class="patterns" id="fin-new" style="margin-bottom:22px;grid-template-columns:repeat(auto-fill, minmax(230px, 1fr))"></div>
   <div class="col-label"><b>Before</b> · 现在的产品 · Desktop<span class="line"></span></div>
   <div id="fin-before-desk"></div>
   <div class="col-label spaced after"><b>After</b> · Desktop · 1280 px<span class="line"></span></div>
@@ -2028,6 +2033,36 @@ const FIN_ANATOMY = [
   ['Todo · Done · D', '桌面 Todo 的表头右边是 Today（第 25 轮，等你 review），Done 列就是现在产品的 Done 列，表头 This week，按完成时间排、最新的在最上面，不分组；完成的卡变暗、标题划掉、不显示 description，里面一层淡淡的光，没有边框和角标。手机没有 Done 列，点圈看。'],
   ['Backlog · D · T', '默认收起：桌面是右边的窄条，手机是底部的 pill。打开后每张卡右下角有 ↑ Todo，两个宽度一样；桌面还能拖（Backlog → Todo、Todo → Done），和现在的产品一样（没画）。'],
 ];
+/* what's new against the product today, by where it sits on the board (round 27) */
+const FIN_REVIEW = '<span class="review">（第 25 轮，等你 review）</span>';
+const FIN_NEW = [
+  ['Board', 'P · T · D', [
+    '顶部的积分面板（Today ring、Today / Week points、Daily avg、Week progress）换成一排进度圈。',
+    '去掉 undo snackbar；撤回以后再说（<code>design/future-ideas.md</code>）。',
+    '桌面和手机一套 journey：手机能做的桌面都能做，桌面另外保留拖拽。',
+  ]],
+  ['Progress bar', 'P · C · D', [
+    '一天一圈：周长是那天排的，做完的按 habit → step → one-off 顺时针着色，做完那天圈里一个 ✓。桌面 Mon–Sun，今天是带框的长格；手机按宽度放今天前面几天。',
+    '每一格是按钮：点今天或之前的某天，看那天做完的（桌面浮在圈下面，手机 sheet），只读。Hover 一条下划线，选中是亮框 + 青光。',
+    '每完成一张，今天的圈接上一段；今天排的全做完，圈转一圈、迸出火花、<b>All 5 done</b>，框变绿。之后又拉了卡，圈留出一段灰，再做完再庆祝一次。',
+  ]],
+  ['Column', 'D', [
+    `桌面 Todo · Done 两列都撑到底，表头右边各一个标签：Todo 是 <b>Today</b>${FIN_REVIEW}，Done 是 <b>This week</b>。`,
+    'Done 列放这周做完的，不分组，最新的在最上面（排序写进 flow，Ideas 11）。',
+    `Todo 空了留一块虚线框：<b>Today's plan is done</b> · Pull more from the backlog, or call it a day.，两端一样${FIN_REVIEW}。`,
+    '手机拿掉 Done 那一行：做完的藏在那天的圈后面。',
+  ]],
+  ['Card', 'T · M · D', [
+    '点两下完成：点卡面任何地方选中（确认边框，角上的圈变成实心 ✓ 和 Complete，卡片大小不变），只有点 ✓ Complete 才完成；再点一次取消。',
+    '完成动画：随机一种 Balatro 式 juice（Wobble、Shine、Burst、Flip，不连着重复），再沿弧线飞进今天的圈；减少动态效果时只淡出。',
+    '完成的卡（桌面 Done 列）：变暗、标题划掉、不显示 description，里面一层淡光，没有边框和角标；刚完成的亮一下。',
+    '手机从横滑的 mini 卡换成竖排的全宽卡，卡面和桌面一样；卡上不再显示 size（<code>M · 3</code>），size 本身留不留是 Phase 2 spike 的事。',
+  ]],
+  ['Backlog', 'D · T', [
+    '默认收起：桌面是右边一条带数量的窄条，手机还是底部的 pill。',
+    '打开以后每张卡右下角有 <b>↑ Todo</b>，两端一样；桌面照样能拖进 Todo。',
+  ]],
+];
 const FIN_LATER = [
   ['今天的总数 · Ideas 2', '这里按 Todo + 今天做完的算，所以从 backlog 拉一张进 Todo，今天的分母 +1。到底怎么算交给 flow。Todo 空了的提醒和桌面的 Today 也先不管什么算 today（第 25 轮）。'],
   ['Done 列的排序 · Ideas 11', '按 doneAt 倒序是行为，写进 flow；这里照着画了。'],
@@ -2036,6 +2071,7 @@ const FIN_LATER = [
 document.getElementById('fin-before-desk').innerHTML = deskBefore();
 document.getElementById('fin-phones').innerHTML = `${phoneBefore()}<div class="pz-phonewrap"><div class="pz-cap">After · 竖排全宽卡，点两下完成</div><div class="pz-phone done-phone fin-phone" data-fin="phone" id="fin-phone" style="width:359px"></div></div>`;
 document.getElementById('fin-ana').innerHTML = FIN_ANATOMY.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
+document.getElementById('fin-new').innerHTML = FIN_NEW.map(([area, modules, items]) => `<div class="pat"><h4>${area}</h4><div class="who">${modules}</div><ul>${items.map(item => `<li>${item}</li>`).join('')}</ul></div>`).join('');
 document.getElementById('fin-later').innerHTML = FIN_LATER.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 ['desk', 'phone'].forEach(mode => finReset(mode));
 /* D · Todo 空了 (round 25): every card of today done, drawn statically with Final's markup */
