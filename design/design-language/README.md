@@ -96,8 +96,9 @@ How a screen should feel, whatever the theme. An agent checks a design against
 these before proposing it, and ranks its options by them. Each came from a call the
 owner made on a real design — most from PR #109's backlog grouping and PR #115's
 board — and an example's citation says where: `(#115 R14)` is round 14 of
-`reviews/pr-115.md`, which quotes the owner and names the commit that drew it; an
-example with no round to cite is left out. The product's core, in one line: **take resistance away, amplify feedback** —
+`reviews/pr-115.md`, which quotes the owner and names the commit that drew it; a PR
+from before the review log is cited by its number alone, `(#58)`; an example with
+nothing to cite is left out. The product's core, in one line: **take resistance away, amplify feedback** —
 the work still to do stays calm and small, the work done is celebrated loudly. Under
 it runs one habit of craft: **one structure, reused** — what reads as the same thing
 is built as the same thing (group 5). The principles fall into six groups; the items
@@ -210,10 +211,8 @@ and the action bottom right: Todo puts the ✓ circle in the action, Backlog put
 `↑ Todo` there and `+N more` top right, Done leaves the action empty and dims. A
 desktop column is a title with a tag beside its count: Todo · Today, Done · This week
 (#115 R15, R25). Bad: three card faces — the board's, the phone's mini card, the
-backlog sheet's — each laid out its own way; a one-off's quadrant top right, the spot
-the backlog needs for `+N more`; a backlog habit card whose title sits where every
-other card has its kind (#115 R28); a project's `3 left this week ⌄` in an outlined
-pill where a habit's count is plain text (#109 R3). Good: one card across Todo, Done
+backlog sheet's — each laid out its own way (#115 R28); a project's `3 left this
+week ⌄` in an outlined pill where a habit's count is plain text (#109 R3). Good: one card across Todo, Done
 and Backlog, the quadrant inside the kind line — `ONE-OFF | DO FIRST` (#115 R28–29;
 the mockup's tab K · Card).
 
@@ -238,22 +237,22 @@ clicking it is never drawn as a control shape — no hollow or filled circles or
 squares that read as a radio or checkbox. Show it with what the element already
 has: a tint, a border, a pill, muted text, an inline ✓ glyph beside text. Bad:
 every project step row led by a circle that fills when the step is on this week —
-it looks clickable and only repeats the pill; a filled ✓ circle on a done card. Good:
-this week's row is tinted with a "This week · todo" pill; a done row reads muted
-with "✓ Mon, Oct 5" on the right.
+it looks clickable and only repeats the pill (#58); a filled ✓ circle on a done card
+(#115 R16). Good: this week's row is tinted with a "This week · todo" pill; a done
+row reads muted with "✓ Mon, Oct 5" on the right (#58).
 
 **6.2 Controls look tappable, and their feedback stays small.** This is a control's
 own feedback — hover and press; the loud feedback belongs to wins (3). Hover is the least it
 can be; press and selection carry the weight; hover never changes how a selected
 element looks. Bad: a whole cell lighting up and lifting on hover; hover dimming a
-selected day's glow. Good: a day cell — hover an underline, press a slight shrink,
-selected a bright frame and an inner glow.
+selected day's glow (#115 R14). Good: a day cell — hover an underline, press a slight
+shrink, selected a bright frame and an inner glow (#115 R6, R14–15).
 
 **6.3 Interacting never changes size.** The layout holds still: a win's animation may
 scale a card with a transform for a moment, but nothing around it moves until the card
-has gone. Bad: a card that grows taller when selected.
-Good: the selected card's ✓ scales up in place; rings keep one size on every phone
-width.
+has gone. Bad: a card that grows taller when selected (#115 R8). Good: the selected
+card keeps its size and gains a confirm frame (#115 R8); rings keep one size on every
+phone width (#115 R2).
 
 ## Motion (shared baseline)
 
