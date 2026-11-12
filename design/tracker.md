@@ -92,6 +92,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 
 ### Medium
 
+- [ ] Mark a one-off done on the matrix the way the board does — a confirm state on the card, then ✓ Complete — instead of the "Marked done" toast with its Undo window: what can't be taken back confirms in place, not undone after (PR #115 round 31; design-language Principle 1.3)
 - [ ] Ad-hoc task deletion and auto-clear logic
 
 ### Future

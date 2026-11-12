@@ -96,8 +96,8 @@ How a screen should feel, whatever the theme. An agent checks a design against
 these before proposing it, and ranks its options by them. Each came from a call the
 owner made on a real design — most from PR #109's backlog grouping and PR #115's
 board — and an example's citation says where: `(#115 R14)` is round 14 of
-`reviews/pr-115.md`, which quotes the owner and names the commit that drew it. The
-product's core, in one line: **take resistance away, amplify feedback** —
+`reviews/pr-115.md`, which quotes the owner and names the commit that drew it; an
+example with no round to cite is left out. The product's core, in one line: **take resistance away, amplify feedback** —
 the work still to do stays calm and small, the work done is celebrated loudly. Under
 it runs one habit of craft: **one structure, reused** — what reads as the same thing
 is built as the same thing (group 5). The principles fall into six groups; the items
@@ -109,10 +109,8 @@ in a group pull the same way.
 path or another mark already says something, no text, number or second component
 says it again; if removing an element loses nothing, remove it. Bad: `Weekly × 3`
 and `1/3` beside a habit's dots, `Step 4/9` beside a project's path (#109 R1, R6); a
-size chip on a backlog card (#109 R1); an outlined pill around `3 left this week ⌄`
-(#109 R3); a Done pane whose day groups each carry a ring, redrawing the progress row
-above it (#115 R14). Good: the dots and the path carry progress (#109 R6); the card
-keeps kind, title, description, progress and the next action.
+Done pane whose day groups each carry a ring, redrawing the progress row above it
+(#115 R14). Good: the dots and the path carry progress (#109 R6).
 
 **1.2 When what exists works, change it the least.** Prefer a small change to the
 current screen over a new layout, and the simplest behaviour over a clever one.
@@ -122,11 +120,14 @@ week, Today (#115 R15, R25); a card pulled after the day is done simply reopens 
 ring grey (#115 R19).
 
 **1.3 The fewest actions, the least friction.** Every extra step is a reason to stop
-using the app; ask first whether a step can go. This is Phase 2's direction too.
-Bad: the old three columns, a card walking Backlog → Todo → Doing → Done (#109
-R11). Good: no Doing column. The one exception: an action the user can't take back
-earns one confirming step, in place — never a dialog or a banner. Good: tap a card to
-select it, then its ✓ Complete; not one tap and a 5-second Undo snackbar (#115 R7–8).
+using the app; ask first whether a step can go — this is Phase 2's direction. A move
+becomes a tap on the card; dragging stays only as desktop's extra. Bad: the old three
+columns, a card walking Backlog → Todo → Doing → Done (#109 R11). Good: no Doing
+column (#109 R11); a card is completed by tapping it, not by dragging it into Done
+(#115 R7–8); a backlog card goes to the board with its `↑ Todo`, on both widths (#115
+R14). The one exception: an action the user can't take back gets one confirming
+state, in place — never an undo banner after it. Good: the tapped card's ✓ Complete
+instead of a 5-second Undo snackbar (#115 R7–8).
 
 ### 2. Calm ahead — the work still to do never overwhelms
 
@@ -207,7 +208,8 @@ desktop column is a title with a tag beside its count: Todo · Today, Done · Th
 week. Bad: three card faces — the board's, the phone's mini card, the backlog
 sheet's — each laid out its own way; a one-off's quadrant top right, the spot the
 backlog needs for `+N more`; a backlog habit card whose title sits where every other
-card has its kind. Good: one card across Todo, Done and Backlog (PR #115 mockup, tab
+card has its kind; a project's `3 left this week ⌄` in an outlined pill where a habit's
+count is plain text (#109 R3). Good: one card across Todo, Done and Backlog (PR #115 mockup, tab
 K · Card), the quadrant inside the kind line — `ONE-OFF | DO FIRST`.
 
 **5.2 One journey on both widths; desktop may add, never subtract.** Everything a
