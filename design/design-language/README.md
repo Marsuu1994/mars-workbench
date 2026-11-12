@@ -160,8 +160,8 @@ borrowed from games — Balatro is the reference (#115 R23). Loud is for that mo
 not for what stays on screen: a done card at rest is quiet (6.1).
 
 **3.1 Feedback is strong.** Completing is rewarded with motion, colour and particles
-the user can feel — never a quiet fade. Bad: the card fading out sideways in 240 ms
-(#115 R22). Good: the card lifts, wobbles and is tossed into today's ring (#115 R23–24).
+the user can feel. Good: the card lifts, wobbles and is tossed into today's ring (#115
+R23–24).
 
 **3.2 Variety keeps it fresh.** Several animations, picked at random and never the same
 twice in a row, so the reward doesn't wear out; more kinds join over time. Good: four
@@ -179,22 +179,22 @@ flies into today's ring on both widths, and the ring grows as it lands (#115 R23
 
 **4.1 Order by importance.** What matters most is seen at a glance; what's secondary
 folds away, sits behind a tap or comes last. Phones run from most to least important
-top to bottom, desktops left to right, in the same order. Good: the ring row and
-Todo first; a day's done list behind its ring.
+top to bottom, desktops left to right, in the same order (#115 R12). Good: the ring
+row and Todo first; a day's done list behind its ring (#115 R6, R12).
 
 **4.2 Small visual details carry state; words don't explain it.** Good: the thin pile
-under a backlog card says more wait behind it; a Done card dims and strikes through,
-so it reads settled.
+under a backlog card says more wait behind it (#109 R5, R11); a Done card dims and
+strikes through, so it reads settled (#109 R11).
 
 **4.3 Don't crowd when there is room.** Where space is free, elements sit apart —
 at opposite corners if need be; apart from text itself, nothing should feel
-cramped. Bad: `+N more` and `↑ Todo` squeezed into one row with space left below.
-Good: `+N more` top right, `↑ Todo` bottom right.
+cramped. Bad: `+N more` and `↑ Todo` squeezed into one row with space left below
+(#109 R11). Good: `+N more` top right, `↑ Todo` bottom right (#109 R1, R11).
 
 **4.4 A layout holds when things fold.** Whatever can collapse, the screen still
 reads well collapsed. Bad: the backlog and Done folded into one edge strip, leaving a
-lone Todo column across the screen; two folded drawers side by side. Good: Todo and
-Done as two columns, the backlog folded to an edge.
+lone Todo column across the screen; two folded drawers side by side (#115 R14). Good:
+Todo and Done as two columns, the backlog folded to an edge (#115 R14).
 
 ### 5. Consistent — one structure, reused by the eye and by the code
 
