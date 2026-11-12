@@ -201,33 +201,35 @@ Todo and Done as two columns, the backlog folded to an edge (#115 R14).
 Consistency pays twice: parts that share one structure read calm, and the same
 structure is built once — one component with slots, not a variant for each place.
 When a design seems to need a second version of something, first ask whether it is
-a slot of the first.
+a slot of the first (#109 R11; #115 R29).
 
 **5.1 One component, many places: a place fills slots, never reshapes the skeleton.**
 Things of one kind keep one skeleton wherever they sit, and each slot keeps one job
 everywhere. A card is a kind line, a title, a description, the signal bottom left
 and the action bottom right: Todo puts the ✓ circle in the action, Backlog puts
 `↑ Todo` there and `+N more` top right, Done leaves the action empty and dims. A
-desktop column is a title with a tag beside its count: Todo · Today, Done · This
-week. Bad: three card faces — the board's, the phone's mini card, the backlog
-sheet's — each laid out its own way; a one-off's quadrant top right, the spot the
-backlog needs for `+N more`; a backlog habit card whose title sits where every other
-card has its kind; a project's `3 left this week ⌄` in an outlined pill where a habit's
-count is plain text (#109 R3). Good: one card across Todo, Done and Backlog (PR #115 mockup, tab
-K · Card), the quadrant inside the kind line — `ONE-OFF | DO FIRST`.
+desktop column is a title with a tag beside its count: Todo · Today, Done · This week
+(#115 R15, R25). Bad: three card faces — the board's, the phone's mini card, the
+backlog sheet's — each laid out its own way; a one-off's quadrant top right, the spot
+the backlog needs for `+N more`; a backlog habit card whose title sits where every
+other card has its kind (#115 R28); a project's `3 left this week ⌄` in an outlined
+pill where a habit's count is plain text (#109 R3). Good: one card across Todo, Done
+and Backlog, the quadrant inside the kind line — `ONE-OFF | DO FIRST` (#115 R28–29;
+the mockup's tab K · Card).
 
 **5.2 One journey on both widths; desktop may add, never subtract.** Everything a
 phone can do, desktop does the same way, on the same card — one face on both widths;
 desktop's extra room may add a view or a gesture of its own. Good: tap twice to
-complete and `↑ Todo` on backlog cards on both widths, plus drag on desktop;
-desktop's Done column, where phones open a day's list from its ring.
+complete and `↑ Todo` on backlog cards on both widths, plus drag on desktop (#115
+R14); desktop's Done column, where phones open a day's list from its ring (#115 R10,
+R14).
 
 **5.3 Kinds differ by colour and mark, never by layout.** Habit green, project-step
-purple, one-off blue — the same on card edges, rings and sparks — and a habit's dots
-against a step's segmented path; the layout stays the card's. Told apart by people
-with colour-vision deficiency too (tracker: one-off blue and step purple are too
-close). Bad: a backlog habit card without the description its project neighbours
-have.
+purple, one-off blue — the same on card edges, rings and sparks (#115 R2) — and a
+habit's dots against a step's segmented path; the layout stays the card's. Told apart
+by people with colour-vision deficiency too (tracker: one-off blue and step purple are
+too close). Bad: a backlog habit card without the description its project neighbours
+have (#109 R11).
 
 ### 6. Honest controls — controls look like controls, statuses don't, feedback stays small
 
