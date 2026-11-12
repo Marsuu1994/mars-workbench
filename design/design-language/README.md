@@ -132,7 +132,10 @@ instead of a 5-second Undo snackbar (#115 R7–8).
 ### 2. Calm ahead — the work still to do never overwhelms
 
 Calm is for what lies ahead — Todo, the backlog, the week's plan — and for the
-screen at rest (#115 R23). The design is there to keep the user going.
+screen at rest (#115 R23). People stall on the next step when they can see the hard
+work waiting behind it, so the app keeps the user on now — what today asks — not on
+everything still left to finish (#115 R32). The design is there to keep the user
+going.
 
 **2.1 Numbers serve motivation.** A big number overwhelms: small numbers are fine,
 large ones discourage. A count stops at 8 and shows `8+` beyond it; the real number
