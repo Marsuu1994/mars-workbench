@@ -156,24 +156,24 @@ choices weighed the same (#115 R25).
 ### 3. Loud wins — finishing feels like a game
 
 The moment of finishing is where the product gets loud: strong, varied feedback
-borrowed from games — Balatro is the reference. Loud is for that moment, not for
-what stays on screen: a done card at rest is quiet (6.1).
+borrowed from games — Balatro is the reference (#115 R23). Loud is for that moment,
+not for what stays on screen: a done card at rest is quiet (6.1).
 
 **3.1 Feedback is strong.** Completing is rewarded with motion, colour and particles
-the user can feel — never a quiet fade. Bad: the card fading out sideways in 240 ms.
-Good: the card lifts, wobbles and is tossed into today's ring.
+the user can feel — never a quiet fade. Bad: the card fading out sideways in 240 ms
+(#115 R22). Good: the card lifts, wobbles and is tossed into today's ring (#115 R23–24).
 
 **3.2 Variety keeps it fresh.** Several animations, picked at random and never the same
 twice in a row, so the reward doesn't wear out; more kinds join over time. Good: four
 Balatro-style juices before the toss — a wobble, a foil shine, a chip burst with `+1`,
-a flip.
+a flip (#115 R23–24).
 
-**3.3 Bigger wins, bigger feedback.** Every card gets its burst; closing the day's plan
-gets the big one. Good: a card's toss, then the ring's spin and sparks when the plan
-is done.
+**3.3 Bigger wins, bigger feedback.** Every card gets its juice and its toss; closing
+the day's plan gets the big one. Good: a card's toss, then the ring's spin and sparks
+when the plan is done (#115 R2, R5).
 
 **3.4 Feedback lands somewhere.** The reward shows where the work went. Good: the card
-flies into today's ring on both widths, and the ring grows as it lands.
+flies into today's ring on both widths, and the ring grows as it lands (#115 R23–24).
 
 ### 4. Hierarchy — the important at a glance
 
