@@ -132,22 +132,23 @@ instead of a 5-second Undo snackbar (#115 R7–8).
 ### 2. Calm ahead — the work still to do never overwhelms
 
 Calm is for what lies ahead — Todo, the backlog, the week's plan — and for the
-screen at rest. The design is there to keep the user going.
+screen at rest (#115 R23). The design is there to keep the user going.
 
 **2.1 Numbers serve motivation.** A big number overwhelms: small numbers are fine,
 large ones discourage. A count stops at 8 and shows `8+` beyond it; the real number
-stays in the accessible name.
+stays in the accessible name (#109 R1, R11).
 
 **2.2 A pile in plain sight is pressure.** What isn't for now stays folded away, and
 no layer is added that could fill up with work nobody wants to do: plan by the week,
 do by the day. Bad: the backlog always open beside Todo; a This week column between
-today's cards and the backlog — a parking lot for what keeps getting put off. Good:
-the backlog folded to an edge (a pill on phones) and opened to plan.
+today's cards and the backlog — a parking lot for what keeps getting put off (#115
+R14). Good: the backlog folded to an edge (a pill on phones) and opened to plan (#115
+R14).
 
 **2.3 An empty list is a finish line.** When the planned work runs out, the screen says
 it is done and offers what could come next without pushing it. Good: an empty Todo
 reads "Today's plan is done · Pull more from the backlog, or call it a day." — both
-choices weighed the same.
+choices weighed the same (#115 R25).
 
 ### 3. Loud wins — finishing feels like a game
 
