@@ -22,7 +22,8 @@ One command from a fresh checkout and every day after: it skips what is already 
 
 - [design/](./design/README.md) — centralized design docs:
   - [baseline](./design/baseline.md) — goal, entities, schema, decisions
-  - [tracker](./design/tracker.md) — open ideas/todos
+  - [tracker](./design/tracker.md) — open todos
+  - [future ideas](./design/future-ideas.md) — problems seen coming, waiting until they're worth doing
   - [reference](./design/reference.md) — actions/services/DAL inventory
   - [flows/](./design/flows) — per-page flow docs
   - [mockup/](./design/mockup) — mockups of designs not yet fully implemented

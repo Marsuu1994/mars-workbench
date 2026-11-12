@@ -36,6 +36,7 @@ design/                            # Design docs — index in design/README.md
 ├── baseline.md                    # The one app-wide baseline: goal, entities, schema, architecture decisions
 ├── design-language/               # Per-theme visual specs + the shared fx-* skeleton
 ├── tracker.md                     # Roadmap — open items only
+├── future-ideas.md                # Problems seen coming but not worth doing yet, each with a first idea
 ├── reference.md                   # Lookup tables: server actions, services, DAL
 ├── flows/                         # Per-feature flow docs
 ├── spike/                         # Spike docs for open questions; archived/ = implemented
@@ -89,6 +90,7 @@ A rule that only one kind of file needs lives with that file. Read it before you
 | a test (`*.test.ts`, `*.int.test.ts`, `e2e/`, `test/`) | `test/README.md` |
 | a spike (`design/spike/`) | `design/spike/README.md` |
 | `design/tracker.md` | its Conventions section |
+| `design/future-ideas.md` | its Conventions section |
 | a flow doc (`design/flows/`) | `design/flows/README.md` |
 | the Design Console — scenarios, gallery (`src/app/design/`) | `src/app/design/README.md` |
 | a mockup (`design/mockup/`) | `design/README.md` |

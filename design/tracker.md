@@ -1,6 +1,6 @@
 # Tracker
 
-Single source of truth for open ideas and todos across the app — open items only; completed work is recorded in the git history and PR descriptions, not here.
+Single source of truth for open todos across the app — open items only; completed work is recorded in the git history and PR descriptions, not here. Problems we have seen coming but chose to wait on live in [future-ideas.md](./future-ideas.md).
 
 ## Conventions
 
@@ -57,7 +57,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 
 ### Medium
 
-- [ ] Group the backlog — one habit's staged instances, and one project's steps on this week, sit together as one group (desktop panel and mobile sheet); a habit and a project each show their next one on a thin pile, "+N more" top right, and only a project's "+N more ⌄" opens the rest; the backlog card drops the plan line, step n/N, size and the done / total fraction (the board's habit card drops its fraction too); the badge counts staged tasks, capped at 8+. Design decided (PR #109; habits' pile added 2026-11-07): mockup `design/mockup/mockup-board-backlog-grouping.html`. PR #44 built stacking on the old card face. The first flow written in the spec-layers format (Cross-cutting › Future)
+- [ ] Group the backlog — one habit's staged instances, and one project's steps on this week, sit together as one group (desktop panel and mobile sheet); a habit and a project each show their next one on a thin pile, "+N more" top right, and only a project's "+N more ⌄" opens the rest; the backlog card drops the plan line, step n/N, size and the done / total fraction (the board's habit card drops its fraction too); the badge counts staged tasks, capped at 8+. Design decided (PR #109; habits' pile added 2026-11-07): mockup `design/mockup/mockup-board-backlog-grouping.html`. PR #44 built stacking on the old card face. Its cards are the board's one card (PR #115 mockup, tab K · Card): a habit card's title sits under its HABIT kind line, not on the first line. The first flow written in the spec-layers format (Cross-cutting › Future)
 
 ### Future
 
@@ -76,6 +76,9 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 ### Future
 
 - [ ] Week model Phase 2 (not planned yet; starts after Milestone — Quality gate before Phase 2, Cross-cutting) — habits own their cadence (Daily = every day, or N× per week; Plan Mode dropped) with a Plan › Habits page; a three-step Plan week replaces the plan form, with one Plan hub header for This week · Habits · Projects (Phase 1 keeps the plan form as it was and gives Projects its own page and nav entry); Done becomes the week's day-grouped log and cards get a ✓; cleanup of `DOING` and `Plan.mode`. Mockup `design/mockup/mockup-week-model-phase2.html`
+  - [ ] Design PR — Board · tap to complete (PR #115, decided 2026-11-11; the owner merges): one card component for Todo, Done and Backlog — only the bottom-right action, the backlog's +N more and Done's look differ, and a one-off's quadrant sits in its kind line (`ONE-OFF | DO FIRST`; mockup tab K · Card); a tap selects a card and only its ✓ Complete completes it, no undo snackbar; completing plays a random Balatro-style juice, then tosses the card into today's ring on both widths; one ring a day coloured by kind replaces the points dashboard, and closing today's ring spins it with sparks; a day's list opens from its ring (a popover on desktop, a sheet on phones); desktop keeps Todo and Done side by side, headed Today and This week; an empty Todo shows a "Today's plan is done" reminder; the backlog stays collapsed, ↑ Todo on its cards on both widths. Mockup `design/mockup/mockup-board-tap-to-complete.html` (its F · Final tab); no e2e contract in this PR (the owner's call)
+    - [ ] Spike `design/spike/board-desktop-phone-journeys.md` (decided) — one journey, two presentations; its pinned Done pane was replaced in PR #115's rounds 14–15 by the day popover and the product's Done column (the mockup holds the current design); archived with the board's implementation PR
+  - [ ] Board implementation PR — build the design PR's F · Final from `main` once it merges; its flow doc settles what today's ring counts (mockup Ideas 2), records that work added after the day is done reopens the ring and a second close celebrates again (Ideas 6), and orders the Done column by `doneAt`, newest first (Ideas 11)
   - [ ] Plan week built on the page structure (AGENTS.md › Layers › *Page structure*): route adapter for the form's initial selections, a `PlanPage` container with a page context, the diff as a pure helper — the plan form keeps its current structure until then (`design/spike/archived/component-structure.md`, Q5)
   - [ ] Redesign the Review changes modal — large as it stands; rework it with the Plan week
   - [ ] Rewrite `design/flows/plan.md`'s form flows for the Plan week
@@ -89,6 +92,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 
 ### Medium
 
+- [ ] Mark a one-off done on the matrix the way the board does — a confirm state on the card, then ✓ Complete — instead of the "Marked done" toast with its Undo window: what can't be taken back confirms in place, not undone after (PR #115 round 31; design-language Principle 1.3)
 - [ ] Ad-hoc task deletion and auto-clear logic
 
 ### Future
@@ -138,10 +142,11 @@ How agents work on this repository: the experiments under `experiments/` (rules 
   - [ ] Step 14 — Code review agent: explored as Harness engineering › 3 (above), which settles its scope
 - [ ] Spike: tracking production errors — today a crash leaves nothing to debug (2026-10-30: dragging a daily card to Done on the phone PWA ended on Next's "Application error" page; the write had saved, and no log or report showed why)
 - [ ] Persist sidebar collapse state across page refreshes (localStorage with SSR hydration)
-- [ ] Daily rhythm — Open / Close-the-day rituals and phone notifications for unfinished tasks; starts after the Quality gate milestone. Spike `design/spike/daily-rhythm-notifications.md` in PR #33 (awaiting review, written before Phase 1); when picked up, regroup its sheets by kind, map "Still on it" to staying in Todo (the board has no Doing column), and re-derive the midday nudge's triggers (it keys off the risk clock and In Progress cards, both gone; the per-kind risk rules in `design/spike/week-model-phase2-pain-points.md` › 痛点 5 are the proposed replacement)
+- [ ] Daily rhythm — Open / Close-the-day rituals and phone notifications for unfinished tasks; starts after the Quality gate milestone. Spike `design/spike/daily-rhythm-notifications.md` in PR #33 (awaiting review, written before Phase 1); when picked up, regroup its sheets by kind, map "Still on it" to staying in Todo (the board has no Doing column), re-derive the midday nudge's triggers (it keys off the risk clock and In Progress cards, both gone; the per-kind risk rules in `design/spike/week-model-phase2-pain-points.md` › 痛点 5 are the proposed replacement), and have Close the day list all of today's done work (PR #115 mockup Ideas 7)
 
 ### Medium
 
+- [ ] Pull the kind colours apart — one-off blue and project-step purple are too close (ΔE 14.4 for normal vision, 6.1 for deutan); fine on a card's 3 px edge, easy to confuse on the board's 30 px rings (PR #115 mockup Ideas 1; `design/design-language/`)
 - [ ] First visit of a page still shows its skeleton for ~310 ms: once `loading.tsx` is up, React holds the content back 300 ms, while the data now arrives in ~30–85 ms locally (`design/spike/archived/mutation-layer.md`, Q4). Measure on production, then decide per page whether to drop the skeleton for a pending state on the link
 - [ ] Measure `ci-fixer` on the next red GitHub CI: delegate the failing job to it and compare the main-session context with reading the log inline; if it still comes out even, drop the agent (`design/spike/archived/subagent-delegation-pilot.md` › Decision, Q2)
 - [ ] `ui/` component-structure lookup in `reference.md` — a lean high-level map for agents (humans use the `/design` gallery); follow-up to the landed component library
@@ -150,6 +155,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 
 ### Future
 
+- [ ] Native iOS app — a spike first, after Phase 2's board ships: an HTTP API over the services (route handlers, Bearer auth from Supabase's native sign-in; AGENTS.md's route-handler rule changes with it), offline and sync, the SwiftUI structure, and the web phone layout's role once the app exists (a maintained fallback, recommended). Groundwork in `design/spike/board-desktop-phone-journeys.md` › Native iOS 的影响
 - [ ] Cron-driven sync — move the daily / end-of-period sync to a scheduled job (e.g. Vercel Cron hitting a route just after midnight in `KANBAN_TZ`); pages keep the idempotent `ensureSynced` as fallback. `runDailySync` / `runEndOfPeriodSync` are already standalone for this
 - [ ] User-configurable timezone — Date utils are currently anchored to `America/Los_Angeles` via `KANBAN_TZ` constant. Consider making this a user setting stored in the database for multi-user support or if the user relocates (traveling users)
 - [ ] Custom domain — move off `*.vercel.app`; update Supabase Site URL + Redirect URLs. The MCP connector URL (and its protected-resource `resource`) is tied to the domain, so a switch means re-adding the connector in Claude
