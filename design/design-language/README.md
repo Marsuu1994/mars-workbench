@@ -95,7 +95,9 @@ disables them.
 How a screen should feel, whatever the theme. An agent checks a design against
 these before proposing it, and ranks its options by them. Each came from a call the
 owner made on a real design — most from PR #109's backlog grouping and PR #115's
-board. The product's core, in one line: **take resistance away, amplify feedback** —
+board — and an example's citation says where: `(#115 R14)` is round 14 of
+`reviews/pr-115.md`, which quotes the owner and names the commit that drew it. The
+product's core, in one line: **take resistance away, amplify feedback** —
 the work still to do stays calm and small, the work done is celebrated loudly. Under
 it runs one habit of craft: **one structure, reused** — what reads as the same thing
 is built as the same thing (group 5). The principles fall into six groups; the items
@@ -106,24 +108,25 @@ in a group pull the same way.
 **1.1 Only the necessary elements, and one element per meaning.** If the dots, the
 path or another mark already says something, no text, number or second component
 says it again; if removing an element loses nothing, remove it. Bad: `Weekly × 3`
-and `1/3` beside a habit's dots, `Step 4/9` beside a project's path, a size chip on
-a backlog card, an outlined pill around `3 left this week ⌄`; a Done pane whose day
-groups each carry a ring, redrawing the progress row above it. Good: the dots and
-the path carry progress; the card keeps kind, title, description, progress and the
-next action.
+and `1/3` beside a habit's dots, `Step 4/9` beside a project's path (#109 R1, R6); a
+size chip on a backlog card (#109 R1); an outlined pill around `3 left this week ⌄`
+(#109 R3); a Done pane whose day groups each carry a ring, redrawing the progress row
+above it (#115 R14). Good: the dots and the path carry progress (#109 R6); the card
+keeps kind, title, description, progress and the next action.
 
 **1.2 When what exists works, change it the least.** Prefer a small change to the
 current screen over a new layout, and the simplest behaviour over a clever one.
-Bad: five new desktop layouts to fill the room a moved Done column left. Good: the
-product's Todo and Done columns, each gaining only a tag (Today, This week); a card
-pulled after the day is done simply reopens the ring grey.
+Bad: five new desktop layouts to fill the room a moved Done column left (#115
+R11–14). Good: the product's Todo and Done columns, each gaining only a tag — This
+week, Today (#115 R15, R25); a card pulled after the day is done simply reopens the
+ring grey (#115 R19).
 
 **1.3 The fewest actions, the least friction.** Every extra step is a reason to stop
 using the app; ask first whether a step can go. This is Phase 2's direction too.
-Bad: the old three columns, a card walking Backlog → Todo → Doing → Done. Good: no
-Doing column. The one exception: an action the user can't take back earns one
-confirming step, in place — never a dialog or a banner. Good: tap a card to select
-it, then its ✓ Complete; not one tap and a 5-second Undo snackbar.
+Bad: the old three columns, a card walking Backlog → Todo → Doing → Done (#109
+R11). Good: no Doing column. The one exception: an action the user can't take back
+earns one confirming step, in place — never a dialog or a banner. Good: tap a card to
+select it, then its ✓ Complete; not one tap and a 5-second Undo snackbar (#115 R7–8).
 
 ### 2. Calm ahead — the work still to do never overwhelms
 
