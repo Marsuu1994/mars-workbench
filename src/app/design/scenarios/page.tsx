@@ -53,7 +53,7 @@ const SCENARIOS: {
   {
     href: '/design/scenarios/auth',
     title: 'Auth',
-    note: 'Login, the OAuth consent page (request, allowing, invalid link) and the settings overlay.',
+    note: 'Login, the OAuth consent page (request, invalid link) and the settings overlay.',
     icon: UserCircleIcon,
   },
 ];
