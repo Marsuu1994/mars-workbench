@@ -2,6 +2,8 @@
 
 **Status: decided** · 2026-11-02（定于 2026-11-04；Q8 留到 backlog stacking 的 PR 再定）
 
+**被取代**（2026-11-16）：提案部分由 `../spec-layers-v2.md` 取代——一个页面一份 spec，component test 管 UI，pending 的 ID 取代 `contractTest`。仍然有效的：flow 审查和修复（已落地）、数据规则的位置（AGENTS.md › Layers）、「数据决定的顺序是 rule」、ratchet 的四个比较。
+
 > 语言约定：叙述用中文；产品名词、状态和代码标识保留英文（habit / project / step / one-off / backlog、`completeTaskAction`、`HabitSignal`），和代码、mockup、tracker 一一对应。
 
 回答 tracker 的两条：Cross-cutting › Future 的 *Spike: leverage the UI flows table*，以及 Harness engineering › *e2e after isolation* 的第一个 sub-bullet（*Review the flow docs against the product*）的审查那一半。
