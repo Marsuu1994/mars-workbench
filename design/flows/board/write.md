@@ -41,9 +41,11 @@ A pull is a move out of the backlog (Backlog → Todo, or → Done on desktop), 
 
 Once it lands, the group shows the one behind it: the pile loses a sheet, +N more counts one fewer, an open queue moves up; the last one pulled takes the group away. The backlog's count drops at once.
 
+（有一个ux我想make sure的就是，当drag and drop a group with more than one item的时候，用户拿起卡片的时候，这个时候backlog里面的后一张露出来）
+
 ## Journeys (e2e)
 
 One test per journey, each step a `test.step` named after the row it walks:
 
-- **A week's work** — open the backlog, pull a habit's next instance to Todo, drag it to Done; it stays done after a reload and today's progress counts it.
+- **A week's work** — open the backlog, pull a habit's next instance to Todo, drag it to Done; it stays done after a reload and today's progress counts it. （我觉得可以做一个更完整的e2e，模拟用户习惯，打开backlog，看任务，点开project pile，然后pull到todo，正好可以测试我想要make sure的behavior，然后还可以拿habit测试一个直接move到done，这样我们还能测试dot的behavior和backlog到done这个flow）
 - **What the board won't do** — a Done card is not a drag handle; the backlog is not a drop target.

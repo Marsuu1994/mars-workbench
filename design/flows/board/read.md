@@ -2,7 +2,7 @@
 
 What the board page (`/kanban`) reads, and what each part of the page derives from it.
 
-## Source
+## Data Source
 
 Entering `/kanban` syncs first (`flows/shared.md`); a plan whose week has ended moves from `ACTIVE` to `PENDING_UPDATE` there. The page is then in one of three states, by the plans the user has.
 
@@ -49,7 +49,7 @@ The server counts; the client turns the counts into percentages and the daily av
 
 ## Columns — Todo and Done
 
-Two columns for two statuses: a `TODO` task's card sits in Todo, a `DONE` one's in Done. `BACKLOG` tasks are in the backlog (see Backlog); `EXPIRED` ones aren't shown. Each column's header counts its cards.
+Two columns as container holds task card(see Card) of two statuses: a `TODO` task's card sits in Todo, a `DONE` one's in Done. `BACKLOG` tasks are in the backlog (see Backlog); `EXPIRED` ones aren't shown. Each column's header counts its cards.
 
 Tested in `boardCardUtils.test.ts` › toBoardCards.
 
@@ -61,7 +61,7 @@ Done runs by when each task was done, the latest first; a card dragged to Done l
 
 Tested in `taskUtils.test.ts` › sortTasks, sortDoneTasks.
 
-### Cards
+## Task Cards
 
 Every card has the same layout, top to bottom and left to right:
 
@@ -70,7 +70,7 @@ Every card has the same layout, top to bottom and left to right:
 - **Title**
 - **Description** — hidden once done
 - **Progress** (bottom left) — by kind, below; a one-off has none
-- **Size** — the task's size and its points
+- **Size** — the task's size and its points (to be removed in Phase2)
 
 A Done card is the same card, settled: dimmed, its title struck through.
 
@@ -99,11 +99,20 @@ Tested in `boardCardUtils.test.ts` › toBoardCards.
 
 > **Designed, not built yet** — mockup `design/mockup/mockup-board-backlog-grouping.html` (PR #109, amended in #114). Today the backlog is a flat list of board cards.
 
-The plan's `BACKLOG` tasks: the habit instances not on the board yet, and the project steps scheduled this week. A one-off never waits here — tracking puts it straight in Todo, and off the board it lives on the priority matrix.
+The plan's `BACKLOG` tasks: the habit instances not on the board yet, and the project steps scheduled this week. ~~A one-off never waits here — tracking puts it straight in Todo, and off the board it lives on the priority matrix.~~ Only holds habit and project steps, one-off never goes here. 
 
 ### Count
 
-The backlog's entry and its header show how many tasks wait: every staged task, not every group. Past 8 it reads `8+`; its accessible name keeps the real number. An empty backlog counts 0.
+The backlog's entry and its header show how many tasks wait: every staged task, not every group. Past 8 it reads `8+`; its accessible name keeps the real number. An empty backlog counts 0(shouldn't we hide the count?).
+
+### Open and expand
+
+Both stay on the client: nothing is written.
+
+- **Open / close** — the backlog opens from its entry and starts closed on every visit(what did this mean?). Only its visible side takes focus: opening moves focus into it, closing moves it back to the entry.
+- **Expand a project** — a project's **+N more ⌄** opens its queue: the steps behind the next, in step order, read-only; the pile gives way to the queue. A habit's **+N more** doesn't open — the instances behind its next are the same task. Pulling the next one moves the queue up; when one step is left, the group is a single card again. (shouldn't we move this section under Groups and make here only for backlog drawer open and close)
+
+Taking a task out of the backlog — dragging it to Todo or Done, or ↑ Todo on mobile — is a write (Write › Pull): it always takes the group's next task.
 
 ### Groups
 
@@ -114,13 +123,5 @@ A group shows one card, its next task — a habit's earliest instance, a project
 - **Pile** — one thin sheet under the card per task behind the next, at most three; none when the next is the last
 - **+N more** (top right) — how many wait behind the next; nothing when it is the last
 
-The card follows the board's layout (Columns › Cards) with three changes: **+N more** takes the properties' place, there is no size, and the progress mark's ringed dot or segment is the next task's.
+The card follows the board's layout (Cards) with three changes: **+N more** takes the properties' place, there is no size, and the progress mark's ringed dot or segment is the next task's.
 
-### Open and expand
-
-Both stay on the client: nothing is written.
-
-- **Open / close** — the backlog opens from its entry and starts closed on every visit. Only its visible side takes focus: opening moves focus into it, closing moves it back to the entry.
-- **Expand a project** — a project's **+N more ⌄** opens its queue: the steps behind the next, in step order, read-only; the pile gives way to the queue. A habit's **+N more** doesn't open — the instances behind its next are the same task. Pulling the next one moves the queue up; when one step is left, the group is a single card again.
-
-Taking a task out of the backlog — dragging it to Todo or Done, or ↑ Todo on mobile — is a write (Write › Pull): it always takes the group's next task.
