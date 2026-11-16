@@ -1,186 +1,107 @@
-# Board Flows
+# Board (/kanban)
 
-Flows for the kanban board page (`/kanban`) — landing, drag and drop, progress tracking, risk visuals (switched off), and the backlog.
+The week's working surface: habit instances, project steps and one-offs move from the backlog to Todo to Done.
 
----
+Spec v2 (`flows/README.md`): each item's ID is named by the test that holds it to the text.
 
-## Landing Flow
+## States
 
-### Trigger / Entry Point
+Entering `/kanban` syncs first (`flows/shared.md`); a plan whose week has ended moves from `ACTIVE` to `PENDING_UPDATE` there. The page is then in one of three states:
 
-User navigates to `/kanban`.
+- **ST-1 New user** — no `ACTIVE` plan and none `PENDING_UPDATE`: the empty board asks for a first plan. Nothing more is read.
+- **ST-2 Returning user** — no `ACTIVE` plan, a `PENDING_UPDATE` one: the empty board shows that plan's recap.
+- **ST-3 Active plan** — an `ACTIVE` plan for this week: the board. One read returns the plan (its week, its mode, its habit templates and their frequencies), its tasks (every one but `EXPIRED`), the projects behind its steps (each with its whole path) and the progress counts. Nothing is read again until a write lands.
 
-### Steps
+## Empty board
 
-1. Await `ensureSynced` (see `design/flows/shared.md`). No current-week `ACTIVE` plan → show the empty board → stop.
-2. Return board data and render the kanban.
+- **EMPTY-1** The new user's empty board asks for a first plan; its button starts one (A1).
+- **EMPTY-2** The returning user's empty board shows last week's recap, and its button starts this week's plan (A1).
 
-The empty board leads to creating this week's plan. A user whose last plan is `PENDING_UPDATE` (the week that just closed) first sees its recap — completion rate, tasks done, points; a user with no plan yet is asked to create their first.
+The recap, over all of last week's tasks — habit instances, project steps and one-offs, expired included:
 
----
+- **RECAP-1** completion rate — the done ones ÷ all of them
+- **RECAP-2** tasks done — done / all
+- **RECAP-3** points earned — the done ones' points
+- **RECAP-4** *(bug)* The recap counts habit instances only, leaving out last week's steps and one-offs.
 
-## Drag and Drop Flow
+## Columns
 
-### Trigger / Entry Point
+- **COL-1** Two columns: Todo holds the `TODO` tasks, Done the `DONE` ones; `BACKLOG` tasks wait in the backlog, `EXPIRED` ones aren't shown. Each header counts its column's cards.
+- **COL-2** Todo runs by kind: one-offs, then daily habits, then weekly habits, then project steps. Within a kind a group — one habit's instances, one project's steps — stays together: groups rank by their earliest `createdAt` and run in instance order (copy number, step number); a one-off ranks by its own `createdAt`. Ties go to `createdAt`, then id.
+- **COL-3** Done runs by when each task was done, the latest first.
+- **COL-4** On mobile the columns stack, each a row of mini cards (CARD-6).
 
-User drags a task card to a different column.
+## Task cards
 
-### Steps
+- **CARD-1** A card shows, top to bottom: its kind (a step shows its project's name instead) and its properties · its title · its description · its progress and its size with points. Its description is cut to two lines.
+- **CARD-2** A Done card is dimmed, its title struck through, its description hidden. It has no drag handle (R4).
+- **CARD-3** **Habit** — properties: its plan line, Daily × N or Weekly × N. Progress: the week's dots (CARD-4) and done / target. A habit whose template has no line on the plan shows neither.
+- **CARD-4** **A habit's dots** — one per instance its plan line has this week, in order: a daily line has N on each day it runs (weekdays in `NORMAL`, every day in `EXTREME`), a weekly line N. A dot is filled when that instance is done, empty when not, and ringed on the card's own instance.
+- **CARD-5** **Project step** — properties: Step n/N, its number and its project's count of steps. Progress: its project's path, one segment per step in step order — filled when done, empty when not, ringed on the card's own step. A step whose project isn't in the read shows neither.
+- **CARD-6** **One-off** — properties: its quadrant on the priority matrix. No progress.
+- **CARD-7** A mini card (mobile board) shows only the kind, the title (two lines), the progress and the size: no properties, no description.
+- **CARD-8** A card's dot or segment fills the moment it lands on Done, before the server answers.
 
-1. UI updates optimistically.
-2. Server Action persists new status to DB.
-3. On failure, UI rolls back to previous state.
+## Backlog
 
-### Rules
+- **BL-1** Holds the plan's `BACKLOG` tasks: habit instances not on the board yet, and the project steps scheduled this week. Never one-offs — tracking puts them straight in Todo.
+- **BL-2** The entry: on desktop a collapsed strip on the board's right edge, opening a panel; on mobile a pill above the tab bar, opening a bottom sheet over it, the board behind a scrim.
+- **BL-3** The entry and the header count the staged tasks.
+- **BL-4** Closed whenever the page loads; whether it was open isn't remembered.
+- **BL-5** Only its visible side takes focus: Tab and screen readers never reach the collapsed panel, or the strip while the panel is open. Opening moves focus to the panel's close control, closing moves it back to the entry; the first render leaves focus where it is.
+- **BL-6** Cards run in Todo's order (COL-2). On desktop they are the board's cards, dragged out of the panel; on mobile they are full-width cards with ↑ Todo beside the title, not draggable — so on mobile a backlog task reaches Done only through Todo.
+- **BL-7** Empty: on desktop the strip shows 0 and the panel an empty state; on mobile the pill is hidden, and the sheet's empty state shows only if its last task is pulled while it is open.
 
-- The board has two columns, Todo · Done; work in progress stays in Todo.
-- Allowed transitions: BACKLOG → TODO, BACKLOG → DONE (finished straight from the backlog) and TODO → DONE — forward only: the server refuses any move out of Done, so done points are append-only. `BACKLOG → TODO` is the backlog pull (drop onto the Todo column); see "Backlog Flow".
-- `DOING` is no longer written; tasks that were `DOING` when the column went were moved to `TODO`.
-- Project steps move like every other task.
+## Progress
 
----
+> **As is.** Phase 2 redesigns the dashboard; this section is kept as it stands, without IDs.
 
-## Progress Tracking Flow
+The server counts; the client turns the counts into percentages and the daily average. "Today" is in `KANBAN_TZ` (Los Angeles), whatever the server's timezone.
 
-### Trigger / Entry Point
+| Metric | Done | Out of |
+| --- | --- | --- |
+| Today | tasks done today | tasks on the board: not `BACKLOG` |
+| Today points | their points | the board's points |
+| Week | tasks done on the plan | projected: daily tasks before today (done or not) + the daily templates × days left + weekly instances + one-offs + steps, backlog included |
+| Week points | their points | the same projection in points |
+| Daily avg | the week's done points ÷ days since Monday (1–7), one decimal | — |
 
-Every board page load. The server computes the counts and point sums as part of `fetchBoard()`; the dashboard derives the percentages and the Daily Avg from them on the client.
+- Days left: `NORMAL` counts the weekdays from today to Sunday, `EXTREME` every day left (at least 1).
+- A percentage is done ÷ out of, rounded; 0 when there is nothing to do.
+- Today's daily tasks count once, in the projection, never also as "before today".
+- Done counts never drop with plan or template edits; the projection follows the plan's current templates.
 
-### Steps
+## Actions
 
-After sync, every read the board needs hangs off the active plan's id and runs in parallel, so the board loads in two database round trips: the sync's plan read, then the rest. Progress draws on three of them:
+| ID | Action | Where | Server action | Result |
+| --- | --- | --- | --- | --- |
+| A1 | Start a plan | the empty board's button | — | opens the plan page |
+| A2 | Open the backlog | the strip (desktop), the pill (mobile) | — | the panel or the sheet opens; focus per BL-5 |
+| A3 | Close the backlog | the panel's or the sheet's close control | — | it closes; focus per BL-5 |
+| A4 | Pull to Todo | drag a backlog card onto Todo (desktop) | `updateTaskStatusAction` → `TODO` | a move (MV) |
+| A5 | Pull to Todo | ↑ Todo on a backlog card (mobile) | `updateTaskStatusAction` → `TODO` | a move (MV); the sheet stays open for the next |
+| A6 | Finish from the backlog | drag a backlog card onto Done (desktop) | `updateTaskStatusAction` → `DONE` | a move (MV) |
+| A7 | Finish | drag a Todo card onto Done | `updateTaskStatusAction` → `DONE` | a move (MV) |
 
-1. The plan's non-expired tasks. Today's total count and points sum the non-`BACKLOG` ones in memory.
-2. One raw SQL aggregate over the plan's tasks computes every historical count and point sum with `FILTER` clauses — no in-memory aggregation for past data. Projection buckets (weekly-by-type, daily-past-by-`forDate`) count `BACKLOG` identically to `TODO`, so the Week projection includes backlog tasks unchanged.
-3. The plan's current templates, from which future projections are derived in memory.
+### A move
 
-The client then turns the server's numbers into Today %, Week % and the Daily Avg, with no further read.
+- **MV-1** At once the card is in its new place — on top of Done, or in Todo by its kind (COL-2) — and the backlog's count drops.
+- **MV-2** The server saves the status: a move to Done stamps when it was done, a move to Todo clears it.
+- **MV-3** Once the server answers, the page's data reloads and progress counts the move — never before. A one-off moved to Done leaves the priority matrix too.
+- **MV-4** If it fails, only that card goes back; other moves in flight stay.
 
-**Points derivation:** Each task stores a denormalized `points` field derived from `size` via `SIZE_TO_POINTS` at creation time. All DB aggregation operates on this column directly — no runtime size-to-points conversion needed.
+## Rules
 
-### Metrics
+- **R1** The server moves a task forward only — Backlog → Todo, Backlog → Done, Todo → Done — so what was done stays counted. It refuses anything else.
+- **R2** The server moves only a task on the plan: a one-off still on the priority matrix reaches the board through Track This Week, never through a move.
+- **R3** The server moves only the user's own task.
+- **R4** On the board, a Done card has no drag handle.
+- **R5** On the board, the backlog takes no drops.
 
-**Today Ring** — circular progress ring showing task completion for the current day.
+A refused move fails like any other (MV-4).
 
-- Done count: `COUNT(*)` where `status = DONE` and `doneAt` falls on today in `KANBAN_TZ` (Los Angeles), whatever the server's timezone (from DB aggregate).
-- Total count: number of non-`BACKLOG` tasks (in-memory).
+## Journeys
 
-**Today Points** — points earned today vs total points available on the board.
-
-- Done points: `SUM(points)` where `status = DONE` and `doneAt` falls on today in `KANBAN_TZ` (from DB aggregate).
-- Total points: `SUM(task.points)` across non-`BACKLOG` tasks (in-memory reduction).
-
-**Week Points** — cumulative points earned this period vs projected period total.
-
-- Done points: `SUM(points)` where `status = DONE` across the entire plan (from DB aggregate).
-- Projected total: `dailyPastPoints + dailyFuturePoints + weeklyPoints + adhocPoints + projectPoints`
-  - `dailyPastPoints` (DB): `SUM(points)` where `forDate < today` — points from daily tasks already generated on previous days.
-  - `dailyFuturePoints` (in-memory): `SUM(sizeToPoints(size) × frequency)` over the plan's daily templates × remaining days. Remaining days follow the plan mode: NORMAL counts the weekdays left via `countWeekdaysInRange`, EXTREME every calendar day left (at least 1).
-  - `weeklyPoints` (DB): `SUM(points)` where `type = WEEKLY`.
-  - `adhocPoints` (DB): `SUM(points)` where `type = AD_HOC`.
-  - `projectPoints` (DB): `SUM(points)` where `type = PROJECT`. Steps count in Today and Week like any task, and the Week projection includes the steps waiting in the backlog.
-
-**Daily Avg** — rolling average of points earned per elapsed day.
-
-- `weekDonePoints / daysElapsed` (client), where `daysElapsed` = days since the period's Monday, clamped 1–7 (server).
-
-**Week Progress Bar** — percentage of projected task count completed this period.
-
-- Done count: `COUNT(*)` where `status = DONE` across the plan (from DB aggregate).
-- Projected total: same decomposition as Week Points but using task counts (`dailyPastCount + dailyFutureCount + weeklyCount + adhocCount + projectCount`).
-
-### Rules
-
-- Done points and done counts are append-only — they never decrease due to plan edits or template changes.
-- Past effort is preserved regardless of template modifications.
-- Future projection always reflects the current plan's active template snapshot.
-- Today's tasks are counted in the future projection bucket only — never double-counted with past.
-
----
-
-## Task Risky Level Visual Effect Flow
-
-> **Switched off** — board cards render no risk since Phase 1. The rules below stay as a reference until per-kind risk rules return; see the Per-kind risk rules item in `design/tracker.md`.
-
-### Trigger / Entry Point
-
-Computed client-side on every board render, based on `forDate`, `createdAt`, task status, and current time to calculate the risky level (warning, dangerous).
-
-### Steps
-
-1. For each task in BoardData, compute risk level using current client time.
-2. For each task, derive risk level based on the rules below and apply the corresponding visual treatment.
-
-### Rules
-
-**Daily Task — `forDate = today`**
-
-- TODO, time < 20:00 → Normal
-- TODO, time >= 20:00 → Warning
-- DOING, time < 20:00 → Normal
-- DOING, time >= 20:00 → Warning
-
-**Daily Task — `forDate < today` (rollover)**
-
-- TODO, time < 15:00 → Warning
-- TODO, time >= 15:00 → Danger
-- DOING, any time → Warning
-
-**Weekly Task**
-
-- TODO, `daysElapsed >= 3` or `remainingDays < remainingTasks × 2` → Warning
-- TODO, `daysElapsed >= 5` or `remainingDays < remainingTasks × 1` → Danger
-- DOING, `daysElapsed >= 5` or `remainingDays < remainingTasks × 1` → Warning
-- DOING → never Danger
-
-**Ad-hoc Task**
-
-- TODO, `daysElapsedSinceCreation >= 5` → Warning
-- TODO, `daysElapsedSinceCreation >= 8` → Danger
-- DOING, `daysElapsedSinceCreation >= 8` → Warning
-- DOING → never Danger
-
-**General**
-
-- `remainingTasks = frequency - doneCount - doingCount` (completed + in-progress instances this week for the same template)
-- `remainingDays = 7 - daysElapsed` (days remaining until end of week)
-- Danger takes priority over Warning when multiple conditions are met
-- Risk level only escalates, never regresses (rollover tasks maintain at minimum Warning)
-- DONE, EXPIRED tasks never trigger any risk indicator
-- Ad-hoc task risk is based on days since creation (`daysElapsedSinceCreation`), not plan period.
-- Thresholds will be revisited once auto-clear logic is implemented (see *Ad-hoc task deletion and auto-clear logic* in `design/tracker.md`).
-
----
-
-## Backlog Flow
-
-### Trigger / Entry Point
-
-- **Desktop (`md+`):** A collapsed backlog strip sits on the right edge of the board. The user clicks it to expand the backlog panel.
-- **Mobile (`< md`):** A peeking "Backlog" pill sits above the bottom tab bar. The user taps it to open a bottom sheet.
-
-The backlog (desktop panel / mobile sheet) holds the plan's template-generated task instances with `status === BACKLOG` — the staging area they land in before reaching the board. It also holds the project steps scheduled this week. Ad-hoc tasks never appear in the backlog UI: while off the board they are also `BACKLOG`, but they live on the priority matrix (`planId = null`), outside the plan-scoped backlog query.
-
-### Steps
-
-#### Desktop
-
-1. The collapsed strip shows the backlog count.
-
-2. On expand, render the backlog tasks (`status === BACKLOG`) as a flat list, ordered like every column: daily tasks first, then the rest. A group — one template's instances, or one project's steps — stays together; groups rank by their earliest `createdAt`, and a group's cards follow `instanceIndex` (copy number, step number).
-
-3. Drag a card onto the Todo column to move it to the board, or straight onto Done to finish it: optimistic update, then `updateTaskStatusAction(taskId, { status })`, rollback on failure. The backlog takes no drops; no un-pull (forward-only, per "Drag and Drop Flow").
-
-#### Mobile
-
-1. The pill shows the backlog count; it is hidden entirely when the backlog is empty.
-2. On tap, open a `modal-bottom` sheet (covers the tab bar as a standard modal; the board peeks behind the scrim). Render the same backlog list as full-width rows.
-3. Tap a card's `↑ Todo` button to pull it: same optimistic `updateTaskStatusAction(taskId, { status: TODO })` + rollback. The sheet stays open for consecutive pulls; tap-to-pull replaces drag (a sheet over the board makes drag-out unreliable; backlog is forward-only anyway).
-
-### Rules
-
-- Backlog cards are the board's cards (desktop drags the board `TaskCard`; mobile shows the same face, non-draggable, with the pull action), so a card reads the same before and after the pull.
-- A habit's week dots, computed from the loaded tasks, show each of the week's instances in order: a dot fills when its instance is done, and the card's own dot is ringed.
-- The backlog open state (panel or sheet) is local UI state, default closed.
-- Only the visible side of the desktop backlog can take focus: Tab and screen readers never reach the collapsed panel, or the strip while the panel is open. Opening moves focus to the panel's close control and closing moves it back to the strip; the first render leaves focus where it is.
-- Empty backlog: desktop strip still shows (count `0`) with an empty-state body; the mobile pill is hidden (the sheet's empty state only appears if the last task is pulled while it is open).
+- **J1 Entry** — each state shows its screen (ST-1, ST-2, ST-3); A1 opens the plan page.
+- **J2 A week's work** (desktop) — A2, looking over the backlog → A4 a step → A6 a habit instance (its dot fills) → A7 the step (its segment fills) → reload: every move stayed, and today's progress counts them → A3.
+- **J3 Mobile pull** (mobile) — A2 → A5 twice, the sheet staying open → A3 → reload: both in Todo.
