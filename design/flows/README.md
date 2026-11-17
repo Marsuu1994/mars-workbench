@@ -8,7 +8,7 @@ One spec per page — `board.md`, `plan.md`, `priorities.md`, `projects.md`, `du
 
 Sections, in order:
 
-- **States** — the page's states, and what each one reads.
+- **States** — the page's states: what the server returns in each, and what the screen shows for it.
 - **One section per area of the screen** (Columns, Task cards, Backlog…) — what it shows: its parts and what each one marks. Every number says what it counts, every list its order.
 - **Actions** — a table: `ID · Action · Where · Server action · Result`; a client-only action's server action is `—`.
 - **Rules** — the limits on the actions, each stated where it holds: on the board (UI) or on the server.
@@ -20,7 +20,8 @@ A page without a screen (sync, MCP) has only the sections it needs: MCP's Action
 
 - Every item starts with an ID: `<AREA>-n` (`COL-2`, `BL-5`), `A` for actions, `R` for rules, `J` for journeys. IDs are never renumbered or reused; an item dropped goes together with its test.
 - One ID is one thing a test's title can state in a sentence. A card's parts are one item, not one per field.
-- A test names the ID it holds in its title: `it('COL-3 runs Done latest first')`, `test('J2 …')`, a journey's `test.step('A4 …')`.
+- An item says its facts in full rather than pointing to another area's ("in Todo's order"): two areas that agree today can part later. Pointing to an action, a move or a rule is fine.
+- A test names the IDs it holds in its title: `it('COL-3 runs Done latest first')`, `it('CARD-2 R4 a Done card is dimmed and has no handle')`, `test('J2 …')`, a journey's `test.step('A4 …')`. A test may hold several IDs and an ID may be held by several tests; what counts is that every ID is held by at least one.
 - *(pending)* marks an item designed but not built; *(bug)* a known bug, held by an `it.fails`.
 - A section kept as it stands until a redesign is marked `> As is.` and has no IDs.
 
@@ -40,7 +41,7 @@ An item is tested where its logic lives:
 - what a component shows for given data, and an action's client side (the action it calls, the optimistic change, the rollback) → component;
 - a journey → e2e.
 
-An item that holds in two places is two items. Done cards locked on the board is one; the server refusing the move is another.
+An item whose parts live in different layers is held at each: the returning user's recap is computed on the server (integration) and shown by the empty board (component), both tests naming ST-2. Two statements are two items, even about the same thing: Done cards locked on the board is one, the server refusing the move another.
 
 ## Legacy docs
 

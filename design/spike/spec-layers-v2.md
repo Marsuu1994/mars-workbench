@@ -29,7 +29,7 @@ Backlog stacking 是第一个按旧 spike 的格式写 spec 的功能（tracker 
 | **e2e** | 每天怎么用这个 app：关键 journey 的 happy path，从头到尾接通 | 打开 backlog → 拉一张卡到 Todo → 拖到 Done → reload 之后还在 | Playwright，本地的 Supabase stack |
 
 - **逻辑在哪，test 就在哪。** 以 Done 的排序为例：它在 `sortDoneTasks`（纯函数，`toBoardCards` 在 client 上调用），所以是 unit test。如果它写在组件里（inline 的 `.sort()`），就是 component test；如果它在 DAL 的 `orderBy` 里，就是 integration test。AGENTS.md 已经要求衍生的逻辑放进 `src/utils/` 的纯函数，所以大部分衍生规则都会落在 unit test 上，component test 不必再测一遍顺序。
-- **一条规则只在一层成立。** 如果它在两个地方都成立（UI 不提供这个操作，server 也拒绝），就写成两条：一条测 component，一条测 integration。这样每条只需要一个 test，reviewer 也不用猜它该测哪一层。
+- **ID 和 test 是多对多。** 一个 test 可以守几个 ID，一个 ID 也可以被几个 test 守住，只要每个 ID 至少有一个 test。一条的几部分落在不同层，就每层各测一次，用同一个 ID（returning user 的 recap：server 算数是 integration，empty board 显示是 component，都叫 ST-2）。两句不同的话还是两条，哪怕说的是同一件事：UI 不提供这个操作是一条（component），server 拒绝是另一条（integration）。
 - **Design Console 留着**，给 owner 浏览和验收用，smoke test 照旧跑。上一轮讨论的「scenario test」不做了。
 
 ### 2. Component test 怎么搭
@@ -113,12 +113,12 @@ it('A2 Finish moves the card to the top of Done at once, and back when it fails'
 2. **Implementation PR**：对每条 pending 的条目，先写一个会失败的 test，再写代码让它通过，最后删掉 `(pending)`。PR 的范围就是它清掉的那些 pending。
 3. **三道保障**：
    - **CI：`check:spec`**，机械地检查，很便宜：
-     - 每个不是 pending 的 ID 至少有一个 test，标题以这个 ID 开头（`it('BL-2 …')`、`test('J2 …')`、`test.step('A3 …')`）；
+     - 每个不是 pending 的 ID 至少有一个 test，标题以它守的 ID 开头，可以是几个（`it('BL-2 …')`、`it('CARD-2 R4 …')`、`test('J2 …')`、`test.step('A3 …')`）；
      - 每个 `(bug)` 的 ID 有一个 `it.fails`；
      - 没有 test 指向不存在的 ID，或者还是 pending 的 ID；
      - ID 不重复。
    - **Reviewer agent `spec-reviewer`**（新的 subagent），在本地 push 之前跑。对 diff 里每个改动的 ID，回答两个问题：test 断言的是不是描述里说的那件事？它在不在行为实际发生的那一层？每个 ID 给一个 PASS / FAIL。这类语义判断 CI 做不了。
-   - **Skill**：implementation 的步骤写成一个 skill（Q2）。顺便定下 PR #106 的 Q12–Q13，也就是 ui-design skill 里「After the design is decided」那一节一直空着的部分。
+   - **Skill**：implementation 的步骤写成一个 skill（Q2）。它要求 test 写得省：同一层、同一个场景能一起断言的几个 ID 放进一个 test（`it('CARD-2 R4 …')` 守住了 R4，就不再单独写一个 R4 的 test）；只有层不同，或者场景要另搭，才拆开。顺便定下 PR #106 的 Q12–Q13，也就是 ui-design skill 里「After the design is decided」那一节一直空着的部分。
 4. **退役 e2e contract**：`contractTest`、`contract:flip`、`scripts/flipContract.ts`、`e2e/contract/`（现在是空的）。pending 的 ID 取代了它们（Q5）。
 
 例子（project step pile）：

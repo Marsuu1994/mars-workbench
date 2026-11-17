@@ -59,7 +59,7 @@ Current ISO week key differs from `plan.periodKey` (checked by Ensure Synced).
 
 1. Expire all remaining non-DONE template instances; one-offs (`AD_HOC`) and project steps (`PROJECT`) never expire.
 2. Set plan status: `ACTIVE` → `PENDING_UPDATE`.
-3. Return null → the calling page renders its no-plan state (board: the empty board, see Empty board in `design/flows/board.md`; matrix: warn hint bar + disabled send).
+3. Return null → the calling page renders its no-plan state (board: the empty board, see States in `design/flows/board.md`; matrix: warn hint bar + disabled send).
 
 ### Rules
 
