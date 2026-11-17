@@ -58,7 +58,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 ### Medium
 
 - [ ] Group the backlog — one habit's staged instances, and one project's steps on this week, sit together as one group (desktop panel and mobile sheet); a habit and a project each show their next one on a thin pile, "+N more" top right, and only a project's "+N more ⌄" opens the rest; the backlog card drops the plan line, step n/N, size and the done / total fraction (the board's habit card drops its fraction too); the badge counts staged tasks, capped at 8+. Design decided (PR #109; habits' pile added 2026-11-07): mockup `design/mockup/mockup-board-backlog-grouping.html`. PR #44 built stacking on the old card face.
-  - [ ] PR 3 — the pile's design finished and its pending items in `flows/board.md`; first drafts of the `implement-spec` skill and the `spec-reviewer` agent (spec v2, Cross-cutting › Future)
+  - [ ] PR 3 — the pile's design finished (lifting a card shows the one behind it; whether the badge hides at 0, as the mobile pill does today) and its pending items in `flows/board.md`, among them a server rule that a project's step is pulled only as its next — today any staged step can be pulled first; first drafts of the `implement-spec` skill and the `spec-reviewer` agent (spec v2, Cross-cutting › Future)
   - [ ] PR 4 — build it, clearing the pending items; the `implement-spec` skill written
 
 ### Future
@@ -77,14 +77,13 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 
 ### Future
 
-- [ ] Week model Phase 2 (not planned yet; starts after Milestone — Quality gate before Phase 2, Cross-cutting) — habits own their cadence (Daily = every day, or N× per week; Plan Mode dropped) with a Plan › Habits page; a three-step Plan week replaces the plan form, with one Plan hub header for This week · Habits · Projects (Phase 1 keeps the plan form as it was and gives Projects its own page and nav entry); Done becomes the week's day-grouped log and cards get a ✓; cleanup of `DOING` and `Plan.mode`. Mockup `design/mockup/mockup-week-model-phase2.html`
+- [ ] Week model Phase 2 (not planned yet; starts after Milestone — Quality gate before Phase 2, Cross-cutting) — habits own their cadence — Weekly × N only, Daily dropped (owner, 2026-11-16; the mockup still draws Daily, and existing daily habits need a migration), Plan Mode with it — with a Plan › Habits page; a three-step Plan week replaces the plan form, with one Plan hub header for This week · Habits · Projects (Phase 1 keeps the plan form as it was and gives Projects its own page and nav entry); Done becomes the week's day-grouped log and cards get a ✓; cleanup of `DOING` and `Plan.mode`. Mockup `design/mockup/mockup-week-model-phase2.html`
   - [ ] Plan week built on the page structure (AGENTS.md › Layers › *Page structure*): route adapter for the form's initial selections, a `PlanPage` container with a page context, the diff as a pure helper — the plan form keeps its current structure until then (`design/spike/archived/component-structure.md`, Q5)
   - [ ] Redesign the Review changes modal — large as it stands; rework it with the Plan week
   - [ ] Rewrite `design/flows/plan.md`'s form flows for the Plan week
   - [ ] Task templates become habits throughout — the docs must change (flows, baseline, the MCP guide); whether schema, type and function names follow (`TaskTemplate`, `planLineFields`, `PlanTemplateInput`) is decided then. "Plan line" and "template" read unclearly next to the product's "habit"
-  - [ ] UI component tests (React Testing Library or Vitest browser mode), and a second look at visual regression on the Design Console scenarios — deferred from the Quality gate's test baseline until Phase 2's pages settle (`design/spike/archived/test-baseline.md`, Q10)
+  - [ ] A second look at visual regression on the Design Console scenarios — deferred from the Quality gate's test baseline until Phase 2's pages settle (`design/spike/archived/test-baseline.md`, Q10); component tests come earlier, with spec v2 (Cross-cutting › Future)
   - [ ] Investigate the app pain points before planning Phase 2 — a weekly time budget the LLM plans into (size as its estimate, points → hours), focus limits (habits per week, active projects) and one lifecycle for habits and projects (active / paused / completed). Spike `design/spike/week-model-phase2-pain-points.md` (draft)
-- [ ] Habit-level days — let each habit run on weekdays, every day or custom days (after Phase 2 drops Plan Mode, Daily means every day)
 - [ ] One entry for habits and projects together — a single page (Habits · Projects) with the same lifecycle filters, instead of projects having their own nav item and habits living in the plan form; options in `design/spike/week-model-phase2-pain-points.md`
 
 ## Priorities
@@ -148,7 +147,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 - [ ] Measure `ci-fixer` on the next red GitHub CI: delegate the failing job to it and compare the main-session context with reading the log inline; if it still comes out even, drop the agent (`design/spike/archived/subagent-delegation-pilot.md` › Decision, Q2)
 - [ ] `ui/` component-structure lookup in `reference.md` — a lean high-level map for agents (humans use the `/design` gallery); follow-up to the landed component library
 - [ ] Uniform page header across board / priorities / projects / dump / settings on both breakpoints (plan keeps its planning-mode header until Phase 2's Plan hub header); also resolves the BoardHeader green-vs-primary accent drift and revisits the mobile header type scale (current mobile header font size reads too large). Along the way (`design/spike/archived/board-prop-drilling.md` Part 2): fold BoardHeader's extra wrapper div and redraw the stale `kanban/loading.tsx` skeleton
-- [ ] Redesign the point system and metric tracking — how sizes map to points, and what the board's Today / Week / Daily avg metrics count now that a week mixes habits, project steps and one-offs (PR 3 only added a project bucket to the week projection). Direction proposed in `design/spike/week-model-phase2-pain-points.md` (points → hours of a weekly budget)
+- [ ] Redesign the point system and metric tracking — how sizes map to points, and what the board's Today / Week / Daily avg metrics count now that a week mixes habits, project steps and one-offs (PR 3 only added a project bucket to the week projection); the percentages and the daily average are worked out inside the dashboard component, with no test. Direction proposed in `design/spike/week-model-phase2-pain-points.md` (points → hours of a weekly budget)
 
 ### Future
 
