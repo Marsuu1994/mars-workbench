@@ -92,8 +92,12 @@ jobs:
     name: Spec coverage
     runs-on: ubuntu-latest
     steps:
+      # The legacy docs are compared with main where the branch left it,
+      # which needs the history.
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Node and dependencies
         uses: ./.github/actions/setup

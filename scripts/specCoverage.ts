@@ -78,6 +78,103 @@ export interface ListedItem {
   heldBy: string[];
 }
 
+/** The list of flow docs still in the legacy format. */
+export const LEGACY_LIST_PATH = 'design/flows/legacy.txt';
+
+/** A heading or a list item: what a legacy doc may not gain. */
+const ENTRY = /^(?:#{2,}\s|\s*(?:[-*]|\d+\.)\s)/;
+
+/** A flow doc by its file name (`plan.md`), as the legacy list names it. */
+export interface FlowDoc {
+  name: string;
+  markdown: string;
+}
+
+export interface LegacyCheck {
+  /** Every flow doc now */
+  docs: FlowDoc[];
+  /** The legacy list now */
+  legacy: string[];
+  /** Main where this branch left it */
+  base: {
+    /** Its legacy list; null before main has one */
+    legacy: string[] | null;
+    /** Its flow docs, by file name */
+    markdownByName: Map<string, string>;
+  };
+}
+
+/** The doc names on the legacy list; `#` starts a comment. */
+export const parseLegacyList = (text: string): string[] =>
+  text
+    .split('\n')
+    .map(line => line.replace(/#.*/, '').trim())
+    .filter(Boolean);
+
+/** How many headings and list items a doc has. */
+export const countEntries = (markdown: string): number =>
+  markdown.split('\n').filter(line => ENTRY.test(line)).length;
+
+/**
+ * What keeps the legacy list honest, one sentence each:
+ * - a doc not on it must be written in spec v2, so it has IDs;
+ * - a doc on it that has IDs, or no longer exists, leaves it;
+ * - it only gets shorter than on main;
+ * - a doc on it can be corrected, but not grown: no more headings or list
+ *   items than on main.
+ */
+export const findLegacyProblems = ({
+  docs,
+  legacy,
+  base,
+}: LegacyCheck): string[] => {
+  const problems: string[] = [];
+  const legacyNames = new Set(legacy);
+  const docByName = new Map(docs.map(doc => [doc.name, doc]));
+
+  for (const {name, markdown} of docs) {
+    const hasIds = parseSpecItems(markdown).length > 0;
+    if (!legacyNames.has(name) && !hasIds) {
+      problems.push(
+        `design/flows/${name} has no IDs: a doc not on ${LEGACY_LIST_PATH} is written in spec v2 (design/flows/README.md › Spec v2).`,
+      );
+    }
+    if (legacyNames.has(name) && hasIds) {
+      problems.push(
+        `design/flows/${name} has IDs, so it's spec v2 now: delete its line from ${LEGACY_LIST_PATH}.`,
+      );
+    }
+  }
+
+  for (const name of legacy) {
+    const doc = docByName.get(name);
+    if (!doc) {
+      problems.push(
+        `${LEGACY_LIST_PATH} lists ${name}, which doesn't exist: delete its line.`,
+      );
+      continue;
+    }
+    if (base.legacy && !base.legacy.includes(name)) {
+      problems.push(
+        `${LEGACY_LIST_PATH} lists ${name}, which main's list doesn't: the list only gets shorter, so write the doc in spec v2.`,
+      );
+    }
+    const baseMarkdown = base.markdownByName.get(name);
+    if (baseMarkdown === undefined) continue;
+    const [before, after] = [
+      countEntries(baseMarkdown),
+      countEntries(doc.markdown),
+    ];
+    if (after > before) {
+      problems.push(
+        `design/flows/${name} has more headings and list items than on main (${before} → ${after}): a legacy doc can be corrected, but not grown. Migrate it to spec v2 first, as board.md was.`,
+      );
+    }
+  }
+
+  return problems;
+};
+
 /** Every item in a spec, in order, with its markers. */
 export const parseSpecItems = (markdown: string): SpecItem[] =>
   markdown.split('\n').flatMap(line => {

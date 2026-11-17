@@ -43,7 +43,7 @@ A page migrated to spec v2 (`design/flows/README.md`) has an ID on every item, a
 
 - **Name the spec**: a test file whose titles name IDs says which spec they're from, on its first line: `// Spec: design/flows/board.md`. A file can hold several specs' items, one comment per spec.
 - **Write tests sparingly**: the IDs one scenario can assert together share one test (`CARD-2 R4` checks the Done card's look and its missing drag handle on the same render); split only when the layer differs or the scenario needs its own setup.
-- **`npm run check:spec`** (CI) fails when an item no test holds, a `(bug)` item no `it.fails` holds, a title naming an ID its spec doesn't have or one still pending, or an ID used twice. A skipped test holds nothing.
+- **`npm run check:spec`** (CI) fails when an item no test holds, a `(bug)` item no `it.fails` holds, a title naming an ID its spec doesn't have or one still pending, or an ID used twice. A skipped test holds nothing. It also keeps the legacy docs from growing (`design/flows/README.md` › Legacy docs).
 - **`npm run check:spec -- --list <page>`** prints the page's items, each with where it stands (held, pending, removing, bug) and the tests holding it. CI writes the same list for every spec into the job summary.
 - **An implementation PR is done** when the items its design marked *(pending)* or *(removing)* have no marker left and `check:spec` passes.
 

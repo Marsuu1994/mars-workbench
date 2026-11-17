@@ -1,7 +1,0 @@
-design/flows/auth.md
-design/flows/dump.md
-design/flows/mcp.md
-design/flows/plan.md
-design/flows/priorities.md
-design/flows/projects.md
-design/flows/shared.md

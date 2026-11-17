@@ -1,9 +1,12 @@
 import {describe, expect, it} from 'vitest';
 import {
+  countEntries,
+  findLegacyProblems,
   findSpecProblems,
   formatSpecList,
   formatSpecTable,
   listSpecItems,
+  parseLegacyList,
   parseSpecItems,
   parseTestTitles,
   type ListedItem,
@@ -251,5 +254,108 @@ describe('formatSpecTable', () => {
         '',
       ].join('\n'),
     );
+  });
+});
+
+const LEGACY_DOC = `# Plan
+
+## Create Plan Flow
+
+### Steps
+
+1. Pick the habits.
+2. Review and create.
+`;
+
+/** board.md written in spec v2, plan.md still legacy, as on main. */
+const legacyCheck = (
+  overrides: {
+    planMarkdown?: string;
+    legacy?: string[];
+    baseLegacy?: string[] | null;
+    extraDocs?: {name: string; markdown: string}[];
+  } = {},
+) => ({
+  docs: [
+    {name: 'board.md', markdown: SPEC},
+    {name: 'plan.md', markdown: overrides.planMarkdown ?? LEGACY_DOC},
+    ...(overrides.extraDocs ?? []),
+  ],
+  legacy: overrides.legacy ?? ['plan.md'],
+  base: {
+    legacy:
+      overrides.baseLegacy === undefined ? ['plan.md'] : overrides.baseLegacy,
+    markdownByName: new Map([['plan.md', LEGACY_DOC]]),
+  },
+});
+
+describe('parseLegacyList', () => {
+  it('reads one doc per line, leaving out comments and blank lines', () => {
+    expect(
+      parseLegacyList('# Legacy docs\nplan.md\n\nshared.md # sync\n'),
+    ).toEqual(['plan.md', 'shared.md']);
+  });
+});
+
+describe('countEntries', () => {
+  it('counts headings below the title, bullets and numbered steps', () => {
+    expect(countEntries(LEGACY_DOC)).toBe(4);
+  });
+});
+
+describe('findLegacyProblems', () => {
+  it('finds nothing when the list matches the docs and no legacy doc grew', () => {
+    expect(findLegacyProblems(legacyCheck())).toEqual([]);
+  });
+
+  it('lets a legacy doc be corrected or shortened', () => {
+    const corrected = LEGACY_DOC.replace(
+      'Pick the habits.',
+      'Pick up to 3 habits.',
+    );
+    const shortened = LEGACY_DOC.replace('2. Review and create.\n', '');
+    expect(findLegacyProblems(legacyCheck({planMarkdown: corrected}))).toEqual(
+      [],
+    );
+    expect(findLegacyProblems(legacyCheck({planMarkdown: shortened}))).toEqual(
+      [],
+    );
+  });
+
+  it('reports a legacy doc that gained a heading or a list item', () => {
+    const grown = `${LEGACY_DOC}3. Start the week.\n`;
+    expect(findLegacyProblems(legacyCheck({planMarkdown: grown}))).toEqual([
+      'design/flows/plan.md has more headings and list items than on main (4 → 5): a legacy doc can be corrected, but not grown. Migrate it to spec v2 first, as board.md was.',
+    ]);
+  });
+
+  it('reports a doc off the list without IDs', () => {
+    const extraDocs = [{name: 'stats.md', markdown: LEGACY_DOC}];
+    expect(findLegacyProblems(legacyCheck({extraDocs}))).toEqual([
+      'design/flows/stats.md has no IDs: a doc not on design/flows/legacy.txt is written in spec v2 (design/flows/README.md › Spec v2).',
+    ]);
+  });
+
+  it('reports a doc on the list that has IDs, or no longer exists', () => {
+    expect(
+      findLegacyProblems(
+        legacyCheck({legacy: ['board.md', 'gone.md', 'plan.md']}),
+      ),
+    ).toEqual([
+      "design/flows/board.md has IDs, so it's spec v2 now: delete its line from design/flows/legacy.txt.",
+      expect.stringContaining('board.md, which main'),
+      "design/flows/legacy.txt lists gone.md, which doesn't exist: delete its line.",
+    ]);
+  });
+
+  it('reports a doc added to the list, once main has one', () => {
+    const extraDocs = [{name: 'stats.md', markdown: LEGACY_DOC}];
+    const legacy = ['plan.md', 'stats.md'];
+    expect(findLegacyProblems(legacyCheck({extraDocs, legacy}))).toEqual([
+      "design/flows/legacy.txt lists stats.md, which main's list doesn't: the list only gets shorter, so write the doc in spec v2.",
+    ]);
+    expect(
+      findLegacyProblems(legacyCheck({extraDocs, legacy, baseLegacy: null})),
+    ).toEqual([]);
   });
 });

@@ -2,7 +2,7 @@
 
 One spec per page — `board.md`, `plan.md`, `priorities.md`, `projects.md`, `dump.md`, `auth.md` (auth and settings) — plus `shared.md` for the cross-page sync lifecycle and `mcp.md` for planning with Claude over MCP. A spec says what the page shows and what the user can do there, item by item, and each item is held by a test. The decision record: `design/spike/spec-layers-v2.md`.
 
-`board.md` is written in spec v2; the rest are still legacy docs (below) until each is migrated.
+`board.md` is written in spec v2; the docs listed in `legacy.txt` are still legacy docs (below) until each is migrated.
 
 ## Spec v2
 
@@ -51,3 +51,9 @@ An item whose parts live in different layers is held at each: the returning user
 ## Legacy docs
 
 The docs not migrated yet keep the old format: one flow per `##` heading, separated by `---`; each with `### Trigger / Entry Point` and `### Steps`, and optionally `### Rules`. They state facts, not UI detail or decisions.
+
+A legacy doc can be corrected, but not grown. Fixing a wrong sentence is fine; a new flow, step or rule means migrating the whole doc to spec v2 first, as `board.md` was. `npm run check:spec` holds this, comparing with main where the branch left it:
+
+- new docs: a doc not in `legacy.txt` is written in spec v2, so it has IDs;
+- the list: it only gets shorter, and a doc leaves it in the change that gives it IDs;
+- growth: a doc in `legacy.txt` may not have more headings or list items than on main.
