@@ -14,6 +14,7 @@ import {
   createOneOff,
   createProjectWithSteps,
   createWeek,
+  endWeek,
   moveTasksByTitle,
 } from '../test/factories';
 
@@ -41,6 +42,7 @@ const createE2eUser = async (): Promise<E2eUser> => {
 const bindFactories = (userId: string) => ({
   createWeek: (planSpec: Parameters<typeof createWeek>[1]) =>
     createWeek(userId, planSpec),
+  endWeek: (planId: string) => endWeek(userId, planId),
   createProjectWithSteps: (
     title: string,
     steps: Parameters<typeof createProjectWithSteps>[2],

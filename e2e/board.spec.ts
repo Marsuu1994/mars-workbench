@@ -1,151 +1,168 @@
+// Spec: design/flows/board.md
 /**
- * design/flows/board.md, one describe per flow. Every test seeds the week it
- * reads (e2e/fixtures.ts) and runs at both widths.
+ * The board's journeys, each step named by the action it takes. What each
+ * screen shows is held by the component tests next to the board's
+ * components; here every journey runs end to end on its own seeded user.
  */
-import type {Page} from '@playwright/test';
 import {newHabit} from '../test/factories';
 import {PlanMode, TaskStatus, TaskType} from '@/utils/enums';
 import {
+  dragCardWithKeyboard,
   expectTodayDoneCount,
+  findBacklogCard,
   findBoardCard,
-  findBoardColumn,
+  openBacklog,
 } from './actions/board';
-import {
-  expect,
-  expectToSee,
-  openPage,
-  test,
-  waitForServerAction,
-} from './fixtures';
+import {expect, openPage, test, waitForServerAction} from './fixtures';
 
 const HABIT_TITLE = 'Flashcards';
 const PROJECT_TITLE = 'Spanish course';
 const STEP_TITLE = 'Unit 1 — Daily routines';
+/** Where Start a plan leads, wherever the app is served. */
+const PLAN_PAGE = /\/kanban\/plans\/new$/;
 
-test.describe('Landing Flow', () => {
-  test('the board shows the week', async ({page, seed}) => {
-    const project = await seed.createProjectWithSteps(PROJECT_TITLE, [
-      STEP_TITLE,
-    ]);
-    const {plan} = await seed.createWeek({
-      mode: PlanMode.EXTREME,
-      newTemplates: [newHabit(HABIT_TITLE, TaskType.DAILY)],
-      addProjectStepIds: [project.steps[0].id],
-    });
-    await seed.moveTasksByTitle(plan.planId, [
-      [HABIT_TITLE, TaskStatus.TODO],
-      [STEP_TITLE, TaskStatus.TODO],
-    ]);
+test('J1 a new user starts their first plan', async ({page}) => {
+  await test.step('ST-1 the empty board asks for a first plan', async () => {
+    await openPage(page, '/kanban');
+  });
 
-    await page.goto('/kanban');
-    await expectToSee(page, HABIT_TITLE);
-    await expectToSee(page, STEP_TITLE);
+  await test.step('A1 start a plan', async () => {
+    await page.getByRole('link', {name: 'Create your first plan'}).click();
+    await page.waitForURL(PLAN_PAGE);
   });
 });
 
-/** How long one Space press gets to lift the card before the lift is retried. */
-const LIFT_TIMEOUT_MS = 1000;
-
-/**
- * @hello-pangea/dnd's keyboard drag — lift, one column on, drop — stepping
- * on its screen-reader announcements. Todo and Done sit side by side on
- * desktop and stacked on mobile, so "on" is right or down.
- *
- * The lift retries until dnd announces it: a Space pressed before dnd has
- * wired the card's drag handle is ignored, and CI's slower runner sometimes
- * presses that early (the run on PR #109 waited 5 s on an empty announcer).
- */
-const dragOneColumnOn = async (
-  page: Page,
-  isMobile: boolean,
-  title: string,
-) => {
-  const announcements = page.locator('[aria-live]');
-  const card = findBoardColumn(page, 'TODO').getByRole('button', {
-    name: new RegExp(title),
+test("J2 a returning user sees last week's recap and starts this week's plan", async ({
+  page,
+  seed,
+}) => {
+  // Last week: a habit that ran twice, done once
+  const {plan} = await seed.createWeek({
+    mode: PlanMode.NORMAL,
+    newTemplates: [newHabit(HABIT_TITLE, TaskType.WEEKLY, 2)],
   });
-  await expect(async () => {
-    await card.focus();
-    await page.keyboard.press('Space');
-    await expect(announcements).toContainText([/lifted/], {
-      timeout: LIFT_TIMEOUT_MS,
-    });
-  }).toPass();
-  await page.keyboard.press(isMobile ? 'ArrowDown' : 'ArrowRight');
-  await expect(announcements).toContainText([/to list DONE/]);
-  const statusSaved = waitForServerAction(page, '/kanban');
-  await page.keyboard.press('Space');
-  await expect(announcements).toContainText([/dropped/]);
-  await statusSaved;
-};
+  await seed.moveTasksByTitle(plan.planId, [[HABIT_TITLE, TaskStatus.DONE]]);
+  await seed.endWeek(plan.planId);
 
-test.describe('Drag and Drop Flow', () => {
-  test("a card dragged to Done stays done, and the day's progress counts it", async ({
-    page,
-    seed,
-    isMobile,
-  }) => {
-    const {plan} = await seed.createWeek({
-      mode: PlanMode.EXTREME,
-      newTemplates: [newHabit(HABIT_TITLE, TaskType.DAILY)],
-    });
-    await seed.moveTasksByTitle(plan.planId, [[HABIT_TITLE, TaskStatus.TODO]]);
+  await test.step("ST-2 the empty board shows last week's recap", async () => {
     await openPage(page, '/kanban');
-    await expect(findBoardCard(page, 'TODO', HABIT_TITLE)).toBeVisible();
-    await expectTodayDoneCount(page, isMobile, 0);
+    await expect(page.getByText('50%')).toBeVisible();
+    await expect(page.getByText('1/2')).toBeVisible();
+  });
 
-    await dragOneColumnOn(page, isMobile, HABIT_TITLE);
-    await expect(findBoardCard(page, 'DONE', HABIT_TITLE)).toBeVisible();
-    await expectTodayDoneCount(page, isMobile, 1);
-
-    await page.reload();
-    await expect(findBoardCard(page, 'DONE', HABIT_TITLE)).toBeVisible();
-    await expect(findBoardCard(page, 'TODO', HABIT_TITLE)).toHaveCount(0);
-    await expectTodayDoneCount(page, isMobile, 1);
+  await test.step('A1 start a plan', async () => {
+    await page.getByRole('link', {name: 'Create new plan'}).click();
+    await page.waitForURL(PLAN_PAGE);
   });
 });
 
-test.describe('Backlog Flow', () => {
-  test('the backlog takes focus only while it is open', async ({
-    page,
-    seed,
-    isMobile,
-  }) => {
-    test.skip(
-      isMobile,
-      'A desktop rule: only the visible side of the desktop backlog can take focus (Backlog Flow › Rules)',
-    );
-    const project = await seed.createProjectWithSteps(PROJECT_TITLE, [
-      STEP_TITLE,
-    ]);
-    await seed.createWeek({
-      mode: PlanMode.EXTREME,
-      newTemplates: [newHabit(HABIT_TITLE, TaskType.DAILY)],
-      addProjectStepIds: [project.steps[0].id],
-    });
-    const card = findBoardColumn(page, 'BACKLOG').getByRole('button', {
-      name: new RegExp(STEP_TITLE),
-    });
-    const openButton = page.getByTitle('Open backlog');
-    const closeButton = page.getByRole('button', {name: 'Close backlog'});
-    await openPage(page, '/kanban');
-
-    // Collapsed, the faded-out panel stays mounted but out of reach
-    await card.focus();
-    await expect(card).not.toBeFocused();
-    await closeButton.focus();
-    await expect(closeButton).not.toBeFocused();
-
-    await openButton.focus();
-    await page.keyboard.press('Enter');
-    await expect(closeButton).toBeFocused();
-    await card.focus();
-    await expect(card).toBeFocused();
-    await openButton.focus();
-    await expect(openButton).not.toBeFocused();
-
-    await closeButton.focus();
-    await page.keyboard.press('Enter');
-    await expect(openButton).toBeFocused();
+test("J3 a week's work on desktop: pull, finish, and it all stays", async ({
+  page,
+  seed,
+  isMobile,
+}) => {
+  test.skip(isMobile, 'Desktop drags; J4 is the mobile pull');
+  const project = await seed.createProjectWithSteps(PROJECT_TITLE, [
+    STEP_TITLE,
+  ]);
+  await seed.createWeek({
+    mode: PlanMode.EXTREME,
+    newTemplates: [newHabit(HABIT_TITLE, TaskType.DAILY)],
+    addProjectStepIds: [project.steps[0].id],
   });
+
+  await test.step('ST-3 the board', async () => {
+    await openPage(page, '/kanban');
+  });
+
+  await test.step('A2 open the backlog', async () => {
+    await openBacklog(page);
+    await expect(findBacklogCard(page, false, STEP_TITLE)).toBeVisible();
+    await expect(findBacklogCard(page, false, HABIT_TITLE)).toBeVisible();
+  });
+
+  await test.step('A4 pull the step into Todo', async () => {
+    await dragCardWithKeyboard(page, {
+      from: 'BACKLOG',
+      title: STEP_TITLE,
+      keys: ['ArrowLeft', 'ArrowLeft'],
+      to: 'TODO',
+    });
+    await expect(findBoardCard(page, 'TODO', STEP_TITLE)).toBeVisible();
+  });
+
+  await test.step('A6 finish the habit task from the backlog', async () => {
+    await dragCardWithKeyboard(page, {
+      from: 'BACKLOG',
+      title: HABIT_TITLE,
+      keys: ['ArrowLeft'],
+      to: 'DONE',
+    });
+    await expect(findBoardCard(page, 'DONE', HABIT_TITLE)).toBeVisible();
+  });
+
+  await test.step('A7 finish the step', async () => {
+    await dragCardWithKeyboard(page, {
+      from: 'TODO',
+      title: STEP_TITLE,
+      keys: ['ArrowRight'],
+      to: 'DONE',
+    });
+    await expect(findBoardCard(page, 'DONE', STEP_TITLE)).toBeVisible();
+  });
+
+  await test.step('A3 close the backlog', async () => {
+    await page.getByRole('button', {name: 'Close backlog'}).click();
+  });
+
+  await page.reload();
+  await expect(findBoardCard(page, 'DONE', HABIT_TITLE)).toBeVisible();
+  await expect(findBoardCard(page, 'DONE', STEP_TITLE)).toBeVisible();
+  await expectTodayDoneCount(page, false, 2);
+});
+
+test('J4 a mobile pull: two tasks into Todo, the sheet staying open', async ({
+  page,
+  seed,
+  isMobile,
+}) => {
+  test.skip(!isMobile, 'The tap to pull is the mobile backlog');
+  const project = await seed.createProjectWithSteps(PROJECT_TITLE, [
+    STEP_TITLE,
+  ]);
+  await seed.createWeek({
+    mode: PlanMode.EXTREME,
+    newTemplates: [newHabit(HABIT_TITLE, TaskType.DAILY)],
+    addProjectStepIds: [project.steps[0].id],
+  });
+
+  await test.step('ST-3 the board', async () => {
+    await openPage(page, '/kanban');
+  });
+
+  await test.step('A2 open the backlog', async () => {
+    await openBacklog(page);
+  });
+
+  await test.step('A5 pull both tasks into Todo', async () => {
+    const sheet = page.getByRole('dialog');
+    for (const title of [STEP_TITLE, HABIT_TITLE]) {
+      const pulled = waitForServerAction(page, '/kanban');
+      await findBacklogCard(page, true, title)
+        .locator('..')
+        .getByRole('button', {name: 'Todo'})
+        .click();
+      await pulled;
+      await expect(sheet).toBeVisible();
+    }
+  });
+
+  await test.step('A3 close the backlog', async () => {
+    // The sheet's header button; its backdrop closes it too
+    await page.getByRole('dialog').getByTitle('Close backlog').click();
+  });
+
+  await page.reload();
+  await expect(findBoardCard(page, 'TODO', STEP_TITLE)).toBeVisible();
+  await expect(findBoardCard(page, 'TODO', HABIT_TITLE)).toBeVisible();
 });

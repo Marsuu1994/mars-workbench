@@ -1,3 +1,4 @@
+// Spec: design/flows/board.md
 import {beforeEach, describe, expect, it} from 'vitest';
 import {TaskStatus, TaskType} from '@/utils/enums';
 import {
@@ -51,7 +52,7 @@ describe('trackTaskThisWeek', () => {
     ).toEqual({error: 'noActivePlan'});
   });
 
-  it('puts the one-off on the board', async () => {
+  it('BL-1 puts the one-off on the board, in Todo', async () => {
     const passport = await createOneOff(userId, {title: 'Renew passport'});
     const {plan} = await createActiveWeek();
     expect(

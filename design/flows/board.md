@@ -44,7 +44,7 @@ Opening `/kanban` runs the sync first (`flows/shared.md`). The page then shows o
   - dots: one for each time the habit runs this week. A daily habit gets N for each day it runs (weekdays in `NORMAL` mode, every day in `EXTREME` mode); a weekly habit gets N. A dot is filled when its task is done and empty when it isn't, and the card's own task has a ring around its dot.
   - off the plan: if the habit is no longer on the plan, its cards show no details and no progress
 - **CARD-4** **Project step cards.**
-  - details: Step n/N, the step's number and how many steps the project has
+  - details: n/N, the step's number and how many steps the project has
   - progress: the project's path, one segment per step in order. A segment is filled when its step is done and empty when it isn't, and the card's own step has a ring around it.
   - no project: if the board didn't get the step's project, the card shows no details and no progress
 - **CARD-5** **One-off cards.**
@@ -125,5 +125,5 @@ When the server refuses a move, the card goes back as in MV-4.
 
 - **J1 New user** — The new user sees the empty board (ST-1) and starts a plan (A1).
 - **J2 Returning user** — The returning user sees last week's recap (ST-2) and starts this week's plan (A1).
-- **J3 A week's work** (desktop) — On the board (ST-3), the user opens the backlog and looks it over (A2), pulls a step into Todo (A4), finishes a habit task straight from the backlog and sees its dot fill (A6), then finishes the step and sees its segment fill (A7). After a reload every move is still there, and today's progress counts them. They close the backlog (A3).
+- **J3 A week's work** (desktop) — On the board (ST-3), the user opens the backlog and looks it over (A2), pulls a step into Todo (A4), finishes a habit task straight from the backlog and sees its dot fill (A6), then finishes the step and sees its segment fill (A7), and closes the backlog (A3). After a reload every move is still there, and today's progress counts them.
 - **J4 Mobile pull** (mobile) — On the board (ST-3), the user opens the backlog (A2) and taps ↑ Todo on two cards, the sheet staying open between them (A5), then closes it (A3). After a reload both are in Todo.

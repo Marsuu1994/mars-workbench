@@ -15,7 +15,7 @@ A Next.js application centered on a Kanban Period Planner; AI planning goes thro
 - Database: PostgreSQL (Supabase) + Prisma ORM
 - Auth: Supabase Auth (Google OAuth); its OAuth 2.1 Server also authorizes MCP clients
 - MCP: `mcp-handler` + `@modelcontextprotocol/server` (v2) — the remote endpoint at `/api/mcp`, where Claude reads planning context and writes plans
-- Tests: Vitest (unit, and integration against a real Postgres) + Playwright (e2e on the local Supabase stack)
+- Tests: Vitest (unit, integration against a real Postgres, and component tests in Chromium through browser mode) + Playwright (e2e on the local Supabase stack)
 - Icons: Heroicons
 - Language: TypeScript
 
@@ -197,7 +197,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 ## Tooling
 
 - **Prettier owns formatting** (`.prettierrc.json`; code only — Markdown and `design/` are ignored); don't hand-tune spacing or quotes against it. **ESLint owns correctness** and enforces no `any`, no `console.log` (`console.error` / `warn` allowed) and the server-only import boundary. In production code (`src/` outside the Design Console) it also enforces named exports and `const` arrow components (Next.js convention files excepted), one component per file, and no single-letter names.
-- CI runs `format:check`, `lint`, `typecheck`, `knip`, `check:themes`, the Vitest suite with its coverage floors and the Playwright suite — run all but Playwright before pushing (Version Control).
+- CI runs `format:check`, `lint`, `typecheck`, `knip`, `check:themes`, `check:spec`, the Vitest suite (unit and integration with their coverage floors, component tests in a job of their own) and the Playwright suite — run all but Playwright before pushing (Version Control).
 
 ## Data & State
 
@@ -220,7 +220,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
   1. `design/tracker.md`: delete finished items and sub-bullets.
   2. README Current State: rewrite the sections the change touches.
   3. AGENTS.md, or a README it indexes: only when a rule or a directory's responsibility changed.
-  4. Run `npm run format`, then `lint`, `typecheck`, `knip` and `npm test` (and `check:themes` when CSS variables changed). CI runs e2e; run `npm run test:e2e` too when a change touches a page's flow.
+  4. Run `npm run format`, then `lint`, `typecheck`, `knip`, `check:spec`, `test:coverage` and `test:component` (and `check:themes` when CSS variables changed). `test:coverage` and not `npm test`: CI fails below the coverage floors, which `npm test` doesn't check. CI runs e2e; run `npm run test:e2e` too when a change touches a page's flow.
 - **Act on submitted reviews only.** A pending review — comments drafted but not yet submitted — can still change: don't reply to, resolve or push for its comments; at most mention that one is pending.
 
 ## Commands
@@ -236,11 +236,13 @@ npm run format:check # Verify formatting (CI)
 npm run check:themes # Every theme declares the same CSS variables (CI)
 npm run check:review-log  # Every owner review on a PR has its entry in reviews/ (CI; GITHUB_REPOSITORY and PR_NUMBER locally)
 npm run check:mockup-links  # Every mockup a PR changes is linked from its description (CI; same env)
+npm run check:spec   # Every item in a spec v2 doc is held by a test that names it (CI); `-- --list <page>` lists each item's tests
 npm run e2e:timing -- <report.json>  # Each e2e spec's time per project, from Playwright's JSON report (CI job summary)
 npm run contract:flip <feature>  # e2e/contract/<feature>.spec.ts → plain tests in e2e/features/ (CI names it when a contract passes)
-npm test             # Unit + integration tests in UTC and Los Angeles time (a local Postgres: test/README.md)
+npm test             # Every Vitest layer: unit + integration in UTC and Los Angeles time (a local Postgres: test/README.md), component in Chromium
 npm run test:unit    # Unit tests only, no database
-npm run test:coverage  # Everything, failing below the coverage floors (CI)
+npm run test:component  # Component tests only, in Chromium (CI)
+npm run test:coverage  # Unit + integration, failing below the coverage floors (CI)
 npm run test:e2e     # Playwright on the local stack, each test as its own user, both widths (CI); reuses a running dev server
 npm run up           # One-click start: setup, then the dev server (fresh checkout or any day)
 npm run setup        # .env.local, npm install, db:setup — no dev server (`-- --no-db` stops after install)
