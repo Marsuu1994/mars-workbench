@@ -223,6 +223,50 @@ describe('sortTasks', () => {
     expect(sortTasks(tasks).map(task => task.id)).toEqual(['c', 'a', 'b']);
   });
 
+  it('keeps groups that start at the same time apart', () => {
+    const tasks = [
+      ['b', 0],
+      ['a', 1],
+      ['b', 1],
+      ['a', 0],
+    ].map(([templateId, instanceIndex]) =>
+      buildTask({
+        id: `${templateId}-${instanceIndex}`,
+        templateId: String(templateId),
+        type: TaskType.WEEKLY,
+        instanceIndex: Number(instanceIndex),
+        createdAt: at(1),
+      }),
+    );
+    expect(sortTasks(tasks).map(task => task.id)).toEqual([
+      'a-0',
+      'a-1',
+      'b-0',
+      'b-1',
+    ]);
+  });
+
+  it("runs a daily habit's days in the order they were made", () => {
+    const tasks = [
+      buildTask({
+        id: 'tuesday',
+        templateId: 'run',
+        type: TaskType.DAILY,
+        createdAt: at(5),
+      }),
+      buildTask({
+        id: 'monday',
+        templateId: 'run',
+        type: TaskType.DAILY,
+        createdAt: at(1),
+      }),
+    ];
+    expect(sortTasks(tasks).map(task => task.id)).toEqual([
+      'monday',
+      'tuesday',
+    ]);
+  });
+
   it('does not reorder its input', () => {
     const tasks = [
       buildTask({id: 'late', createdAt: at(9)}),
@@ -249,5 +293,12 @@ describe('sortDoneTasks', () => {
       'first',
       'unstamped',
     ]);
+  });
+
+  it('breaks a tie by id', () => {
+    const tasks = ['b', 'a'].map(id =>
+      buildTask({id, status: TaskStatus.DONE, doneAt: at(1)}),
+    );
+    expect(sortDoneTasks(tasks).map(task => task.id)).toEqual(['a', 'b']);
   });
 });
