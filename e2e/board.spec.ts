@@ -121,7 +121,7 @@ test("J3 a week's work on desktop: pull, finish, and it all stays", async ({
   await expectTodayDoneCount(page, false, 2);
 });
 
-test('J4 a mobile pull: two tasks into Todo, the sheet staying open', async ({
+test("J4 a week's work on mobile: pull two, finish one, and it all stays", async ({
   page,
   seed,
   isMobile,
@@ -162,7 +162,19 @@ test('J4 a mobile pull: two tasks into Todo, the sheet staying open', async ({
     await page.getByRole('dialog').getByTitle('Close backlog').click();
   });
 
+  await test.step('A7 finish the step', async () => {
+    // On mobile Done is the row below Todo
+    await dragCardWithKeyboard(page, {
+      from: 'TODO',
+      title: STEP_TITLE,
+      keys: ['ArrowDown'],
+      to: 'DONE',
+    });
+    await expect(findBoardCard(page, 'DONE', STEP_TITLE)).toBeVisible();
+  });
+
   await page.reload();
-  await expect(findBoardCard(page, 'TODO', STEP_TITLE)).toBeVisible();
   await expect(findBoardCard(page, 'TODO', HABIT_TITLE)).toBeVisible();
+  await expect(findBoardCard(page, 'DONE', STEP_TITLE)).toBeVisible();
+  await expectTodayDoneCount(page, true, 1);
 });

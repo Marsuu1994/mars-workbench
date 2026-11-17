@@ -158,7 +158,7 @@ it('A2 Finish moves the card to the top of Done at once, and back when it fails'
   - 清单上的 doc 有了 ID，或者已经不存在，就要从清单里删掉；
   - 清单只能变短；
   - 清单上的 doc，heading 和列表项不能比 main 上多。只改文字不报错，也不 warn。
-- **Test 那边不需要清单**：`check:spec` 只检查 v2 doc 里的 ID。没有 ID 的旧 test 不受影响，等它的 doc 迁移时再加上 ID。旧 e2e spec 的「一个 flow 一个 `describe`」和 `e2e/not-implemented.md` 里对应的行，也跟着它的 doc 一起走。
+- **Test 那边不需要清单**：`check:spec` 只检查 v2 doc 里的 ID。没有 ID 的旧 test 不受影响，等它的 doc 迁移时再加上 ID。旧 e2e spec 的「一个 flow 一个 `describe`」也跟着它的 doc 一起走。`e2e/not-implemented.md` 在 PR 2 里删掉了：旧 doc 迁移时写 journey，就补上了 e2e（owner，2026-11-17）。
 - **`flows/README.md`**：v2 成为正式格式，旧格式降级为「Legacy」一节，清单清空时删掉。
 
 ## 实施计划

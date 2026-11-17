@@ -16,8 +16,8 @@ const PREINSTALLED_CHROMIUM = '/opt/pw-browsers/chromium';
 
 const isCI = Boolean(process.env.CI);
 
-/** Everything but the product specs: the console and the contracts. */
-const PRODUCT_SPECS_IGNORE = [/designConsole\.spec\.ts/, /contract\//];
+/** Everything but the product specs: the Design Console's. */
+const PRODUCT_SPECS_IGNORE = /designConsole\.spec\.ts/;
 
 const DESKTOP = {viewport: {width: 1280, height: 800}};
 const MOBILE = {
@@ -54,28 +54,22 @@ export default defineConfig({
     },
   },
   projects: [
-    // Contracts run first and alone, so a landed or broken contract fails the
-    // run in seconds instead of after every other project
-    {name: 'contract', testMatch: /contract\/.*\.spec\.ts/, use: DESKTOP},
     // The product specs, one per flow doc, at both widths
     {
       name: 'desktop',
       testIgnore: PRODUCT_SPECS_IGNORE,
       use: DESKTOP,
-      dependencies: ['contract'],
     },
     {
       name: 'mobile',
       testIgnore: PRODUCT_SPECS_IGNORE,
       use: MOBILE,
-      dependencies: ['contract'],
     },
     // A developer tool that draws phone widths in its own frames: desktop only
     {
       name: 'design-console',
       testMatch: /designConsole\.spec\.ts/,
       use: DESKTOP,
-      dependencies: ['contract'],
     },
   ],
   webServer: {

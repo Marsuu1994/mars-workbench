@@ -126,7 +126,7 @@ Owner 想要的差别只在**第三层**：同一份「这天做完了什么」�
 ## 实施计划（A）
 
 1. **这个 PR**：在 mockup 的 D · Done 上做一个修订（amendment，标日期）：桌面换成 Todo + Done pane + backlog 的三栏，pane 按天分组、今天在上、之前的天折叠，点圈滚到那天；手机不变。Ideas 里补一条「周后半段 done 太长」的观察点。
-2. **实现 PR（之后，从 `main` 开）**：`doneByDay` 进 board 的 service 输出；`DayDoneList` + 两个外壳；`flows/board.md` 按新格式写 Interactions；e2e contract 两个宽度各一组。
+2. **实现 PR（之后，从 `main` 开）**：`doneByDay` 进 board 的 service 输出；`DayDoneList` + 两个外壳；`flows/board.md` 里对应的 pending 条目清掉，每条都有 test。
 3. **Native iOS（另开 spike）**：API 层（route handlers + Bearer auth）、offline / sync、SwiftUI 的结构。AGENTS.md 关于 route handlers 的那一条在那个 spike 里改。
 
 ## 待拍板的问题

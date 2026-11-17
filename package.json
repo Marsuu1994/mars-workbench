@@ -27,7 +27,6 @@
     "check:mockup-links": "node scripts/check-mockup-links.mjs",
     "check:spec": "tsx scripts/checkSpec.ts",
     "e2e:timing": "node scripts/e2e-timing.mjs",
-    "contract:flip": "tsx scripts/flipContract.ts",
     "test": "vitest run",
     "test:unit": "vitest run --project 'unit-*'",
     "test:component": "vitest run --project component",

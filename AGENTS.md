@@ -29,7 +29,7 @@ prisma/                            # schema.prisma + migrations/
 supabase/                          # Local Supabase stack config (Postgres + Auth in Docker)
 scripts/                           # Repo checks run in CI; the local stack's setup, seed, and dev and e2e sessions
 test/                              # Test helpers and conventions (README); unit and integration tests sit next to their modules
-e2e/                               # Playwright specs; contract/ = designed, not built yet (test/README.md)
+e2e/                               # Playwright specs: a spec v2 page's journeys, a legacy doc's flows (test/README.md)
 .claude/agents/                    # Claude Code subagents: ui-verifier, test-writer, ci-fixer (Workflow › Subagents)
 .claude/skills/                    # Claude Code skills: ui-design (UI Workflow)
 design/                            # Design docs — index in design/README.md
@@ -120,7 +120,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 - **The Design Console is the source of truth for implemented UI.** `/design` renders the real components: a gallery tabbed by layer (`ui/` · `application/` · `domain/`) and per-feature scenario pages (`/design/scenarios/<feature>/`) with pinned fixture states. `npm run dev` serves it without signing in (`src/app/design/README.md` › Local access).
 - **Verification is CI's and the owner's; a browser check is the exception.** CI runs the unit, integration and e2e tests — every page, every Design Console tab, the key journeys — on every PR, and the owner accepts UI on the Vercel preview. Logic, data and MCP changes are verified by `npm test`, style and copy changes by CI and the owner. A layout change (wrapping, overflow, breakpoints, overlay stacking), a new or changed scenario tab or play step, or the owner's request gets one browser check, delegated to the `ui-verifier` subagent with a brief — what changed, the scenario tabs, each check as a sentence — so screenshots and scripts stay out of the main context; read its verdict, and open a screenshot only when it says UNSURE. A bug seen only on a device (iOS / WebKit, the PWA): ask the owner for a screenshot or recording before trying headless Chromium.
 - **Production first, the console adapts.** Components are shaped by what production needs. A production component never carries a prop, branch or comment that only the console uses, and nothing is split or restructured so the console can show it: the console reaches a state the way a user would, or skips it. Bad: `initialUndoToastTaskId` on `PrioritiesPage`. Good: a scenario tab's `play` step clicking the real control.
-- **New UI starts with a design PR.** A design that isn't built yet is drawn as a self-contained HTML mockup in `design/mockup/`, reviewed by the owner on its PR and pinned by an e2e contract; that PR merges with no component code, and an implementation PR follows from `main` (`design/README.md` › Mockups; the `ui-design` skill walks the design, from research to the decided mockup).
+- **New UI starts with a design PR.** A design that isn't built yet is drawn as a self-contained HTML mockup in `design/mockup/`, reviewed by the owner on its PR, with the spec's new or changed items marked *(pending)* (`design/flows/README.md` › Items and IDs); that PR merges with no component code, and an implementation PR follows from `main` (`design/README.md` › Mockups; the `ui-design` skill walks the design, from research to the decided mockup).
 - **Build it exactly, then sync the console.** Implement the approved mockup exactly (layout, spacing, text, colors, icons, states); if something can't be built as-is, raise it and update the mockup first. As the UI lands, add or update the feature's scenario page and gallery entries so the pinned states match production. Once the design is fully implemented, delete its mockup: from then on the Design Console is the source of truth. A scenario that no longer matches production is a bug.
 
 ## Documentation Style
@@ -238,7 +238,6 @@ npm run check:review-log  # Every owner review on a PR has its entry in reviews/
 npm run check:mockup-links  # Every mockup a PR changes is linked from its description (CI; same env)
 npm run check:spec   # Every item in a spec v2 doc is held by a test that names it, and no legacy doc grows (CI); `-- --list <page>` lists each item's tests
 npm run e2e:timing -- <report.json>  # Each e2e spec's time per project, from Playwright's JSON report (CI job summary)
-npm run contract:flip <feature>  # e2e/contract/<feature>.spec.ts → plain tests in e2e/features/ (CI names it when a contract passes)
 npm test             # Every Vitest layer: unit + integration in UTC and Los Angeles time (a local Postgres: test/README.md), component in Chromium
 npm run test:unit    # Unit tests only, no database
 npm run test:component  # Component tests only, in Chromium (CI)
