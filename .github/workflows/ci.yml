@@ -143,12 +143,23 @@ jobs:
   component:
     name: Component tests (Vitest browser)
     runs-on: ubuntu-latest
+    env:
+      # prisma.config.ts requires DIRECT_URL even though generate never
+      # connects; a placeholder is enough.
+      DIRECT_URL: postgresql://ci:ci@localhost:5432/ci
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Node and dependencies
         uses: ./.github/actions/setup
+
+      # The tests mock the server actions, but Vite's dependency scan still
+      # follows their imports down to the DAL and the generated client. If the
+      # client is missing, Vite re-bundles mid-run, reloads the page, and every
+      # test file fails with "Vitest failed to find the runner".
+      - name: Generate Prisma client
+        run: npx prisma generate
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
@@ -184,8 +195,9 @@ jobs:
         run: npm run test:e2e
 
       # Each spec's time per project, for choosing what a PR runs.
+      # Only when the tests ran: a failure before them leaves no report.
       - name: e2e timing
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && hashFiles('e2e-timing.json') != '' }}
         run: npm run --silent e2e:timing -- e2e-timing.json >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload the report and traces
