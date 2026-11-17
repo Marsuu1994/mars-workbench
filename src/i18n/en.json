@@ -79,11 +79,11 @@
     "Empty": {
       "newTitle": "No active plan",
       "newDesc": "Create a weekly plan to get started. Select templates, configure your schedule, and track your progress.",
-      "newCta": "Create Your First Plan",
+      "newCta": "Create your first plan",
       "returningTitle": "Plan period ended",
       "returningDesc": "Your weekly plan has wrapped up. Here's how you did:",
       "returningPrompt": "Ready to start a new week?",
-      "returningCta": "Create New Plan",
+      "returningCta": "Create new plan",
       "statCompleted": "Completed",
       "statTasksDone": "Tasks done",
       "statPointsEarned": "Points earned"

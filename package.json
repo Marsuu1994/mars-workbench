@@ -22,7 +22,8 @@
     "contract:flip": "tsx scripts/flipContract.ts",
     "test": "vitest run",
     "test:unit": "vitest run --project 'unit-*'",
-    "test:coverage": "vitest run --coverage",
+    "test:component": "vitest run --project component",
+    "test:coverage": "vitest run --coverage --project 'unit-*' --project 'integration-*'",
     "test:e2e": "playwright test",
     "up": "node scripts/setup.mjs --dev",
     "setup": "node scripts/setup.mjs",
@@ -60,6 +61,7 @@
     "@types/pg": "^8.16.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/browser-playwright": "5.0.5",
     "@vitest/coverage-v8": "5.0.5",
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
@@ -71,7 +73,8 @@
     "tailwindcss": "^4.1.17",
     "tsx": "4.23.15",
     "typescript": "^5",
-    "vitest": "5.0.5"
+    "vitest": "5.0.5",
+    "vitest-browser-react": "2.3.0"
   },
   "browserslist": "> 1%"
 }
