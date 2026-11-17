@@ -1,18 +1,12 @@
-import {existsSync} from 'node:fs';
 import {defineConfig} from '@playwright/test';
 import {config} from 'dotenv';
+import {preinstalledChromiumPath} from './test/preinstalledChromium';
 
 // The app's and the global setup's environment: the local stack (CI creates
 // .env.local from .env.example with `npm run setup`).
 config({path: '.env.local', quiet: true});
 
 const BASE_URL = 'http://localhost:3000';
-
-/**
- * A cloud agent's container ships a Chromium for Playwright to drive; on a
- * Mac or in CI, `npx playwright install chromium` provides the pinned one.
- */
-const PREINSTALLED_CHROMIUM = '/opt/pw-browsers/chromium';
 
 const isCI = Boolean(process.env.CI);
 
@@ -47,11 +41,7 @@ export default defineConfig({
   use: {
     baseURL: BASE_URL,
     trace: 'retain-on-failure',
-    launchOptions: {
-      executablePath: existsSync(PREINSTALLED_CHROMIUM)
-        ? PREINSTALLED_CHROMIUM
-        : undefined,
-    },
+    launchOptions: {executablePath: preinstalledChromiumPath},
   },
   projects: [
     // The product specs, one per flow doc, at both widths

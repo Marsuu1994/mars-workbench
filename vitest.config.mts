@@ -1,5 +1,6 @@
 import {playwright} from '@vitest/browser-playwright';
 import {defineConfig} from 'vitest/config';
+import {preinstalledChromiumPath} from './test/preinstalledChromium';
 
 /**
  * Every suite runs in production's timezone (Vercel is UTC) and in the
@@ -31,7 +32,9 @@ export default defineConfig({
           setupFiles: ['test/component/setup.ts'],
           browser: {
             enabled: true,
-            provider: playwright(),
+            provider: playwright({
+              launchOptions: {executablePath: preinstalledChromiumPath},
+            }),
             headless: true,
             viewport: DESKTOP_VIEWPORT,
             instances: [{browser: 'chromium'}],

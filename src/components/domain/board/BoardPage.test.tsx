@@ -30,6 +30,14 @@ const BACKLOG_COUNT = 5;
 /** The test runner's window is desktop-sized; a mobile test resizes it. */
 const DESKTOP_VIEWPORT = {width: 1280, height: 800};
 const MOBILE_VIEWPORT = {width: 390, height: 844};
+/**
+ * How long a test gives React to roll a card back before checking it hasn't.
+ * A rollback commits within a few frames, so asserting right after a save
+ * resolves would pass whether or not the card was going to move.
+ */
+const ROLLBACK_WINDOW_MS = 200;
+const waitForRollbackWindow = () =>
+  new Promise(resolve => setTimeout(resolve, ROLLBACK_WINDOW_MS));
 
 type BoardColumnStatus = 'BACKLOG' | 'TODO' | 'DONE';
 
@@ -589,6 +597,7 @@ describe('A move', () => {
 
     // The other card is still saving, so the refused card waits for it
     failedSave.resolve(SAVE_FAILED);
+    await waitForRollbackWindow();
     expect(readColumnTitles('DONE')).toContain(PDB_RENDER.title);
 
     // The other card saves: the page revalidated with it, then its action

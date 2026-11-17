@@ -48,6 +48,8 @@ An item is tested where its logic lives:
 
 An item whose parts live in different layers is held at each: the returning user's recap is computed on the server (integration) and shown by the empty board (component), both tests naming ST-2. Two statements are two items, even about the same thing: Done cards locked on the board is one, the server refusing the move another.
 
+A part that only a real server shows is held by e2e too, even when its logic lives in a lower layer: the page getting the saved data without a reload, a redirect, what's still there after a reload. A component test can only stand in for these, so a journey step asserts them. MV-3 is the example: the integration test checks the action asks for a reload, the component test fakes the new props, and only J3's A7 step shows the progress actually moving.
+
 ## Legacy docs
 
 The docs not migrated yet keep the old format: one flow per `##` heading, separated by `---`; each with `### Trigger / Entry Point` and `### Steps`, and optionally `### Rules`. They state facts, not UI detail or decisions.

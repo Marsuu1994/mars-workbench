@@ -22,12 +22,15 @@ const STEP_TITLE = 'Unit 1 — Daily routines';
 const PLAN_PAGE = /\/kanban\/plans\/new$/;
 
 test('J1 a new user starts their first plan', async ({page}) => {
+  const startPlan = page.getByRole('link', {name: 'Create your first plan'});
+
   await test.step('ST-1 the empty board asks for a first plan', async () => {
     await openPage(page, '/kanban');
+    await expect(startPlan).toBeVisible();
   });
 
   await test.step('A1 start a plan', async () => {
-    await page.getByRole('link', {name: 'Create your first plan'}).click();
+    await startPlan.click();
     await page.waitForURL(PLAN_PAGE);
   });
 });
@@ -71,8 +74,9 @@ test("J3 a week's work on desktop: pull, finish, and it all stays", async ({
     addProjectStepIds: [project.steps[0].id],
   });
 
-  await test.step('ST-3 the board', async () => {
+  await test.step('ST-3 the board, with nothing done today', async () => {
     await openPage(page, '/kanban');
+    await expectTodayDoneCount(page, isMobile, 0);
   });
 
   await test.step('A2 open the backlog', async () => {
@@ -99,9 +103,10 @@ test("J3 a week's work on desktop: pull, finish, and it all stays", async ({
       to: 'DONE',
     });
     await expect(findBoardCard(page, 'DONE', HABIT_TITLE)).toBeVisible();
+    await expectTodayDoneCount(page, false, 1);
   });
 
-  await test.step('A7 finish the step', async () => {
+  await test.step('A7 MV-3 finish the step, and progress counts it without a reload', async () => {
     await dragCardWithKeyboard(page, {
       from: 'TODO',
       title: STEP_TITLE,
@@ -109,6 +114,7 @@ test("J3 a week's work on desktop: pull, finish, and it all stays", async ({
       to: 'DONE',
     });
     await expect(findBoardCard(page, 'DONE', STEP_TITLE)).toBeVisible();
+    await expectTodayDoneCount(page, false, 2);
   });
 
   await test.step('A3 close the backlog', async () => {
@@ -136,8 +142,9 @@ test("J4 a week's work on mobile: pull two, finish one, and it all stays", async
     addProjectStepIds: [project.steps[0].id],
   });
 
-  await test.step('ST-3 the board', async () => {
+  await test.step('ST-3 the board, with nothing done today', async () => {
     await openPage(page, '/kanban');
+    await expectTodayDoneCount(page, isMobile, 0);
   });
 
   await test.step('A2 open the backlog', async () => {
@@ -162,7 +169,7 @@ test("J4 a week's work on mobile: pull two, finish one, and it all stays", async
     await page.getByRole('dialog').getByTitle('Close backlog').click();
   });
 
-  await test.step('A7 finish the step', async () => {
+  await test.step('A7 MV-3 finish the step, and progress counts it without a reload', async () => {
     // On mobile Done is the row below Todo
     await dragCardWithKeyboard(page, {
       from: 'TODO',
@@ -171,6 +178,7 @@ test("J4 a week's work on mobile: pull two, finish one, and it all stays", async
       to: 'DONE',
     });
     await expect(findBoardCard(page, 'DONE', STEP_TITLE)).toBeVisible();
+    await expectTodayDoneCount(page, true, 1);
   });
 
   await page.reload();

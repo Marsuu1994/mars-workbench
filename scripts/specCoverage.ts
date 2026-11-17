@@ -28,6 +28,12 @@ const TEST_CALL =
 /** A test file names the spec it holds: `// Spec: design/flows/board.md`. */
 const SPEC_COMMENT = /^\/\/ Spec: (\S+)\s*$/gm;
 
+/** A block comment, or a line that is only a comment: a test call in either holds nothing. */
+const COMMENT = /\/\*[\s\S]*?\*\/|^\s*\/\/.*$/gm;
+
+/** A skipped block: every test inside is off, whatever its own call says. */
+const SKIPPED_DESCRIBE = /\bdescribe\.skip\b/;
+
 export interface SpecItem {
   id: string;
   /** Designed but not built: no test may hold it yet */
@@ -81,8 +87,8 @@ export interface ListedItem {
 /** The list of flow docs still in the legacy format. */
 export const LEGACY_LIST_PATH = 'design/flows/legacy.txt';
 
-/** A heading or a list item: what a legacy doc may not gain. */
-const ENTRY = /^(?:#{2,}\s|\s*(?:[-*]|\d+\.)\s)/;
+/** A heading, a list item or a table row: what a legacy doc may not gain. */
+const ENTRY = /^(?:#{2,}\s|\s*(?:[-*]|\d+\.)\s|\|)/;
 
 /** A flow doc by its file name (`plan.md`), as the legacy list names it. */
 export interface FlowDoc {
@@ -111,7 +117,7 @@ export const parseLegacyList = (text: string): string[] =>
     .map(line => line.replace(/#.*/, '').trim())
     .filter(Boolean);
 
-/** How many headings and list items a doc has. */
+/** How many headings, list items and table rows a doc has. */
 export const countEntries = (markdown: string): number =>
   markdown.split('\n').filter(line => ENTRY.test(line)).length;
 
@@ -121,7 +127,7 @@ export const countEntries = (markdown: string): number =>
  * - a doc on it that has IDs, or no longer exists, leaves it;
  * - it only gets shorter than on main;
  * - a doc on it can be corrected, but not grown: no more headings or list
- *   items than on main.
+ *   items or table rows than on main.
  */
 export const findLegacyProblems = ({
   docs,
@@ -167,7 +173,7 @@ export const findLegacyProblems = ({
     ];
     if (after > before) {
       problems.push(
-        `design/flows/${name} has more headings and list items than on main (${before} → ${after}): a legacy doc can be corrected, but not grown. Migrate it to spec v2 first, as board.md was.`,
+        `design/flows/${name} has more headings, list items and table rows than on main (${before} → ${after}): a legacy doc can be corrected, but not grown. Migrate it to spec v2 first, as board.md was.`,
       );
     }
   }
@@ -191,24 +197,29 @@ export const parseSpecItems = (markdown: string): SpecItem[] =>
   });
 
 /**
- * The titles in a test file that hold something, with their IDs. A skipped
- * or to-do test holds nothing, and a title without IDs is left out.
+ * The titles in a test file that hold something, with their IDs. A skipped,
+ * to-do or commented-out test holds nothing, and a title without IDs is left
+ * out.
  */
 export const parseTestTitles = (source: string): TestTitle[] =>
-  [...source.matchAll(TEST_CALL)].flatMap(([, , modifier, , title]) => {
-    if (modifier === 'skip' || modifier === 'todo') return [];
-    const ids = title.match(TITLE_IDS)?.[0].trim().split(/\s+/) ?? [];
-    return ids.length > 0 ? [{title, ids, fails: modifier === 'fails'}] : [];
-  });
+  [...source.replace(COMMENT, '').matchAll(TEST_CALL)].flatMap(
+    ([, , modifier, , title]) => {
+      if (modifier === 'skip' || modifier === 'todo') return [];
+      const ids = title.match(TITLE_IDS)?.[0].trim().split(/\s+/) ?? [];
+      return ids.length > 0 ? [{title, ids, fails: modifier === 'fails'}] : [];
+    },
+  );
 
 /** The specs a test file says it holds. */
 export const parseSpecComments = (source: string): string[] =>
   [...source.matchAll(SPEC_COMMENT)].map(([, path]) => path);
 
 /**
- * Reads every spec's items and finds the tests holding each one. A problem
- * on the test side (a title naming an ID its spec doesn't have, a file that
- * doesn't say which spec it holds) is reported here, one sentence each.
+ * Reads every spec's items and finds the tests holding each one. Only a file
+ * that names its spec (`// Spec: …`) is read, so an unrelated title such as
+ * `UTF-8 input is decoded` is never taken for an ID. A problem on the test
+ * side (a title naming an ID its spec doesn't have, a skipped block) is
+ * reported here, one sentence each.
  */
 const findHolders = (specs: Spec[], testFiles: TestFile[]) => {
   const problems: string[] = [];
@@ -221,15 +232,14 @@ const findHolders = (specs: Spec[], testFiles: TestFile[]) => {
   );
 
   for (const {path, source} of testFiles) {
-    const titles = parseTestTitles(source);
-    if (titles.length === 0) continue;
     const specPaths = parseSpecComments(source);
-    if (specPaths.length === 0) {
+    if (specPaths.length === 0) continue;
+    if (SKIPPED_DESCRIBE.test(source.replace(COMMENT, ''))) {
       problems.push(
-        `${path}: its titles name spec IDs, but it doesn't say which spec — add \`// Spec: design/flows/<page>.md\` at the top.`,
+        `${path}: a describe.skip turns off every test inside it, which would still count as holding their IDs — skip or delete each test instead.`,
       );
-      continue;
     }
+    const titles = parseTestTitles(source);
     const unknownSpec = specPaths.find(specPath => !itemsBySpec.has(specPath));
     if (unknownSpec) {
       problems.push(
@@ -267,9 +277,9 @@ const findHolders = (specs: Spec[], testFiles: TestFile[]) => {
 
 /**
  * Everything wrong between the v2 specs and the tests, one sentence each:
- * an item no test holds, a bug no `it.fails` holds, a title naming an ID
- * its spec doesn't have (or one still pending), an ID used twice, and a test
- * file whose titles name IDs without saying which spec they're from.
+ * an item no test holds, a bug no `it.fails` holds, an item that isn't a bug
+ * held only by `it.fails`, a title naming an ID its spec doesn't have (or one
+ * still pending), an ID used twice, and a skipped block in a test file.
  */
 export const findSpecProblems = (
   specs: Spec[],
@@ -297,6 +307,10 @@ export const findSpecProblems = (
       } else if (bug && !heldBy.some(holder => holder.fails)) {
         problems.push(
           `${specPath}: ${id} is a known bug, but no \`it.fails\` holds it.`,
+        );
+      } else if (!bug && heldBy.every(holder => holder.fails)) {
+        problems.push(
+          `${specPath}: only an \`it.fails\` holds ${id}, which checks that it doesn't work — mark it *(bug)*, or hold it with a test that passes.`,
         );
       }
     }

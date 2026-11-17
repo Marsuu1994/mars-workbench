@@ -80,6 +80,8 @@ describe('parseTestTitles', () => {
       call('it.fails', 'ST-2 recaps every kind'),
       call('it', 'sorts without an ID'),
       call('it.skip', 'COL-3 skipped, so it holds nothing'),
+      `// ${call('it', 'COL-4 commented out, so it holds nothing')}`,
+      `/* ${call('it', 'BL-8 in a block comment, so it holds nothing')} */`,
     ].join('\n');
     expect(parseTestTitles(source)).toEqual([
       {
@@ -139,15 +141,42 @@ describe('findSpecProblems', () => {
     );
   });
 
-  it("reports a test file that names IDs without saying which spec they're from", () => {
-    const unmarked = {
+  it("reads no titles in a file that doesn't name its spec", () => {
+    const unrelated = {
+      path: 'src/utils/text.test.ts',
+      source: call('it', 'UTF-8 input is decoded'),
+    };
+    const unmarkedHolder = {
       path: 'src/other.test.ts',
       source: call('it', 'COL-1 shows two columns'),
     };
     expect(
-      findSpecProblems([spec], [testFile(HOLDING_EVERY_ITEM), unmarked]),
-    ).toEqual([
-      "src/other.test.ts: its titles name spec IDs, but it doesn't say which spec — add `// Spec: design/flows/<page>.md` at the top.",
+      findSpecProblems([spec], [testFile(HOLDING_EVERY_ITEM), unrelated]),
+    ).toEqual([]);
+    // Without its Spec comment, a test holds nothing
+    const calls = HOLDING_EVERY_ITEM.replace('COL-1 COL-2', 'COL-2');
+    expect(findSpecProblems([spec], [testFile(calls), unmarkedHolder])).toEqual(
+      [
+        `${SPEC_PATH}: no test holds COL-1 — name it at the start of the title of the test that checks it.`,
+      ],
+    );
+  });
+
+  it('reports an item that is no bug, held only by an it.fails', () => {
+    const calls = HOLDING_EVERY_ITEM.replace(
+      "it('COL-1 COL-2",
+      "it.fails('COL-1 COL-2",
+    );
+    expect(findSpecProblems([spec], [testFile(calls)])).toEqual([
+      `${SPEC_PATH}: only an \`it.fails\` holds COL-1, which checks that it doesn't work — mark it *(bug)*, or hold it with a test that passes.`,
+      `${SPEC_PATH}: only an \`it.fails\` holds COL-2, which checks that it doesn't work — mark it *(bug)*, or hold it with a test that passes.`,
+    ]);
+  });
+
+  it('reports a describe.skip, whose tests would still count', () => {
+    const calls = `describe.skip('A move', () => {\n${HOLDING_EVERY_ITEM}\n});`;
+    expect(findSpecProblems([spec], [testFile(calls)])).toEqual([
+      'src/board.test.tsx: a describe.skip turns off every test inside it, which would still count as holding their IDs — skip or delete each test instead.',
     ]);
   });
 
@@ -322,11 +351,15 @@ describe('findLegacyProblems', () => {
     );
   });
 
-  it('reports a legacy doc that gained a heading or a list item', () => {
+  it('reports a legacy doc that gained a heading, a list item or a table row', () => {
     const grown = `${LEGACY_DOC}3. Start the week.\n`;
+    const withTable = `${LEGACY_DOC}\n| Action | Result |\n| --- | --- |\n`;
     expect(findLegacyProblems(legacyCheck({planMarkdown: grown}))).toEqual([
-      'design/flows/plan.md has more headings and list items than on main (4 → 5): a legacy doc can be corrected, but not grown. Migrate it to spec v2 first, as board.md was.',
+      'design/flows/plan.md has more headings, list items and table rows than on main (4 → 5): a legacy doc can be corrected, but not grown. Migrate it to spec v2 first, as board.md was.',
     ]);
+    expect(
+      findLegacyProblems(legacyCheck({planMarkdown: withTable})),
+    ).toHaveLength(1);
   });
 
   it('reports a doc off the list without IDs', () => {
