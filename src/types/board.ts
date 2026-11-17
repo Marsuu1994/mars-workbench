@@ -1,4 +1,4 @@
-import type {TaskItem} from '@/lib/db/tasks';
+import type {PlanTaskTotals, TaskItem} from '@/lib/db/tasks';
 import type {BoardProject} from '@/lib/db/projects';
 import type {BoardPlan} from '@/utils/taskUtils';
 
@@ -25,4 +25,13 @@ export interface BoardData {
   tasks: TaskItem[];
   progress: BoardProgress;
   projects: BoardProject[];
+}
+
+/**
+ * The returning user's recap: last week's plan over every kind of task —
+ * habit instances, project steps and one-offs, expired included.
+ */
+export interface BoardRecap extends PlanTaskTotals {
+  /** doneCount / totalCount, 0 when the plan had no tasks */
+  completionRate: number;
 }

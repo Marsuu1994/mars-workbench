@@ -1,7 +1,6 @@
 import type {HabitWeek} from '@/utils/taskUtils';
 import {TaskKind} from '@/utils/taskUtils';
 import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
-import {HABIT_DOTS_MAX} from './taskCardConstants';
 
 type HabitSignalVariant = 'card' | 'mini';
 
@@ -37,8 +36,8 @@ const {fill, outline, current} = TASK_KIND_STYLE[TaskKind.HABIT];
 /**
  * A habit card's signal: one dot per instance this week in order, filled
  * when that instance is done, with this card's own dot ringed — so each card
- * shows where it sits in the week. Past HABIT_DOTS_MAX the dots give way to
- * the done / target count alone.
+ * shows where it sits in the week. The full card adds the done / target
+ * count.
  */
 export const HabitSignal = ({
   habitWeek,
@@ -47,8 +46,7 @@ export const HabitSignal = ({
 }: HabitSignalProps) => {
   const {slots, done, target} = habitWeek;
   const {row, dot, ring, count} = VARIANT_STYLE[variant];
-  const showDots = target <= HABIT_DOTS_MAX;
-  const showCount = variant === 'card' || !showDots;
+  const showCount = variant === 'card';
 
   const renderDot = (isDone: boolean, slot: number) => {
     const isCurrent = slot === currentSlot;
@@ -64,11 +62,9 @@ export const HabitSignal = ({
 
   return (
     <span className="inline-flex items-center gap-2">
-      {showDots && (
-        <span className={`inline-flex items-center ${row}`}>
-          {slots.map(renderDot)}
-        </span>
-      )}
+      <span className={`inline-flex items-center ${row}`}>
+        {slots.map(renderDot)}
+      </span>
       {showCount && (
         <span
           className={`fx-num text-base-content/55 whitespace-nowrap ${count}`}

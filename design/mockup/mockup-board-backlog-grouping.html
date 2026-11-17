@@ -196,8 +196,6 @@
   .bk-top .ic { color: var(--k); display: grid; }
   .bk-top .ttl { flex: 1; min-width: 0; font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .bk-top .kname { flex: 1; min-width: 0; font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: .02em; color: var(--k); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .bk-top .kname.upper { text-transform: uppercase; letter-spacing: .1em; font-size: 10px; }
-  .bk-top .quad { font-family: 'Geist Mono', monospace; font-size: 10px; color: color-mix(in oklab, var(--bc) 50%, transparent); white-space: nowrap; }
   .bk-title { font-size: 14px; font-weight: 500; line-height: 1.3; }
   .bk-desc { font-size: 12px; color: color-mix(in oklab, var(--bc) 58%, transparent); line-height: 1.4; margin-top: -2px; }
   .bk-bot { display: flex; align-items: center; gap: 8px; min-height: 18px; }
@@ -323,11 +321,12 @@
 
 <header class="topbar">
   <div>
-    <div class="eyebrow">Board · Backlog · design PR · final version · decided 2026-11-05 · 修订 2026-11-05 · 修订 2026-11-07</div>
+    <div class="eyebrow">Board · Backlog · design PR · final version · decided 2026-11-05 · 修订 2026-11-05 · 修订 2026-11-07 · 修订 2026-11-10</div>
     <h1>Backlog grouping — 定稿</h1>
     <p>第 1 轮选了 <b>D</b>：一个 habit 一行；一个 project 只露出下一步，其余的点一下展开。Backlog 卡片去掉了 <b>Weekly × 3</b> / <b>Step 4/9</b> 这行文字、<b>size</b>，以及 <b>done / total</b> 分数：dots 和 path 已经表达了进度；board 上的 habit 卡也去掉分数。两种卡片的右上角都是 <b>+N more</b>，表示下一个后面还排着几个，卡片下面垫着最多三层的薄 <b>pile</b>（第 3 页）；只有 project 的那个带 ⌄，点开是它的 queue。Mobile 上 <b>↑ Todo</b> 在右下角。Badge 数的是 <b>backlog 里所有 task</b>，超过 8 显示 <b>8+</b>。</p>
     <p><b>修订（2026-11-05，定稿后发现）：</b>habit 卡补回 description，布局和 project 卡对齐：标题行、description、进度行（habit 是 dots，project 是 path），mobile 上 ↑ Todo 在同样的右下角。同一组逻辑上相近的卡片保持同一套结构，只用颜色和进度标记的样式区分。</p>
     <p><b>修订（2026-11-07）：</b>habit 也垫 <b>pile</b>，和 project 一样：后面每排着一个 instance 垫一层，最多三层。两种卡片剩下的唯一区别是能不能展开：project 的 <b>+N more ⌄</b> 打开它后面的 step，每一步标题不同、顺序要看得见；habit 的 <b>+N more</b> 只是文字，后面的 instance 是同一件事，展开没有新信息。</p>
+    <p><b>修订（2026-11-10）：</b>backlog 里去掉了 one-off。One-off 从不在 backlog 里等：Track 把它直接放进 Todo，carry 到下一周时保留原来的状态，所以 backlog 只有 habit 和 project 两种卡片。</p>
   </div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
     <div class="seg" id="themes">
@@ -341,13 +340,13 @@
 
 <!-- ═════════ 1 · Desktop ═════════ -->
 <section class="screen on" data-screen="desktop">
-  <div class="col-label"><b>Before</b> · 现在 · 一个 instance 一张卡 · 计数 11<span class="line"></span></div>
+  <div class="col-label"><b>Before</b> · 现在 · 一个 instance 一张卡 · 计数 10<span class="line"></span></div>
   <div class="board" id="desk-before"></div>
-  <p class="note">示例 week：Read 和 LeetCode 各有两个 instance 在 backlog，System design 一个；Biomedical course 这周排了 Lecture 4–6，Protein 3D viewer 排了 step 3–4；另有一个 one-off。一共 11 个 task，11 张卡。</p>
+  <p class="note">示例 week：Read 和 LeetCode 各有两个 instance 在 backlog，System design 一个；Biomedical course 这周排了 Lecture 4–6，Protein 3D viewer 排了 step 3–4。一共 10 个 task，10 张卡。One-off 不进 backlog，Track 直接放进 Todo。</p>
 
   <div class="col-label spaced after"><b>After</b> · 定稿 · 拖到 Todo · 计数 8+<span class="line"></span></div>
   <div class="board" id="desk-after"></div>
-  <p class="note">Habit 排在前面，一个 habit 一张卡：dots，排了不止一个时右上角显示 <b>+N more</b>。Project 只露出下一步；右上角的 <b>+2 more ⌄</b> 展开它后面的 step，只读，顺序不会乱，拖走的永远是下一步。两种卡片下面的薄 pile 都表示后面还有；habit 的不能展开。One-off 右上角保留 quadrant，它后面没有别的。拖三个到 Todo，看 badge 从 <b>8+</b> 变成 <b>8</b>。Board 上 habit 卡的 done / target 也去掉了，board 上其余的卡不变。</p>
+  <p class="note">Habit 排在前面，一个 habit 一张卡：dots，排了不止一个时右上角显示 <b>+N more</b>。Project 只露出下一步；右上角的 <b>+2 more ⌄</b> 展开它后面的 step，只读，顺序不会乱，拖走的永远是下一步。两种卡片下面的薄 pile 都表示后面还有；habit 的不能展开。拖两个到 Todo，看 badge 从 <b>8+</b> 变成 <b>8</b>。Board 上 habit 卡的 done / target 也去掉了，board 上其余的卡不变。</p>
 </section>
 
 <!-- ═════════ 2 · Mobile ═════════ -->
@@ -375,12 +374,12 @@
     <li><span class="k">② done / total</span><b>两种卡片都不显示分数</b>由 dots 和 path 表达；backlog 里不再有 1/3 和 3/9，board 上 habit 卡的 1/3 也去掉。分数留作进度的 accessible name（"1 of 3 done this week"）。</li>
     <li><span class="k">⑤ 结构</span><b>habit 和 project 卡同一套结构</b>标题行（右上角 +N more）、description、进度行（dots / path）、下面的 pile，mobile 上 ↑ Todo 在右下角；habit 的 description 在定稿后补回（修订 2026-11-05），pile 也补上（修订 2026-11-07）。唯一的区别：project 能展开，habit 不能。</li>
     <li><span class="k">③ size</span><b>去掉 size chip</b>Desktop 和 mobile 都去掉。Points 仍计入 dashboard。</li>
-    <li><span class="k">④ corners</span><b>+N more · ↑ Todo 在右下角</b>两种卡片数的都是下一个<i>后面</i>还有几个，所以 project 的数字和它展开的行数一致：Read 排了两个，显示 <i>+1 more</i>；Biomedical course 这周三步，显示 <i>+2 more ⌄</i>；最后一个什么都不显示。后面还有的 habit 和 project 都垫着薄 pile，最多三层（第 3 页）。One-off 显示 quadrant。Mobile 上每张卡的 ↑ Todo 都移到右下角。</li>
+    <li><span class="k">④ corners</span><b>+N more · ↑ Todo 在右下角</b>两种卡片数的都是下一个<i>后面</i>还有几个，所以 project 的数字和它展开的行数一致：Read 排了两个，显示 <i>+1 more</i>；Biomedical course 这周三步，显示 <i>+2 more ⌄</i>；最后一个什么都不显示。后面还有的 habit 和 project 都垫着薄 pile，最多三层（第 3 页）。Mobile 上每张卡的 ↑ Todo 都移到右下角。</li>
   </ul>
 
   <div class="col-label spaced"><b>计数</b> · backlog 里所有 task，超过 8 显示 8+<span class="line"></span></div>
   <div class="count-row" id="counts"></div>
-  <p class="note">Badge 数的是 backlog 里的 task：每个 habit instance、这周排上的每个 step、每个 one-off，不是 group 数。8 以内显示真实数字；超过 8 显示 <b>8+</b>，任务多的一周打开时不会看到 16、20 这种数字。同一个 badge 出现在 desktop 收起的 strip、panel header、mobile pill 和 sheet header。它的 accessible name 保留真实数字（"11 staged tasks"），读屏照样能听到。</p>
+  <p class="note">Badge 数的是 backlog 里的 task：每个 habit instance、这周排上的每个 step，不是 group 数。8 以内显示真实数字；超过 8 显示 <b>8+</b>，任务多的一周打开时不会看到 16、20 这种数字。同一个 badge 出现在 desktop 收起的 strip、panel header、mobile pill 和 sheet header。它的 accessible name 保留真实数字（"10 staged tasks"），读屏照样能听到。</p>
 </section>
 
 <!-- ═════════ 5 · Research ═════════ -->
@@ -440,7 +439,6 @@ const GROUPS = [
   {id: 'pdb', kind: 'project', name: 'Protein 3D viewer', total: 4, done: [1], size: 'M',
    items: [{n: 3, title: 'Add residue picking', desc: 'Click a residue → highlight + label'},
            {n: 4, title: 'Deploy the viewer', desc: null}]},
-  {id: 'oo', kind: 'oneoff', title: 'Renew passport', desc: 'Photos first — form DS-82', quadrant: 'Do first', size: 'S', items: [{}]},
 ];
 const TODO_SEED = [
   {kind: 'habit', title: 'Workout', desc: '45 min — gym or run', plan: 'Daily × 1', target: 5, doneSlots: [0, 1], cur: 4, size: 'XS'},
@@ -473,8 +471,7 @@ function path({total, doneSteps, cur}) {
 /* ── BEFORE: today's production face (also every board card) ── */
 function cardModel(group, item) {
   if (group.kind === 'habit') return {kind: 'habit', title: group.title, desc: group.desc, plan: group.plan, target: group.target, doneSlots: group.done, cur: item.slot, size: group.size};
-  if (group.kind === 'project') return {kind: 'project', name: group.name, title: item.title, desc: item.desc, n: item.n, total: group.total, doneSteps: group.done, size: group.size};
-  return {kind: 'oneoff', title: group.title, desc: group.desc, quadrant: group.quadrant, size: group.size};
+  return {kind: 'project', name: group.name, title: item.title, desc: item.desc, n: item.n, total: group.total, doneSteps: group.done, size: group.size};
 }
 function card(model, {drag = '', action = '', cls = '', fraction = true} = {}) {
   const {kind} = model;
@@ -532,17 +529,8 @@ function projectCard(group, ctx) {
   </div>${below}</div>`;
 }
 
-function oneoffCard(group, ctx) {
-  const drag = ctx.mobile ? '' : `data-drag="${group.id}" data-index="${group.pulled}"`;
-  return `<div class="bk oneoff" data-kind="oneoff" ${drag}>
-    <div class="bk-top"><span class="ic">${icon('oneoff', 'xs')}</span><span class="kname upper">One-off</span><span class="quad">${group.quadrant}</span></div>
-    <div class="bk-title">${group.title}</div>
-    ${group.desc ? `<p class="bk-desc">${group.desc}</p>` : ''}
-    ${ctx.mobile ? `<div class="bk-bot"><span class="sp"></span>${pullBtn(group.id, group.pulled)}</div>` : ''}
-  </div>`;
-}
-
-const FACE = {habit: habitRow, project: projectCard, oneoff: oneoffCard};
+/* No one-off face: a one-off never waits in the backlog (tracking puts it in Todo) */
+const FACE = {habit: habitRow, project: projectCard};
 
 function renderBody(state, option, mobile) {
   const ctx = {state, mobile};
@@ -555,9 +543,9 @@ function renderBody(state, option, mobile) {
     })).join('')).join('');
   }
   const habits = live.filter(group => group.kind === 'habit').map(group => FACE.habit(group, ctx)).join('');
-  const others = live.filter(group => group.kind !== 'habit').map(group => FACE[group.kind](group, ctx)).join('');
+  const projects = live.filter(group => group.kind === 'project').map(group => FACE.project(group, ctx)).join('');
   return (habits ? `<div class="sec-label">Habits<span class="line"></span></div>${habits}` : '')
-    + (others ? `<div class="sec-label">Projects · one-offs<span class="line"></span></div>${others}` : '');
+    + (projects ? `<div class="sec-label">Projects<span class="line"></span></div>${projects}` : '');
 }
 
 function renderBacklog(state, option, {mobile = false} = {}) {
@@ -637,7 +625,7 @@ function renderAnatomy() {
     return card(cardModel(group, group.items[0]), {action: mobile ? pullBtn(id, 0) : ''});
   };
   const afterOf = (id, mobile) => FACE[pick(id).kind](pick(id), {state, mobile});
-  const ids = ['read', 'bio', 'pdb', 'oo'];
+  const ids = ['read', 'bio', 'pdb'];
   const column = (title, render, mobile) => `<div class="cell ${mobile ? 'sheet' : ''}"><div class="hd">${title}</div>${ids.map(id => render(id, mobile)).join('')}</div>`;
   document.getElementById('anat').innerHTML =
     column('Desktop · before', beforeOf, false) + column('Desktop · <b>after</b>', afterOf, false)
@@ -646,7 +634,7 @@ function renderAnatomy() {
   const examples = [
     {count: 3, note: '轻松的一周'},
     {count: 8, note: '正好到上限'},
-    {count: 11, note: '这个示例 week'},
+    {count: 10, note: '这个示例 week'},
     {count: 20, note: '繁重的一周'},
   ];
   document.getElementById('counts').innerHTML = examples.map(({count, note}) => `<div class="count-ex">

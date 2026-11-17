@@ -25,7 +25,7 @@ One command from a fresh checkout and every day after: it skips what is already 
   - [tracker](./design/tracker.md) — open todos
   - [future ideas](./design/future-ideas.md) — problems seen coming, waiting until they're worth doing
   - [reference](./design/reference.md) — actions/services/DAL inventory
-  - [flows/](./design/flows) — per-page flow docs
+  - [flows/](./design/flows) — per-page specs (spec v2; the rest legacy flow docs)
   - [mockup/](./design/mockup) — mockups of designs not yet fully implemented
 - [experiments/](./experiments/README.md) — controlled comparisons of ways of working (agent workflows, models, tooling): one folder per question, an instruction and a report per try
 - [reviews/](./reviews/README.md) — the owner's code reviews, one file per PR: what each comment caught and how it ended

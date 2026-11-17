@@ -4,6 +4,7 @@ import {TaskStatus} from '@/utils/enums';
 import {
   computeHabitWeeks,
   getTaskKind,
+  sortDoneTasks,
   sortTasks,
   TaskKind,
   type BoardPlan,
@@ -95,8 +96,10 @@ function toProjectStepContext(
 
 /**
  * The board's adapter: the tasks (client state, in the server's shape) →
- * card models, grouped by status and sorted. Pure, so BoardPage re-runs it
- * on every optimistic update and the board scenarios run it on fixtures.
+ * card models, grouped by status and sorted: Done by when each task was
+ * done, the latest first; Todo and the backlog by kind. Pure, so BoardPage
+ * re-runs it on every optimistic update and the board scenarios run it on
+ * fixtures.
  */
 export function toBoardCards(
   tasks: TaskItem[],
@@ -145,12 +148,16 @@ export function toBoardCards(
     tasksByStatus[task.status as BoardStatus]?.push(task);
   }
 
-  const toSortedCards = (statusTasks: TaskItem[]) =>
-    sortTasks(statusTasks).map(toBoardCard);
-
+  // Done runs by when each task was done; the others by kind
   return {
-    [TaskStatus.BACKLOG]: toSortedCards(tasksByStatus[TaskStatus.BACKLOG]),
-    [TaskStatus.TODO]: toSortedCards(tasksByStatus[TaskStatus.TODO]),
-    [TaskStatus.DONE]: toSortedCards(tasksByStatus[TaskStatus.DONE]),
+    [TaskStatus.BACKLOG]: sortTasks(tasksByStatus[TaskStatus.BACKLOG]).map(
+      toBoardCard,
+    ),
+    [TaskStatus.TODO]: sortTasks(tasksByStatus[TaskStatus.TODO]).map(
+      toBoardCard,
+    ),
+    [TaskStatus.DONE]: sortDoneTasks(tasksByStatus[TaskStatus.DONE]).map(
+      toBoardCard,
+    ),
   };
 }

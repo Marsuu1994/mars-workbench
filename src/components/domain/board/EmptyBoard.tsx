@@ -3,17 +3,17 @@
 import Link from 'next/link';
 import {useTranslations} from 'next-intl';
 import {ClockIcon, PlusIcon, Squares2X2Icon} from '@heroicons/react/24/outline';
-import type {OverallStats} from '@/types/plan';
+import type {BoardRecap} from '@/types/board';
 import {EmptyState} from '@/components/ui/EmptyState';
 import {StatBlock} from '@/components/ui/StatBlock';
 import {CREATE_PLAN_HREF} from './emptyBoardConstants';
 
 interface EmptyBoardProps {
   /** Present for returning users (a finished plan's recap); absent for new users. */
-  stats?: OverallStats;
+  recap?: BoardRecap;
 }
 
-export const EmptyBoard = ({stats}: EmptyBoardProps) => {
+export const EmptyBoard = ({recap}: EmptyBoardProps) => {
   const t = useTranslations('Board.Empty');
 
   const renderCta = (label: string) => (
@@ -32,7 +32,7 @@ export const EmptyBoard = ({stats}: EmptyBoardProps) => {
     />
   );
 
-  const renderReturningUser = (recap: OverallStats) => (
+  const renderReturningUser = (returningRecap: BoardRecap) => (
     <EmptyState
       icon={<ClockIcon className="size-20 text-base-content/15" />}
       title={t('returningTitle')}
@@ -49,19 +49,19 @@ export const EmptyBoard = ({stats}: EmptyBoardProps) => {
       <div className="flex justify-center gap-6">
         <StatBlock
           align="center"
-          value={`${Math.round(recap.completionRate * 100)}%`}
+          value={`${Math.round(returningRecap.completionRate * 100)}%`}
           valueClassName="text-2xl text-primary"
           label={t('statCompleted')}
         />
         <StatBlock
           align="center"
-          value={`${recap.completedCount}/${recap.totalCount}`}
+          value={`${returningRecap.doneCount}/${returningRecap.totalCount}`}
           valueClassName="text-2xl text-primary"
           label={t('statTasksDone')}
         />
         <StatBlock
           align="center"
-          value={`${recap.totalPoints}`}
+          value={`${returningRecap.donePoints}`}
           valueClassName="text-2xl text-warning"
           label={t('statPointsEarned')}
         />
@@ -75,7 +75,7 @@ export const EmptyBoard = ({stats}: EmptyBoardProps) => {
     // short viewports (no Droppables here, so an extra scroller is fine).
     <div className="h-full overflow-y-auto">
       <div className="flex min-h-full flex-col items-center justify-center p-10">
-        {stats ? renderReturningUser(stats) : renderNewUser()}
+        {recap ? renderReturningUser(recap) : renderNewUser()}
       </div>
     </div>
   );

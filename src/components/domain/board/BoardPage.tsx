@@ -39,9 +39,13 @@ export const BoardPage = ({plan, progress, tasks, projects}: BoardData) => {
   } = cardsByStatus;
 
   function moveTask(taskId: string, status: TaskStatus, errorLabel: string) {
+    // The server stamps doneAt; stamping it here too puts a card dropped on
+    // Done on top of the column at once (Done runs latest first)
+    const patch =
+      status === TaskStatus.DONE ? {status, doneAt: new Date()} : {status};
     runOptimisticTaskUpdate(
       taskId,
-      {status},
+      patch,
       () => updateTaskStatusAction(taskId, {status}),
       errorLabel,
     );

@@ -582,6 +582,31 @@ export async function unlinkTasksFromPlan(
  * per-template progress and the empty board's recap. Scoped to the owner +
  * plan, templateId NOT NULL (ad-hoc tasks excluded).
  */
+/** A plan's tasks of every kind — done, and all of them — with the done ones' points. */
+export type PlanTaskTotals = {
+  doneCount: number;
+  totalCount: number;
+  donePoints: number;
+};
+
+export async function getPlanTaskTotals(
+  userId: string,
+  planId: string,
+): Promise<PlanTaskTotals> {
+  const grouped = await prisma.task.groupBy({
+    by: ['status'],
+    where: {userId, planId},
+    _count: true,
+    _sum: {points: true},
+  });
+  const done = grouped.find(row => row.status === TaskStatus.DONE);
+  return {
+    doneCount: done?._count ?? 0,
+    totalCount: grouped.reduce((sum, row) => sum + row._count, 0),
+    donePoints: done?._sum.points ?? 0,
+  };
+}
+
 export type PlanTemplateStatRow = {
   templateId: string;
   type: TaskType;

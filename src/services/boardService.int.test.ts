@@ -135,24 +135,27 @@ describe('getEmptyBoardState', () => {
     expect(await getEmptyBoardState(userId)).toEqual({kind: 'new'});
   });
 
-  it("recaps a returning user's finished week", async () => {
+  it("ST-2 recaps a returning user's finished week over every kind of task", async () => {
     const plan = await createMidWeek();
-    const [firstReview] = (
-      await getBoardTasksByPlanId(userId, plan.planId)
-    ).filter(task => task.title === 'Review');
-    await moveTasks(userId, [[firstReview.id, TaskStatus.DONE]]);
+    const tasks = await getBoardTasksByPlanId(userId, plan.planId);
+    const [firstReview] = tasks.filter(task => task.title === 'Review');
+    const [step] = tasks.filter(task => task.title === 'Unit 1');
+    await moveTasks(userId, [
+      [firstReview.id, TaskStatus.DONE],
+      [step.id, TaskStatus.DONE],
+    ]);
 
     freezeTime(MOMENTS.NEXT_MONDAY_NOON);
     expect(await fetchBoard(userId)).toBeNull();
     expect(await getEmptyBoardState(userId)).toEqual({
       kind: 'returning',
-      stats: {
-        // Monday's run and the two reviews; one review done
-        completedCount: 1,
-        totalCount: 3,
-        totalPoints: 2,
-        completionRate: 1 / 3,
-        dailyCompletionRate: 0,
+      recap: {
+        // Monday's run (expired), the two reviews, the step and the one-off
+        // (still in Todo); one review (2) and the step (3) done
+        doneCount: 2,
+        totalCount: 5,
+        donePoints: 5,
+        completionRate: 2 / 5,
       },
     });
   });

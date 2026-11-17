@@ -171,7 +171,8 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `getAdhocTasksByPlanId` | A plan's AD_HOC tasks, done ones included (MCP plan context) |
 | `carryOverOneOffs` | Carry the unfinished one-offs still on one plan to the next (status kept) |
 | `unlinkTasksFromPlan` | Return a plan's unkept one-offs (to the matrix) or steps (to their project) — DONE tasks stay |
-| `getPlanTemplateStats` | Per-template performance aggregates (MCP planning context + recap stats) |
+| `getPlanTemplateStats` | Per-template performance aggregates (MCP planning context) |
+| `getPlanTaskTotals` | A plan's done and total tasks of every kind, and the done points (the board's recap) |
 | **`projects.ts`** | |
 | `getProjectsWithSteps` | All of a user's projects with their steps (ordered by step number) |
 | `getProjectWithStepsById` | One project with its steps; null return doubles as the ownership gate |
