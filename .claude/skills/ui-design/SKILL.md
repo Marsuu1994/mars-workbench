@@ -19,17 +19,17 @@ Read AGENTS.md › UI Workflow, then `design/README.md` › Mockups (how a mocku
 
 ## 3. Research
 
-Before drawing, find how other products solve the same problem — what the research screen needs is in `design/README.md` › Mockups. A subagent can do the reading so the pages stay out of this session; ask it for patterns rather than products, each with its source and its fit for this design, not the page contents.
+Before drawing, find how other products solve the same problem — what the research screen needs is in `design/README.md` › Mockups. A subagent can do the reading so the pages stay out of this session; ask it for patterns rather than products, each with its source and its fit for this design, not the page contents. Start with Apple — its HIG and its own apps are the owner's reference for how a thing should feel.
 
 ## 4. Options
 
-Draw `design/mockup/mockup-<area>.html` as `design/README.md` › Mockups says — options, research, language, the freshness script — ranked by the Principles, with your recommendation. Check it renders before pushing: every screen, every theme, no console errors.
+Draw `design/mockup/mockup-<area>.html` as `design/README.md` › Mockups says — options, research, language, the freshness script — ranked by the Principles, with your recommendation. Draw what the owner will actually meet: the real combinations of data side by side (a habit-heavy day, a one-colour day), not one tidy case; and where the design is an interaction, make After clickable, so the owner tries it rather than reads about it. A design with several parts goes one module at a time, each on its own tab, merged into one final tab at the end. Check it renders before pushing: every screen, every theme, no console errors.
 
 Rewrite the tracker item to say what the design does and link the mockup. Open the PR with the mockup's raw.githack link at the top of the description and the questions the owner has to decide under it; the Mockup links check prints the exact line when it is missing.
 
 ## 5. Review rounds
 
-The owner answers on the PR or in a local session. Each round: change the mockup, push, answer each point, and log the round in `reviews/pr-<NNN>.md` (`reviews/AGENTS.md`; local-session rounds too). When the owner picks and when the owner calls it decided, the mockup follows `design/README.md` › Mockups, and the tracker item says decided.
+The owner answers on the PR or in a local session, and often decides on seeing — "draw it and let me look", "take it out and let me see" — so answer a doubt with a drawing, not an argument. Each round: change the mockup, push, answer each point, and log the round in `reviews/pr-<NNN>.md` (`reviews/AGENTS.md`; local-session rounds too). A pick is not approval: only the owner's explicit approval makes a design or a module decided (`design/README.md` › Mockups); then the tracker item says decided.
 
 ## 6. Handoff
 
