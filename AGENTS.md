@@ -79,7 +79,7 @@ Read the design docs only when the task involves logic, data or new flows; skip 
 
 Next.js APIs outrun training data: before using a routing, caching, server-action or `next.config` API you haven't checked for this version, read its page in `node_modules/next/dist/docs/`, the docs of the installed version.
 
-A fresh checkout runs `npm run setup` (`.env.local` from `.env.example`, `npm install`, then the local Supabase stack with migrations and seed — starting Docker first in a cloud container); a task that needs neither the database nor a signed-in page runs `npm run setup -- --no-db` instead. `npm run dev:session` signs in as the seeded dev user without Google.
+A fresh checkout runs `npm run setup` (`.env.local` from `.env.example`, `npm install`, then the local Supabase stack with migrations and seed — starting Docker first in a cloud container); a task that needs neither the database nor a signed-in page runs `npm run setup -- --no-db` instead. `npm run dev:session` signs in as the seeded dev user without Google. Every machine runs the npm that `package.json` pins (`devEngines`), the one CI runs, so the lockfile reads the same everywhere: when npm stops with `EBADDEVENGINES`, run `npm install -g npm@<that version>` once and rerun the command.
 
 ### Where the rules live
 
