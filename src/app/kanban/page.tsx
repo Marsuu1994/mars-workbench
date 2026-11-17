@@ -12,7 +12,7 @@ export default async function KanbanPage() {
     const emptyState = await getEmptyBoardStateAction();
     return (
       <EmptyBoard
-        stats={emptyState.kind === 'returning' ? emptyState.stats : undefined}
+        recap={emptyState.kind === 'returning' ? emptyState.recap : undefined}
       />
     );
   }

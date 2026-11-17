@@ -26,12 +26,11 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
     display: 'fit',
     content: (
       <EmptyBoard
-        stats={{
+        recap={{
           completionRate: 0.75,
-          completedCount: 12,
+          doneCount: 12,
           totalCount: 16,
-          totalPoints: 47,
-          dailyCompletionRate: 0.8,
+          donePoints: 47,
         }}
       />
     ),

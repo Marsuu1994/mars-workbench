@@ -13,7 +13,6 @@ Entering `/kanban` syncs first (`flows/shared.md`). The page is then in one of t
   - completion rate — the done ones ÷ all of them
   - tasks done — done / all
   - points earned — the done ones' points
-  - *(bug)* The recap counts habit instances only, leaving out last week's steps and one-offs.
 - **ST-3 Active plan** — an `ACTIVE` plan for this week; the board. The server returns:
   - the plan — its week, its mode, its habit templates and their frequencies
   - its tasks — every one but `EXPIRED`
