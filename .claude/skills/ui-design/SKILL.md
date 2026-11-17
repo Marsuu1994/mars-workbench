@@ -37,4 +37,4 @@ The decided mockup and the review log are the handoff: together they say what wa
 
 ## After the design is decided
 
-What follows — the spec (e2e contract, flow doc) and the implementation PR — is open in PR #106 (Q12–Q13). Until it is settled, the current rules are in `test/README.md` › e2e (the contract) and AGENTS.md › UI Workflow (the implementation PR).
+The design PR also changes the page's spec (`design/flows/<page>.md`): each new item is added marked *(pending)*, and each item the design changes or drops is marked *(removing)*, with a new *(pending)* item for the new behaviour (`design/flows/README.md` › Items and IDs). No tests yet: the implementation PR follows from `main`, writes a test for each pending item, builds it and drops the markers (AGENTS.md › UI Workflow).

@@ -16,8 +16,9 @@ const applyChange = (tasks: TaskItem[], change: TasksChange) => change(tasks);
  * async transition, and Next sets the action's revalidated page in that same
  * transition, so React drops the change in the commit that brings the list
  * carrying it: nothing flashes back. A failed write's change is simply
- * dropped, rolling back only itself. Shared by the board, the priority matrix
- * and the Projects page.
+ * dropped, rolling back only itself — once every write in flight has landed,
+ * since React settles pending transitions together. Shared by the board, the
+ * priority matrix and the Projects page.
  */
 export function useOptimisticTasks(tasks: TaskItem[]) {
   const [localTasks, addChange] = useOptimistic(tasks, applyChange);

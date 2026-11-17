@@ -1,0 +1,40 @@
+name: Node and dependencies
+description: >-
+  Node 24, the npm that package.json pins (devEngines), and the dependencies
+  from package-lock.json. Every job that runs npm starts with it, so CI writes
+  and reads the lockfile with the same npm as a local session.
+
+inputs:
+  install:
+    description: Run `npm ci`; the e2e job installs through `npm run setup` instead.
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+    # No `cache: npm` here: setup-node finds the cache with `npm config get
+    # cache`, which a runner's npm refuses before it's pinned (EBADDEVENGINES).
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 24
+
+    # A global install ignores the project's devEngines, so it runs whatever
+    # npm the runner came with.
+    - name: Pin npm
+      shell: bash
+      run: npm install -g "npm@$(node -p "require('./package.json').devEngines.packageManager.version")"
+
+    - name: Cache npm downloads
+      uses: actions/cache@v4
+      with:
+        path: ~/.npm
+        key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+        restore-keys: npm-${{ runner.os }}-
+
+    # Lifecycle scripts stay off: the postinstall `prisma generate` needs
+    # DIRECT_URL, and a job that needs the generated client runs it itself.
+    - name: Install dependencies
+      if: inputs.install == 'true'
+      shell: bash
+      run: npm ci --ignore-scripts

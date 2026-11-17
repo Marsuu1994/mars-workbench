@@ -1,54 +1,75 @@
 # Board (/kanban)
 
-The week's working surface: habit instances, project steps and one-offs move from the backlog to Todo to Done.
+The board is where the user works through the week. Each time a habit runs this week, the plan has one task for it (a *habit task*). Habit tasks and this week's project steps wait in the backlog until the user pulls them into Todo; one-offs go straight into Todo. As the user finishes tasks, they move them to Done.
 
-Spec v2 (`flows/README.md`): each item's ID is named by the test that holds it to the text.
+Spec v2 (`flows/README.md`): every item starts with an ID, and each test that checks it puts that ID in its title.
 
 ## States
 
-Entering `/kanban` syncs first (`flows/shared.md`). The page is then in one of three states, each by what the server returns:
+Opening `/kanban` runs the sync first (`flows/shared.md`). The page then shows one of three screens, depending on what the server sends back.
 
-- **ST-1 New user** — no `ACTIVE` plan and no `PENDING_UPDATE` one. The server returns no plan and no recap; the empty board asks for a first plan, and its button starts one (A1).
-- **ST-2 Returning user** — no `ACTIVE` plan, a `PENDING_UPDATE` one. The server returns that plan's recap, over all its tasks — habit instances, project steps and one-offs, expired included; the empty board shows it, and its button starts this week's plan (A1):
-  - completion rate — the done ones ÷ all of them
-  - tasks done — done / all
-  - points earned — the done ones' points
-- **ST-3 Active plan** — an `ACTIVE` plan for this week; the board. The server returns:
-  - the plan — its week, its mode, its habit templates and their frequencies
-  - its tasks — every one but `EXPIRED`
-  - the projects behind its steps — each with its whole path
+- **ST-1 New user** — The user has no plan for this week and no ended plan waiting (neither `ACTIVE` nor `PENDING_UPDATE`). The server sends nothing. The page shows an empty board that asks for a first plan, and its button opens the plan page (A1).
+- **ST-2 Returning user** — Last week's plan has ended (`PENDING_UPDATE`) and there is no plan for this week yet. The server sends a recap of last week that counts every task on that plan: habit tasks, project steps and one-offs, the expired ones included. The empty board shows the recap, and its button opens the plan page for this week's plan (A1). The recap shows:
+  - completion rate: what share of last week's tasks were done
+  - tasks done: how many tasks were done, out of how many
+  - points earned: how many points the done tasks earned
+- **ST-3 Active plan** — There is a plan for this week (`ACTIVE`), and the page shows the board. The server sends:
+  - the plan: its week, its mode, and its habits with how often each one runs
+  - every task on the plan except the expired ones
+  - each project that has a step on the plan, with all of its steps (the step cards draw their path from them)
   - the progress counts (Progress)
 
 ## Columns
 
-- **COL-1** Two columns: Todo holds the `TODO` tasks, Done the `DONE` ones; `BACKLOG` tasks wait in the backlog, `EXPIRED` ones aren't shown. Each header counts its column's cards.
-- **COL-2** Todo runs by kind: one-offs, then daily habits, then weekly habits, then project steps. Within a kind a group — one habit's instances, one project's steps — stays together: groups rank by their earliest `createdAt` and run in instance order (copy number, step number); a one-off ranks by its own `createdAt`. Ties go to `createdAt`, then id.
-- **COL-3** Done runs by when each task was done, the latest first.
-- **COL-4** On mobile the columns stack, each a row of mini cards (CARD-6).
+- **COL-1** The board has two columns, Todo and Done. Tasks waiting in the backlog appear in neither, and expired tasks appear nowhere. Each column's header shows how many cards it has.
+- **COL-2** Todo is sorted:
+  - by kind: one-offs first, then daily habits, then weekly habits, then project steps
+  - by group, within a kind: one habit's tasks or one project's steps stay next to each other, and groups come in the order their first task was created; a one-off comes in the order it was created
+  - in order, within a group: copy 1, 2, 3… or step 1, 2, 3…
+  - ties: anything still tied goes by when it was created, then by id
+- **COL-3** Done is sorted by when each task was finished, the most recent at the top.
+- **COL-4** On mobile the two columns are stacked, and each is a row of mini cards (CARD-6) that scrolls sideways.
 
 ## Task cards
 
-- **CARD-1** A card shows, top to bottom:
-  - its kind (a step shows its project's name instead) and its properties
-  - its title
-  - its description, cut to two lines
-  - its progress, and its size with points
-- **CARD-2** A Done card is dimmed, its title struck through, its description hidden. It has no drag handle (R4).
-- **CARD-3** **Habit** — properties: its plan line, Daily × N or Weekly × N. Progress: the week's dots and done / target. One dot per instance its plan line has this week, in order: a daily line has N on each day it runs (weekdays in `NORMAL`, every day in `EXTREME`), a weekly line N. A dot is filled when that instance is done, empty when not, and ringed on the card's own instance. A habit whose template has no line on the plan shows no properties and no progress.
-- **CARD-4** **Project step** — properties: Step n/N, its number and its project's count of steps. Progress: its project's path, one segment per step in step order — filled when done, empty when not, ringed on the card's own step. A step whose project isn't in the read shows neither.
-- **CARD-5** **One-off** — properties: its quadrant on the priority matrix. No progress.
-- **CARD-6** A mini card (mobile board) shows only the kind, the title (two lines), the progress and the size: no properties, no description.
-- **CARD-7** A card's dot or segment fills the moment it lands on Done, before the server answers.
+- **CARD-1** Every card shows, from top to bottom:
+  - kind: what kind of task it is, with its details beside it; a project step shows its project's name in place of the kind
+  - title: the task's title
+  - description: the task's description, cut off after two lines
+  - progress and size: the kind's progress, then the task's size with its points
+- **CARD-2** A card in Done is dimmed, its title is struck through and its description is hidden. It can't be dragged (R4).
+- **CARD-3** **Habit cards.**
+  - details: how often the habit runs, Daily × N or Weekly × N
+  - progress: the week's dots, and how many of them are done out of the total
+  - dots: one for each time the habit runs this week. A daily habit gets N for each day it runs (weekdays in `NORMAL` mode, every day in `EXTREME` mode); a weekly habit gets N. A dot is filled when its task is done and empty when it isn't, and the card's own task has a ring around its dot.
+  - off the plan: if the habit is no longer on the plan, its cards show no details and no progress
+- **CARD-4** **Project step cards.**
+  - details: n/N, the step's number and how many steps the project has
+  - progress: the project's path, one segment per step in order. A segment is filled when its step is done and empty when it isn't, and the card's own step has a ring around it.
+  - no project: if the board didn't get the step's project, the card shows no details and no progress
+- **CARD-5** **One-off cards.**
+  - details: which quadrant of the priority matrix the one-off is in
+  - progress: none
+- **CARD-6** A mini card, on the mobile board, shows only the kind, the title (up to two lines), the progress and the size: no details and no description.
+- **CARD-7** When a card lands on Done, its dot or segment fills straight away, without waiting for the server.
 
 ## Backlog
 
-- **BL-1** Holds the plan's `BACKLOG` tasks: habit instances not on the board yet, and the project steps scheduled this week. Never one-offs — tracking puts them straight in Todo.
-- **BL-2** The entry: on desktop a collapsed strip on the board's right edge, opening a panel; on mobile a pill above the tab bar, opening a bottom sheet over it, the board behind a scrim.
-- **BL-3** The entry and the header count the staged tasks.
-- **BL-4** Closed whenever the page loads; whether it was open isn't remembered.
-- **BL-5** Only its visible side takes focus: Tab and screen readers never reach the collapsed panel, or the strip while the panel is open. Opening moves focus to the panel's close control, closing moves it back to the entry; the first render leaves focus where it is.
-- **BL-6** Cards run by kind: daily habits, then weekly habits, then project steps. Within a kind a group — one habit's instances, one project's steps — stays together: groups rank by their earliest `createdAt` and run in instance order (copy number, step number). Ties go to `createdAt`, then id. On desktop they are the board's cards, dragged out of the panel; on mobile they are full-width cards with ↑ Todo beside the title, not draggable — so on mobile a backlog task reaches Done only through Todo.
-- **BL-7** Empty: on desktop the strip shows 0 and the panel an empty state; on mobile the pill is hidden, and the sheet's empty state shows only if its last task is pulled while it is open.
+- **BL-1** The backlog holds the tasks waiting to be pulled onto the board: this week's habit tasks that aren't on it yet, and the project steps scheduled for this week. It never holds one-offs: tracking a one-off for this week puts it straight into Todo.
+- **BL-2** On desktop the backlog is a narrow strip along the board's right edge, which opens into a panel. On mobile it's a pill above the tab bar, which opens a sheet from the bottom with the board dimmed behind it.
+- **BL-3** The strip or the pill, and the header of the panel or the sheet, show how many tasks are waiting.
+- **BL-4** The backlog is closed every time the page loads; the page doesn't remember whether it was open.
+- **BL-5** Keyboard and screen-reader users only reach the part of the backlog that's showing: Tab skips the panel while it's closed, and skips the strip while the panel is open. Opening the backlog moves focus to its close button, and closing it moves focus back to the strip or the pill. When the page first loads, focus stays where it is.
+- **BL-6** The backlog's cards are sorted:
+  - by kind: daily habits first, then weekly habits, then project steps
+  - by group, within a kind: one habit's tasks or one project's steps stay next to each other, and groups come in the order their first task was created
+  - in order, within a group: copy 1, 2, 3… or step 1, 2, 3…
+  - ties: anything still tied goes by when it was created, then by id
+
+  How they look at each width:
+  - desktop: the same cards as the board, which the user drags out of the panel
+  - mobile: full-width cards with ↑ Todo next to the title, which can't be dragged — so on mobile a backlog task reaches Done only through Todo
+- **BL-7** When the backlog is empty, the desktop strip shows 0 and the panel shows an empty message. On mobile the pill disappears; the sheet shows its empty message only when the user pulls its last task while it's open.
 
 ## Progress
 
@@ -73,34 +94,60 @@ The server counts; the client turns the counts into percentages and the daily av
 
 | ID | Action | Where | Server action | Result |
 | --- | --- | --- | --- | --- |
-| A1 | Start a plan | the empty board's button | — | opens the plan page |
-| A2 | Open the backlog | the strip (desktop), the pill (mobile) | — | the panel or the sheet opens; focus per BL-5 |
-| A3 | Close the backlog | the panel's or the sheet's close control | — | it closes; focus per BL-5 |
-| A4 | Pull to Todo (desktop) | drag a backlog card onto Todo | `updateTaskStatusAction` → `TODO` | a move (MV) |
-| A5 | Pull to Todo (mobile) | ↑ Todo on a backlog card | `updateTaskStatusAction` → `TODO` | a move (MV); the sheet stays open for the next |
-| A6 | Finish from the backlog | drag a backlog card onto Done (desktop) | `updateTaskStatusAction` → `DONE` | a move (MV) |
-| A7 | Finish | drag a Todo card onto Done | `updateTaskStatusAction` → `DONE` | a move (MV) |
+| A1 | Start a plan | the empty board's button | — | the plan page opens |
+| A2 | Open the backlog | the strip (desktop) or the pill (mobile) | — | the panel or the sheet opens, and focus moves into it (BL-5) |
+| A3 | Close the backlog | the close button of the panel or the sheet | — | it closes, and focus goes back to the strip or the pill (BL-5) |
+| A4 | Pull to Todo (desktop) | drag a backlog card onto Todo | `updateTaskStatusAction` → `TODO` | the card moves (A move) |
+| A5 | Pull to Todo (mobile) | tap ↑ Todo on a backlog card | `updateTaskStatusAction` → `TODO` | the card moves (A move), and the sheet stays open for the next one |
+| A6 | Finish from the backlog | drag a backlog card onto Done (desktop) | `updateTaskStatusAction` → `DONE` | the card moves (A move) |
+| A7 | Finish | drag a Todo card onto Done | `updateTaskStatusAction` → `DONE` | the card moves (A move) |
 
 ### A move
 
-- **MV-1** The move is optimistic: the client shows it at once, before the server answers — the card in its new place (on top of Done, or in Todo by its kind, COL-2) and the backlog's count down.
-- **MV-2** The server saves the status: a move to Done stamps when it was done, a move to Todo clears it.
-- **MV-3** Once the server answers, the page's data reloads and progress counts the move — never before. A one-off moved to Done leaves the priority matrix too.
-- **MV-4** If it fails, only that card goes back; other moves in flight stay.
+What happens when a card moves (A4–A7):
+
+- **MV-1** The card moves straight away, before the server answers: to the top of Done, or to its place in Todo (sorted as in COL-2). At the same moment:
+  - the counts follow it: the column it leaves and the one it lands in change their header counts (COL-1), and a card leaving the backlog takes the backlog's count down by one (BL-3)
+  - the card's progress, when it lands on Done: its dot or segment fills (CARD-7), and a habit card's count of done tasks goes up by one
+- **MV-2** The server saves the new status. Moving a card to Done records when it was finished; moving it to Todo clears that.
+- **MV-3** When the server answers, the page reloads its data, and only then does the progress dashboard (Progress) count the move:
+  - pulled into Todo: today's total goes up by one, since today counts every task out of the backlog
+  - finished from Todo: today's done count and the week's go up by one, and today's points and the week's go up by the task's points
+  - finished from the backlog: all of the above, today's total included
+
+  A one-off moved to Done also leaves the priority matrix.
+- **MV-4** If the server refuses a move, only that card goes back to where it was. While other cards are still saving, it goes back once they have saved.
 
 ## Rules
 
-- **R1** The server moves a task forward only — Backlog → Todo, Backlog → Done, Todo → Done — so what was done stays counted. It refuses anything else.
-- **R2** The server moves only a task on the plan: a one-off still on the priority matrix reaches the board through Track This Week, never through a move.
-- **R3** The server moves only the user's own task.
-- **R4** On the board, a Done card has no drag handle.
-- **R5** On the board, the backlog takes no drops.
+- **R1** The server only moves a task forward: Backlog → Todo, Backlog → Done, or Todo → Done. It refuses any other move, so finished work stays counted.
+- **R2** The server only moves a task that's on the plan. A one-off still on the priority matrix gets onto the board by being tracked for this week, never by a move.
+- **R3** The server only moves the user's own tasks.
+- **R4** On the board, a card in Done can't be dragged.
+- **R5** On the board, nothing can be dropped into the backlog.
 
-A refused move fails like any other (MV-4).
+When the server refuses a move, the card goes back as in MV-4.
 
 ## Journeys
 
-- **J1 New user** — ST-1 → A1.
-- **J2 Returning user** — ST-2, last week's recap → A1.
-- **J3 A week's work** (desktop) — ST-3 → A2, looking over the backlog → A4 a step → A6 a habit instance (its dot fills) → A7 the step (its segment fills) → reload: every move stayed, and today's progress counts them → A3.
-- **J4 Mobile pull** (mobile) — ST-3 → A2 → A5 twice, the sheet staying open → A3 → reload: both in Todo.
+- **J1 New user**:
+  - the empty board (ST-1): it asks for a first plan
+  - start a plan (A1): the plan page opens
+- **J2 Returning user**:
+  - the empty board (ST-2): it shows last week's recap
+  - start this week's plan (A1): the plan page opens
+- **J3 A week's work** (desktop), with a project step and a habit task in the backlog:
+  - the board (ST-3): Todo and Done are empty, and nothing is done today
+  - open the backlog (A2): the panel lists the step and the habit task, and its count matches the strip's
+  - pull the step into Todo (A4): it's in Todo; Todo's count goes up by one and the backlog's goes down by one. Once saved, today's total goes up by one (MV-3).
+  - finish the habit task from the backlog (A6): it's on top of Done, its dot fills and the card counts it as done; Done's count goes up and the backlog's goes down. Once saved, today's done count, total and points, and the week's done count and points, all count it.
+  - finish the step (A7): it's on top of Done and its segment fills; Todo's count goes down and Done's goes up. Once saved, today's and the week's done counts and points count it.
+  - close the backlog (A3): the strip shows what's left
+  - reload: both cards are still in Done, and the progress is the same
+- **J4 A week's work** (mobile), with a project step and a habit task in the backlog:
+  - the board (ST-3): Todo and Done are empty, and nothing is done today
+  - open the backlog (A2): the sheet lists the step and the habit task
+  - pull both into Todo, tapping ↑ Todo on each (A5): each card leaves the sheet for Todo, the sheet's count goes down by one and Todo's goes up, and the sheet stays open for the next. Once saved, today's total goes up by one. After the last one the sheet shows its empty message (BL-7).
+  - close the sheet (A3): with nothing left, the pill is gone (BL-7)
+  - finish the step, dragging it from Todo onto Done (A7): it's first in Done and its segment fills; Todo's count goes down and Done's goes up. Once saved, today's and the week's done counts and points count it.
+  - reload: the habit task is still in Todo, the step in Done, and the progress is the same

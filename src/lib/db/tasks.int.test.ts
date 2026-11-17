@@ -1,3 +1,4 @@
+// Spec: design/flows/board.md
 import {beforeEach, describe, expect, it} from 'vitest';
 import {PlanMode, PriorityQuadrant, TaskStatus, TaskType} from '@/utils/enums';
 import {completeMatrixTask} from '@/services/matrixService';
@@ -32,7 +33,7 @@ const createReviewInBacklog = async () => {
 };
 
 describe('updateTaskStatus: board moves are forward-only', () => {
-  it('pulls a backlog card into Todo, then finishes it', async () => {
+  it('R1 MV-2 pulls a backlog card into Todo, then finishes it', async () => {
     const review = await createReviewInBacklog();
 
     const todo = await updateTaskStatus(userId, review.id, TaskStatus.TODO);
@@ -43,14 +44,14 @@ describe('updateTaskStatus: board moves are forward-only', () => {
     expect(done?.doneAt).toBeInstanceOf(Date);
   });
 
-  it('finishes a backlog card straight away', async () => {
+  it('R1 MV-2 finishes a backlog card straight away', async () => {
     const review = await createReviewInBacklog();
 
     const done = await updateTaskStatus(userId, review.id, TaskStatus.DONE);
     expect(done?.status).toBe(TaskStatus.DONE);
   });
 
-  it('never moves a card out of Done, nor re-dates it', async () => {
+  it('R1 never moves a card out of Done, nor re-dates it', async () => {
     const review = await createReviewInBacklog();
     const done = await updateTaskStatus(userId, review.id, TaskStatus.DONE);
 
@@ -67,7 +68,17 @@ describe('updateTaskStatus: board moves are forward-only', () => {
     });
   });
 
-  it('never moves a one-off still on the matrix', async () => {
+  it("R3 never moves another user's task", async () => {
+    const review = await createReviewInBacklog();
+
+    expect(
+      await updateTaskStatus(newUserId(), review.id, TaskStatus.TODO),
+    ).toBe(null);
+    const [stored] = await getBoardTasksByPlanId(userId, review.planId!);
+    expect(stored.status).toBe(TaskStatus.BACKLOG);
+  });
+
+  it('R2 never moves a one-off still on the matrix', async () => {
     const passport = await createOneOff(userId, {title: 'Renew passport'});
 
     expect(await updateTaskStatus(userId, passport.id, TaskStatus.TODO)).toBe(

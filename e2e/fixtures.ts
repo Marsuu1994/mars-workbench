@@ -1,19 +1,12 @@
-import {
-  expect,
-  test as base,
-  type Page,
-  type PlaywrightTestArgs,
-  type PlaywrightWorkerArgs,
-  type TestInfo,
-} from '@playwright/test';
+import {expect, test as base, type Page} from '@playwright/test';
 import {randomUUID} from 'node:crypto';
-import {basename, relative} from 'node:path';
 import {createDumpEntry} from '@/lib/db/dumpEntries';
 import {signInAsStorageState, upsertPasswordUser} from '../scripts/localAuth';
 import {
   createOneOff,
   createProjectWithSteps,
   createWeek,
+  endWeek,
   moveTasksByTitle,
 } from '../test/factories';
 
@@ -41,6 +34,7 @@ const createE2eUser = async (): Promise<E2eUser> => {
 const bindFactories = (userId: string) => ({
   createWeek: (planSpec: Parameters<typeof createWeek>[1]) =>
     createWeek(userId, planSpec),
+  endWeek: (planId: string) => endWeek(userId, planId),
   createProjectWithSteps: (
     title: string,
     steps: Parameters<typeof createProjectWithSteps>[2],
@@ -54,12 +48,15 @@ const bindFactories = (userId: string) => ({
   createDumpEntry: (content: string) => createDumpEntry(userId, {content}),
 });
 
+/** The factories bound to a test's own user (`test/factories.ts`). */
+export type Seed = ReturnType<typeof bindFactories>;
+
 interface E2eFixtures {
   failOnConsoleErrors: void;
   /** This test's own user, created for it alone. */
   user: E2eUser;
   /** The data builders, writing as `user`. */
-  seed: ReturnType<typeof bindFactories>;
+  seed: Seed;
 }
 
 /**
@@ -129,72 +126,3 @@ export const waitForServerAction = (page: Page, path: string) =>
       response.request().method() === 'POST' &&
       new URL(response.url()).pathname === path,
   );
-
-/** The fixtures a contract's body gets: Playwright only sets up the ones a
-    test destructures, so the wrapper names them. */
-type ContractFixtures = Pick<
-  PlaywrightTestArgs & PlaywrightWorkerArgs,
-  'page' | 'context' | 'request' | 'browser'
->;
-
-type ContractBody = (
-  fixtures: ContractFixtures,
-  testInfo: TestInfo,
-) => Promise<void>;
-
-/** The spec file on the call stack, relative to the working directory. */
-const findSpecFile = (): string => {
-  const frames = new Error().stack?.split('\n') ?? [];
-  const callerFrame = frames.find(frame =>
-    /\.spec\.ts:\d+:\d+\)?$/.test(frame),
-  );
-  const path = callerFrame?.match(/\(?([^\s(]+\.spec\.ts):\d+:\d+\)?$/)?.[1];
-  if (!path)
-    throw new Error('contractTest must be called from a .spec.ts file');
-  return relative(process.cwd(), path);
-};
-
-/** Terminal colour codes Playwright puts in its assertion messages. */
-const ANSI_COLOUR = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, 'g');
-
-/**
- * A contract: behaviour the design settled and the code doesn't have yet
- * (`e2e/contract/`, test/README.md › e2e). It passes while `body` fails at
- * `failsAt` — the assertion the missing behaviour trips — and fails when
- * `body` fails anywhere else, or passes: then the behaviour has landed, and
- * the error names the command that turns the file into plain tests.
- *
- * @public Used by e2e/contract/ specs, which exist only between a design PR
- * and its implementation.
- */
-export const contractTest = (
-  title: string,
-  failsAt: RegExp,
-  body: ContractBody,
-) => {
-  // Playwright files the test under this helper's location, so the spec it
-  // belongs to comes from the call site
-  const specPath = findSpecFile();
-  return test(title, async ({page, context, request, browser}, testInfo) => {
-    let failure: unknown;
-    try {
-      await body({page, context, request, browser}, testInfo);
-    } catch (error) {
-      failure = error;
-    }
-    if (failure === undefined) {
-      const feature = basename(specPath, '.spec.ts');
-      throw new Error(
-        `Contract passes (${specPath}): the behaviour has landed. Run npm run contract:flip ${feature} and commit.`,
-      );
-    }
-    const message = (
-      failure instanceof Error ? failure.message : String(failure)
-    ).replace(ANSI_COLOUR, '');
-    if (!failsAt.test(message)) {
-      throw new Error(
-        `Contract (${specPath}) failed somewhere other than ${failsAt}:\n${message}`,
-      );
-    }
-  });
-};

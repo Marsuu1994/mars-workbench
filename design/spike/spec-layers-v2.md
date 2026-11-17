@@ -4,7 +4,7 @@
 
 > 语言约定：叙述用中文；产品名词、状态和代码标识保留英文（habit / project / step / one-off / backlog、`toBoardCards`、`updateTaskStatusAction`），和代码、mockup、tracker 一一对应。
 
-取代 `archived/spec-layers-ui-contract.md` 的提案部分。那份 spike 里仍然有效、这里沿用的：数据规则写在每条写入路径都经过的地方（已经进了 AGENTS.md › Layers）；「数据决定的顺序是 rule」；ratchet 的四个比较（那份 spike 设计了，还没实现）；以及它的 flow 审查和修复，都已经落地。
+取代 `archived/spec-layers-ui-contract.md` 的提案部分。那份 spike 里仍然有效、这里沿用的：数据规则写在每条写入路径都经过的地方（已经进了 AGENTS.md › Layers）；「数据决定的顺序是 rule」；旧东西只减不增的想法（那份 spike 设计成通用的 ratchet，这里简化成 `check:spec` 的检查，见 §6）；以及它的 flow 审查和修复，都已经落地。
 
 ## 起因 · Trigger
 
@@ -147,19 +147,19 @@ it('A2 Finish moves the card to the top of Done at once, and back when it fails'
 - 用鼠标拖动（dnd 用 keyboard 可以，和 e2e 一样）；
 - 时区：浏览器的时区不跟 `TZ` 走，日期逻辑本来就在 utils 里，由两个时区的 unit test 覆盖。
 
-### 6. Ratchet：新旧 doc 共存
+### 6. 新旧 doc 共存
 
-旧 spike 设计的 ratchet 一直没实现。这次实现它，第一条规则就是 `spec-v2`。
+旧 spike 设计的是一个通用的 ratchet（四个比较加 `ratchet:prune`）。现在只有这一条迁移，所以简化成 `check:spec` 里的几条检查（owner，2026-11-17）。等出现第二条迁移，再按两个真实的例子抽成通用的。
 
-- **Key** 是 doc 的路径。**Baseline** 是 `scripts/ratchet/baseline/spec-v2.txt`，列出还是旧格式的 doc：auth、dump、mcp、plan、priorities、projects、shared。board 在迁移它的那个 PR 里离开 baseline。
-- **四个比较**（沿用旧 spike）：
-  - 不在 baseline 里的 doc，必须通过 `check:spec`；
-  - baseline 只能比 `main` 小；
-  - 已经迁好的 doc 要从 baseline 里删掉（`ratchet:prune`）；
-  - 改了一个旧 doc 怎么处理，见 Q3。
-- **Test 那边不需要 baseline**：`check:spec` 只检查 v2 doc 里的 ID。没有 ID 的旧 test 不受影响，等它的 doc 迁移时再加上 ID。旧 e2e spec 的「一个 flow 一个 `describe`」和 `e2e/not-implemented.md` 里对应的行，也跟着它的 doc 一起走。
-- **`flows/README.md`**：v2 成为正式格式，旧格式降级为「Legacy」一节，baseline 清空时删掉。
-- **job summary** 打印 baseline 还剩几个，迁移进度不用另外记。
+- **清单**：`design/flows/legacy.txt`，列出还是旧格式的 doc：auth、dump、mcp、plan、priorities、projects、shared。`check:spec` 跳过这些 doc 的 ID。
+- **规则一句话**：旧 doc 可以改错，不能加东西；要加东西，就先把整个 doc 迁到 v2。不混写：一个 doc 要么全是 v2，要么全是旧格式。
+- **`check:spec` 检查**（和 branch 从 main 分出来的那个点比）：
+  - 不在清单上的 doc 必须有 ID；
+  - 清单上的 doc 有了 ID，或者已经不存在，就要从清单里删掉；
+  - 清单只能变短；
+  - 清单上的 doc，heading 和列表项不能比 main 上多。只改文字不报错，也不 warn。
+- **Test 那边不需要清单**：`check:spec` 只检查 v2 doc 里的 ID。没有 ID 的旧 test 不受影响，等它的 doc 迁移时再加上 ID。旧 e2e spec 的「一个 flow 一个 `describe`」也跟着它的 doc 一起走。`e2e/not-implemented.md` 在 PR 2 里删掉了：旧 doc 迁移时写 journey，就补上了 e2e（owner，2026-11-17）。
+- **`flows/README.md`**：v2 成为正式格式，旧格式降级为「Legacy」一节，清单清空时删掉。
 
 ## 实施计划
 
@@ -170,10 +170,10 @@ it('A2 Finish moves the card to the top of Done at once, and back when it fails'
    - `flows/board.md` 按 v2 重写，只写现在的 board，不写 pile；
    - `flows/README.md` 写 v2 的格式，旧格式降级为 Legacy。
    - 不写 test，不加工具。ID 先写在 doc 里，PR 2 让 test 的标题对上它们。
-2. **PR 2 · test 框架、补 test、ratchet**：
+2. **PR 2 · test 框架、补 test、旧 doc 的清单**：
    - component test 跑通（先写两个 test，验证 CSS、`next/navigation` 的 mock、keyboard dnd、CI 时间；有一个跑不通就回来改 spike）；
    - board 现有的 test 加上 ID，补上 component test，让 board.md 的每个 ID 都有 test；
-   - `check:spec`，`scripts/ratchet/`（通用的四个比较加 `prune`，第一条规则 `spec-v2`，其余旧 doc 进 baseline）；
+   - `check:spec`，以及旧 doc 的清单和检查（§6）；
    - 退役 e2e contract；`test/README.md`、AGENTS.md 跟着改。
 3. **PR 3 · pile 的 design 和 spec**：
    - 把 mockup 完善好；
@@ -189,7 +189,7 @@ it('A2 Finish moves the card to the top of Done at once, and back when it fails'
 
 1. Fixture：component test 直接 import Design Console 的 `scenarios/<feature>/fixtures.ts`，不搬家。
 2. Implementation 的步骤写成一个新的 `implement-spec` skill，`ui-design` 只管 design。
-3. 旧 doc 新增 `##` 或新规则时，CI fail；只修改已有的文字时，在 job summary 里 warn。
+3. 旧 doc 新增 `##` 或新规则时，CI fail；只修改已有的文字时放行。原定的 warn 去掉了，ratchet 也简化成 `check:spec` 里的检查（2026-11-17，见 §6）。
 4. 拆成四个 PR，见实施计划。这是 owner 要求的拆分，不受「one task, one branch, one PR」限制。
 5. 退役 e2e contract（`contractTest`、`contract:flip`、`e2e/contract/`），在 PR 2 里做。
 6. Component test 先不设 coverage floor。

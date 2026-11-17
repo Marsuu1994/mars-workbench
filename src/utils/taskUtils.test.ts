@@ -1,3 +1,4 @@
+// Spec: design/flows/board.md
 import {describe, expect, it} from 'vitest';
 import {buildTask, dateColumn} from '../../test/buildTask';
 import {WEEK_KEY} from '../../test/time';
@@ -57,7 +58,7 @@ describe('computeHabitWeeks', () => {
     review('review-2', 1, TaskStatus.BACKLOG),
   ];
 
-  it('gives a daily line a dot for every weekday of a NORMAL week', () => {
+  it('CARD-3 gives a daily line a dot for every weekday of a NORMAL week', () => {
     const {habitWeekByTemplateId, slotByTaskId} = computeHabitWeeks(
       tasks,
       plan(PlanMode.NORMAL),
@@ -74,7 +75,7 @@ describe('computeHabitWeeks', () => {
     expect(slotByTaskId.has('run-sat')).toBe(false);
   });
 
-  it('counts every day of an EXTREME week', () => {
+  it('CARD-3 counts every day of an EXTREME week', () => {
     const {habitWeekByTemplateId, slotByTaskId} = computeHabitWeeks(
       tasks,
       plan(PlanMode.EXTREME),
@@ -87,7 +88,7 @@ describe('computeHabitWeeks', () => {
     expect(slotByTaskId.get('run-sat')).toBe(5);
   });
 
-  it('gives a weekly line one dot per instance', () => {
+  it('CARD-3 gives a weekly line one dot per instance', () => {
     const {habitWeekByTemplateId, slotByTaskId} = computeHabitWeeks(
       tasks,
       plan(PlanMode.NORMAL),
@@ -100,7 +101,7 @@ describe('computeHabitWeeks', () => {
     expect(slotByTaskId.get('review-2')).toBe(1);
   });
 
-  it('keeps a DONE instance past a frequency cut', () => {
+  it('CARD-3 keeps a DONE instance past a frequency cut', () => {
     const cutTasks = [...tasks, review('review-3', 2, TaskStatus.DONE)];
     const {habitWeekByTemplateId} = computeHabitWeeks(
       cutTasks,
@@ -112,7 +113,7 @@ describe('computeHabitWeeks', () => {
     });
   });
 
-  it('leaves a daily instance past the frequency without a dot', () => {
+  it('CARD-3 leaves a daily instance past the frequency without a dot', () => {
     const secondRun = buildTask({
       ...runOn('run-mon-2', '2026-10-12', TaskStatus.DONE),
       instanceIndex: 1,
@@ -124,7 +125,7 @@ describe('computeHabitWeeks', () => {
     expect(slotByTaskId.has('run-mon-2')).toBe(false);
   });
 
-  it('gives a template with no instances an empty line', () => {
+  it('CARD-3 gives a template with no instances an empty line', () => {
     const {habitWeekByTemplateId} = computeHabitWeeks(
       [],
       plan(PlanMode.NORMAL),
@@ -139,7 +140,7 @@ describe('computeHabitWeeks', () => {
 describe('sortTasks', () => {
   const at = (minute: number) => new Date(Date.UTC(2026, 9, 12, 16, minute));
 
-  it('runs one-offs, daily habits, weekly habits, then steps', () => {
+  it('COL-2 BL-6 runs one-offs, daily habits, weekly habits, then steps', () => {
     const tasks = [
       buildTask({
         id: 'step',
@@ -169,7 +170,7 @@ describe('sortTasks', () => {
     ]);
   });
 
-  it('keeps a group together, in instance order', () => {
+  it('COL-2 BL-6 keeps a group together, in instance order', () => {
     const tasks = [
       buildTask({
         id: 'review-2',
@@ -216,14 +217,14 @@ describe('sortTasks', () => {
     ]);
   });
 
-  it('breaks ties by createdAt, then id', () => {
+  it('COL-2 BL-6 breaks ties by createdAt, then id', () => {
     const tasks = ['b', 'a', 'c'].map(id =>
       buildTask({id, createdAt: id === 'c' ? at(0) : at(1)}),
     );
     expect(sortTasks(tasks).map(task => task.id)).toEqual(['c', 'a', 'b']);
   });
 
-  it('keeps groups that start at the same time apart', () => {
+  it('COL-2 BL-6 keeps groups that start at the same time apart', () => {
     const tasks = [
       ['b', 0],
       ['a', 1],
@@ -246,7 +247,7 @@ describe('sortTasks', () => {
     ]);
   });
 
-  it("runs a daily habit's days in the order they were made", () => {
+  it("COL-2 BL-6 runs a daily habit's days in the order they were made", () => {
     const tasks = [
       buildTask({
         id: 'tuesday',
@@ -280,7 +281,7 @@ describe('sortTasks', () => {
 describe('sortDoneTasks', () => {
   const at = (minute: number) => new Date(Date.UTC(2026, 9, 12, 16, minute));
 
-  it('puts the latest done first', () => {
+  it('COL-3 puts the latest done first', () => {
     const tasks = [
       buildTask({id: 'first', status: TaskStatus.DONE, doneAt: at(1)}),
       buildTask({id: 'last', status: TaskStatus.DONE, doneAt: at(9)}),
@@ -295,7 +296,7 @@ describe('sortDoneTasks', () => {
     ]);
   });
 
-  it('breaks a tie by id', () => {
+  it('COL-3 breaks a tie by id', () => {
     const tasks = ['b', 'a'].map(id =>
       buildTask({id, status: TaskStatus.DONE, doneAt: at(1)}),
     );

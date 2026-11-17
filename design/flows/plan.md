@@ -44,7 +44,7 @@ User clicks the pencil on a template card in the plan form (always shown on mobi
 
 ### Trigger / Entry Point
 
-No active plan this week, and the user clicks "Create Your First Plan" / "Create New Plan" on the empty board, Plan in the sidebar or dock, the Projects page's Create plan banner, or the matrix's no-plan hint → `/kanban/plans/new`.
+No active plan this week, and the user clicks "Create your first plan" / "Create new plan" on the empty board, Plan in the sidebar or dock, the Projects page's Create plan banner, or the matrix's no-plan hint → `/kanban/plans/new`.
 
 ### Steps
 

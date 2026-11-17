@@ -1,3 +1,4 @@
+// Spec: design/flows/board.md
 import {beforeEach, describe, expect, it} from 'vitest';
 import {getBoardTasksByPlanId} from '@/lib/db/tasks';
 import {PlanMode, TaskSize, TaskStatus, TaskType} from '@/utils/enums';
@@ -46,11 +47,11 @@ const createMidWeek = async () => {
 };
 
 describe('fetchBoard', () => {
-  it('is null without an active plan', async () => {
+  it('ST-1 ST-2 is null without an active plan', async () => {
     expect(await fetchBoard(userId)).toBeNull();
   });
 
-  it("counts today's and the week's progress", async () => {
+  it("ST-3 counts today's and the week's progress", async () => {
     const plan = await createMidWeek();
     freezeTime(WEDNESDAY_EVENING);
     // The first visit on Wednesday generates its run
@@ -86,7 +87,33 @@ describe('fetchBoard', () => {
     ]);
   });
 
-  it("draws each step card's whole path, for this week's projects only", async () => {
+  it('ST-3 sends the plan with its habits, and every task but the expired ones', async () => {
+    const plan = await createMidWeek();
+    freezeTime(WEDNESDAY_EVENING);
+
+    const board = await fetchBoard(userId);
+    expect(board?.plan).toEqual({
+      periodKey: plan.periodKey,
+      mode: PlanMode.NORMAL,
+      planTemplates: expect.arrayContaining([
+        expect.objectContaining({type: TaskType.DAILY, frequency: 1}),
+        expect.objectContaining({type: TaskType.WEEKLY, frequency: 2}),
+      ]),
+    });
+    // Monday's run has expired; Wednesday's is generated on this visit
+    const runs = board?.tasks.filter(task => task.title === 'Run') ?? [];
+    expect(runs).toHaveLength(1);
+    expect(runs[0].status).not.toBe(TaskStatus.EXPIRED);
+    expect(board?.tasks.map(task => task.title).sort()).toEqual([
+      'Renew passport',
+      'Review',
+      'Review',
+      'Run',
+      'Unit 1',
+    ]);
+  });
+
+  it("ST-3 draws each step card's whole path, for this week's projects only", async () => {
     const {steps} = await createProjectWithSteps(userId, 'Course', [
       'Unit 1',
       'Unit 2',
@@ -131,7 +158,7 @@ describe('fetchBoard', () => {
 });
 
 describe('getEmptyBoardState', () => {
-  it('greets a new user', async () => {
+  it('ST-1 greets a new user', async () => {
     expect(await getEmptyBoardState(userId)).toEqual({kind: 'new'});
   });
 

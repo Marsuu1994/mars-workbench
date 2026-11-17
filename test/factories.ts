@@ -15,6 +15,7 @@ import {
 import {planSpecSchema} from '@/schemas';
 import {createPlanFromSpec} from '@/services/planningService';
 import {createProject} from '@/services/projectService';
+import {runEndOfPeriodSync} from '@/services/syncService';
 import {PriorityQuadrant, TaskSize, TaskStatus, TaskType} from '@/utils/enums';
 import {toMatrixTaskRow} from '@/utils/oneOffUtils';
 
@@ -30,6 +31,13 @@ export const newHabit = (
   frequency = 1,
   size: TaskSize = TaskSize.SMALL,
 ) => ({title, description: `${title}, as planned`, size, type, frequency});
+
+/**
+ * Ends a plan's week the way Monday's sync does: its unfinished habit tasks
+ * expire, and the plan waits for the next week's (`PENDING_UPDATE`).
+ */
+export const endWeek = (userId: string, planId: string) =>
+  runEndOfPeriodSync(userId, planId);
 
 /** This week's plan from a `create_plan` spec (defaults filled by the schema). */
 export const createWeek = (

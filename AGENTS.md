@@ -15,7 +15,7 @@ A Next.js application centered on a Kanban Period Planner; AI planning goes thro
 - Database: PostgreSQL (Supabase) + Prisma ORM
 - Auth: Supabase Auth (Google OAuth); its OAuth 2.1 Server also authorizes MCP clients
 - MCP: `mcp-handler` + `@modelcontextprotocol/server` (v2) — the remote endpoint at `/api/mcp`, where Claude reads planning context and writes plans
-- Tests: Vitest (unit, and integration against a real Postgres) + Playwright (e2e on the local Supabase stack)
+- Tests: Vitest (unit, integration against a real Postgres, and component tests in Chromium through browser mode) + Playwright (e2e on the local Supabase stack)
 - Icons: Heroicons
 - Language: TypeScript
 
@@ -29,7 +29,7 @@ prisma/                            # schema.prisma + migrations/
 supabase/                          # Local Supabase stack config (Postgres + Auth in Docker)
 scripts/                           # Repo checks run in CI; the local stack's setup, seed, and dev and e2e sessions
 test/                              # Test helpers and conventions (README); unit and integration tests sit next to their modules
-e2e/                               # Playwright specs; contract/ = designed, not built yet (test/README.md)
+e2e/                               # Playwright specs: a spec v2 page's journeys, a legacy doc's flows (test/README.md)
 .claude/agents/                    # Claude Code subagents: ui-verifier, test-writer, ci-fixer (Workflow › Subagents)
 .claude/skills/                    # Claude Code skills: ui-design (UI Workflow)
 design/                            # Design docs — index in design/README.md
@@ -79,7 +79,7 @@ Read the design docs only when the task involves logic, data or new flows; skip 
 
 Next.js APIs outrun training data: before using a routing, caching, server-action or `next.config` API you haven't checked for this version, read its page in `node_modules/next/dist/docs/`, the docs of the installed version.
 
-A fresh checkout runs `npm run setup` (`.env.local` from `.env.example`, `npm install`, then the local Supabase stack with migrations and seed — starting Docker first in a cloud container); a task that needs neither the database nor a signed-in page runs `npm run setup -- --no-db` instead. `npm run dev:session` signs in as the seeded dev user without Google.
+A fresh checkout runs `node scripts/setup.mjs` (the npm `package.json` pins, `.env.local` from `.env.example`, `npm install`, then the local Supabase stack with migrations and seed — starting Docker first in a cloud container); once npm is the pinned one, `npm run setup` does the same; a task that needs neither the database nor a signed-in page runs `npm run setup -- --no-db` instead. `npm run dev:session` signs in as the seeded dev user without Google. Every machine runs the npm that `package.json` pins (`devEngines`), the one CI runs, so the lockfile reads the same everywhere: when npm stops with `EBADDEVENGINES`, `node scripts/setup.mjs` installs that npm (or run `npm install -g npm@<that version>`), then rerun the command.
 
 ### Where the rules live
 
@@ -120,12 +120,15 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 - **The Design Console is the source of truth for implemented UI.** `/design` renders the real components: a gallery tabbed by layer (`ui/` · `application/` · `domain/`) and per-feature scenario pages (`/design/scenarios/<feature>/`) with pinned fixture states. `npm run dev` serves it without signing in (`src/app/design/README.md` › Local access).
 - **Verification is CI's and the owner's; a browser check is the exception.** CI runs the unit, integration and e2e tests — every page, every Design Console tab, the key journeys — on every PR, and the owner accepts UI on the Vercel preview. Logic, data and MCP changes are verified by `npm test`, style and copy changes by CI and the owner. A layout change (wrapping, overflow, breakpoints, overlay stacking), a new or changed scenario tab or play step, or the owner's request gets one browser check, delegated to the `ui-verifier` subagent with a brief — what changed, the scenario tabs, each check as a sentence — so screenshots and scripts stay out of the main context; read its verdict, and open a screenshot only when it says UNSURE. A bug seen only on a device (iOS / WebKit, the PWA): ask the owner for a screenshot or recording before trying headless Chromium.
 - **Production first, the console adapts.** Components are shaped by what production needs. A production component never carries a prop, branch or comment that only the console uses, and nothing is split or restructured so the console can show it: the console reaches a state the way a user would, or skips it. Bad: `initialUndoToastTaskId` on `PrioritiesPage`. Good: a scenario tab's `play` step clicking the real control.
-- **New UI starts with a design PR.** A design that isn't built yet is drawn as a self-contained HTML mockup in `design/mockup/`, reviewed by the owner on its PR and pinned by an e2e contract; that PR merges with no component code, and an implementation PR follows from `main` (`design/README.md` › Mockups; the `ui-design` skill walks the design, from research to the decided mockup).
+- **New UI starts with a design PR.** A design that isn't built yet is drawn as a self-contained HTML mockup in `design/mockup/`, reviewed by the owner on its PR, with the spec's new or changed items marked *(pending)* (`design/flows/README.md` › Items and IDs); that PR merges with no component code, and an implementation PR follows from `main` (`design/README.md` › Mockups; the `ui-design` skill walks the design, from research to the decided mockup).
 - **Build it exactly, then sync the console.** Implement the approved mockup exactly (layout, spacing, text, colors, icons, states); if something can't be built as-is, raise it and update the mockup first. As the UI lands, add or update the feature's scenario page and gallery entries so the pinned states match production. Once the design is fully implemented, delete its mockup: from then on the Design Console is the source of truth. A scenario that no longer matches production is a bug.
 
 ## Documentation Style
 
 - **Living docs are for the owner to re-orient, not the agent's work record.** README Current State, `design/tracker.md` and everything under `design/` say what the product is now and what's still open. Write at the doc's altitude (each doc states it at its top); length doesn't scale with diff size — a bigger change earns a higher-level summary, not a longer one; rewrite the sentence that is now wrong instead of appending a paragraph. Implementation inventory (file, component and key names, sub-change lists) lives in the code, the diff and `reference.md`; completeness lives in PR descriptions and the git history.
+- **Docs and code comments are written for a person.** What a person can follow, an agent can too; the reverse doesn't hold.
+  - Whole sentences: say who does what and when, not noun phrases or shorthand; give a term or a status its meaning the first time it appears; spell out a timing or a condition rather than naming it. Bad (a spec): "If it fails, only that card goes back — once the moves in flight have landed, which stay." Good: "If the server refuses a move, only that card goes back to where it was. While other cards are still saving, it goes back once they have saved." Bad (a comment): `// optimistic; per-task rollback (entangled)`. Good: `// The card moves before the server answers. If the save fails, only this card goes back, and it waits for any other card still saving.`
+  - Lists for long descriptions: when a description runs long and splits along its own structure (parts, steps, cases), make it a list with `name: description` per item, not one long sentence. Bad: "Todo runs by kind: one-offs, then daily habits, then weekly habits, then steps; within a kind a group stays together, by its earliest createdAt; ties go to createdAt, then id." Good: "Todo is sorted:" followed by `- by kind: …`, `- by group, within a kind: …` and `- ties: …`.
 
 ## Layers
 
@@ -194,7 +197,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 ## Tooling
 
 - **Prettier owns formatting** (`.prettierrc.json`; code only — Markdown and `design/` are ignored); don't hand-tune spacing or quotes against it. **ESLint owns correctness** and enforces no `any`, no `console.log` (`console.error` / `warn` allowed) and the server-only import boundary. In production code (`src/` outside the Design Console) it also enforces named exports and `const` arrow components (Next.js convention files excepted), one component per file, and no single-letter names.
-- CI runs `format:check`, `lint`, `typecheck`, `knip`, `check:themes`, the Vitest suite with its coverage floors and the Playwright suite — run all but Playwright before pushing (Version Control).
+- CI runs `format:check`, `lint`, `typecheck`, `knip`, `check:themes`, `check:spec`, the Vitest suite (unit and integration with their coverage floors, component tests in a job of their own) and the Playwright suite — run all but Playwright before pushing (Version Control).
 
 ## Data & State
 
@@ -217,7 +220,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
   1. `design/tracker.md`: delete finished items and sub-bullets.
   2. README Current State: rewrite the sections the change touches.
   3. AGENTS.md, or a README it indexes: only when a rule or a directory's responsibility changed.
-  4. Run `npm run format`, then `lint`, `typecheck`, `knip` and `npm test` (and `check:themes` when CSS variables changed). CI runs e2e; run `npm run test:e2e` too when a change touches a page's flow.
+  4. Run `npm run format`, then `lint`, `typecheck`, `knip`, `check:spec`, `test:coverage` and `test:component` (and `check:themes` when CSS variables changed). `test:coverage` and not `npm test`: CI fails below the coverage floors, which `npm test` doesn't check. CI runs e2e; run `npm run test:e2e` too when a change touches a page's flow.
 - **Act on submitted reviews only.** A pending review — comments drafted but not yet submitted — can still change: don't reply to, resolve or push for its comments; at most mention that one is pending.
 
 ## Commands
@@ -233,11 +236,12 @@ npm run format:check # Verify formatting (CI)
 npm run check:themes # Every theme declares the same CSS variables (CI)
 npm run check:review-log  # Every owner review on a PR has its entry in reviews/ (CI; GITHUB_REPOSITORY and PR_NUMBER locally)
 npm run check:mockup-links  # Every mockup a PR changes is linked from its description (CI; same env)
+npm run check:spec   # Every item in a spec v2 doc is held by a test that names it, and no legacy doc grows (CI); `-- --list <page>` lists each item's tests
 npm run e2e:timing -- <report.json>  # Each e2e spec's time per project, from Playwright's JSON report (CI job summary)
-npm run contract:flip <feature>  # e2e/contract/<feature>.spec.ts → plain tests in e2e/features/ (CI names it when a contract passes)
-npm test             # Unit + integration tests in UTC and Los Angeles time (a local Postgres: test/README.md)
+npm test             # Every Vitest layer: unit + integration in UTC and Los Angeles time (a local Postgres: test/README.md), component in Chromium
 npm run test:unit    # Unit tests only, no database
-npm run test:coverage  # Everything, failing below the coverage floors (CI)
+npm run test:component  # Component tests only, in Chromium (CI)
+npm run test:coverage  # Unit + integration, failing below the coverage floors (CI)
 npm run test:e2e     # Playwright on the local stack, each test as its own user, both widths (CI); reuses a running dev server
 npm run up           # One-click start: setup, then the dev server (fresh checkout or any day)
 npm run setup        # .env.local, npm install, db:setup — no dev server (`-- --no-db` stops after install)

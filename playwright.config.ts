@@ -1,6 +1,6 @@
-import {existsSync} from 'node:fs';
 import {defineConfig} from '@playwright/test';
 import {config} from 'dotenv';
+import {preinstalledChromiumPath} from './test/preinstalledChromium';
 
 // The app's and the global setup's environment: the local stack (CI creates
 // .env.local from .env.example with `npm run setup`).
@@ -8,16 +8,10 @@ config({path: '.env.local', quiet: true});
 
 const BASE_URL = 'http://localhost:3000';
 
-/**
- * A cloud agent's container ships a Chromium for Playwright to drive; on a
- * Mac or in CI, `npx playwright install chromium` provides the pinned one.
- */
-const PREINSTALLED_CHROMIUM = '/opt/pw-browsers/chromium';
-
 const isCI = Boolean(process.env.CI);
 
-/** Everything but the product specs: the console and the contracts. */
-const PRODUCT_SPECS_IGNORE = [/designConsole\.spec\.ts/, /contract\//];
+/** Everything but the product specs: the Design Console's. */
+const PRODUCT_SPECS_IGNORE = /designConsole\.spec\.ts/;
 
 const DESKTOP = {viewport: {width: 1280, height: 800}};
 const MOBILE = {
@@ -47,35 +41,25 @@ export default defineConfig({
   use: {
     baseURL: BASE_URL,
     trace: 'retain-on-failure',
-    launchOptions: {
-      executablePath: existsSync(PREINSTALLED_CHROMIUM)
-        ? PREINSTALLED_CHROMIUM
-        : undefined,
-    },
+    launchOptions: {executablePath: preinstalledChromiumPath},
   },
   projects: [
-    // Contracts run first and alone, so a landed or broken contract fails the
-    // run in seconds instead of after every other project
-    {name: 'contract', testMatch: /contract\/.*\.spec\.ts/, use: DESKTOP},
     // The product specs, one per flow doc, at both widths
     {
       name: 'desktop',
       testIgnore: PRODUCT_SPECS_IGNORE,
       use: DESKTOP,
-      dependencies: ['contract'],
     },
     {
       name: 'mobile',
       testIgnore: PRODUCT_SPECS_IGNORE,
       use: MOBILE,
-      dependencies: ['contract'],
     },
     // A developer tool that draws phone widths in its own frames: desktop only
     {
       name: 'design-console',
       testMatch: /designConsole\.spec\.ts/,
       use: DESKTOP,
-      dependencies: ['contract'],
     },
   ],
   webServer: {
