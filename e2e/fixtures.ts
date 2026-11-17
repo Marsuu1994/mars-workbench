@@ -48,12 +48,15 @@ const bindFactories = (userId: string) => ({
   createDumpEntry: (content: string) => createDumpEntry(userId, {content}),
 });
 
+/** The factories bound to a test's own user (`test/factories.ts`). */
+export type Seed = ReturnType<typeof bindFactories>;
+
 interface E2eFixtures {
   failOnConsoleErrors: void;
   /** This test's own user, created for it alone. */
   user: E2eUser;
   /** The data builders, writing as `user`. */
-  seed: ReturnType<typeof bindFactories>;
+  seed: Seed;
 }
 
 /**

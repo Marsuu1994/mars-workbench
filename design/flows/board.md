@@ -106,9 +106,16 @@ The server counts; the client turns the counts into percentages and the daily av
 
 What happens when a card moves (A4–A7):
 
-- **MV-1** The card moves straight away, before the server answers: to the top of Done, or to its place in Todo (sorted as in COL-2). The backlog's count goes down at the same moment.
+- **MV-1** The card moves straight away, before the server answers: to the top of Done, or to its place in Todo (sorted as in COL-2). At the same moment:
+  - the counts follow it: the column it leaves and the one it lands in change their header counts (COL-1), and a card leaving the backlog takes the backlog's count down by one (BL-3)
+  - the card's progress, when it lands on Done: its dot or segment fills (CARD-7), and a habit card's count of done tasks goes up by one
 - **MV-2** The server saves the new status. Moving a card to Done records when it was finished; moving it to Todo clears that.
-- **MV-3** When the server answers, the page reloads its data, and only then does progress count the move. A one-off moved to Done also leaves the priority matrix.
+- **MV-3** When the server answers, the page reloads its data, and only then does the progress dashboard (Progress) count the move:
+  - pulled into Todo: today's total goes up by one, since today counts every task out of the backlog
+  - finished from Todo: today's done count and the week's go up by one, and today's points and the week's go up by the task's points
+  - finished from the backlog: all of the above, today's total included
+
+  A one-off moved to Done also leaves the priority matrix.
 - **MV-4** If the server refuses a move, only that card goes back to where it was. While other cards are still saving, it goes back once they have saved.
 
 ## Rules
@@ -123,7 +130,24 @@ When the server refuses a move, the card goes back as in MV-4.
 
 ## Journeys
 
-- **J1 New user** — The new user sees the empty board (ST-1) and starts a plan (A1).
-- **J2 Returning user** — The returning user sees last week's recap (ST-2) and starts this week's plan (A1).
-- **J3 A week's work** (desktop) — On the board (ST-3), the user opens the backlog and looks it over (A2), pulls a step into Todo (A4), finishes a habit task straight from the backlog (A6), then finishes the step (A7). Today's progress counts each one as soon as it's saved, without a reload (MV-3). They close the backlog (A3), and after a reload every move is still there.
-- **J4 A week's work** (mobile) — On the board (ST-3), the user opens the backlog (A2) and taps ↑ Todo on two cards, the sheet staying open between them (A5), then closes it (A3). They finish the step, dragging it from Todo onto Done (A7), and today's progress counts it without a reload (MV-3). After a reload the habit task is still in Todo and the step in Done.
+- **J1 New user**:
+  - the empty board (ST-1): it asks for a first plan
+  - start a plan (A1): the plan page opens
+- **J2 Returning user**:
+  - the empty board (ST-2): it shows last week's recap
+  - start this week's plan (A1): the plan page opens
+- **J3 A week's work** (desktop), with a project step and a habit task in the backlog:
+  - the board (ST-3): Todo and Done are empty, and nothing is done today
+  - open the backlog (A2): the panel lists the step and the habit task, and its count matches the strip's
+  - pull the step into Todo (A4): it's in Todo; Todo's count goes up by one and the backlog's goes down by one. Once saved, today's total goes up by one (MV-3).
+  - finish the habit task from the backlog (A6): it's on top of Done, its dot fills and the card counts it as done; Done's count goes up and the backlog's goes down. Once saved, today's done count, total and points, and the week's done count and points, all count it.
+  - finish the step (A7): it's on top of Done and its segment fills; Todo's count goes down and Done's goes up. Once saved, today's and the week's done counts and points count it.
+  - close the backlog (A3): the strip shows what's left
+  - reload: both cards are still in Done, and the progress is the same
+- **J4 A week's work** (mobile), with a project step and a habit task in the backlog:
+  - the board (ST-3): Todo and Done are empty, and nothing is done today
+  - open the backlog (A2): the sheet lists the step and the habit task
+  - pull both into Todo, tapping ↑ Todo on each (A5): each card leaves the sheet for Todo, the sheet's count goes down by one and Todo's goes up, and the sheet stays open for the next. Once saved, today's total goes up by one. After the last one the sheet shows its empty message (BL-7).
+  - close the sheet (A3): with nothing left, the pill is gone (BL-7)
+  - finish the step, dragging it from Todo onto Done (A7): it's first in Done and its segment fills; Todo's count goes down and Done's goes up. Once saved, today's and the week's done counts and points count it.
+  - reload: the habit task is still in Todo, the step in Done, and the progress is the same
