@@ -1,6 +1,6 @@
 # Shared Flows
 
-Cross-page sync lifecycle, centralized in `syncService` (`src/services/syncService.ts`). Everything that depends on the active plan — the board (`design/flows/board.md`), priorities matrix (`design/flows/priorities.md`), plan create/edit (`design/flows/plan.md`) and Projects (`design/flows/projects.md`) pages, their writes, the MCP planning tools — and the root layout (the sidebar and dock's Board / Plan state) await `ensureSynced` before reading plan state, so no caller carries its own sync branching and page-visit order never matters.
+Cross-page sync lifecycle, centralized in `syncService` (`src/services/syncService.ts`). Everything that depends on the active plan — the board (`design/specs/board.md`), priorities matrix (`design/specs/priorities.md`), plan create/edit (`design/specs/plan.md`) and Projects (`design/specs/projects.md`) pages, their writes, the MCP planning tools — and the root layout (the sidebar and dock's Board / Plan state) await `ensureSynced` before reading plan state, so no caller carries its own sync branching and page-visit order never matters.
 
 ---
 
@@ -36,7 +36,7 @@ Awaited first by every read or write that depends on the active plan — a page'
 
 1. Expire all daily tasks where `forDate` is **before today** and status is not DONE.
 2. If today is a weekend day and plan mode is NORMAL, skip daily task generation.
-3. Otherwise, generate new daily task instances for today **with `status = BACKLOG`** (staged in the backlog; the user pulls them onto the board — see Backlog in `design/flows/board.md`).
+3. Otherwise, generate new daily task instances for today **with `status = BACKLOG`** (staged in the backlog; the user pulls them onto the board — see Backlog in `design/specs/board.md`).
 4. Set `lastSyncDate = today`. Steps 1–4 commit in one transaction.
 
 ### Rules
@@ -59,7 +59,7 @@ Current ISO week key differs from `plan.periodKey` (checked by Ensure Synced).
 
 1. Expire all remaining non-DONE template instances; one-offs (`AD_HOC`) and project steps (`PROJECT`) never expire.
 2. Set plan status: `ACTIVE` → `PENDING_UPDATE`.
-3. Return null → the calling page renders its no-plan state (board: the empty board, see States in `design/flows/board.md`; matrix: warn hint bar + disabled send).
+3. Return null → the calling page renders its no-plan state (board: the empty board, see States in `design/specs/board.md`; matrix: warn hint bar + disabled send).
 
 ### Rules
 

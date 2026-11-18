@@ -12,7 +12,7 @@ User navigates to `/kanban/priorities` via the "Priorities" sidebar item (deskto
 
 ### Steps
 
-1. Await `ensureSynced` (see `design/flows/shared.md`).
+1. Await `ensureSynced` (see `design/specs/shared.md`).
 2. Fetch all of the user's Ad-hoc tasks with `status !== DONE` (unassigned, tracked, and those still on last week's plan).
 3. Group tasks by `quadrant`, oldest first within a quadrant (`createdAt`, then `id`) — the matrix order — and render the 2×2 matrix (Do First / Schedule / Squeeze In / Maybe Later) with per-quadrant counts.
 4. Render the title bar summary: total count and "tracking this week" count.
@@ -60,7 +60,7 @@ Choose **Todo** in an untracked matrix card's Move-to popover (desktop, via the 
 
 - Requires a current-week `ACTIVE` plan (`ensureSynced`, server-side too). When none exists (period ended, next plan not yet created), the chooser still opens on both breakpoints — the Todo row renders disabled under a "No active plan yet" note while Done stays enabled — and the matrix hint bar shows a "No active plan — Create Plan to track tasks this week · you can still mark tasks done" notice on **both** breakpoints (the instruction variant of the bar stays desktop-only — this warning is the only case where mobile renders the bar, and its Create Plan link is mobile's only in-page path to plan creation).
 - Already-tracked cards cannot be sent again: their chooser drops the Todo row and offers Done only.
-- There is no untrack from the matrix — detaching happens via the Update Plan flow's ad-hoc deselection (`planId = null`, status back to `BACKLOG`; see `design/flows/plan.md`).
+- There is no untrack from the matrix — detaching happens via the Update Plan flow's ad-hoc deselection (`planId = null`, status back to `BACKLOG`; see `design/specs/plan.md`).
 
 ---
 

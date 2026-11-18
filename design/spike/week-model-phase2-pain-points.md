@@ -31,7 +31,7 @@
 | 一周结束 | 空 board 上的 recap：完成率、done / total、points earned |
 | MCP | 按 size 和 `completionRate` 校准；guide 里写着「EXTRA_SMALL ~1h = 1 pt」，让 Claude 把 step 和 one-off 的 points 和 habit 的一起数 |
 | Plan | **没有**「这周有多少时间」的输入；一周排得满不满，只能靠 frequency × size 心算 |
-| Risk | Phase 1 关掉：卡片没有 risk badge、边框和 15:00 / 20:00 的时钟阈值（`design/flows/board.md` 的旧规则留作参考） |
+| Risk | Phase 1 关掉：卡片没有 risk badge、边框和 15:00 / 20:00 的时钟阈值（`design/specs/board.md` 的旧规则留作参考） |
 | 完成的瞬间 | 把卡拖到 Done：卡片划线、dot 填实、ring 走一格；没有其他反馈 |
 
 | 数量 | 现在 |
@@ -273,7 +273,7 @@ Owner 的三个观察（分数没用、完成个数有用、卡片上的 dots �
 
 ### 诊断：旧的 risk 为什么关掉
 
-Phase 1 之前的 risk 按时钟和天数算：今天的 daily 过了 20:00 转 warning，昨天 rollover 过来的过了 15:00 转 danger，weekly 看 `daysElapsed`，one-off 看创建以来的天数（`design/flows/board.md` › Task Risky Level，已标 switched off）。PR #47 初版 mockup 的 Cards & risk 画面把问题说清了：**一条彩色边框承载四个不相关的意思**——「今晚会 rollover」「weekly 落后 pace」「这个 one-off 放久了」「过了 20:00」——卡片说不出是哪一个。
+Phase 1 之前的 risk 按时钟和天数算：今天的 daily 过了 20:00 转 warning，昨天 rollover 过来的过了 15:00 转 danger，weekly 看 `daysElapsed`，one-off 看创建以来的天数（`design/specs/board.md` › Task Risky Level，已标 switched off）。PR #47 初版 mockup 的 Cards & risk 画面把问题说清了：**一条彩色边框承载四个不相关的意思**——「今晚会 rollover」「weekly 落后 pace」「这个 one-off 放久了」「过了 20:00」——卡片说不出是哪一个。
 
 调研给了两个更底层的解释：
 
@@ -410,7 +410,7 @@ Daily-rhythm spike 写在 Phase 1 之前；tracker 里记着拿起来时要按 k
 
 1. 方向定了以后，在 Phase 2 规划里把它排进 PR 序列（新开一份 Phase 2 spike；Phase 1 的 `week-model-restructure.md` 已经归档，不再扩写）。不等 Phase 2 就能做的小 PR：B0（只改 guide）、痛点 1 的 c（去 size chip、metrics 换个数）、痛点 5 的两列加法（`carriedCount`、`dueAt`）。
 2. Tracker：*Redesign the point system and metric tracking*、*Per-kind risk rules*、*Optional due date on one-off tasks* 和 *One entry for habits and projects* 并进 Phase 2 那一条，按结论改写或删掉。
-3. 状态从 draft 改成 awaiting owner review，走 `design/spike/README.md` 的 spike 流程；实现时按 README 归档，并重写它替掉的 living docs：`baseline.md` 的 Size system / Size UI、`flows/board.md` 的 Progress Tracking 和 Risk 两节、README 的 Board。
+3. 状态从 draft 改成 awaiting owner review，走 `design/spike/README.md` 的 spike 流程；实现时按 README 归档，并重写它替掉的 living docs：`baseline.md` 的 Size system / Size UI、`specs/board.md` 的 Progress Tracking 和 Risk 两节、README 的 Board。
 
 ---
 

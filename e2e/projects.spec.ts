@@ -1,5 +1,5 @@
 /**
- * design/flows/projects.md, one describe per flow. Every test seeds the
+ * design/specs/projects.md, one describe per flow. Every test seeds the
  * projects it reads (e2e/fixtures.ts) and runs at both widths.
  */
 import type {Locator, Page} from '@playwright/test';

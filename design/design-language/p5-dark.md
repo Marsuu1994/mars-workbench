@@ -2,7 +2,7 @@
 
 > **Status: shipped.** A third daisyUI theme alongside the two mars themes
 > (untouched) — selected from the Settings overlay theme picker
-> (`design/flows/auth.md`, Theme Change Flow). All geometry is gated under
+> (`design/specs/auth.md`, Theme Change Flow). All geometry is gated under
 > `[data-theme='p5-dark']` in `globals.css` (the "P5 DARK — geometry fork"
 > section). Skeleton, `fx-*` API and shared voices: [README.md](./README.md).
 > There is no P5 light variant; mars-light is the only light theme.

@@ -1,4 +1,4 @@
-// Spec: design/flows/board.md
+// Spec: design/specs/board.md
 import {describe, expect, it} from 'vitest';
 import {buildTask} from '../../test/buildTask';
 import {WEEK_KEY} from '../../test/time';

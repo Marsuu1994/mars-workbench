@@ -1,4 +1,4 @@
-// Spec: design/flows/board.md
+// Spec: design/specs/board.md
 import {describe, expect, it} from 'vitest';
 import {page} from 'vitest/browser';
 import {renderPage} from '../../../../test/component/renderPage';

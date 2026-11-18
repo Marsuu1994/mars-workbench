@@ -1,4 +1,4 @@
-// Spec: design/flows/board.md
+// Spec: design/specs/board.md
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {revalidatePath} from 'next/cache';
 import {getCurrentUserId} from '@/lib/auth/getCurrentUserId';

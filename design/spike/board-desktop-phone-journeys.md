@@ -78,7 +78,7 @@ Owner 想要的差别只在**第三层**：同一份「这天做完了什么」�
 
 - 桌面恢复第 1 轮的 Done 列（完成的卡片拖进去或点 ✓ 进去，按状态而不是按天），可能还保留拖到 Done；手机走圈 + sheet + tap twice。两边各自演化。
 - **好在哪**：每个设备都可以按自己的场景单独调。
-- **差在哪**：同一件事（完成、回顾）两套规则——拖到 Done 和 tap twice 的防误触不一样；flow doc、e2e contract、Design Console scenario 都要写两份，改一边要记得另一边（McGrane 的 fork 成本）；以后 native iOS 再实现一遍手机那套，变成三份；换设备时要切换心智模型。研究里拆成两套的产品，都是因为设备干的是不同的活，这里不是。
+- **差在哪**：同一件事（完成、回顾）两套规则——拖到 Done 和 tap twice 的防误触不一样；spec、e2e contract、Design Console scenario 都要写两份，改一边要记得另一边（McGrane 的 fork 成本）；以后 native iOS 再实现一遍手机那套，变成三份；换设备时要切换心智模型。研究里拆成两套的产品，都是因为设备干的是不同的活，这里不是。
 
 ### C · 现状定稿：一套 journey，桌面也是浮窗
 
@@ -93,7 +93,7 @@ Owner 想要的差别只在**第三层**：同一份「这天做完了什么」�
 - 组件：一个 `DayDoneList`（某几天的清单，按 kind 排），两个外壳：手机的 sheet、桌面的 pane——呈现的分叉只在这一处，和现在 `MobileBacklog` / `DesktopBacklog` 的做法一样。圈的点击在两边都是「选中那一天」，只是桌面的效果是滚动 pane，手机是打开 sheet。
 - 状态：tap twice 的选中状态、选中的那一天，放在 `BoardPage` 的 context 里（AGENTS.md › Page structure），两种呈现共用。
 - 测试：e2e 本来就跑两个宽度（`playwright.config.ts` 的 desktop / mobile project）。A 的 spec 是一份 flow、两个宽度各一组断言；Design Console 的 Board scenario 加一个 Done pane 的 tab。
-- 文档：`flows/board.md` 一份 Interactions，写「点某天 → 那天的清单」，呈现差别写在 Visual。
+- 文档：`specs/board.md` 一份 Interactions，写「点某天 → 那天的清单」，呈现差别写在 Visual。
 
 **B**
 
@@ -109,7 +109,7 @@ Owner 想要的差别只在**第三层**：同一份「这天做完了什么」�
 1. **一套 HTTP API。** Server actions 不能被 Swift 调用，要有 JSON 的 route handlers（比如 `src/app/api/v1/…`），和 actions 一样薄：validate（复用 `src/schemas.ts` 的 zod）→ service。AGENTS.md 现在规定 route handlers 只交给 `src/mcp/` 或 `src/lib/`，到时候要改成「也可以交给 service」。不要让 app 直接用 Supabase 的表（PostgREST）——那样会绕开 services，违反「data rule 要在每条写路径上」（AGENTS.md › Layers）。
 2. **登录。** Supabase 的 native Google / Apple 登录拿到 session，route handlers 验 Bearer token；MCP 的 identity middleware 已经在验 token，可以参照。
 3. **规则留在服务端。** 「今天的总数」（Ideas 2）、每天的圈、tap twice 只是 UI——但「什么算完成、完成算在哪天」必须是 service 的输出，web 和 iOS 拿到的是同一份数字，不各算各的。
-4. **会被写两遍的**：所有的 view、view 的状态、乐观更新、动画。**只写一遍的**：API contract、domain 规则、enum、flow doc。
+4. **会被写两遍的**：所有的 view、view 的状态、乐观更新、动画。**只写一遍的**：API contract、domain 规则、enum、spec。
 5. **网页的手机布局**：native 上线之前，它就是手机版；上线之后，它是没装 app 时的 fallback（Smart App Banner 把装了 app 的人送进 app）。所以网页手机版不会被删，但不再需要追着 native 做新东西。
 
 **对选项的影响**：手机的 journey 迟早要在 SwiftUI 里再实现一遍。A 的话，web 的两种呈现 + iOS 的一种呈现都照着**一份** journey 写；B 的话，iOS 要照着手机那一套写，桌面那一套只在 web 上存在，三份实现、两份规则。
@@ -126,7 +126,7 @@ Owner 想要的差别只在**第三层**：同一份「这天做完了什么」�
 ## 实施计划（A）
 
 1. **这个 PR**：在 mockup 的 D · Done 上做一个修订（amendment，标日期）：桌面换成 Todo + Done pane + backlog 的三栏，pane 按天分组、今天在上、之前的天折叠，点圈滚到那天；手机不变。Ideas 里补一条「周后半段 done 太长」的观察点。
-2. **实现 PR（之后，从 `main` 开）**：`doneByDay` 进 board 的 service 输出；`DayDoneList` + 两个外壳；`flows/board.md` 里对应的 pending 条目清掉，每条都有 test。
+2. **实现 PR（之后，从 `main` 开）**：`doneByDay` 进 board 的 service 输出；`DayDoneList` + 两个外壳；`specs/board.md` 里对应的 pending 条目清掉，每条都有 test。
 3. **Native iOS（另开 spike）**：API 层（route handlers + Bearer auth）、offline / sync、SwiftUI 的结构。AGENTS.md 关于 route handlers 的那一条在那个 spike 里改。
 
 ## 待拍板的问题

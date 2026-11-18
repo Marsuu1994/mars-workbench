@@ -77,7 +77,7 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 
 ## Services (src/services)
 
-`syncService.ts` flow-level spec: [flows/shared.md](./flows/shared.md).
+`syncService.ts` flow-level spec: [specs/shared.md](./specs/shared.md).
 
 | Function | Purpose |
 | --- | --- |

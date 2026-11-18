@@ -1,5 +1,5 @@
 /**
- * design/flows/dump.md, one describe per flow. Every test seeds the entries
+ * design/specs/dump.md, one describe per flow. Every test seeds the entries
  * it reads (e2e/fixtures.ts) and runs at both widths.
  */
 import {expect, expectToSee, test} from './fixtures';

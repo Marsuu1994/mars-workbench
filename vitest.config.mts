@@ -10,9 +10,9 @@ import {preinstalledChromiumPath} from './test/preinstalledChromium';
  */
 const TIME_ZONES = {utc: 'UTC', la: 'America/Los_Angeles'};
 
-const UNIT_TESTS = ['src/**/*.test.ts', 'scripts/**/*.test.ts'];
+const UNIT_TESTS = ['src/**/*.unit.test.ts', 'scripts/**/*.unit.test.ts'];
 const INTEGRATION_TESTS = 'src/**/*.int.test.ts';
-const COMPONENT_TESTS = 'src/**/*.test.tsx';
+const COMPONENT_TESTS = 'src/**/*.component.test.tsx';
 
 /** A desktop window; a mobile test resizes it (`page.viewport`). */
 const DESKTOP_VIEWPORT = {width: 1280, height: 800};
@@ -47,7 +47,6 @@ export default defineConfig({
           test: {
             name: `unit-${suffix}`,
             include: UNIT_TESTS,
-            exclude: [INTEGRATION_TESTS],
             env: {TZ: timeZone},
           },
         },

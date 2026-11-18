@@ -1,9 +1,9 @@
 /**
  * `npm run check:spec` (CI):
  * - every item in a spec v2 doc is held by a test whose title names it, and
- *   no title names an item that isn't there (design/flows/README.md › Items
+ *   no title names an item that isn't there (design/specs/README.md › Items
  *   and IDs);
- * - the legacy docs (design/flows/legacy.txt) only get fewer, and none grows,
+ * - the legacy docs (design/specs/legacy.txt) only get fewer, and none grows,
  *   compared with main where this branch left it.
  *
  * `npm run check:spec -- --list board` prints board.md's items, each with
@@ -24,7 +24,7 @@ import {
   parseSpecItems,
 } from './specCoverage';
 
-const FLOWS_DIR = 'design/flows';
+const SPECS_DIR = 'design/specs';
 const TEST_ROOTS = ['src', 'e2e', 'scripts', 'test'];
 const TEST_FILE = /\.(test\.tsx?|spec\.ts)$/;
 const LIST_FLAG = '--list';
@@ -38,14 +38,14 @@ const readAt = (commit: string, path: string) => {
   return status === 0 ? stdout : null;
 };
 
-const docs = readdirSync(FLOWS_DIR)
+const docs = readdirSync(SPECS_DIR)
   .filter(name => name.endsWith('.md') && name !== 'README.md')
-  .map(name => ({name, markdown: readFileSync(join(FLOWS_DIR, name), 'utf8')}));
+  .map(name => ({name, markdown: readFileSync(join(SPECS_DIR, name), 'utf8')}));
 const legacy = parseLegacyList(readFileSync(LEGACY_LIST_PATH, 'utf8'));
 
 const specs = docs
   .filter(({name}) => !legacy.includes(name))
-  .map(({name, markdown}) => ({path: join(FLOWS_DIR, name), markdown}));
+  .map(({name, markdown}) => ({path: join(SPECS_DIR, name), markdown}));
 
 const testFiles = TEST_ROOTS.flatMap(root =>
   readdirSync(root, {recursive: true, encoding: 'utf8'})
@@ -56,7 +56,7 @@ const testFiles = TEST_ROOTS.flatMap(root =>
 const listFlagIndex = process.argv.indexOf(LIST_FLAG);
 if (listFlagIndex !== -1) {
   const page = process.argv[listFlagIndex + 1];
-  const spec = specs.find(({path}) => path === join(FLOWS_DIR, `${page}.md`));
+  const spec = specs.find(({path}) => path === join(SPECS_DIR, `${page}.md`));
   if (!spec) {
     console.error(
       `${LIST_FLAG} takes a spec v2 page: ${specs.map(({path}) => path).join(', ')}.`,
@@ -95,7 +95,7 @@ const baseCommit = baseOutput.trim();
 const baseLegacyList = readAt(baseCommit, LEGACY_LIST_PATH);
 const markdownByName = new Map(
   legacy.flatMap(name => {
-    const markdown = readAt(baseCommit, join(FLOWS_DIR, name));
+    const markdown = readAt(baseCommit, join(SPECS_DIR, name));
     return markdown === null ? [] : [[name, markdown] as const];
   }),
 );

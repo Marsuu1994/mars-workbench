@@ -2,11 +2,11 @@
 
 The board is where the user works through the week. Each time a habit runs this week, the plan has one task for it (a *habit task*). Habit tasks and this week's project steps wait in the backlog until the user pulls them into Todo; one-offs go straight into Todo. As the user finishes tasks, they move them to Done.
 
-Spec v2 (`flows/README.md`): every item starts with an ID, and each test that checks it puts that ID in its title.
+Spec v2 (`specs/README.md`): every item starts with an ID, and each test that checks it puts that ID in its title.
 
 ## States
 
-Opening `/kanban` runs the sync first (`flows/shared.md`). The page then shows one of three screens, depending on what the server sends back.
+Opening `/kanban` runs the sync first (`specs/shared.md`). The page then shows one of three screens, depending on what the server sends back.
 
 - **ST-1 New user** — The user has no plan for this week and no ended plan waiting (neither `ACTIVE` nor `PENDING_UPDATE`). The server sends nothing. The page shows an empty board that asks for a first plan, and its button opens the plan page (A1).
 - **ST-2 Returning user** — Last week's plan has ended (`PENDING_UPDATE`) and there is no plan for this week yet. The server sends a recap of last week that counts every task on that plan: habit tasks, project steps and one-offs, the expired ones included. The empty board shows the recap, and its button opens the plan page for this week's plan (A1). The recap shows:

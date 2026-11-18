@@ -1,5 +1,5 @@
 /**
- * design/flows/auth.md, one describe per flow. A signed-in test runs as its
+ * design/specs/auth.md, one describe per flow. A signed-in test runs as its
  * own fresh user (e2e/fixtures.ts); every test runs at both widths.
  */
 import {expect, openPage, test} from './fixtures';

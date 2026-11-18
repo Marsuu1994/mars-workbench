@@ -1,5 +1,5 @@
 /**
- * e2e timing — how long each spec (one per flow doc) takes in each project,
+ * e2e timing — how long each spec (one per spec doc) takes in each project,
  * from Playwright's JSON report, as a Markdown table. CI appends it to the
  * e2e job's summary; it is the data for choosing which specs a PR runs
  * (design/spike/archived/e2e-data-isolation.md › Q8).
