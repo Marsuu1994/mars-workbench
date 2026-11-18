@@ -29,6 +29,7 @@ A page without a screen (sync, MCP) has only the sections it needs: MCP's Action
   - *(pending)*: designed but not built. No test may name it yet; the implementation PR drops the marker and writes its test.
   - *(removing)*: built and still held by its test, but the design drops it. The implementation PR deletes the item, and `check:spec` then fails until its test is deleted too.
   - *(bug)*: built but wrong, held by an `it.fails`.
+- An implementation PR is done when the items its design marked *(pending)* or *(removing)* have no marker left and `check:spec` passes.
 - A change to an item that's already built: when the spec and the code change in the same PR, edit the item and its test together. When the spec is merged first, mark the old item *(removing)*, say "replaced by" and the new ID, and give the new behaviour a new ID marked *(pending)*. It gets a new ID, rather than the old one marked as changing, so the implementation PR can't pass `check:spec` without deleting the old test and writing the new one.
 - A section kept as it stands until a redesign is marked `> As is.` and has no IDs.
 
@@ -43,7 +44,7 @@ A design's items come from its decided mockup (what counts as decided: `design/R
 
 ### What a spec doesn't say
 
-- **Which test holds an item** — the test's title does, and `npm run check:spec -- --list <page>` lists them. Which layer tests it: `test/README.md` › Which layer holds an item.
+- **Which test holds an item** — the test's title does, and `npm run check:spec -- --list <page>` lists them. Which layer tests it: `test/README.md` › Which layer.
 - **Copy, pixels, colours, positions** — the mockup before the design is built, the Design Console after.
 - **Implementation** — function names, query counts, callers: the code and `reference.md`.
 - **Decisions and their reasons** — the spike and `baseline.md`'s Architecture Decision.

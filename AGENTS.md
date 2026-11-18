@@ -88,7 +88,7 @@ A rule that only one kind of file needs lives with that file. Read it before you
 
 | Before you edit… | Read first |
 | --- | --- |
-| a test (`*.test.ts`, `*.int.test.ts`, `e2e/`, `test/`) | `test/README.md` |
+| a test (`*.unit.test.ts`, `*.int.test.ts`, `*.component.test.tsx`, `e2e/`, `test/`) | `test/README.md` |
 | a spike (`design/spike/`) | `design/spike/README.md` |
 | `design/tracker.md` | its Conventions section |
 | `design/future-ideas.md` | its Conventions section |
