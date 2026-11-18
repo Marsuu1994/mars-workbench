@@ -4,7 +4,7 @@ One spec per page — `board.md`, `plan.md`, `priorities.md`, `projects.md`, `du
 
 `board.md` is written in spec v2; the docs listed in `legacy.txt` are still legacy docs (below) until each is migrated. This folder was `design/flows/` until PR #120, and specs were called flow docs; older reviews and archived spikes still say so.
 
-This file is the one home of the rules for writing a spec. The `write-spec` skill and the `spec-reviewer` agent point here rather than restate them (AGENTS.md › Adding a rule); how a test holds an item is `test/README.md`'s.
+This file is the one home of the rules for writing a spec. The `write-spec` skill and the `write-spec-reviewer` agent point here rather than restate them (AGENTS.md › Adding a rule); how a test holds an item is `test/README.md`'s.
 
 ## Spec v2
 
@@ -41,6 +41,8 @@ A design's items come from its decided mockup (what counts as decided: `design/R
 - **Decidable**: an item states what the user can observe — what is counted, the numbers and caps, the order, what is absent — so that, given the data, anyone can say whether the screen does it, and two tests of it would assert the same thing. Bad: "A group shows a pile." Good: "A group with tasks behind its next one shows one thin sheet for each of them, at most three, and **+N more**, N being how many are behind; the last task of a group shows neither."
 - **Each layout**: when desktop and mobile differ, the item says what each one does.
 - **Both sides of a limit**: when the UI stops the user from changing data in some way (only a project's next step can be pulled), the server refuses it too, and that refusal is an item of its own in Rules: a data rule lives where every write path passes (AGENTS.md › Layers).
+- **Only what was decided**: what neither the decided mockup nor the owner's words decide is a question for the owner, not an item. The mockup's options that weren't picked, its research and its ideas for the spec decide nothing, and its Before is only today's state. An item that needs the owner's answer waits for it.
+- **Only what the design changes**: built items the design doesn't touch stay as they are. A built item that is simply wrong is a fix of its own, not part of the design's change.
 
 ### What a spec doesn't say
 

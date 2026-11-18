@@ -13,7 +13,7 @@ Read AGENTS.md › UI Workflow, then `design/README.md` › Mockups (how a mocku
 
 ## 2. What exists
 
-- The current spec (`design/specs/<feature>.md`): where it covers the area, design within it; where it doesn't yet — the spec may come after the mockup — the owner's prompt is the requirement. Either way, list what the flow will need to say as a question on the PR, for the spec to write.
+- The current spec (`design/specs/<feature>.md`): where it covers the area, design within it; where it doesn't yet — the spec may come after the mockup — the owner's prompt is the requirement. Either way, list what the spec will need to say as a question on the PR, for the spec to write.
 - The feature's Design Console scenario pages (`src/app/design/scenarios/<feature>/`): the states the screen is in today.
 - The components the change touches: their structure, tokens and `fx-*` utilities. Draw Before from them exactly, and grow After out of the same parts — the same card faces, kind colours and signals — rather than new ones.
 
@@ -25,7 +25,7 @@ Before drawing, find how other products solve the same problem — what the rese
 
 Draw `design/mockup/mockup-<area>.html` as `design/README.md` › Mockups says — options, research, language, the freshness script — ranked by the Principles, with your recommendation. Draw what the owner will actually meet: the real combinations of data side by side (a habit-heavy day, a one-colour day), not one tidy case; and where the design is an interaction, make After clickable, so the owner tries it rather than reads about it. A design with several parts goes one module at a time, each on its own tab, merged into one final tab at the end. Check it renders before pushing: every screen, every theme, no console errors.
 
-Rewrite the tracker item to say what the design does and link the mockup. Open the PR with the mockup's raw.githack link at the top of the description and the questions the owner has to decide under it; the Mockup links check prints the exact line when it is missing.
+Rewrite the tracker item to say what the design does and link the mockup. When the owner asks for the PR (AGENTS.md › Version Control), open it with the mockup's raw.githack link at the top of the description and the questions the owner has to decide under it; the Mockup links check prints the exact line when it is missing.
 
 ## 5. Review rounds
 
@@ -37,4 +37,4 @@ The decided mockup and the review log are the handoff: together they say what wa
 
 ## After the design is decided
 
-The design PR also changes the page's spec (`design/specs/<page>.md`): each new item is added marked *(pending)*, and each item the design changes or drops is marked *(removing)*, with a new *(pending)* item for the new behaviour (`design/specs/README.md` › Items and IDs). No tests yet: the implementation PR follows from `main`, writes a test for each pending item, builds it and drops the markers (AGENTS.md › UI Workflow).
+The `write-spec` skill writes the design's spec items next, and the implementation follows from `main` (AGENTS.md › UI Workflow).

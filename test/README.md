@@ -2,7 +2,7 @@
 
 Four layers, each where it pays (the decision records: `design/spike/archived/test-baseline.md`, and `design/spike/spec-layers-v2.md` for component tests and spec IDs). AGENTS.md holds what every task needs — run the tests before a push, how agents verify UI; this file is how the tests are written.
 
-This file is the one home of the rules for writing a test. The `test-writer` agent, the `implement-spec` skill and the `implementation-reviewer` agent point here rather than restate them (AGENTS.md › Adding a rule); which spec items need a test yet is `design/specs/README.md`'s.
+This file is the one home of the rules for writing a test. The `implement-spec` skill and the `implement-spec-reviewer` agent point here rather than restate them (AGENTS.md › Adding a rule); which spec items need a test yet is `design/specs/README.md`'s.
 
 | Layer | Runner | Lives in | Talks to |
 | --- | --- | --- | --- |
