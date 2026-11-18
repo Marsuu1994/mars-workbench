@@ -165,8 +165,8 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Chromium
+        uses: ./.github/actions/chromium
 
       # Each component test renders in Chromium, against the app's CSS.
       - name: Run component tests
@@ -190,8 +190,8 @@ jobs:
       - name: Local stack
         run: npm run setup
 
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Chromium
+        uses: ./.github/actions/chromium
 
       # Builds and starts production, runs every project; each test signs in
       # as its own fresh user.
