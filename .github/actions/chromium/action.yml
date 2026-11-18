@@ -1,0 +1,34 @@
+name: Chromium
+description: >-
+  Playwright's Chromium and the system libraries it needs, for the component
+  and e2e jobs. Runs after the dependencies are installed.
+
+runs:
+  using: composite
+  steps:
+    # The browser is cached by Playwright's version (one version serves both
+    # @playwright/test and @vitest/browser-playwright), so a hit downloads
+    # nothing and only the system libraries are installed from apt.
+    - name: Playwright version
+      id: playwright
+      shell: bash
+      run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+    - name: Cache Chromium
+      id: cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+    # The install usually takes under a minute, but a slow mirror once held a
+    # job for over five; the timeout fails it fast instead, so it can be re-run.
+    - name: Install Chromium
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: timeout 3m npx playwright install --with-deps chromium
+
+    - name: Install Chromium's system libraries
+      if: steps.cache.outputs.cache-hit == 'true'
+      shell: bash
+      run: timeout 3m npx playwright install-deps chromium
