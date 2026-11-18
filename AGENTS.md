@@ -88,13 +88,13 @@ A rule that only one kind of file needs lives with that file. Read it before you
 
 | Before you edit… | Read first |
 | --- | --- |
-| a test (`*.unit.test.ts`, `*.int.test.ts`, `*.component.test.tsx`, `e2e/`, `test/`) | `test/README.md` |
+| a test (`*.unit.test.ts`, `*.int.test.ts`, `*.component.test.tsx`, `e2e/`, `test/`) | `test/README.md`: how a test is written, and which layer tests what |
 | a spike (`design/spike/`) | `design/spike/README.md` |
 | `design/tracker.md` | its Conventions section |
 | `design/future-ideas.md` | its Conventions section |
-| a spec (`design/specs/`) | `design/specs/README.md` |
+| a spec (`design/specs/`) | `design/specs/README.md`: how a spec is written |
 | the Design Console — scenarios, gallery (`src/app/design/`) | `src/app/design/README.md` |
-| a mockup (`design/mockup/`) | `design/README.md` |
+| a mockup (`design/mockup/`) | `design/README.md` › Mockups: how a mockup is drawn, and when a design is decided |
 | an experiment (`experiments/`) | `experiments/AGENTS.md` |
 | `reviews/`, or addressing the owner's review on a PR | `reviews/AGENTS.md` |
 | themes, `globals.css`, visual patterns | `design/design-language/README.md` |
@@ -102,13 +102,7 @@ A rule that only one kind of file needs lives with that file. Read it before you
 
 ### Adding a rule
 
-Every rule has one home, and everything else points to it (PR #120):
-
-- code taste and the rules every task needs: this file;
-- how a test is written, and which layer tests what: `test/README.md`;
-- how a spec is written: `design/specs/README.md`;
-- how a mockup is drawn, and when a design is decided: `design/README.md` › Mockups;
-- a rule for any other kind of file: that file's README or Conventions section (the table above).
+Every rule has one home, and everything else points to it (PR #120): code taste and the rules every task needs live in this file, and a rule only one kind of file needs lives where the table above says.
 
 A skill, a subagent or a `.claude/context/` file points to a rule's home by file and heading and never restates it: what it adds is its own steps and the rules that hold for it alone. A rule a linter or script can check goes into the tool, with at most one line here. A rule that overlaps an existing one rewrites that rule instead of adding a second.
 

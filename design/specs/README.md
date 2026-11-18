@@ -20,7 +20,7 @@ A page without a screen (sync, MCP) has only the sections it needs: MCP's Action
 
 ### Items and IDs
 
-- Every item starts with an ID: `<AREA>-n` (`COL-2`, `BL-5`), `A` for actions, `R` for rules, `J` for journeys. A new ID is one more than the highest its area has in the doc (`BL-9` → `BL-10`), whether the item is new or replaces a changed one. IDs are never renumbered.
+- Every item starts with an ID: `<AREA>-n` (`COL-2`, `BL-5`), `A` for actions, `R` for rules, `J` for journeys. A new ID is one more than the highest its area has in the doc (`BL-9` → `BL-10`), whether the item is new or replaces a changed one. IDs are never renumbered. When the highest ID of an area is deleted, the next new item takes its number again: an ID names one item in the spec as it stands, and an older PR or review that names it meant the item of its day.
 - One ID is one thing a test's title can state in a sentence. A card's parts are one item, not one per field. Two statements are two items, even about the same thing: Done cards locked on the board is one, the server refusing the move another.
 - An item says its facts in full rather than pointing to another area's ("in Todo's order"): two areas that agree today can part later. Pointing to an action, a move or a rule is fine.
 - Every item is held by at least one test that names its ID in its title (`test/README.md` › Spec IDs).
@@ -37,7 +37,12 @@ A page without a screen (sync, MCP) has only the sections it needs: MCP's Action
 
 A design's items come from its decided mockup (what counts as decided: `design/README.md` › Mockups) and from what the owner decided in words on its PR.
 
-- **Covers the design**: everything the decided mockup shows is in the spec, in the section it belongs to (Spec v2 above): each state in States; what an area shows in that area's section; each thing the user can do in Actions, with its server action, or `—` when it stays on the client; each limit in Rules; a new daily path in Journeys.
+- **Covers the design**: everything the decided mockup shows is in the spec, in the section it belongs to (Spec v2 above):
+  - each state: States;
+  - what an area shows: that area's section;
+  - each thing the user can do: Actions, with its server action, or `—` when it stays on the client;
+  - each limit: Rules;
+  - a new daily path: Journeys.
 - **Decidable**: an item states what the user can observe — what is counted, the numbers and caps, the order, what is absent — so that, given the data, anyone can say whether the screen does it, and two tests of it would assert the same thing. Bad: "A group shows a pile." Good: "A group with tasks behind its next one shows one thin sheet for each of them, at most three, and **+N more**, N being how many are behind; the last task of a group shows neither."
 - **Each layout**: when desktop and mobile differ, the item says what each one does.
 - **Both sides of a limit**: when the UI stops the user from changing data in some way (only a project's next step can be pulled), the server refuses it too, and that refusal is an item of its own in Rules: a data rule lives where every write path passes (AGENTS.md › Layers).

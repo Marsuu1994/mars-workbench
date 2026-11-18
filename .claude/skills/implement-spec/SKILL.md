@@ -5,7 +5,7 @@ description: Building a page's *(pending)* spec items — a test for each at the
 
 # Implement spec — from pending items to built and tested
 
-The scope is the spec: the items still marked *(pending)* or *(removing)* on the page. The spec says what each item does and the decided mockup how it looks. Behaviour the spec doesn't state is out of scope: raise it with the owner rather than build it. A question the spec PR left open stops the work until the owner answers.
+The scope is the spec: the items still marked *(pending)* or *(removing)* on the page. The spec says what each item does and the decided mockup how it looks. Behaviour the spec doesn't state is out of scope: raise it with the owner rather than build it. A question the spec left open (the inputs say where to find them) stops the work on the items it touches until the owner answers.
 
 ## 1. Read
 

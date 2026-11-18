@@ -9,7 +9,7 @@ You review one change to a page's spec in this repository and report back. You d
 
 ## The brief
 
-The main session sends the spec's path, the mockup's path and its decided tab, the review log when there is one, the base to diff against, and the owner's answers that aren't in the review log yet. Review the items the diff adds or marks, and what the decided tab shows; leave the rest of the spec alone.
+The main session sends the spec's path, the mockup's path and its decided tab, the review log when there is one, the base to diff against, the owner's answers that aren't in the review log yet, and the questions it left open for the owner. Review the items the diff adds or marks, and what the decided tab shows; leave the rest of the spec alone.
 
 ## Read
 
@@ -19,7 +19,7 @@ The main session sends the spec's path, the mockup's path and its decided tab, t
 
 Hold each item the diff adds or marks against every rule in the standard. Two of them you check from the mockup's side, not the item's:
 
-- **Coverage**: list what the decided tab shows, sorted as Writing items from a design › Covers the design sorts it. A line that no item, case inside one, Actions row or rule covers, and that the brief doesn't list as a question, goes under Missing.
+- **Coverage**: list what the decided tab shows, sorted as Writing items from a design › Covers the design sorts it. A line that no item, case inside one, Actions row or rule covers, and that isn't among the brief's open questions, goes under Missing.
 - **Fidelity**: an item says what the mockup shows, with the same numbers, caps, orders and widths. An item that contradicts the mockup or its script fails.
 
 For Decidable:

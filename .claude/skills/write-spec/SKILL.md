@@ -9,7 +9,10 @@ The spec is what the implementation is built and tested against, and the session
 
 ## 1. Read
 
-`.claude/context/write-spec-context.md`, and everything it points to: the standard and the inputs. Its stop conditions apply before anything is written.
+`.claude/context/write-spec-context.md`, and everything it points to: the standard and the inputs. Stop before writing anything, and tell the owner, when:
+
+- the page is listed in `design/specs/legacy.txt`: the doc is migrated to spec v2 first (`design/specs/README.md` › Legacy docs), a task of its own;
+- nothing in the mockup is marked decided.
 
 ## 2. Write
 
@@ -19,11 +22,11 @@ The spec is what the implementation is built and tested against, and the session
 
 ## 3. Review
 
-1. Spawn the `write-spec-reviewer` agent with its brief: the spec's path, the mockup's path and its decided tab, the review log's path, the base to diff against, and the owner's answers in this session that the review log doesn't hold yet.
+1. Spawn the `write-spec-reviewer` agent with its brief: the spec's path, the mockup's path and its decided tab, the review log's path, the base to diff against, the owner's answers in this session that the review log doesn't hold yet, and the questions left open for the owner.
 2. Fix each FAIL and run the reviewer once more. A FAIL you think is wrong goes to the owner with both readings; don't argue it away.
 
 ## 4. Report and hand off
 
 1. Report to the owner: the items added and marked *(removing)*, by ID, one line each; the reviewer's verdict; and the questions, each with your recommendation.
-2. The spec lands with no code, on the design PR or a spec PR of its own (AGENTS.md › UI Workflow). Rewrite the feature's tracker item to say the spec is written and what is still open.
+2. The spec lands with no code, on the design PR or a spec PR of its own (AGENTS.md › UI Workflow). Rewrite the feature's tracker item to say the spec is written and list the questions still open: the implementing session reads them there.
 3. The implementation starts from `main` with the `implement-spec` skill, from the spec and the mockup, not from this session's context.
