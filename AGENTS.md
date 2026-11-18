@@ -32,13 +32,14 @@ test/                              # Test helpers and conventions (README); unit
 e2e/                               # Playwright specs: a spec v2 page's journeys, a legacy doc's flows (test/README.md)
 .claude/agents/                    # Claude Code subagents: ui-verifier, test-writer, ci-fixer (Workflow › Subagents)
 .claude/skills/                    # Claude Code skills: ui-design (UI Workflow)
+.claude/context/                   # What a skill and the subagent reviewing its work both read, as pointers (Workflow › Adding a rule)
 design/                            # Design docs — index in design/README.md
 ├── baseline.md                    # The one app-wide baseline: goal, entities, schema, architecture decisions
 ├── design-language/               # Per-theme visual specs + the shared fx-* skeleton
 ├── tracker.md                     # Roadmap — open items only
 ├── future-ideas.md                # Problems seen coming but not worth doing yet, each with a first idea
 ├── reference.md                   # Lookup tables: server actions, services, DAL
-├── flows/                         # Per-feature flow docs
+├── specs/                         # One spec per page (was flows/) — rules in its README
 ├── spike/                         # Spike docs for open questions; archived/ = implemented
 └── mockup/                        # Self-contained HTML mockups of designs not yet fully implemented
 experiments/                       # Controlled comparisons of ways of working: one folder per question, an instruction and a report per try — README for people, rules in its AGENTS.md
@@ -73,7 +74,7 @@ src/
 Read the design docs only when the task involves logic, data or new flows; skip them for pure styling, copy or UI-only tweaks.
 
 - `design/baseline.md`: schema or entity changes
-- `design/flows/<feature>.md`: flow changes or additions
+- `design/specs/<feature>.md`: behaviour changes or additions
 - `design/reference.md`: server action, service or DAL changes
 - `src/app/design/scenarios/<feature>/`: the feature's screen states
 
@@ -91,7 +92,7 @@ A rule that only one kind of file needs lives with that file. Read it before you
 | a spike (`design/spike/`) | `design/spike/README.md` |
 | `design/tracker.md` | its Conventions section |
 | `design/future-ideas.md` | its Conventions section |
-| a flow doc (`design/flows/`) | `design/flows/README.md` |
+| a spec (`design/specs/`) | `design/specs/README.md` |
 | the Design Console — scenarios, gallery (`src/app/design/`) | `src/app/design/README.md` |
 | a mockup (`design/mockup/`) | `design/README.md` |
 | an experiment (`experiments/`) | `experiments/AGENTS.md` |
@@ -101,7 +102,15 @@ A rule that only one kind of file needs lives with that file. Read it before you
 
 ### Adding a rule
 
-A new rule goes where it belongs: a rule for one kind of file goes into that file's README or Conventions section; a rule a linter or script can check goes into the tool, with at most one line here; a rule that overlaps an existing one rewrites that rule instead of adding a second. Only rules every task needs live in this file.
+Every rule has one home, and everything else points to it (PR #120):
+
+- code taste and the rules every task needs: this file;
+- how a test is written, and which layer tests what: `test/README.md`;
+- how a spec is written: `design/specs/README.md`;
+- how a mockup is drawn, and when a design is decided: `design/README.md` › Mockups;
+- a rule for any other kind of file: that file's README or Conventions section (the table above).
+
+A skill, a subagent or a `.claude/context/` file points to a rule's home by file and heading and never restates it: what it adds is its own steps and the rules that hold for it alone. A rule a linter or script can check goes into the tool, with at most one line here. A rule that overlaps an existing one rewrites that rule instead of adding a second.
 
 ### Spike first for complex tasks
 
@@ -120,7 +129,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 - **The Design Console is the source of truth for implemented UI.** `/design` renders the real components: a gallery tabbed by layer (`ui/` · `application/` · `domain/`) and per-feature scenario pages (`/design/scenarios/<feature>/`) with pinned fixture states. `npm run dev` serves it without signing in (`src/app/design/README.md` › Local access).
 - **Verification is CI's and the owner's; a browser check is the exception.** CI runs the unit, integration and e2e tests — every page, every Design Console tab, the key journeys — on every PR, and the owner accepts UI on the Vercel preview. Logic, data and MCP changes are verified by `npm test`, style and copy changes by CI and the owner. A layout change (wrapping, overflow, breakpoints, overlay stacking), a new or changed scenario tab or play step, or the owner's request gets one browser check, delegated to the `ui-verifier` subagent with a brief — what changed, the scenario tabs, each check as a sentence — so screenshots and scripts stay out of the main context; read its verdict, and open a screenshot only when it says UNSURE. A bug seen only on a device (iOS / WebKit, the PWA): ask the owner for a screenshot or recording before trying headless Chromium.
 - **Production first, the console adapts.** Components are shaped by what production needs. A production component never carries a prop, branch or comment that only the console uses, and nothing is split or restructured so the console can show it: the console reaches a state the way a user would, or skips it. Bad: `initialUndoToastTaskId` on `PrioritiesPage`. Good: a scenario tab's `play` step clicking the real control.
-- **New UI starts with a design PR.** A design that isn't built yet is drawn as a self-contained HTML mockup in `design/mockup/`, reviewed by the owner on its PR, with the spec's new or changed items marked *(pending)* (`design/flows/README.md` › Items and IDs); that PR merges with no component code, and an implementation PR follows from `main` (`design/README.md` › Mockups; the `ui-design` skill walks the design, from research to the decided mockup).
+- **New UI starts with a design PR.** A design that isn't built yet is drawn as a self-contained HTML mockup in `design/mockup/`, reviewed by the owner on its PR, with the spec's new or changed items marked *(pending)* (`design/specs/README.md` › Items and IDs); that PR merges with no component code, and an implementation PR follows from `main` (`design/README.md` › Mockups; the `ui-design` skill walks the design, from research to the decided mockup).
 - **Build it exactly, then sync the console.** Implement the approved mockup exactly (layout, spacing, text, colors, icons, states); if something can't be built as-is, raise it and update the mockup first. As the UI lands, add or update the feature's scenario page and gallery entries so the pinned states match production. Once the design is fully implemented, delete its mockup: from then on the Design Console is the source of truth. A scenario that no longer matches production is a bug.
 
 ## Documentation Style

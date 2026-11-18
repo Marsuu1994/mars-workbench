@@ -12,7 +12,7 @@ User opens **Projects** from the sidebar or the mobile dock → `/kanban/project
 
 ### Steps
 
-1. Await `ensureSynced` (see `design/flows/shared.md`).
+1. Await `ensureSynced` (see `design/specs/shared.md`).
 2. List the user's non-archived projects, newest first, each with its progress (done / total steps), its next step (the first unfinished one in path order) and how many of its unfinished steps are on this week.
 3. On desktop, select the project `?project=` names (else the newest) and show its detail beside the list; an archived project's detail never opens, so naming one falls back the same way. On mobile, show the list; choosing a project shows its detail instead, and back returns to the list. Selecting never waits on the server, and a reload keeps the selection.
 4. A project's detail shows its path: done steps first (in completion order, with their completion date), then the unfinished steps in path order. A step on a week is marked where it stands: this week's with its board status, last week's while it waits for the next plan.
@@ -93,7 +93,7 @@ Adding a step to a project, editing or deleting a step that isn't done, or reord
 
 ### Trigger / Entry Point
 
-"+ This week" on an upcoming step, or Claude over MCP (`create_plan` / `update_plan`; see "Plan with Claude (MCP) Flow" in `design/flows/mcp.md`).
+"+ This week" on an upcoming step, or Claude over MCP (`create_plan` / `update_plan`; see "Plan with Claude (MCP) Flow" in `design/specs/mcp.md`).
 
 ### Steps
 

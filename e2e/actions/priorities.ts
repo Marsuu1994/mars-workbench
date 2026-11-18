@@ -1,6 +1,6 @@
 /**
  * The priority matrix's controls, at either width
- * (design/flows/priorities.md › Track This Week Flow).
+ * (design/specs/priorities.md › Track This Week Flow).
  */
 import type {Page} from '@playwright/test';
 import {waitForServerAction} from '../fixtures';

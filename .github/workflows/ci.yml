@@ -103,7 +103,7 @@ jobs:
         uses: ./.github/actions/setup
 
       # Every item in a spec v2 doc is named by a test that holds it
-      # (design/flows/README.md › Items and IDs).
+      # (design/specs/README.md › Items and IDs).
       - name: Check spec coverage
         run: npm run check:spec
 

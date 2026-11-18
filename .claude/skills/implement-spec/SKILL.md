@@ -11,9 +11,9 @@ The scope is the spec: the items marked *(pending)* or *(removing)* on the page 
 
 Read these before writing code:
 
-- The page's spec, `design/flows/<page>.md`, and `npm run check:spec -- --list <page>`, which lists the pending and removing items. If the spec PR left a question open, stop and ask the owner.
+- The page's spec, `design/specs/<page>.md`, and `npm run check:spec -- --list <page>`, which lists the pending and removing items. If the spec PR left a question open, stop and ask the owner.
 - The decided mockup, `design/mockup/mockup-<area>.html`, for layout, copy, spacing, colours, icons and states. Build it exactly (AGENTS.md › UI Workflow); if something can't be built as drawn, stop and raise it, and the mockup and the spec change first.
-- `test/README.md`, in full, and `design/flows/README.md` › Which test.
+- `test/README.md`, in full, and `design/specs/README.md` › Which test.
 - What AGENTS.md › Session start says the change needs: `design/baseline.md` › Architecture Decision when a page's data flow changes, and `design/reference.md` when actions, services or the DAL change.
 - The page's Design Console scenarios, `src/app/design/scenarios/<feature>/`, and `src/app/design/README.md`: their fixtures are the component tests' data too.
 
@@ -21,7 +21,7 @@ Read these before writing code:
 
 For each item, decide before writing it:
 
-- the layer its logic lives in (`design/flows/README.md` › Which test), and the part that only a real server shows, which a journey step holds too;
+- the layer its logic lives in (`design/specs/README.md` › Which test), and the part that only a real server shows, which a journey step holds too;
 - which items share a test: the IDs one scenario can assert together go into one test (`test/README.md` › Write tests sparingly);
 - the data it needs: a new state usually means a new fixture in the scenarios' `fixtures.ts`, which the console and the tests share.
 
@@ -29,7 +29,7 @@ For each item, decide before writing it:
 
 Item by item, or a few that share a test at a time:
 
-1. **Write the test from the item's text**, not from the code you're about to write: its assertions are the outcomes the item states — the counts, the order, what is absent. Its title starts with the IDs it holds, and the file starts with `// Spec: design/flows/<page>.md`.
+1. **Write the test from the item's text**, not from the code you're about to write: its assertions are the outcomes the item states — the counts, the order, what is absent. Its title starts with the IDs it holds, and the file starts with `// Spec: design/specs/<page>.md`.
 2. **See it fail** (`test/README.md` › See it fail): run it before building, and check it fails because the item isn't built.
 3. **Build it** by AGENTS.md: the layers, page structure, a data rule where every write path passes (the page's actions and the MCP tools), copy from the mockup into `en.json`, constants, enums.
 4. **Make it pass**, then drop the item's *(pending)* marker. For an item marked *(removing)*, delete the item, its test and the code it held.

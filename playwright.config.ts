@@ -44,7 +44,7 @@ export default defineConfig({
     launchOptions: {executablePath: preinstalledChromiumPath},
   },
   projects: [
-    // The product specs, one per flow doc, at both widths
+    // The product specs, one per spec doc, at both widths
     {
       name: 'desktop',
       testIgnore: PRODUCT_SPECS_IGNORE,

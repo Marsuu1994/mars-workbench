@@ -1,5 +1,5 @@
 /**
- * design/flows/plan.md, one describe per flow. Every test seeds the week it
+ * design/specs/plan.md, one describe per flow. Every test seeds the week it
  * reads (e2e/fixtures.ts) and runs at both widths.
  */
 import type {Page} from '@playwright/test';

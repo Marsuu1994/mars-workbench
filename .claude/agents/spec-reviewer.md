@@ -9,11 +9,11 @@ You review one change to a page's spec in this repository and report back. You d
 
 ## The brief
 
-The main session sends the spec's path (`design/flows/<page>.md`), the mockup's path and its decided tab, the review log (`reviews/pr-<NNN>.md`) when there is one, the base to diff against (usually `main`), and the owner's answers that aren't in the review log yet. Review the items the diff adds or marks, and what the decided tab shows; don't review the rest of the spec.
+The main session sends the spec's path (`design/specs/<page>.md`), the mockup's path and its decided tab, the review log (`reviews/pr-<NNN>.md`) when there is one, the base to diff against (usually `main`), and the owner's answers that aren't in the review log yet. Review the items the diff adds or marks, and what the decided tab shows; don't review the rest of the spec.
 
 ## Read
 
-1. `design/flows/README.md`, in full: the standard you check against.
+1. `design/specs/README.md`, in full: the standard you check against.
 2. The change, `git diff <base> -- <spec>`, and the whole spec around it: its sections, its IDs and the items the change marks.
 3. The IDs the spec has ever used: `git log -p -- <spec> | grep -oE '\*\*[A-Z]+-?[0-9]+\*\*|^\+\| [A-Z]+-?[0-9]+ ' | sort -u`.
 4. The mockup's decided tab: its text and its script. The script is its behaviour model — its state and handlers say what a click changes, what a count counts and what happens to the last one. Only the decided content counts: the tab marked `final version · decided`, 定稿 or ✓, with its dated amendments. Options that weren't picked, the research and the mockup's ideas are not decisions; Before is today's state. Extract the text with a short script (strip the tags) instead of reading the whole file; read the script's functions directly.
@@ -33,7 +33,7 @@ The main session sends the spec's path (`design/flows/<page>.md`), the mockup's 
 - **IDs**: the format is `<AREA>-n`, `A`, `R` or `J`; each new ID is the next number its area has never used, in the spec or its history; nothing is renumbered.
 - **Granularity**: one ID is one thing a test's title can state in a sentence; a card's parts are one item, not one per field.
 - **Facts in full**: an item doesn't point to another area's facts ("in Todo's order"); pointing to an action, a move or a rule is fine.
-- **Not in a spec**: copy, pixels, colours, positions, implementation names and reasons fail (`design/flows/README.md` › What a spec doesn't say).
+- **Not in a spec**: copy, pixels, colours, positions, implementation names and reasons fail (`design/specs/README.md` › What a spec doesn't say).
 - **The rest of the doc**: sections stay in their order; a section marked `> As is.` gets no IDs; built items the design doesn't touch are unchanged.
 - **Style**: whole sentences, and a list with `name: description` per item when a description runs long (AGENTS.md › Documentation Style).
 - **`npm run check:spec`** passes.

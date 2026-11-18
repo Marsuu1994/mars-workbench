@@ -1,4 +1,4 @@
-// Spec: design/flows/board.md
+// Spec: design/specs/board.md
 import {beforeEach, describe, expect, it} from 'vitest';
 import {PlanMode, PriorityQuadrant, TaskStatus, TaskType} from '@/utils/enums';
 import {completeMatrixTask} from '@/services/matrixService';

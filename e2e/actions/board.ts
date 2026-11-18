@@ -1,6 +1,6 @@
 /**
  * The board's controls, at either width: where desktop and mobile differ
- * (design/flows/board.md › Backlog), the helper takes `isMobile` so a test
+ * (design/specs/board.md › Backlog), the helper takes `isMobile` so a test
  * is written once and runs in both projects.
  */
 import type {Locator, Page} from '@playwright/test';

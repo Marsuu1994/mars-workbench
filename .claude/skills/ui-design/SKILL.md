@@ -13,7 +13,7 @@ Read AGENTS.md › UI Workflow, then `design/README.md` › Mockups (how a mocku
 
 ## 2. What exists
 
-- The current flow doc (`design/flows/<feature>.md`): where it covers the area, design within it; where it doesn't yet — the flow may come after the mockup — the owner's prompt is the requirement. Either way, list what the flow will need to say as a question on the PR, for the spec to write.
+- The current spec (`design/specs/<feature>.md`): where it covers the area, design within it; where it doesn't yet — the spec may come after the mockup — the owner's prompt is the requirement. Either way, list what the flow will need to say as a question on the PR, for the spec to write.
 - The feature's Design Console scenario pages (`src/app/design/scenarios/<feature>/`): the states the screen is in today.
 - The components the change touches: their structure, tokens and `fx-*` utilities. Draw Before from them exactly, and grow After out of the same parts — the same card faces, kind colours and signals — rather than new ones.
 
@@ -37,4 +37,4 @@ The decided mockup and the review log are the handoff: together they say what wa
 
 ## After the design is decided
 
-The design PR also changes the page's spec (`design/flows/<page>.md`): each new item is added marked *(pending)*, and each item the design changes or drops is marked *(removing)*, with a new *(pending)* item for the new behaviour (`design/flows/README.md` › Items and IDs). No tests yet: the implementation PR follows from `main`, writes a test for each pending item, builds it and drops the markers (AGENTS.md › UI Workflow).
+The design PR also changes the page's spec (`design/specs/<page>.md`): each new item is added marked *(pending)*, and each item the design changes or drops is marked *(removing)*, with a new *(pending)* item for the new behaviour (`design/specs/README.md` › Items and IDs). No tests yet: the implementation PR follows from `main`, writes a test for each pending item, builds it and drops the markers (AGENTS.md › UI Workflow).

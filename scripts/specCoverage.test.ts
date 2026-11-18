@@ -12,7 +12,7 @@ import {
   type ListedItem,
 } from './specCoverage';
 
-const SPEC_PATH = 'design/flows/board.md';
+const SPEC_PATH = 'design/specs/board.md';
 
 const SPEC = `# Board
 
@@ -183,12 +183,12 @@ describe('findSpecProblems', () => {
   it('reports a test file holding a legacy doc', () => {
     const legacy = {
       path: 'src/plan.test.ts',
-      source: `// Spec: design/flows/plan.md\n${call('it', 'A1 opens')}`,
+      source: `// Spec: design/specs/plan.md\n${call('it', 'A1 opens')}`,
     };
     expect(
       findSpecProblems([spec], [testFile(HOLDING_EVERY_ITEM), legacy]),
     ).toEqual([
-      "src/plan.test.ts: design/flows/plan.md isn't a spec v2 doc (a legacy doc has no IDs to hold).",
+      "src/plan.test.ts: design/specs/plan.md isn't a spec v2 doc (a legacy doc has no IDs to hold).",
     ]);
   });
 });
@@ -355,7 +355,7 @@ describe('findLegacyProblems', () => {
     const grown = `${LEGACY_DOC}3. Start the week.\n`;
     const withTable = `${LEGACY_DOC}\n| Action | Result |\n| --- | --- |\n`;
     expect(findLegacyProblems(legacyCheck({planMarkdown: grown}))).toEqual([
-      'design/flows/plan.md has more headings, list items and table rows than on main (4 → 5): a legacy doc can be corrected, but not grown. Migrate it to spec v2 first, as board.md was.',
+      'design/specs/plan.md has more headings, list items and table rows than on main (4 → 5): a legacy doc can be corrected, but not grown. Migrate it to spec v2 first, as board.md was.',
     ]);
     expect(
       findLegacyProblems(legacyCheck({planMarkdown: withTable})),
@@ -365,7 +365,7 @@ describe('findLegacyProblems', () => {
   it('reports a doc off the list without IDs', () => {
     const extraDocs = [{name: 'stats.md', markdown: LEGACY_DOC}];
     expect(findLegacyProblems(legacyCheck({extraDocs}))).toEqual([
-      'design/flows/stats.md has no IDs: a doc not on design/flows/legacy.txt is written in spec v2 (design/flows/README.md › Spec v2).',
+      'design/specs/stats.md has no IDs: a doc not on design/specs/legacy.txt is written in spec v2 (design/specs/README.md › Spec v2).',
     ]);
   });
 
@@ -375,9 +375,9 @@ describe('findLegacyProblems', () => {
         legacyCheck({legacy: ['board.md', 'gone.md', 'plan.md']}),
       ),
     ).toEqual([
-      "design/flows/board.md has IDs, so it's spec v2 now: delete its line from design/flows/legacy.txt.",
+      "design/specs/board.md has IDs, so it's spec v2 now: delete its line from design/specs/legacy.txt.",
       expect.stringContaining('board.md, which main'),
-      "design/flows/legacy.txt lists gone.md, which doesn't exist: delete its line.",
+      "design/specs/legacy.txt lists gone.md, which doesn't exist: delete its line.",
     ]);
   });
 
@@ -385,7 +385,7 @@ describe('findLegacyProblems', () => {
     const extraDocs = [{name: 'stats.md', markdown: LEGACY_DOC}];
     const legacy = ['plan.md', 'stats.md'];
     expect(findLegacyProblems(legacyCheck({extraDocs, legacy}))).toEqual([
-      "design/flows/legacy.txt lists stats.md, which main's list doesn't: the list only gets shorter, so write the doc in spec v2.",
+      "design/specs/legacy.txt lists stats.md, which main's list doesn't: the list only gets shorter, so write the doc in spec v2.",
     ]);
     expect(
       findLegacyProblems(legacyCheck({extraDocs, legacy, baseLegacy: null})),

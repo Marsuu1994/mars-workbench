@@ -1,4 +1,4 @@
-// Spec: design/flows/board.md
+// Spec: design/specs/board.md
 /**
  * The board's journeys, each step named by the action it takes. What each
  * screen shows is held by the component tests next to the board's

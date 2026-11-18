@@ -1,6 +1,6 @@
 /**
  * Spec coverage as pure text checks, so it can be tested without touching
- * files: which items a spec v2 doc has (design/flows/README.md), which IDs
+ * files: which items a spec v2 doc has (design/specs/README.md), which IDs
  * each test's title names, what's wrong between the two, and the list of
  * every item with the tests holding it. The command (`npm run check:spec`)
  * is scripts/checkSpec.ts.
@@ -25,7 +25,7 @@ const TITLE_IDS = new RegExp(String.raw`^(?:${ID}\s+)+`);
 const TEST_CALL =
   /\b(it|test)(?:\.(fails|skip|only|todo|step))?\s*\(\s*(['"`])((?:\\.|(?!\3)[^\\])*)\3/g;
 
-/** A test file names the spec it holds: `// Spec: design/flows/board.md`. */
+/** A test file names the spec it holds: `// Spec: design/specs/board.md`. */
 const SPEC_COMMENT = /^\/\/ Spec: (\S+)\s*$/gm;
 
 /** A block comment, or a line that is only a comment: a test call in either holds nothing. */
@@ -84,20 +84,20 @@ export interface ListedItem {
   heldBy: string[];
 }
 
-/** The list of flow docs still in the legacy format. */
-export const LEGACY_LIST_PATH = 'design/flows/legacy.txt';
+/** The list of specs still in the legacy format. */
+export const LEGACY_LIST_PATH = 'design/specs/legacy.txt';
 
 /** A heading, a list item or a table row: what a legacy doc may not gain. */
 const ENTRY = /^(?:#{2,}\s|\s*(?:[-*]|\d+\.)\s|\|)/;
 
-/** A flow doc by its file name (`plan.md`), as the legacy list names it. */
+/** A spec by its file name (`plan.md`), as the legacy list names it. */
 export interface FlowDoc {
   name: string;
   markdown: string;
 }
 
 export interface LegacyCheck {
-  /** Every flow doc now */
+  /** Every spec now */
   docs: FlowDoc[];
   /** The legacy list now */
   legacy: string[];
@@ -105,7 +105,7 @@ export interface LegacyCheck {
   base: {
     /** Its legacy list; null before main has one */
     legacy: string[] | null;
-    /** Its flow docs, by file name */
+    /** Its specs, by file name */
     markdownByName: Map<string, string>;
   };
 }
@@ -142,12 +142,12 @@ export const findLegacyProblems = ({
     const hasIds = parseSpecItems(markdown).length > 0;
     if (!legacyNames.has(name) && !hasIds) {
       problems.push(
-        `design/flows/${name} has no IDs: a doc not on ${LEGACY_LIST_PATH} is written in spec v2 (design/flows/README.md › Spec v2).`,
+        `design/specs/${name} has no IDs: a doc not on ${LEGACY_LIST_PATH} is written in spec v2 (design/specs/README.md › Spec v2).`,
       );
     }
     if (legacyNames.has(name) && hasIds) {
       problems.push(
-        `design/flows/${name} has IDs, so it's spec v2 now: delete its line from ${LEGACY_LIST_PATH}.`,
+        `design/specs/${name} has IDs, so it's spec v2 now: delete its line from ${LEGACY_LIST_PATH}.`,
       );
     }
   }
@@ -173,7 +173,7 @@ export const findLegacyProblems = ({
     ];
     if (after > before) {
       problems.push(
-        `design/flows/${name} has more headings, list items and table rows than on main (${before} → ${after}): a legacy doc can be corrected, but not grown. Migrate it to spec v2 first, as board.md was.`,
+        `design/specs/${name} has more headings, list items and table rows than on main (${before} → ${after}): a legacy doc can be corrected, but not grown. Migrate it to spec v2 first, as board.md was.`,
       );
     }
   }

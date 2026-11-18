@@ -15,7 +15,7 @@ One command from a fresh checkout and every day after: it skips what is already 
 - **Sign in with Google**: copy `supabase/.env.example` to `supabase/.env` and fill in the Google OAuth client's id and secret (its authorized redirect URIs include `http://127.0.0.1:54321/auth/v1/callback`), then `npm run db:stop && npm run db:setup`. To land on the seeded data, uncomment `SEED_EMAIL` in `.env.local` and set it to your Gmail, then `npm run db:reset` and sign in again. The reset also removes the separate, empty user an earlier Google sign-in created, and the seed prints the address it used.
 - **Without Google** (scripts, agents, Playwright): `npm run dev:session` signs in as the seeded dev user and writes its cookies.
 - **Day to day**: `npm run up`; `npm run db:stop` stops the stack (data kept), `npm run db:reset` wipes and reseeds, `npm run setup` does everything but the dev server. `npx prisma migrate dev` works against the stack.
-- **Tests**: `npm test` runs the unit and integration tests (they need a local Postgres: the stack, or `TEST_DATABASE_URL`) and the component tests (in Chromium), `npm run test:e2e` the Playwright suite — one spec per flow doc, each test as its own fresh user, at desktop and mobile width — reusing a running dev server. `npm run check:spec` checks that every item of a spec v2 flow doc is held by a test. Conventions in [test/README.md](./test/README.md).
+- **Tests**: `npm test` runs the unit and integration tests (they need a local Postgres: the stack, or `TEST_DATABASE_URL`) and the component tests (in Chromium), `npm run test:e2e` the Playwright suite — one e2e spec per spec doc, each test as its own fresh user, at desktop and mobile width — reusing a running dev server. `npm run check:spec` checks that every item of a spec v2 doc is held by a test. Conventions in [test/README.md](./test/README.md).
 - **Production**: its credentials live only in `.env.prod`. Once a migration is merged, `npm run db:deploy:prod` applies it.
 
 ## Docs
@@ -25,7 +25,7 @@ One command from a fresh checkout and every day after: it skips what is already 
   - [tracker](./design/tracker.md) — open todos
   - [future ideas](./design/future-ideas.md) — problems seen coming, waiting until they're worth doing
   - [reference](./design/reference.md) — actions/services/DAL inventory
-  - [flows/](./design/flows) — per-page specs (spec v2; the rest legacy flow docs)
+  - [specs/](./design/specs) — one spec per page (spec v2; the docs in `legacy.txt` still in the legacy format)
   - [mockup/](./design/mockup) — mockups of designs not yet fully implemented
 - [experiments/](./experiments/README.md) — controlled comparisons of ways of working (agent workflows, models, tooling): one folder per question, an instruction and a report per try
 - [reviews/](./reviews/README.md) — the owner's code reviews, one file per PR: what each comment caught and how it ended

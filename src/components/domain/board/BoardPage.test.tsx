@@ -1,4 +1,4 @@
-// Spec: design/flows/board.md
+// Spec: design/specs/board.md
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {page, userEvent} from 'vitest/browser';
 import {updateTaskStatusAction} from '@/actions/taskActions';

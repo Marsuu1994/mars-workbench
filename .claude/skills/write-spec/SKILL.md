@@ -1,6 +1,6 @@
 ---
 name: write-spec
-description: Writing a page's spec v2 items from a decided mockup — the new behaviour marked *(pending)*, what it replaces marked *(removing)*, what the mockup leaves open listed for the owner — then reviewed by the spec-reviewer agent. Use once a design is decided and its spec isn't written yet, or when the owner asks to write or update the spec for a mockup (写 spec). Not for designing (ui-design), not for building the items (implement-spec), and not for a doc still in `design/flows/legacy.txt`, which is migrated to spec v2 first.
+description: Writing a page's spec v2 items from a decided mockup — the new behaviour marked *(pending)*, what it replaces marked *(removing)*, what the mockup leaves open listed for the owner — then reviewed by the spec-reviewer agent. Use once a design is decided and its spec isn't written yet, or when the owner asks to write or update the spec for a mockup (写 spec). Not for designing (ui-design), not for building the items (implement-spec), and not for a doc still in `design/specs/legacy.txt`, which is migrated to spec v2 first.
 ---
 
 # Write spec — from a decided mockup to pending items
@@ -11,11 +11,11 @@ The spec is what the implementation is built and tested against, and the agent t
 
 Read these before writing anything:
 
-- `design/flows/README.md`, in full: the format, the markers and the ID rules this skill follows.
-- The page's spec, `design/flows/<page>.md`, and what is built today: `npm run check:spec -- --list <page>` prints each item with where it stands and the tests holding it. If the page is listed in `design/flows/legacy.txt`, stop: the doc is migrated first, which is a task of its own the owner starts.
+- `design/specs/README.md`, in full: the format, the markers and the ID rules this skill follows.
+- The page's spec, `design/specs/<page>.md`, and what is built today: `npm run check:spec -- --list <page>` prints each item with where it stands and the tests holding it. If the page is listed in `design/specs/legacy.txt`, stop: the doc is migrated first, which is a task of its own the owner starts.
 - The decided mockup, `design/mockup/mockup-<area>.html`. Only the decided content counts: the tab marked `final version · decided`, 定稿 or ✓, with its dated amendments. Options that weren't picked, the research and the ideas are not decisions, and Before is only today's state. If nothing in the mockup is marked decided, stop and ask the owner.
   - Read its text and its script. The script is the mockup's behaviour model: its state and its handlers say what a click changes, what a count counts and what happens to the last one.
-  - The mockup's ideas for the flow doc (`design/README.md` › Mockups) are questions, not answers: an idea becomes an item only when the owner decided it in the review log.
+  - The mockup's ideas for the spec (`design/README.md` › Mockups) are questions, not answers: an idea becomes an item only when the owner decided it in the review log.
 - The design PR's review log, `reviews/pr-<NNN>.md`, and the feature's item in `design/tracker.md`: decisions the owner made in words that the drawing doesn't show.
 
 ## 2. Inventory the mockup
@@ -33,15 +33,15 @@ Every line ends up as an item, a case inside one, a row in Actions, a rule, or a
 
 ## 3. Write the items
 
-- **Markers and IDs**, as `design/flows/README.md` › Items and IDs says:
+- **Markers and IDs**, as `design/specs/README.md` › Items and IDs says:
   - new behaviour is a new item marked *(pending)*;
   - a built item the design changes is marked *(removing)* and says "replaced by" the new ID, which is marked *(pending)*; a built item the design drops is marked *(removing)*;
   - never edit a built item in place to mean the new behaviour: its old test would still pass, and the implementation could keep it;
-  - a new ID takes the next number its area has never used. IDs are never reused, so check the doc's history, not just the doc: `git log -p -- design/flows/<page>.md | grep -oE '\*\*[A-Z]+-?[0-9]+\*\*|^\+\| [A-Z]+-?[0-9]+ ' | sort -u`.
+  - a new ID takes the next number its area has never used. IDs are never reused, so check the doc's history, not just the doc: `git log -p -- design/specs/<page>.md | grep -oE '\*\*[A-Z]+-?[0-9]+\*\*|^\+\| [A-Z]+-?[0-9]+ ' | sort -u`.
 - **Decidable**: each item states the outcome a user can observe — what is counted, the numbers and caps, the order, what is absent, and what each width does when the widths differ. Bad: "BL-10 *(pending)* A group shows a pile." Good: "BL-10 *(pending)* A group with tasks behind its next one shows one thin sheet for each of them, at most three, and **+N more**, N being how many are behind; the last task of a group shows neither."
 - **Both sides of a limit**: when the UI stops offering something that guards data (only a project's next step can be pulled), the server's refusal is an item of its own in Rules, because a data rule lives where every write path passes (AGENTS.md › Layers). What the server must now send for the design goes into States.
 - **Actions and journeys**: a new control is a row in Actions; a changed result of a move goes into A move. A design that adds a daily path adds a journey or extends one, the happy path only.
-- **Not in a spec**: copy, pixels, colours, positions, implementation names and reasons (`design/flows/README.md` › What a spec doesn't say). Those stay in the mockup and the review log.
+- **Not in a spec**: copy, pixels, colours, positions, implementation names and reasons (`design/specs/README.md` › What a spec doesn't say). Those stay in the mockup and the review log.
 - **Don't invent**: what the mockup and the review log don't decide is a question for the owner, never settled in the spec. An item that needs the answer is left out until the owner answers.
 - **Stay in scope**: keep the sections in their order, and leave the built items alone unless the design changes them. A built item that is simply wrong is a separate fix, not part of this change.
 

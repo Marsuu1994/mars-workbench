@@ -13,7 +13,7 @@ Per-theme visual specs plus the shared skeleton they all hang on. Implemented in
 
 Display names are UI labels (i18n) — internal theme names are stable and never
 renamed. New-user default is `mars-dark`; theme is an explicit user choice
-(cookie-persisted — see `design/flows/auth.md`, Theme Change Flow).
+(cookie-persisted — see `design/specs/auth.md`, Theme Change Flow).
 
 ## Architecture: one skeleton, N skins
 

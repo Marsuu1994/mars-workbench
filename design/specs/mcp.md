@@ -76,5 +76,5 @@ The user asks Claude, connected to the `/api/mcp` server, to plan or adjust thei
 - One-offs: carried-over or removed ones must be unfinished one-off tasks of that plan; an added one must be untracked (unfinished, on no plan) and is tracked exactly as the Track This Week Flow does — `planId` set, `BACKLOG → TODO`, into the user's to-do.
 - Project steps: a carried-over step must be an unfinished step of the last plan; an added step must be upcoming (the user's, unfinished, on no plan, of a project that isn't archived); a removed step must be an unfinished step of this plan and returns to its project (`planId = null`, `BACKLOG`, step number unchanged).
 - `update_habit` changes the template only: instances already generated keep their title and size.
-- Identity: tool calls act for the user whose Supabase OAuth access token the request carries (see OAuth Consent Flow in `design/flows/auth.md`); local development without a token acts as `MCP_DEV_USER_ID`.
+- Identity: tool calls act for the user whose Supabase OAuth access token the request carries (see OAuth Consent Flow in `design/specs/auth.md`); local development without a token acts as `MCP_DEV_USER_ID`.
 - Errors the model can act on (active plan exists, stale plan id, patch conflicts, unknown ids, invalid input) come back as `isError` results; unexpected errors are logged and reported generically.

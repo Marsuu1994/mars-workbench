@@ -1,7 +1,7 @@
 /**
  * Theme registry — internal names are stable and never renamed; display
  * labels live in i18n (Settings.themeNames). See design/design-language/
- * and the Theme Change Flow in design/flows/auth.md.
+ * and the Theme Change Flow in design/specs/auth.md.
  */
 export const THEMES = ['mars-light', 'mars-dark', 'p5-dark'] as const;
 

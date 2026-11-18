@@ -1,4 +1,4 @@
-// Spec: design/flows/board.md
+// Spec: design/specs/board.md
 import {beforeEach, describe, expect, it} from 'vitest';
 import {getBoardTasksByPlanId} from '@/lib/db/tasks';
 import {PlanMode, TaskSize, TaskStatus, TaskType} from '@/utils/enums';

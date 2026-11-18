@@ -1,5 +1,5 @@
 /**
- * design/flows/priorities.md, one describe per flow. Every test seeds the
+ * design/specs/priorities.md, one describe per flow. Every test seeds the
  * data it reads (e2e/fixtures.ts) and runs at both widths.
  */
 import {newHabit} from '../test/factories';

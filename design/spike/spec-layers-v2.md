@@ -73,7 +73,7 @@ it('A2 Finish moves the card to the top of Done at once, and back when it fails'
 
 ### 3. Doc 格式：一个页面一个文件
 
-`design/flows/<page>.md`，例如 `flows/board.md`（取代现在这份）。几节固定的内容：
+`design/specs/<page>.md`，例如 `specs/board.md`（取代现在这份）。几节固定的内容：
 
 | 节 | 写什么 | 主要由什么测 |
 | --- | --- | --- |
@@ -151,7 +151,7 @@ it('A2 Finish moves the card to the top of Done at once, and back when it fails'
 
 旧 spike 设计的是一个通用的 ratchet（四个比较加 `ratchet:prune`）。现在只有这一条迁移，所以简化成 `check:spec` 里的几条检查（owner，2026-11-17）。等出现第二条迁移，再按两个真实的例子抽成通用的。
 
-- **清单**：`design/flows/legacy.txt`，列出还是旧格式的 doc：auth、dump、mcp、plan、priorities、projects、shared。`check:spec` 跳过这些 doc 的 ID。
+- **清单**：`design/specs/legacy.txt`，列出还是旧格式的 doc：auth、dump、mcp、plan、priorities、projects、shared。`check:spec` 跳过这些 doc 的 ID。
 - **规则一句话**：旧 doc 可以改错，不能加东西；要加东西，就先把整个 doc 迁到 v2。不混写：一个 doc 要么全是 v2，要么全是旧格式。
 - **`check:spec` 检查**（和 branch 从 main 分出来的那个点比）：
   - 不在清单上的 doc 必须有 ID；
@@ -159,7 +159,7 @@ it('A2 Finish moves the card to the top of Done at once, and back when it fails'
   - 清单只能变短；
   - 清单上的 doc，heading 和列表项不能比 main 上多。只改文字不报错，也不 warn。
 - **Test 那边不需要清单**：`check:spec` 只检查 v2 doc 里的 ID。没有 ID 的旧 test 不受影响，等它的 doc 迁移时再加上 ID。旧 e2e spec 的「一个 flow 一个 `describe`」也跟着它的 doc 一起走。`e2e/not-implemented.md` 在 PR 2 里删掉了：旧 doc 迁移时写 journey，就补上了 e2e（owner，2026-11-17）。
-- **`flows/README.md`**：v2 成为正式格式，旧格式降级为「Legacy」一节，清单清空时删掉。
+- **`specs/README.md`**：v2 成为正式格式，旧格式降级为「Legacy」一节，清单清空时删掉。
 
 ## 实施计划
 
@@ -167,8 +167,8 @@ it('A2 Finish moves the card to the top of Done at once, and back when it fails'
 
 1. **PR 1 · spike 和 board spec**（这个 PR）：
    - 这份 spike 定稿，旧的归档；
-   - `flows/board.md` 按 v2 重写，只写现在的 board，不写 pile；
-   - `flows/README.md` 写 v2 的格式，旧格式降级为 Legacy。
+   - `specs/board.md` 按 v2 重写，只写现在的 board，不写 pile；
+   - `specs/README.md` 写 v2 的格式，旧格式降级为 Legacy。
    - 不写 test，不加工具。ID 先写在 doc 里，PR 2 让 test 的标题对上它们。
 2. **PR 2 · test 框架、补 test、旧 doc 的清单**：
    - component test 跑通（先写两个 test，验证 CSS、`next/navigation` 的 mock、keyboard dnd、CI 时间；有一个跑不通就回来改 spike）；

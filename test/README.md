@@ -4,12 +4,19 @@ Four layers, each where it pays (the decision records: `design/spike/archived/te
 
 | Layer | Runner | Lives in | Talks to |
 | --- | --- | --- | --- |
-| unit | Vitest | `src/**/x.test.ts`, next to the module | nothing — pure functions; only outside edges mocked (Supabase Auth's `getClaims`) |
+| unit | Vitest | `src/**/x.unit.test.ts`, next to the module | nothing — pure functions; only outside edges mocked (Supabase Auth's `getClaims`) |
 | integration | Vitest | `src/**/x.int.test.ts`, next to the module | a real Postgres: services, the DAL, actions, `/api/mcp` in process; no browser, no Auth |
-| component | Vitest browser mode, in Chromium | `src/**/X.test.tsx`, next to the component | a page's container or a component under it, given rows as its props; the server actions it calls are mocked |
-| e2e | Playwright | `e2e/`, one spec per flow doc | the app on the local Supabase stack, each test signed in as its own fresh user |
+| component | Vitest browser mode, in Chromium | `src/**/X.component.test.tsx`, next to the component | a page's container or a component under it, given rows as its props; the server actions it calls are mocked |
+| e2e | Playwright | `e2e/`, one spec per spec doc | the app on the local Supabase stack, each test signed in as its own fresh user |
 
-Shared helpers live here in `test/`: `component/` (the page's providers and stylesheet for component tests), `factories.ts` (data through the services), `time.ts` (frozen moments of one week), `buildTask.ts` (DAL rows for unit tests), `seedData.ts` + `seedWeek.ts` (the dev user's seeded week, `npm run db:seed`), and `integration/` (the database's setup).
+Shared helpers live here in `test/`:
+
+- `component/`: the page's providers and stylesheet for component tests;
+- `factories.ts`: data written through the services;
+- `time.ts`: frozen moments of one week;
+- `buildTask.ts`: DAL rows for unit tests;
+- `seedData.ts` and `seedWeek.ts`: the dev user's seeded week (`npm run db:seed`);
+- `integration/`: the database's setup.
 
 ## Commands
 
@@ -37,18 +44,6 @@ npx playwright test e2e/board.spec.ts --project=mobile  # one spec at one width
 - **An action's integration test mocks only its two edges outside the database**: who is signed in (`getCurrentUserId`) and which pages Next reloads (`revalidatePath`, asserted by path). Everything under it runs for real.
 - **`tools/list` is snapshotted** (`src/app/api/mcp/__snapshots__/`): it is what Claude sees. A change to a tool's schema or description fails until the snapshot is updated on purpose (`npx vitest run -u`).
 
-## Spec IDs
-
-A page migrated to spec v2 (`design/flows/README.md`) has an ID on every item, and a test names the IDs it holds at the start of its title: `it('CARD-2 R4 a Done card is dimmed …')`, `test('J3 …')`, a journey's `test.step('A4 …')`.
-
-- **Name the spec**: a test file whose titles name IDs says which spec they're from, on its first line: `// Spec: design/flows/board.md`. A file can hold several specs' items, one comment per spec. `check:spec` reads titles only in files with this comment, so an unrelated title such as `UTF-8 input is decoded` is never taken for an ID, and a test in a file without it holds nothing.
-- **Write tests sparingly**: the IDs one scenario can assert together share one test (`CARD-2 R4` checks the Done card's look and its missing drag handle on the same render); split only when the layer differs or the scenario needs its own setup.
-- **A title names only what the test proves**: for each ID in its title, the test has an assertion that fails when that item breaks. A journey step that only reaches a state names no ID. Bad: `test.step('ST-3 the board', …)` that only opens the page. Good: `test.step('A7 MV-3 finish the step', …)` asserting the card is in Done and today's count went up, before any reload.
-- **See it fail**: a test for behaviour not built yet fails before the code lands. A test for behaviour that already exists is checked by breaking the code once: the test must turn red, then the code goes back. Bad: MV-4 asserting right after the refused save resolves, so it stays green even when the rollback doesn't wait. Good: the same assertion after the page has had a chance to roll back, red as soon as the rollback stops waiting.
-- **`npm run check:spec`** (CI) fails when an item no test holds, a `(bug)` item no `it.fails` holds, a title naming an ID its spec doesn't have or one still pending, an item that isn't a `(bug)` held only by an `it.fails`, or an ID used twice. A skipped or commented-out test holds nothing, and a `describe.skip` fails the check, since the tests inside would still count. It also keeps the legacy docs from growing (`design/flows/README.md` › Legacy docs).
-- **`npm run check:spec -- --list <page>`** prints the page's items, each with where it stands (held, pending, removing, bug) and the tests holding it. CI writes the same list for every spec into the job summary.
-- **An implementation PR is done** when the items its design marked *(pending)* or *(removing)* have no marker left and `check:spec` passes.
-
 ## Component
 
 - **What the user sees for given data, and what the client does with an action**: a card's parts and look, a column's order on screen, focus, the optimistic move and its rollback. A derivation with its own pure helper is a unit test instead; the server's side of an action is an integration test.
@@ -63,13 +58,40 @@ A page migrated to spec v2 (`design/flows/README.md`) has an ID on every item, a
 
 - **Every test is its own user.** The fixtures (`e2e/fixtures.ts`) give each test a fresh Auth user, sign it in through the API (`storageState`) and hand it `seed`: `test/factories.ts` writing as that user. A test seeds exactly what it reads — no shared seed, no order between tests — so every test runs alone, repeatedly and in parallel (`fullyParallel`). Nothing is cleaned up: CI's database is thrown away, and a local one only gathers users the dev user never sees. A signed-out test overrides `storageState` with an empty one and creates no user. The global setup only reads the stack's secret key once, for every worker.
 - **Shared setup, by layer**: the run (`e2e/globalSetup.ts`: the key), the test (the fixtures: `user`, `storageState`, `seed`), the test body (its own `seed.*` calls; a shape a spec repeats is a small function in that spec, called explicitly). Never a `beforeEach` that seeds a shared world — that is the old seed again.
-- **One spec per flow doc** (`board`, `plan`, `priorities`, `projects`, `dump`, `auth`; `mcp.md` and `shared.md` are tested in process — `/api/mcp` and the services). A spec v2 page's e2e spec is its journeys, one test per journey, each action a `test.step` named by its ID (`e2e/board.spec.ts`). A legacy doc's spec keeps one `test.describe` per flow, named after the flow doc's `##` heading, until the doc migrates.
-- **Both widths**: the `desktop` and `mobile` projects run every product spec. Where the two differ, the step is a helper in `e2e/actions/` that takes `isMobile` (opening the backlog, Track This Week), so a test is written once. A rule the flow doc gives for one width only is `test.skip` on the other, quoting the doc — never a skip to get green. The `design-console` project (every scenario tab and gallery tab renders and its play steps run) is desktop only: the console draws phone widths in its own frames.
+- **One e2e spec per spec doc** (`board`, `plan`, `priorities`, `projects`, `dump`, `auth`; `mcp.md` and `shared.md` are tested in process — `/api/mcp` and the services). A spec v2 page's e2e spec is its journeys, one test per journey, each action a `test.step` named by its ID (`e2e/board.spec.ts`). A legacy doc's spec keeps one `test.describe` per flow, named after the legacy doc's `##` heading, until the doc migrates.
+- **Both widths**: the `desktop` and `mobile` projects run every product spec. Where the two differ, the step is a helper in `e2e/actions/` that takes `isMobile` (opening the backlog, Track This Week), so a test is written once. A rule the spec gives for one width only is `test.skip` on the other, quoting the doc — never a skip to get green. The `design-console` project (every scenario tab and gallery tab renders and its play steps run) is desktop only: the console draws phone widths in its own frames.
 - **Which layer**: e2e proves a journey is wired end to end — the action lands and the page shows it, asserted once. The value's edge cases are integration tests (the service on a real database); how each state looks is a component test, and the Design Console shows it to the owner. Bad: an e2e test per progress-bar state. Good: one drag to Done asserting today's count went up, and the counts' edge cases in `boardService.int.test.ts`.
 - **Any console error fails a test** (`e2e/fixtures.ts`).
 - **Locate by role and visible text**, the way a user finds a control; a page can hold a hidden copy of some text — its other layout, or a streamed Suspense chunk React hasn't swapped in yet — so match the visible one (`expectToSee`). Before clicking or typing, open the page with `openPage()`, which waits until React has hydrated it.
 - **Specs import the factories, not the app's internals**: Playwright loads TypeScript as CommonJS, which is why the Prisma client is generated as CommonJS (`prisma/schema.prisma`). A spec writes data only through `seed`; reads go through the page.
 - **Let a server action land before leaving the page**: an optimistic update shows before its action saves it, and a reload or navigation right after one aborts the save — CI's slower runner loses that race where a local run doesn't. Start `waitForServerAction(page, path)` (`e2e/fixtures.ts`) before the click and await it before you leave.
 - **Timing**: CI's e2e job summary lists each spec's time per project (`npm run e2e:timing`, from the JSON report).
-- **A design not built yet has no test.** Its items are in the spec, marked *(pending)*; the implementation PR writes their tests and drops the marker (`design/flows/README.md` › Items and IDs).
+- **A design not built yet has no test.** Its items are in the spec, marked *(pending)*; the implementation PR writes their tests and drops the marker (`design/specs/README.md` › Items and IDs).
 - **Dates stay out of e2e**: the server is another process and its clock can't be frozen, so date logic is tested at the integration layer.
+
+## Spec IDs
+
+A page migrated to spec v2 (`design/specs/README.md`) has an ID on every item, and a test names the IDs it holds at the start of its title: `it('CARD-2 R4 a Done card is dimmed …')`, `test('J3 …')`, a journey's `test.step('A4 …')`. A test may hold several IDs and an ID may be held by several tests; what counts is that every ID is held by at least one.
+
+### Which layer holds an item
+
+An item is tested where its logic lives:
+
+- a derivation in a pure helper → unit;
+- a rule on the server, and an action's server side → integration;
+- what a component shows for given data, and an action's client side (the action it calls, the optimistic change, the rollback) → component;
+- a journey → e2e.
+
+An item whose parts live in different layers is held at each: the returning user's recap is computed on the server (integration) and shown by the empty board (component), both tests naming ST-2.
+
+A part that only a real server shows is held by e2e too, even when its logic lives in a lower layer: the page getting the saved data without a reload, a redirect, what's still there after a reload. A component test can only stand in for these, so a journey step asserts them. `design/specs/board.md` MV-3 is the example: the integration test checks the action asks for a reload, the component test fakes the new props, and only J3's A7 step shows the progress actually moving.
+
+### Writing them
+
+- **Name the spec**: a test file whose titles name IDs says which spec they're from, on its first line: `// Spec: design/specs/board.md`. A file can hold several specs' items, one comment per spec. `check:spec` reads titles only in files with this comment, so an unrelated title such as `UTF-8 input is decoded` is never taken for an ID, and a test in a file without it holds nothing.
+- **Write tests sparingly**: the IDs one scenario can assert together share one test (`CARD-2 R4` checks the Done card's look and its missing drag handle on the same render); split only when the layer differs or the scenario needs its own setup.
+- **A title names only what the test proves**: for each ID in its title, the test has an assertion that fails when that item breaks. A journey step that only reaches a state names no ID. Bad: `test.step('ST-3 the board', …)` that only opens the page. Good: `test.step('A7 MV-3 finish the step', …)` asserting the card is in Done and today's count went up, before any reload.
+- **See it fail**: a test for behaviour not built yet fails before the code lands. A test for behaviour that already exists is checked by breaking the code once: the test must turn red, then the code goes back. Bad: MV-4 asserting right after the refused save resolves, so it stays green even when the rollback doesn't wait. Good: the same assertion after the page has had a chance to roll back, red as soon as the rollback stops waiting.
+- **`npm run check:spec`** (CI) fails when an item no test holds, a `(bug)` item no `it.fails` holds, a title naming an ID its spec doesn't have or one still pending, an item that isn't a `(bug)` held only by an `it.fails`, or an ID used twice. A skipped or commented-out test holds nothing, and a `describe.skip` fails the check, since the tests inside would still count. It also keeps the legacy docs from growing (`design/specs/README.md` › Legacy docs).
+- **`npm run check:spec -- --list <page>`** prints the page's items, each with where it stands (held, pending, removing, bug) and the tests holding it. CI writes the same list for every spec into the job summary.
+- **An implementation PR is done** when the items its design marked *(pending)* or *(removing)* have no marker left and `check:spec` passes.

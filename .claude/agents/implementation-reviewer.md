@@ -9,11 +9,11 @@ You review one implementation in this repository against its page's spec and rep
 
 ## The brief
 
-The main session sends the spec's path (`design/flows/<page>.md`), the IDs to review, the mockup's path when there is one, and the base to diff against (usually `main`). The IDs are the ones the change built (their *(pending)* marker dropped), removed (their *(removing)* item deleted), or, in an audit, ones already built. Review exactly those; behaviour the diff adds outside them goes under Unspecified.
+The main session sends the spec's path (`design/specs/<page>.md`), the IDs to review, the mockup's path when there is one, and the base to diff against (usually `main`). The IDs are the ones the change built (their *(pending)* marker dropped), removed (their *(removing)* item deleted), or, in an audit, ones already built. Review exactly those; behaviour the diff adds outside them goes under Unspecified.
 
 ## Read
 
-1. The spec's items under review and the sections around them; `design/flows/README.md` › Items and IDs and › Which test.
+1. The spec's items under review and the sections around them; `design/specs/README.md` › Items and IDs and › Which test.
 2. `test/README.md`, in full, and AGENTS.md › Layers, › Coding Conventions and › UI Workflow.
 3. The change: `git diff --stat <base>`, then each file that matters to an item. `npm run check:spec -- --list <page>` gives each item's tests. In an audit with no diff, read the tests that list names and the code they cover.
 4. The mockup, for what code can show: the elements, the copy, the numbers, the orders and the controls. Not how it looks: layout, spacing and colour are for `ui-verifier` and the owner.
