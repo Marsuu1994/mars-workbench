@@ -371,7 +371,6 @@
   .chk.hit { border-color: var(--su); } .chk.hit::before { transform: scale(1); } .chk.hit .icon { opacity: 1; }
   .tc .chk { margin-left: auto; }
   .tc.hitting .tc-title { text-decoration: line-through; text-decoration-color: var(--ink-45); color: var(--ink-55); transition: color .15s; }
-  .tc.leaving { opacity: 0; transform: translateX(10px); transition: opacity .2s var(--ease), transform .24s var(--ease); pointer-events: none; }
   .tc.flip { transition: transform .24s var(--ease); }
   /* desktop: ✓ on the right, faint until hover */
   .desk .tc .chk, .deskdemo .tc .chk { opacity: .45; }
@@ -380,7 +379,6 @@
   .tc .tc-foot .chk { margin-left: auto; }
   /* phone: ✓ bottom-right in the foot row (↑ Todo's spot on a backlog card) */
 
-  @media (prefers-reduced-motion: reduce) { .tc.leaving { transform: none; } }
 
   /* demo frames */
   .demo { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; justify-items: start; }
@@ -683,7 +681,7 @@
   .mo-cap { font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-45); margin-bottom: 6px; }
   [data-mo-slow].on { color: var(--p); border-color: var(--p); }
   /* round 23: juice */
-  .mo-phone, .mo-desk { position: relative; }
+  .mo-phone, .mo-desk, #dpane, .tap-desk { position: relative; }
   .mo-pick { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-55); }
   .mo-fx { position: absolute; pointer-events: none; z-index: 8; }
   .mo-ghost { position: absolute; margin: 0; box-sizing: border-box; z-index: 7; pointer-events: none; }
@@ -700,10 +698,11 @@
 
 <header class="topbar">
   <div>
-    <div class="eyebrow">Board · Phase 2 · design PR · pending 2026-11-19（定稿过：final version · decided 2026-11-11）· 第 1 轮 2026-11-06 · 第 2–18 轮一个模块一个模块定，2026-11-09 合在一起 · 第 22–25 轮：M · 完成动画 · 第 25–28 轮：桌面 Todo 加 Today、Todo 空了的提醒 · 第 28–29 轮：K · Card，所有卡片合成一个组件</div>
+    <div class="eyebrow">Board · Phase 2 · design PR · final version · decided 2026-11-19（重新定稿，见下）· 之前 decided 2026-11-11，2026-11-19 改回 pending · 第 1 轮 2026-11-06 · 第 2–18 轮一个模块一个模块定，2026-11-09 合在一起 · 第 22–25 轮：M · 完成动画 · 第 25–28 轮：桌面 Todo 加 Today、Todo 空了的提醒 · 第 28–29 轮：K · Card，所有卡片合成一个组件</div>
     <h1>Board：点一下选中，✓ Complete 完成</h1>
     <p>有 active plan 的白天，默认屏就是 board。第一个 tab <b>F · Final</b> 是合在一起的定稿：Before 是现在的产品，After 是 P · Progress、C · Celebration、D · Done、T · Tap twice、M · 完成动画五个模块合起来的样子，桌面和手机都能直接点。后面五个 tab 是每个模块的决定和研究，<b>K · Card</b> 把所有卡片放在一起对照，给实现用；<b>B · Backlog</b> 记 backlog 这里的两处修订（decided 2026-11-19）；<b>I · Ideas</b> 记着这个设计带出来、要在别处或以后做的事。第 1 轮的 1–6 屏已被这些决定取代，留在 commit 历史里（<code>53d9220</code> 及以前）。</p>
-    <p><b>Pending · 2026-11-19（owner）。</b>这个设计在 2026-11-11 定稿过，现在改回 pending。动手写 spec 或实现之前先处理下面两件事，处理完由 owner 重新定稿（<code>design/README.md</code> › Mockups）。各个 tab 上的 ✓ 和「定稿」记的是当时每个模块的决定，留着不动。<b>2026-11-19 两件都处理了</b>（每件后面的「处理」），等 owner 看过重新定稿；处理时做的决定和拿不准的地方列在这个 PR 的说明里。</p>
+    <p><b>重新定稿 · decided 2026-11-19（owner）。</b>owner 看过 ① ② 的处理后定稿：两个对不上 token 的时长（弧 500 ms、<code>doneIn</code> 900 ms）保留；C、D、T 三个 tab 的演示也换成 M 的完成动画（juice + 飞进今天的圈），原来的「收起」删掉。</p>
+    <p><b>Pending · 2026-11-19（owner）。</b>这个设计在 2026-11-11 定稿过，当天改回 pending。动手写 spec 或实现之前先处理下面两件事，处理完由 owner 重新定稿（<code>design/README.md</code> › Mockups）。各个 tab 上的 ✓ 和「定稿」记的是当时每个模块的决定，留着不动。<b>2026-11-19 两件都处理了</b>（每件后面的「处理」），等 owner 看过重新定稿；处理时做的决定和拿不准的地方列在这个 PR 的说明里。</p>
     <p><b>① 没写明的动画。</b>这个文件有 17 个 <code>@keyframes</code>：<code>armDown</code>、<code>armIn</code>、<code>bigPulse</code>、<code>burst</code>、<code>celEnter</code>、<code>countdown</code>、<code>doneIn</code>、<code>draw</code>、<code>freshRow</code>、<code>halo</code>、<code>moShine</code>、<code>pop</code>、<code>pulled</code>、<code>rise</code>、<code>spark</code>、<code>spin</code>、<code>tick</code>。<b>M · 完成动画</b>写明了完成时的 juice 和飞进今天的圈；其余的逐个确认：是设计的一部分，就在它所属组件的 tab 里写明什么触发、哪个元素动、怎么动、多久、系统开了「减少动态效果」时怎样；不是，就从 mockup 里删掉。Before 不做产品没有的动效。</p>
     <p><b>① 处理（2026-11-19）。</b><b>删掉 9 个</b>，都没有写在任何说明里：<code>burst</code>、<code>pop</code>、<code>rise</code>、<code>countdown</code>（连同 snackbar 的样式）、<code>armDown</code>、<code>bigPulse</code>、<code>halo</code> 是被取代的旧方案留下的，页面上已经不会触发；<code>pulled</code>（从 backlog 拉上来的卡亮一下）和 <code>freshRow</code>（一天的清单里刚完成的那行亮一下）会触发，但就是 <code>design/README.md</code> 里「Bad」那一种：只是为了指出点了以后哪里变了。<b>留下 8 个</b>，写进它所属 tab 新加的「动效」表：<code>armIn</code>（T）、<code>tick</code>、<code>spin</code>、<code>spark</code>、<code>draw</code>（C）、<code>doneIn</code> 和换成产品 <code>fx-boot-in</code> 的 <code>celEnter</code>（D）、<code>moShine</code>（M）。同一张表也写了没有 <code>@keyframes</code> 的动效（transition 和脚本里的动画）。时长对到 design-language › Motion 的 token 上：选中、按下 150 ms，留下的卡补位 240 ms；对不上 token 的两个（弧 500 ms 照产品现在的 Today ring，<code>doneIn</code> 900 ms）表里写明了。Before 加上了产品自己的 <code>fx-orbit</code>（Today ring 后面那道转的光）。</p>
     <p><b>② 和现在的产品对齐。</b>Before 照动手时的产品重画，文字里说「现在的产品」的地方逐句对照代码。定稿之后产品已经在变：PR #126 把 backlog 改成按 habit 和 project 分组，并给空的 backlog 和空的 Todo 加了虚线框。</p>
@@ -713,7 +712,7 @@
 
 <!-- ═════════ F · Final: the four modules on one board (round 18) ═════════ -->
 <section class="screen on" data-screen="final">
-  <div class="col-label"><b>F · Final · pending 2026-11-19（见页首；① ② 已处理，等重新定稿）· 修订 · amended 2026-11-19（PR #127：backlog 去掉标题下的提示、补上空状态，见 B · Backlog；Todo 空了的文案换成 All clear for the day，见 D · Done；decided 2026-11-19）· 之前：final version · decided 2026-11-09 · 修订 · amended 2026-11-10（第 25 轮：合进 M，桌面 Todo 加 Today、Todo 空了的提醒，第 28 轮定稿）· 修订 · amended 2026-11-11（第 28 轮：卡片合成一个组件，one-off 的 quadrant 挪进标签；第 29 轮定稿）</b> · P 进度圈 · C 庆祝 · D 做完的去哪 · T 点两下完成 · M 完成动画 · K 卡片，合在一块 board 上<span class="line"></span></div>
+  <div class="col-label"><b>F · Final · ✓ final version · decided 2026-11-19（重新定稿，见页首）· 修订 · amended 2026-11-19（PR #127：backlog 去掉标题下的提示、补上空状态，见 B · Backlog；Todo 空了的文案换成 All clear for the day，见 D · Done；decided 2026-11-19）· 之前：final version · decided 2026-11-09 · 修订 · amended 2026-11-10（第 25 轮：合进 M，桌面 Todo 加 Today、Todo 空了的提醒，第 28 轮定稿）· 修订 · amended 2026-11-11（第 28 轮：卡片合成一个组件，one-off 的 quadrant 挪进标签；第 29 轮定稿）</b> · P 进度圈 · C 庆祝 · D 做完的去哪 · T 点两下完成 · M 完成动画 · K 卡片，合在一块 board 上<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:14px">每一块怎么来的，见后面五个 tab 和 <code>reviews/pr-115.md</code>。下面的 After 都能直接操作：点卡片选中，再点 <b>✓ Complete</b> 完成（只点卡片别处是取消）——卡片随机来一种 juice，再飞进今天的圈（M）；全部做完会播大反馈，Todo 空了留一块提醒。点今天或之前的某一格，看那天做完的；Backlog 点开，卡片上有 <b>↑ Todo</b>。桌面和手机的 After 上面各有 <b>Complete all →</b>（一张张做完，直接看大反馈，可以拿来录 demo）和 <b>Reset</b>。Fixture：Thu Nov 5 12:40，今天做完 1 / 5。</p>
   <div class="col-label"><b>这次新加的</b> · 相对现在的产品，按 board 上的位置分，每块注明来自哪个模块（第 28 轮和原来的「解剖」合成一节）<span class="line"></span></div>
   <div class="patterns" id="fin-new" style="margin-bottom:22px;grid-template-columns:repeat(auto-fill, minmax(230px, 1fr))"></div>
@@ -1292,7 +1291,7 @@ const PZ_PATTERNS = [
 document.getElementById('pz-patterns').innerHTML = PZ_PATTERNS.map(([title, who, body, fit]) => `<div class="pat"><h4>${title}</h4><div class="who">${who}</div>${body}<div class="fit">${fit}</div></div>`).join('');
 
 /* ── C · Celebration: small every time, one big beat when today's plan is done, then a state that stays ── */
-const CEL_T = {hit: 150, leave: 240};
+const CEL_T = {hit: 150};
 /* B's sparks take the day's own colours, in proportion to what got done */
 const SPARK_COUNT = 12;
 function sparkColors(day, count) {
@@ -1340,11 +1339,13 @@ function celComplete(key, button) {
   state.busy = true;
   const idx = Number(button.dataset.idx);
   const cardEl = button.closest('.tc');
+  const frame = cardEl.closest('.pz-phone');
   button.classList.add('hit');
-  navigator.vibrate?.(30);
-  setTimeout(() => {
-    cardEl.classList.add('leaving');
-    setTimeout(() => {
+  navigator.vibrate?.([12, 40, 24]);
+  setTimeout(async () => {
+    await moThrow(frame, cardEl, state.todo[idx].kind, moDemoJuice());
+    if (cel[key] !== state) return;
+    {
       const [model] = state.todo.splice(idx, 1);
       state.days[FIX.todayIndex][model.kind][0] += 1;
       renderCel(key);
@@ -1356,7 +1357,7 @@ function celComplete(key, button) {
         root.querySelectorAll('.cel-empty').forEach(el => el.classList.add('enter'));
       }
       state.busy = false;
-    }, CEL_T.leave);
+    }
   }, CEL_T.hit);
 }
 function celAll(key) {
@@ -1365,7 +1366,7 @@ function celAll(key) {
   if (!button) return;
   if (cel[key].busy) { setTimeout(() => celAll(key), 120); return; }
   celComplete(key, button);
-  setTimeout(() => celAll(key), CEL_T.hit + CEL_T.leave + 200);
+  setTimeout(() => celAll(key), CEL_T.hit + 200);
 }
 document.getElementById('cel-options').innerHTML = CEL_VARIANTS.map(variant => `<div class="pz-opt ${variant.tag === '定稿' ? 'rec' : ''}" data-cel="${variant.key}">
   <div class="opt-head"><span class="letter">${variant.letter}</span><h3>${variant.title}</h3><span class="tag">${variant.tag}</span></div>
@@ -1620,18 +1621,24 @@ function dpaneTapCard(idx, onTarget) {
   const state = dp.desk;
   if (state.armed !== idx) { state.armed = idx; state.armedAt = performance.now(); renderDpane(); return; }
   if (!onTarget) { state.armed = null; renderDpane(); return; }
-  if (performance.now() - state.armedAt < DPANE_DEBOUNCE_MS) return;
-  document.querySelector(`#dpane [data-arm-idx="${idx}"]`).classList.add('leaving');
+  if (performance.now() - state.armedAt < DPANE_DEBOUNCE_MS || state.busy) return;
+  const root = document.getElementById('dpane');
+  const todoBefore = moTitleRects(root, '[data-arm-idx]');
   state.armed = null;
-  setTimeout(() => {
+  state.busy = true;
+  navigator.vibrate?.([12, 40, 24]);
+  moThrow(root, root.querySelector(`[data-arm-idx="${idx}"]`), state.todo[idx].kind, moDemoJuice()).then(() => {
+    if (dp.desk !== state) return;
     /* the card lands in the Done column, done-styled, and in today's list */
     const [model] = state.todo.splice(idx, 1);
     const entry = {kind: model.kind, title: model.title, name: model.name, quadrant: model.quadrant};
     state.days[FIX.todayIndex][model.kind][0] += 1;
     state.lists[FIX.todayIndex].push(entry);
     state.fresh = entry;
+    state.busy = false;
     renderDpane();
-  }, 240);
+    moSlide(root, '[data-arm-idx]', todoBefore);
+  });
 }
 /* ↑ Todo on a backlog card: the top of the pile moves to Todo, a pile shows its next one; with today's total as the
    mockup counts it (Todo + done today, Ideas 2), today's plan grows by one */
@@ -1813,17 +1820,21 @@ function tapCard(key, mode, idx, onTarget = false) {
   }
   /* the card again: back to normal; the target, after the debounce: complete */
   if (!onTarget) { disarm(key, mode); return; }
-  if (performance.now() - state.armedAt < ARM_DEBOUNCE_MS) return;
-  /* the target: complete — the card leaves, today's ring grows */
+  if (performance.now() - state.armedAt < ARM_DEBOUNCE_MS || state.busy) return;
+  /* the target: complete — the decided motion (M), then today's ring grows */
   const root = document.querySelector(`[data-tap="${key}"] [data-tap-mode="${mode}"]`);
-  root.querySelector(`[data-arm-idx="${idx}"]`).classList.add('leaving');
-  navigator.vibrate?.(30);
+  const todoBefore = moTitleRects(root, '[data-arm-idx]');
+  navigator.vibrate?.([12, 40, 24]);
   state.armed = null;
-  setTimeout(() => {
+  state.busy = true;
+  moThrow(root, root.querySelector(`[data-arm-idx="${idx}"]`), state.todo[idx].kind, moDemoJuice()).then(() => {
+    if (tp[`${key}-${mode}`] !== state) return;
     const [model] = state.todo.splice(idx, 1);
     state.days[FIX.todayIndex][model.kind][0] += 1;
+    state.busy = false;
     renderTap(key, mode);
-  }, 240);
+    moSlide(root, '[data-arm-idx]', todoBefore);
+  });
 }
 /* the two states drawn still, so the owner can compare their height */
 function tapStates() {
@@ -2315,20 +2326,26 @@ function moGhost(root, cardEl) {
   return ghost;
 }
 /* every completed card, on both widths and in M and Final alike: a juice, then the toss; reduced motion only fades */
-async function moThrow(root, cardEl, kind, juice) {
+async function moThrow(root, cardEl, kind, juice, ringEl = root.querySelector('.pz-day.today .pz-ringwrap')) {
   if (moReduced()) {
     await cardEl.animate([{opacity: 1}, {opacity: 0}], {duration: MO_T.fade, fill: 'forwards'}).finished;
     return;
   }
   const ghost = moGhost(root, cardEl);
   await juice.play(ghost, root, kind, moMs).finished;
-  await moToss(ghost, root.querySelector('.pz-day.today .pz-ringwrap'));
+  await moToss(ghost, ringEl);
 }
 /* particles and text outlast the render that follows them */
 function moKeepFx(root, render) {
   const fx = [...root.querySelectorAll(':scope > .mo-fx')];
   render();
   root.append(...fx);
+}
+/* C, D and T complete with the decided motion too (owner, 2026-11-19), with a random juice like Final */
+function moDemoJuice() {
+  const juice = moPickJuice();
+  moLast = juice.key;
+  return juice;
 }
 function moPickJuice(forced) {
   if (forced && forced !== 'random') return MO_JUICE.find(juice => juice.key === forced);
@@ -2401,7 +2418,7 @@ const MX = {
     ['选中 · ✓ 放大', '点一张 Todo 卡的卡面任何地方', '右下角的小圈放大到 1.45 倍（只用 transform，不占位置），同时填成实心的绿、出现 ✓；卡片换成确认边框和里面一层光。卡片大小不变。再点一次、点别处或 Esc 时反着来', '150 ms · console snap', '没有过渡，直接变成选中 / 没选中的样子'],
     ['选中 · Complete 出现', '同上', '小圈左边的 <b>Complete</b> 从右边 4 px、透明，淡入滑到原位', '150 ms · console snap', '直接出现'],
     ['按下', '手指或鼠标按在卡片上', '卡片缩到 0.985 倍，松开回来', '150 ms · console snap', '不缩'],
-    ['完成', '点 ✓ Complete', '这个 tab 的演示还用 C 的旧「收起」；定稿的是 M · 完成动画（juice + 飞进今天的圈），F · Final 里就是它', '见 M', '见 M'],
+    ['完成', '点 ✓ Complete', 'M · 完成动画：随机一种 juice，再飞进今天的圈。这个 tab 的演示也是它（2026-11-19 换的）', '见 M', '见 M'],
   ],
   celebration: [
     ['接上一段弧', '一张卡完成（落进今天的圈）', '今天那格的圈上，这张卡 kind 颜色的那一段从上一段的末端顺时针长出来（habit → step → one-off 的顺序）', '500 ms · console snap（和产品现在的 Today ring 一样）', '直接画好那一段'],
@@ -2410,7 +2427,6 @@ const MX = {
     ['大反馈 · 火花', '同上，和转圈同时', '12 颗 4 px 的火花从圈边沿各自的角度飞出去（18 px → 40 px）、缩到 0.4 倍、淡掉；颜色按今天做完的 kind 比例分', '700 ms · console snap', '没有火花'],
     ['大反馈 · ✓ 画出来', '同上', '圈中心的 ✓ 从一端画到另一端（✓ 本身不转）', '转圈开始后 250 ms 开始，画 300 ms', '直接出现'],
     ['振动', '一张卡完成 · 大反馈', '手机振一下；大反馈是 Success 的节奏。不是动画', '—', '照常（减少动态效果不管振动）'],
-    ['小反馈的「收起」', '一张卡完成（C、D、T 的演示）', '卡片向右 10 px 淡出。<b>已被 M 取代</b>：F · Final 里卡片是 juice + 飞进今天的圈；这里留着只因为这三个 tab 的演示还用它', '200–240 ms', '只淡出'],
   ],
   done: [
     ['刚完成的卡亮一下', '一张卡完成，出现在桌面 Done 列的最上面', '这张卡外面一圈 2 px 的绿边和绿光，慢慢淡掉，卡片停在完成的样子。只在完成那一刻，之后不再亮', '900 ms · console snap', '不亮，直接是完成的样子'],

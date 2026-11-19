@@ -1,6 +1,6 @@
 # Spike: Board · tap to complete 分几个阶段做
 
-**Status: awaiting owner review** · 2026-11-19
+**Status: decided** · 2026-11-19（同日定）
 
 > 语言约定：叙述用中文；产品名词、状态和代码标识保留英文（Todo / Done / backlog、habit / project / one-off、`doneAt`、`BoardPage`），和代码、mockup、tracker 一一对应。
 
@@ -40,3 +40,13 @@ A、B、C 的顺序按依赖排：B 的圈是 C 的 toss 落点，A 的卡片是
 3. 第 1 阶段里 `doneIn`（Done 卡进来的 900ms）不在 motion token 上（150 / 240 / 420ms）。保留 900ms，还是改成 420ms 的 `fx-boot-in`？
 4. C 的圈弧画 500ms，也不在 token 上。保留，还是改？
 5. D、T、C 的 demo 里卡片离开还是旧的 leave 动画，M 的 toss 已经取代它（表里标了 superseded）。要不要把这三个 demo 也换成 toss，还是留着作为历史？
+
+## 决定 · Decision
+
+Owner 2026-11-19 的回答：
+
+1. **分法**：第 1 阶段之后只开两个 PR：一个 spec PR（write-spec），一个实现 PR（implement-spec），实现 PR 叠在 spec PR 上。第 4、5、6 阶段合进这一个实现 PR，每一项 spec 仍然各有自己的测试。Spec 里的开放问题由写 spec 的 session 自己决定，不再等 owner；决定和别的方向记在 spec PR 的说明里，给 owner 事后看。
+2. **React Compiler**：owner 交给实现的 session 决定。并进实现 PR：动画加在 `BoardPage` 上，先让它能被编译。
+3. **`doneIn` 900 ms**：保留。
+4. **圈弧 500 ms**：保留。
+5. **D、T、C 的 demo**：都换成 M 的完成动画（juice + 飞进今天的圈），在第 1 阶段的 PR #128 里换。
