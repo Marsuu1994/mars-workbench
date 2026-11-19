@@ -72,6 +72,9 @@ const archiveProject = async (page: Page, title: string) => {
   const archived = waitForServerAction(page, '/kanban/projects');
   await modal.getByRole('button', {name: 'Archive', exact: true}).click();
   await archived;
+  // The modal closes, and leaves the URL, once the saved list has landed: a
+  // reload before that would open it again from the URL
+  await expect(modal).toBeHidden();
 };
 
 /**
@@ -174,7 +177,10 @@ test.describe('Modal URL Flow', () => {
     );
     const [firstStep] = steps;
     const modal = page.getByRole('dialog');
-    const titleField = modal.getByRole('textbox', {name: 'Title'});
+    // FieldRow's label isn't tied to its input, so the field goes by placeholder
+    const titleField = modal.getByPlaceholder(
+      'e.g. Lecture 4 — Cell signaling',
+    );
     const editStepUrl = new RegExp(`modal=editStep&stepId=${firstStep.id}`);
 
     // Loaded with the modal in the URL: it opens on the step it names, and

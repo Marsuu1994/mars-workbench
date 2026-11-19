@@ -518,6 +518,7 @@ ProjectsPage (client) ◆
 
 - **和 daily rhythm、board tap-to-complete 的 PR 冲突**：两边都会改 board。本 PR 不碰 board，`BOARD_MODAL_KEYS` 和 board 的 registry 跟 Open the day 的实现 PR 一起来，按本 spike 定下的写法。
 - **URL 和 history 的边角**：一个 modal 链接打开、用户又在页面里打开另一个，history 里会有两条 modal；registry 只认最新的 URL，行为是对的，只是后退多一步。Next 改动 `pushState` 的接管方式（我们依赖它保留 state 对象）时要重测，`Workaround` 不需要，但升级 Next 时跑一遍「Modal URL Flow」。
+- **保存后 URL 晚一拍才变**：modal 等新的 props 落地才关、才把 `?modal=` 拿掉，中间有几十毫秒 URL 还带着它。这时刷新会再打开一次（CI 上抓到：归档后立刻 reload，Edit Project 又开在已归档的项目上）。用户手动刷新赶不上这么快，测试里先等 modal 关掉再 reload；3B 在 transition 里关会让这段窗口更短。
 - **`ModalPanel` 变成万能组件**：只收 5 个 modal 共有的东西；一个 modal 的特殊需求放 `children`，review 时按这条把关。
 - **3B 的卡住风险**：见轴 3；探针是闸门，看门狗是备选。
 - **一页一个 shell**：几个 kind 共用一个 `<dialog>`，关闭时内容先卸载（和现在 `{isOpen && <Panel/>}` 一样，不是新问题）；preset 不同的两个 modal 之间切换要在 `ModalHost` 里记住上一个 preset，避免关闭瞬间盒子变宽。

@@ -304,7 +304,8 @@ export const ProjectsPage = ({
   const getStepModalTarget = (): StepModalTarget | null => {
     switch (openModal?.kind) {
       case 'addStep': {
-        const project = projects.find(
+        // An archived project takes no new steps, whatever the URL says
+        const project = activeProjects.find(
           ({id}) => id === openModal.params.projectId,
         );
         if (!project) return null;
