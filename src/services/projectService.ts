@@ -31,11 +31,10 @@ import {
   toProjectStepRow,
 } from '@/utils/projectUtils';
 import {ensureSynced} from '@/services/syncService';
-import type {ProjectsPageData} from '@/types/projects';
+import type {ProjectsPageData, StepMove} from '@/types/projects';
 import type {
   CreateProjectInput,
   CreateProjectStepInput,
-  MoveProjectStepInput,
   UpdateProjectInput,
   UpdateProjectStepInput,
 } from '@/schemas';
@@ -230,7 +229,7 @@ export async function deleteProjectStep(
 export async function moveProjectStep(
   userId: string,
   projectId: string,
-  {stepId, beforeStepId}: MoveProjectStepInput,
+  {stepId, beforeStepId}: StepMove,
 ): Promise<MoveProjectStepResult> {
   if (!isUuid(projectId)) return {error: 'projectNotFound'};
   return prisma.$transaction(async tx => {

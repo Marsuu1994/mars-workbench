@@ -194,7 +194,6 @@ export const moveProjectStepSchema = z.object({
   stepId: z.string().uuid(),
   beforeStepId: z.string().uuid().optional(),
 });
-export type MoveProjectStepInput = z.infer<typeof moveProjectStepSchema>;
 
 // ── Dump Schemas ───────────────────────────────────────────────────────
 

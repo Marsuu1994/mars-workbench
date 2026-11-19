@@ -49,6 +49,12 @@ A design's items come from its decided mockup (what counts as decided: `design/R
   - a new daily path or a new state the user reaches: Journeys (Spec v2 › Journeys).
 - **Decidable**: an item states what the user can observe — what is counted, the numbers and caps, the order, what is absent — so that, given the data, anyone can say whether the screen does it, and two tests of it would assert the same thing. Bad: "A group shows a pile." Good: "A group with tasks behind its next one shows one thin sheet for each of them, at most three, and **+N more**, N being how many are behind; the last task of a group shows neither."
 - **Each layout**: when desktop and mobile differ, the item says what each one does.
+- **Motion**: a motion goes into an item only as far as a test can hold it. The item names the motion by its `fx-*` utility and states:
+  - what sets it off, and which element it plays on;
+  - that once it has ended the layout is the same as at rest;
+  - that nothing plays when the system asks for reduced motion.
+
+  Its duration and its curve are the utility's, not the item's (What a spec doesn't say).
 - **Both sides of a limit**: when the UI stops the user from changing data in some way (a Done card can't be dragged back), the server refuses it too, and that refusal is an item of its own in Rules (R4 on the board, R1 on the server): a data rule lives where every write path passes (AGENTS.md › Layers). Only the owner makes an exception, never the agent; its item says the server doesn't hold the limit and which writes stay free of it. The exceptions so far: Board R6, where only the board limits pulling to a group's next task; the server doesn't check the order, so a write path outside the board, such as a future Claude tool over MCP, wouldn't be held to it.
 - **Only what was decided**: what neither the decided mockup nor the owner's words decide is a question for the owner, not an item. The mockup's options that weren't picked, its research and its ideas for the spec decide nothing, and its Before is only today's state. An item that needs the owner's answer waits for it.
 - **Only what the design changes**: built items the design doesn't touch stay as they are. A built item that is simply wrong is a fix of its own, not part of the design's change.
@@ -57,6 +63,7 @@ A design's items come from its decided mockup (what counts as decided: `design/R
 
 - **Which test holds an item** — the test's title does, and `npm run check:spec -- --list <page>` lists them. Which layer tests it: `test/README.md` › Which layer.
 - **Copy, pixels, colours, positions** — the mockup before the design is built, the Design Console after.
+- **How a motion looks** — its duration, its curve and what moves by how much: the `fx-*` utility, set out in `design/design-language/README.md` › Motion and shown by the Design Console.
 - **Implementation** — function names, query counts, callers: the code and `reference.md`.
 - **Decisions and their reasons** — the spike and `baseline.md`'s Architecture Decision.
 

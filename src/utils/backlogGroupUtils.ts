@@ -1,6 +1,5 @@
-import type {BoardProject} from '@/lib/db/projects';
-import type {BoardCard} from '@/utils/boardCardUtils';
-import {TaskKind, type BoardPlan} from '@/utils/taskUtils';
+import type {BoardCard, BoardCardInputs} from '@/utils/boardCardUtils';
+import {TaskKind} from '@/utils/taskUtils';
 
 /** The backlog's sections, in the order the panel and the sheet show them. */
 export const BacklogSection = {
@@ -22,14 +21,6 @@ export interface BacklogGroup {
 }
 
 export type BacklogSections = Record<BacklogSection, BacklogGroup[]>;
-
-/** What toBacklogSections reads besides the cards. */
-export interface BacklogGroupInputs {
-  /** Its habits in the order they were created (fetchBoard's plan) */
-  plan: BoardPlan;
-  /** In the order they were created (fetchBoard's lookup) */
-  projects: BoardProject[];
-}
 
 const SECTION_BY_KIND: Record<TaskKind, BacklogSection | null> = {
   [TaskKind.HABIT]: BacklogSection.HABITS,
@@ -62,7 +53,7 @@ const compareWithinGroup = ({task: a}: BoardCard, {task: b}: BoardCard) =>
  */
 export function toBacklogSections(
   cards: BoardCard[],
-  {plan, projects}: BacklogGroupInputs,
+  {plan, projects}: BoardCardInputs,
 ): BacklogSections {
   const rankByKey = new Map<string, number>([
     ...plan.planTemplates.map(

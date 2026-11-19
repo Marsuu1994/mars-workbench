@@ -13,7 +13,7 @@ import {
   TaskSize,
 } from '@/utils/enums';
 import {getWeekDateRange} from '@/utils/dateUtils';
-import {TaskKind} from '@/utils/taskUtils';
+import {TaskKind, type PlanLine} from '@/utils/taskUtils';
 import {Pill, type PillColor} from '@/components/ui/Pill';
 import {FieldRow} from '@/components/ui/form/FieldRow';
 import {ChoicePills} from '@/components/ui/form/ChoicePills';
@@ -28,7 +28,7 @@ import {
   updatePlanAction,
   countIncompleteByTemplateAction,
 } from '@/actions/planActions';
-import {TemplateItem} from './TemplateItem';
+import {TemplateItem, type TemplateItemConfig} from './TemplateItem';
 import {PlanTaskRow, type PlanTaskStatus} from './PlanTaskRow';
 import {TaskModal} from '@/components/domain/shared/task-modal/TaskModal';
 import {ReviewChangesModal} from './review-changes/ReviewChangesModal';
@@ -57,17 +57,6 @@ const awaitPlanWrite = async <Result,>(
   }
 };
 
-interface PlanTemplateConfig {
-  type: TaskType;
-  frequency: number;
-}
-
-interface InitialPlanTemplate {
-  templateId: string;
-  type: TaskType;
-  frequency: number;
-}
-
 export interface AdhocTaskItem {
   id: string;
   planId: string | null;
@@ -81,7 +70,7 @@ interface PlanFormProps {
   templates: TaskTemplateItem[];
   mode: 'create' | 'edit';
   planId?: string;
-  initialPlanTemplates?: InitialPlanTemplate[];
+  initialPlanTemplates?: PlanLine[];
   initialDescription?: string;
   initialPlanMode?: PlanMode;
   adhocTasks?: AdhocTaskItem[];
@@ -139,7 +128,7 @@ export const PlanForm = ({
 
   // Map from templateId → {type, frequency} for selected templates
   const [selectedTemplates, setSelectedTemplates] = useState<
-    Map<string, PlanTemplateConfig>
+    Map<string, TemplateItemConfig>
   >(
     new Map(
       initialPlanTemplates.map(pt => [
@@ -167,7 +156,7 @@ export const PlanForm = ({
   );
 
   // Cache configs when templates are unchecked so re-checking restores them
-  const configCache = useRef(new Map<string, PlanTemplateConfig>());
+  const configCache = useRef(new Map<string, TemplateItemConfig>());
 
   function toggleTemplate(id: string) {
     setSelectedTemplates(prev => {
@@ -190,7 +179,7 @@ export const PlanForm = ({
     });
   }
 
-  function updateConfig(id: string, config: PlanTemplateConfig) {
+  function updateConfig(id: string, config: TemplateItemConfig) {
     setSelectedTemplates(prev => {
       const next = new Map(prev);
       next.set(id, config);

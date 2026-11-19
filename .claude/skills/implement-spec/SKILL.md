@@ -5,7 +5,11 @@ description: Building a page's *(pending)* spec items — a test for each at the
 
 # Implement spec — from pending items to built and tested
 
-The scope is the spec: the items still marked *(pending)* or *(removing)* on the page. The spec says what each item does and the decided mockup how it looks. Behaviour the spec doesn't state is out of scope: raise it with the owner rather than build it. A question the spec left open (the inputs say where to find them) stops the work on the items it touches until the owner answers.
+The scope is the spec: the items still marked *(pending)* or *(removing)* on the page. The spec says what each item does and the decided mockup how it looks. What to do where the spec doesn't settle something:
+
+- Behaviour no item states: decide, build the smallest thing that fits the design, and report the decision at the end (step 5). Ask the owner first only when the decision would change data, change a rule the server holds, reach another page, or go against an item.
+- A question the spec left open (the inputs say where to find them): stop on the items it touches and raise it with the owner. A spec is settled before it is built, so an open question means the step before this one isn't finished.
+- A part of the mockup that can't be built as drawn: raise it first (AGENTS.md › UI Workflow).
 
 ## 1. Read
 
@@ -34,9 +38,13 @@ A journey's e2e test runs with `npx playwright test e2e/<page>.spec.ts`. Sync th
 
 1. Run the checks in AGENTS.md › Version Control › Before every push, `npm run test:e2e` included.
 2. Spawn the `implement-spec-reviewer` agent with its brief: the spec's path, the IDs this change built and removed, the mockup's path, and the base to diff against.
-3. Fix each FAIL and run the reviewer once more. For an UNSURE, run the check it names yourself (break the line it names, see the test it names turn red), then put the code back. A FAIL you think is wrong goes to the owner with both readings.
+3. Fix each FAIL and run the reviewer again, three passes at most. What still fails after the third pass is left as it is and goes into the report. For an UNSURE, run the check it names yourself (break the line it names, see the test it names turn red), then put the code back. A FAIL you think is wrong goes to the owner with both readings.
 4. When AGENTS.md › UI Workflow calls for a browser check, spawn `ui-verifier` with its own brief. The two reviews stay separate.
 
 ## 5. Report
 
-Update the docs Before every push asks for. Then report to the owner, and put in the PR description: the items built and removed, by ID; the reviewers' verdicts; and anything raised along the way.
+Update the docs Before every push asks for. Then report to the owner, and put in the PR description:
+
+- the items built and removed, by ID;
+- the reviewers' verdicts, pass by pass, and what still fails after the last one;
+- each decision you made on behaviour no item states, and what the reviewer listed as unspecified, for the owner to keep or turn down. One the owner keeps becomes a spec item with a test; one turned down comes out of the code.

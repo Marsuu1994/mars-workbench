@@ -43,4 +43,4 @@ Checks to run: none | <each UNSURE's check: the line to break, the test that sho
 check:spec: pass | <the failure, one line>
 ```
 
-The verdict is FAIL when any item, rule or `check:spec` fails or anything is unspecified; UNSURE when none of those but an item is unsure; PASS otherwise. Stop after one pass.
+The verdict is FAIL when any item, rule or `check:spec` fails; UNSURE when none of those but an item is unsure; PASS otherwise. What you list under Unspecified doesn't change the verdict: the main session may build what the spec is silent on, and reports it to the owner (the `implement-spec` skill). Each call is one review: report and stop. Whether you are called again, after the main session's fixes, is the main session's to decide.

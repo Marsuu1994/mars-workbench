@@ -39,14 +39,19 @@ A theme is a **skin over a shared skeleton**, never a fork of components:
 - **One variable contract**: every theme declares the same custom properties — its
   daisyUI block plus its `[data-theme='…']` block in `globals.css`, in the same section
   order (star chart · art · blooms · bracket · panels · edges · shadows · glows ·
-  surface & depth · ink on gradients · geometry). Variables are named by role (`--fx-field`, `--fx-depth`,
-  `--fx-card-bg`, `--radius-card`); a theme with no use for one still
-  declares its equivalent. `npm run check:themes` enforces it in CI, and a theme added
-  to `THEMES` is held to it automatically.
-- **One theme scope per page**: the theme lives only on `<html data-theme>`; nothing
-  nests a `data-theme` (the Design Console previews by re-stamping `<html>`). That is
-  what keeps theme-gated skin rules, like p5-dark's geometry fork, from leaking into
-  another theme.
+  surface & depth · ink on gradients · geometry). A new variable lands in every theme
+  in the same change. Variables are named by role, not by one theme's palette
+  (`--fx-field`, `--fx-depth`, `--fx-card-bg`, `--radius-card`); a theme with no use
+  for one still declares its equivalent. `npm run check:themes` enforces it in CI, and
+  a theme added to `THEMES` is held to it automatically. Bad: `--fx-blood-red` declared
+  by p5-dark alone. Good: `--fx-depth` in every theme, p5's value being its blood red.
+- **One theme scope per page**: the theme lives only on `<html data-theme>`. The server
+  renders it from the cookie, and the settings sheet and the Design Console re-stamp
+  it; nothing nests a `data-theme`. A theme-gated skin rule, like
+  `[data-theme='p5-dark'] .fx-card` or p5-dark's geometry fork, matches through any
+  ancestor, so a nested scope would leak it into another theme. Bad:
+  `<div data-theme="mars-light">` around a preview. Good:
+  `document.documentElement.setAttribute('data-theme', next)`.
 
 ## FX utility layer — API + Mission Control HUD skin
 
