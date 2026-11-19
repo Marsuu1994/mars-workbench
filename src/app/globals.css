@@ -750,42 +750,6 @@ body {
     );
   }
 
-  /* ── Progress ring flourish ── */
-  /* Rotating conic tail behind the ring — transform-only heartbeat */
-  .fx-orbit {
-    position: relative;
-  }
-  .fx-orbit::before {
-    content: '';
-    position: absolute;
-    inset: -3px;
-    border-radius: 9999px;
-    pointer-events: none;
-    background: conic-gradient(
-      from 0deg,
-      transparent 0 78%,
-      color-mix(in oklab, var(--color-primary) 35%, transparent) 92%,
-      transparent 100%
-    );
-    -webkit-mask-image: radial-gradient(
-      closest-side,
-      transparent 82%,
-      black 84%,
-      black 96%,
-      transparent 100%
-    );
-    mask-image: radial-gradient(
-      closest-side,
-      transparent 82%,
-      black 84%,
-      black 96%,
-      transparent 100%
-    );
-    /* Continuous heartbeat by design decision (transform-only, tiny
-     masked layer); reduced-motion turns it off */
-    animation: fx-orbit 2s linear infinite;
-  }
-
   /* ── Gradient headline text (restraint rule: first word only) ── */
   .fx-text-gradient {
     background: linear-gradient(
@@ -905,6 +869,135 @@ body {
       0 0 50px color-mix(in oklab, var(--color-primary) 22%, transparent),
       0 0 100px color-mix(in oklab, var(--color-secondary) 12%, transparent);
     animation: fx-breathe 4s ease-in-out infinite alternate;
+  }
+  /* ── Board motion: finishing a card (board spec › Motion) ──
+        A juice plays on a fixed copy of the card where it stands and ends in
+        the lift pose (rotate(-4deg) scale(1.07)) that fx-toss starts from.
+        Timings outside the 150 / 240 / 420 ms tokens are the decided mockup's
+        (PR #128): the juices, the toss, the ring's 500 ms arcs and 700 ms
+        close, and fx-done-in's 900 ms. ── */
+  .fx-juice-wobble {
+    animation: fx-juice-wobble 0.36s linear forwards;
+  }
+  .fx-juice-shine {
+    overflow: hidden;
+    animation: fx-juice-shine 0.42s linear forwards;
+  }
+  .fx-juice-shine::after {
+    content: '';
+    position: absolute;
+    top: -20%;
+    bottom: -20%;
+    left: -60%;
+    width: 45%;
+    pointer-events: none;
+    background: linear-gradient(
+      100deg,
+      transparent,
+      oklch(1 0 0 / 0.55),
+      color-mix(in oklab, var(--color-primary) 35%, transparent),
+      transparent
+    );
+    transform: skewX(-18deg);
+    animation: fx-juice-shine-sweep 0.42s cubic-bezier(0.3, 0, 0.2, 1) forwards;
+  }
+  .fx-juice-burst {
+    animation: fx-juice-burst 0.34s linear forwards;
+  }
+  .fx-juice-flip {
+    animation: fx-juice-flip 0.44s linear forwards;
+  }
+  /* The burst's chips and its +1, laid over the page at the card's centre;
+     each chip flies to (--fx-chip-x, --fx-chip-y) */
+  .fx-juice-chip {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    margin: -5px;
+    border-radius: 2px;
+    pointer-events: none;
+    background: var(--fx-chip-color);
+    box-shadow: 0 0 8px var(--fx-chip-color);
+    animation: fx-juice-chip 0.62s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+  }
+  .fx-juice-plus {
+    position: fixed;
+    pointer-events: none;
+    font-family: var(--font-mono, monospace);
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--fx-chip-color);
+    text-shadow:
+      0 2px 0 oklch(0 0 0 / 0.45),
+      0 0 14px var(--fx-chip-color);
+    animation: fx-juice-plus 0.9s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+  }
+  /* From the card to today's ring along a quadratic arc: the end is
+     (--fx-toss-x, --fx-toss-y) and the arc's control point's height
+     --fx-toss-cy; the easing is baked into the keyframes */
+  .fx-toss {
+    animation: fx-toss 0.3s linear forwards;
+  }
+  /* A card that was below a tossed one, sliding up from --fx-slide-from */
+  .fx-slide {
+    animation: fx-slide 0.24s cubic-bezier(0.2, 0, 0, 1);
+  }
+  .fx-fade-out {
+    animation: fx-fade-out 0.15s linear forwards;
+  }
+  /* A ring's arcs, growing or shrinking to their new lengths */
+  .fx-ring-grow {
+    transition:
+      stroke-dasharray 0.5s cubic-bezier(0.2, 0, 0, 1),
+      stroke-dashoffset 0.5s cubic-bezier(0.2, 0, 0, 1);
+  }
+  .fx-ring-tick {
+    animation: fx-ring-tick 0.3s cubic-bezier(0.2, 0, 0, 1);
+  }
+  /* Today's ring closing: the ring turns once, its sparks fly out and the ✓
+     draws itself */
+  .fx-ring-close .fx-ring-svg {
+    animation: fx-ring-spin 0.7s cubic-bezier(0.2, 0, 0, 1);
+  }
+  .fx-ring-close .fx-ring-check path {
+    animation: fx-ring-draw 0.3s 0.25s cubic-bezier(0.2, 0, 0, 1) backwards;
+  }
+  .fx-ring-spark {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 4px;
+    height: 4px;
+    margin: -2px;
+    border-radius: 9999px;
+    pointer-events: none;
+    opacity: 0;
+    background: var(--fx-spark-color);
+  }
+  .fx-ring-close .fx-ring-spark {
+    animation: fx-ring-spark 0.7s cubic-bezier(0.2, 0, 0, 1) forwards;
+  }
+  .fx-done-in {
+    animation: fx-done-in 0.9s cubic-bezier(0.2, 0, 0, 1);
+  }
+  /* The round mark growing into ✓ Complete, and Complete coming in beside it */
+  .fx-arm .fx-arm-mark {
+    transition:
+      transform 0.15s cubic-bezier(0.2, 0, 0, 1),
+      background-color 0.15s,
+      border-color 0.15s,
+      box-shadow 0.15s;
+  }
+  .fx-arm .fx-arm-word {
+    animation: fx-arm-in 0.15s cubic-bezier(0.2, 0, 0, 1);
+  }
+  /* Shrinks a little while held; --fx-press-scale sets how far */
+  .fx-press {
+    transition: transform 0.15s cubic-bezier(0.2, 0, 0, 1);
+  }
+  .fx-press:active {
+    transform: scale(var(--fx-press-scale, 0.985));
   }
 } /* end @layer components */
 
@@ -1081,16 +1174,6 @@ body {
 [data-theme='p5-dark'] .fx-hairline-top::before {
   height: 2px;
   background: var(--fx-field);
-}
-
-/* ── Comet tick: flat red arc (hard stops), still transform-only ── */
-[data-theme='p5-dark'] .fx-orbit::before {
-  background: conic-gradient(
-    from 0deg,
-    transparent 0 82%,
-    var(--color-primary) 82% 96%,
-    transparent 96%
-  );
 }
 
 /* ── Login brand: breathing double hard offset ── */
@@ -1324,9 +1407,224 @@ body {
     transform: translateY(0) scale(1);
   }
 }
-@keyframes fx-orbit {
+@keyframes fx-juice-wobble {
+  0% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+  22% {
+    transform: rotate(-7deg) scale(1.12);
+    animation-timing-function: ease-in-out;
+  }
+  45% {
+    transform: rotate(6deg) scale(1.12);
+    animation-timing-function: ease-in-out;
+  }
+  68% {
+    transform: rotate(-5deg) scale(1.1);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: rotate(-4deg) scale(1.07);
+    box-shadow: 0 16px 32px oklch(0 0 0 / 0.45);
+  }
+}
+@keyframes fx-juice-shine {
+  0% {
+    transform: perspective(700px);
+    animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+  45% {
+    transform: perspective(700px) rotateY(-16deg) rotateX(8deg) scale(1.1);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: perspective(700px) rotate(-4deg) scale(1.07);
+    box-shadow: 0 16px 32px oklch(0 0 0 / 0.45);
+  }
+}
+@keyframes fx-juice-shine-sweep {
   to {
-    transform: rotate(360deg);
+    left: 120%;
+  }
+}
+@keyframes fx-juice-burst {
+  0% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0.2, 1.6, 0.4, 1);
+  }
+  40% {
+    transform: rotate(-2deg) scale(1.16);
+    animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+  100% {
+    transform: rotate(-4deg) scale(1.07);
+    box-shadow: 0 16px 32px oklch(0 0 0 / 0.45);
+  }
+}
+@keyframes fx-juice-flip {
+  0% {
+    transform: perspective(700px) rotateY(0deg) scale(1);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
+  }
+  50% {
+    transform: perspective(700px) rotateY(180deg) scale(1.14);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
+  }
+  100% {
+    transform: perspective(700px) rotateY(360deg) rotate(-4deg) scale(1.07);
+    box-shadow: 0 16px 32px oklch(0 0 0 / 0.45);
+  }
+}
+@keyframes fx-juice-chip {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translate(var(--fx-chip-x), var(--fx-chip-y))
+      rotate(var(--fx-chip-turn)) scale(0.4);
+    opacity: 0;
+  }
+}
+@keyframes fx-juice-plus {
+  0% {
+    transform: translate(-50%, 0) scale(0.4) rotate(-12deg);
+    opacity: 0;
+  }
+  25% {
+    transform: translate(-50%, -14px) scale(1.25) rotate(-8deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -44px) scale(1) rotate(-6deg);
+    opacity: 0;
+  }
+}
+/* cubic-bezier(0.3, 0, 0.8, 0.15) sampled at every eighth of the time */
+@keyframes fx-toss {
+  0% {
+    transform: translate(
+        calc(var(--fx-toss-x) * 0),
+        calc(var(--fx-toss-cy) * 0 + var(--fx-toss-y) * 0)
+      )
+      rotate(-4deg) scale(1.07);
+    opacity: 1;
+  }
+  12.5% {
+    transform: translate(
+        calc(var(--fx-toss-x) * 0.009),
+        calc(var(--fx-toss-cy) * 0.017 + var(--fx-toss-y) * 0)
+      )
+      rotate(-3.86deg) scale(1.062);
+    opacity: 0.994;
+  }
+  25% {
+    transform: translate(
+        calc(var(--fx-toss-x) * 0.035),
+        calc(var(--fx-toss-cy) * 0.068 + var(--fx-toss-y) * 0.001)
+      )
+      rotate(-3.43deg) scale(1.036);
+    opacity: 0.975;
+  }
+  37.5% {
+    transform: translate(
+        calc(var(--fx-toss-x) * 0.082),
+        calc(var(--fx-toss-cy) * 0.151 + var(--fx-toss-y) * 0.007)
+      )
+      rotate(-2.68deg) scale(0.99);
+    opacity: 0.942;
+  }
+  50% {
+    transform: translate(
+        calc(var(--fx-toss-x) * 0.154),
+        calc(var(--fx-toss-cy) * 0.261 + var(--fx-toss-y) * 0.024)
+      )
+      rotate(-1.54deg) scale(0.921);
+    opacity: 0.892;
+  }
+  62.5% {
+    transform: translate(
+        calc(var(--fx-toss-x) * 0.257),
+        calc(var(--fx-toss-cy) * 0.382 + var(--fx-toss-y) * 0.066)
+      )
+      rotate(0.12deg) scale(0.82);
+    opacity: 0.82;
+  }
+  75% {
+    transform: translate(
+        calc(var(--fx-toss-x) * 0.406),
+        calc(var(--fx-toss-cy) * 0.482 + var(--fx-toss-y) * 0.164)
+      )
+      rotate(2.49deg) scale(0.677);
+    opacity: 0.716;
+  }
+  87.5% {
+    transform: translate(
+        calc(var(--fx-toss-x) * 0.626),
+        calc(var(--fx-toss-cy) * 0.468 + var(--fx-toss-y) * 0.391)
+      )
+      rotate(6.01deg) scale(0.463);
+    opacity: 0.562;
+  }
+  100% {
+    transform: translate(
+        calc(var(--fx-toss-x) * 1),
+        calc(var(--fx-toss-cy) * 0 + var(--fx-toss-y) * 1)
+      )
+      rotate(12deg) scale(0.1);
+    opacity: 0.3;
+  }
+}
+@keyframes fx-slide {
+  from {
+    transform: translateY(var(--fx-slide-from));
+  }
+}
+@keyframes fx-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes fx-ring-tick {
+  40% {
+    transform: scale(1.08);
+  }
+}
+@keyframes fx-ring-spin {
+  from {
+    transform: rotate(-90deg);
+  }
+  to {
+    transform: rotate(270deg);
+  }
+}
+@keyframes fx-ring-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+@keyframes fx-ring-spark {
+  from {
+    transform: rotate(var(--fx-spark-angle)) translateY(-18px);
+    opacity: 1;
+  }
+  to {
+    transform: rotate(var(--fx-spark-angle)) translateY(-40px) scale(0.4);
+    opacity: 0;
+  }
+}
+@keyframes fx-done-in {
+  from {
+    box-shadow:
+      0 0 0 2px var(--color-success),
+      0 0 18px color-mix(in oklab, var(--color-success) 40%, transparent);
+  }
+}
+@keyframes fx-arm-in {
+  from {
+    opacity: 0;
+    transform: translateX(4px);
   }
 }
 @keyframes fx-grid-flow {
@@ -1341,10 +1639,35 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .fx-led-pulse,
   .fx-boot-in,
-  .fx-grid-flow {
+  .fx-grid-flow,
+  .fx-juice-wobble,
+  .fx-juice-shine,
+  .fx-juice-shine::after,
+  .fx-juice-burst,
+  .fx-juice-flip,
+  .fx-toss,
+  .fx-slide,
+  .fx-ring-tick,
+  .fx-ring-close .fx-ring-svg,
+  .fx-ring-close .fx-ring-check path,
+  .fx-done-in,
+  .fx-arm .fx-arm-word {
     animation: none;
   }
-  .fx-orbit::before,
+  /* fx-fade-out stays: it is what finishing a card plays in their place */
+  .fx-juice-chip,
+  .fx-juice-plus,
+  .fx-ring-spark {
+    display: none;
+  }
+  .fx-ring-grow,
+  .fx-arm .fx-arm-mark,
+  .fx-press {
+    transition: none;
+  }
+  .fx-press:active {
+    transform: none;
+  }
   .fx-glow-pulse::after {
     animation: none;
   }

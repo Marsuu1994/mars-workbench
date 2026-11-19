@@ -12,12 +12,16 @@ import {
   updateTaskStatus,
   type BoardMoveStatus,
 } from '@/lib/db/tasks';
+import {prisma} from '@/lib/prisma';
 import {planSpecSchema} from '@/schemas';
 import {createPlanFromSpec} from '@/services/planningService';
 import {createProject} from '@/services/projectService';
 import {runEndOfPeriodSync} from '@/services/syncService';
 import {PriorityQuadrant, TaskSize, TaskStatus, TaskType} from '@/utils/enums';
 import {toMatrixTaskRow} from '@/utils/oneOffUtils';
+import {formatISODate, getISOWeekKey, getTodayDate} from '@/utils/dateUtils';
+import {getWeekDates} from '@/utils/dayRingUtils';
+import {sizeToPoints} from '@/utils/sizeUtils';
 
 /** A user no other test touches: every query is scoped by userId. */
 export const newUserId = () => randomUUID();
@@ -128,4 +132,74 @@ export const finishStepsThisWeek = async (
     stepIds.map(stepId => [stepId, TaskStatus.DONE]),
   );
   return week;
+};
+
+/**
+ * This week's days as "YYYY-MM-DD", Monday first, and where today is among
+ * them (0 for Monday), in KANBAN_TZ: the real week, since the server's
+ * clock can't be frozen.
+ */
+export const getThisWeek = () => {
+  const today = getTodayDate();
+  const dates = getWeekDates(getISOWeekKey(today));
+  return {dates, todayIndex: dates.indexOf(formatISODate(today))};
+};
+
+interface EarlierDay {
+  /** The day, "YYYY-MM-DD" in KANBAN_TZ, before today */
+  date: string;
+  /** The week's daily habit, by its title */
+  habitTitle: string;
+  /** How many of the habit's tasks that day were done */
+  doneCount: number;
+  /** How many of them expired undone */
+  expiredCount: number;
+  /** The user's other tasks finished that day, by title */
+  alsoFinished?: string[];
+}
+
+/**
+ * An earlier day of this week, as the daily sync and the board left it: the
+ * daily habit's tasks for that day, some done and the rest expired, and
+ * other tasks finished on it. The app only ever makes today's daily tasks
+ * and stamps a finish with the moment it happens, so no service can write a
+ * past day: these rows are written straight to the table.
+ */
+export const createEarlierDay = async (
+  userId: string,
+  planId: string,
+  {date, habitTitle, doneCount, expiredCount, alsoFinished = []}: EarlierDay,
+) => {
+  const template = await prisma.taskTemplate.findFirstOrThrow({
+    where: {userId, title: habitTitle},
+  });
+  // A DATE column holds the day at UTC midnight; 20:00 UTC is midday in Los
+  // Angeles (noon or 1 PM, by the season), well inside the day
+  const forDate = new Date(`${date}T00:00:00Z`);
+  const doneAt = new Date(`${date}T20:00:00Z`);
+  await prisma.task.createMany({
+    data: Array.from({length: doneCount + expiredCount}, (_, index) => {
+      const isDone = index < doneCount;
+      return {
+        userId,
+        planId,
+        templateId: template.id,
+        type: TaskType.DAILY,
+        title: template.title,
+        description: template.description,
+        size: template.size,
+        points: sizeToPoints(template.size),
+        status: isDone ? TaskStatus.DONE : TaskStatus.EXPIRED,
+        forDate,
+        instanceIndex: index,
+        doneAt: isDone ? doneAt : null,
+      };
+    }),
+  });
+  if (alsoFinished.length > 0) {
+    await prisma.task.updateMany({
+      where: {userId, title: {in: alsoFinished}},
+      data: {status: TaskStatus.DONE, doneAt},
+    });
+  }
 };

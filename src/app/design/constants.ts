@@ -12,6 +12,8 @@ import type {DumpEntryItem} from '@/lib/db/dumpEntries';
 import {TaskKind, type HabitWeek} from '@/utils/taskUtils';
 import type {BoardCard, ProjectStepContext} from '@/utils/boardCardUtils';
 import type {BoardPageContextValue} from '@/components/domain/board/BoardPageContext';
+import {RING_SIZE} from '@/components/domain/board/day-rings/constants';
+import {DayState, type DayRing, type KindCounts} from '@/utils/dayRingUtils';
 import type {PrioritiesPageContextValue} from '@/components/domain/priorities/PrioritiesPageContext';
 import type {ProjectsPageContextValue} from '@/components/domain/projects/ProjectsPageContext';
 
@@ -382,15 +384,6 @@ export const TASK_CARD_FIXTURES: TaskCardFixture[] = [
   },
 ];
 
-/** The 136px mobile-row faces: a weekly and a daily habit, a project step
-    and a one-off. */
-export const MINI_CARD_FIXTURES: TaskCardFixture[] = [
-  TASK_CARD_FIXTURES[0],
-  TASK_CARD_FIXTURES[1],
-  TASK_CARD_FIXTURES[4],
-  TASK_CARD_FIXTURES[7],
-];
-
 /** StepPath specimens: path lengths and where the card's step sits. */
 export const STEP_PATH_FIXTURES: {label: string; step: ProjectStepContext}[] = [
   {
@@ -457,19 +450,6 @@ export const MATRIX_CARD_FIXTURES: MatrixCardFixture[] = [
     }),
   },
 ];
-
-// ── Progress dashboard fixture ───────────────────────────────────────────────
-export const PROGRESS_FIXTURE = {
-  todayDoneCount: 4,
-  todayTotalCount: 6,
-  todayDonePoints: 11,
-  todayTotalPoints: 17,
-  weekDoneCount: 18,
-  weekProjectedCount: 30,
-  weekDonePoints: 47,
-  weekProjectedPoints: 82,
-  daysElapsed: 3,
-};
 
 // ── ui/Pill fixtures ─────────────────────────────────────────────────────────
 export const PILL_COLORS = [
@@ -541,12 +521,103 @@ export const CONTENT_SECTION_LABELS = [
 /** BoardHeader shows the desktop/mobile accent drift — documented, not fixed. */
 export const BOARD_HEADER_PERIOD = '2026-W28';
 
-/** A Todo column: a weekly habit, a daily habit, a project step and a
+/** The Todo cards: a weekly habit, a daily habit, a project step and a
     one-off. */
+export const TODO_CARD_FIXTURES: TaskCardFixture[] = TASK_CARD_FIXTURES.filter(
+  ({card}) => card.task.status === TaskStatus.TODO,
+);
+/** The Done cards, one of each kind. */
+export const DONE_CARD_FIXTURES: TaskCardFixture[] = TASK_CARD_FIXTURES.filter(
+  ({card}) => card.task.status === TaskStatus.DONE,
+);
+
+/** A Todo column holding the Todo cards. */
 export const BOARD_COLUMN_STATUS = TaskStatus.TODO;
-export const BOARD_COLUMN_CARDS: BoardCard[] = MINI_CARD_FIXTURES.map(
+export const BOARD_COLUMN_CARDS: BoardCard[] = TODO_CARD_FIXTURES.map(
   fixture => fixture.card,
 );
+
+/** A day's counts by kind, habits, steps and one-offs. */
+const kindCounts = (
+  habit: number,
+  project: number,
+  oneOff: number,
+): KindCounts => ({
+  [TaskKind.HABIT]: habit,
+  [TaskKind.PROJECT]: project,
+  [TaskKind.ONE_OFF]: oneOff,
+});
+
+/** A day of the gallery's week (Wednesday is today), built as toDayRings
+    would. */
+const dayRing = (
+  dayIndex: number,
+  state: DayState,
+  done: KindCounts,
+  planned: KindCounts,
+): DayRing => {
+  const sum = (counts: KindCounts) =>
+    counts[TaskKind.HABIT] +
+    counts[TaskKind.PROJECT] +
+    counts[TaskKind.ONE_OFF];
+  const doneCount = sum(done);
+  const plannedCount = sum(planned);
+  return {
+    date: `2026-07-${String(6 + dayIndex).padStart(2, '0')}`,
+    dayIndex,
+    state,
+    done,
+    planned,
+    doneCount,
+    plannedCount,
+    isClosed: plannedCount > 0 && doneCount === plannedCount,
+  };
+};
+
+/** DayRingGraphic specimens: each state a ring can be in. */
+export const DAY_RING_FIXTURES: {label: string; ring: DayRing; size: number}[] =
+  [
+    {
+      label: 'Today · 2 of 6',
+      ring: dayRing(
+        2,
+        DayState.TODAY,
+        kindCounts(1, 0, 1),
+        kindCounts(2, 2, 2),
+      ),
+      size: RING_SIZE.today,
+    },
+    {
+      label: 'Today · closed',
+      ring: dayRing(
+        2,
+        DayState.TODAY,
+        kindCounts(2, 2, 2),
+        kindCounts(2, 2, 2),
+      ),
+      size: RING_SIZE.today,
+    },
+    {
+      label: 'Past · 3 of 4',
+      ring: dayRing(0, DayState.PAST, kindCounts(1, 1, 1), kindCounts(2, 1, 1)),
+      size: RING_SIZE.day,
+    },
+    {
+      label: 'Past · closed',
+      ring: dayRing(1, DayState.PAST, kindCounts(1, 1, 0), kindCounts(1, 1, 0)),
+      size: RING_SIZE.day,
+    },
+    {
+      label: 'Future · empty track',
+      ring: dayRing(
+        4,
+        DayState.FUTURE,
+        kindCounts(0, 0, 0),
+        kindCounts(0, 0, 0),
+      ),
+      size: RING_SIZE.day,
+    },
+  ];
 
 /** The page context a MatrixTaskCard or Move-to sheet renders in, outside the
     Priorities page: the fixture's plan, no popover open, inert handlers (the
@@ -563,10 +634,25 @@ export const inertPrioritiesPageContext = (
   completeTask: () => undefined,
 });
 
-/** The page context the backlog's groups render in, outside the board page:
-    inert handlers (the frame swallows clicks). */
-export const inertBoardPageContext = (): BoardPageContextValue => ({
+/** The page context the board's cards, rings and backlog groups render in,
+    outside the board page: nothing selected and no day's list open unless a
+    specimen pins one, and inert handlers (the frame swallows clicks). */
+export const inertBoardPageContext = (
+  state: Partial<
+    Pick<BoardPageContextValue, 'selectedTaskId' | 'openDayDate'>
+  > = {},
+): BoardPageContextValue => ({
   pullToTodo: () => undefined,
+  selectedTaskId: null,
+  pressTodoCard: () => undefined,
+  completeCard: () => undefined,
+  openDayDate: null,
+  toggleDay: () => undefined,
+  closeDay: () => undefined,
+  tickKey: 0,
+  celebrationKey: 0,
+  freshDoneTaskId: null,
+  ...state,
 });
 
 /** PlanTaskRow — tasks already on the plan the form keeps or lets go. */

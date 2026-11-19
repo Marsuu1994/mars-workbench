@@ -7,12 +7,12 @@ import {ArrowRightIcon} from '@heroicons/react/24/outline';
 
 import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {BoardHeader} from '@/components/domain/shared/BoardHeader';
-import {TaskCard} from '@/components/domain/board/TaskCard';
-import {TaskCardMiniFace} from '@/components/domain/board/TaskCardMiniFace';
+import {TodoCard} from '@/components/domain/board/TodoCard';
+import {DoneCard} from '@/components/domain/board/DoneCard';
+import {DayRingGraphic} from '@/components/domain/board/day-rings/DayRingGraphic';
 import {BacklogGroupList} from '@/components/domain/board/backlog-group/BacklogGroupList';
 import {BoardPageContext} from '@/components/domain/board/BoardPageContext';
 import {BoardColumn} from '@/components/domain/board/BoardColumn';
-import {ProgressDashboard} from '@/components/domain/board/ProgressDashboard';
 import {MatrixTaskCard} from '@/components/domain/priorities/MatrixTaskCard';
 import {PrioritiesPageContext} from '@/components/domain/priorities/PrioritiesPageContext';
 import {DumpEntryCard} from '@/components/domain/dump/DumpEntryCard';
@@ -27,17 +27,16 @@ import type {ThemeName} from '@/utils/theme';
 import {Zone, Section, Variant, Row} from '../GalleryParts';
 import {BACKLOG_SECTIONS} from '../scenarios/board/fixtures';
 import {SIZE_TO_POINTS, TaskType} from '@/utils/enums';
-import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
 import {
   SIZE_FIXTURES,
-  TASK_CARD_FIXTURES,
-  MINI_CARD_FIXTURES,
+  TODO_CARD_FIXTURES,
+  DONE_CARD_FIXTURES,
+  DAY_RING_FIXTURES,
   STEP_PATH_FIXTURES,
   PLAN_TASK_ROW_FIXTURES,
   MATRIX_CARD_FIXTURES,
   MATRIX_CARD_ACTIVE_PLAN_ID,
   DUMP_CARD_FIXTURES,
-  PROGRESS_FIXTURE,
   BOARD_HEADER_PERIOD,
   BOARD_COLUMN_STATUS,
   BOARD_COLUMN_CARDS,
@@ -98,49 +97,69 @@ export const DomainTab = () => {
     </Section>
   );
 
-  const renderTaskCards = () => (
+  const selectedCardId =
+    TODO_CARD_FIXTURES[TODO_CARD_FIXTURES.length - 1].card.task.id;
+
+  const renderTodoCards = () => (
     <Section
-      title="TaskCard"
-      description="The board's kind-first card, every kind in every place it sits: kind + context (plan line, step n/N, quadrant), the title, then the kind's signal and a neutral size — a habit's week dots in order, filled when done, with the card's own dot ringed; a project step's path, its own step outlined. A step names its project in place of the kind label. No risk. Below md the same card shows its 136px mini face (next section)."
+      title="TodoCard"
+      description="The board's one card face, in Todo: the kind line (a step's project, a one-off's quadrant), the title, a two-line description, then the kind's signal — a habit's week dots with its own ringed, a step's path with its own outlined — and the corner mark. A press selects the card: it glows green and the mark grows into ✓ Complete, the only control that finishes it (the last specimen is selected). Desktop drags it to Done too."
     >
-      <DragDropContext onDragEnd={() => undefined}>
-        <Droppable droppableId="gallery-cards">
-          {provided => (
-            <div
-              ref={provided.innerRef}
-              {...provided.droppableProps}
-              className="flex flex-wrap items-start gap-6"
-            >
-              {TASK_CARD_FIXTURES.map(({label, card}, index) => (
-                <Variant key={card.task.id} label={label}>
-                  <div className="w-64">
-                    <TaskCard card={card} index={index} />
-                  </div>
-                </Variant>
-              ))}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
+      <BoardPageContext
+        value={inertBoardPageContext({selectedTaskId: selectedCardId})}
+      >
+        <DragDropContext onDragEnd={() => undefined}>
+          <Droppable droppableId="gallery-cards">
+            {provided => (
+              <div
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                className="flex flex-wrap items-start gap-6"
+              >
+                {TODO_CARD_FIXTURES.map(({label, card}, index) => (
+                  <Variant key={card.task.id} label={label}>
+                    <div className="w-64">
+                      <TodoCard card={card} index={index} />
+                    </div>
+                  </Variant>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
+      </BoardPageContext>
     </Section>
   );
 
-  const renderMiniFaces = () => (
+  const renderDoneCards = () => (
     <Section
-      title="TaskCardMiniFace"
-      description="The 136px face TaskCard shows in the mobile board rows: kind label (a step's project name), a two-line title, then the week dots or the path (the card's own mark outlined) and the size. Shown here in the card's mobile frame."
+      title="DoneCard"
+      description="The same face in Done (desktop): dimmed, the title struck through, no description and nothing to press or drag. A card finished on the page glows once as it lands."
+    >
+      <BoardPageContext value={inertBoardPageContext()}>
+        <Row>
+          {DONE_CARD_FIXTURES.map(({label, card}) => (
+            <Variant key={card.task.id} label={label}>
+              <div className="w-64">
+                <DoneCard card={card} />
+              </div>
+            </Variant>
+          ))}
+        </Row>
+      </BoardPageContext>
+    </Section>
+  );
+
+  const renderDayRings = () => (
+    <Section
+      title="DayRingGraphic"
+      description="One day's ring: an empty track for everything planned, and an arc for each task done, in its kind's colour, habits then steps then one-offs from 12 o'clock. A closed ring holds a ✓. Today's is 44px, the other days' 30px; a day after today is an empty track. The row of cells around them is in the Board scenarios."
     >
       <Row>
-        {MINI_CARD_FIXTURES.map(({label, card}) => (
-          <Variant key={card.task.id} label={label}>
-            <div
-              className={`card fx-card bg-base-100/70 border border-base-content/10 w-[136px] h-[92px] ${
-                TASK_KIND_STYLE[card.kind].edge
-              }`}
-            >
-              <TaskCardMiniFace card={card} />
-            </div>
+        {DAY_RING_FIXTURES.map(({label, ring, size}) => (
+          <Variant key={label} label={label}>
+            <DayRingGraphic ring={ring} size={size} />
           </Variant>
         ))}
       </Row>
@@ -156,8 +175,7 @@ export const DomainTab = () => {
         {STEP_PATH_FIXTURES.map(({label, step}) => (
           <Variant key={label} label={label}>
             <div className="flex flex-col gap-3">
-              <StepPath step={step} variant="card" />
-              <StepPath step={step} variant="mini" />
+              <StepPath step={step} />
             </div>
           </Variant>
         ))}
@@ -168,7 +186,7 @@ export const DomainTab = () => {
   const renderBacklogGroups = () => (
     <Section
       title="BacklogGroup"
-      description="The backlog's groups as the mobile sheet shows them: one card per habit and per project, its next task on top — the kind (a step's project), +N more, the title, the description, the dots or the path with the next one ringed, and ↑ Todo. A pile of up to three sheets stands for what waits behind; a project's +N more opens its queue. Desktop drags the same card out of the panel."
+      description="The backlog's groups as the mobile sheet shows them: one card per habit and per project, its next task on top — the kind (a step's project), +N more, the title, the description, the dots or the path with the next one ringed, and ↑ Todo — the board's shared card face. A pile of up to three sheets stands for what waits behind; a project's +N more opens its queue. Desktop can also drag the card out of the panel."
     >
       <BoardPageContext value={inertBoardPageContext()}>
         <div className="max-w-sm">
@@ -181,31 +199,22 @@ export const DomainTab = () => {
   const renderBoardColumn = () => (
     <Section
       title="BoardColumn"
-      description="One kanban column: LED-accented header, count badge, and a droppable list — a frame the board renders its cards into."
+      description="One kanban column: LED-accented header with its tag (Today for Todo, This week for Done) and count badge, and a vertical droppable list — a frame the board renders its cards into."
     >
-      <DragDropContext onDragEnd={() => undefined}>
-        <div className="max-w-sm">
-          <BoardColumn
-            status={BOARD_COLUMN_STATUS}
-            count={BOARD_COLUMN_CARDS.length}
-          >
-            {BOARD_COLUMN_CARDS.map((card, index) => (
-              <TaskCard key={card.task.id} card={card} index={index} />
-            ))}
-          </BoardColumn>
-        </div>
-      </DragDropContext>
-    </Section>
-  );
-
-  const renderProgress = () => (
-    <Section
-      title="ProgressDashboard"
-      description="Adaptive progress header — ring + metrics on desktop, linear bars on mobile."
-    >
-      <div className="overflow-hidden rounded-lg border border-base-content/10">
-        <ProgressDashboard {...PROGRESS_FIXTURE} />
-      </div>
+      <BoardPageContext value={inertBoardPageContext()}>
+        <DragDropContext onDragEnd={() => undefined}>
+          <div className="max-w-sm">
+            <BoardColumn
+              status={BOARD_COLUMN_STATUS}
+              count={BOARD_COLUMN_CARDS.length}
+            >
+              {BOARD_COLUMN_CARDS.map((card, index) => (
+                <TodoCard key={card.task.id} card={card} index={index} />
+              ))}
+            </BoardColumn>
+          </div>
+        </DragDropContext>
+      </BoardPageContext>
     </Section>
   );
 
@@ -349,17 +358,17 @@ export const DomainTab = () => {
 
       <Zone
         title="Board"
-        description="Screen states (empty boards, backlog, full weeks) live in the Board scenarios."
+        description="Screen states (empty boards, the row of rings, a day's list, backlog, full weeks) live in the Board scenarios."
         action={
           <ScenarioLink href={SCENARIO_HREFS.board} label="Board scenarios" />
         }
       >
-        {renderTaskCards()}
-        {renderMiniFaces()}
+        {renderTodoCards()}
+        {renderDoneCards()}
         {renderStepPath()}
+        {renderDayRings()}
         {renderBacklogGroups()}
         {renderBoardColumn()}
-        {renderProgress()}
       </Zone>
 
       <Zone

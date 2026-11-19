@@ -7,7 +7,8 @@ import {
   DayState,
   getMobileDayRange,
   getWeekDates,
-  toDayListTasks,
+  toDayListCards,
+  toSparkKinds,
   toDayRings,
 } from './dayRingUtils';
 import {TaskStatus, TaskType} from './enums';
@@ -150,7 +151,7 @@ describe('toDayRings', () => {
   });
 });
 
-describe('toDayListTasks', () => {
+describe('toDayListCards', () => {
   it("DAY-3 lists a day's finished tasks: habits, steps, one-offs, the earliest first", () => {
     const tasks = [
       oneOffDone('one-off', '2026-10-12T15:00:00Z'),
@@ -161,12 +162,50 @@ describe('toDayListTasks', () => {
       buildTask({id: 'todo', status: TaskStatus.TODO}),
     ];
 
-    expect(toDayListTasks(tasks, '2026-10-12').map(({id}) => id)).toEqual([
-      'run-early',
-      'run-late',
-      'step',
-      'one-off',
+    const cards = tasks.map(task => ({task}));
+
+    expect(
+      toDayListCards(cards, '2026-10-12').map(({task}) => task.id),
+    ).toEqual(['run-early', 'run-late', 'step', 'one-off']);
+  });
+
+  it('DAY-3 lists tasks finished at the same moment by id', () => {
+    const cards = ['run-b', 'run-a'].map(id => ({
+      task: habitDone(id, '2026-10-12T17:00:00Z'),
+    }));
+
+    expect(
+      toDayListCards(cards, '2026-10-12').map(({task}) => task.id),
+    ).toEqual(['run-a', 'run-b']);
+  });
+});
+
+describe('toSparkKinds', () => {
+  it("FX-4 colours a closing ring's sparks in the shares of the day's done kinds", () => {
+    expect(
+      toSparkKinds(
+        {[TaskKind.HABIT]: 2, [TaskKind.PROJECT]: 1, [TaskKind.ONE_OFF]: 1},
+        8,
+      ),
+    ).toEqual([
+      TaskKind.HABIT,
+      TaskKind.HABIT,
+      TaskKind.HABIT,
+      TaskKind.HABIT,
+      TaskKind.PROJECT,
+      TaskKind.PROJECT,
+      TaskKind.ONE_OFF,
+      TaskKind.ONE_OFF,
     ]);
+  });
+
+  it('FX-4 throws no sparks for a day with nothing done', () => {
+    expect(
+      toSparkKinds(
+        {[TaskKind.HABIT]: 0, [TaskKind.PROJECT]: 0, [TaskKind.ONE_OFF]: 0},
+        12,
+      ),
+    ).toEqual([]);
   });
 });
 

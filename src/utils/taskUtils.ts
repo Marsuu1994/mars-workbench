@@ -1,10 +1,6 @@
 import type {TaskItem} from '@/lib/db/tasks';
 import {PlanMode, TaskStatus, TaskType as TaskTypeEnum} from '@/utils/enums';
-import {
-  formatKanbanISODate,
-  getMondayFromPeriodKey,
-  normalizeForDate,
-} from '@/utils/dateUtils';
+import {getMondayFromPeriodKey, normalizeForDate} from '@/utils/dateUtils';
 
 // ─── Kind ──────────────────────────────────────────────────────────────────
 
@@ -257,18 +253,5 @@ export function sortDoneTasks(tasks: TaskItem[]): TaskItem[] {
 
   return [...tasks].sort(
     (a, b) => doneTime(b) - doneTime(a) || a.id.localeCompare(b.id),
-  );
-}
-
-// ─── Today ─────────────────────────────────────────────────────────────────
-
-/** Whether any of the tasks was finished on `now`'s day in KANBAN_TZ. */
-export function hasTaskDoneToday(
-  tasks: Pick<TaskItem, 'doneAt'>[],
-  now: Date,
-): boolean {
-  const today = formatKanbanISODate(now);
-  return tasks.some(
-    ({doneAt}) => doneAt !== null && formatKanbanISODate(doneAt) === today,
   );
 }

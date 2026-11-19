@@ -1,65 +1,155 @@
 'use client';
 
-import {useState, useMemo} from 'react';
+import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {DragDropContext, type DropResult} from '@hello-pangea/dnd';
+import {useTranslations} from 'next-intl';
 import type {BoardData} from '@/types/board';
 import {TaskStatus} from '@/utils/enums';
-import {toBoardCards, type BoardCard} from '@/utils/boardCardUtils';
+import {toBoardCards} from '@/utils/boardCardUtils';
 import {countBacklogTasks, toBacklogSections} from '@/utils/backlogGroupUtils';
-import {hasTaskDoneToday} from '@/utils/taskUtils';
+import {DayState, toDayRings} from '@/utils/dayRingUtils';
 import {updateTaskStatusAction} from '@/actions/taskActions';
 import {useOptimisticTasks} from '@/hooks/useOptimisticTasks';
-import {useTranslations} from 'next-intl';
+import {useBreakpoint} from '@/components/application/BreakpointProvider';
 import {BoardHeader} from '@/components/domain/shared/BoardHeader';
+import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
 import {FinishBox} from '@/components/ui/FinishBox';
 import {BoardColumn} from './BoardColumn';
 import {DesktopBacklog} from './DesktopBacklog';
 import {MobileBacklog} from './MobileBacklog';
 import {BacklogGroupList} from './backlog-group/BacklogGroupList';
-import {ProgressDashboard} from './ProgressDashboard';
-import {TaskCard} from './TaskCard';
-import {BoardPageContext, type BoardPageContextValue} from './BoardPageContext';
+import {DayRingRow} from './day-rings/DayRingRow';
+import {TodoCard} from './TodoCard';
+import {DoneCard} from './DoneCard';
+import {ARM_DEBOUNCE_MS} from './taskCardConstants';
+import {
+  COMPLETE_VIBRATION,
+  pickJuice,
+  playCompletion,
+  readPressClock,
+  RING_CLOSE_VIBRATION,
+  slideIntoGap,
+  vibrate,
+  type Juice,
+} from './motion/completionMotion';
+import {
+  BoardPageContext,
+  type BoardPageContextValue,
+  type CloseDayOptions,
+} from './BoardPageContext';
+
+/** A selected Todo card, and when it was selected (TAP-3's guard) */
+interface Selection {
+  taskId: string;
+  selectedAt: number;
+}
+
+const TODO_CARD_SELECTOR = '[data-todo-card]';
 
 /**
- * The board page (/kanban): header, progress dashboard and the board in a
+ * The board page (/kanban): header, the row of day rings and the board in a
  * definite-height column (h-full against AppShell's <main>). Keeps the tasks
- * as state, derives the cards with toBoardCards and the backlog's groups
- * with toBacklogSections, and renders them into the columns and backlogs —
- * frames that know nothing about cards. Moves are optimistic and roll back
- * per task on failure; the mobile pull reaches its cards through
- * BoardPageContext.
+ * as state and derives everything else from them on every render: the
+ * cards (toBoardCards), the backlog's groups (toBacklogSections) and the
+ * rings (toDayRings). Owns the selected card, the open day's list and the
+ * completion's motion, and provides them, with every write, through
+ * BoardPageContext. Moves are optimistic and roll back per task on failure,
+ * and the rings follow them, roll-backs included.
  */
-export const BoardPage = ({plan, progress, tasks, projects}: BoardData) => {
+export const BoardPage = ({
+  plan,
+  tasks,
+  projects,
+  expiredDailyCountByDate,
+}: BoardData) => {
   const tTodo = useTranslations('Board.Todo');
+  const {isMobile} = useBreakpoint();
   const {localTasks, runOptimisticTaskUpdate} = useOptimisticTasks(tasks);
   const [isDragging, setIsDragging] = useState(false);
+  const [selection, setSelection] = useState<Selection | null>(null);
+  const [isTossing, setIsTossing] = useState(false);
+  const [openDayDate, setOpenDayDate] = useState<string | null>(null);
+  const [tickKey, setTickKey] = useState(0);
+  const [celebrationKey, setCelebrationKey] = useState(0);
+  const [freshDoneTaskId, setFreshDoneTaskId] = useState<string | null>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
+  const lastJuiceRef = useRef<Juice | null>(null);
+  // Where each Todo card stood before a tossed card left, and the toss's
+  // copy, both handled once the move has rendered
+  const slideFromRef = useRef<Map<string, number> | null>(null);
+  const removeGhostRef = useRef<(() => void) | null>(null);
 
-  const cardsByStatus = useMemo(
-    () => toBoardCards(localTasks, {plan, projects}),
-    [localTasks, plan, projects],
-  );
-  const {
-    [TaskStatus.TODO]: todoCards,
-    [TaskStatus.DONE]: doneCards,
-    [TaskStatus.BACKLOG]: backlogCards,
-  } = cardsByStatus;
-  const backlogSections = useMemo(
-    () => toBacklogSections(backlogCards, {plan, projects}),
-    [backlogCards, plan, projects],
-  );
+  const cardsByStatus = toBoardCards(localTasks, {plan, projects});
+  const todoCards = cardsByStatus[TaskStatus.TODO];
+  const doneCards = cardsByStatus[TaskStatus.DONE];
+  const backlogSections = toBacklogSections(cardsByStatus[TaskStatus.BACKLOG], {
+    plan,
+    projects,
+  });
   const backlogCount = countBacklogTasks(backlogSections);
-  // An empty Todo says the day is clear once something was finished today; a
-  // card dropped on Done counts at once, since its doneAt is stamped here
-  const isDayClear =
-    todoCards.length === 0 &&
-    hasTaskDoneToday(
-      doneCards.map(({task}) => task),
-      new Date(),
-    );
+  const rings = toDayRings(localTasks, {
+    periodKey: plan.periodKey,
+    expiredDailyCountByDate,
+    now: new Date(),
+  });
+  const todayRing = rings.find(({state}) => state === DayState.TODAY);
+  // An empty Todo says the day is clear once something was finished today
+  const isDayClear = todoCards.length === 0 && (todayRing?.doneCount ?? 0) > 0;
+
+  useLayoutEffect(() => {
+    const slideFrom = slideFromRef.current;
+    if (slideFrom && pageRef.current) {
+      slideIntoGap(
+        pageRef.current.querySelectorAll<HTMLElement>(TODO_CARD_SELECTOR),
+        slideFrom,
+        card => card.dataset.todoCard,
+      );
+    }
+    slideFromRef.current = null;
+    removeGhostRef.current?.();
+    removeGhostRef.current = null;
+  });
+
+  function focusDayCell(date: string) {
+    pageRef.current
+      ?.querySelector<HTMLElement>(`[data-day-cell="${date}"]`)
+      ?.focus();
+  }
+
+  function closeDay({restoreFocus}: CloseDayOptions) {
+    if (restoreFocus && openDayDate && !isMobile) focusDayCell(openDayDate);
+    setOpenDayDate(null);
+  }
+
+  // A press outside the Todo cards cancels the selection, and one outside
+  // the open list closes it (TAP-2, DAY-4); a dialog (the sheets) closes
+  // itself. Esc does both, and focus goes back to the day's cell.
+  useEffect(() => {
+    const handleClick = (event: MouseEvent) => {
+      if (!(event.target instanceof Element)) return;
+      const {target} = event;
+      if (!target.closest(TODO_CARD_SELECTOR)) setSelection(null);
+      if (!target.closest('[data-day-list], [data-day-cell], dialog')) {
+        setOpenDayDate(null);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      setSelection(null);
+      if (openDayDate && !isMobile) focusDayCell(openDayDate);
+      setOpenDayDate(null);
+    };
+    document.addEventListener('click', handleClick);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('click', handleClick);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  });
 
   function moveTask(taskId: string, status: TaskStatus, errorLabel: string) {
-    // The server stamps doneAt; stamping it here too puts a card dropped on
-    // Done on top of the column at once (Done runs latest first)
+    // The server stamps doneAt; stamping it here too puts a finished card on
+    // top of Done and in today's ring at once
     const patch =
       status === TaskStatus.DONE ? {status, doneAt: new Date()} : {status};
     runOptimisticTaskUpdate(
@@ -68,6 +158,23 @@ export const BoardPage = ({plan, progress, tasks, projects}: BoardData) => {
       () => updateTaskStatusAction(taskId, {status}),
       errorLabel,
     );
+  }
+
+  // Finishes a task on the page, by ✓ Complete or a drag onto Done: today's
+  // cell jumps, and celebrates when this closes its ring (FX-3, FX-4)
+  function finishTask(taskId: string, isFromBacklog: boolean) {
+    const closesToday =
+      todayRing !== undefined &&
+      !todayRing.isClosed &&
+      todayRing.doneCount + 1 ===
+        todayRing.plannedCount + (isFromBacklog ? 1 : 0);
+    moveTask(taskId, TaskStatus.DONE, 'Failed to finish task:');
+    setFreshDoneTaskId(taskId);
+    setTickKey(prev => prev + 1);
+    if (closesToday) {
+      setCelebrationKey(prev => prev + 1);
+      vibrate(RING_CLOSE_VIBRATION);
+    }
   }
 
   function handleDragEnd(result: DropResult) {
@@ -80,22 +187,83 @@ export const BoardPage = ({plan, progress, tasks, projects}: BoardData) => {
     // Only Todo and Done take drops: the backlog's groups are drag sources
     // only — no un-pull back into the backlog.
     const status = destination.droppableId;
-    if (status !== TaskStatus.TODO && status !== TaskStatus.DONE) return;
-
-    moveTask(draggableId, status, 'Failed to update task status:');
+    if (status === TaskStatus.TODO) {
+      moveTask(draggableId, status, 'Failed to pull task to Todo:');
+    } else if (status === TaskStatus.DONE) {
+      finishTask(draggableId, source.droppableId !== TaskStatus.TODO);
+    }
   }
 
-  // Mobile tap-to-pull: BACKLOG → TODO.
   function pullToTodo(taskId: string) {
     moveTask(taskId, TaskStatus.TODO, 'Failed to pull task to Todo:');
   }
 
-  const pageContext: BoardPageContextValue = {pullToTodo};
+  function pressTodoCard(taskId: string) {
+    if (isTossing) return;
+    setOpenDayDate(null);
+    setSelection(
+      selection?.taskId === taskId
+        ? null
+        : {taskId, selectedAt: readPressClock()},
+    );
+  }
 
-  const renderDraggableCards = (cards: BoardCard[]) =>
-    cards.map((card, index) => (
-      <TaskCard key={card.task.id} card={card} index={index} />
-    ));
+  async function completeCard(taskId: string) {
+    if (isTossing || selection?.taskId !== taskId) return;
+    if (readPressClock() - selection.selectedAt < ARM_DEBOUNCE_MS) return;
+    const page = pageRef.current;
+    const card = page?.querySelector<HTMLElement>(
+      `[data-todo-card="${taskId}"]`,
+    );
+    const ring = page?.querySelector('[data-today-ring]');
+    const kind = todoCards.find(({task}) => task.id === taskId)?.kind;
+    vibrate(COMPLETE_VIBRATION);
+    if (page && card && ring && kind) {
+      const juice = pickJuice(lastJuiceRef.current);
+      lastJuiceRef.current = juice;
+      setIsTossing(true);
+      removeGhostRef.current = await playCompletion({
+        card,
+        ring,
+        host: page,
+        juice,
+        kindColor: TASK_KIND_STYLE[kind].color,
+      });
+      slideFromRef.current = new Map(
+        [...page.querySelectorAll<HTMLElement>(TODO_CARD_SELECTOR)].map(
+          element => [
+            element.dataset.todoCard ?? '',
+            element.getBoundingClientRect().top,
+          ],
+        ),
+      );
+    }
+    setIsTossing(false);
+    setSelection(null);
+    finishTask(taskId, false);
+  }
+
+  function toggleDay(date: string) {
+    if (openDayDate === date) {
+      closeDay({restoreFocus: true});
+      return;
+    }
+    setSelection(null);
+    setOpenDayDate(date);
+  }
+
+  const pageContext: BoardPageContextValue = {
+    pullToTodo,
+    selectedTaskId: selection?.taskId ?? null,
+    pressTodoCard,
+    completeCard: taskId => void completeCard(taskId),
+    openDayDate,
+    toggleDay,
+    closeDay,
+    tickKey,
+    celebrationKey,
+    freshDoneTaskId,
+  };
 
   const renderTodo = () =>
     isDayClear ? (
@@ -105,7 +273,9 @@ export const BoardPage = ({plan, progress, tasks, projects}: BoardData) => {
         className="w-full flex-shrink-0"
       />
     ) : (
-      renderDraggableCards(todoCards)
+      todoCards.map((card, index) => (
+        <TodoCard key={card.task.id} card={card} index={index} />
+      ))
     );
 
   const renderBoard = () => (
@@ -129,13 +299,17 @@ export const BoardPage = ({plan, progress, tasks, projects}: BoardData) => {
           >
             {renderTodo()}
           </BoardColumn>
-          <BoardColumn
-            status={TaskStatus.DONE}
-            count={doneCards.length}
-            isDragActive={isDragging}
-          >
-            {renderDraggableCards(doneCards)}
-          </BoardColumn>
+          {!isMobile && (
+            <BoardColumn
+              status={TaskStatus.DONE}
+              count={doneCards.length}
+              isDragActive={isDragging}
+            >
+              {doneCards.map(card => (
+                <DoneCard key={card.task.id} card={card} />
+              ))}
+            </BoardColumn>
+          )}
         </div>
         <DesktopBacklog count={backlogCount}>
           <BacklogGroupList sections={backlogSections} variant="desktop" />
@@ -149,9 +323,9 @@ export const BoardPage = ({plan, progress, tasks, projects}: BoardData) => {
 
   return (
     <BoardPageContext value={pageContext}>
-      <div className="flex h-full flex-col">
+      <div ref={pageRef} className="flex h-full flex-col">
         <BoardHeader periodKey={plan.periodKey} />
-        <ProgressDashboard {...progress} />
+        <DayRingRow rings={rings} doneCards={doneCards} />
         <div className="min-h-0 flex-1">{renderBoard()}</div>
       </div>
     </BoardPageContext>

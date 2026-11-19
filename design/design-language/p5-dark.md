@@ -163,7 +163,6 @@ did.
 | `fx-num` | Mono tabular numerals | Unchanged |
 | `fx-led` (+`fx-led-pulse`) | Glowing dot | **Diamond stud**: 7px square rotated 45°, flat `currentColor`, 1px ink outline, no glow. Pulse stays opacity-only |
 | `fx-rule` / `fx-hairline-top` | Luminous gradient hairlines | **Slash rules**: flat 2px `--fx-field` strip with parallelogram-clipped ends; `fx-hairline-top` = flat 2px red top strip. No gradients |
-| `fx-orbit` | Rotating conic tail | **Comet tick**: flat red arc segment (border-slice, no gradient) rotating — still transform-only on a masked layer; reduced-motion off |
 | `fx-glow-pulse` | Breathing halo (login icon) | Breathing **double offset**: red + blood-red stacked hard shadows, opacity loop on pseudo-element |
 | `fx-text-gradient` | Cyan→violet gradient text | **Flat phantom red** (gradients banned). The ransom-note treatment — one word in an inverted tile, tilted −2.5° to −4° — is `fx-tile`, opted into separately, never substituted automatically. Restraint rule unchanged: one per heading |
 | `fx-boot-in` | 420ms rise+fade | **Snap-in**: 240ms slide from −14px/−2.5° with overshoot settle (keyframed past rest, no bounce library). P5's stated principle is zero-latency UI — entrances get *faster* |
@@ -171,6 +170,10 @@ did.
 | `fx-nav-rail` | Luminous left rail | **White flip**: active item becomes paper bg + ink text on a skewed clip wedge + red `3px 3px 0` offset — the P5 selection flip (selected items invert, not underline) |
 | `fx-quadrant` + `fx-q-*` | Radial corner bloom | **Corner wedge**: flat clip-path triangle in the quadrant channel color at ≈8% + halftone overlay. Same `fx-q-{hue}` / `fx-q-{corner}` keying |
 | `fx-grid-flow` | Login grid crawl | **Speed-line crawl**: diagonal line field on a transform loop (login only) |
+
+The board's finishing motion (`fx-juice-*`, `fx-toss`, `fx-slide`, `fx-fade-out`,
+`fx-ring-*`, `fx-done-in`, `fx-arm`, `fx-press`) has no skin of its own: it plays
+as in the HUD skin, in this theme's colours.
 
 ### New utilities (p5-dark only)
 

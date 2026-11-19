@@ -158,26 +158,52 @@ function toPlannedCounts(
 // ─── A day's list ──────────────────────────────────────────────────────────
 
 /**
- * The tasks finished on a day ("YYYY-MM-DD", KANBAN_TZ): habits, then project
- * steps, then one-offs; within a kind, the earliest finished first.
+ * The cards of the tasks finished on a day ("YYYY-MM-DD", KANBAN_TZ):
+ * habits, then project steps, then one-offs; within a kind, the earliest
+ * finished first.
  */
-export function toDayListTasks(tasks: TaskItem[], date: string): TaskItem[] {
-  const doneTime = ({doneAt}: TaskItem): number =>
-    doneAt ? new Date(doneAt).getTime() : 0;
-  return tasks
-    .filter(
-      task =>
-        task.status === TaskStatus.DONE &&
-        task.doneAt !== null &&
-        formatKanbanISODate(new Date(task.doneAt)) === date,
-    )
+export function toDayListCards<Card extends {task: TaskItem}>(
+  cards: Card[],
+  date: string,
+): Card[] {
+  const finished = cards.flatMap(card => {
+    const {status, doneAt, type} = card.task;
+    if (status !== TaskStatus.DONE || doneAt === null) return [];
+    const doneMoment = new Date(doneAt);
+    if (formatKanbanISODate(doneMoment) !== date) return [];
+    return [
+      {
+        card,
+        doneTime: doneMoment.getTime(),
+        kindRank: RING_KIND_ORDER.indexOf(getTaskKind(type)),
+      },
+    ];
+  });
+  return finished
     .sort(
-      (a, b) =>
-        RING_KIND_ORDER.indexOf(getTaskKind(a.type)) -
-          RING_KIND_ORDER.indexOf(getTaskKind(b.type)) ||
-        doneTime(a) - doneTime(b) ||
-        a.id.localeCompare(b.id),
-    );
+      (first, second) =>
+        first.kindRank - second.kindRank ||
+        first.doneTime - second.doneTime ||
+        first.card.task.id.localeCompare(second.card.task.id),
+    )
+    .map(({card}) => card);
+}
+
+// ─── Celebration ───────────────────────────────────────────────────────────
+
+/**
+ * The kind of each of a closing ring's `count` sparks, in the same shares as
+ * the day's done tasks by kind, in the ring's order.
+ */
+export function toSparkKinds(done: KindCounts, count: number): TaskKind[] {
+  const doneKinds = RING_KIND_ORDER.flatMap(kind =>
+    Array<TaskKind>(done[kind]).fill(kind),
+  );
+  if (doneKinds.length === 0) return [];
+  return Array.from(
+    {length: count},
+    (_, index) => doneKinds[Math.floor((index * doneKinds.length) / count)],
+  );
 }
 
 // ─── The mobile row ────────────────────────────────────────────────────────

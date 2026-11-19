@@ -25,6 +25,11 @@ interface TaskKindStyle {
   track: string;
   /** Outline around the card's own path segment */
   ring: string;
+  /** A day ring's arc of this kind */
+  stroke: string;
+  /** The kind's colour as a CSS value, for what a class can't reach (the
+      ring's sparks, the burst's chips) */
+  color: string;
   Icon: ComponentType<SVGProps<SVGSVGElement>>;
 }
 
@@ -43,6 +48,8 @@ export const TASK_KIND_STYLE: Record<TaskKind, TaskKindStyle> = {
     current: 'border-success ring-success/30',
     track: 'bg-success/20',
     ring: 'ring-success',
+    stroke: 'stroke-success',
+    color: 'var(--color-success)',
     Icon: ArrowPathIcon,
   },
   [TaskKind.PROJECT]: {
@@ -55,6 +62,8 @@ export const TASK_KIND_STYLE: Record<TaskKind, TaskKindStyle> = {
     current: 'border-secondary ring-secondary/30',
     track: 'bg-secondary/20',
     ring: 'ring-secondary',
+    stroke: 'stroke-secondary',
+    color: 'var(--color-secondary)',
     Icon: MapIcon,
   },
   [TaskKind.ONE_OFF]: {
@@ -67,6 +76,8 @@ export const TASK_KIND_STYLE: Record<TaskKind, TaskKindStyle> = {
     current: 'border-info ring-info/30',
     track: 'bg-info/20',
     ring: 'ring-info',
+    stroke: 'stroke-info',
+    color: 'var(--color-info)',
     Icon: Squares2X2Icon,
   },
 };

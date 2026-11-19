@@ -1,6 +1,6 @@
 # Spike: Board · tap to complete 分几个阶段做
 
-**Status: decided** · 2026-11-19（同日定）
+**Status: decided** · 2026-11-19（同日定）· implemented in the board tap-to-complete implementation PR, stacked on PR #132
 
 > 语言约定：叙述用中文；产品名词、状态和代码标识保留英文（Todo / Done / backlog、habit / project / one-off、`doneAt`、`BoardPage`），和代码、mockup、tracker 一一对应。
 

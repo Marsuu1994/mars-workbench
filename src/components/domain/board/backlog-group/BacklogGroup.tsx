@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, type ReactNode} from 'react';
+import {useState} from 'react';
 import {Draggable, Droppable} from '@hello-pangea/dnd';
 import {useTranslations} from 'next-intl';
 import {ArrowUpIcon} from '@heroicons/react/24/outline';
@@ -9,11 +9,12 @@ import type {BacklogGroup as BacklogGroupModel} from '@/utils/backlogGroupUtils'
 import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
 import {useBoardPageContext} from '../BoardPageContext';
 import {BACKLOG_GROUP_DROPPABLE_PREFIX} from '../backlogConstants';
-import {BacklogGroupFace} from './BacklogGroupFace';
+import {TaskCardFace} from '../TaskCardFace';
+import {BacklogMoreCount} from './BacklogMoreCount';
 import {BacklogPile} from './BacklogPile';
 import {BacklogQueue} from './BacklogQueue';
 
-/** desktop: the card is dragged out of the panel · mobile: it has ↑ Todo */
+/** desktop: the card can also be dragged out of the panel · mobile: it can't */
 export type BacklogGroupVariant = 'desktop' | 'mobile';
 
 interface BacklogGroupProps {
@@ -38,8 +39,8 @@ const LIFT_PLACEHOLDER_CLASS =
 /**
  * One habit's or one project's tasks in the backlog: a card showing the next
  * one, on a pile of the rest — or, for a project whose queue is open, over
- * the rows of its steps behind. Only the next task can leave: dragged out of
- * the panel on desktop, or pulled with ↑ Todo in the mobile sheet.
+ * the rows of its steps behind. Only the next task can leave: pulled with its
+ * ↑ Todo on both widths, or dragged out of the panel on desktop.
  */
 export const BacklogGroup = ({group, variant}: BacklogGroupProps) => {
   const t = useTranslations('Board.Backlog');
@@ -65,8 +66,21 @@ export const BacklogGroup = ({group, variant}: BacklogGroupProps) => {
     </button>
   );
 
-  const renderFace = (action?: ReactNode) => (
-    <BacklogGroupFace group={group} queue={queue} action={action} />
+  const renderMoreCount = () =>
+    behind.length > 0 ? (
+      <BacklogMoreCount
+        kind={next.kind}
+        behindCount={behind.length}
+        queue={queue}
+      />
+    ) : null;
+
+  const renderFace = () => (
+    <TaskCardFace
+      card={next}
+      headExtra={renderMoreCount()}
+      action={renderPullButton()}
+    />
   );
 
   // Workaround (@hello-pangea/dnd): each group is a drop zone of its own, with
@@ -95,7 +109,7 @@ export const BacklogGroup = ({group, variant}: BacklogGroupProps) => {
                 ref={draggable.innerRef}
                 {...draggable.draggableProps}
                 {...draggable.dragHandleProps}
-                className={`${CARD_CLASS} ${edge} cursor-grab hover:-translate-y-0.5 ${
+                className={`${CARD_CLASS} ${edge} cursor-grab ${
                   snapshot.isDragging ? 'fx-card-lift z-50 scale-[1.02]' : ''
                 }`}
               >
@@ -110,9 +124,7 @@ export const BacklogGroup = ({group, variant}: BacklogGroupProps) => {
   );
 
   const renderPlainCard = () => (
-    <div className={`${CARD_CLASS} ${edge} relative z-[1]`}>
-      {renderFace(renderPullButton())}
-    </div>
+    <div className={`${CARD_CLASS} ${edge} relative z-[1]`}>{renderFace()}</div>
   );
 
   return (

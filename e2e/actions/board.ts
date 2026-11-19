@@ -4,6 +4,7 @@
  * is written once and runs in both projects.
  */
 import type {Locator, Page} from '@playwright/test';
+import {ARM_DEBOUNCE_MS} from '@/components/domain/board/taskCardConstants';
 import {expect, waitForServerAction} from '../fixtures';
 
 /** The board's drop zones; BACKLOG is the desktop panel's. */
@@ -53,10 +54,14 @@ export const findPileSheets = (group: Locator) =>
 export const findBacklogSections = (page: Page, isMobile: boolean) =>
   findOpenBacklog(page, isMobile).getByRole('heading', {level: 4});
 
-/** Taps a backlog card's ↑ Todo in the mobile sheet and waits for the save. */
-export const pullWithTap = async (page: Page, title: string) => {
+/** Taps a backlog card's ↑ Todo, in the panel or the sheet, and waits for the save. */
+export const pullWithTap = async (
+  page: Page,
+  isMobile: boolean,
+  title: string,
+) => {
   const pulled = waitForServerAction(page, '/kanban');
-  await findCardOf(findBacklogCard(page, true, title))
+  await findCardOf(findBacklogCard(page, isMobile, title))
     .getByRole('button', {name: 'Todo'})
     .click();
   await pulled;
@@ -180,61 +185,111 @@ export const readMarkFills = (card: Locator) =>
       .map(mark => getComputedStyle(mark).backgroundColor),
   );
 
-/** What the progress dashboard counts: tasks and points, today and this week. */
-export interface Progress {
-  todayDone: number;
-  todayTotal: number;
-  todayPoints: number;
-  weekDone: number;
-  weekPoints: number;
-}
-
-const readNumbers = async (locator: Locator) =>
-  ((await locator.textContent()) ?? '').match(/\d+/g)?.map(Number) ?? [];
-
-/**
- * Reads the progress dashboard. Desktop shows "1 of 3 tasks" and "2 / 6"
- * points; mobile shows a Today and a Week row, each "1/3" then the points.
- */
-export const readProgress = async (
-  page: Page,
-  isMobile: boolean,
-): Promise<Progress> => {
-  const label = (text: string) =>
-    page.getByText(text, {exact: true}).filter({visible: true}).first();
-  if (isMobile) {
-    const rowNumbers = async (text: string) => {
-      const [counts, points] = await label(text)
-        .locator('..')
-        .locator('.fx-num')
-        .all();
-      const [done, total] = await readNumbers(counts);
-      const [donePoints] = await readNumbers(points);
-      return {done, total, donePoints};
-    };
-    const today = await rowNumbers('Today');
-    const week = await rowNumbers('Week');
-    return {
-      todayDone: today.done,
-      todayTotal: today.total,
-      todayPoints: today.donePoints,
-      weekDone: week.done,
-      weekPoints: week.donePoints,
-    };
-  }
-  const [todayDone, todayTotal] = await readNumbers(
-    label('Today').locator('..'),
-  );
-  const [todayPoints] = await readNumbers(label('Today Points').locator('..'));
-  const weekText =
-    (await label('Week Progress').locator('xpath=../..').textContent()) ?? '';
-  const [, weekDone] = weekText.match(/(\d+) of \d+ tasks/)?.map(Number) ?? [];
-  const [weekPoints] = await readNumbers(label('Week Points').locator('..'));
-  return {todayDone, todayTotal, todayPoints, weekDone, weekPoints};
-};
-
 /** The title of a column's first card: the top of Done is the latest finished. */
 export const findTopCardTitle = (
   page: Page,
   status: Exclude<BoardStatus, 'BACKLOG'>,
 ) => findBoardColumn(page, status).getByRole('heading').first();
+
+// ─── Tap twice to complete ─────────────────────────────────────────────────
+
+/** A Todo card by its title, selected or not (its name changes when it is). */
+export const findTodoCard = (page: Page, title: string) =>
+  page
+    .locator('[data-todo-card]')
+    .filter({has: page.getByRole('heading', {name: title})});
+
+/** Presses a Todo card, which selects it or cancels its selection (A10, A11). */
+export const pressTodoCard = (page: Page, title: string) =>
+  findTodoCard(page, title).click();
+
+/**
+ * Presses the selected card's ✓ Complete (A12) and waits for the save. ✓
+ * Complete ignores presses for its first 350 ms (TAP-3), and the save starts
+ * once the card has been tossed into today's ring.
+ */
+export const completeSelectedCard = async (page: Page, title: string) => {
+  // A press sooner than this after the select does nothing (TAP-3)
+  await page.waitForTimeout(ARM_DEBOUNCE_MS);
+  const saved = waitForServerAction(page, '/kanban');
+  await page.getByRole('button', {name: `Complete ${title}`}).click();
+  await saved;
+};
+
+/** Selects a Todo card and completes it. */
+export const completeTodoCard = async (page: Page, title: string) => {
+  await pressTodoCard(page, title);
+  await expect(findTodoCard(page, title)).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await completeSelectedCard(page, title);
+};
+
+// ─── Day rings ─────────────────────────────────────────────────────────────
+
+/** The row of rings, one cell for each day the width shows. */
+export const findRingRow = (page: Page) =>
+  page.getByRole('group', {name: 'This week, day by day'});
+
+/** Today's cell: the button holding today's ring. */
+export const findTodayCell = (page: Page) =>
+  findRingRow(page).locator('button:has([data-today-ring])');
+
+/** A day's cell up to today, by its date ("YYYY-MM-DD"). */
+export const findDayCell = (page: Page, date: string) =>
+  page.locator(`[data-day-cell="${date}"]`);
+
+/** How long a kind's arc is drawn on a cell's ring, in px; 0 when empty. */
+export const readArcLength = async (cell: Locator, kind: string) =>
+  Number.parseFloat(
+    (await cell
+      .locator(`[data-arc="${kind}"]`)
+      .getAttribute('stroke-dasharray')) ?? '0',
+  );
+
+/** The open day's list: the desktop panel, or the mobile sheet. */
+export const findDayList = (page: Page, isMobile: boolean) =>
+  isMobile ? page.locator('dialog[open]') : page.locator('[data-day-list]');
+
+/** The rows of the open day's list, as their text. */
+export const findDayListRows = (page: Page, isMobile: boolean) =>
+  findDayList(page, isMobile).getByRole('listitem');
+
+const CELEBRATIONS_KEY = '__e2eRingCelebrations';
+
+/**
+ * Counts, on every page load, each time today's cell starts its celebration
+ * (fx-ring-close). It ends within a second, so a test that looked for it
+ * after a save could miss it; a count can't be missed. Call before opening
+ * the page.
+ */
+export const trackRingCelebrations = (page: Page) =>
+  page.addInitScript(key => {
+    const store = window as unknown as Record<string, number>;
+    store[key] = 0;
+    new MutationObserver(records => {
+      for (const {target, oldValue} of records) {
+        if (
+          target instanceof Element &&
+          target.hasAttribute('data-today-ring') &&
+          target.classList.contains('fx-ring-close') &&
+          !oldValue?.includes('fx-ring-close')
+        ) {
+          store[key] += 1;
+        }
+      }
+    }).observe(document, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class'],
+      attributeOldValue: true,
+    });
+  }, CELEBRATIONS_KEY);
+
+/** How many times today's ring has celebrated since the page loaded. */
+export const countRingCelebrations = (page: Page) =>
+  page.evaluate(
+    key => (window as unknown as Record<string, number>)[key],
+    CELEBRATIONS_KEY,
+  );

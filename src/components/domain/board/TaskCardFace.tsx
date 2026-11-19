@@ -1,85 +1,53 @@
 'use client';
 
 import type {ReactNode} from 'react';
-import {useTranslations} from 'next-intl';
-import {TaskStatus, TaskType} from '@/utils/enums';
-import {TaskKind, type HabitWeek} from '@/utils/taskUtils';
+import {TaskStatus} from '@/utils/enums';
+import {TaskKind} from '@/utils/taskUtils';
 import type {BoardCard} from '@/utils/boardCardUtils';
-import {SizeChip} from '@/components/domain/shared/SizeChip';
-import {cn} from '@/components/ui/cn';
 import {TaskCardHead} from './TaskCardHead';
 import {TaskCardSignal} from './TaskCardSignal';
 
 interface TaskCardFaceProps {
   card: BoardCard;
-  /** Visibility from the host card (TaskCard swaps faces at md) */
-  className?: string;
+  /** On the kind line's right: the backlog's +N more */
+  headExtra?: ReactNode;
+  /** Bottom right: Todo's round mark or ✓ Complete, the backlog's ↑ Todo */
+  action?: ReactNode;
 }
 
 /**
- * The full kind-first card face of the board's Todo and Done (a backlog
- * card is BacklogGroupFace). Line 1: kind (a step's project name) + context.
- * Then the title (and its description until done). Last line: the kind's
- * signal — a habit's week dots, a step's path — and a neutral size.
+ * The board's one card face, in Todo, Done and the backlog: the kind line,
+ * the title, the description cut off after two lines (none once done), then
+ * the kind's progress with the card's action at the bottom right. No size,
+ * no points.
  */
-export const TaskCardFace = ({card, className}: TaskCardFaceProps) => {
-  const tCard = useTranslations('Board.Card');
-  const {task} = card;
+export const TaskCardFace = ({card, headExtra, action}: TaskCardFaceProps) => {
+  const {kind, task} = card;
   const isDone = task.status === TaskStatus.DONE;
 
-  const renderPlanLine = ({type, frequency}: HabitWeek) =>
-    type === TaskType.DAILY
-      ? tCard('planLineDaily', {frequency})
-      : tCard('planLineWeekly', {frequency});
-
-  // A step names its project in place of the kind label
-  const renderName = () =>
-    card.kind === TaskKind.PROJECT ? card.step?.projectTitle : undefined;
-
-  const renderContext = (): ReactNode => {
-    switch (card.kind) {
-      case TaskKind.HABIT:
-        return card.habitWeek ? renderPlanLine(card.habitWeek) : null;
-      case TaskKind.PROJECT:
-        return card.step
-          ? tCard('stepContext', {
-              number: card.step.number,
-              count: card.step.count,
-            })
-          : null;
-      case TaskKind.ONE_OFF:
-        return task.quadrant ? tCard(`Quadrant.${task.quadrant}`) : null;
-      default:
-        return null;
-    }
-  };
-
   return (
-    <div className={cn('flex flex-col gap-1.5 px-3 py-2.5', className)}>
+    <div className="flex flex-col gap-1.5 px-3 py-2.5">
       <TaskCardHead
-        kind={card.kind}
-        variant="card"
-        name={renderName()}
-        context={renderContext()}
+        kind={kind}
+        name={kind === TaskKind.PROJECT ? card.step?.projectTitle : undefined}
+        quadrant={task.quadrant}
+        extra={headExtra}
       />
-
       <h3
         className={`text-sm font-medium leading-snug ${
-          isDone ? 'line-through text-base-content/50' : ''
+          isDone ? 'line-through text-base-content/55' : ''
         }`}
       >
         {task.title}
       </h3>
-
       {task.description && !isDone && (
         <p className="-mt-0.5 text-xs leading-snug text-base-content/60 line-clamp-2 break-words">
           {task.description}
         </p>
       )}
-
-      <div className="flex flex-wrap items-center gap-2 min-h-[18px]">
-        <TaskCardSignal card={card} variant="card" />
-        <SizeChip size={task.size} points={task.points} className="ml-auto" />
+      <div className="flex min-h-[18px] flex-wrap items-center gap-2">
+        <TaskCardSignal card={card} />
+        {action && <span className="ml-auto flex items-center">{action}</span>}
       </div>
     </div>
   );

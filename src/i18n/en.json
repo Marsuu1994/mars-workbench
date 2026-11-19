@@ -42,10 +42,8 @@
   "Board": {
     "Backlog": {
       "title": "Backlog",
-      "hintDragToTodo": "Drag tasks left to Todo to start working",
       "openLabel": "Open backlog",
       "closeLabel": "Close backlog",
-      "hintTapToTodo": "Tap to pull a task onto the board",
       "pullToTodoLabel": "Todo",
       "countLabel": "{count, plural, one {# staged task} other {# staged tasks}}",
       "habitsSection": "Habits",
@@ -72,9 +70,6 @@
       "planningMode": "Planning Mode"
     },
     "Card": {
-      "planLineDaily": "{frequency, plural, one {Daily} other {#× / day}}",
-      "planLineWeekly": "{frequency}× / week",
-      "stepContext": "{number}/{count}",
       "habitProgressLabel": "{done} of {total} done this week",
       "stepProgressLabel": "{done} of {total} steps done",
       "Quadrant": {
@@ -82,18 +77,11 @@
         "SCHEDULE": "Schedule",
         "SQUEEZE_IN": "Squeeze in",
         "MAYBE_LATER": "Maybe later"
-      }
-    },
-    "Dashboard": {
-      "today": "Today",
-      "week": "Week",
-      "pts": "pts",
-      "avg": "avg",
-      "todayPoints": "Today Points",
-      "weekPoints": "Week Points",
-      "dailyAvg": "Daily Avg",
-      "weekProgress": "Week Progress",
-      "tasksOfTotal": "{done} of {total} tasks"
+      },
+      "completeWord": "Complete",
+      "completeLabel": "Complete {title}",
+      "selectedLabel": "{title}, selected",
+      "selectLabel": "Select {title}"
     },
     "Empty": {
       "newTitle": "No active plan",
@@ -106,6 +94,37 @@
       "statCompleted": "Completed",
       "statTasksDone": "Tasks done",
       "statPointsEarned": "Points earned"
+    },
+    "Columns": {
+      "todoTag": "Today",
+      "doneTag": "This week"
+    },
+    "Rings": {
+      "rowLabel": "This week, day by day",
+      "today": "Today",
+      "count": "<count>{done}</count> of {planned} done",
+      "allDone": "All {count} done",
+      "cellLabel": "{day}: {done} of {planned} done",
+      "cellLabelWithKinds": "{day}: {done} of {planned} done — {kinds}",
+      "Kinds": {
+        "HABIT": "habits {done} of {planned}",
+        "PROJECT": "steps {done} of {planned}",
+        "ONE_OFF": "one-offs {done} of {planned}"
+      },
+      "Days": {
+        "MON": "Mon",
+        "TUE": "Tue",
+        "WED": "Wed",
+        "THU": "Thu",
+        "FRI": "Fri",
+        "SAT": "Sat",
+        "SUN": "Sun"
+      }
+    },
+    "DayList": {
+      "closeLabel": "Close the day's list",
+      "nothingYet": "Nothing yet",
+      "count": "{done} of {planned} done"
     }
   },
   "Priorities": {

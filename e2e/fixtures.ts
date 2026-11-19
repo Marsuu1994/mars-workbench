@@ -3,6 +3,7 @@ import {randomUUID} from 'node:crypto';
 import {createDumpEntry} from '@/lib/db/dumpEntries';
 import {signInAsStorageState, upsertPasswordUser} from '../scripts/localAuth';
 import {
+  createEarlierDay,
   createOneOff,
   createProjectWithSteps,
   createWeek,
@@ -46,6 +47,10 @@ const bindFactories = (userId: string) => ({
     moves: Parameters<typeof moveTasksByTitle>[2],
   ) => moveTasksByTitle(userId, planId, moves),
   createDumpEntry: (content: string) => createDumpEntry(userId, {content}),
+  createEarlierDay: (
+    planId: string,
+    day: Parameters<typeof createEarlierDay>[2],
+  ) => createEarlierDay(userId, planId, day),
 });
 
 /** The factories bound to a test's own user (`test/factories.ts`). */
