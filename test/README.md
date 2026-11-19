@@ -13,7 +13,7 @@ This file is the one home of the rules for writing a test. The `implement-spec` 
 
 Shared helpers live here in `test/`:
 
-- `component/`: the page's providers and stylesheet for component tests;
+- `component/`: the page's providers and stylesheet for component tests, and the browser commands they call (holding the pointer down);
 - `factories.ts`: data written through the services;
 - `time.ts`: frozen moments of one week;
 - `buildTask.ts`: DAL rows for unit tests;

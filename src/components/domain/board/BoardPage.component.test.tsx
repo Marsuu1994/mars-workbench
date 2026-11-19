@@ -271,9 +271,13 @@ const expectTopToBottom = (card: HTMLElement, texts: string[]) => {
   expect(tops).toEqual([...tops].sort((above, below) => above - below));
 };
 
-/** A card's kind line's text, before the CSS puts it in upper case. */
+/** A card's kind line's text, before the CSS puts it in upper case, without
+    the backlog's +N more on its right. */
 const readKindLine = (card: HTMLElement) =>
-  card.querySelector('h3')?.previousElementSibling?.textContent;
+  [...(card.querySelector('h3')?.previousElementSibling?.children ?? [])]
+    .filter(part => !part.classList.contains('ml-auto'))
+    .map(part => part.textContent)
+    .join('');
 
 /** A card's size chip, as the old cards showed it (XS, S, M, L, XL). */
 const SIZE_TEXT = /\b(XS|S|M|L|XL)\b|\bpts?\b/;
@@ -2010,6 +2014,9 @@ describe('Motion', () => {
 
     await completeByTap(TAX_REPORT_TITLE);
     getTodoCard('Workout').click();
+    // Give a selection time to show, still well inside the flight
+    await sleep(PRESS_SETTLE_MS);
+    expect(readColumnTitles('TODO')).toContain(TAX_REPORT_TITLE);
     expect(isSelected(getTodoCard('Workout'))).toBe(false);
 
     // Today's cell opens its list, then the backlog opens (and closes it)

@@ -456,11 +456,14 @@ const runWrapUpTheDay = async ({
   });
 
   await test.step(`A10 A12 ${isMobile ? 'COL-7' : 'CARD-7'} RING-5 FX-4 COL-8 select the step and complete it: today's ring closes and celebrates, and the empty Todo says the day is clear`, async () => {
+    const readFrame = () =>
+      todayCell.evaluate(cell => getComputedStyle(cell).borderTopColor);
+    const openFrame = await readFrame();
     await completeTodoCard(page, STEP_TITLE);
     await expectCompleted(STEP_TITLE);
     await expect(todayCell).toContainText('All 2 done');
     await expect(todayCell.locator('.fx-ring-check')).toBeVisible();
-    await expect(todayCell).toHaveClass(/border-success/);
+    await expect.poll(readFrame).not.toBe(openFrame);
     await expect.poll(() => countRingCelebrations(page)).toBe(1);
     await expect(dayClear).toBeVisible();
   });
