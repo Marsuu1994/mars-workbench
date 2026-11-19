@@ -102,10 +102,10 @@ it('A2 Finish moves the card to the top of Done at once, and back when it fails'
 >
 > | ID | Action | Where | Server action | Result |
 > | --- | --- | --- | --- | --- |
-> | A3 | Pull to Todo | drag a backlog card onto Todo (desktop), ↑ Todo (mobile) | `updateTaskStatusAction` → `TODO` | *(pending)* takes the group's next task; the group shows the one behind it |
+> | A3 | Pull to Todo | drag a backlog card onto Todo (desktop), ↑ Todo (mobile) | `updateTaskStatusAction` → `TODO` | takes the group's next task; the group shows the one behind it |
 > | *(pending)* A8 | Expand a project | a project group's **+N more ⌄** | — | its queue, the steps behind the next in step order, replaces the pile |
 
-（2026-11-18 起 marker 写在 ID 前面，`check:spec` 只认那个位置：`design/specs/README.md` › Items and IDs。）
+（2026-11-18 起 marker 写在 ID 前面，`check:spec` 只认那个位置：`design/specs/README.md` › Items and IDs。A3 那一行原来只把 Result 标成 pending；现在的格式没有「半条 pending」，改一条 built 的 item 要标 *(removing)*，再给新的 ID。）
 
 ### 4. TDD：spec 先行，test 跟着实现补上
 

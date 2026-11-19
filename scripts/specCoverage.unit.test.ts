@@ -64,56 +64,56 @@ describe('parseSpecItems', () => {
         pending: false,
         removing: false,
         bug: false,
-        misplacedMarker: false,
+        misplacedMarker: null,
       },
       {
         id: 'COL-2',
         pending: false,
         removing: false,
         bug: false,
-        misplacedMarker: false,
+        misplacedMarker: null,
       },
       {
         id: 'COL-3',
         pending: false,
         removing: true,
         bug: false,
-        misplacedMarker: false,
+        misplacedMarker: null,
       },
       {
         id: 'COL-4',
         pending: true,
         removing: false,
         bug: false,
-        misplacedMarker: false,
+        misplacedMarker: null,
       },
       {
         id: 'BL-8',
         pending: true,
         removing: false,
         bug: false,
-        misplacedMarker: false,
+        misplacedMarker: null,
       },
       {
         id: 'ST-2',
         pending: false,
         removing: false,
         bug: true,
-        misplacedMarker: false,
+        misplacedMarker: null,
       },
       {
         id: 'A1',
         pending: false,
         removing: false,
         bug: false,
-        misplacedMarker: false,
+        misplacedMarker: null,
       },
       {
         id: 'J1',
         pending: false,
         removing: false,
         bug: false,
-        misplacedMarker: false,
+        misplacedMarker: null,
       },
     ]);
   });
@@ -127,7 +127,7 @@ describe('parseSpecItems', () => {
         pending: true,
         removing: false,
         bug: false,
-        misplacedMarker: false,
+        misplacedMarker: null,
       },
     ]);
   });
@@ -140,10 +140,26 @@ describe('parseSpecItems', () => {
           pending: false,
           removing: false,
           bug: false,
-          misplacedMarker: true,
+          misplacedMarker: '- *(removing)* **BL-6** …',
         },
       ],
     );
+  });
+
+  it("flags a table row whose marker is in a later cell, with the row's own fix", () => {
+    expect(
+      parseSpecItems(
+        '| A3 | Pull to Todo | the card | *(pending)* takes the next |',
+      ),
+    ).toEqual([
+      {
+        id: 'A3',
+        pending: false,
+        removing: false,
+        bug: false,
+        misplacedMarker: '| *(pending)* A3 | …',
+      },
+    ]);
   });
 });
 

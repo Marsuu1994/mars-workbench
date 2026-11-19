@@ -67,6 +67,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 
 - [ ] Group the backlog — one habit's staged instances, and one project's steps on this week, sit together as one group (desktop panel and mobile sheet); a habit and a project each show their next one on a thin pile, "+N more" top right, and only a project's "+N more ⌄" opens the rest; the backlog card drops the plan line, step n/N, size and the done / total fraction (the board's habit card drops its fraction too); the badge counts staged tasks, capped at 8+. Design decided (PR #109; habits' pile added 2026-11-07): mockup `design/mockup/mockup-board-backlog-grouping.html`. PR #44 built stacking on the old card face. Its cards are the board's one card (PR #115 mockup, tab K · Card): a habit card's title sits under its HABIT kind line, not on the first line.
   - [ ] PR 4 — build it from `main` with the `implement-spec` skill, clearing the pending items in `specs/board.md` (spec written in PR 3, no questions open; mockup tab 6 · Empty adds the empty backlog's and empty Todo's finish boxes)
+    - BL-14's lift keeps a placeholder in place while the other groups stay put; `@hello-pangea/dnd` may close the gap by default instead, so check how a lift behaves in the Design Console first (PR #122 review, round 4)
 
 ### Future
 

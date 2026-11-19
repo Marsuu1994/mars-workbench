@@ -52,8 +52,11 @@ export interface SpecItem {
   removing: boolean;
   /** A known bug: an `it.fails` holds it */
   bug: boolean;
-  /** A marker on the item's line but not before its ID, where it isn't read */
-  misplacedMarker: boolean;
+  /**
+   * A marker on the item's line but not before its ID, where it isn't read:
+   * how the line should start instead (`- *(removing)* **BL-6** …`), or null
+   */
+  misplacedMarker: string | null;
 }
 
 export interface TestTitle {
@@ -196,16 +199,22 @@ export const findLegacyProblems = ({
 /** Every item in a spec, in order, with its markers. */
 export const parseSpecItems = (markdown: string): SpecItem[] =>
   markdown.split('\n').flatMap(line => {
-    const match = line.match(LIST_ITEM_ID) ?? line.match(TABLE_ROW_ID);
+    const listMatch = line.match(LIST_ITEM_ID);
+    const match = listMatch ?? line.match(TABLE_ROW_ID);
     if (!match) return [];
     const [, marker, id] = match;
+    const strayMarker = marker ? undefined : line.match(ANY_MARKER)?.[1];
     return [
       {
         id,
         pending: marker === 'pending',
         removing: marker === 'removing',
         bug: marker === 'bug',
-        misplacedMarker: !marker && ANY_MARKER.test(line),
+        misplacedMarker: strayMarker
+          ? listMatch
+            ? `- *(${strayMarker})* **${id}** …`
+            : `| *(${strayMarker})* ${id} | …`
+          : null,
       },
     ];
   });
@@ -309,7 +318,7 @@ export const findSpecProblems = (
       seen.add(id);
       if (misplacedMarker) {
         problems.push(
-          `${specPath}: ${id}'s marker sits after its ID, where it isn't read — move it before the ID: \`- *(pending)* **${id}** …\`.`,
+          `${specPath}: ${id}'s marker sits after its ID, where it isn't read — move it before the ID: \`${misplacedMarker}\`.`,
         );
         continue;
       }

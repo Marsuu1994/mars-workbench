@@ -217,7 +217,10 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 
 ## Version Control
 
-- **Local sessions** (on the owner's machine): never commit, push or take another outward-facing VCS action without explicit permission — make and stage the changes, summarize them, and wait for approval. GitHub goes through the `gh` CLI: open a PR with `gh pr create`, read reviews with `gh pr view --comments` or `gh api`, and read a red CI job with `gh run view <run-id> --log-failed`, filtered, then fix it in the main session.
+- **Local sessions** (on the owner's machine):
+  - Permission: never commit, push or take another outward-facing VCS action without explicit permission — make and stage the changes, summarize them, and wait for approval.
+  - GitHub goes through the `gh` CLI: open a PR with `gh pr create`, read reviews with `gh pr view --comments` or `gh api`, and read a red CI job with `gh run view <run-id> --log-failed`, filtered, then fix it in the main session.
+  - The PR's description: once a PR is open, every push that adds commits rewrites its description (`gh pr edit --body-file`) to say what the PR is now, not what its first commit was — its counts, decisions and checks.
 - **Remote sessions** (cloud containers such as Claude Code on the web): commit and push with `git push -u origin <branch>` without asking.
 - **A PR opens only when the owner asks for one**, in either kind of session. Once a remote session's PR is open, it subscribes to its activity (`subscribe_pr_activity`) and sees it through until it merges or closes: red CI and review comments are the session's to fix.
 - Never commit or push to `main`; changes land through pull requests.

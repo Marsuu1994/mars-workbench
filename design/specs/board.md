@@ -33,12 +33,9 @@ Opening `/kanban` runs the sync first (`specs/shared.md`). The page then shows o
 
 ## Task cards
 
-- *(removing)* **CARD-1** Replaced by CARD-9. Every card shows, from top to bottom:
-  - kind: what kind of task it is, with its details beside it; a project step shows its project's name in place of the kind
-  - title: the task's title
-  - description: the task's description, cut off after two lines
-  - progress and size: the kind's progress, then the task's size with its points
-- *(pending)* **CARD-9** Every card on the board, in Todo and Done, shows, from top to bottom (a backlog card is BL-10):
+This section is the board's cards, in Todo and Done. A card in the backlog is BL-10.
+
+- **CARD-1** Every card shows, from top to bottom:
   - kind: what kind of task it is, with its details beside it; a project step shows its project's name in place of the kind
   - title: the task's title
   - description: the task's description, cut off after two lines
@@ -49,7 +46,7 @@ Opening `/kanban` runs the sync first (`specs/shared.md`). The page then shows o
   - progress: the week's dots, and how many of them are done out of the total
   - dots: one for each time the habit runs this week. A daily habit gets N for each day it runs (weekdays in `NORMAL` mode, every day in `EXTREME` mode); a weekly habit gets N. A dot is filled when its task is done and empty when it isn't, and the card's own task has a ring around its dot.
   - off the plan: if the habit is no longer on the plan, its cards show no details and no progress
-- *(pending)* **CARD-8** **Habit cards** on the board, in Todo and Done (a backlog card is BL-10).
+- *(pending)* **CARD-8** **Habit cards.**
   - details: how often the habit runs, Daily × N or Weekly × N
   - progress: the week's dots alone, with no count of how many are done beside them. A screen reader reads the dots as how many are done out of the total.
   - dots: one for each time the habit runs this week. A daily habit gets N for each day it runs (weekdays in `NORMAL` mode, every day in `EXTREME` mode); a weekly habit gets N. A dot is filled when its task is done and empty when it isn't, and the card's own task has a ring around its dot.
@@ -87,7 +84,7 @@ Opening `/kanban` runs the sync first (`specs/shared.md`). The page then shows o
 ### Groups
 
 - *(pending)* **BL-9** The backlog's tasks wait in groups: one habit's tasks in the backlog are one group, and one project's steps in the backlog are another. On both widths each group is one card, showing the group's next task: a habit's lowest copy, or a project's lowest step. A group with only one task is a plain card; when more tasks wait behind its next one, its card sits on a pile of them (BL-11). The groups sit in two sections, Habits and then Projects, and a section with no group in it isn't shown.
-- *(pending)* **BL-16** Within each section, the groups are sorted by when their habit or project was created, the oldest first; the tasks themselves play no part. Groups whose habits or projects were created at the same moment go by the habit's or the project's id.
+- *(pending)* **BL-16** Within each section, the groups are sorted by when their habit or project itself was created (a habit's own creation, not when it joined this week's plan), the oldest first; the tasks themselves play no part. Groups whose habits or projects were created at the same moment go by the habit's or the project's id.
 - *(pending)* **BL-10** A backlog card shows, from top to bottom:
   - kind: a habit card shows its kind, and a step card its project's name; neither shows details (no Daily × N or Weekly × N, no step n/N)
   - title: the next task's title
