@@ -314,21 +314,31 @@
   .rm.enter { animation: bootIn .42s var(--ease) both; }
   @keyframes bootIn { from { opacity: 0; transform: translate(-50%, calc(-50% + 6px)) scale(.985); } }
   .rm.full { left: 0; right: 0; top: 34px; bottom: 0; width: auto; height: auto; max-width: none; max-height: none; transform: none; border-radius: 0; border: 0; box-shadow: none; }
-  .rm.full.enter { animation: riseIn .42s var(--ease) both; }
+  .rm.full.enter { animation: riseIn .24s var(--ease) both; }
   @keyframes riseIn { from { transform: translateY(100%); } }
-  .rm-head { display: flex; align-items: flex-start; gap: 10px; padding: 16px 20px 12px; border-bottom: 1px solid var(--card-border); flex-shrink: 0; }
-  .rm.full .rm-head { padding: 12px 14px 10px; }
-  .rm-head > .icon { width: 20px; height: 20px; color: var(--p); margin-top: 1px; }
-  .rm-head h3 { font-size: 18px; font-weight: 700; font-family: var(--display); line-height: 1.2; }
-  [data-theme='p5-dark'] .rm-head h3 { font-weight: 400; letter-spacing: .04em; font-size: 20px; }
-  .rm-head .subt { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--ink-55); margin-top: 2px; }
-  .rm-body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 20px 18px; display: flex; flex-direction: column; gap: 10px; scrollbar-width: thin; }
+  .rm.leaving { animation: bootOut .24s var(--ease) forwards; }
+  @keyframes bootOut { to { opacity: 0; transform: translate(-50%, calc(-50% + 6px)) scale(.985); } }
+  .rm.full.leaving { animation: riseOut .24s var(--ease) forwards; }
+  @keyframes riseOut { to { transform: translateY(100%); } }
+  .scrim { transition: opacity .24s var(--ease); }
+  .scrim.leaving { opacity: 0; }
+  /* head, body, foot: Open the day's .ov-head / .ov-body / .ov-foot (mockup-daily-rhythm-open-the-day.html, round 2) */
+  .rm-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 14px 18px 12px; border-bottom: 1px solid var(--card-border); flex-shrink: 0; }
+  .rm.full .rm-head { padding: 10px 14px; }
+  .rm-head .ttl { display: flex; align-items: center; gap: 8px; font-family: var(--display); font-size: 18px; font-weight: 700; }
+  [data-theme='p5-dark'] .rm-head .ttl { font-weight: 400; letter-spacing: .04em; font-size: 20px; }
+  .rm-head .ttl .icon { color: var(--p); width: 20px; height: 20px; }
+  .rm-head .subt { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--ink-55); margin-top: 2px; display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: center; }
+  .rm-head .x { border: 0; background: transparent; color: var(--ink-55); cursor: pointer; padding: 4px; display: inline-flex; }
+  .rm-body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 18px 18px; display: flex; flex-direction: column; gap: 10px; scrollbar-width: thin; }
   .rm.full .rm-body { padding: 12px 14px 16px; }
-  .rm-foot { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 12px 20px; border-top: 1px solid var(--card-border); flex-shrink: 0; background: var(--b1); }
-  .rm.full .rm-foot { padding: 10px 14px 14px; }
-  .rm-foot .btn { height: 38px; }
+  .rm-foot { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--card-border); flex-shrink: 0; background: var(--b1); }
+  .rm.full .rm-foot { padding: 10px 14px 18px; }
+  .rm .btn { height: 38px; gap: 8px; }
+  .rm.full .rm-foot .btn { height: 44px; }
   .rm.full .rm-foot .btn.primary { flex: 1; }
-  .sec { display: flex; align-items: center; gap: 8px; font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-55); margin-top: 4px; }
+  .btn.primary .badge-count { background: var(--pc); color: var(--p); letter-spacing: 0; }
+  .sec { display: flex; align-items: center; gap: 7px; font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-55); margin: 2px 2px -2px; }
   .sec .line { flex: 1; height: 1px; background: var(--card-border); }
   .sec .count-ghost { margin-left: 0; }
   .quiet { font-size: 13px; color: var(--ink-55); padding: 4px 2px; }
@@ -559,7 +569,7 @@
 
 <section class="r2box">
   <div class="col-label" style="margin-bottom:10px"><b>第 2 轮改了什么</b> · owner 让我和 demo-11-06 分支上的 daily rhythm 草稿比一比、出一个 refine 版；第 1 轮的方案都留着（owner 还没选）<span class="line"></span></div>
-  <ul class="changes"><li><b>一个 RitualSheet</b>和 Open the day 共用一个骨架：头（图标 + 标题 + 日期副标）、按标签分段的身体、底（Cancel + 一个 primary），桌面 600px 居中、手机全屏，同一组 padding、圆角和动效。日期从右边挪到标题下面。数字和槽位见 F 的「解剖」<span class="src">来自 demo-11-06 的 Open the day · Close the day 草稿（解剖屏）</span></li><li><b>Cancel 不变</b>底部还是 Cancel，不用草稿的 Later：spec 说像一个普通的 modal<span class="src">第 1 轮</span></li><li><b>1 · Entry 加 D：自动开一次，然后 strip</b>排第 2、不推荐：spec 写的是 entry，迎面盖住 board 违反 2.2。推荐还是 A 的 strip<span class="src">来自 demo-11-06 的草稿</span></li><li><b>2 · Recap 加 D，并改推荐</b>每张卡默认一个 → Tomorrow chip，✓ 是 Done，更轻的 Let go 放下；第 1 轮的三段控件 A 排第 2<span class="src">来自 demo-11-06 的草稿（③B）</span></li><li><b>3 · Summary 加 D，并改推荐</b>圈和「N done today」下面直接列做完的卡（muted ✓ 行，超过 4 行 +N more），不再藏在 Show what got done 后面<span class="src">来自 demo-11-06 的草稿</span></li><li><b>4 · 庆祝以明天收尾</b>加一句 Tomorrow · Fri, Nov 20 · N waiting（留在 Tomorrow 的卡）；第 1 轮的星星、插画、文案和两个按钮不变<span class="src">来自 demo-11-06 的草稿（Day closed）</span></li><li><b>Habit 都是 N× / week</b>fixture 里的 Workout、Flashcards 从 Daily 改成 5× / week，剩下的那一次可以去 Tomorrow；daily habit 的例外只留一句过渡说明（2 · Recap）<span class="src">tracker · owner 2026-11-16：Phase 2 只有 Weekly × N</span></li><li><b>Pick tomorrow now 只进 Ideas</b>草稿的 Day closed 有它；spec 只有 Write it down / Close，所以不画成按钮<span class="src">来自 demo-11-06 的草稿</span></li><li><b>Research 加了草稿的来源</b>Smit 2015、Jachimowicz 2019、Hobson 2018、Marvin、HIG Segmented controls / Modality、NN/g、Sunsama 自动打开；Scullin 2018 补了 DOI<span class="src">来自 demo-11-06 的草稿（Research 屏）</span></li></ul>
+  <ul class="changes"><li><b>一个 RitualSheet</b>和 Open the day 共用一个骨架：头（图标 + 标题 + 日期副标 + ✕ / ⌄）、按标签分段的身体、底（Cancel + 一个 primary），桌面 600px 居中、手机全屏，同一组 padding、圆角和动效。日期从右边挪到标题下面。数字和槽位见 F 的「解剖」<span class="src">来自 demo-11-06 的 Open the day · Close the day 草稿（解剖屏）</span></li><li><b>Cancel 不变</b>底部还是 Cancel，不用草稿的 Later：spec 说像一个普通的 modal<span class="src">第 1 轮</span></li><li><b>1 · Entry 加 D：自动开一次，然后 strip</b>排第 2、不推荐：spec 写的是 entry，迎面盖住 board 违反 2.2。推荐还是 A 的 strip<span class="src">来自 demo-11-06 的草稿</span></li><li><b>2 · Recap 加 D，并改推荐</b>每张卡默认一个 → Tomorrow chip，✓ 是 Done，更轻的 Let go 放下；第 1 轮的三段控件 A 排第 2<span class="src">来自 demo-11-06 的草稿（③B）</span></li><li><b>3 · Summary 加 D，并改推荐</b>圈和「N done today」下面直接列做完的卡（muted ✓ 行，超过 4 行 +N more），不再藏在 Show what got done 后面<span class="src">来自 demo-11-06 的草稿</span></li><li><b>4 · 庆祝以明天收尾</b>加一句 Tomorrow · Fri, Nov 20 · N waiting（留在 Tomorrow 的卡）；第 1 轮的星星、插画、文案和两个按钮不变<span class="src">来自 demo-11-06 的草稿（Day closed）</span></li><li><b>Habit 都是 N× / week</b>fixture 里的 Workout、Flashcards 从 Daily 改成 5× / week，剩下的那一次可以去 Tomorrow；daily habit 的例外只留一句过渡说明（2 · Recap）<span class="src">tracker · owner 2026-11-16：Phase 2 只有 Weekly × N</span></li><li><b>Pick tomorrow now 只进 Ideas</b>草稿的 Day closed 有它；spec 只有 Write it down / Close，所以不画成按钮<span class="src">来自 demo-11-06 的草稿</span></li><li><b>Research 加了草稿的来源</b>Smit 2015、Jachimowicz 2019、Hobson 2018、Marvin、HIG Segmented controls / Modality、NN/g、Sunsama 自动打开；Scullin 2018 补了 DOI<span class="src">来自 demo-11-06 的草稿（Research 屏）</span></li></ul>
 </section>
 
 <!-- ═════════ R · Research ═════════ -->
@@ -1120,7 +1130,8 @@ function celView(state, mode) {
 function modal(state, mode) {
   const cls = `rm ${mode === 'phone' ? 'full' : ''} ${state.enter ? 'enter' : ''}`;
   if (state.phase === 'cel') return `<div class="${cls}" role="dialog" aria-label="Day wrapped">${celView(state, mode)}</div>`;
-  const head = `<div class="rm-head">${icon('moon')}<div><h3>Night recap</h3><div class="subt">${DATE_LABEL}</div></div></div>`;
+  /* Open the day's header: icon + title, the date under it, and its close control (✕ on desktop, ⌄ on phones) acting as Cancel */
+  const head = `<div class="rm-head"><div><div class="ttl">${icon('moon')}Night recap</div><div class="subt"><span>${DATE_LABEL}</span></div></div><button class="x" data-act="cancel" aria-label="Cancel">${icon(mode === 'phone' ? 'chevDown' : 'x')}</button></div>`;
   return `<div class="${cls}" role="dialog" aria-modal="true" aria-label="Night recap">${head}<div class="rm-body">${summary(state)}${stillOpen(state)}</div><div class="rm-foot"><button class="btn ghost" data-act="cancel">Cancel</button><button class="btn primary" data-act="wrap">Wrap the day</button></div></div>`;
 }
 
@@ -1228,6 +1239,20 @@ document.addEventListener('click', event => {
   const state = FLOWS[host.dataset.flow];
   if (state.before) return;
   const {act} = target.dataset;
+  leaveThen(host, LEAVING_ACTS.includes(act), () => applyAct(state, act, target));
+});
+/* Cancel, Close and Write it down close the modal first: 240ms, the same as Open the day's */
+const LEAVE_MS = 240;
+const LEAVING_ACTS = ['cancel', 'close', 'write'];
+function leaveThen(host, leaves, action) {
+  const sheet = host.querySelector('.rm');
+  if (!leaves || !sheet || matchMedia('(prefers-reduced-motion: reduce)').matches) { action(); return; }
+  if (sheet.classList.contains('leaving')) return;
+  sheet.classList.add('leaving');
+  host.querySelector('.scrim')?.classList.add('leaving');
+  setTimeout(action, LEAVE_MS);
+}
+function applyAct(state, act, target) {
   switch (act) {
     case 'open': state.phase = 'recap'; state.enter = true; break;
     case 'cancel': { const keep = state.start; state.start = 'board'; resetFlow(state); state.start = keep; break; }
@@ -1253,15 +1278,15 @@ document.addEventListener('click', event => {
     default: return;
   }
   render(state.id);
-});
+}
 /* Esc = Cancel in the recap, Close on the celebration: the flows open on screen take it */
 document.addEventListener('keydown', event => {
   if (event.key !== 'Escape') return;
   document.querySelectorAll('.screen.on [data-flow]').forEach(host => {
     const state = FLOWS[host.dataset.flow];
     if (state.before) return;
-    if (state.phase === 'recap') { const keep = state.start; state.start = 'board'; resetFlow(state); state.start = keep; render(state.id); }
-    else if (state.phase === 'cel') { state.phase = 'after'; render(state.id); }
+    if (state.phase === 'recap') leaveThen(host, true, () => applyAct(state, 'cancel'));
+    else if (state.phase === 'cel') leaveThen(host, true, () => applyAct(state, 'close'));
   });
 });
 
@@ -1466,8 +1491,8 @@ put('entry-motion', motionTable([
   ['strip 在的时候', 'LED', 'opacity 1 → .35 → 1，一直循环（fx-led-pulse）', '2.4s · ease-in-out', '不闪，常亮'],
   ['hover / 按下 strip', 'strip', 'hover：→ 下划线；按下：scale .99', '150ms · console snap', '没有 scale'],
   ['点 strip', 'modal（桌面）', 'fx-boot-in：opacity 0 → 1，translateY 6px → 0，scale .985 → 1', '420ms · console snap', 'opacity 150ms'],
-  ['点 strip', 'overlay（手机）', '从下往上推进来：translateY 100% → 0', '420ms · console snap', 'opacity 150ms'],
-  ['D：今晚第一次打开 board', 'modal / overlay', '页面画好以后自己升起，和点 strip 一样（420ms boot-in / 420ms 推进来）；Cancel 后 strip 已经在，不另做动画', '420ms · console snap', 'opacity 150ms'],
+  ['点 strip', 'overlay（手机）', '从下往上推进来：translateY 100% → 0', '240ms · console snap', 'opacity 150ms'],
+  ['D：今晚第一次打开 board', 'modal / overlay', '页面画好以后自己升起，和点 strip 一样（桌面 420ms boot-in / 手机 240ms 推进来）；Cancel 后 strip 已经在，不另做动画', '420 / 240ms · console snap', 'opacity 150ms'],
   ['Wrap 之后 Close', 'strip', '直接没了（revalidate 后不再渲染），不做退场动画：一天收好了，安静', '—', '—'],
 ]));
 
@@ -1499,7 +1524,7 @@ put('recap-motion', motionTable([
   ['B：答完一张 / 点圆点', '大卡', '新卡从右边 16px 滑进来，opacity 0 → 1', '240ms · console snap', 'opacity 150ms'],
   ['B：答完一张', '圆点', '换成这张的去处的颜色和图标', '150ms', '直接换'],
   ['C：→ Done 等', '卡', 'mockup 里直接跳；真做可以 FLIP 飞到新栏', '240ms · console snap', '直接跳'],
-  ['Cancel / Esc', 'modal', 'opacity 1 → 0，什么都不存', '150ms', '直接关'],
+  ['Cancel / ✕ / ⌄ / Esc', 'modal / overlay', '桌面 boot-in 倒过来（opacity 1 → 0、translateY 0 → 6px、scale 1 → .985），手机往下推出去，scrim 淡掉；什么都不存', '240ms · console snap', '直接关'],
 ]));
 
 /* ── 3 · Summary ── */
@@ -1555,7 +1580,7 @@ put('cel-motion', motionTable([
   ['A：庆祝开始', '36 片彩纸', '从顶上落到底，左右飘、转，0–300ms 随机延迟；颜色按 kind 比例', '1.2–1.8s 随机', '没有彩纸'],
   ['A：庆祝开始', '事实那一行', '弹一下：scale .85 → 1.06 → 1', '420ms · console snap', '—'],
   ['Replay（只在 mockup 里）', '—', '再播一次', '—', '—'],
-  ['Close / Esc', 'modal', 'opacity 1 → 0，回到 board', '150ms', '直接关'],
+  ['Close / Esc', 'modal / overlay', '和 Cancel 一样退出去，回到 board', '240ms · console snap', '直接关'],
 ]));
 
 /* ── 5 · Diary ── */
@@ -1588,11 +1613,11 @@ put('dump-opts', optBlocks([
     rank: [['n', '1.1 日期说两遍'], ['n', '6.2 空的也能存'], ['n', '1.3 不想要要先删']]},
 ], BASE_DUMP));
 put('diary-motion', motionTable([
-  ['Write it down', '页面', '关掉 modal（没有退场动画），router 去 /kanban/dump?from=recap', '—', '—'],
+  ['Write it down', '页面', 'modal 和 Cancel 一样退出去（240ms），然后 router 去 /kanban/dump?from=recap', '240ms · console snap', '直接关'],
   ['到 Dump', 'composer', '获得焦点：边框换成 primary', '150ms · console snap', '直接换'],
   ['到 Dump（手机）', '键盘', '系统的键盘升起来', '系统', '系统'],
   ['开始打字', 'placeholder', '直接消失', '—', '—'],
-  ['Close', 'modal', 'opacity 1 → 0，回到 board，strip 没了', '150ms', '直接关'],
+  ['Close', 'modal / overlay', '和 Cancel 一样退出去，回到 board，strip 没了', '240ms · console snap', '直接关'],
 ]));
 
 /* ── F · Final ── */
@@ -1607,10 +1632,10 @@ const FIN_NEW = [
   ['5C', 'Dump', 'Write it down 去 /kanban/dump?from=recap：composer 获得焦点，placeholder 是那句 prompt'],
 ];
 const ANATOMY = [
-  ['外框', '桌面：居中 modal，宽 <code>600px</code>（窄时 <code>100% − 48px</code>），最高 <code>100% − 40px</code>，圆角 14px（p5 是 0），1px 边，scrim 按 theme。点 backdrop 不关，Esc = Cancel。手机：status bar 下面的全屏 overlay，没有圆角、没有 grab handle。进来：桌面 fx-boot-in 420ms（opacity、translateY 6px、scale .985），手机从下推上来 420ms；出去 240ms 反过来；reduced motion 只剩 opacity 150ms', '入口：strip「Open the day」，08:00–14:00', '入口：strip「Night recap」，21:00–04:00'],
-  ['头', '20px 图标 + 标题（18px display，p5 20px）+ 下面一行日期副标（mono 11px）。padding 16 / 20 / 12，手机 12 / 14 / 10；下面一条细线', '☀ Open the day · 「Thu, Nov 19 · 4 picked · you usually finish 4 on a Thursday」', '☾ Night recap · 「Thu, Nov 19」（做完几件已经在圈旁边，不在副标里再说一遍，1.1）'],
-  ['身体', '按标签分段：mono 10px 大写 + 一条细线，标签旁边可以有 count。卡用 PR #128 的同一张卡面。padding 14 / 20 / 18，手机 12 / 14 / 16，间距 10px，自己滚', 'Today（Already today + 选上的）· Suggested · Show more（按 kind 分组）', 'Done today（圈 + 做完的 ✓ 行）· Still open（chip + Let go + ✓）'],
-  ['底', '右对齐：Cancel（ghost）+ 一个 primary，38px 高；手机 primary 占满剩下的宽。有数时数跟在 primary 里。padding 12 / 20，手机 10 / 14 / 14；上面一条细线', 'Cancel · Start the day（带个数）', 'Cancel · Wrap the day（没有数：要处理的已经在 Still open 的标签上，1.1）'],
+  ['外框', '桌面：居中 modal，宽 <code>600px</code>（窄时 <code>100% − 48px</code>），最高 <code>100% − 40px</code>，圆角 14px（p5 是 0），1px 边，scrim 按 theme。点 backdrop 不关，Esc = Cancel。手机：status bar 下面的全屏 overlay，没有圆角、没有 grab handle。进来：桌面 fx-boot-in 420ms（opacity、translateY 6px、scale .985），手机从下推上来 240ms；出去都是 240ms，反过来；reduced motion 只剩 opacity', '入口：strip「Open the day」，08:00–14:00', '入口：strip「Night recap」，21:00–04:00'],
+  ['头', '20px 图标 + 标题（18px display，p5 20px）+ 下面一行日期副标（mono 11px）；右上角一个关掉的控件，桌面 ✕、手机 ⌄，等于 Cancel。padding 14 / 18 / 12，手机 10 / 14；下面一条细线', '☀ Open the day · 「Thu, Nov 19 · 4 picked · you usually finish 4 on a Thursday」', '☾ Night recap · 「Thu, Nov 19」（做完几件已经在圈旁边，不在副标里再说一遍，1.1）'],
+  ['身体', '按标签分段：mono 10px 大写 + 一条细线，标签旁边可以有 count。卡用 PR #128 的同一张卡面。padding 14 / 18 / 18，手机 12 / 14 / 16，间距 10px，自己滚', 'Today（Already today + 选上的）· Suggested · Show more（按 kind 分组）', 'Done today（圈 + 做完的 ✓ 行）· Still open（chip + Let go + ✓）'],
+  ['底', '右对齐：Cancel（ghost）+ 一个 primary，桌面 38px 高，手机 44px、primary 占满剩下的宽。有数时数是 primary 里的一个 pill（颜色反过来）。padding 12 / 18，手机 10 / 14 / 18；上面一条细线', 'Cancel · Start the day（带个数 pill）', 'Cancel · Wrap the day（没有数：要处理的已经在 Still open 的标签上，1.1）'],
   ['提交之后', '同一个外框里换内容，或者关掉', 'modal 关掉，卡落进 Todo，snackbar「5 on the board today · Undo」', '原地换成庆祝：插画、星、Day wrapped、明天那一句、prompt、Write it down / Close'],
 ];
 put('fin-anat', `<div class="hd">Morning · <b>Open the day</b> 填的</div><div class="hd">共用 · <b>RitualSheet</b></div><div class="hd">Night · <b>Night recap</b> 填的</div>` + ANATOMY.map(([slot, shared, morning, night], idx) => `<div class="var"><span class="k">${slot}</span>${morning}</div><div class="mid ${idx === 0 ? 'first' : ''} ${idx === ANATOMY.length - 1 ? 'last' : ''}"><span class="k">${slot}</span>${shared}</div><div class="var"><span class="k">${slot}</span>${night}</div>`).join(''));
