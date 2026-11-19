@@ -6,16 +6,22 @@
  * - `npm run setup -- --no-db` — stops after the install, for work that needs
  *   neither the database nor a signed-in page.
  *
+ * On a machine whose npm isn't the one package.json pins (devEngines), npm
+ * refuses every `npm run`, so the first run is `node scripts/setup.mjs`
+ * (same flags).
+ *
  * Everything is:
- * 1. `.env.local` from `.env.example` when missing — the postinstall
+ * 1. npm itself: the pinned version, installed globally when this machine has
+ *    another (a global install is the one npm command the pin doesn't block);
+ * 2. `.env.local` from `.env.example` when missing — the postinstall
  *    `prisma generate` needs its DIRECT_URL;
- * 2. `npm install`, skipped while `node_modules` is newer than the manifests;
- * 3. `npm run db:setup` — the local Supabase stack, migrations and seed.
+ * 3. `npm install`, skipped while `node_modules` is newer than the manifests;
+ * 4. `npm run db:setup` — the local Supabase stack, migrations and seed.
  *
  * Plain Node with no dependencies, since it runs before `npm install`.
  */
 import {spawnSync} from 'node:child_process';
-import {copyFileSync, existsSync, statSync} from 'node:fs';
+import {copyFileSync, existsSync, readFileSync, statSync} from 'node:fs';
 
 const ENV_FILE = '.env.local';
 const ENV_TEMPLATE = '.env.example';
@@ -31,6 +37,18 @@ const runNpm = args => {
   if (status !== 0) process.exit(status ?? 1);
 };
 
+/** The npm version package.json pins, which CI installs too. */
+const PINNED_NPM = JSON.parse(readFileSync('package.json', 'utf8')).devEngines
+  .packageManager.version;
+
+const ensurePinnedNpm = () => {
+  const {stdout} = spawnSync('npm', ['--version'], {encoding: 'utf8'});
+  const current = stdout.trim();
+  if (current === PINNED_NPM) return;
+  console.log(`npm ${current} isn't the pinned ${PINNED_NPM}; installing it.`);
+  runNpm(['install', '--global', `npm@${PINNED_NPM}`]);
+};
+
 const isInstallCurrent = () =>
   existsSync(INSTALLED_LOCKFILE) &&
   MANIFESTS.every(
@@ -38,6 +56,7 @@ const isInstallCurrent = () =>
       statSync(manifest).mtimeMs <= statSync(INSTALLED_LOCKFILE).mtimeMs,
   );
 
+ensurePinnedNpm();
 if (!existsSync(ENV_FILE)) {
   copyFileSync(ENV_TEMPLATE, ENV_FILE);
   console.log(`Created ${ENV_FILE} from ${ENV_TEMPLATE}.`);

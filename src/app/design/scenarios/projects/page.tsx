@@ -5,6 +5,7 @@ import {ProjectFormScenario} from './ProjectFormScenario';
 import {StepFormScenario} from './StepFormScenario';
 import {
   ADD_STEP_NUMBER,
+  ALL_ARCHIVED_PROJECTS,
   EDIT_PROJECT,
   EDIT_STEP,
   EDIT_STEP_PROJECT,
@@ -34,10 +35,22 @@ const PROJECTS_SCENARIOS: ScenarioTab[] = [
   {
     label: 'Projects',
     title: 'Projects — list + detail',
-    note: "/kanban/projects: active projects with progress, the next step and how many are on this week (one in progress, one all done, one with no steps yet), the Archived section below; the first active project's path beside the list, since the URL names none. Narrow the window for mobile's list — its detail needs ?project=, which a tab can't pin.",
+    note: "/kanban/projects: active projects with progress, the next step and how many are on this week (one in progress, one all done, one with no steps yet), the Archived accordion below, collapsed to its count; the first active project's path beside the list, since the URL names none. Narrow the window for mobile's list — its detail needs ?project=, which a tab can't pin.",
     content: (
       <ProjectsPage
         projects={SCENARIO_PROJECTS}
+        steps={SCENARIO_STEPS}
+        activePlanId={SCENARIO_ACTIVE_PLAN_ID}
+      />
+    ),
+  },
+  {
+    label: 'All archived',
+    title: 'Every project archived',
+    note: 'No active project: the detail pane says so, and the Archived accordion starts open, since unarchiving is what is left to do. With an active project it starts collapsed, and the header opens it to these same rows.',
+    content: (
+      <ProjectsPage
+        projects={ALL_ARCHIVED_PROJECTS}
         steps={SCENARIO_STEPS}
         activePlanId={SCENARIO_ACTIVE_PLAN_ID}
       />

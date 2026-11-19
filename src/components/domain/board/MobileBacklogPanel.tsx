@@ -4,19 +4,21 @@ import type {ReactNode} from 'react';
 import {useTranslations} from 'next-intl';
 import {InboxStackIcon, ArrowUpIcon} from '@heroicons/react/24/outline';
 import {OverlayHeader} from '@/components/ui/overlay/OverlayHeader';
+import {FinishBox} from '@/components/ui/FinishBox';
 import {BacklogCountBadge} from './BacklogCountBadge';
 
 interface MobileBacklogPanelProps {
-  /** Staged cards — the header badge and the empty state */
+  /** Every task waiting — the header badge, and the finish box at zero */
   count: number;
   onClose: () => void;
-  /** The staged cards, rendered by KanbanBoard */
+  /** The backlog's groups, rendered by BoardPage */
   children: ReactNode;
 }
 
 /**
  * The mobile backlog sheet's content: the header with the count, the
- * tap-to-pull hint and the staged cards (or an empty state). Shell-free, so
+ * tap-to-pull hint and the groups — or, once nothing waits, a box saying
+ * everything is on deck, with no hint. Shell-free, so
  * the live sheet and the design scenario render the identical panel — the
  * scenario shows it inline, without the top-layer dialog.
  */
@@ -35,13 +37,14 @@ export const MobileBacklogPanel = ({
   );
 
   const renderBody = () => (
-    <div className="min-h-0 flex-1 overflow-y-auto p-4">
+    <div className="min-h-0 flex-1 overflow-y-auto p-3.5">
       {count === 0 ? (
-        <p className="text-center text-sm text-base-content/40 mt-10 px-6">
-          {t('emptyState')}
-        </p>
+        <FinishBox
+          title={t('Empty.title')}
+          lines={[t('Empty.fact'), t('Empty.nextStep')]}
+        />
       ) : (
-        <div className="flex flex-col gap-2.5">{children}</div>
+        children
       )}
     </div>
   );
@@ -56,7 +59,7 @@ export const MobileBacklogPanel = ({
         closeLabel={t('closeLabel')}
         className="px-4"
       />
-      {renderHint()}
+      {count > 0 && renderHint()}
       {renderBody()}
     </>
   );

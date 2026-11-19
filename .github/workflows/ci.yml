@@ -1,9 +1,6 @@
 name: CI
 
-on:
-  push:
-    branches: [main]
-  pull_request:
+on: push
 
 jobs:
   format:
@@ -13,16 +10,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-
-      # Skip lifecycle scripts: the postinstall `prisma generate` needs DB env
-      # vars, and Prettier has no dependency on the generated client.
-      - name: Install dependencies
-        run: npm ci --ignore-scripts
+      - name: Node and dependencies
+        uses: ./.github/actions/setup
 
       - name: Check formatting
         run: npm run format:check
@@ -34,15 +23,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-
-      # ESLint needs no generated Prisma client, so lifecycle scripts stay off.
-      - name: Install dependencies
-        run: npm ci --ignore-scripts
+      - name: Node and dependencies
+        uses: ./.github/actions/setup
 
       - name: Lint
         run: npm run lint
@@ -58,14 +40,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci --ignore-scripts
+      - name: Node and dependencies
+        uses: ./.github/actions/setup
 
       # The code imports types from the generated client (gitignored).
       - name: Generate Prisma client
@@ -85,14 +61,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci --ignore-scripts
+      - name: Node and dependencies
+        uses: ./.github/actions/setup
 
       # Imports of the generated client must resolve, or knip reports them.
       - name: Generate Prisma client
@@ -108,15 +78,58 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Node and dependencies
+        uses: ./.github/actions/setup
         with:
-          node-version: 24
+          install: 'false'
 
       # Dependency-free script: every theme must declare the same CSS
-      # custom properties (see AGENTS.md → Themes).
+      # custom properties (design/design-language/README.md → Architecture).
       - name: Check theme variables
         run: npm run check:themes
+
+  spec:
+    name: Spec coverage
+    runs-on: ubuntu-latest
+    steps:
+      # The legacy docs are compared with main where the branch left it,
+      # which needs the history.
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Node and dependencies
+        uses: ./.github/actions/setup
+
+      # Every item in a spec v2 doc is named by a test that holds it
+      # (design/specs/README.md › Items and IDs).
+      - name: Check spec coverage
+        run: npm run check:spec
+
+  duplicate-types:
+    name: Duplicate types
+    runs-on: ubuntu-latest
+    env:
+      # prisma.config.ts requires DIRECT_URL even though generate never
+      # connects; a placeholder is enough.
+      DIRECT_URL: postgresql://ci:ci@localhost:5432/ci
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node and dependencies
+        uses: ./.github/actions/setup
+
+      # The shapes are read through the type checker, which needs the
+      # generated client's types (gitignored).
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      # No two types under src/ are declared with the same shape
+      # (AGENTS.md › Coding Conventions › General, DRY).
+      - name: Check duplicate types
+        run: npm run check:duplicate-types
 
   test:
     name: Unit + integration tests (Vitest)
@@ -144,21 +157,44 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci --ignore-scripts
+      - name: Node and dependencies
+        uses: ./.github/actions/setup
 
       - name: Generate Prisma client
         run: npx prisma generate
 
-      # Both timezones; fails below the coverage floors in vitest.config.mts.
+      # Unit and integration, both timezones; fails below the coverage floors
+      # in vitest.config.mts. Component tests run in their own job.
       - name: Run tests with coverage
         run: npm run test:coverage
+
+  component:
+    name: Component tests (Vitest browser)
+    runs-on: ubuntu-latest
+    env:
+      # prisma.config.ts requires DIRECT_URL even though generate never
+      # connects; a placeholder is enough.
+      DIRECT_URL: postgresql://ci:ci@localhost:5432/ci
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node and dependencies
+        uses: ./.github/actions/setup
+
+      # The tests mock the server actions, but Vite's dependency scan still
+      # follows their imports down to the DAL and the generated client. If the
+      # client is missing, Vite re-bundles mid-run, reloads the page, and every
+      # test file fails with "Vitest failed to find the runner".
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Chromium
+        uses: ./.github/actions/chromium
+
+      # Each component test renders in Chromium, against the app's CSS.
+      - name: Run component tests
+        run: npm run test:component
 
   e2e:
     name: End-to-end tests (Playwright)
@@ -168,23 +204,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Node and dependencies
+        uses: ./.github/actions/setup
         with:
-          node-version: 24
-          cache: npm
+          install: 'false'
 
       # .env.local from .env.example, npm install, then the local Supabase
       # stack (Postgres + Auth in Docker), migrations and the dev seed.
       - name: Local stack
         run: npm run setup
 
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Chromium
+        uses: ./.github/actions/chromium
 
-      # Builds and starts production, reseeds the e2e user, runs every project.
+      # Builds and starts production, runs every project; each test signs in
+      # as its own fresh user.
       - name: Run end-to-end tests
         run: npm run test:e2e
+
+      # Each spec's time per project, for choosing what a PR runs.
+      # Only when the tests ran: a failure before them leaves no report.
+      - name: e2e timing
+        if: ${{ !cancelled() && hashFiles('e2e-timing.json') != '' }}
+        run: npm run --silent e2e:timing -- e2e-timing.json >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload the report and traces
         if: failure()

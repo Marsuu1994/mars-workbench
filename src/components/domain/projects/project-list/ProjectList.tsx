@@ -4,9 +4,8 @@ import {useTranslations} from 'next-intl';
 import {PlusIcon} from '@heroicons/react/24/outline';
 import type {ProjectItem} from '@/lib/db/projects';
 import type {TaskItem} from '@/lib/db/tasks';
-import {SectionLabel} from '@/components/ui/SectionLabel';
 import {useProjectsPageContext} from '../ProjectsPageContext';
-import {ArchivedProjectRow} from './ArchivedProjectRow';
+import {ArchivedSection} from './ArchivedSection';
 import {ProjectCard} from './ProjectCard';
 
 interface ProjectListProps {
@@ -23,7 +22,7 @@ const NO_STEPS: TaskItem[] = [];
  * The list pane: the active projects (from md up a card — done/total, the
  * progress bar, the next step, how many are on this week, ringed when
  * selected; on mobile a row with a chevron), mobile's New project, then the
- * Archived section with Unarchive.
+ * Archived accordion — collapsed, unless no project is active.
  */
 export const ProjectList = ({
   projects,
@@ -57,18 +56,11 @@ export const ProjectList = ({
         {t('newProject')}
       </button>
       {archivedProjects.length > 0 && (
-        <>
-          <SectionLabel className="mt-2 px-0.5">
-            {t('List.archived')}
-          </SectionLabel>
-          {archivedProjects.map(project => (
-            <ArchivedProjectRow
-              key={project.id}
-              project={project}
-              steps={stepsOf(project.id)}
-            />
-          ))}
-        </>
+        <ArchivedSection
+          archivedProjects={archivedProjects}
+          stepsOf={stepsOf}
+          isOpenByDefault={activeProjects.length === 0}
+        />
       )}
     </div>
   );

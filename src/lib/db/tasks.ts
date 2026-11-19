@@ -254,23 +254,38 @@ export async function createManyTasks(
   });
 }
 
+export type BoardMoveStatus = typeof TaskStatus.TODO | typeof TaskStatus.DONE;
+
+// Board moves are forward-only: a backlog card is pulled into Todo, or
+// finished from the backlog or Todo; nothing leaves Done, so done points
+// are append-only. Only a card on a plan moves: a one-off still on the
+// matrix (planId = null) reaches the board through Track This Week.
+const BOARD_MOVE_SOURCES: Record<BoardMoveStatus, TaskStatus[]> = {
+  [TaskStatus.TODO]: [TaskStatus.BACKLOG],
+  [TaskStatus.DONE]: [TaskStatus.BACKLOG, TaskStatus.TODO],
+};
+
 /**
- * Update a task's status, scoped to the owner; automatically sets doneAt when
- * moving to DONE. Uses updateManyAndReturn (UPDATE ... WHERE ... RETURNING) so
- * ownership is enforced and the updated row is returned in a single round trip.
- * Returns null when the task does not exist or is not owned by the user.
+ * Move a task on the board, scoped to the owner, to a task on a plan and to
+ * the forward-only moves; sets doneAt when moving to DONE. Returns null when
+ * the task does not exist, is not owned by the user, or can't make that move.
  */
 export async function updateTaskStatus(
   userId: string,
   taskId: string,
-  status: TaskStatus,
+  status: BoardMoveStatus,
 ): Promise<TaskItem | null> {
   return updateOrNull(
     prisma.task.update({
-      where: {id: taskId, userId},
+      where: {
+        id: taskId,
+        userId,
+        planId: {not: null},
+        status: {in: BOARD_MOVE_SOURCES[status]},
+      },
       data: {
         status,
-        doneAt: status === 'DONE' ? new Date() : null,
+        doneAt: status === TaskStatus.DONE ? new Date() : null,
       },
       select: taskSelect,
     }),
@@ -279,7 +294,7 @@ export async function updateTaskStatus(
 
 /**
  * Reprioritize: move owned AD_HOC tasks to an Eisenhower quadrant. Returns the
- * tasks moved; ids that aren't the user's one-offs are skipped.
+ * tasks moved; ids that aren't the user's unfinished one-offs are skipped.
  */
 export async function updateAdhocTaskQuadrants(
   userId: string,
@@ -290,7 +305,12 @@ export async function updateAdhocTaskQuadrants(
   if (taskIds.length === 0) return [];
   const db = tx ?? prisma;
   return db.task.updateManyAndReturn({
-    where: {id: {in: taskIds}, userId, type: TaskType.AD_HOC},
+    where: {
+      id: {in: taskIds},
+      userId,
+      type: TaskType.AD_HOC,
+      status: {not: TaskStatus.DONE},
+    },
     data: {quadrant},
     select: taskSelect,
   });
@@ -504,20 +524,28 @@ export async function getAdhocTasksByPlanId(
 }
 
 /**
- * Batch update planId for specified tasks (link ad-hoc tasks to a plan).
- * Scoped to the owner so foreign task ids are silently ignored.
+ * Carry one-offs from one plan to the next, status kept. Only the user's
+ * unfinished one-offs still on `fromPlanId` move; any other id is left where
+ * it is — a one-off completed after the form loaded stays on its week.
  */
-export async function updateTasksPlanId(
+export async function carryOverOneOffs(
   userId: string,
   taskIds: string[],
-  planId: string,
+  fromPlanId: string,
+  toPlanId: string,
   tx?: Prisma.TransactionClient,
 ): Promise<{count: number}> {
   if (taskIds.length === 0) return {count: 0};
   const db = tx ?? prisma;
   return db.task.updateMany({
-    where: {userId, id: {in: taskIds}},
-    data: {planId},
+    where: {
+      userId,
+      id: {in: taskIds},
+      type: TaskType.AD_HOC,
+      status: {not: TaskStatus.DONE},
+      planId: fromPlanId,
+    },
+    data: {planId: toPlanId},
   });
 }
 
@@ -554,6 +582,31 @@ export async function unlinkTasksFromPlan(
  * per-template progress and the empty board's recap. Scoped to the owner +
  * plan, templateId NOT NULL (ad-hoc tasks excluded).
  */
+/** A plan's tasks of every kind — done, and all of them — with the done ones' points. */
+export type PlanTaskTotals = {
+  doneCount: number;
+  totalCount: number;
+  donePoints: number;
+};
+
+export async function getPlanTaskTotals(
+  userId: string,
+  planId: string,
+): Promise<PlanTaskTotals> {
+  const grouped = await prisma.task.groupBy({
+    by: ['status'],
+    where: {userId, planId},
+    _count: true,
+    _sum: {points: true},
+  });
+  const done = grouped.find(row => row.status === TaskStatus.DONE);
+  return {
+    doneCount: done?._count ?? 0,
+    totalCount: grouped.reduce((sum, row) => sum + row._count, 0),
+    donePoints: done?._sum.points ?? 0,
+  };
+}
+
 export type PlanTemplateStatRow = {
   templateId: string;
   type: TaskType;

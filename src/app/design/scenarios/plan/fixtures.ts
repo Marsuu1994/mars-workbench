@@ -163,15 +163,6 @@ export const REVIEW_MODIFIED: ModifiedTemplate[] = [
   },
 ];
 
-export const REVIEW_ADDED_ADHOC: AdhocTaskChange[] = [
-  {
-    id: 'adhoc-ct',
-    title: 'Get sinus CT scan',
-    size: TaskSize.MEDIUM,
-    points: SIZE_TO_POINTS[TaskSize.MEDIUM],
-  },
-];
-
 export const REVIEW_REMOVED_ADHOC: AdhocTaskChange[] = [
   {
     id: 'adhoc-passport',

@@ -1,15 +1,21 @@
 /**
  * Builders for test data, written through the app's services and DAL — the
- * same paths the pages and MCP tools take. Integration tests call them for a
- * fresh user each; the dev seed and the e2e setup build their week from them
- * (`test/seedWeek.ts`).
+ * same paths the pages and MCP tools take. Integration and e2e tests call
+ * them for a fresh user each (e2e through the `seed` fixture, `e2e/fixtures.ts`);
+ * the dev seed builds its week from them (`test/seedWeek.ts`).
  */
 import {randomUUID} from 'node:crypto';
 import type {z} from 'zod';
-import {createMatrixTasks, updateTaskStatus} from '@/lib/db/tasks';
+import {
+  createMatrixTasks,
+  getBoardTasksByPlanId,
+  updateTaskStatus,
+  type BoardMoveStatus,
+} from '@/lib/db/tasks';
 import {planSpecSchema} from '@/schemas';
 import {createPlanFromSpec} from '@/services/planningService';
 import {createProject} from '@/services/projectService';
+import {runEndOfPeriodSync} from '@/services/syncService';
 import {PriorityQuadrant, TaskSize, TaskStatus, TaskType} from '@/utils/enums';
 import {toMatrixTaskRow} from '@/utils/oneOffUtils';
 
@@ -25,6 +31,13 @@ export const newHabit = (
   frequency = 1,
   size: TaskSize = TaskSize.SMALL,
 ) => ({title, description: `${title}, as planned`, size, type, frequency});
+
+/**
+ * Ends a plan's week the way Monday's sync does: its unfinished habit tasks
+ * expire, and the plan waits for the next week's (`PENDING_UPDATE`).
+ */
+export const endWeek = (userId: string, planId: string) =>
+  runEndOfPeriodSync(userId, planId);
 
 /** This week's plan from a `create_plan` spec (defaults filled by the schema). */
 export const createWeek = (
@@ -68,12 +81,51 @@ export const createOneOff = async (
   return oneOff;
 };
 
+/**
+ * Moves a week's tasks across the board by title, in order: each move takes
+ * the first card with that title, so a habit moves today's instance first.
+ */
+export const moveTasksByTitle = async (
+  userId: string,
+  planId: string,
+  moves: [title: string, status: BoardMoveStatus][],
+) => {
+  const tasks = await getBoardTasksByPlanId(userId, planId);
+  await moveTasks(
+    userId,
+    moves.map(([title, status]) => {
+      const task = tasks.find(boardTask => boardTask.title === title);
+      if (!task) throw new Error(`No task titled "${title}" on the week`);
+      return [task.id, status];
+    }),
+  );
+};
+
 /** Moves tasks across the board, in order. */
 export const moveTasks = async (
   userId: string,
-  moves: [taskId: string, status: TaskStatus][],
+  moves: [taskId: string, status: BoardMoveStatus][],
 ) => {
   for (const [taskId, status] of moves) {
     await updateTaskStatus(userId, taskId, status);
   }
+};
+
+/**
+ * Finishes project steps the way the app does: this week's plan takes them
+ * (with a daily run beside them), then they move to Done on the board.
+ */
+export const finishStepsThisWeek = async (
+  userId: string,
+  stepIds: string[],
+) => {
+  const week = await createWeek(userId, {
+    newTemplates: [newHabit('Run', TaskType.DAILY)],
+    addProjectStepIds: stepIds,
+  });
+  await moveTasks(
+    userId,
+    stepIds.map(stepId => [stepId, TaskStatus.DONE]),
+  );
+  return week;
 };

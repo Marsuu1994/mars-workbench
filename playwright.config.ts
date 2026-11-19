@@ -1,21 +1,17 @@
-import {existsSync} from 'node:fs';
 import {defineConfig} from '@playwright/test';
 import {config} from 'dotenv';
+import {preinstalledChromiumPath} from './test/preinstalledChromium';
 
 // The app's and the global setup's environment: the local stack (CI creates
 // .env.local from .env.example with `npm run setup`).
 config({path: '.env.local', quiet: true});
 
 const BASE_URL = 'http://localhost:3000';
-export const E2E_STORAGE_STATE = '.auth/e2e-session.json';
-
-/**
- * A cloud agent's container ships a Chromium for Playwright to drive; on a
- * Mac or in CI, `npx playwright install chromium` provides the pinned one.
- */
-const PREINSTALLED_CHROMIUM = '/opt/pw-browsers/chromium';
 
 const isCI = Boolean(process.env.CI);
+
+/** Everything but the product specs: the Design Console's. */
+const PRODUCT_SPECS_IGNORE = /designConsole\.spec\.ts/;
 
 const DESKTOP = {viewport: {width: 1280, height: 800}};
 const MOBILE = {
@@ -26,40 +22,49 @@ const MOBILE = {
 
 export default defineConfig({
   testDir: 'e2e',
-  // One e2e user and one database: tests run one at a time.
-  workers: 1,
+  // Every test runs as its own user (e2e/fixtures.ts), so all of them run in
+  // parallel. CI's 4 vCPU runner also hosts the app and the Supabase stack:
+  // 2 workers didn't beat the old serial run, so try 3
+  fullyParallel: true,
+  workers: isCI ? 3 : undefined,
   forbidOnly: isCI,
-  reporter: isCI ? [['github'], ['html', {open: 'never'}]] : 'list',
+  // In CI the JSON report feeds the job summary's per-spec timing
+  // (scripts/e2e-timing.mjs)
+  reporter: isCI
+    ? [
+        ['github'],
+        ['html', {open: 'never'}],
+        ['json', {outputFile: 'e2e-timing.json'}],
+      ]
+    : 'list',
   globalSetup: './e2e/globalSetup.ts',
   use: {
     baseURL: BASE_URL,
-    storageState: E2E_STORAGE_STATE,
     trace: 'retain-on-failure',
-    launchOptions: {
-      executablePath: existsSync(PREINSTALLED_CHROMIUM)
-        ? PREINSTALLED_CHROMIUM
-        : undefined,
-    },
+    launchOptions: {executablePath: preinstalledChromiumPath},
   },
   projects: [
-    {name: 'smoke-desktop', testMatch: /smoke\.spec\.ts/, use: DESKTOP},
-    {name: 'smoke-mobile', testMatch: /smoke\.spec\.ts/, use: MOBILE},
+    // The product specs, one per spec doc, at both widths
+    {
+      name: 'desktop',
+      testIgnore: PRODUCT_SPECS_IGNORE,
+      use: DESKTOP,
+    },
+    {
+      name: 'mobile',
+      testIgnore: PRODUCT_SPECS_IGNORE,
+      use: MOBILE,
+    },
+    // A developer tool that draws phone widths in its own frames: desktop only
     {
       name: 'design-console',
       testMatch: /designConsole\.spec\.ts/,
       use: DESKTOP,
     },
-    // Journeys change the e2e user's week, so they run after the smokes
-    {
-      name: 'journeys',
-      testMatch: /journeys\.spec\.ts/,
-      use: DESKTOP,
-      dependencies: ['smoke-desktop', 'smoke-mobile', 'design-console'],
-    },
   ],
   webServer: {
     // Locally, a running `npm run dev` is reused: it serves the same database,
-    // and the e2e user keeps the dev user's week untouched.
+    // and each e2e user's rows stay apart from the dev user's.
     command: isCI ? 'npm run build && npm run start' : 'npm run dev',
     url: `${BASE_URL}/auth/login`,
     reuseExistingServer: !isCI,

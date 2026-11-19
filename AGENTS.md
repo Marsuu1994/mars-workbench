@@ -15,7 +15,7 @@ A Next.js application centered on a Kanban Period Planner; AI planning goes thro
 - Database: PostgreSQL (Supabase) + Prisma ORM
 - Auth: Supabase Auth (Google OAuth); its OAuth 2.1 Server also authorizes MCP clients
 - MCP: `mcp-handler` + `@modelcontextprotocol/server` (v2) — the remote endpoint at `/api/mcp`, where Claude reads planning context and writes plans
-- Tests: Vitest (unit, and integration against a real Postgres) + Playwright (e2e on the local Supabase stack)
+- Tests: Vitest (unit, integration against a real Postgres, and component tests in Chromium through browser mode) + Playwright (e2e on the local Supabase stack)
 - Icons: Heroicons
 - Language: TypeScript
 
@@ -29,16 +29,22 @@ prisma/                            # schema.prisma + migrations/
 supabase/                          # Local Supabase stack config (Postgres + Auth in Docker)
 scripts/                           # Repo checks run in CI; the local stack's setup, seed, and dev and e2e sessions
 test/                              # Test helpers and conventions (README); unit and integration tests sit next to their modules
-e2e/                               # Playwright specs
-.claude/agents/                    # Claude Code subagents: ui-verifier, test-writer, ci-fixer (Workflow › Subagents)
+e2e/                               # Playwright specs: a spec v2 page's journeys, a legacy doc's flows (test/README.md)
+.claude/agents/                    # Claude Code subagents: ui-verifier, write-spec-reviewer, implement-spec-reviewer (Workflow › Subagents)
+.claude/skills/                    # Claude Code skills: ui-design, write-spec, implement-spec (UI Workflow)
+.claude/context/                   # What a skill and the subagent reviewing its work both read, as pointers (Workflow › Adding a rule)
 design/                            # Design docs — index in design/README.md
 ├── baseline.md                    # The one app-wide baseline: goal, entities, schema, architecture decisions
 ├── design-language/               # Per-theme visual specs + the shared fx-* skeleton
 ├── tracker.md                     # Roadmap — open items only
+├── future-ideas.md                # Problems seen coming but not worth doing yet, each with a first idea
+├── session-log.md                 # A local session's parking lot, wrapped up before its final PR — rules at its top
 ├── reference.md                   # Lookup tables: server actions, services, DAL
-├── flows/                         # Per-feature flow docs
+├── specs/                         # One spec per page (was flows/) — rules in its README
 ├── spike/                         # Spike docs for open questions; archived/ = implemented
 └── mockup/                        # Self-contained HTML mockups of designs not yet fully implemented
+experiments/                       # Controlled comparisons of ways of working: one folder per question, an instruction and a report per try — README for people, rules in its AGENTS.md
+reviews/                           # The owner's code reviews, one file per PR: each comment, its kind and its outcome — README for people, rules in its AGENTS.md
 src/
 ├── proxy.ts                       # Route protection (Supabase session check)
 ├── app/                           # App Router routes, api/mcp/ and its OAuth metadata, the Design Console (design/)
@@ -69,13 +75,13 @@ src/
 Read the design docs only when the task involves logic, data or new flows; skip them for pure styling, copy or UI-only tweaks.
 
 - `design/baseline.md`: schema or entity changes
-- `design/flows/<feature>.md`: flow changes or additions
+- `design/specs/<feature>.md`: behaviour changes or additions
 - `design/reference.md`: server action, service or DAL changes
 - `src/app/design/scenarios/<feature>/`: the feature's screen states
 
 Next.js APIs outrun training data: before using a routing, caching, server-action or `next.config` API you haven't checked for this version, read its page in `node_modules/next/dist/docs/`, the docs of the installed version.
 
-A fresh checkout runs `npm run setup` (`.env.local` from `.env.example`, `npm install`, then the local Supabase stack with migrations and seed — starting Docker first in a cloud container); a task that needs neither the database nor a signed-in page runs `npm run setup -- --no-db` instead. `npm run dev:session` signs in as the seeded dev user without Google.
+A fresh checkout runs `node scripts/setup.mjs` (the npm `package.json` pins, `.env.local` from `.env.example`, `npm install`, then the local Supabase stack with migrations and seed — starting Docker first in a cloud container); once npm is the pinned one, `npm run setup` does the same; a task that needs neither the database nor a signed-in page runs `npm run setup -- --no-db` instead. `npm run dev:session` signs in as the seeded dev user without Google. Every machine runs the npm that `package.json` pins (`devEngines`), the one CI runs, so the lockfile reads the same everywhere: when npm stops with `EBADDEVENGINES`, `node scripts/setup.mjs` installs that npm (or run `npm install -g npm@<that version>`), then rerun the command.
 
 ### Where the rules live
 
@@ -83,18 +89,23 @@ A rule that only one kind of file needs lives with that file. Read it before you
 
 | Before you edit… | Read first |
 | --- | --- |
-| a test (`*.test.ts`, `*.int.test.ts`, `e2e/`, `test/`) | `test/README.md` |
+| a test (`*.unit.test.ts`, `*.int.test.ts`, `*.component.test.tsx`, `e2e/`, `test/`) | `test/README.md`: how a test is written, and which layer tests what |
 | a spike (`design/spike/`) | `design/spike/README.md` |
 | `design/tracker.md` | its Conventions section |
-| a flow doc (`design/flows/`) | `design/flows/README.md` |
+| `design/future-ideas.md` | its Conventions section |
+| a spec (`design/specs/`) | `design/specs/README.md`: how a spec is written |
 | the Design Console — scenarios, gallery (`src/app/design/`) | `src/app/design/README.md` |
-| a mockup (`design/mockup/`) | `design/README.md` |
-| themes, `globals.css`, visual patterns | `design/design-language/README.md` |
+| a mockup (`design/mockup/`) | `design/README.md` › Mockups: how a mockup is drawn, and when a design is decided |
+| an experiment (`experiments/`) | `experiments/AGENTS.md` |
+| `reviews/`, or addressing the owner's review on a PR | `reviews/AGENTS.md` |
+| themes, `globals.css`, visual patterns, how user-facing copy reads | `design/design-language/README.md` |
 | how a page's data flows from server to client | `design/baseline.md` › Architecture Decision |
 
 ### Adding a rule
 
-A new rule goes where it belongs: a rule for one kind of file goes into that file's README or Conventions section; a rule a linter or script can check goes into the tool, with at most one line here; a rule that overlaps an existing one rewrites that rule instead of adding a second. Only rules every task needs live in this file.
+Every rule has one home, and everything else points to it (PR #120): code taste and the rules every task needs live in this file, and a rule only one kind of file needs lives where the table above says.
+
+A skill, a subagent or a `.claude/context/` file points to a rule's home by file and heading and never restates it: what it adds is its own steps and the rules that hold for it alone. A rule a linter or script can check goes into the tool, with at most one line here. A rule that overlaps an existing one rewrites that rule instead of adding a second.
 
 ### Spike first for complex tasks
 
@@ -102,41 +113,47 @@ A complex task — several PRs, a data-model change, a new tool surface, or a ch
 
 ### Subagents
 
-Delegate to a subagent only work whose tool output would outgrow the brief and the report: it starts cold, takes longer and saves no tokens, so it pays off only in main-session context (measured in `design/spike/archived/subagent-delegation-pilot.md`). Each agent's description says what its brief needs.
+Delegate to a subagent only work whose tool output would outgrow the brief and the report: it starts cold, takes longer and saves no tokens, so it pays off only in main-session context (measured in `design/spike/archived/subagent-delegation-pilot.md`), or, for a reviewer, as a read that isn't anchored on the session's own work. Each agent's description says what its brief needs.
 
 - `ui-verifier`: the browser check (UI Workflow).
-- `test-writer`: an e2e test, or a test in a layer the session hasn't read yet; a unit test next to a module you just read, write yourself.
-- `ci-fixer`: CI red on GitHub, with the failing job's URL; green checks and few-line local failures, run yourself.
+- `write-spec-reviewer`: a spec change written from a design, by the `write-spec` skill.
+- `implement-spec-reviewer`: a change that builds spec items, by the `implement-spec` skill, before the push.
 
 ## UI Workflow
 
 - **The Design Console is the source of truth for implemented UI.** `/design` renders the real components: a gallery tabbed by layer (`ui/` · `application/` · `domain/`) and per-feature scenario pages (`/design/scenarios/<feature>/`) with pinned fixture states. `npm run dev` serves it without signing in (`src/app/design/README.md` › Local access).
 - **Verification is CI's and the owner's; a browser check is the exception.** CI runs the unit, integration and e2e tests — every page, every Design Console tab, the key journeys — on every PR, and the owner accepts UI on the Vercel preview. Logic, data and MCP changes are verified by `npm test`, style and copy changes by CI and the owner. A layout change (wrapping, overflow, breakpoints, overlay stacking), a new or changed scenario tab or play step, or the owner's request gets one browser check, delegated to the `ui-verifier` subagent with a brief — what changed, the scenario tabs, each check as a sentence — so screenshots and scripts stay out of the main context; read its verdict, and open a screenshot only when it says UNSURE. A bug seen only on a device (iOS / WebKit, the PWA): ask the owner for a screenshot or recording before trying headless Chromium.
-- **Production first, the console adapts.** Components are shaped by what production needs. A production component never carries a prop, branch or comment that only the console uses, and nothing is split or restructured so the console can show it: the console reaches a state the way a user would, or skips it. Bad: `initialUndoToastTaskId` on `PriorityMatrixPage`. Good: a scenario tab's `play` step clicking the real control.
-- **New UI starts as a mockup.** A design that isn't built yet is drawn as a self-contained HTML mockup in `design/mockup/`; get the owner's approval before code changes.
+- **Production first, the console adapts.** Components are shaped by what production needs. A production component never carries a prop, branch or comment that only the console uses, and nothing is split or restructured so the console can show it: the console reaches a state the way a user would, or skips it. Bad: `initialUndoToastTaskId` on `PrioritiesPage`. Good: a scenario tab's `play` step clicking the real control.
+- **New UI goes design, spec, implementation.**
+  - Design: a design that isn't built yet is drawn as a self-contained HTML mockup in `design/mockup/` and reviewed by the owner on its design PR until it is decided (`design/README.md` › Mockups). The `ui-design` skill walks it.
+  - Spec: the `write-spec` skill writes the design's items into the page's spec, marked *(pending)* or *(removing)* (`design/specs/README.md`), and the `write-spec-reviewer` agent checks them. They land on the design PR while it is open, or on a spec PR from `main` once it has merged. Neither PR has component code.
+  - Implementation: a PR from `main`, where the `implement-spec` skill builds the items and their tests and the `implement-spec-reviewer` agent checks them before the push.
 - **Build it exactly, then sync the console.** Implement the approved mockup exactly (layout, spacing, text, colors, icons, states); if something can't be built as-is, raise it and update the mockup first. As the UI lands, add or update the feature's scenario page and gallery entries so the pinned states match production. Once the design is fully implemented, delete its mockup: from then on the Design Console is the source of truth. A scenario that no longer matches production is a bug.
 
 ## Documentation Style
 
-- **Living docs are for the owner to re-orient, not the agent's work record.** README Current State, `design/tracker.md` and everything under `design/` say what the product is now and what's still open. Write at the doc's altitude (each doc states it at its top); length doesn't scale with diff size — a bigger change earns a higher-level summary, not a longer one; rewrite the sentence that is now wrong instead of appending a paragraph. Implementation inventory (file, component and key names, sub-change lists) lives in the code, the diff and `reference.md`; completeness lives in PR descriptions and the Update Log.
-- **The README Update Log is kept per day.** Earlier days' sections are never edited. On the current day, add the new entry, then rewrite the day's section into one summary of the day's work. Detail is welcome there; lead each bullet with the outcome, not the operation.
+- **Living docs are for the owner to re-orient, not the agent's work record.** README Current State, `design/tracker.md` and everything under `design/` say what the product is now and what's still open. Write at the doc's altitude (each doc states it at its top); length doesn't scale with diff size — a bigger change earns a higher-level summary, not a longer one; rewrite the sentence that is now wrong instead of appending a paragraph. Implementation inventory (file, component and key names, sub-change lists) lives in the code, the diff and `reference.md`; completeness lives in PR descriptions and the git history.
+- **Docs and code comments are written for a person.** What a person can follow, an agent can too; the reverse doesn't hold.
+  - Whole sentences: say who does what and when, not noun phrases or shorthand; give a term or a status its meaning the first time it appears; spell out a timing or a condition rather than naming it. Bad (a spec): "If it fails, only that card goes back — once the moves in flight have landed, which stay." Good: "If the server refuses a move, only that card goes back to where it was. While other cards are still saving, it goes back once they have saved." Bad (a comment): `// optimistic; per-task rollback (entangled)`. Good: `// The card moves before the server answers. If the save fails, only this card goes back, and it waits for any other card still saving.`
+  - Lists for long descriptions: when a description runs long and splits along its own structure (parts, steps, cases), make it a list with `name: description` per item, not one long sentence. Bad: "Todo runs by kind: one-offs, then daily habits, then weekly habits, then steps; within a kind a group stays together, by its earliest createdAt; ties go to createdAt, then id." Good: "Todo is sorted:" followed by `- by kind: …`, `- by group, within a kind: …` and `- ties: …`.
 
 ## Layers
 
 - **Actions** (`src/actions/`): `'use server'`, thin — validate with Zod → call a service → `revalidatePath`. **MCP tools** (`src/mcp/tools/`) have the same shape: validate → service, wrapped by `runTool`. Pages and layouts read through actions too — never a service, the DAL or an auth helper — so the action is the one layer between UI and server (ESLint).
 - **Services** (`src/services/`): all business logic, no `'use server'`; an action that needs several DAL calls or conditional orchestration moves it into a service. `syncService.ensureSynced` is the single sync entry point every kanban page awaits.
 - **DAL** (`src/lib/db/`): all Prisma queries — nothing else imports Prisma. Route handlers stay thin: they hand off to `src/mcp/` or infrastructure in `src/lib/`, with no business logic or queries of their own.
+- **A data rule lives where every write path passes** — never only in the UI, nor in only one of the page's actions and the MCP tools; its test is an integration test. The written row's own state (status, plan, archived) goes in the DAL's `WHERE`, where the check and the write are one statement; a rule over several rows, or one that picks the error, goes in the service, which may check a `WHERE` rule first to explain it (the MCP tools' errors); an invariant concurrent writes can break is a database constraint. Bad: Done cards drag-locked in the UI while `updateTaskStatus` accepts DONE → TODO. Good: the forward-only moves in `updateTaskStatus`'s `WHERE`, so every caller inherits them.
 - **Server-only modules** — `src/services/`, the DAL, the Prisma clients and `src/utils/statsUtils.ts` — never reach `'use client'` code (ESLint checks components, hooks and stores; `import type` is fine). The rest of `src/utils/` and `src/schemas.ts` are client-safe. Components may call server actions directly: actions behave like endpoints.
 - **Component placement** — `src/components/` has three layers, decided by imports (checked in order): a component that imports a domain type/enum/schema/DAL row is **domain** → `domain/<feature>/`, or `domain/shared/` when reused by ≥2 features; the once-rendered app frame (shell, tab bar, sidebar) and providers are **application**; everything else — generic primitives reusable in any app — is **ui**. Hard rule: nothing in `ui/` imports a domain type. Bad: a `WeeklyPointsChip` importing `TaskType` in `ui/`. Good: the same chip in `domain/shared/`, composing the generic `Pill` from `ui/`.
 - **Server shapes inputs.** A page's service returns inputs — rows in their DAL shape (narrowed by `select`), server-only aggregates, lookups — never finished UI models or anything about how the page shows them; the page derives its view on the way down (*Page structure*).
-- **Page structure — the Projects page is the pattern.** A route reads its page's data through the read action, shapes it with a pure adapter from `src/utils/` when the page needs one, and renders the page's container (`<Feature>Page`) — no screen layer. The container takes the rows as props and layers its optimistic writes on top (`useOptimisticTasks`), owns the rest of the page's state and every write, and provides them through `<Feature>PageContext`; form modals close once the revalidated props land (`useModalSubmit`). The components below take their rows as props and get writes from the context, never as callback props. Whatever is derived runs where all its inputs are, on every render, and never becomes state. Bad: `ProjectDetail` taking 11 props, 8 of them callbacks it only hands on. Good: `<ProjectStep step={step} />` calling `scheduleStep(id)` from `useProjectsPageContext()`. Details (where a derivation runs, shared and overlay components, frames, the Board's pattern): `design/baseline.md` › Architecture Decision; pages not on it yet: tracker › Step 10.
+- **Page structure — the Projects page is the pattern.** A route reads its page's data through the read action, shapes it with a pure adapter from `src/utils/` when the page needs one, and renders the page's container (`<Feature>Page`) — no screen layer. The container takes the rows as props and layers its optimistic writes on top (`useOptimisticTasks`), owns the rest of the page's state and every write, and provides them through `<Feature>PageContext`; form modals close once the revalidated props land (`useModalSubmit`). The components below take their rows as props and get writes from the context, never as callback props. Whatever is derived runs where all its inputs are, on every render, and never becomes state. Bad: `ProjectDetail` taking 11 props, 8 of them callbacks it only hands on. Good: `<ProjectStep step={step} />` calling `scheduleStep(id)` from `useProjectsPageContext()`. Details (where a derivation runs, shared and overlay components, frames, the Board's pattern): `design/baseline.md` › Architecture Decision; the one page not on it yet, Plan, moves with Phase 2's Plan week (tracker).
 
 ## Coding Conventions
 
 ### General
 
 - Domain helpers live in `src/utils/`.
-- **DRY — one definition per piece of logic, markup or type.** Markup that repeats with only data or color differences becomes one parameterized sub-component; a semantic color difference comes from a `Record<Key, string>` of literal Tailwind classes (never `` `bg-${accent}` `` — Tailwind can't see it). Identical type shapes collapse to one, and shapes sharing a core extend a base. Bad: five near-identical added / removed / modified sections, each hand-writing the same dot + title + note row; `AddedTemplate` and `RemovedTemplate` declared as identical interfaces. Good: one `ChangeRow` driven by `ACCENT: Record<Accent, {dot: string; border: string}>`; `TemplateChange extends TemplateRef`.
+- **DRY — one definition per piece of logic, markup or type.** Markup that repeats with only data or color differences becomes one parameterized sub-component; a semantic color difference comes from a `Record<Key, string>` of literal Tailwind classes (never `` `bg-${accent}` `` — Tailwind can't see it). A type is declared once: where its shape already exists, import it or derive it (`Pick`, `Omit`, `extends`) rather than write it out again (`npm run check:duplicate-types`, CI), and shapes sharing a core extend a base. Bad: five near-identical added / removed / modified sections, each hand-writing the same dot + title + note row; `AddedTemplate` and `RemovedTemplate` declared as identical interfaces. Good: one `ChangeRow` driven by `ACCENT: Record<Accent, {dot: string; border: string}>`; `TemplateChange extends TemplateRef`.
 - **Components that belong together share a kebab-case folder** named for the group, each in a file named after it (one component per file is linted; a one-off block that needs the parent's scope is a render function instead). Good: `projects/project-list/` holding `ProjectList.tsx`, `ProjectCard.tsx` and `ArchivedProjectRow.tsx`.
 - **Destructure** when two or more properties of the same object are used, instead of repeating `obj.a`, `obj.b`; a single one-off access can stay. Bad: `const feed = useDumpFeed(...); … feed.entries … feed.hasMore`. Good: `const {entries, capture, hasMore} = useDumpFeed(...);` (for a nullish source: `const {entries, nextCursor} = result ?? {entries: [], nextCursor: null};`).
 - **Name things plainly — clear and boring beats short or clever.** A function says what it returns or does, including what it looks up by; a variable or parameter — callback parameters included — says what it holds. Full words only: `id`, `tx` (Prisma transaction) and `prev` (setState updater) are fine, single letters are linted (allowed ones in `eslint.config.mjs`), and `t` is next-intl's alone. Bad: `getPlanningPlan(userId, planId)`, `templates.map(t => …)`, `runTool(ctx, body)`. Good: `getPlanContextByPlanId(userId, planId)`, `templates.map(template => …)`, `runTool(context, toolFunction)`.
@@ -156,8 +173,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 
 ### Themes
 
-- **One theme per page.** The theme lives only on `<html data-theme>`: the server renders it from the cookie, the settings sheet and the Design Console re-stamp it. Never nest a `data-theme` scope — theme-gated rules like `[data-theme='p5-dark'] .fx-card` match through any ancestor. Bad: `<div data-theme="mars-light">` around a preview. Good: `document.documentElement.setAttribute('data-theme', next)`.
-- **One variable contract.** Every theme declares the same custom properties in `globals.css`, in the same section order; a new variable lands in every theme in the same change, named by role rather than one theme's palette (`npm run check:themes`, CI). Bad: `--fx-blood-red` declared by p5-dark alone. Good: `--fx-depth` in every theme, p5's value being its blood red.
+- One theme scope per page, and one variable contract that every theme declares (`npm run check:themes`, CI): `design/design-language/README.md` › Architecture: one skeleton, N skins.
 
 ### JSX & components
 
@@ -176,8 +192,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
   ```
 
 - **No magic literals.** Fixed, non-user-facing literals — routes, numbers, thresholds, durations, style tokens, config values — go into an exported constant in a `constants.ts` next to the component (or a feature `constants/` folder). Bad: `maxLength={280}`, `href="/kanban/plans/new"` inline. Good: `MESSAGE_MAX_LENGTH`, `CREATE_PLAN_HREF` imported from `./constants`.
-- **All user-facing copy goes through `next-intl`**: strings live under a namespace in `src/i18n/en.json`, read with `useTranslations` (client) or `getTranslations` (server components, actions, `generateMetadata`). Use ICU for plurals and interpolation, `Enums.*` keys for enum labels, and `t.rich` for inline markup; decorative glyphs and emoji stay in the JSX. Never translated: LLM-facing text (`mcp/prompts/`, `utils/errorMessages.ts`) and internal `throw new Error(...)` messages. Bad: `export const TITLE = 'Create Weekly Plan';`. Good: `{"Plan": {"taskCount": "{count, plural, one {# task} other {# tasks}}"}}` read as `t('taskCount', {count})`.
-- **User-facing copy is sentence case**; Title Case is for headers only (page and section titles, nav labels). The same action keeps its casing across states. Bad: "Sign Out" whose confirm reads "Sign out?". Good: "Sign out" / "Sign out?" / "Create task", with headers like "Settings" keeping theirs.
+- **User-facing copy is the mockup's, and goes through `next-intl`**: the words come from the decided mockup, or the Design Console once it's built, and how they read is `design/design-language/README.md` › Principles › 3.5–3.8. Strings live under a namespace in `src/i18n/en.json`, read with `useTranslations` (client) or `getTranslations` (server components, actions, `generateMetadata`). Use ICU for plurals and interpolation, `Enums.*` keys for enum labels, and `t.rich` for inline markup; decorative glyphs and emoji stay in the JSX. Never translated: LLM-facing text (`mcp/prompts/`, `utils/errorMessages.ts`) and internal `throw new Error(...)` messages. Bad: `export const TITLE = 'Create Weekly Plan';`. Good: `{"Plan": {"taskCount": "{count, plural, one {# task} other {# tasks}}"}}` read as `t('taskCount', {count})`.
 
 ## Code Style
 
@@ -187,7 +202,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 ## Tooling
 
 - **Prettier owns formatting** (`.prettierrc.json`; code only — Markdown and `design/` are ignored); don't hand-tune spacing or quotes against it. **ESLint owns correctness** and enforces no `any`, no `console.log` (`console.error` / `warn` allowed) and the server-only import boundary. In production code (`src/` outside the Design Console) it also enforces named exports and `const` arrow components (Next.js convention files excepted), one component per file, and no single-letter names.
-- CI runs `format:check`, `lint`, `typecheck`, `knip`, `check:themes`, the Vitest suite with its coverage floors and the Playwright suite — run all but Playwright before pushing (Version Control).
+- CI runs `format:check`, `lint`, `typecheck`, `knip`, `check:themes`, `check:spec`, `check:duplicate-types`, the Vitest suite (unit and integration with their coverage floors, component tests in a job of their own) and the Playwright suite — run all but Playwright before pushing (Version Control).
 
 ## Data & State
 
@@ -201,17 +216,19 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 
 ## Version Control
 
-- **Local sessions** (on the owner's machine): never commit, push or take another outward-facing VCS action without explicit permission — make and stage the changes, summarize them, and wait for approval.
-- **Remote sessions** (cloud containers such as Claude Code on the web): commit, push with `git push -u origin <branch>` and open the PR without asking, then subscribe to its activity (`subscribe_pr_activity`) and see it through until it merges or closes: red CI and review comments are the session's to fix.
+- **Local sessions** (on the owner's machine):
+  - Permission: never commit, push or take another outward-facing VCS action without explicit permission — make and stage the changes, summarize them, and wait for approval.
+  - GitHub goes through the `gh` CLI: open a PR with `gh pr create`, read reviews with `gh pr view --comments` or `gh api`, and read a red CI job with `gh run view <run-id> --log-failed`, filtered, then fix it in the main session.
+  - The PR's description: once a PR is open, every push that adds commits rewrites its description (`gh pr edit --body-file`) to say what the PR is now, not what its first commit was — its counts, decisions and checks.
+- **Remote sessions** (cloud containers such as Claude Code on the web): commit and push with `git push -u origin <branch>` without asking.
+- **A PR opens only when the owner asks for one**, in either kind of session. Once a remote session's PR is open, it subscribes to its activity (`subscribe_pr_activity`) and sees it through until it merges or closes: red CI and review comments are the session's to fix.
 - Never commit or push to `main`; changes land through pull requests.
-- **One task, one branch, one PR.** Everything a session's task produces — its spike, the decision, the implementation, the docs and any follow-ups the owner adds along the way — goes on one branch into one PR. A second branch or PR only when the owner asks for one. Bad: a spike PR plus a stacked implementation PR from the same session. Good: the spike, its Decision and the code it decided, all in one PR.
 - **Branch names say what the PR does**: `claude/<feature>-<change>`, kebab-case, a few words, with the step for a multi-PR project. A remote session whose assigned branch is a random name creates a descriptive branch instead. Bad: `claude/quirky-galileo-8ofthc`, `claude/project-data-layer`. Good: `claude/week-model-pr3-project-data-layer`.
 - **Before every push**:
   1. `design/tracker.md`: delete finished items and sub-bullets.
-  2. README Update Log: today's entry (Documentation Style).
-  3. README Current State: rewrite the sections the change touches.
-  4. AGENTS.md, or a README it indexes: only when a rule or a directory's responsibility changed.
-  5. Run `npm run format`, then `lint`, `typecheck`, `knip` and `npm test` (and `check:themes` when CSS variables changed). CI runs e2e; run `npm run test:e2e` too when a change touches a page's flow.
+  2. README Current State: rewrite the sections the change touches.
+  3. AGENTS.md, or a README it indexes: only when a rule or a directory's responsibility changed.
+  4. Run `npm run format`, then `lint`, `typecheck`, `knip`, `check:spec`, `check:duplicate-types`, `test:coverage` and `test:component` (and `check:themes` when CSS variables changed). `test:coverage` and not `npm test`: CI fails below the coverage floors, which `npm test` doesn't check. CI runs e2e; run `npm run test:e2e` too when a change touches a page's flow.
 - **Act on submitted reviews only.** A pending review — comments drafted but not yet submitted — can still change: don't reply to, resolve or push for its comments; at most mention that one is pending.
 
 ## Commands
@@ -225,17 +242,22 @@ npm run knip         # Unused files, exports and dependencies (CI; config in kni
 npm run format       # Format all code with Prettier
 npm run format:check # Verify formatting (CI)
 npm run check:themes # Every theme declares the same CSS variables (CI)
-npm test             # Unit + integration tests in UTC and Los Angeles time (a local Postgres: test/README.md)
+npm run check:review-log  # Every owner review on a PR has its entry in reviews/ (CI; GITHUB_REPOSITORY and PR_NUMBER locally)
+npm run check:mockup-links  # Every mockup a PR changes is linked from its description (CI; same env)
+npm run check:spec   # Every item in a spec v2 doc is held by a test that names it, and no legacy doc grows (CI); `-- --list <page>` lists each item's tests
+npm run check:duplicate-types  # No type under src/ repeats another's shape (CI; needs the generated Prisma client)
+npm run e2e:timing -- <report.json>  # Each e2e spec's time per project, from Playwright's JSON report (CI job summary)
+npm test             # Every Vitest layer: unit + integration in UTC and Los Angeles time (a local Postgres: test/README.md), component in Chromium
 npm run test:unit    # Unit tests only, no database
-npm run test:coverage  # Everything, failing below the coverage floors (CI)
-npm run test:e2e     # Playwright on the local stack as the e2e user (CI); reuses a running dev server
+npm run test:component  # Component tests only, in Chromium (CI)
+npm run test:coverage  # Unit + integration, failing below the coverage floors (CI)
+npm run test:e2e     # Playwright on the local stack, each test as its own user, both widths (CI); reuses a running dev server
 npm run up           # One-click start: setup, then the dev server (fresh checkout or any day)
 npm run setup        # .env.local, npm install, db:setup — no dev server (`-- --no-db` stops after install)
 npm run db:setup     # Start the local Supabase stack, migrate, seed (safe to rerun)
 npm run db:reset     # Wipe the local stack, migrate, seed
 npm run db:stop      # Stop the local stack (data kept)
 npm run dev:session  # Sign in as the seeded dev user: Playwright storageState + Cookie header
-npm run e2e:session  # Reset the e2e user to the seed's week and sign it in (run by test:e2e)
 npm run db:deploy:prod  # Apply migrations to production (.env.prod) — only when the owner asks
 npx @modelcontextprotocol/inspector --cli http://localhost:3000/api/mcp --transport http --method tools/list  # MCP smoke test (or drop --cli for the UI)
 npx prisma studio

@@ -1,0 +1,11 @@
+# The specs still in the legacy format (README.md › Legacy docs), one per
+# line. npm run check:spec skips their IDs, and keeps the list honest: it only
+# gets shorter, a doc leaves it once it has IDs, and a doc on it can be
+# corrected but not grown.
+auth.md
+dump.md
+mcp.md
+plan.md
+priorities.md
+projects.md
+shared.md

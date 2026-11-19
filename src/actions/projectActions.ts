@@ -23,12 +23,12 @@ import {
   updateProjectStep,
 } from '../services/projectService';
 import {getCurrentUserId} from '@/lib/auth/getCurrentUserId';
+import {BOARD_PATH} from '@/utils/planUtils';
 import type {ProjectItem, ProjectWithSteps} from '@/lib/db/projects';
 import type {TaskItem} from '@/lib/db/tasks';
 import type {FlattenedFormError} from '@/utils/formErrors';
 
 const PROJECTS_PATH = '/kanban/projects';
-const BOARD_PATH = '/kanban';
 
 type ProjectErrorKey =
   'projectNotFound' | 'stepNotFound' | 'stepLimitReached' | 'noActivePlan';

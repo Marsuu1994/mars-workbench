@@ -1,0 +1,329 @@
+// Spec: design/specs/board.md
+import {describe, expect, it} from 'vitest';
+import {buildTask, dateColumn} from '../../test/buildTask';
+import {WEEK_KEY} from '../../test/time';
+import {PlanMode, TaskStatus, TaskType} from './enums';
+import {
+  TaskKind,
+  computeHabitWeeks,
+  getTaskKind,
+  hasTaskDoneToday,
+  sortDoneTasks,
+  sortTasks,
+  type BoardPlan,
+} from './taskUtils';
+
+describe('getTaskKind', () => {
+  it.each([
+    [TaskType.DAILY, TaskKind.HABIT],
+    [TaskType.WEEKLY, TaskKind.HABIT],
+    [TaskType.PROJECT, TaskKind.PROJECT],
+    [TaskType.AD_HOC, TaskKind.ONE_OFF],
+  ])('%s is a %s', (type, kind) => {
+    expect(getTaskKind(type)).toBe(kind);
+  });
+});
+
+describe('computeHabitWeeks', () => {
+  const runOn = (id: string, isoDay: string, status: TaskStatus) =>
+    buildTask({
+      id,
+      templateId: 'run',
+      type: TaskType.DAILY,
+      forDate: dateColumn(isoDay),
+      status,
+    });
+  const review = (id: string, instanceIndex: number, status: TaskStatus) =>
+    buildTask({
+      id,
+      templateId: 'review',
+      type: TaskType.WEEKLY,
+      periodKey: WEEK_KEY,
+      instanceIndex,
+      status,
+    });
+  const plan = (mode: PlanMode, reviewFrequency = 2): BoardPlan => ({
+    periodKey: WEEK_KEY,
+    mode,
+    planTemplates: [
+      {templateId: 'run', type: TaskType.DAILY, frequency: 1},
+      {templateId: 'review', type: TaskType.WEEKLY, frequency: reviewFrequency},
+    ],
+  });
+  const tasks = [
+    runOn('run-mon', '2026-10-12', TaskStatus.DONE),
+    runOn('run-tue', '2026-10-13', TaskStatus.EXPIRED),
+    runOn('run-wed', '2026-10-14', TaskStatus.TODO),
+    runOn('run-sat', '2026-10-17', TaskStatus.DONE),
+    review('review-1', 0, TaskStatus.DONE),
+    review('review-2', 1, TaskStatus.BACKLOG),
+  ];
+
+  it('CARD-8 gives a daily line a dot for every weekday of a NORMAL week', () => {
+    const {habitWeekByTemplateId, slotByTaskId} = computeHabitWeeks(
+      tasks,
+      plan(PlanMode.NORMAL),
+    );
+    expect(habitWeekByTemplateId.get('run')).toEqual({
+      type: TaskType.DAILY,
+      frequency: 1,
+      slots: [true, false, false, false, false],
+      done: 1,
+      target: 5,
+    });
+    expect(slotByTaskId.get('run-wed')).toBe(2);
+    // Saturday isn't a generating day in NORMAL mode
+    expect(slotByTaskId.has('run-sat')).toBe(false);
+  });
+
+  it('CARD-8 counts every day of an EXTREME week', () => {
+    const {habitWeekByTemplateId, slotByTaskId} = computeHabitWeeks(
+      tasks,
+      plan(PlanMode.EXTREME),
+    );
+    expect(habitWeekByTemplateId.get('run')).toMatchObject({
+      slots: [true, false, false, false, false, true, false],
+      done: 2,
+      target: 7,
+    });
+    expect(slotByTaskId.get('run-sat')).toBe(5);
+  });
+
+  it('CARD-8 gives a weekly line one dot per instance', () => {
+    const {habitWeekByTemplateId, slotByTaskId} = computeHabitWeeks(
+      tasks,
+      plan(PlanMode.NORMAL),
+    );
+    expect(habitWeekByTemplateId.get('review')).toMatchObject({
+      slots: [true, false],
+      done: 1,
+      target: 2,
+    });
+    expect(slotByTaskId.get('review-2')).toBe(1);
+  });
+
+  it('CARD-8 keeps a DONE instance past a frequency cut', () => {
+    const cutTasks = [...tasks, review('review-3', 2, TaskStatus.DONE)];
+    const {habitWeekByTemplateId} = computeHabitWeeks(
+      cutTasks,
+      plan(PlanMode.NORMAL, 1),
+    );
+    expect(habitWeekByTemplateId.get('review')).toMatchObject({
+      slots: [true, false, true],
+      target: 3,
+    });
+  });
+
+  it('CARD-8 leaves a daily instance past the frequency without a dot', () => {
+    const secondRun = buildTask({
+      ...runOn('run-mon-2', '2026-10-12', TaskStatus.DONE),
+      instanceIndex: 1,
+    });
+    const {slotByTaskId} = computeHabitWeeks(
+      [...tasks, secondRun],
+      plan(PlanMode.NORMAL),
+    );
+    expect(slotByTaskId.has('run-mon-2')).toBe(false);
+  });
+
+  it('CARD-8 gives a template with no instances an empty line', () => {
+    const {habitWeekByTemplateId} = computeHabitWeeks(
+      [],
+      plan(PlanMode.NORMAL),
+    );
+    expect(habitWeekByTemplateId.get('review')).toMatchObject({
+      slots: [false, false],
+      done: 0,
+    });
+  });
+});
+
+describe('sortTasks', () => {
+  const at = (minute: number) => new Date(Date.UTC(2026, 9, 12, 16, minute));
+
+  it('COL-2 runs one-offs, daily habits, weekly habits, then steps', () => {
+    const tasks = [
+      buildTask({
+        id: 'step',
+        projectId: 'course',
+        type: TaskType.PROJECT,
+        createdAt: at(1),
+      }),
+      buildTask({
+        id: 'review',
+        templateId: 'review',
+        type: TaskType.WEEKLY,
+        createdAt: at(2),
+      }),
+      buildTask({
+        id: 'run',
+        templateId: 'run',
+        type: TaskType.DAILY,
+        createdAt: at(3),
+      }),
+      buildTask({id: 'one-off', createdAt: at(4)}),
+    ];
+    expect(sortTasks(tasks).map(task => task.id)).toEqual([
+      'one-off',
+      'run',
+      'review',
+      'step',
+    ]);
+  });
+
+  it('COL-2 keeps a group together, in instance order', () => {
+    const tasks = [
+      buildTask({
+        id: 'review-2',
+        templateId: 'review',
+        type: TaskType.WEEKLY,
+        instanceIndex: 1,
+        createdAt: at(3),
+      }),
+      buildTask({
+        id: 'stretch',
+        templateId: 'stretch',
+        type: TaskType.WEEKLY,
+        createdAt: at(2),
+      }),
+      buildTask({
+        id: 'review-1',
+        templateId: 'review',
+        type: TaskType.WEEKLY,
+        instanceIndex: 0,
+        createdAt: at(4),
+      }),
+      buildTask({
+        id: 'step-2',
+        projectId: 'course',
+        type: TaskType.PROJECT,
+        instanceIndex: 2,
+        createdAt: at(1),
+      }),
+      buildTask({
+        id: 'step-1',
+        projectId: 'course',
+        type: TaskType.PROJECT,
+        instanceIndex: 1,
+        createdAt: at(6),
+      }),
+    ];
+    // Review's earliest instance (minute 3) ranks it after stretch (minute 2)
+    expect(sortTasks(tasks).map(task => task.id)).toEqual([
+      'stretch',
+      'review-1',
+      'review-2',
+      'step-1',
+      'step-2',
+    ]);
+  });
+
+  it('COL-2 breaks ties by createdAt, then id', () => {
+    const tasks = ['b', 'a', 'c'].map(id =>
+      buildTask({id, createdAt: id === 'c' ? at(0) : at(1)}),
+    );
+    expect(sortTasks(tasks).map(task => task.id)).toEqual(['c', 'a', 'b']);
+  });
+
+  it('COL-2 keeps groups that start at the same time apart', () => {
+    const tasks = [
+      ['b', 0],
+      ['a', 1],
+      ['b', 1],
+      ['a', 0],
+    ].map(([templateId, instanceIndex]) =>
+      buildTask({
+        id: `${templateId}-${instanceIndex}`,
+        templateId: String(templateId),
+        type: TaskType.WEEKLY,
+        instanceIndex: Number(instanceIndex),
+        createdAt: at(1),
+      }),
+    );
+    expect(sortTasks(tasks).map(task => task.id)).toEqual([
+      'a-0',
+      'a-1',
+      'b-0',
+      'b-1',
+    ]);
+  });
+
+  it("COL-2 runs a daily habit's days in the order they were made", () => {
+    const tasks = [
+      buildTask({
+        id: 'tuesday',
+        templateId: 'run',
+        type: TaskType.DAILY,
+        createdAt: at(5),
+      }),
+      buildTask({
+        id: 'monday',
+        templateId: 'run',
+        type: TaskType.DAILY,
+        createdAt: at(1),
+      }),
+    ];
+    expect(sortTasks(tasks).map(task => task.id)).toEqual([
+      'monday',
+      'tuesday',
+    ]);
+  });
+
+  it('does not reorder its input', () => {
+    const tasks = [
+      buildTask({id: 'late', createdAt: at(9)}),
+      buildTask({id: 'early', createdAt: at(1)}),
+    ];
+    sortTasks(tasks);
+    expect(tasks.map(task => task.id)).toEqual(['late', 'early']);
+  });
+});
+
+describe('sortDoneTasks', () => {
+  const at = (minute: number) => new Date(Date.UTC(2026, 9, 12, 16, minute));
+
+  it('COL-3 puts the latest done first', () => {
+    const tasks = [
+      buildTask({id: 'first', status: TaskStatus.DONE, doneAt: at(1)}),
+      buildTask({id: 'last', status: TaskStatus.DONE, doneAt: at(9)}),
+      buildTask({id: 'unstamped', status: TaskStatus.DONE}),
+      buildTask({id: 'middle', status: TaskStatus.DONE, doneAt: at(5)}),
+    ];
+    expect(sortDoneTasks(tasks).map(task => task.id)).toEqual([
+      'last',
+      'middle',
+      'first',
+      'unstamped',
+    ]);
+  });
+
+  it('COL-3 breaks a tie by id', () => {
+    const tasks = ['b', 'a'].map(id =>
+      buildTask({id, status: TaskStatus.DONE, doneAt: at(1)}),
+    );
+    expect(sortDoneTasks(tasks).map(task => task.id)).toEqual(['a', 'b']);
+  });
+});
+
+describe('hasTaskDoneToday', () => {
+  /** Wednesday 23:45 in Los Angeles: already Thursday in UTC. */
+  const WEDNESDAY_LATE = new Date('2026-10-15T06:45:00Z');
+  const doneAt = (instant: string) => ({doneAt: new Date(instant)});
+
+  it('COL-5 counts a task finished earlier on the same Los Angeles day', () => {
+    // Wednesday 08:00 in Los Angeles
+    expect(
+      hasTaskDoneToday([doneAt('2026-10-14T15:00:00Z')], WEDNESDAY_LATE),
+    ).toBe(true);
+  });
+
+  it("COL-5 doesn't count yesterday's work, nor a task not finished", () => {
+    // Tuesday 23:00 in Los Angeles, already Wednesday in UTC
+    expect(
+      hasTaskDoneToday(
+        [doneAt('2026-10-14T06:00:00Z'), {doneAt: null}],
+        WEDNESDAY_LATE,
+      ),
+    ).toBe(false);
+  });
+});

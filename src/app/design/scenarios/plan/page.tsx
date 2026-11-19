@@ -18,7 +18,6 @@ import {
   REVIEW_ADDED,
   REVIEW_REMOVED,
   REVIEW_MODIFIED,
-  REVIEW_ADDED_ADHOC,
   REVIEW_REMOVED_ADHOC,
   REVIEW_REMOVED_STEPS,
   REVIEW_INCOMPLETE_COUNTS,
@@ -69,7 +68,7 @@ export default function PlanScenarioPage() {
     {
       label: 'Review changes',
       title: 'Review Plan Changes',
-      note: 'Every change section at once: added / removed / modified templates with incomplete-task impact notes, one-off board changes, a project step returning to its project, and a mode switch.',
+      note: 'Every change section at once: added / removed / modified templates with incomplete-task impact notes, a one-off returning to the matrix, a project step returning to its project, and a mode switch.',
       display: 'fit',
       overlay: true,
       content: (
@@ -77,7 +76,6 @@ export default function PlanScenarioPage() {
           added={REVIEW_ADDED}
           removed={REVIEW_REMOVED}
           modified={REVIEW_MODIFIED}
-          addedAdhoc={REVIEW_ADDED_ADHOC}
           removedAdhoc={REVIEW_REMOVED_ADHOC}
           removedSteps={REVIEW_REMOVED_STEPS}
           incompleteCounts={REVIEW_INCOMPLETE_COUNTS}

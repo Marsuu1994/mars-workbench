@@ -13,7 +13,7 @@ import {
   TaskSize,
 } from '@/utils/enums';
 import {getWeekDateRange} from '@/utils/dateUtils';
-import {TaskKind} from '@/utils/taskUtils';
+import {TaskKind, type PlanLine} from '@/utils/taskUtils';
 import {Pill, type PillColor} from '@/components/ui/Pill';
 import {FieldRow} from '@/components/ui/form/FieldRow';
 import {ChoicePills} from '@/components/ui/form/ChoicePills';
@@ -28,7 +28,7 @@ import {
   updatePlanAction,
   countIncompleteByTemplateAction,
 } from '@/actions/planActions';
-import {TemplateItem} from './TemplateItem';
+import {TemplateItem, type TemplateItemConfig} from './TemplateItem';
 import {PlanTaskRow, type PlanTaskStatus} from './PlanTaskRow';
 import {TaskModal} from '@/components/domain/shared/task-modal/TaskModal';
 import {ReviewChangesModal} from './review-changes/ReviewChangesModal';
@@ -57,17 +57,6 @@ const awaitPlanWrite = async <Result,>(
   }
 };
 
-interface PlanTemplateConfig {
-  type: TaskType;
-  frequency: number;
-}
-
-interface InitialPlanTemplate {
-  templateId: string;
-  type: TaskType;
-  frequency: number;
-}
-
 export interface AdhocTaskItem {
   id: string;
   planId: string | null;
@@ -81,7 +70,7 @@ interface PlanFormProps {
   templates: TaskTemplateItem[];
   mode: 'create' | 'edit';
   planId?: string;
-  initialPlanTemplates?: InitialPlanTemplate[];
+  initialPlanTemplates?: PlanLine[];
   initialDescription?: string;
   initialPlanMode?: PlanMode;
   adhocTasks?: AdhocTaskItem[];
@@ -139,7 +128,7 @@ export const PlanForm = ({
 
   // Map from templateId → {type, frequency} for selected templates
   const [selectedTemplates, setSelectedTemplates] = useState<
-    Map<string, PlanTemplateConfig>
+    Map<string, TemplateItemConfig>
   >(
     new Map(
       initialPlanTemplates.map(pt => [
@@ -167,7 +156,7 @@ export const PlanForm = ({
   );
 
   // Cache configs when templates are unchecked so re-checking restores them
-  const configCache = useRef(new Map<string, PlanTemplateConfig>());
+  const configCache = useRef(new Map<string, TemplateItemConfig>());
 
   function toggleTemplate(id: string) {
     setSelectedTemplates(prev => {
@@ -190,7 +179,7 @@ export const PlanForm = ({
     });
   }
 
-  function updateConfig(id: string, config: PlanTemplateConfig) {
+  function updateConfig(id: string, config: TemplateItemConfig) {
     setSelectedTemplates(prev => {
       const next = new Map(prev);
       next.set(id, config);
@@ -272,11 +261,8 @@ export const PlanForm = ({
         };
       });
 
-    // Ad-hoc diff
+    // One-off diff: the form only lets one-offs go (back to the matrix)
     const initialAdhocSet = new Set(initialAdhocTaskIds);
-    const addedAdhoc = adhocTasks.filter(
-      task => selectedAdhocIds.has(task.id) && !initialAdhocSet.has(task.id),
-    );
     const removedAdhoc = adhocTasks.filter(
       task => !selectedAdhocIds.has(task.id) && initialAdhocSet.has(task.id),
     );
@@ -302,7 +288,6 @@ export const PlanForm = ({
       added,
       removed,
       modified,
-      addedAdhoc,
       removedAdhoc,
       removedSteps,
       modeChanged,
@@ -320,7 +305,6 @@ export const PlanForm = ({
         added,
         removed,
         modified,
-        addedAdhoc,
         removedAdhoc,
         removedSteps,
         modeChanged,
@@ -329,7 +313,6 @@ export const PlanForm = ({
         added.length > 0 ||
         removed.length > 0 ||
         modified.length > 0 ||
-        addedAdhoc.length > 0 ||
         removedAdhoc.length > 0 ||
         removedSteps.length > 0 ||
         modeChanged;
@@ -390,7 +373,8 @@ export const PlanForm = ({
         // (tracked, scheduled or added by Claude meanwhile) stays
         result = await awaitPlanWrite(
           updatePlanAction(planId!, {
-            description: description.trim() || undefined,
+            // Sent even when empty: clearing the description saves
+            description: description.trim(),
             mode: planMode,
             templates: templatesPayload,
             removeAdhocTaskIds: initialAdhocTaskIds.filter(
@@ -422,7 +406,6 @@ export const PlanForm = ({
           added: [],
           removed: [],
           modified: [],
-          addedAdhoc: [],
           removedAdhoc: [],
           removedSteps: [],
           modeChanged: false,
@@ -693,7 +676,6 @@ export const PlanForm = ({
         added={diff.added}
         removed={diff.removed}
         modified={diff.modified}
-        addedAdhoc={diff.addedAdhoc}
         removedAdhoc={diff.removedAdhoc}
         removedSteps={diff.removedSteps}
         incompleteCounts={incompleteCounts}

@@ -152,9 +152,9 @@ export function countWeekdaysInRange(from: Date, to: Date): number {
 }
 
 /**
- * Whether a plan periodKey still covers today. Shared by the board's
- * end-of-period check and the matrix's stale-plan guard so the "is this
- * ACTIVE plan's period still current?" rule has a single home.
+ * Whether a plan periodKey still covers today: ensureSynced's end-of-period
+ * check, the single home of the "is this ACTIVE plan's period still
+ * current?" rule.
  */
 export function isPeriodCurrent(periodKey: string, today: Date): boolean {
   return getISOWeekKey(today) === periodKey;

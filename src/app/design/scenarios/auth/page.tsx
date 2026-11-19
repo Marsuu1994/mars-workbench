@@ -30,13 +30,6 @@ const AUTH_SCENARIOS: ScenarioTab[] = [
     content: <ConsentScenario />,
   },
   {
-    label: 'OAuth consent — allowing',
-    title: 'OAuth consent — allowing',
-    note: 'Same screen one click later: Allow pressed and waiting on the server action — spinner on the pressed button, both buttons inert — reached by a play step that clicks Allow.',
-    content: <ConsentScenario />,
-    play: [{click: {label: 'OAuthConsent.allow'}}],
-  },
-  {
     label: 'OAuth consent — invalid link',
     title: 'OAuth consent — invalid link',
     note: 'The authorization request is missing, unknown, expired or already decided — generic copy and a way home.',

@@ -10,10 +10,11 @@ import type {TaskItem} from '@/lib/db/tasks';
 import type {BoardProject} from '@/lib/db/projects';
 import type {BoardPlan} from '@/utils/taskUtils';
 import {toBoardCards} from '@/utils/boardCardUtils';
+import {toBacklogSections} from '@/utils/backlogGroupUtils';
 import type {BoardProgress} from '@/types/board';
 
-/* Board scenario fixtures — real KanbanBoard + ProgressDashboard fed
-   fictional weeks that are hard to reach against live data. */
+/* Board scenario fixtures — the real BoardPage fed fictional weeks that are
+   hard to reach against live data. */
 
 // Friday of ISO week 28 (Mon Jul 6 – Sun Jul 12).
 const NOW = new Date('2026-07-10T15:00:00');
@@ -97,7 +98,7 @@ const step = (overrides: Partial<TaskItem>) =>
 
 // ── Projects behind the step cards ───────────────────────────────────────────
 // Biomedical course: Lectures 1–2 done in earlier weeks, Lecture 3 done this
-// week, Lecture 4 staged in the backlog, Lecture 5 not scheduled.
+// week, Lectures 4–6 staged in the backlog, Lecture 7 not scheduled.
 // Protein 3D viewer: step 1 done last week, step 2 in Todo, 3–4 not scheduled.
 const BIO_LECTURE_3 = step({
   id: 'scn-step-bio-3',
@@ -112,6 +113,22 @@ const BIO_LECTURE_4 = step({
   projectId: 'prj-bio',
   instanceIndex: 4,
   title: 'Lecture 4 — Cell signaling',
+  description: 'Watch + one-page notes',
+  status: TaskStatus.BACKLOG,
+});
+const BIO_LECTURE_5 = step({
+  id: 'scn-step-bio-5',
+  projectId: 'prj-bio',
+  instanceIndex: 5,
+  title: 'Lecture 5 — Immunity basics',
+  description: 'Watch + one-page notes',
+  status: TaskStatus.BACKLOG,
+});
+const BIO_LECTURE_6 = step({
+  id: 'scn-step-bio-6',
+  projectId: 'prj-bio',
+  instanceIndex: 6,
+  title: 'Lecture 6 — Neurons',
   description: 'Watch + one-page notes',
   status: TaskStatus.BACKLOG,
 });
@@ -133,7 +150,9 @@ export const SCENARIO_PROJECTS: BoardProject[] = [
       {id: 'scn-step-bio-2', status: TaskStatus.DONE, instanceIndex: 2},
       {id: BIO_LECTURE_3.id, status: TaskStatus.DONE, instanceIndex: 3},
       {id: BIO_LECTURE_4.id, status: TaskStatus.BACKLOG, instanceIndex: 4},
-      {id: 'scn-step-bio-5', status: TaskStatus.BACKLOG, instanceIndex: 5},
+      {id: BIO_LECTURE_5.id, status: TaskStatus.BACKLOG, instanceIndex: 5},
+      {id: BIO_LECTURE_6.id, status: TaskStatus.BACKLOG, instanceIndex: 6},
+      {id: 'scn-step-bio-7', status: TaskStatus.BACKLOG, instanceIndex: 7},
     ],
   },
   {
@@ -179,9 +198,11 @@ export const MID_WEEK_TASKS: TaskItem[] = [
     status: TaskStatus.DONE,
     doneAt: daysAgo(0),
   }),
-  // Backlog: staged habit instances and a scheduled step
+  // Backlog: staged habit instances and three scheduled steps
   leetcode({instanceIndex: 2, status: TaskStatus.BACKLOG}),
   BIO_LECTURE_4,
+  BIO_LECTURE_5,
+  BIO_LECTURE_6,
   read({instanceIndex: 0, status: TaskStatus.BACKLOG}),
   read({instanceIndex: 1, status: TaskStatus.BACKLOG}),
   task({
@@ -206,10 +227,36 @@ export const MID_WEEK_PROGRESS: BoardProgress = {
   daysElapsed: 5,
 };
 
+// ── The week's work done for today ──────────────────────────────────────────
+// Everything pulled for today is in Done, two of them finished just now (the
+// real clock: "today" is the viewer's), and the backlog still holds the rest.
+const JUST_NOW = new Date();
+export const DAY_CLEAR_TASKS: TaskItem[] = MID_WEEK_TASKS.map(fixtureTask =>
+  fixtureTask.status === TaskStatus.TODO
+    ? {...fixtureTask, status: TaskStatus.DONE, doneAt: JUST_NOW}
+    : fixtureTask,
+);
+
+// ── Everything on the board ─────────────────────────────────────────────────
+// Every staged task pulled onto Todo: the backlog is empty.
+export const BACKLOG_CLEAR_TASKS: TaskItem[] = MID_WEEK_TASKS.map(
+  fixtureTask =>
+    fixtureTask.status === TaskStatus.BACKLOG
+      ? {...fixtureTask, status: TaskStatus.TODO}
+      : fixtureTask,
+);
+
 // ── Mobile backlog scenario inputs ───────────────────────────────────────────
-// The inline mobile backlog sheet bypasses KanbanBoard, so its cards come from
-// the same adapter the live board runs, on the same fixture week.
-export const BACKLOG_CARDS = toBoardCards(MID_WEEK_TASKS, {
+// The inline mobile backlog sheet bypasses BoardPage, so its groups come from
+// the same adapters the live board runs, on the same fixture week.
+export const BACKLOG_SECTIONS = toBacklogSections(
+  toBoardCards(MID_WEEK_TASKS, {
+    plan: SCENARIO_PLAN,
+    projects: SCENARIO_PROJECTS,
+  })[TaskStatus.BACKLOG],
+  {plan: SCENARIO_PLAN, projects: SCENARIO_PROJECTS},
+);
+export const EMPTY_BACKLOG_SECTIONS = toBacklogSections([], {
   plan: SCENARIO_PLAN,
   projects: SCENARIO_PROJECTS,
-})[TaskStatus.BACKLOG];
+});

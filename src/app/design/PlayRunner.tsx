@@ -61,16 +61,30 @@ const namesOf = (element: Element) =>
     element.textContent,
   ].map(normalize);
 
+/** A control shown at this viewport: display: none leaves no client rects. */
+const isVisible = (element: HTMLElement) => element.getClientRects().length > 0;
+
+/**
+ * The controls a name means. One match is it even while hidden (a
+ * hover-revealed control is display: none at rest); several are a
+ * breakpoint's twins — a desktop toggle and a mobile pill with the same
+ * name — and the visible one is meant.
+ */
+const resolveByVisibility = (named: HTMLElement[]) =>
+  named.length > 1 ? named.filter(isVisible) : named;
+
 /** Clicks the single control named `name`, opening the gate just for it. */
 const clickByName = (root: HTMLElement, name: string, within?: string) => {
   const scope = within ? root.querySelector(within) : root;
   if (!scope) throw new Error(`nothing matches "${within}"`);
 
-  const matches = Array.from(
+  const named = Array.from(
     scope.querySelectorAll<HTMLElement>(INTERACTIVE),
   ).filter(element => namesOf(element).includes(name));
+  const matches = resolveByVisibility(named);
   if (matches.length !== 1) {
-    throw new Error(`${matches.length} controls named "${name}"`);
+    const visible = named.length > 1 ? ` (${matches.length} visible)` : '';
+    throw new Error(`${named.length} controls named "${name}"${visible}`);
   }
 
   // InteractionShield lets a click through only while this gate is open, so
@@ -89,9 +103,10 @@ const nextTask = () => new Promise(resolve => setTimeout(resolve, 0));
 /**
  * Reaches a pinned state the way a user would: after mount it clicks real
  * controls, so the component gets there through its own handlers and needs
- * no scenario-only props. Each target must resolve to exactly one control;
- * anything else is reported through `onError` instead of silently leaving
- * the rest state on screen. Render it after the scope element, never inside
+ * no scenario-only props. Each target must resolve to exactly one control
+ * (among a breakpoint's same-named twins, the visible one); anything else
+ * is reported through `onError` instead of silently leaving the rest state
+ * on screen. Render it after the scope element, never inside
  * it — a parent's ref is attached only after its children's layout effects.
  */
 export const PlayRunner = ({steps, scopeRef, onError}: PlayRunnerProps) => {

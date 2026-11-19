@@ -5,6 +5,7 @@ import {PROJECT_STEP_LIMIT} from '@/utils/projectUtils';
 import {
   createProjectWithSteps,
   createWeek,
+  finishStepsThisWeek,
   moveTasks,
   newHabit,
   newUserId,
@@ -39,6 +40,13 @@ const readPath = async (projectId: string) =>
       select: {instanceIndex: true, title: true},
     })
   ).map(({instanceIndex, title}) => `${instanceIndex} ${title}`);
+
+const readSteps = (projectId: string) =>
+  prisma.task.findMany({
+    where: {userId, projectId},
+    orderBy: {instanceIndex: 'asc'},
+    select: {planId: true, status: true},
+  });
 
 const createCourse = () =>
   createProjectWithSteps(userId, 'Course', ['Unit 1', 'Unit 2', 'Unit 3']);
@@ -163,7 +171,7 @@ describe('steps', () => {
 
   it('keeps a done step', async () => {
     const course = await createCourse();
-    await moveTasks(userId, [[course.steps[0].id, TaskStatus.DONE]]);
+    await finishStepsThisWeek(userId, [course.steps[0].id]);
     expect(await deleteProjectStep(userId, course.steps[0].id)).toEqual({
       error: 'stepNotFound',
     });
@@ -198,6 +206,42 @@ describe('steps', () => {
   });
 });
 
+describe('an archived project', () => {
+  it('refuses every change but unarchiving', async () => {
+    const course = await createCourse();
+    const [unitOne, unitTwo] = course.steps;
+    await archiveProject(userId, course.id);
+
+    expect(await updateProject(userId, course.id, {title: 'Renamed'})).toEqual({
+      error: 'projectNotFound',
+    });
+    expect(
+      await addProjectStep(userId, course.id, {
+        title: 'Unit 4',
+        size: TaskSize.SMALL,
+      }),
+    ).toEqual({error: 'projectNotFound'});
+    expect(
+      await updateProjectStep(userId, unitOne.id, {title: 'Edited'}),
+    ).toEqual({error: 'stepNotFound'});
+    expect(await deleteProjectStep(userId, unitOne.id)).toEqual({
+      error: 'stepNotFound',
+    });
+    expect(
+      await moveProjectStep(userId, course.id, {stepId: unitTwo.id}),
+    ).toEqual({error: 'projectNotFound'});
+    expect(await readPath(course.id)).toEqual([
+      '1 Unit 1',
+      '2 Unit 2',
+      '3 Unit 3',
+    ]);
+
+    expect(await unarchiveProject(userId, course.id)).toMatchObject({
+      project: {isArchived: false},
+    });
+  });
+});
+
 describe('scheduling', () => {
   it('needs an active plan', async () => {
     const course = await createCourse();
@@ -217,6 +261,22 @@ describe('scheduling', () => {
     expect(await unscheduleProjectStep(userId, unitTwo.id)).toMatchObject({
       step: {planId: null},
     });
+  });
+
+  it("takes back only this week's steps, not last week's", async () => {
+    const course = await createCourse();
+    const [unitOne] = course.steps;
+    const {plan} = await createWeek(userId, {
+      newTemplates: [newHabit('Run', TaskType.DAILY)],
+      addProjectStepIds: [unitOne.id],
+    });
+    freezeTime(MOMENTS.NEXT_MONDAY_NOON);
+
+    expect(await unscheduleProjectStep(userId, unitOne.id)).toEqual({
+      error: 'stepNotFound',
+    });
+    const [stored] = await readSteps(course.id);
+    expect(stored.planId).toBe(plan.planId);
   });
 
   it("won't schedule a step of an archived project", async () => {

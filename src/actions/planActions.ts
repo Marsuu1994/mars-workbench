@@ -8,19 +8,20 @@ import {
   createPlan,
   fetchEditPlanForm,
   fetchNewPlanForm,
+  countIncompleteInstancesByTemplateId,
   updatePlan,
+  PlanNotActiveError,
   TemplateNotFoundError,
 } from '../services/planService';
-import {countIncompleteTasksByTemplateId} from '@/lib/db/tasks';
 import {getCurrentUserId} from '@/lib/auth/getCurrentUserId';
+import {BOARD_PATH} from '@/utils/planUtils';
 
-/** Where a saved plan lands: its board. */
-const BOARD_PATH = '/kanban';
-
-/** A submitted template the user does not own (stale form or tampered id). */
-const templateNotFoundMessage = async () => {
+/** A save the service refused, as the form's error. */
+const planFormError = async (
+  key: 'activePlanExists' | 'planNotActive' | 'templateNotFound',
+) => {
   const t = await getTranslations('Errors');
-  return t('templateNotFound');
+  return {error: {formErrors: [t(key)], fieldErrors: {}}};
 };
 
 export async function fetchNewPlanFormAction() {
@@ -44,12 +45,10 @@ export async function createPlanAction(input: unknown) {
   const userId = await getCurrentUserId();
   try {
     const result = await createPlan(userId, parsed.data);
-    if ('error' in result) return result;
+    if ('error' in result) return planFormError(result.error);
   } catch (error) {
     if (error instanceof TemplateNotFoundError) {
-      return {
-        error: {formErrors: [await templateNotFoundMessage()], fieldErrors: {}},
-      };
+      return planFormError('templateNotFound');
     }
     throw error;
   }
@@ -70,12 +69,14 @@ export async function updatePlanAction(planId: string, input: unknown) {
   const userId = await getCurrentUserId();
   try {
     const result = await updatePlan(userId, planId, parsed.data);
-    if ('error' in result) return result;
+    if ('error' in result) return planFormError(result.error);
   } catch (error) {
     if (error instanceof TemplateNotFoundError) {
-      return {
-        error: {formErrors: [await templateNotFoundMessage()], fieldErrors: {}},
-      };
+      return planFormError('templateNotFound');
+    }
+    // The week ended between the check and the save
+    if (error instanceof PlanNotActiveError) {
+      return planFormError('planNotActive');
     }
     throw error;
   }
@@ -93,10 +94,5 @@ export async function countIncompleteByTemplateAction(
   templateIds: string[],
 ): Promise<Record<string, number>> {
   const userId = await getCurrentUserId();
-  const map = await countIncompleteTasksByTemplateId(
-    userId,
-    planId,
-    templateIds,
-  );
-  return Object.fromEntries(map);
+  return countIncompleteInstancesByTemplateId(userId, planId, templateIds);
 }

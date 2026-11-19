@@ -3,7 +3,7 @@ import {
   getEmptyBoardStateAction,
 } from '@/actions/boardActions';
 import {EmptyBoard} from '@/components/domain/board/EmptyBoard';
-import {BoardScreen} from '@/components/domain/board/BoardScreen';
+import {BoardPage} from '@/components/domain/board/BoardPage';
 
 export default async function KanbanPage() {
   const board = await fetchBoardAction();
@@ -12,10 +12,10 @@ export default async function KanbanPage() {
     const emptyState = await getEmptyBoardStateAction();
     return (
       <EmptyBoard
-        stats={emptyState.kind === 'returning' ? emptyState.stats : undefined}
+        recap={emptyState.kind === 'returning' ? emptyState.recap : undefined}
       />
     );
   }
 
-  return <BoardScreen {...board} />;
+  return <BoardPage {...board} />;
 }

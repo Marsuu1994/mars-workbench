@@ -1,6 +1,10 @@
 import type {TaskItem} from '@/lib/db/tasks';
 import {PlanMode, TaskStatus, TaskType as TaskTypeEnum} from '@/utils/enums';
-import {getMondayFromPeriodKey, normalizeForDate} from '@/utils/dateUtils';
+import {
+  formatKanbanISODate,
+  getMondayFromPeriodKey,
+  normalizeForDate,
+} from '@/utils/dateUtils';
 
 // ─── Kind ──────────────────────────────────────────────────────────────────
 
@@ -68,6 +72,7 @@ export interface PlanLine {
 export interface BoardPlan {
   periodKey: string;
   mode: PlanMode;
+  /** In the order their habits were created, then by the habit's id */
   planTemplates: PlanLine[];
 }
 
@@ -174,13 +179,22 @@ export function computeHabitWeeks(
 
 // ─── Sorting ───────────────────────────────────────────────────────────────
 
+// A column's kinds in order: one-offs, daily habits, weekly habits, steps.
+// Record over every TaskType, so a new type fails the build until it's ranked.
+const SORT_RANK_BY_TYPE: Record<TaskTypeEnum, number> = {
+  [TaskTypeEnum.AD_HOC]: 0,
+  [TaskTypeEnum.DAILY]: 1,
+  [TaskTypeEnum.WEEKLY]: 2,
+  [TaskTypeEnum.PROJECT]: 3,
+};
+
 /**
- * Sort tasks within a column: daily tasks first, then everything else.
- * Within each priority group, a group — the instances of one template, or the
- * steps of one project — stays contiguous (ranked by the group's earliest
- * createdAt) and is ordered by instanceIndex (copy number / step number), so
- * e.g. leetcode #1, leetcode #2, workout #1, workout #2 — not interleaved.
- * Final tiebreakers: createdAt ascending, then id.
+ * Sort tasks within a column by kind: one-offs, daily habits, weekly habits,
+ * then project steps. Within a kind, a group — the instances of one template,
+ * or the steps of one project — stays contiguous (ranked by the group's
+ * earliest createdAt) and is ordered by instanceIndex (copy number / step
+ * number), so e.g. leetcode #1, leetcode #2, workout #1, workout #2 — not
+ * interleaved. Final tiebreakers: createdAt ascending, then id.
  */
 export function sortTasks(tasks: TaskItem[]): TaskItem[] {
   // A task's group: its template, or its project for a project step.
@@ -200,9 +214,6 @@ export function sortTasks(tasks: TaskItem[]): TaskItem[] {
     }
   }
 
-  const priority = (task: TaskItem): number =>
-    task.type === TaskTypeEnum.DAILY ? 0 : 1;
-
   // Grouped tasks rank by their group's earliest createdAt; ad-hoc tasks
   // (no group) rank by their own createdAt.
   const groupRank = (task: TaskItem): number => {
@@ -213,9 +224,8 @@ export function sortTasks(tasks: TaskItem[]): TaskItem[] {
   };
 
   return [...tasks].sort((a, b) => {
-    const pa = priority(a);
-    const pb = priority(b);
-    if (pa !== pb) return pa - pb;
+    const byKind = SORT_RANK_BY_TYPE[a.type] - SORT_RANK_BY_TYPE[b.type];
+    if (byKind !== 0) return byKind;
 
     const ga = groupRank(a);
     const gb = groupRank(b);
@@ -235,4 +245,30 @@ export function sortTasks(tasks: TaskItem[]): TaskItem[] {
     if (byCreatedAt !== 0) return byCreatedAt;
     return a.id.localeCompare(b.id);
   });
+}
+
+/**
+ * Sort the Done column by when each task was done, the latest first. A DONE
+ * task always has a doneAt; one without sorts last. Ties go to id.
+ */
+export function sortDoneTasks(tasks: TaskItem[]): TaskItem[] {
+  const doneTime = ({doneAt}: TaskItem): number =>
+    doneAt ? new Date(doneAt).getTime() : 0;
+
+  return [...tasks].sort(
+    (a, b) => doneTime(b) - doneTime(a) || a.id.localeCompare(b.id),
+  );
+}
+
+// ─── Today ─────────────────────────────────────────────────────────────────
+
+/** Whether any of the tasks was finished on `now`'s day in KANBAN_TZ. */
+export function hasTaskDoneToday(
+  tasks: Pick<TaskItem, 'doneAt'>[],
+  now: Date,
+): boolean {
+  const today = formatKanbanISODate(now);
+  return tasks.some(
+    ({doneAt}) => doneAt !== null && formatKanbanISODate(doneAt) === today,
+  );
 }

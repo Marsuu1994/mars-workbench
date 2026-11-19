@@ -43,11 +43,28 @@
     "Backlog": {
       "title": "Backlog",
       "hintDragToTodo": "Drag tasks left to Todo to start working",
-      "emptyState": "You're all caught up — no staged tasks.",
       "openLabel": "Open backlog",
       "closeLabel": "Close backlog",
       "hintTapToTodo": "Tap to pull a task onto the board",
-      "pullToTodoLabel": "Todo"
+      "pullToTodoLabel": "Todo",
+      "countLabel": "{count, plural, one {# staged task} other {# staged tasks}}",
+      "habitsSection": "Habits",
+      "projectsSection": "Projects",
+      "moreCount": "<number>+{count}</number> more",
+      "showQueueLabel": "Show the steps behind it",
+      "hideQueueLabel": "Hide the steps behind it",
+      "Empty": {
+        "title": "Everything's on deck!",
+        "fact": "This week's plan is all on the board",
+        "nextStep": "Adjust your plan to add more or call it a week"
+      }
+    },
+    "Todo": {
+      "DayClear": {
+        "title": "All clear for the day",
+        "fact": "Everything you pulled for today is done",
+        "nextStep": "Pull more from the backlog or call it a day"
+      }
     },
     "Header": {
       "titlePrefix": "Kanban",
@@ -58,6 +75,8 @@
       "planLineDaily": "{frequency, plural, one {Daily} other {#× / day}}",
       "planLineWeekly": "{frequency}× / week",
       "stepContext": "{number}/{count}",
+      "habitProgressLabel": "{done} of {total} done this week",
+      "stepProgressLabel": "{done} of {total} steps done",
       "Quadrant": {
         "DO_FIRST": "Do first",
         "SCHEDULE": "Schedule",
@@ -79,11 +98,11 @@
     "Empty": {
       "newTitle": "No active plan",
       "newDesc": "Create a weekly plan to get started. Select templates, configure your schedule, and track your progress.",
-      "newCta": "Create Your First Plan",
+      "newCta": "Create your first plan",
       "returningTitle": "Plan period ended",
       "returningDesc": "Your weekly plan has wrapped up. Here's how you did:",
       "returningPrompt": "Ready to start a new week?",
-      "returningCta": "Create New Plan",
+      "returningCta": "Create new plan",
       "statCompleted": "Completed",
       "statTasksDone": "Tasks done",
       "statPointsEarned": "Points earned"
@@ -189,6 +208,8 @@
   "Errors": {
     "taskNotFound": "Task not found",
     "noActivePlan": "No active plan found",
+    "activePlanExists": "An active plan already exists",
+    "planNotActive": "This plan's week has ended. Create the new week's plan from the board.",
     "templateNotFound": "Template not found",
     "projectNotFound": "Project not found",
     "stepNotFound": "Step not found",
@@ -197,8 +218,7 @@
     "invalidCursor": "Invalid feed cursor"
   },
   "Validation": {
-    "frequencyPositive": "Frequency must be a positive integer",
-    "selectAtLeastOne": "Select at least one template or one-off task",
+    "selectAtLeastOne": "Select at least one template, one-off task or project step",
     "titleRequired": "Title is required",
     "descriptionRequired": "Description is required",
     "atLeastOneField": "At least one field must be provided",
@@ -273,8 +293,6 @@
     "removedNoteNoTasks": "No active tasks on the board",
     "modifiedNote": "{hasTasks, select, yes {Existing unfinished tasks deleted} other {No active tasks to remove}} — {count, plural, one {# new {type} instance} other {# new {type} instances}} will be generated",
     "adhocHeading": "One-off Tasks",
-    "addedToBoard": "Added to board",
-    "adhocAddedNote": "Will appear on the board",
     "removedFromBoard": "Removed from board",
     "adhocRemovedNote": "Will return to the Priorities matrix",
     "stepsHeading": "Project Steps",

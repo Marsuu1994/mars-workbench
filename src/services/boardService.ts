@@ -4,11 +4,12 @@ import {getProjectPathsByPlanId} from '@/lib/db/projects';
 import {
   getBoardMetricsByPlanId,
   getBoardTasksByPlanId,
-  getPlanTemplateStats,
+  getPlanTaskTotals,
+  updateTaskStatus,
+  type BoardMoveStatus,
+  type TaskItem,
 } from '@/lib/db/tasks';
-import type {OverallStats} from '@/types/plan';
-import type {BoardData} from '@/types/board';
-import {rollUpOverall} from '@/utils/statsUtils';
+import type {BoardData, BoardRecap} from '@/types/board';
 import {
   PlanMode,
   TaskType,
@@ -27,10 +28,10 @@ import {ensureSynced} from '@/services/syncService';
 /**
  * The empty-board state when there is no ACTIVE plan: a brand-new user vs. a
  * returning user whose previous plan's period has ended (PENDING_UPDATE),
- * whose finished-plan stats drive the celebratory recap.
+ * recapped over all of that plan's tasks.
  */
 export type EmptyBoardState =
-  {kind: 'new'} | {kind: 'returning'; stats: OverallStats};
+  {kind: 'new'} | {kind: 'returning'; recap: BoardRecap};
 
 /**
  * Resolve the empty-board state for a user with no ACTIVE plan. Must be called
@@ -42,8 +43,10 @@ export async function getEmptyBoardState(
   const pendingPlan = await getPlanByStatus(userId, PlanStatus.PENDING_UPDATE);
   if (!pendingPlan) return {kind: 'new'};
 
-  const rows = await getPlanTemplateStats(userId, pendingPlan.id);
-  return {kind: 'returning', stats: rollUpOverall(rows)};
+  const totals = await getPlanTaskTotals(userId, pendingPlan.id);
+  const completionRate =
+    totals.totalCount > 0 ? totals.doneCount / totals.totalCount : 0;
+  return {kind: 'returning', recap: {...totals, completionRate}};
 }
 
 /**
@@ -168,4 +171,19 @@ export async function fetchBoard(userId: string): Promise<BoardData | null> {
       daysElapsed,
     },
   };
+}
+
+/**
+ * Move a board card forward (Drag and Drop): the moves the board allows are
+ * the DAL's `WHERE` (`updateTaskStatus`), so a refused move is not found.
+ */
+export async function moveBoardTask(
+  userId: string,
+  taskId: string,
+  status: BoardMoveStatus,
+): Promise<{task: TaskItem} | {error: 'taskNotFound'}> {
+  const task = await updateTaskStatus(userId, taskId, status);
+  if (!task) return {error: 'taskNotFound'};
+
+  return {task};
 }

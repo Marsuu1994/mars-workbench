@@ -1,0 +1,36 @@
+name: Mockup links
+
+# Every mockup a PR adds or changes is linked from its description
+# (design/README.md › Mockups). Runs when the PR opens, on every push to it,
+# and when its description is edited — adding the link turns it green.
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: mockup-links-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  mockup-links:
+    name: Mockup links
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Every changed mockup is linked
+        run: node scripts/check-mockup-links.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

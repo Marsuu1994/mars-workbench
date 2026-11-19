@@ -5,6 +5,13 @@
   "engines": {
     "node": "24.x"
   },
+  "devEngines": {
+    "packageManager": {
+      "name": "npm",
+      "version": "11.19.1",
+      "onFail": "error"
+    }
+  },
   "scripts": {
     "dev": "NODE_OPTIONS='--inspect' next dev",
     "build": "next build",
@@ -16,9 +23,15 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check:themes": "node scripts/check-theme-vars.mjs",
+    "check:review-log": "node scripts/check-review-log.mjs",
+    "check:mockup-links": "node scripts/check-mockup-links.mjs",
+    "check:spec": "tsx scripts/checkSpec.ts",
+    "check:duplicate-types": "tsx scripts/checkDuplicateTypes.ts",
+    "e2e:timing": "node scripts/e2e-timing.mjs",
     "test": "vitest run",
     "test:unit": "vitest run --project 'unit-*'",
-    "test:coverage": "vitest run --coverage",
+    "test:component": "vitest run --project component",
+    "test:coverage": "vitest run --coverage --project 'unit-*' --project 'integration-*'",
     "test:e2e": "playwright test",
     "up": "node scripts/setup.mjs --dev",
     "setup": "node scripts/setup.mjs",
@@ -27,8 +40,7 @@
     "db:stop": "tsx scripts/localDb.ts stop",
     "db:seed": "tsx --env-file=.env.local scripts/seed.ts",
     "db:deploy:prod": "PRISMA_ENV_FILE=.env.prod prisma migrate deploy",
-    "dev:session": "tsx --env-file=.env.local scripts/devSession.ts",
-    "e2e:session": "tsx --env-file=.env.local scripts/e2eSession.ts"
+    "dev:session": "tsx --env-file=.env.local scripts/devSession.ts"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
@@ -41,7 +53,7 @@
     "daisyui": "^5.5.8",
     "dotenv": "^17.2.3",
     "mcp-handler": "^2.2.0",
-    "next": "^16.4.3",
+    "next": "^16.4.6",
     "next-intl": "^4.13.0",
     "pg": "^8.16.3",
     "react": "19.2.0",
@@ -57,10 +69,11 @@
     "@types/pg": "^8.16.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/browser-playwright": "5.0.5",
     "@vitest/coverage-v8": "5.0.5",
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
-    "eslint-config-next": "16.4.3",
+    "eslint-config-next": "16.4.6",
     "eslint-config-prettier": "^10.1.8",
     "knip": "5.88.1",
     "prettier": "3.9.4",
@@ -68,7 +81,8 @@
     "tailwindcss": "^4.1.17",
     "tsx": "4.23.15",
     "typescript": "^5",
-    "vitest": "5.0.5"
+    "vitest": "5.0.5",
+    "vitest-browser-react": "2.3.0"
   },
   "browserslist": "> 1%"
 }
