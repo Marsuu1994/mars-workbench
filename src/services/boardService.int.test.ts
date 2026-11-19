@@ -58,43 +58,35 @@ describe('fetchBoard', () => {
     expect(await fetchBoard(userId)).toBeNull();
   });
 
-  it("ST-3 counts today's and the week's progress", async () => {
+  it("ST-4 sends each past day's daily habit tasks that expired undone", async () => {
     const plan = await createMidWeek();
+    // Tuesday's visit generates Tuesday's run; Wednesday's expires both
+    freezeTime('2026-10-13T19:00:00Z');
+    await fetchBoard(userId);
     freezeTime(WEDNESDAY_EVENING);
-    // The first visit on Wednesday generates its run
     await fetchBoard(userId);
     const tasks = await getBoardTasksByPlanId(userId, plan.planId);
     const [run] = tasks.filter(task => task.title === 'Run');
-    const [firstReview, secondReview] = tasks.filter(
-      task => task.title === 'Review',
-    );
+    const [review] = tasks.filter(task => task.title === 'Review');
     await moveTasks(userId, [
       [run.id, TaskStatus.DONE],
-      [firstReview.id, TaskStatus.DONE],
-      [secondReview.id, TaskStatus.TODO],
+      [review.id, TaskStatus.TODO],
     ]);
 
     const board = await fetchBoard(userId);
-    expect(board?.progress).toEqual({
-      // Done this evening in Los Angeles, which is tomorrow in UTC
-      todayDoneCount: 2,
-      todayDonePoints: 4,
-      // Everything off the backlog: run, two reviews, the one-off
-      todayTotalCount: 4,
-      todayTotalPoints: 8,
-      weekDoneCount: 2,
-      weekDonePoints: 4,
-      // Monday's run (expired) + Wed–Fri's runs + 2 reviews + one-off + step
-      weekProjectedCount: 8,
-      weekProjectedPoints: 2 + 6 + 4 + 2 + 3,
-      daysElapsed: 3,
+    // Monday's and Tuesday's runs; today's run is done, and a weekly habit
+    // task doesn't expire mid-week
+    expect(board?.expiredDailyCountByDate).toEqual({
+      '2026-10-12': 1,
+      '2026-10-13': 1,
     });
+    expect(board).not.toHaveProperty('progress');
     expect(board?.projects).toEqual([
       expect.objectContaining({title: 'Course', steps: [expect.any(Object)]}),
     ]);
   });
 
-  it('ST-3 sends the plan with its habits, and every task but the expired ones', async () => {
+  it('ST-4 sends the plan with its habits, and every task but the expired ones', async () => {
     const plan = await createMidWeek();
     freezeTime(WEDNESDAY_EVENING);
 
@@ -193,7 +185,7 @@ describe('fetchBoard', () => {
     );
   });
 
-  it("ST-3 draws each step card's whole path, for this week's projects only", async () => {
+  it("ST-4 draws each step card's whole path, for this week's projects only", async () => {
     const {steps} = await createProjectWithSteps(userId, 'Course', [
       'Unit 1',
       'Unit 2',
@@ -218,22 +210,6 @@ describe('fetchBoard', () => {
         })),
       },
     ]);
-  });
-
-  it("doesn't count yesterday evening's work as today's", async () => {
-    const plan = await createMidWeek();
-    // Tuesday 18:00 in Los Angeles, Wednesday 01:00 UTC
-    freezeTime('2026-10-14T01:00:00Z');
-    const tasks = await getBoardTasksByPlanId(userId, plan.planId);
-    const [firstReview] = tasks.filter(task => task.title === 'Review');
-    await moveTasks(userId, [[firstReview.id, TaskStatus.DONE]]);
-
-    freezeTime(MOMENTS.WEDNESDAY_NOON);
-    const board = await fetchBoard(userId);
-    expect(board?.progress).toMatchObject({
-      todayDoneCount: 0,
-      weekDoneCount: 1,
-    });
   });
 });
 

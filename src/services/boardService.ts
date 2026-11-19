@@ -2,27 +2,15 @@ import {getPlanByStatus} from '@/lib/db/plans';
 import {getBoardPlanTemplatesByPlanId} from '@/lib/db/planTemplates';
 import {getProjectPathsByPlanId} from '@/lib/db/projects';
 import {
-  getBoardMetricsByPlanId,
   getBoardTasksByPlanId,
+  getExpiredDailyCountsByPlanId,
   getPlanTaskTotals,
   updateTaskStatus,
   type BoardMoveStatus,
   type TaskItem,
 } from '@/lib/db/tasks';
 import type {BoardData, BoardRecap} from '@/types/board';
-import {
-  PlanMode,
-  TaskType,
-  TaskStatus,
-  PlanStatus,
-} from '@/generated/prisma/client';
-import {
-  getTodayDate,
-  getMondayFromPeriodKey,
-  getSundayFromPeriodKey,
-  countWeekdaysInRange,
-} from '@/utils/dateUtils';
-import {sizeToPoints} from '@/utils/sizeUtils';
+import {PlanStatus} from '@/generated/prisma/client';
 import {ensureSynced} from '@/services/syncService';
 
 /**
@@ -51,8 +39,10 @@ export async function getEmptyBoardState(
 
 /**
  * Fetch the board for the kanban page, shaped for its screen: the plan
- * narrowed to what the board reads, the tasks (the client's state) and the
- * metrics. Checks if period has ended or daily sync is needed before running.
+ * narrowed to what the board reads, the tasks (the client's state), the
+ * projects behind the step cards, and each past day's expired daily habit
+ * tasks, which the day rings count as planned. Checks if period has ended or
+ * daily sync is needed before running.
  */
 export async function fetchBoard(userId: string): Promise<BoardData | null> {
   // End-of-period + daily sync live in syncService (shared with the matrix
@@ -60,92 +50,17 @@ export async function fetchBoard(userId: string): Promise<BoardData | null> {
   const activePlan = await ensureSynced(userId);
   if (!activePlan) return null;
 
-  const today = getTodayDate();
-
   // Everything else hangs off the plan id, so it reads in parallel: the
   // board loads in two database round trips (the sync's plan read, then these)
-  const [planTemplates, boardTasks, boardMetrics, projects] = await Promise.all(
-    [
+  const [planTemplates, boardTasks, expiredDailyCountByDate, projects] =
+    await Promise.all([
       getBoardPlanTemplatesByPlanId(userId, activePlan.id),
       getBoardTasksByPlanId(userId, activePlan.id),
-      getBoardMetricsByPlanId(userId, activePlan.id, today),
+      getExpiredDailyCountsByPlanId(userId, activePlan.id),
       // The projects behind the board's step cards: each card draws its path
       getProjectPathsByPlanId(userId, activePlan.id),
-    ],
-  );
+    ]);
   const {periodKey, mode} = activePlan;
-
-  // — Today metrics —
-  // Backlog tasks are staged off-board (backlog), so they are excluded from the
-  // Today ring/points. Week projection (from the DB aggregate) still counts them.
-  const onBoardTasks = boardTasks.filter(
-    task => task.status !== TaskStatus.BACKLOG,
-  );
-  const todayDoneCount = boardMetrics.todayDoneCount;
-  const todayTotalCount = onBoardTasks.length;
-  const todayDonePoints = boardMetrics.todayDonePoints;
-  const todayTotalPoints = onBoardTasks.reduce(
-    (sum, task) => sum + task.points,
-    0,
-  );
-
-  // — Week Projected (Option C: past instances + future projection + weekly instances) —
-  const dailyPastPoints = boardMetrics.dailyPastPoints;
-  const dailyPastCount = boardMetrics.dailyPastCount;
-
-  const weekEnd = getSundayFromPeriodKey(periodKey);
-  const remainingDays =
-    mode === PlanMode.NORMAL
-      ? countWeekdaysInRange(today, weekEnd)
-      : Math.max(
-          1,
-          Math.floor((weekEnd.getTime() - today.getTime()) / 86400000) + 1,
-        );
-
-  const currentDailyTemplates = planTemplates.filter(
-    planTemplate => planTemplate.type === TaskType.DAILY,
-  );
-  const dailyFuturePoints =
-    currentDailyTemplates.reduce(
-      (sum, planTemplate) =>
-        sum + sizeToPoints(planTemplate.size) * planTemplate.frequency,
-      0,
-    ) * remainingDays;
-  const dailyFutureCount =
-    currentDailyTemplates.reduce(
-      (sum, planTemplate) => sum + planTemplate.frequency,
-      0,
-    ) * remainingDays;
-
-  const weeklyPoints = boardMetrics.weeklyPoints;
-  const weeklyCount = boardMetrics.weeklyCount;
-
-  // Ad-hoc tasks and project steps: always included in projected (never
-  // expire, no future generation) — steps waiting in the backlog included
-  const adhocPoints = boardMetrics.adhocPoints;
-  const adhocCount = boardMetrics.adhocCount;
-  const projectPoints = boardMetrics.projectPoints;
-  const projectCount = boardMetrics.projectCount;
-
-  const weekProjectedPoints =
-    dailyPastPoints +
-    dailyFuturePoints +
-    weeklyPoints +
-    adhocPoints +
-    projectPoints;
-  const weekProjectedCount =
-    dailyPastCount + dailyFutureCount + weeklyCount + adhocCount + projectCount;
-
-  const weekDoneCount = boardMetrics.weekDoneCount;
-  const weekDonePoints = boardMetrics.weekDonePoints;
-
-  // — Days elapsed (1–7) —
-  const weekStart = getMondayFromPeriodKey(periodKey);
-  const diffMs = today.getTime() - weekStart.getTime();
-  const daysElapsed = Math.min(
-    7,
-    Math.max(1, Math.floor(diffMs / 86400000) + 1),
-  );
 
   return {
     plan: {
@@ -159,17 +74,7 @@ export async function fetchBoard(userId: string): Promise<BoardData | null> {
     },
     tasks: boardTasks,
     projects,
-    progress: {
-      todayDoneCount,
-      todayTotalCount,
-      todayDonePoints,
-      todayTotalPoints,
-      weekDoneCount,
-      weekProjectedCount,
-      weekDonePoints,
-      weekProjectedPoints,
-      daysElapsed,
-    },
+    expiredDailyCountByDate,
   };
 }
 
