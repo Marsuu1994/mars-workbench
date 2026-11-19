@@ -364,9 +364,12 @@ const completeByTap = async (title: string) => {
   await userEvent.click(getCompleteButton(title));
 };
 
-/** A press outside the Todo cards and the day's list: a column's header. */
+/** A press outside the Todo cards and the day's list: a column's header,
+    Done's where there is one, since an open list can cover Todo's. */
 const pressOutside = () =>
-  userEvent.click(getColumnFrame('TODO').querySelector('h2')!);
+  userEvent.click(
+    getColumnFrame(findColumn('DONE') ? 'DONE' : 'TODO').querySelector('h2')!,
+  );
 
 // ─── The rings ─────────────────────────────────────────────────────────────
 
@@ -1938,8 +1941,15 @@ describe('Motion', () => {
   const watchClasses = (classNames: string[]) => {
     const added: {element: HTMLElement; className: string}[] = [];
     const observer = new MutationObserver(records => {
-      added.push(...findClassAdditions(records, classNames));
-      // An element can also arrive with the class already on it
+      const changed = findClassAdditions(records, classNames);
+      added.push(...changed);
+      // An element can also arrive with the class already on it; one that got
+      // the class in this same batch is counted once
+      const isCounted = (element: HTMLElement, className: string) =>
+        changed.some(
+          addition =>
+            addition.element === element && addition.className === className,
+        );
       for (const {addedNodes} of records) {
         for (const node of addedNodes) {
           if (!(node instanceof HTMLElement)) continue;
@@ -1948,7 +1958,11 @@ describe('Motion', () => {
               ...(node.classList.contains(className) ? [node] : []),
               ...node.querySelectorAll<HTMLElement>(`.${className}`),
             ];
-            for (const element of arrived) added.push({element, className});
+            for (const element of arrived) {
+              if (!isCounted(element, className)) {
+                added.push({element, className});
+              }
+            }
           }
         }
       }
