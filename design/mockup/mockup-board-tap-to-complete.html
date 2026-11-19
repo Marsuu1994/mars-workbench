@@ -234,6 +234,8 @@
   .tbl th, .tbl td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--card-border); }
   .tbl th { font-family: 'Geist Mono', monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-55); font-weight: 600; }
   .tbl td:first-child { font-weight: 600; white-space: nowrap; }
+  .tbl.mx td { color: var(--ink-80); } .tbl.mx td b { color: var(--bc); }
+  @media (max-width: 760px) { .tbl.mx td:first-child { white-space: normal; } }
   .tbl td { color: var(--ink-80); }
   .tbl-wrap { overflow-x: auto; border: 1px solid var(--card-border); border-radius: 12px; background: color-mix(in oklab, var(--b1) 30%, transparent); }
   .good { color: var(--su); } .bad { color: var(--er); } .meh { color: var(--wa); }
@@ -267,6 +269,10 @@
   .dash { display: flex; align-items: center; gap: 20px; padding: 10px 16px; border-bottom: 1px solid var(--card-border); background: color-mix(in oklab, var(--b2) 50%, transparent); }
   .dash .ring { position: relative; width: 48px; height: 48px; flex-shrink: 0; }
   .dash .ring svg { width: 48px; height: 48px; transform: rotate(-90deg); }
+  /* the product's fx-orbit (globals.css): a conic glint behind the ring, one turn every 2 s, off under reduced motion */
+  .dash .ring::before { content: ''; position: absolute; inset: -3px; border-radius: 99px; pointer-events: none; background: conic-gradient(from 0deg, transparent 0 78%, color-mix(in oklab, var(--p) 35%, transparent) 92%, transparent 100%); -webkit-mask-image: radial-gradient(closest-side, transparent 82%, black 84%, black 96%, transparent 100%); mask-image: radial-gradient(closest-side, transparent 82%, black 84%, black 96%, transparent 100%); animation: fx-orbit 2s linear infinite; }
+  @keyframes fx-orbit { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .dash .ring::before { animation: none; } }
   .dash .ring .pct { position: absolute; inset: 0; display: grid; place-items: center; font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 700; }
   .dash .lbl { display: flex; flex-direction: column; gap: 1px; }
   .dash .k { font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-80); font-weight: 600; }
@@ -294,6 +300,7 @@
   .backlog-hint .icon { color: var(--p); }
   .backlog-body { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
   .board-wrap { flex: 1; min-height: 0; display: flex; }
+  .board-wrap .bk-rail { width: 48px; flex-shrink: 0; }
   .board-cols.one { grid-template-columns: 1fr; }
   .desk.board .board-cols { max-height: 520px; }
   .mpill { position: absolute; left: 12px; right: 12px; bottom: 72px; z-index: 3; }
@@ -313,10 +320,6 @@
   .mtop7 .tline .all.show, .top7 .all.show { opacity: 1; transform: none; }
   .top7 .all { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--su); opacity: 0; transition: opacity .24s var(--ease); }
   .strip7 .d { position: relative; transition: transform .4s var(--ease), border-color .15s; }
-  .strip7 .d.burst { animation: burst .4s var(--ease); }
-  @keyframes burst { 35% { transform: scale(1.14); } 100% { transform: scale(1); } }
-  .strip7 .pips i.pop { animation: pop .15s var(--ease); }
-  @keyframes pop { 50% { transform: scale(1.6); } }
   .strip7 .d.drop-hot { border-color: var(--a); box-shadow: 0 0 0 2px color-mix(in oklab, var(--a) 40%, transparent) inset, 0 0 12px color-mix(in oklab, var(--a) 30%, transparent); }
   .strip7 .d.drop-hot .dn { color: var(--a); }
   /* (b) clickable cells + the day panel under the strip */
@@ -370,8 +373,6 @@
   .tc.hitting .tc-title { text-decoration: line-through; text-decoration-color: var(--ink-45); color: var(--ink-55); transition: color .15s; }
   .tc.leaving { opacity: 0; transform: translateX(10px); transition: opacity .2s var(--ease), transform .24s var(--ease); pointer-events: none; }
   .tc.flip { transition: transform .24s var(--ease); }
-  .tc.rise { animation: rise .24s var(--ease); }
-  @keyframes rise { from { transform: translateY(8px); opacity: 0; } }
   /* desktop: ✓ on the right, faint until hover */
   .desk .tc .chk, .deskdemo .tc .chk { opacity: .45; }
   .desk .tc:hover .chk, .deskdemo .tc:hover .chk, .desk .tc .chk.hit, .deskdemo .tc .chk.hit { opacity: 1; }
@@ -379,18 +380,7 @@
   .tc .tc-foot .chk { margin-left: auto; }
   /* phone: ✓ bottom-right in the foot row (↑ Todo's spot on a backlog card) */
 
-  /* ── Snackbar: 5 s, one action, a countdown hairline ── */
-  .snack { position: absolute; left: 12px; right: 12px; bottom: 124px; z-index: 5; display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 6px 0 14px; border-radius: 12px; background: var(--b3); border: 1px solid var(--card-border); box-shadow: 0 8px 24px oklch(0 0 0 / .4); font-size: 13px; overflow: hidden; transform: translateY(12px); opacity: 0; transition: opacity .2s var(--ease), transform .3s var(--ease); }
-  .snack.show { opacity: 1; transform: none; }
-  .snack .msg { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-80); } .snack .msg b { color: var(--bc); font-weight: 600; }
-  .snack .act { border: 0; background: transparent; color: var(--p); font-weight: 700; font-size: 13px; padding: 0 10px; height: 36px; border-radius: 8px; cursor: pointer; }
-  .snack .act:hover { background: color-mix(in oklab, var(--p) 12%, transparent); }
-  .snack .cd { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--p); transform-origin: left; transform: scaleX(1); }
-  .snack.show .cd { animation: countdown 5s linear forwards; }
-  @keyframes countdown { to { transform: scaleX(0); } }
-  .deskdemo .snack { position: static; margin-top: 10px; transform: none; opacity: 0; transition: opacity .2s; display: none; }
-  .deskdemo .snack.show { display: flex; opacity: 1; }
-  @media (prefers-reduced-motion: reduce) { .tc.leaving { transform: none; } .snack { transform: none; } .snack.show .cd { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .tc.leaving { transform: none; } }
 
   /* demo frames */
   .demo { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; justify-items: start; }
@@ -509,9 +499,10 @@
   .bk-demo .bk-box { border: 1px solid var(--card-border); border-radius: 12px; overflow: hidden; background: var(--b2); }
   .bk-demo .backlog { border-left: 0; }
   .bk-demo .backlog-body { max-height: 420px; }
-  .bk-demo .bk-old-empty { text-align: center; font-size: 12px; color: var(--ink-45); margin-top: 24px; padding: 0 16px; }
-  .cel-empty.enter { animation: celEnter .4s var(--ease); }
-  @keyframes celEnter { from { opacity: 0; transform: translateY(6px); } }
+  /* the product's FinishBox eases in with fx-boot-in (globals.css: 420 ms, console snap; off under reduced motion) */
+  .cel-empty.enter { animation: fx-boot-in .42s var(--ease) both; }
+  @keyframes fx-boot-in { from { opacity: 0; transform: translateY(6px) scale(.985); } }
+  @media (prefers-reduced-motion: reduce) { .cel-empty.enter { animation: none; } }
   .ideas { display: flex; flex-direction: column; gap: 14px; max-width: 980px; }
   .idea { border: 1px solid var(--card-border); border-radius: 12px; padding: 14px 18px; background: color-mix(in oklab, var(--b1) 35%, transparent); font-size: 13px; line-height: 1.65; color: var(--ink-80); }
   .idea-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
@@ -530,18 +521,14 @@
   .cmp-cell { border: 1px solid var(--card-border); border-radius: 12px; background: var(--b2); overflow: hidden; }
   .cmp-cell .pz-row { border-bottom: 0; justify-content: center; padding: 12px 10px; }
   .cmp-cell .pz-day.today { flex: 0 1 auto; padding: 8px 12px; }
-  .pz-day.big-a .pz-ringwrap { animation: bigPulse .4s var(--ease); border-radius: 99px; }
-  .pz-day.big-a .pz-ringwrap::after { content: ''; position: absolute; inset: -2px; border-radius: 99px; animation: halo .6s var(--ease) forwards; pointer-events: none; }
-  @keyframes bigPulse { 45% { transform: scale(1.15); } }
-  @keyframes halo { from { box-shadow: 0 0 0 0 color-mix(in oklab, var(--su) 60%, transparent); } to { box-shadow: 0 0 0 16px transparent; } }
-  .pz-day.big-a .ring-check path, .pz-day.big-b .ring-check path { animation: draw .3s .25s var(--ease) backwards; }
+  .pz-day.big-b .ring-check path { animation: draw .3s .25s var(--ease) backwards; }
   @keyframes draw { from { stroke-dashoffset: 1; } }
   .pz-day.big-b .ring-svg { animation: spin .7s var(--ease); }
   @keyframes spin { from { transform: rotate(-90deg); } to { transform: rotate(270deg); } }
   .spark { position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px; border-radius: 99px; background: var(--color); animation: spark .7s var(--ease) forwards; pointer-events: none; }
   @keyframes spark { from { transform: rotate(var(--angle)) translateY(-18px); opacity: 1; } to { transform: rotate(var(--angle)) translateY(-40px) scale(.4); opacity: 0; } }
   .cel-summary { display: block; margin-bottom: 4px; }
-  @media (prefers-reduced-motion: reduce) { .pz-day.tick .pz-ringwrap, .pz-day.big-a .pz-ringwrap, .pz-day.big-b .ring-svg, .cel-empty.enter { animation: none; } .pz-day.big-a .pz-ringwrap::after, .spark { display: none; } .pz-mark circle { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .pz-day.tick .pz-ringwrap, .pz-day.big-b .ring-svg { animation: none; } .spark { display: none; } .pz-mark circle { transition: none; } }
   /* D · Done */
   .pz-day.tap { cursor: pointer; transition: background .15s; }
   .pz-day.tap:hover { background: var(--ink-10); }
@@ -577,7 +564,7 @@
   .btn-states .pz-row { border: 1px solid var(--card-border); border-radius: 12px; background: var(--b2); padding: 8px; }
   .btn-states figcaption { font-family: 'Geist Mono', monospace; font-size: 10px; color: var(--ink-45); }
   .btn-states .pz-day:not(.today) { min-width: 58px; }
-  .btnrow .pz-day.tap { position: relative; cursor: pointer; outline: none; transition: background .15s var(--ease), transform .1s var(--ease), box-shadow .15s var(--ease), border-color .15s; }
+  .btnrow .pz-day.tap { position: relative; cursor: pointer; outline: none; transition: background .15s var(--ease), transform .15s var(--ease), box-shadow .15s var(--ease), border-color .15s; }
   .btnrow .pz-day.tap:not(.sel):hover { background: transparent; }
   .btnrow .pz-day.today { border-color: color-mix(in oklab, var(--p) 35%, transparent); box-shadow: none; }
   .btnrow .pz-day.today.closed { border-color: color-mix(in oklab, var(--su) 45%, transparent); }
@@ -593,14 +580,12 @@
   .done-row .t { text-decoration: none; }
   @media (prefers-reduced-motion: reduce) { .btnrow .pz-day.tap { transition: none; } .btnrow .pz-day.tap:active, .btnrow .pz-day.is-press { transform: none; } }
   /* T · Tap twice */
-  .arm-card { cursor: pointer; transition: transform .12s var(--ease), border-color .15s, box-shadow .15s, opacity .2s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; outline: none; }
+  .arm-card { cursor: pointer; transition: transform .15s var(--ease), border-color .15s, box-shadow .15s, opacity .2s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; outline: none; }
   .arm-card:active { transform: scale(.985); }
   .arm-card:focus-visible { box-shadow: 0 0 0 2px var(--p); }
   .arm-right { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; }
-  .arm-mark { width: 22px; height: 22px; border-radius: 99px; border: 1.5px solid var(--ink-30); display: inline-grid; place-items: center; color: transparent; flex-shrink: 0; transition: all .18s var(--ease); }
-  .arm-word { font-family: 'Geist Mono', monospace; font-size: 10.5px; font-weight: 600; color: var(--su); letter-spacing: .04em; animation: armIn .18s var(--ease); }
-  .arm-text { display: flex; align-items: center; gap: 6px; margin: 2px -12px -10px; padding: 7px 12px; border-top: 1px solid color-mix(in oklab, var(--su) 30%, transparent); background: color-mix(in oklab, var(--su) 12%, transparent); color: var(--su); font-size: 12px; font-weight: 600; border-radius: 0 0 var(--rc) var(--rc); animation: armDown .18s var(--ease); }
-  @keyframes armDown { from { opacity: 0; transform: translateY(-4px); } }
+  .arm-mark { width: 22px; height: 22px; border-radius: 99px; border: 1.5px solid var(--ink-30); display: inline-grid; place-items: center; color: transparent; flex-shrink: 0; transition: all .15s var(--ease); }
+  .arm-word { font-family: 'Geist Mono', monospace; font-size: 10.5px; font-weight: 600; color: var(--su); letter-spacing: .04em; animation: armIn .15s var(--ease); }
   @keyframes armIn { from { opacity: 0; transform: translateX(4px); } }
   /* B · glow: green frame, inner light */
   .armed-glow { border-color: color-mix(in oklab, var(--su) 70%, transparent); border-left-color: var(--k); box-shadow: inset 0 0 18px color-mix(in oklab, var(--su) 14%, transparent), 0 0 14px color-mix(in oklab, var(--su) 16%, transparent); transform: translateY(-1px); }
@@ -611,7 +596,7 @@
   .tap-ring { justify-content: flex-start; border-bottom: 1px solid var(--card-border); }
   .tap-ring .pz-day.today { flex: 0 0 auto; padding: 6px 14px; }
   .tap-phone { min-height: 560px; }
-  @media (prefers-reduced-motion: reduce) { .armed-glow::after, .armed-combo::after { animation: none; } .arm-text, .arm-word { animation: none; } .armed-glow { transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .armed-glow::after, .armed-combo::after { animation: none; } .arm-word { animation: none; } .armed-glow { transform: none; } }
   .arm-btn { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 99px; border: 0; background: var(--su); color: var(--suc); font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 0 14px color-mix(in oklab, var(--su) 40%, transparent); animation: armIn .18s var(--ease); position: relative; }
   .arm-btn::after { content: ''; position: absolute; inset: -6px -4px; }
   .arm-btn .icon { stroke-width: 3; }
@@ -620,7 +605,7 @@
   .arm-card.armed { border-color: color-mix(in oklab, var(--su) 70%, transparent); border-left-color: var(--k); box-shadow: inset 0 0 18px color-mix(in oklab, var(--su) 12%, transparent), 0 0 14px color-mix(in oklab, var(--su) 14%, transparent); }
   .arm-go { margin-left: auto; position: relative; display: inline-flex; align-items: center; gap: 8px; height: 22px; padding: 0; border: 0; background: transparent; font: inherit; cursor: pointer; }
   .arm-go::after { content: ''; position: absolute; inset: -11px -8px; }
-  .arm-go .arm-mark { transform-origin: center; transition: transform .18s var(--ease), background .18s, border-color .18s, color .18s, box-shadow .18s; }
+  .arm-go .arm-mark { transform-origin: center; transition: transform .15s var(--ease), background .15s, border-color .15s, color .15s, box-shadow .15s; }
   .armed .arm-go .arm-mark { transform: scale(1.45); border-color: var(--su); background: var(--su); color: var(--suc); box-shadow: 0 0 10px color-mix(in oklab, var(--su) 40%, transparent); }
   .armed .arm-go .arm-mark .icon { stroke-width: 3; }
   .armed .arm-go .arm-word { margin-right: 4px; font-size: 12px; }
@@ -644,10 +629,7 @@
   .dp-ghead > span { flex: 1; }
   .dp-ghead:hover { background: var(--ink-10); }
   .dp-gbody { border-top: 1px solid var(--card-border); }
-  .done-row.fresh { animation: freshRow .9s var(--ease); }
-  @keyframes freshRow { from { background: color-mix(in oklab, var(--su) 22%, transparent); } }
   .dpane-grid .backlog { width: auto; }
-  @media (prefers-reduced-motion: reduce) { .done-row.fresh { animation: none; } }
   /* round 14: the desktop Done this week, the day popover, the backlog edge with ↑ Todo */
   .dpane-grid.bk-closed { grid-template-columns: minmax(300px, 1.2fr) minmax(280px, 1fr) 48px; }
   .dpane-desk .done-anchor .pz-row { border-bottom: 1px solid var(--card-border); }
@@ -657,11 +639,9 @@
   .bk-rail .v { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 13px; font-weight: 600; color: var(--ink-65); }
   .dpane-grid .backlog-head[data-bk-toggle] { cursor: pointer; }
   .dpane-grid .backlog-head[data-bk-toggle]:hover > span:last-child { opacity: 1 !important; color: var(--p); }
-  .pull-btn { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px 3px 7px; border-radius: 999px; border: 1px solid color-mix(in oklab, var(--p) 45%, transparent); background: color-mix(in oklab, var(--p) 8%, transparent); color: var(--p); font-size: 11.5px; font-weight: 600; cursor: pointer; }
-  .pull-btn:hover { background: color-mix(in oklab, var(--p) 18%, transparent); }
-  .tc.pulled { animation: pulled .9s var(--ease); }
-  @keyframes pulled { from { box-shadow: 0 0 0 2px var(--p), 0 0 18px color-mix(in oklab, var(--p) 40%, transparent); } }
-  @media (prefers-reduced-motion: reduce) { .tc.pulled, .done-card.fresh { animation: none; } }
+  .pull-btn { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; height: 32px; padding: 0 12px; border-radius: var(--rf); border: 1px solid var(--ink-10); background: transparent; color: var(--ink-55); font-family: 'Geist Mono', monospace; font-size: 11.5px; font-weight: 600; cursor: pointer; flex-shrink: 0; }
+  .pull-btn:hover { border-color: var(--p); color: var(--p); }
+  @media (prefers-reduced-motion: reduce) { .done-card.fresh { animation: none; } }
   /* round 15: desktop as the product has it — Todo and Done side by side, the backlog collapsed at the edge */
   .dpane-grid { grid-template-columns: minmax(300px, 1fr) minmax(300px, 1fr) 300px; }
   .dpane-grid.bk-closed { grid-template-columns: minmax(300px, 1fr) minmax(300px, 1fr) 48px; }
@@ -723,15 +703,17 @@
     <div class="eyebrow">Board · Phase 2 · design PR · pending 2026-11-19（定稿过：final version · decided 2026-11-11）· 第 1 轮 2026-11-06 · 第 2–18 轮一个模块一个模块定，2026-11-09 合在一起 · 第 22–25 轮：M · 完成动画 · 第 25–28 轮：桌面 Todo 加 Today、Todo 空了的提醒 · 第 28–29 轮：K · Card，所有卡片合成一个组件</div>
     <h1>Board：点一下选中，✓ Complete 完成</h1>
     <p>有 active plan 的白天，默认屏就是 board。第一个 tab <b>F · Final</b> 是合在一起的定稿：Before 是现在的产品，After 是 P · Progress、C · Celebration、D · Done、T · Tap twice、M · 完成动画五个模块合起来的样子，桌面和手机都能直接点。后面五个 tab 是每个模块的决定和研究，<b>K · Card</b> 把所有卡片放在一起对照，给实现用；<b>B · Backlog</b> 记 backlog 这里的两处修订（decided 2026-11-19）；<b>I · Ideas</b> 记着这个设计带出来、要在别处或以后做的事。第 1 轮的 1–6 屏已被这些决定取代，留在 commit 历史里（<code>53d9220</code> 及以前）。</p>
-    <p><b>Pending · 2026-11-19（owner）。</b>这个设计在 2026-11-11 定稿过，现在改回 pending。动手写 spec 或实现之前先处理下面两件事，处理完由 owner 重新定稿（<code>design/README.md</code> › Mockups）。各个 tab 上的 ✓ 和「定稿」记的是当时每个模块的决定，留着不动。</p>
+    <p><b>Pending · 2026-11-19（owner）。</b>这个设计在 2026-11-11 定稿过，现在改回 pending。动手写 spec 或实现之前先处理下面两件事，处理完由 owner 重新定稿（<code>design/README.md</code> › Mockups）。各个 tab 上的 ✓ 和「定稿」记的是当时每个模块的决定，留着不动。<b>2026-11-19 两件都处理了</b>（每件后面的「处理」），等 owner 看过重新定稿；处理时做的决定和拿不准的地方列在这个 PR 的说明里。</p>
     <p><b>① 没写明的动画。</b>这个文件有 17 个 <code>@keyframes</code>：<code>armDown</code>、<code>armIn</code>、<code>bigPulse</code>、<code>burst</code>、<code>celEnter</code>、<code>countdown</code>、<code>doneIn</code>、<code>draw</code>、<code>freshRow</code>、<code>halo</code>、<code>moShine</code>、<code>pop</code>、<code>pulled</code>、<code>rise</code>、<code>spark</code>、<code>spin</code>、<code>tick</code>。<b>M · 完成动画</b>写明了完成时的 juice 和飞进今天的圈；其余的逐个确认：是设计的一部分，就在它所属组件的 tab 里写明什么触发、哪个元素动、怎么动、多久、系统开了「减少动态效果」时怎样；不是，就从 mockup 里删掉。Before 不做产品没有的动效。</p>
+    <p><b>① 处理（2026-11-19）。</b><b>删掉 9 个</b>，都没有写在任何说明里：<code>burst</code>、<code>pop</code>、<code>rise</code>、<code>countdown</code>（连同 snackbar 的样式）、<code>armDown</code>、<code>bigPulse</code>、<code>halo</code> 是被取代的旧方案留下的，页面上已经不会触发；<code>pulled</code>（从 backlog 拉上来的卡亮一下）和 <code>freshRow</code>（一天的清单里刚完成的那行亮一下）会触发，但就是 <code>design/README.md</code> 里「Bad」那一种：只是为了指出点了以后哪里变了。<b>留下 8 个</b>，写进它所属 tab 新加的「动效」表：<code>armIn</code>（T）、<code>tick</code>、<code>spin</code>、<code>spark</code>、<code>draw</code>（C）、<code>doneIn</code> 和换成产品 <code>fx-boot-in</code> 的 <code>celEnter</code>（D）、<code>moShine</code>（M）。同一张表也写了没有 <code>@keyframes</code> 的动效（transition 和脚本里的动画）。时长对到 design-language › Motion 的 token 上：选中、按下 150 ms，留下的卡补位 240 ms；对不上 token 的两个（弧 500 ms 照产品现在的 Today ring，<code>doneIn</code> 900 ms）表里写明了。Before 加上了产品自己的 <code>fx-orbit</code>（Today ring 后面那道转的光）。</p>
     <p><b>② 和现在的产品对齐。</b>Before 照动手时的产品重画，文字里说「现在的产品」的地方逐句对照代码。定稿之后产品已经在变：PR #126 把 backlog 改成按 habit 和 project 分组，并给空的 backlog 和空的 Todo 加了虚线框。</p>
+    <p><b>② 处理（2026-11-19，对照 <code>main</code> 的 <code>6ed14d0</code>）。</b>Before 照 PR #126 之后的产品重画：桌面 backlog 默认收起（BL-4），点窄条打开，里面按 Habits · Projects 分组，有 pile、+N more 和标题下的提示，卡上没有 size，数量到 8 以上写 8+；habit 卡的 dots 后面不再画产品没有的 <code>2/7</code>。K · Card 和 B · Backlog 的 Before 换成产品现在的 backlog 卡（<code>BacklogGroupFace</code>），After 的 ↑ Todo 画成产品的样子。文字里说「现在的产品」的地方逐句对过代码，已经在产品里的不再算改动：Done 按完成时间倒序（COL-3）、Todo 空了的虚线框（COL-5）、空 backlog 的虚线框和 0（BL-15）、backlog 卡上的 HABIT 标签；F · Final 的「这次新加的」、D、K、B 和 Ideas 9、11 都相应改了。</p>
   </div>
 </header>
 
 <!-- ═════════ F · Final: the four modules on one board (round 18) ═════════ -->
 <section class="screen on" data-screen="final">
-  <div class="col-label"><b>F · Final · pending 2026-11-19（见页首）· 修订 · amended 2026-11-19（PR #127：backlog 去掉标题下的提示、补上空状态，见 B · Backlog；Todo 空了的文案换成 All clear for the day，见 D · Done；decided 2026-11-19）· 之前：final version · decided 2026-11-09 · 修订 · amended 2026-11-10（第 25 轮：合进 M，桌面 Todo 加 Today、Todo 空了的提醒，第 28 轮定稿）· 修订 · amended 2026-11-11（第 28 轮：卡片合成一个组件，one-off 的 quadrant 挪进标签；第 29 轮定稿）</b> · P 进度圈 · C 庆祝 · D 做完的去哪 · T 点两下完成 · M 完成动画 · K 卡片，合在一块 board 上<span class="line"></span></div>
+  <div class="col-label"><b>F · Final · pending 2026-11-19（见页首；① ② 已处理，等重新定稿）· 修订 · amended 2026-11-19（PR #127：backlog 去掉标题下的提示、补上空状态，见 B · Backlog；Todo 空了的文案换成 All clear for the day，见 D · Done；decided 2026-11-19）· 之前：final version · decided 2026-11-09 · 修订 · amended 2026-11-10（第 25 轮：合进 M，桌面 Todo 加 Today、Todo 空了的提醒，第 28 轮定稿）· 修订 · amended 2026-11-11（第 28 轮：卡片合成一个组件，one-off 的 quadrant 挪进标签；第 29 轮定稿）</b> · P 进度圈 · C 庆祝 · D 做完的去哪 · T 点两下完成 · M 完成动画 · K 卡片，合在一块 board 上<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:14px">每一块怎么来的，见后面五个 tab 和 <code>reviews/pr-115.md</code>。下面的 After 都能直接操作：点卡片选中，再点 <b>✓ Complete</b> 完成（只点卡片别处是取消）——卡片随机来一种 juice，再飞进今天的圈（M）；全部做完会播大反馈，Todo 空了留一块提醒。点今天或之前的某一格，看那天做完的；Backlog 点开，卡片上有 <b>↑ Todo</b>。桌面和手机的 After 上面各有 <b>Complete all →</b>（一张张做完，直接看大反馈，可以拿来录 demo）和 <b>Reset</b>。Fixture：Thu Nov 5 12:40，今天做完 1 / 5。</p>
   <div class="col-label"><b>这次新加的</b> · 相对现在的产品，按 board 上的位置分，每块注明来自哪个模块（第 28 轮和原来的「解剖」合成一节）<span class="line"></span></div>
   <div class="patterns" id="fin-new" style="margin-bottom:22px;grid-template-columns:repeat(auto-fill, minmax(230px, 1fr))"></div>
@@ -786,6 +768,8 @@
   <p class="note">多数日子 habit 是大头（第 2 列），有时 step 多（第 3 列），也常有只有一两种的一天（第 4–6 列）。火花跟着那天做完的比例走：只有 habit 的一天全是绿色，step 多的一天紫色多——每天的样子不一样，等于把今天回放一遍。</p>
   <div class="col-label spaced"><b>完整的样子</b> · 桌面今天那格 + 手机的 Todo · 可以直接点 ✓<span class="line"></span></div>
   <div id="cel-options"></div>
+  <div class="col-label spaced"><b>动效</b> · 这个 tab 里会动的 · 2026-11-19 补写<span class="line"></span></div>
+  <table class="tbl mx" data-mx="celebration"></table>
   <div class="col-label spaced"><b>Research</b> · Apple 和其他产品怎么庆祝「做完了」<span class="line"></span></div>
   <div class="patterns" id="cel-patterns"></div>
   <div class="col-label spaced"><b>定稿后还开着的</b> · 记在 I · Ideas<span class="line"></span></div>
@@ -795,7 +779,7 @@
 <!-- ═════════ D · Done (rounds 5–6, amended rounds 10 and 14) ═════════ -->
 <section class="screen" data-screen="done">
   <div class="col-label"><b>D · Done · 定稿 · decided 2026-11-09 · 修订 · amended 2026-11-09（第 14–15 轮）· 修订 · amended 2026-11-10（第 25 轮：桌面 Todo 加 Today、Todo 空了的提醒；第 28 轮定稿）</b> · 一天的清单两端都藏在圈后面；桌面就是现在的产品：Todo · Done（这周的卡片）· Backlog 收起<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px">第 5 轮画了三个方向（commit <code>2211b07</code>），第 6 轮定了「一天的清单藏在那天的圈后面：桌面浮窗、手机 sheet」。第 10 轮按 spike 把桌面改成常驻的 Done pane（按天分组、每组带圈），第 11–13 轮比较了五种桌面排法（commit <code>13628f5</code>），owner 都没选；第 14 轮把 Done 画成按 kind 分组的清单（commit <code>9594f3f</code>）。<b>第 15 轮定稿</b>：<b>一天的清单</b>两端同一个 journey——点某天的圈，看那天做完的（桌面浮在圈下面，手机是 sheet）。<b>桌面就按现在的产品</b>：Todo 和 Done 两列并排，Done 放这周做完的所有卡片，<b>不分组，按完成时间排，最新的在最上面</b>（第 17 轮；产品现在和 Todo 一样按 habit / project 分组排，这一条要写进 flow，见 Ideas 11），表头右边加 <b>This week</b>，Todo 的表头对应加 <b>Today</b>（第 25 轮，只在桌面，手机不改）；Backlog 默认收起，点开后卡片上有 <b>↑ Todo</b>，也能拖。唯一大的改动是<b>完成的卡片</b>：和产品一样变暗、标题划掉、不显示 description，加上选中时卡片里面的那层光，但<b>没有高亮的边框，也没有右下角的 ✓</b>（第 16 轮拿掉：第 15 轮的实心 ✓ + Complete 太抢眼，见 commit <code>d17bbcb</code>）。清单都只读，没有撤回按钮（Ideas 8）。切到 <b>Long day</b> 看 Done 长了以后的样子。</p>
+  <p class="note" style="margin-top:0;margin-bottom:14px">第 5 轮画了三个方向（commit <code>2211b07</code>），第 6 轮定了「一天的清单藏在那天的圈后面：桌面浮窗、手机 sheet」。第 10 轮按 spike 把桌面改成常驻的 Done pane（按天分组、每组带圈），第 11–13 轮比较了五种桌面排法（commit <code>13628f5</code>），owner 都没选；第 14 轮把 Done 画成按 kind 分组的清单（commit <code>9594f3f</code>）。<b>第 15 轮定稿</b>：<b>一天的清单</b>两端同一个 journey——点某天的圈，看那天做完的（桌面浮在圈下面，手机是 sheet）。<b>桌面就按现在的产品</b>：Todo 和 Done 两列并排，Done 放这周做完的所有卡片，<b>不分组，按完成时间排，最新的在最上面</b>（第 17 轮；PR #126 之后产品已经这样排，board spec 的 COL-3，见 Ideas 11），表头右边加 <b>This week</b>，Todo 的表头对应加 <b>Today</b>（第 25 轮，只在桌面，手机不改）；Backlog 默认收起，点开后卡片上有 <b>↑ Todo</b>，也能拖。唯一大的改动是<b>完成的卡片</b>：和产品一样变暗、标题划掉、不显示 description，加上选中时卡片里面的那层光，但<b>没有高亮的边框，也没有右下角的 ✓</b>（第 16 轮拿掉：第 15 轮的实心 ✓ + Complete 太抢眼，见 commit <code>d17bbcb</code>）。清单都只读，没有撤回按钮（Ideas 8）。切到 <b>Long day</b> 看 Done 长了以后的样子。</p>
   <div class="pz-tools"><span class="seg"><button data-done-long="false" class="on">Normal day · Thu 1 done</button><button data-done-long="true">Long day · Thu 9 done</button></span></div>
 
   <div class="col-label"><b>Desktop · 定稿</b> · Todo（Today，第 25 轮）· Done（This week）· Backlog 收起 · 和现在的产品一样<span class="line"></span></div>
@@ -813,6 +797,8 @@
   <div class="col-label spaced"><b>日格像按钮 · 定稿 · decided 2026-11-09</b> · 第 6、14、15 轮：hover 只加下划线，选中是全亮的边框 + 青光<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:14px">第 6 轮画了两种 hover（底部亮起 / 整格浮起），第 14 轮 owner 选了底部亮起这一路、去掉了整格浮起，并加画了「下划线 + 一点青光」（1b，见 commit <code>9594f3f</code>）；第 15 轮定 <b>1a</b>。<b>Hover</b> 只是一条下划线，不改选中的样子；<b>选中</b>（正在看的那一天）= 全亮的青色边框 + 里面的青光，没有下划线；鼠标移到选中的那一格，只多一条下划线，青光不变暗。<b>按下</b>：缩到 0.96 + 内阴影。今天那格平时的框淡到 35%。</p>
   <div id="done-options"></div>
+  <div class="col-label spaced"><b>动效</b> · 这个 tab 里会动的 · 2026-11-19 补写<span class="line"></span></div>
+  <table class="tbl mx" data-mx="done"></table>
   <div class="col-label spaced"><b>Research</b> · 做完的事放在哪 · 回顾做完的事有什么用<span class="line"></span></div>
   <div class="patterns" id="done-patterns"></div>
   <div class="col-label spaced"><b>还开着的</b><span class="line"></span></div>
@@ -827,6 +813,8 @@
   <div id="tap-options"></div>
   <div class="col-label spaced"><b>桌面：统一，还是两套？</b><span class="line"></span></div>
   <div class="patterns" id="tap-desk"></div>
+  <div class="col-label spaced"><b>动效</b> · 这个 tab 里会动的 · 2026-11-19 补写<span class="line"></span></div>
+  <table class="tbl mx" data-mx="tap"></table>
   <div class="col-label spaced"><b>Research</b> · 两步确认、选中的反馈、误触怎么防<span class="line"></span></div>
   <div class="patterns" id="tap-patterns"></div>
   <div class="col-label spaced"><b>第 14 轮定下的</b><span class="line"></span></div>
@@ -844,6 +832,8 @@
   </div>
   <div class="col-label spaced"><b>四种 juice</b> · 仿 Balatro · 随机触发 · 四种都留（第 24 轮）<span class="line"></span></div>
   <div class="patterns" id="mo-juice"></div>
+  <div class="col-label spaced"><b>动效</b> · 这个 tab 里会动的 · 2026-11-19 补写<span class="line"></span></div>
+  <table class="tbl mx" data-mx="motion"></table>
   <div class="col-label spaced"><b>Research</b> · 在哪见过 · 节奏 · 减少动态效果<span class="line"></span></div>
   <div class="patterns" id="mo-patterns"></div>
   <div class="col-label spaced"><b>第 24–25 轮定下的</b><span class="line"></span></div>
@@ -866,13 +856,13 @@
 
 <!-- ═════════ I · Ideas ═════════ -->
 <section class="screen" data-screen="backlog">
-  <div class="col-label"><b>B · Backlog · 定稿 · decided 2026-11-19</b>（PR #127 的 review 里提出并定稿） · 标题下面的提示去掉 · 拉空以后显示虚线框，入口留着<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px">Owner 在 PR #127 的 review 里提的两处，都只动 backlog，已经合进 F · Final（在那里把 backlog 一张张拉空就能看到）。这个 tab 是静态的对照，没有动效：虚线框直接出现，不弹进来。Backlog 里的卡片、pile 和 <b>+N more</b> 都没有变，见 K · Card。</p>
+  <div class="col-label"><b>B · Backlog · 定稿 · decided 2026-11-19</b>（PR #127 的 review 里提出并定稿） · 标题下面的提示去掉 · 拉空以后显示虚线框，入口留着（这一处 PR #126 已经做进产品）<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:14px">Owner 在 PR #127 的 review 里提的两处，都只动 backlog，已经合进 F · Final（在那里把 backlog 一张张拉空就能看到）。这个 tab 是静态的对照，没画动效；虚线框在产品里出现时用 <code>fx-boot-in</code> 淡入（见 D · Done 的动效表）。Backlog 里的卡片、pile 和 <b>+N more</b> 和现在的产品一样（PR #126 的分组），见 K · Card。<b>2026-11-19 对照产品重画</b>：Before 换成 PR #126 之后的 backlog。</p>
   <div class="col-label spaced"><b>① 标题下面的提示去掉</b> · 两端都是<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:12px">现在的产品在 Backlog 标题下面有一行提示：桌面是 <b>Drag tasks left to Todo to start working</b>，手机的 sheet 是 <b>Tap to pull a task onto the board</b>。After 两端都没有这一行，标题下面直接是卡片。每张卡右下角已经有 <b>↑ Todo</b>。</p>
   <div class="bk-demo" id="bk-hint"></div>
   <div class="col-label spaced"><b>② 空的 backlog</b> · 入口留着，数量显示 0 · 打开是一块虚线框<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:12px">F · Final 原来没有画拉空以后的样子。现在的产品：桌面的窄条显示 0，panel 里是一行灰字 <b>You're all caught up — no staged tasks.</b>；手机的 pill 直接消失。After 用 backlog grouping 定的那一版（PR #122，board spec 的 BL-15）：桌面的窄条和手机的 pill 都留着，数量显示 <b>0</b>；打开以后在卡片的位置是一块虚线框，标题 <b>Everything's on deck!</b>，下面两句 <b>This week's plan is all on the board</b> 和 <b>Adjust your plan to add more or call it a week</b>，没有按钮。拉走最后一张时 panel 和 sheet 不关。</p>
+  <p class="note" style="margin-top:0;margin-bottom:12px"><b>已经是现在的产品</b>：PR #126 照 backlog grouping 定的那一版（PR #122，board spec 的 BL-15）做了，所以 Before 和 After 一样，这一处对 board 升级来说不再是改动。PR #126 之前的产品是：桌面的窄条显示 0，panel 里一行灰字，手机的 pill 直接消失。现在：桌面的窄条和手机的 pill 都留着，数量显示 <b>0</b>；打开以后在卡片的位置是一块虚线框，标题 <b>Everything's on deck!</b>，下面两句 <b>This week's plan is all on the board</b> 和 <b>Adjust your plan to add more or call it a week</b>，没有按钮。拉走最后一张时 panel 和 sheet 不关。</p>
   <div class="bk-demo" id="bk-empty-demo"></div>
 </section>
 
@@ -996,7 +986,7 @@ function card(model, {drag = '', action = '', cls = '', showSize = false, foot =
   const head = kind === 'project'
     ? `<span class="name">${model.name}</span><span class="ctx">${showSize ? `${model.n}/${model.total}` : ''}</span>`
     : `<span>${KIND_LABEL[kind]}</span><span class="ctx">${kind === 'habit' ? (showSize ? (model.cadence || '') : '') : (model.quadrant || '')}</span>`;
-  const signal = kind === 'habit' ? `${dots(model)}${showSize ? `<span class="sig">${model.doneSlots.length}/${model.target}</span>` : ''}` : kind === 'project' ? path({...model, cur: model.n}) : '';
+  const signal = kind === 'habit' ? dots(model) : kind === 'project' ? path({...model, cur: model.n}) : '';
   return `<div class="tc ${model.isDone ? 'is-done' : ''} ${cls}" data-kind="${kind}" ${drag}>
     <div class="tc-head">${icon(kind, 'xs')}${head}</div>
     <div class="tc-row"><h3 class="tc-title">${model.title}</h3>${action}</div>
@@ -1099,20 +1089,11 @@ function mini(model, {done = false} = {}) {
   const signal = kind === 'habit' ? dots(model) : kind === 'project' ? path({...model, cur: model.n}) : '';
   return `<div class="mini ${done ? 'is-done' : ''}" data-kind="${kind}"><div class="tc-head">${icon(kind, 'xxs')}${head}</div><h3 class="tc-title">${model.title}</h3><div class="tc-foot">${signal}<span class="size" style="font-size:8px;padding:0 4px">${model.size}<i>·</i>${SIZE_POINTS[model.size]}</span></div></div>`;
 }
-const BACKLOG_BEFORE = [
-  {kind: 'habit', title: 'LeetCode', desc: 'One medium, 45-min timer', cadence: '4× / week', target: 4, doneSlots: [0, 1, 2], cur: 3},
-  {kind: 'habit', title: 'Read', desc: '30 pages, any book', cadence: '3× / week', target: 3, doneSlots: [0], cur: 1},
-  {kind: 'habit', title: 'Read', desc: '30 pages, any book', cadence: '3× / week', target: 3, doneSlots: [0], cur: 2},
-  {kind: 'project', name: 'Biomedical course', title: 'Lecture 5 — Immunity basics', n: 5, total: 9, doneSteps: [1, 2, 3]},
-  {kind: 'project', name: 'Biomedical course', title: 'Lecture 6 — Neurons', n: 6, total: 9, doneSteps: [1, 2, 3]},
-  {kind: 'project', name: 'Protein 3D viewer', title: 'Add residue picking', desc: 'Click a residue → highlight + label', n: 3, total: 4, doneSteps: [1]},
-  {kind: 'project', name: 'Protein 3D viewer', title: 'Deploy the viewer', n: 4, total: 4, doneSteps: [1]},
-];
 /* B · Backlog (amended 2026-11-19, PR #127): After has no hint under the title, and an emptied backlog shows a box */
 const BACKLOG_EMPTY = `<div class="bk-empty"><b>Everything's on deck!</b><small>This week's plan is all on the board</small><small>Adjust your plan to add more or call it a week</small></div>`;
 const BACKLOG_HINT = `<div class="backlog-hint">${icon('left', 'sm')}Drag tasks left to Todo to start working</div>`;
 const backlogFrame = (count, body, shown = capped, {hint = true} = {}) => `<div class="backlog"><div class="backlog-head"><div class="backlog-title">${icon('inbox')}<span>Backlog</span><span class="badge-count" title="${count} staged tasks">${shown(count)}</span></div><span style="opacity:.5">${icon('right', 'sm')}</span></div>${hint ? BACKLOG_HINT : ''}<div class="backlog-body">${body}</div></div>`;
-const backlogBefore = () => backlogFrame(BACKLOG_BEFORE.length, BACKLOG_BEFORE.map(model => card(withSize(model), {showSize: true, drag: 'data-drag', cls: 'solid'})).join(''), String);
+const backlogBefore = () => backlogFrame(backlogCount({backlog: FIX.backlog}), backlogCards(FIX.backlog), capped);
 /* main's mockup-board-backlog-grouping.html (PR #109, revised in #114): "+N more" counts what sits
    behind the next one; a habit and a project both sit on a pile of at most three sheets; only the
    project's "+N more ⌄" opens (its steps differ), a habit's is text */
@@ -1130,14 +1111,23 @@ function backlogCards(items = FIX.backlog, {pull = false} = {}) {
   return `${habits ? `<div class="sec-label">Habits<span class="line"></span></div>${habits}` : ''}${projects ? `<div class="sec-label">Projects<span class="line"></span></div>${projects}` : ''}`;
 }
 const backlogAfter = (items = FIX.backlog, {pull = false, count = backlogCount({backlog: items})} = {}) => backlogFrame(count, backlogCards(items, {pull}) || BACKLOG_EMPTY, capped, {hint: false});
-const mobilePill = () => `<div class="pill mpill">${icon('inbox', 'sm')}<span>Backlog</span><span class="badge-count">${BACKLOG_BEFORE.length}</span>${icon('chevUp', 'sm')}</div>`;
+const mobilePill = () => `<div class="pill mpill">${icon('inbox', 'sm')}<span>Backlog</span><span class="badge-count">${capped(backlogCount({backlog: FIX.backlog}))}</span>${icon('chevUp', 'sm')}</div>`;
 
 /* ── Before screens (static) ── */
+const beforeDesk = {backlogOpen: false};
 function deskBefore() {
   const todo = FIX.todo.map(model => card(withSize(model), {showSize: true, drag: 'data-drag', cls: 'solid'})).join('');
-  const done = FIX.doneToday.map(model => card(withSize(model), {showSize: true, drag: 'data-drag', cls: 'solid'})).join('');
-  return desk(`${appHead()}${dashBefore()}<div class="board-wrap"><div class="board-cols">${column('Todo', 4, todo)}${column('Done', 1, done, {done: true})}</div>${backlogBefore()}</div>`);
+  const done = FIX.doneToday.map(model => card(withSize(model), {showSize: true, cls: 'solid'})).join('');
+  const backlog = beforeDesk.backlogOpen
+    ? backlogBefore().replace('<div class="backlog-head">', '<div class="backlog-head" data-before-bk title="Close backlog">')
+    : `<button class="bk-rail" data-before-bk title="Open backlog">${icon('chevLeft', 'sm')}<span class="badge-count">${capped(backlogCount({backlog: FIX.backlog}))}</span><span class="v">Backlog</span></button>`;
+  return desk(`${appHead()}${dashBefore()}<div class="board-wrap"><div class="board-cols">${column('Todo', 4, todo)}${column('Done', 1, done, {done: true})}</div>${backlog}</div>`);
 }
+document.addEventListener('click', event => {
+  if (!event.target.closest('[data-before-bk]')) return;
+  beforeDesk.backlogOpen = !beforeDesk.backlogOpen;
+  document.getElementById('fin-before-desk').innerHTML = deskBefore();
+});
 function phoneBefore() {
   const todo = FIX.todo.map(model => mini(withSize(model))).join('');
   const done = FIX.doneToday.map(model => mini(withSize(model), {done: true})).join('');
@@ -1532,7 +1522,6 @@ function dpaneSeed() {
     armed: null, armedAt: 0,
     sel: null,
     fresh: null,
-    pulled: null,
   };
 }
 const dayName = index => (index === FIX.todayIndex ? 'Today' : FIX.week.dayNames[index]);
@@ -1580,7 +1569,7 @@ function dayListInner(state) {
   const index = state.sel;
   const [done, planned] = dayTotals(state.days[index]);
   const items = [...state.lists[index]].sort((left, right) => PZ_KINDS.indexOf(left.kind) - PZ_KINDS.indexOf(right.kind));
-  const rows = items.length ? items.map(model => doneRowHtml(model).replace('class="lrow done-row"', `class="lrow done-row ${state.fresh === model ? 'fresh' : ''}"`)).join('') : '<div class="lrow"><span class="empty">Nothing yet</span></div>';
+  const rows = items.length ? items.map(doneRowHtml).join('') : '<div class="lrow"><span class="empty">Nothing yet</span></div>';
   return `<div class="dp-head"><b>${dayName(index)}</b><span>${done} of ${planned} done</span><button class="x ghost-btn" data-done-close style="border:0;padding:4px" title="Close">${icon('x', 'xs')}</button></div><div class="dp-body">${rows}</div>`;
 }
 /* the day's list, floating under its ring: the same journey as the phone's sheet */
@@ -1619,7 +1608,6 @@ function renderDpane() {
     </div>`;
   animateArcs(root, before);
   placePop(root);
-  if (state.pulled != null) { root.querySelector(`.dpane-todo [data-arm-idx="${state.pulled}"]`)?.classList.add('pulled'); state.pulled = null; }
   /* the highlight is one-shot: later renders (any click) must not replay it */
   state.fresh = null;
 }
@@ -1662,7 +1650,6 @@ function pullFromBacklog(state, idx) {
   } else state.backlog.splice(idx, 1);
   state.todo.push(model);
   state.days[FIX.todayIndex][model.kind][1] += 1;
-  state.pulled = state.todo.length - 1;
 }
 function dpanePull(idx) {
   pullFromBacklog(dp.desk, idx);
@@ -1918,7 +1905,7 @@ const IDEAS = [
   ['6 · 做完以后又拉了新卡、或者做完计划外的事', '已定 · 第 19 轮', `<p>最简单的那种：拉了新卡，圈重新留出一段灰，绿框消失；再做完时<b>再播一次大反馈</b>，没关系。F · Final 就是这样画的。「大反馈一天只播一次」这个想法记进 <code>design/future-ideas.md</code>，等第二次显得廉价了再说。</p>`],
   ['7 · Close the day 要列出今天做完的全部', '→ tracker · Daily rhythm', `<p>Board 的 Done 定了：一天的清单藏在那天的圈后面。Close the day 不在这个 mockup 里；daily rhythm 的 mockup（demo 分支）定稿时再看它要不要完整列出今天做完的、能不能改、没做完的怎么安排（Masicampo & Baumeister 2011），以及要不要一句反思（Di Stefano）。</p>`],
   ['8 · 撤回：怎么说、放在哪', '→ design/future-ideas.md', `<p>Done 的清单里先不放撤回按钮。去掉 snackbar 以后，完成没有撤回的路（状态只能往前走）；点两下完成让误触很少，所以现在先不做，记进 <code>design/future-ideas.md</code>。<b>初步想法</b>（第 19 轮）：撤回放在今天的清单里——点今天的圈，今天做完的每一行都可以放回 Todo；之前的天不行。叫什么（Undo · Put it back · Mark as not done）还没定。</p>`],
-  ['9 · 桌面要不要保留拖拽', '已定 · 第 14–15 轮', `<p>保留，和现在的产品一样（Backlog → Todo，Todo → Done）。完成另有「点卡片 → 点 ✓ Complete」，两端一样。卡片两端统一：桌面的 backlog 卡也有 ↑ Todo。也就是：桌面支持手机的每一条 journey，外加拖拽。</p>`],
+  ['9 · 桌面要不要保留拖拽', '已定 · 第 14–15 轮', `<p>保留，和现在的产品一样（Backlog → Todo 或 Done，Todo → Done；Done 的卡不能拖）。完成另有「点卡片 → 点 ✓ Complete」，两端一样。卡片两端统一：桌面的 backlog 卡也有 ↑ Todo。也就是：桌面支持手机的每一条 journey，外加拖拽。</p>`],
   ['10 · 设计偏好（第 14 轮 owner 的理由，mockup 做完后整理进 design language）', '已并入 · 第 20 轮', `<p>Owner 否掉第 11–13 轮五种桌面排法时说的理由，是以后判断设计的标准。第 20 轮整理进了 <code>design/design-language/README.md</code> › Principles（分成 Minimal · Calm · Hierarchy · Consistent · Honest controls 五组）；做事方式的那几条进了 <code>design/README.md</code> › Mockups 和 <code>ui-design</code> skill。</p><ul>
     <li><b>个人 app 不要 overdesign</b>：按周规划、按天执行。加一个「This week」列视觉上统一，但把「每周计划」的含义弄混了——哪些放 This week、要做时挪回 Today 还是挂着、daily rhythm 怎么排它——最后会变成不想做的事的 parking lot（否掉 1）。</li>
     <li><b>Minimum stress</b>：backlog 就是要收起来的，一直摊开看到这周一大堆事是压力；和数字到 8 以上写 8+ 是同一个思路，overhead 越少越好（否掉 2、4c）。</li>
@@ -1927,7 +1914,7 @@ const IDEAS = [
     <li><b>两端一致，但桌面可以多</b>：桌面支持手机的每一条 journey，卡片长得一样；桌面多出来的空间可以放桌面独有的东西（Done this week、拖拽），只要不是另一条 journey。</li>
     <li><b>控件的反馈要克制</b>：hover 只做最少的（下划线），选中靠边框 + 光；「整格浮起」那种 button-like 太丑。</li>
   </ul>`],
-  ['11 · Done 列按完成时间排，不分组', '已定 · → 实现 PR 的 flow', `<p>桌面的 Done 列不分组，所有卡片按完成时间倒序（<code>doneAt</code> 新的在上），刚完成的那张自然出现在最上面。产品现在的 Done 和 Todo 共用一个排序（<code>sortTasks</code>：daily 在前，同一个 template / project 的卡在一起）。这是行为，不是样子，所以写进 Board 的 flow doc 和实现 PR；<code>doneAt</code> 已经有了（移到 DONE 时写入），不用改数据。mockup 的 D · Done 已按这个顺序画。</p>`],
+  ['11 · Done 列按完成时间排，不分组', '已在产品里 · PR #126（COL-3）', `<p>桌面的 Done 列不分组，所有卡片按完成时间倒序（<code>doneAt</code> 新的在上），刚完成的那张自然出现在最上面。定的时候产品的 Done 和 Todo 共用一个排序；PR #126 已经把它做进产品（board spec 的 COL-3，<code>sortDoneTasks</code>），拖进 Done 的卡也马上出现在最上面。board 升级不用再做。</p>`],
 ]
 ;
 document.getElementById('ideas').innerHTML = IDEAS.map(([title, status, body]) => `<div class="idea"><div class="idea-head"><h4>${title}</h4><span class="tag muted">${status}</span></div>${body}</div>`).join('');
@@ -1939,7 +1926,7 @@ const finSeed = () => ({
   lists: [0, 1, 2, 3].map(index => (DONE_DAYS[index] || []).map(item => ({...item}))),
   todo: clone(FIX.todo),
   backlog: clone(FIX.backlog),
-  backlogOpen: false, armed: null, armedAt: 0, sel: null, fresh: null, pulled: null, busy: false,
+  backlogOpen: false, armed: null, armedAt: 0, sel: null, fresh: null, busy: false,
 });
 const finCopy = (done, planned) => (done === planned ? FIN_VARIANT.doneCopy(planned) : `<b>${done}</b> of ${planned} done`);
 function finRow(state, mode) {
@@ -1977,7 +1964,6 @@ function renderFin(mode) {
   moKeepFx(root, () => { root.innerHTML = mode === 'desk' ? finDeskHtml(state) : finPhoneHtml(state); });
   if (mode === 'desk') placePop(root);
   animateArcs(root, before);
-  if (state.pulled != null) { root.querySelector(`[data-arm-idx="${state.pulled}"]`)?.classList.add('pulled'); state.pulled = null; }
   /* the highlight is one-shot: later renders (any click) must not replay it */
   state.fresh = null;
 }
@@ -2088,8 +2074,7 @@ const FIN_NEW = [
   ]],
   ['Column', 'D', [
     '桌面 Todo · Done 两列都撑到底，表头右边各一个标签：Todo 是 <b>Today</b>，Done 是 <b>This week</b>；手机不改。',
-    'Done 列放这周做完的，不分组，最新的在最上面（排序写进 flow，Ideas 11）。',
-    "Todo 空了、今天又至少做完一件时留一块虚线框：<b>All clear for the day</b>，下面两句 Everything you pulled for today is done 和 Pull more from the backlog or call it a day，最后一张飞走时弹进来；两端一样（文案和条件 2026-11-19 修订，见 D · Done）。",
+    "Todo 空了、今天又至少做完一件时的虚线框 <b>All clear for the day</b> 已经是现在的产品（COL-5，PR #126）；新的只是它在最后一张卡飞走后出现（见 D · Done）。",
     '手机拿掉 Done 那一行：做完的藏在那天的圈后面。',
   ]],
   ['Card', 'T · M · K', [
@@ -2100,15 +2085,12 @@ const FIN_NEW = [
     '手机从横滑的 mini 卡换成竖排的全宽卡，卡面和桌面一样；卡上不再显示 size（<code>M · 3</code>），size 本身留不留是 Phase 2 spike 的事。',
   ]],
   ['Backlog', 'D · T · B', [
-    '默认收起：桌面是右边一条带数量的窄条，手机还是底部的 pill。',
     '标题下面那行提示去掉，两端都是（修订 2026-11-19，见 B · Backlog）。',
-    "拉空以后入口留着、数量显示 0，打开是一块虚线框：<b>Everything's on deck!</b>（修订 2026-11-19，见 B · Backlog）。",
-    '打开以后每张卡右下角有 <b>↑ Todo</b>，两端一样；桌面照样能拖（Backlog → Todo、Todo → Done），和现在的产品一样（没画）。',
+    '桌面的 backlog 卡右下角也有 <b>↑ Todo</b>（现在只有手机的 sheet 有），两端一样；桌面照样能拖，和现在的产品一样（没画）。默认收起、按 habit 和 project 分组、拉空以后的虚线框都是现在的产品（PR #126），没变。',
   ]],
 ];
 const FIN_LATER = [
   ['今天的总数 · Ideas 2', '这里按 Todo + 今天做完的算，所以从 backlog 拉一张进 Todo，今天的分母 +1。到底怎么算交给 flow。Todo 空了的提醒和桌面的 Today 也先不管什么算 today（第 25 轮）。'],
-  ['Done 列的排序 · Ideas 11', '按 doneAt 倒序是行为，写进 flow；这里照着画了。'],
   ['撤回 · Ideas 8', '去掉 undo snackbar 以后，完成没有撤回的路。暂时不做，记在 design/future-ideas.md：初步想法是点今天的圈，今天做完的可以放回 Todo，之前的天不行。'],
 ];
 document.getElementById('fin-before-desk').innerHTML = deskBefore();
@@ -2147,9 +2129,8 @@ function todoEmptySeed() {
   emptied.backlog = [];
   emptied.backlogOpen = true;
   const closed = {...emptied, backlogOpen: false};
-  const oldEmpty = `<p class="bk-old-empty">You're all caught up — no staged tasks.</p>`;
   document.getElementById('bk-empty-demo').innerHTML = [
-    box('Before · 现在的产品 · Desktop', backlogFrame(0, oldEmpty, String)),
+    box('Before · 现在的产品 · Desktop', backlogFrame(0, BACKLOG_EMPTY, capped, {hint: false})),
     box('After · Desktop', backlogAfter([], {pull: true})),
     `<div>${cap('After · Phone · sheet 开着')}${phoneOf(emptied)}</div>`,
     `<div>${cap('After · Phone · 关上以后 pill 显示 0')}${phoneOf(closed)}</div>`,
@@ -2161,11 +2142,10 @@ function todoEmptySeed() {
   const col = (title, body) => `<div class="kc-col">${cap(title)}${body}</div>`;
   const [habit, step, , oneoff] = FIX.todo;
   const before = (model, options = {}) => card(withSize(model), {showSize: true, cls: 'solid', ...options});
-  const pullBefore = pullBtn(0).replace(' data-pull="0"', '');
   document.getElementById('kc-before').innerHTML = [
     col('Todo', `${before(habit)}${before(step)}${before(oneoff)}${cap('手机 · 横滑的 mini 卡（136 × 92）')}<div class="mrow">${mini(withSize(habit))}${mini(withSize(oneoff))}</div>`),
     col('Done', `${before(FIX.doneToday[0])}${before({kind: 'oneoff', title: 'Book dentist', quadrant: 'Schedule', isDone: true})}${cap('只是 opacity 50%，标题划掉，size 还在')}`),
-    col('Backlog', `${before(BACKLOG_BEFORE[0])}${before(BACKLOG_BEFORE[3])}${cap('手机的 backlog sheet · ↑ Todo 在标题旁边')}${before(BACKLOG_BEFORE[5], {action: pullBefore})}`),
+    col('Backlog', `${backlogCards(FIX.backlog)}${cap('手机的 backlog sheet · 同一张卡，右下角多一个 ↑ Todo')}${backlogCards([FIX.backlog[3]], {pull: true})}`),
   ].join('');
   document.getElementById('kc-after').innerHTML = [
     col('Todo', `${armCard(habit, 0, 'desk', false)}${armCard(step, 1, 'desk', false)}${armCard(oneoff, 3, 'desk', false)}${cap('选中 · 确认边框，右下角变成 ✓ Complete')}${armCard(oneoff, 3, 'desk', true)}`),
@@ -2185,12 +2165,11 @@ function todoEmptySeed() {
   ];
   document.getElementById('kc-table').innerHTML = `<thead><tr><th>部位</th><th>Todo</th><th>Done</th><th>Backlog</th></tr></thead><tbody>${KC_SLOTS.map(([slot, todo, done, backlog]) => (done === '' && backlog === '' ? `<tr><th>${slot}</th><td colspan="3">${todo}</td></tr>` : `<tr><th>${slot}</th><td>${todo}</td><td>${done}</td><td>${backlog}</td></tr>`)).join('')}</tbody>`;
   const KC_CHANGES = [
-    ['一个卡面', '现在产品有三套：<code>TaskCardFace</code>（桌面 board、桌面 backlog）、<code>TaskCardMiniFace</code>（手机 board 的 136 px mini 卡）、<code>MobileBacklogCard</code>（手机 backlog sheet）。After 只剩一张，mini 卡去掉，按放在哪换右下角和右上角。'],
+    ['一个卡面', '现在产品有三套：<code>TaskCardFace</code>（桌面 board 的 Todo、Done）、<code>TaskCardMiniFace</code>（手机 board 的 136 px mini 卡）、<code>BacklogGroupFace</code>（两端的 backlog，PR #126）。After 只剩一张，mini 卡去掉，按放在哪换右下角和右上角；backlog 那一张已经和 After 一样，After 只给桌面也加上 ↑ Todo。'],
     ['第一行右边', '现在放 habit 的 <code>3× / week</code>、step 的 <code>5/9</code>、one-off 的 quadrant。After 前两个拿掉（dots 和 path 已经说了），quadrant 挪进标签：<code>ONE-OFF | DO FIRST</code>；右边只留给 backlog 的 +N more。'],
-    ['右下角的 action', '现在只有手机 backlog sheet 里有 ↑ Todo，在标题旁边。After 统一在右下角：Todo 是 ✓ 圈，Backlog 是 ↑ Todo，Done 没有。'],
+    ['右下角的 action', '现在只有手机 backlog sheet 的卡右下角有 ↑ Todo（PR #126）。After 统一在右下角：Todo 是 ✓ 圈，Backlog 两端都是 ↑ Todo（样子照产品的），Done 没有。'],
     ['Size', '<code>M · 3</code> 这样的 size chip 不再显示；size 本身留不留是 Phase 2 spike（痛点 1、4）的事。'],
     ['Done', '现在是 opacity 50%、标题划掉、不显示 description，size 还在。After 再加里面一层淡光，刚完成的亮一下，没有 size。'],
-    ['Backlog 的 habit 卡 · 改了 PR #109', 'PR #109 定的 backlog habit 卡第一行就是标题（右上角 +N more），没有 HABIT 标签。合成一张卡以后，第一行是 HABIT（右边 +N more），标题在第二行，和其他卡一样（第 29 轮定；tracker 里 backlog grouping 那一条记着）。'],
   ];
   document.getElementById('kc-changes').innerHTML = KC_CHANGES.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 }
@@ -2200,7 +2179,7 @@ const MO_EASE = 'cubic-bezier(.2, 0, 0, 1)';
 const MO_EXIT = 'cubic-bezier(.3, 0, .8, .15)';
 const MO_ARC = 48;
 const MO_LIFT = 'rotate(-4deg) scale(1.07)';
-const MO_T = {flight: 300, slide: 220, fade: 150};
+const MO_T = {flight: 300, slide: 240, fade: 150};
 const MO_DONE_SHOWN = 6;
 let moSlow = 1;
 let moLast = null;
@@ -2414,6 +2393,47 @@ function moReset() {
   moRender('toss', 'desk');
 }
 document.getElementById('mo-juice').innerHTML = MO_JUICE.map(juice => `<div class="pat"><h4>${juice.name} · ${juice.title}</h4><div class="who">随机触发之一 · 约 ${juice.key === 'flip' ? 440 : juice.key === 'shine' ? 420 : juice.key === 'wobble' ? 360 : 340} ms，然后飞</div>${juice.why}<div class="fit"><button class="ghost-btn" data-mo-play="${juice.key}">▶ 只看这一种</button></div></div>`).join('');
+/* ═══════════ 动效 tables (2026-11-19): every motion in the mockup, in the tab of the component it belongs to —
+   what sets it off, which element moves and how, how long, and what is left under reduced motion (design/README.md › Mockups) ═══════════ */
+const MX_HEAD = ['动效', '什么触发', '哪个元素、怎么动', '多久 · 曲线', '减少动态效果时'];
+const MX = {
+  tap: [
+    ['选中 · ✓ 放大', '点一张 Todo 卡的卡面任何地方', '右下角的小圈放大到 1.45 倍（只用 transform，不占位置），同时填成实心的绿、出现 ✓；卡片换成确认边框和里面一层光。卡片大小不变。再点一次、点别处或 Esc 时反着来', '150 ms · console snap', '没有过渡，直接变成选中 / 没选中的样子'],
+    ['选中 · Complete 出现', '同上', '小圈左边的 <b>Complete</b> 从右边 4 px、透明，淡入滑到原位', '150 ms · console snap', '直接出现'],
+    ['按下', '手指或鼠标按在卡片上', '卡片缩到 0.985 倍，松开回来', '150 ms · console snap', '不缩'],
+    ['完成', '点 ✓ Complete', '这个 tab 的演示还用 C 的旧「收起」；定稿的是 M · 完成动画（juice + 飞进今天的圈），F · Final 里就是它', '见 M', '见 M'],
+  ],
+  celebration: [
+    ['接上一段弧', '一张卡完成（落进今天的圈）', '今天那格的圈上，这张卡 kind 颜色的那一段从上一段的末端顺时针长出来（habit → step → one-off 的顺序）', '500 ms · console snap（和产品现在的 Today ring 一样）', '直接画好那一段'],
+    ['格子一跳', '同上，弧开始长的时候', '今天那格的圈放大到 1.08 倍再回来', '300 ms · console snap', '不跳'],
+    ['大反馈 · 转一圈', '今天排的最后一张完成，今天的圈合上', '整个圈顺时针转一圈，从 12 点回到 12 点', '700 ms · console snap', '不转'],
+    ['大反馈 · 火花', '同上，和转圈同时', '12 颗 4 px 的火花从圈边沿各自的角度飞出去（18 px → 40 px）、缩到 0.4 倍、淡掉；颜色按今天做完的 kind 比例分', '700 ms · console snap', '没有火花'],
+    ['大反馈 · ✓ 画出来', '同上', '圈中心的 ✓ 从一端画到另一端（✓ 本身不转）', '转圈开始后 250 ms 开始，画 300 ms', '直接出现'],
+    ['振动', '一张卡完成 · 大反馈', '手机振一下；大反馈是 Success 的节奏。不是动画', '—', '照常（减少动态效果不管振动）'],
+    ['小反馈的「收起」', '一张卡完成（C、D、T 的演示）', '卡片向右 10 px 淡出。<b>已被 M 取代</b>：F · Final 里卡片是 juice + 飞进今天的圈；这里留着只因为这三个 tab 的演示还用它', '200–240 ms', '只淡出'],
+  ],
+  done: [
+    ['刚完成的卡亮一下', '一张卡完成，出现在桌面 Done 列的最上面', '这张卡外面一圈 2 px 的绿边和绿光，慢慢淡掉，卡片停在完成的样子。只在完成那一刻，之后不再亮', '900 ms · console snap', '不亮，直接是完成的样子'],
+    ['Todo 空了的提醒', 'Todo 的最后一张完成，今天至少做完了一件（COL-5）', '虚线框从下面 6 px、0.985 倍、透明，淡入到原位。和产品的 <code>FinishBox</code> 一样，用的就是 <code>fx-boot-in</code>：产品里它每次出现都这样，包括打开页面时 Todo 已经空了', '420 ms · console snap（<code>fx-boot-in</code>）', '直接出现（产品的 reduced-motion 列表里有 <code>fx-boot-in</code>）'],
+    ['日格 · 按下', '按在某天的格子上', '格子缩到 0.96 倍，加一层内阴影；松开回来', '150 ms · console snap', '不缩'],
+    ['日格 · hover / 选中', '鼠标移上去 · 点某天', 'hover：底部一条下划线淡入；选中：青色边框和里面的青光淡入', '150 ms', '直接变'],
+    ['一天的清单打开', '点今天或之前的某天', '桌面浮窗、手机 sheet。mockup 里直接出现，没有画动效；实现用产品现有的：手机是 <code>OverlayShell</code> 的 sheet（backlog 的 sheet 现在就是它），桌面浮窗照它的淡入', '照产品', '照产品'],
+    ['Backlog 展开 / 收起（桌面）', '点窄条 · 点 ›', 'mockup 里直接换，没有画动效；实现照产品现在的 <code>DesktopBacklog</code>：宽度 48 → 300 px，两层交叉淡入淡出', '200 ms（产品）', '照产品'],
+  ],
+  motion: [
+    ['Juice · Wobble', '点 ✓ Complete，四种里随机一种（不连着两次一样）', '卡片放大到 1.12 倍，左右晃三下（−7° → 6° → −5°），停在浮起的姿势（−4°、1.07 倍、加深的影子）', '360 ms', '没有 juice，只淡出（见最后一行）'],
+    ['Juice · Shine', '同上', '卡片朝你斜过来（3D 倾斜到 1.1 倍），一道高光从左扫到右，停在浮起的姿势', '420 ms', '同上'],
+    ['Juice · Burst', '同上', '卡片猛地放大到 1.16 倍再回弹；四周迸出 12 颗 kind 颜色和金色的碎片（620 ms 飞远、淡掉）；上方跳出 <b>+1</b> 往上飘（900 ms，飞行开始后它还在）', '卡片 340 ms', '同上'],
+    ['Juice · Flip', '同上', '卡片放大，绕竖轴翻一整圈，落回浮起的姿势', '440 ms', '同上'],
+    ['飞进今天的圈', 'juice 播完', '卡片（盖在原卡上的替身，所以列的滚动不会裁掉它）沿一条向上拱 48 px 的弧线飞到今天那格的圈，同时转到 12°、缩到 0.1 倍、淡到 30%；落下时接 C 的「接上一段弧」和「格子一跳」', '300 ms · 离开用的加速曲线 <code>cubic-bezier(.3, 0, .8, .15)</code>', '没有飞行，卡片原地淡出 150 ms'],
+    ['留下的卡补上空位', '卡片飞走以后', 'Todo 里在它下面（手机是后面）的卡从原来的位置滑到新位置，不跳', '240 ms · console snap', '直接跳到新位置'],
+    ['振动', '点 ✓ Complete', '手机振一下（短 · 停 · 短）', '—', '照常'],
+    ['桌面 Done 列', '飞行结束', '新完成的卡出现在 Done 最上面，亮一下：见 D · Done 的「刚完成的卡亮一下」', '见 D', '见 D'],
+  ],
+};
+document.querySelectorAll('[data-mx]').forEach(table => {
+  table.innerHTML = `<thead><tr>${MX_HEAD.map(cell => `<th>${cell}</th>`).join('')}</tr></thead><tbody>${MX[table.dataset.mx].map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}</tbody>`;
+});
 document.getElementById('mo-decided').innerHTML = MO_DECIDED.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join('');
 document.addEventListener('click', event => {
   if (event.target.closest('[data-mo-reset]')) { moReset(); return; }
