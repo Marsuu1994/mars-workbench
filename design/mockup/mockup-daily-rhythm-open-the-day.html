@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="zh-Hans" data-theme="mars-dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Daily rhythm · Open the day — design</title>
+<script data-mockup-latest>
+/* Mockup freshness (design/README.md › Mockups) — copy as is into every mockup.
+   A branch link on raw.githack can serve a copy minutes old (GitHub raw caches
+   it behind githack; a phone restores the old tab). Opened there, this asks
+   GitHub for the newest commit touching this file on the branch and moves to
+   that commit's link, which never goes stale; #branch= keeps the branch so a
+   refresh keeps checking. Anywhere else (a local file) it does nothing. */
+(async () => {
+  if (location.hostname !== 'raw.githack.com') return;
+  const [owner, repo, ...rest] = location.pathname.slice(1).split('/');
+  const fileStart = rest.indexOf('design');
+  if (fileStart < 1) return;
+  const ref = rest.slice(0, fileStart).join('/');
+  const path = rest.slice(fileStart).join('/');
+  const isCommit = /^[0-9a-f]{40}$/.test(ref);
+  const branch = isCommit ? new URLSearchParams(location.hash.slice(1)).get('branch') : ref;
+  if (!branch) return;
+  try {
+    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?sha=${encodeURIComponent(branch)}&path=${encodeURIComponent(path)}&per_page=1`, {cache: 'no-store'});
+    const [latest] = response.ok ? await response.json() : [];
+    if (latest && latest.sha !== ref) {
+      location.replace(`https://raw.githack.com/${owner}/${repo}/${latest.sha}/${path}#branch=${encodeURIComponent(branch)}`);
+    }
+  } catch {
+    // Offline or rate-limited: stay on what loaded
+  }
+})();
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Anton&display=swap');
+
+  /* ── Theme tokens (mirror globals.css: mars-dark / mars-light / p5-dark) ── */
+  :root, [data-theme='mars-dark'] {
+    --b1: oklch(0.19 0.03 265); --b2: oklch(0.155 0.028 265); --b3: oklch(0.125 0.026 268);
+    --bc: oklch(0.92 0.016 210); --p: oklch(0.83 0.135 205); --pc: oklch(0.2 0.04 225);
+    --s: oklch(0.74 0.15 295); --a: oklch(0.76 0.155 55); --in: oklch(0.79 0.115 235);
+    --su: oklch(0.8 0.165 155); --wa: oklch(0.84 0.155 85); --er: oklch(0.72 0.17 25);
+    --rc: 10px; --rs: 4px; --rf: 6px; --rb: 8px; --rbox: 14px;
+    --edge: color-mix(in oklab, var(--bc) 12%, transparent);
+    --card-bg: color-mix(in oklab, var(--b1) 70%, transparent);
+    --card-solid: var(--b1);
+    --card-border: color-mix(in oklab, var(--bc) 10%, transparent);
+    --card-shadow: inset 0 1px 0 var(--edge);
+    --lip-1: color-mix(in oklab, var(--b1) 88%, var(--bc));
+    --lip-2: color-mix(in oklab, var(--b1) 94%, var(--bc));
+    --lip-border: color-mix(in oklab, var(--bc) 20%, transparent);
+    --panel-solid: color-mix(in oklab, var(--b1) 96%, var(--bc));
+    --scrim: oklch(0.08 0.02 265 / .62);
+    --page: radial-gradient(1200px 600px at 10% -10%, color-mix(in oklab, var(--p) 10%, transparent), transparent 60%),
+            radial-gradient(900px 500px at 110% 110%, color-mix(in oklab, var(--s) 10%, transparent), transparent 60%), var(--b2);
+    --display: 'Geist', system-ui, sans-serif;
+    --phone-rim: color-mix(in oklab, var(--bc) 16%, var(--b3));
+  }
+  [data-theme='mars-light'] {
+    --b1: oklch(0.955 0.018 80); --b2: oklch(0.925 0.024 78); --b3: oklch(0.885 0.03 76);
+    --bc: oklch(0.24 0.032 265); --p: oklch(0.5 0.085 215); --pc: oklch(0.975 0.01 90);
+    --s: oklch(0.5 0.185 295); --a: oklch(0.54 0.14 50); --in: oklch(0.5 0.115 240);
+    --su: oklch(0.5 0.13 152); --wa: oklch(0.49 0.1 75); --er: oklch(0.53 0.19 25);
+    --edge: oklch(1 0 0 / 0.7);
+    --card-border: color-mix(in oklab, var(--bc) 12%, transparent);
+    --lip-1: color-mix(in oklab, var(--b3) 70%, var(--b1));
+    --lip-2: color-mix(in oklab, var(--b3) 40%, var(--b1));
+    --lip-border: color-mix(in oklab, var(--bc) 22%, transparent);
+    --panel-solid: var(--b1);
+    --scrim: oklch(0.3 0.03 265 / .38);
+    --page: radial-gradient(1200px 600px at 10% -10%, color-mix(in oklab, var(--a) 14%, transparent), transparent 60%),
+            radial-gradient(900px 500px at 110% 110%, color-mix(in oklab, var(--s) 10%, transparent), transparent 60%), var(--b2);
+    --phone-rim: oklch(0.3 0.02 265);
+  }
+  [data-theme='p5-dark'] {
+    --b1: oklch(0.185 0.008 20); --b2: oklch(0.15 0.006 20); --b3: oklch(0.115 0.004 20);
+    --bc: oklch(0.96 0.005 20); --p: oklch(0.63 0.255 29); --pc: oklch(0.13 0.02 20);
+    --s: oklch(0.74 0.15 295); --a: oklch(0.74 0.17 55); --in: oklch(0.78 0.12 235);
+    --su: oklch(0.8 0.17 150); --wa: oklch(0.85 0.16 90); --er: oklch(0.63 0.22 12);
+    --rc: 0; --rs: 0; --rf: 0; --rb: 0; --rbox: 0;
+    --card-bg: oklch(0.17 0.008 20); --card-solid: oklch(0.17 0.008 20);
+    --card-border: color-mix(in oklab, var(--bc) 14%, transparent);
+    --card-shadow: 3px 3px 0 var(--b3);
+    --lip-1: oklch(0.25 0.008 20); --lip-2: oklch(0.21 0.006 20);
+    --lip-border: color-mix(in oklab, var(--bc) 32%, transparent);
+    --panel-solid: oklch(0.17 0.008 20);
+    --scrim: oklch(0.05 0.01 20 / .7);
+    --page: repeating-radial-gradient(circle at 0 0, color-mix(in oklab, var(--bc) 4%, transparent) 0 1px, transparent 1px 6px), var(--b2);
+    --display: 'Anton', 'Arial Narrow', sans-serif;
+  }
+  :root {
+    --ink-80: color-mix(in oklab, var(--bc) 80%, transparent);
+    --ink-65: color-mix(in oklab, var(--bc) 65%, transparent);
+    --ink-55: color-mix(in oklab, var(--bc) 55%, transparent);
+    --ink-45: color-mix(in oklab, var(--bc) 45%, transparent);
+    --ink-30: color-mix(in oklab, var(--bc) 30%, transparent);
+    --ink-20: color-mix(in oklab, var(--bc) 20%, transparent);
+    --ink-10: color-mix(in oklab, var(--bc) 10%, transparent);
+    --ease: cubic-bezier(.2, 0, 0, 1);
+  }
+  [data-kind='habit'] { --k: var(--su); }
+  [data-kind='project'] { --k: var(--s); }
+  [data-kind='oneoff'] { --k: var(--in); }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { background: var(--b2); }
+  body { font-family: 'Geist', system-ui, sans-serif; background: var(--page); background-attachment: fixed; color: var(--bc); min-height: 100vh; padding: 24px 16px 110px; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  button { font-family: inherit; color: inherit; }
+  .mono { font-family: 'Geist Mono', ui-monospace, monospace; }
+  .icon { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  .icon.sm { width: 14px; height: 14px; } .icon.xs { width: 12px; height: 12px; stroke-width: 2; } .icon.xxs { width: 10px; height: 10px; stroke-width: 2.2; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; transition-duration: .01ms !important; } }
+
+  /* ── Page chrome (the mockup's own narrative, not the app) ── */
+  .topbar { max-width: 1280px; margin: 0 auto 20px; display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: flex-start; justify-content: space-between; }
+  .topbar > div:first-child { flex: 1; min-width: 300px; }
+  .eyebrow { font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--p); }
+  .topbar h1 { font-size: 22px; font-weight: 700; margin-top: 4px; }
+  .topbar p { font-size: 13px; color: var(--ink-65); margin-top: 6px; max-width: 900px; line-height: 1.6; }
+  .topbar p b { color: var(--bc); }
+  .topbar code, .note code, .tbl code, .pat code, .idea code { font-family: 'Geist Mono', monospace; font-size: 11.5px; }
+  .seg { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 10px; background: color-mix(in oklab, var(--b1) 85%, transparent); border: 1px solid var(--card-border); }
+  .seg button { border: 0; background: transparent; color: var(--ink-65); font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 7px; cursor: pointer; white-space: nowrap; }
+  .seg button.on { background: color-mix(in oklab, var(--p) 16%, transparent); color: var(--p); }
+  .screen-nav { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 100; box-shadow: 0 10px 30px oklch(0 0 0 / .35); max-width: calc(100vw - 32px); flex-wrap: nowrap; overflow-x: auto; }
+  .screen { display: none; max-width: 1280px; margin: 0 auto; }
+  .screen.on { display: block; }
+  .col-label { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-55); flex-wrap: wrap; }
+  .col-label b { color: var(--bc); font-weight: 600; }
+  .col-label.after b { color: var(--p); }
+  .col-label .line { flex: 1; min-width: 20px; height: 1px; background: var(--card-border); }
+  .col-label.spaced { margin-top: 36px; }
+  .ghost-btn { border: 1px solid var(--card-border); background: transparent; color: var(--ink-65); font-size: 11px; padding: 3px 8px; border-radius: 6px; cursor: pointer; font-family: 'Geist Mono', monospace; letter-spacing: .04em; }
+  .ghost-btn:hover { color: var(--p); border-color: var(--p); }
+  .tools { display: flex; gap: 8px; margin: 0 0 10px; flex-wrap: wrap; align-items: center; }
+  .tools span { font-size: 12px; color: var(--ink-55); }
+  .note { font-size: 12.5px; line-height: 1.7; color: var(--ink-65); margin-top: 12px; max-width: 1040px; }
+  .note b { color: var(--bc); font-weight: 600; }
+  .note ul { padding-left: 18px; margin-top: 4px; }
+  .note li { margin: 3px 0; }
+  .lead { margin: 0 0 16px; }
+
+  /* Options side by side */
+  .options { display: grid; grid-template-columns: repeat(auto-fit, minmax(370px, 1fr)); gap: 20px; align-items: start; }
+  .opt { border: 1px solid var(--card-border); border-radius: 14px; padding: 14px; background: color-mix(in oklab, var(--b1) 30%, transparent); display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .opt.rec { border-color: color-mix(in oklab, var(--p) 45%, transparent); box-shadow: 0 0 0 1px color-mix(in oklab, var(--p) 20%, transparent), 0 0 24px color-mix(in oklab, var(--p) 8%, transparent); }
+  .opt-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .opt-head .letter { font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: .1em; color: var(--pc); background: var(--p); border-radius: 6px; padding: 2px 7px; }
+  .opt-head h3 { font-size: 15px; font-weight: 700; }
+  .opt-head .tag { margin-left: auto; font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--p); border: 1px solid color-mix(in oklab, var(--p) 40%, transparent); border-radius: 999px; padding: 2px 8px; }
+  .opt-head .tag.muted { color: var(--ink-45); border-color: var(--card-border); }
+  .opt p.why { font-size: 12.5px; line-height: 1.6; color: var(--ink-65); }
+  .opt p.why b { color: var(--bc); }
+  .rank { font-family: 'Geist Mono', monospace; font-size: 10.5px; color: var(--ink-55); letter-spacing: .02em; line-height: 1.7; }
+  .rank .good, .rank .bad, .rank .meh { font-weight: 600; }
+  .opt .phone-wrap { align-self: center; }
+  .desk-row { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; }
+  .desk-row > .cap { font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-55); }
+  .desk-row > .cap b { color: var(--p); }
+
+  /* ── App frames ── */
+  .desk { position: relative; border: 1px solid var(--card-border); border-radius: 14px; overflow: hidden; background: color-mix(in oklab, var(--b2) 80%, transparent); display: flex; min-height: 620px; }
+  .rail { width: 56px; flex-shrink: 0; border-right: 1px solid var(--card-border); background: color-mix(in oklab, var(--b1) 55%, transparent); display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0; }
+  .rail .logo { width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, var(--p), var(--s)); margin-bottom: 10px; }
+  .rail .nav { width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; color: var(--ink-45); position: relative; }
+  .rail .nav.on { color: var(--p); background: color-mix(in oklab, var(--p) 12%, transparent); }
+  .desk-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .app-head { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--card-border); }
+  .app-head h2 { font-size: 18px; font-weight: 700; font-family: var(--display); }
+  .app-head h2 span { color: var(--su); }
+  .phone .app-head { padding: 10px 16px; flex-wrap: wrap; row-gap: 6px; }
+  .phone .app-head h2 { font-size: 16px; } .phone .app-head h2 span { color: var(--p); }
+  .date-pill { font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; border: 1px solid color-mix(in oklab, var(--su) 35%, transparent); color: var(--su); background: color-mix(in oklab, var(--su) 10%, transparent); }
+  .phone .date-pill { border-color: color-mix(in oklab, var(--p) 35%, transparent); color: var(--p); background: color-mix(in oklab, var(--p) 10%, transparent); }
+  [data-theme='p5-dark'] .date-pill { border-radius: 0; }
+
+  .phones { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px 20px; align-items: start; justify-items: center; }
+  .phone-wrap { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .phone-cap { font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-55); text-align: center; max-width: 340px; line-height: 1.5; }
+  .phone-cap b { color: var(--p); }
+  .phone-cap.before b { color: var(--bc); }
+  .phone { width: 340px; max-width: 100%; height: 700px; border-radius: 38px; border: 8px solid var(--phone-rim); background: var(--b2); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+  [data-theme='p5-dark'] .phone { border-radius: 0; }
+  .status { height: 34px; display: flex; align-items: center; justify-content: space-between; padding: 0 22px; font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 600; color: var(--ink-80); flex-shrink: 0; position: relative; z-index: 6; }
+  .status .island { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); width: 90px; height: 24px; border-radius: 14px; background: var(--b3); }
+  .phone-body { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+  .phone-scroll { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; padding-bottom: 70px; }
+  .phone-scroll::-webkit-scrollbar { display: none; }
+  .dock { height: 64px; flex-shrink: 0; border-top: 1px solid var(--card-border); background: color-mix(in oklab, var(--b1) 94%, var(--b3)); display: grid; grid-template-columns: repeat(6, 1fr); align-items: center; padding: 0 4px 6px; position: relative; }
+  .dock .tab { display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--ink-45); font-size: 9.5px; font-weight: 600; }
+  .dock .tab.on { color: var(--p); }
+  .pill { display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 14px; border-radius: 16px; background: var(--b1); border: 1px solid var(--card-border); box-shadow: 0 6px 16px oklch(0 0 0 / .25); font-size: 14px; font-weight: 600; }
+  [data-theme='p5-dark'] .pill { border-radius: 0; }
+  .pill .icon { color: var(--p); }
+  .mpill { position: absolute; left: 12px; right: 12px; bottom: 10px; z-index: 3; }
+  .mpill .chev { margin-left: auto; opacity: .45; }
+
+  /* ── Board (main's product) ── */
+  .dash { display: flex; align-items: center; gap: 20px; padding: 10px 16px; border-bottom: 1px solid var(--card-border); background: color-mix(in oklab, var(--b2) 50%, transparent); }
+  .dash .ring { position: relative; width: 48px; height: 48px; flex-shrink: 0; }
+  .dash .ring svg { width: 48px; height: 48px; transform: rotate(-90deg); }
+  .dash .ring .pct { position: absolute; inset: 0; display: grid; place-items: center; font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 700; }
+  .dash .lbl { display: flex; flex-direction: column; gap: 1px; }
+  .dash .k { font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-80); font-weight: 600; }
+  .dash .sub { font-size: 11.5px; color: var(--ink-55); }
+  .dash .vsep { width: 1px; height: 34px; background: var(--card-border); }
+  .dash .stat { display: flex; flex-direction: column; gap: 1px; }
+  .dash .stat b { font-family: 'Geist Mono', monospace; font-size: 17px; font-weight: 700; }
+  .dash .stat .k { color: var(--ink-55); font-weight: 500; }
+  .dash .wk { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .dash .wk .row { display: flex; justify-content: space-between; align-items: center; }
+  .bar2 { height: 6px; border-radius: 4px; background: var(--ink-10); overflow: hidden; }
+  .bar2 b { display: block; height: 100%; border-radius: 4px; }
+  .mdash { display: flex; flex-direction: column; gap: 6px; padding: 8px 16px; border-bottom: 1px solid var(--card-border); background: color-mix(in oklab, var(--b2) 50%, transparent); }
+  .mdash .row { display: flex; align-items: center; gap: 8px; height: 20px; font-size: 10.5px; color: var(--ink-55); }
+  .mdash .row .k { font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; width: 36px; }
+  .mdash .row .n { font-family: 'Geist Mono', monospace; font-weight: 700; color: var(--ink-80); width: 34px; }
+  .mdash .row .bar2 { flex: 1; }
+  .mdash .row strong { font-family: 'Geist Mono', monospace; color: var(--ink-80); }
+  .mdash .row strong.avg { color: var(--wa); }
+  .board-wrap { flex: 1; min-height: 0; display: flex; }
+  .board-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .board-cols { flex: 1; min-width: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 14px; min-height: 0; }
+  .column { min-width: 0; display: flex; flex-direction: column; border: 1px solid var(--card-border); border-radius: 12px; background: color-mix(in oklab, var(--b2) 10%, transparent); overflow: hidden; }
+  [data-theme='p5-dark'] .column { border-radius: 0; border-width: 1.5px; }
+  .column-head { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-left: 4px solid var(--in); border-bottom: 1px solid var(--card-border); font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+  .column.done .column-head { border-left-color: var(--su); }
+  .count-ghost { margin-left: auto; font-family: 'Geist Mono', monospace; font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--ink-10); color: var(--ink-65); letter-spacing: 0; }
+  .column-body { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .badge-count { font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: var(--p); color: var(--pc); min-width: 20px; text-align: center; display: inline-block; letter-spacing: 0; }
+  [data-theme='p5-dark'] .badge-count, [data-theme='p5-dark'] .count-ghost { border-radius: 0; }
+  .led { width: 7px; height: 7px; border-radius: 99px; background: currentColor; box-shadow: 0 0 6px currentColor; display: inline-block; flex-shrink: 0; }
+  [data-theme='p5-dark'] .led { border-radius: 0; transform: rotate(45deg); box-shadow: none; }
+  .bk-rail { width: 44px; flex-shrink: 0; border: 0; border-left: 1px solid var(--card-border); background: color-mix(in oklab, var(--b1) 25%, transparent); display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 14px 0; color: var(--ink-65); cursor: default; }
+  .bk-rail .v { writing-mode: vertical-rl; font-size: 12px; font-weight: 700; letter-spacing: .04em; }
+  .backlog { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; border-left: 1px solid var(--card-border); background: color-mix(in oklab, var(--b1) 10%, transparent); min-height: 0; }
+  .backlog-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--card-border); }
+  .backlog-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; }
+  .backlog-title .icon { color: var(--p); }
+  .backlog-hint { display: flex; align-items: center; gap: 6px; padding: 10px 16px; font-size: 12px; color: var(--ink-55); border-bottom: 1px solid var(--card-border); }
+  .backlog-hint .icon { color: var(--p); }
+  .backlog-body { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; max-height: 470px; }
+  .mrow-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 16px; font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+  .mrow-head .lhs { display: flex; align-items: center; gap: 8px; }
+  .mrow { display: flex; gap: 8px; overflow-x: auto; padding: 2px 16px 6px; scrollbar-width: none; min-height: 20px; }
+  .mrow::-webkit-scrollbar { display: none; }
+  .mini { flex-shrink: 0; width: 136px; height: 92px; background: var(--card-bg); border: 1px solid var(--card-border); border-left: 3px solid var(--k); border-radius: var(--rc); box-shadow: var(--card-shadow); padding: 8px 9px; display: flex; flex-direction: column; gap: 4px; }
+  .mini .tc-head { font-size: 8.5px; letter-spacing: .08em; }
+  .mini .tc-head .name { font-size: 9.5px; }
+  .mini .tc-title { font-size: 12px; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .mini .tc-foot { margin-top: auto; min-height: 0; }
+  .mini .dots { gap: 3px; } .mini .dots i { width: 6px; height: 6px; border-width: 1.2px; }
+  .mini .stepbar { width: 52px; } .mini .stepbar i { height: 3px; }
+  .mini .size { font-size: 8px; padding: 0 4px; }
+  .msheet { position: absolute; left: 0; right: 0; bottom: 0; top: 120px; background: var(--b1); border-radius: 18px 18px 0 0; display: flex; flex-direction: column; overflow: hidden; z-index: 5; border-top: 1px solid var(--card-border); }
+  [data-theme='p5-dark'] .msheet { border-radius: 0; }
+  .msheet .grab { width: 36px; height: 4px; border-radius: 4px; background: var(--ink-20); margin: 8px auto 0; flex-shrink: 0; }
+  .mscrim { position: absolute; inset: 0; background: var(--scrim); z-index: 4; }
+
+  /* ── The card (board's face; PR #128 K · Card for the modal) ── */
+  .tc { position: relative; background: var(--card-bg); border: 1px solid var(--card-border); border-left: 3px solid var(--k); border-radius: var(--rc); box-shadow: var(--card-shadow); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; user-select: none; }
+  [data-theme='p5-dark'] .tc { border-width: 1.5px; border-left-width: 4px; }
+  .tc.solid { background: var(--card-solid); }
+  .tc.sugg { border-style: dashed; border-left-style: solid; background: color-mix(in oklab, var(--card-solid) 70%, transparent); }
+  .tc-head { display: flex; align-items: center; gap: 6px; min-width: 0; font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--k); }
+  .tc-head .name { text-transform: none; letter-spacing: .02em; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .tc-head .qd-bar { color: var(--ink-45); font-weight: 500; }
+  .tc-head .ctx { margin-left: auto; color: var(--ink-55); letter-spacing: .02em; text-transform: none; font-weight: 500; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; }
+  .tc-head .ctx.carry { color: var(--ink-65); }
+  .tc-head .ctx.why { color: var(--ink-55); }
+  .tc-row { display: flex; align-items: flex-start; gap: 10px; }
+  .tc-title { flex: 1; min-width: 0; font-size: 14px; font-weight: 500; line-height: 1.3; }
+  .tc-desc { font-size: 12px; color: color-mix(in oklab, var(--bc) 58%, transparent); line-height: 1.4; margin-top: -2px; }
+  .tc-foot { display: flex; align-items: center; gap: 8px; min-height: 22px; }
+  .size { margin-left: auto; font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; color: var(--ink-55); border: 1px solid var(--card-border); border-radius: var(--rs); padding: 1px 5px; }
+  .size i { font-style: normal; opacity: .4; margin: 0 3px; }
+  .dots { display: inline-flex; gap: 6px; align-items: center; }
+  .dots i { width: 8px; height: 8px; border-radius: 99px; border: 1.5px solid color-mix(in oklab, var(--k) 65%, transparent); }
+  .dots i.on { background: var(--k); border-color: var(--k); }
+  .dots i.cur { border-color: var(--k); box-shadow: 0 0 0 2px color-mix(in oklab, var(--k) 30%, transparent); }
+  [data-theme='p5-dark'] .dots i { border-radius: 0; transform: rotate(45deg); width: 7px; height: 7px; }
+  .stepbar { display: inline-flex; gap: 2px; width: 92px; }
+  .stepbar i { flex: 1; height: 4px; border-radius: 2px; background: color-mix(in oklab, var(--k) 20%, transparent); }
+  .stepbar i.on { background: var(--k); }
+  .stepbar i.cur { box-shadow: 0 0 0 1px var(--k); }
+  [data-theme='p5-dark'] .stepbar i { border-radius: 0; }
+  .more { display: inline-flex; align-items: baseline; gap: 3px; white-space: nowrap; font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 600; color: var(--ink-55); text-transform: none; letter-spacing: .02em; }
+  .more b { color: var(--k); font-weight: 700; }
+  .grp { display: flex; flex-direction: column; }
+  .pile { display: flex; flex-direction: column; align-items: stretch; pointer-events: none; }
+  .pile i { display: block; height: 6px; margin-top: -1px; border: 1px solid var(--lip-border); border-top: 0; border-radius: 0 0 var(--rc) var(--rc); background: var(--lip-1); }
+  .pile i:nth-child(1) { margin-left: 8px; margin-right: 8px; }
+  .pile i:nth-child(2) { margin-left: 16px; margin-right: 16px; height: 5px; background: var(--lip-2); opacity: .85; }
+  .pile i:nth-child(3) { margin-left: 24px; margin-right: 24px; height: 5px; background: var(--lip-2); opacity: .6; }
+  /* the card's action slot (bottom right) */
+  .act { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 9px; border-radius: 999px; border: 1px solid color-mix(in oklab, var(--p) 40%, transparent); background: color-mix(in oklab, var(--p) 10%, transparent); color: var(--p); font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: .02em; cursor: pointer; transition: transform .15s var(--ease); }
+  .act:active { transform: scale(.94); }
+  .act.pull { height: 22px; padding: 0 8px; font-size: 10.5px; }
+  .act.rm { width: 24px; padding: 0; justify-content: center; border-color: var(--card-border); background: transparent; color: var(--ink-55); }
+  .act.rm:hover { color: var(--bc); border-color: var(--ink-30); }
+  [data-theme='p5-dark'] .act { border-radius: 0; }
+  .sec-label { display: flex; align-items: center; gap: 7px; font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-55); margin: 2px 2px -2px; }
+  .sec-label .line { flex: 1; height: 1px; background: var(--card-border); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 38px; padding: 0 16px; border-radius: var(--rf); border: 1px solid var(--card-border); background: transparent; color: var(--ink-80); font-size: 13px; font-weight: 600; cursor: pointer; transition: transform .15s var(--ease), opacity .15s; white-space: nowrap; }
+  .btn:active:not(:disabled) { transform: scale(.97); }
+  .btn.primary { background: var(--p); color: var(--pc); border-color: transparent; box-shadow: 0 0 0 1px color-mix(in oklab, var(--p) 40%, transparent), 0 0 14px color-mix(in oklab, var(--p) 32%, transparent); }
+  [data-theme='p5-dark'] .btn.primary { box-shadow: 3px 3px 0 oklch(0.36 0.13 25); }
+  .btn.primary .badge-count { background: var(--pc); color: var(--p); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; box-shadow: none; }
+  .btn.ghost { border-color: transparent; color: var(--ink-65); }
+  .btn.opened { background: color-mix(in oklab, var(--su) 18%, transparent); color: var(--su); box-shadow: 0 0 0 1px color-mix(in oklab, var(--su) 45%, transparent); }
+  .ghost-link { border: 0; background: transparent; color: var(--p); font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: .04em; cursor: pointer; padding: 2px 4px; text-transform: none; }
+  .ghost-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+  /* FinishBox (src/components/ui/FinishBox.tsx) — dashed box, title + lines, no button */
+  .finish { display: flex; flex-direction: column; align-items: center; gap: 8px; border: 1px dashed color-mix(in oklab, var(--su) 40%, transparent); border-radius: var(--rc); padding: 18px 14px; text-align: center; animation: fx-boot-in .42s var(--ease) both; }
+  [data-theme='p5-dark'] .finish { border-width: 1.5px; }
+  .finish b { font-size: 14px; font-weight: 700; color: var(--bc); }
+  .finish small { display: block; font-size: 12px; line-height: 1.45; color: var(--ink-55); }
+  .finish .lines { display: flex; flex-direction: column; gap: 2px; }
+  .finish.prompt { border-color: color-mix(in oklab, var(--p) 40%, transparent); }
+  .mrow .finish { flex: 1; min-width: 0; padding: 14px 12px; }
+
+  /* ── NEW: the ritual strip ── */
+  .ritual { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--rb); background: color-mix(in oklab, var(--p) 9%, transparent); border: 1px solid color-mix(in oklab, var(--p) 32%, transparent); color: var(--bc); cursor: pointer; text-align: left; width: 100%; transition: transform .15s var(--ease); }
+  .ritual:hover .t { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in oklab, var(--p) 60%, transparent); }
+  .ritual:active { transform: scale(.99); }
+  .ritual .led { color: var(--p); animation: fx-pulse-opacity 2.4s ease-in-out infinite; }
+  .ritual .rt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .ritual .t { font-size: 13.5px; font-weight: 700; font-family: var(--display); letter-spacing: .01em; }
+  [data-theme='p5-dark'] .ritual .t { letter-spacing: .05em; font-weight: 400; font-size: 15px; }
+  .ritual .s { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--ink-55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ritual .go { margin-left: auto; color: var(--p); display: inline-flex; }
+  .ritual.leaving { animation: stripOut .24s var(--ease) forwards; }
+  .strip-slot { padding: 12px 14px 0; }
+  .phone .strip-slot { padding: 8px 12px 2px; }
+  /* E-C: a chip in the header */
+  .hchip { margin-left: auto; display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 11px; border-radius: 999px; border: 1px solid color-mix(in oklab, var(--p) 40%, transparent); background: color-mix(in oklab, var(--p) 10%, transparent); color: var(--p); font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .hchip .led { width: 6px; height: 6px; animation: fx-pulse-opacity 2.4s ease-in-out infinite; }
+  [data-theme='p5-dark'] .hchip { border-radius: 0; }
+  /* E-B: the empty Todo box as the entry */
+  .finish .entry-btn { margin-top: 4px; }
+
+  /* ── NEW: the Open the day modal / overlay ── */
+  .mscrim2 { position: absolute; inset: 0; background: var(--scrim); z-index: 20; }
+  .modal { position: absolute; z-index: 21; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(620px, calc(100% - 48px)); max-height: calc(100% - 40px); display: flex; flex-direction: column; background: var(--panel-solid); border: 1px solid var(--card-border); border-radius: var(--rbox); box-shadow: inset 0 1px 0 var(--edge), 0 24px 60px oklch(0 0 0 / .45); overflow: hidden; }
+  .modal.wide { width: min(900px, calc(100% - 48px)); }
+  .modal.boot { animation: modalIn .42s var(--ease) both; }
+  .modal.leaving { animation: modalOut .24s var(--ease) forwards; }
+  .modal::after { content: ''; position: absolute; inset: 2px; pointer-events: none; --l: 14px; --g: linear-gradient(color-mix(in oklab, var(--p) 55%, transparent), color-mix(in oklab, var(--p) 55%, transparent)); background: var(--g) 0 0 / var(--l) 1.5px, var(--g) 0 0 / 1.5px var(--l), var(--g) 100% 0 / var(--l) 1.5px, var(--g) 100% 0 / 1.5px var(--l), var(--g) 0 100% / var(--l) 1.5px, var(--g) 0 100% / 1.5px var(--l), var(--g) 100% 100% / var(--l) 1.5px, var(--g) 100% 100% / 1.5px var(--l); background-repeat: no-repeat; border-radius: calc(var(--rbox) - 2px); }
+  .ovfull { position: absolute; z-index: 21; left: 0; right: 0; top: 0; bottom: 0; display: flex; flex-direction: column; background: var(--panel-solid); }
+  .ovfull.boot { animation: sheetUp .42s var(--ease) both; }
+  .ovfull.leaving { animation: sheetDown .24s var(--ease) forwards; }
+  .ovsheet { position: absolute; z-index: 21; left: 0; right: 0; top: 46px; bottom: 0; display: flex; flex-direction: column; background: var(--panel-solid); border-radius: 18px 18px 0 0; border-top: 1px solid var(--card-border); box-shadow: 0 -10px 30px oklch(0 0 0 / .3); }
+  [data-theme='p5-dark'] .ovsheet { border-radius: 0; }
+  .ovsheet .grab { width: 36px; height: 4px; border-radius: 4px; background: var(--ink-20); margin: 8px auto 0; flex-shrink: 0; }
+  .ovsheet.boot { animation: sheetUp .42s var(--ease) both; }
+  .ovsheet.leaving { animation: sheetDown .24s var(--ease) forwards; }
+  .ov-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 16px 20px 12px; border-bottom: 1px solid var(--card-border); flex-shrink: 0; }
+  .ovfull .ov-head { padding-top: 6px; }
+  .ov-head .ttl { display: flex; align-items: center; gap: 8px; font-family: var(--display); font-size: 18px; font-weight: 700; }
+  [data-theme='p5-dark'] .ov-head .ttl { font-weight: 400; letter-spacing: .04em; font-size: 20px; }
+  .ov-head .ttl .icon { color: var(--wa); width: 20px; height: 20px; }
+  .ov-head .subt { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--ink-55); margin-top: 2px; display: flex; gap: 8px; align-items: center; }
+  .ov-head .x { border: 0; background: transparent; color: var(--ink-55); cursor: pointer; padding: 4px; display: inline-flex; }
+  .ov-body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 20px 18px; display: flex; flex-direction: column; gap: 10px; scrollbar-width: thin; }
+  .phone .ov-body { padding: 12px 14px 16px; }
+  .ov-split { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr); }
+  .ov-split > .pane { min-height: 0; overflow-y: auto; padding: 14px 18px 18px; display: flex; flex-direction: column; gap: 10px; scrollbar-width: thin; }
+  .ov-split > .pane.today-pane { background: color-mix(in oklab, var(--p) 4%, transparent); border-right: 1px solid var(--card-border); }
+  .ov-foot { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 12px 20px; border-top: 1px solid var(--card-border); flex-shrink: 0; background: var(--panel-solid); }
+  .phone .ov-foot { padding: 10px 14px 14px; }
+  .phone .ov-foot .btn.primary { flex: 1; }
+  .ov-foot .err { margin-right: auto; font-size: 12px; color: var(--er); display: flex; gap: 6px; align-items: center; }
+  .ov-foot .stepdots { margin-right: auto; display: flex; gap: 6px; }
+  .ov-foot .stepdots i { width: 6px; height: 6px; border-radius: 99px; background: var(--ink-20); }
+  .ov-foot .stepdots i.on { background: var(--p); }
+  .sec-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+  .sec-row .sec-label { flex: 1; margin: 0; }
+  .sec-row .ghost-link { flex-shrink: 0; }
+  .showmore { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 10px; border: 1px solid var(--card-border); border-radius: var(--rb); background: transparent; color: var(--ink-65); font-size: 12.5px; font-weight: 600; cursor: pointer; margin-top: 4px; }
+  .showmore:hover { color: var(--bc); }
+  .showmore .icon { transition: transform .24s var(--ease); }
+  .showmore.open .icon { transform: rotate(180deg); }
+  .showmore .count-ghost { margin-left: auto; }
+  .quiet-line { font-size: 12px; color: var(--ink-55); padding: 6px 2px; }
+  .more-body { display: flex; flex-direction: column; gap: 10px; animation: fx-boot-in .24s var(--ease) both; }
+  .gstep { font-size: 13px; color: var(--ink-65); line-height: 1.5; margin: 2px 0 4px; }
+  .gstep b { color: var(--bc); }
+
+  /* ── Motion (each one is set out in its module's motion table) ── */
+  @keyframes fx-pulse-opacity { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+  @keyframes fx-boot-in { from { opacity: 0; transform: translateY(6px) scale(.985); } to { opacity: 1; transform: none; } }
+  @keyframes modalIn { from { opacity: 0; transform: translate(-50%, calc(-50% + 6px)) scale(.985); } to { opacity: 1; transform: translate(-50%, -50%); } }
+  @keyframes modalOut { to { opacity: 0; transform: translate(-50%, calc(-50% + 6px)) scale(.985); } }
+  @keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
+  @keyframes sheetDown { to { transform: translateY(100%); } }
+  @keyframes stripOut { to { opacity: 0; } }
+  @keyframes land { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+  .landing { animation: land .24s var(--ease) both; }
+  @media (prefers-reduced-motion: reduce) {
+    .ritual .led, .hchip .led { animation: none; }
+    .modal.boot, .modal.leaving, .ovfull.boot, .ovsheet.boot, .ovfull.leaving, .ovsheet.leaving, .landing { animation-name: fx-fade; }
+  }
+  @keyframes fx-fade { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ── Research / tables ── */
+  .tbl-wrap { overflow-x: auto; border: 1px solid var(--card-border); border-radius: 12px; background: color-mix(in oklab, var(--b1) 30%, transparent); margin-top: 12px; }
+  .tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; line-height: 1.55; min-width: 640px; }
+  .tbl th, .tbl td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--card-border); color: var(--ink-80); }
+  .tbl th { font-family: 'Geist Mono', monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-55); font-weight: 600; }
+  .tbl td:first-child { font-weight: 600; color: var(--bc); white-space: nowrap; }
+  .tbl tr:last-child td { border-bottom: 0; }
+  .good { color: var(--su); } .bad { color: var(--er); } .meh { color: var(--wa); }
+  .patterns { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+  .pat { border: 1px solid var(--card-border); border-radius: 12px; padding: 14px 16px; background: color-mix(in oklab, var(--b1) 35%, transparent); font-size: 12.5px; line-height: 1.65; color: var(--ink-80); }
+  [data-theme='p5-dark'] .pat, [data-theme='p5-dark'] .opt, [data-theme='p5-dark'] .idea, [data-theme='p5-dark'] .desk { border-radius: 0; }
+  .pat h4 { font-size: 14px; color: var(--bc); margin-bottom: 2px; }
+  .pat .who { font-family: 'Geist Mono', monospace; font-size: 10.5px; color: var(--p); letter-spacing: .04em; margin-bottom: 8px; word-break: break-all; }
+  .pat .who a { color: var(--p); }
+  .pat .fit { margin-top: 8px; color: var(--ink-65); }
+  .pat .fit b { color: var(--bc); }
+  .copy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+  .copy-cell { display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; background: color-mix(in oklab, var(--b2) 40%, transparent); }
+  .copy-cell.rec { border-color: color-mix(in oklab, var(--p) 45%, transparent); }
+  .copy-cell .cc-head { display: flex; align-items: baseline; gap: 8px; font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--ink-55); }
+  .copy-cell .cc-head .letter { font-weight: 700; color: var(--pc); background: var(--p); border-radius: 5px; padding: 1px 6px; }
+  .copy-cell .cc-head .letter.muted { background: var(--ink-20); color: var(--bc); }
+  .copy-cell .cc-col { border: 1px solid var(--card-border); border-radius: 10px; overflow: hidden; }
+  .copy-cell .cc-col .column-head { padding: 9px 12px; font-size: 10px; }
+  .copy-cell .cc-col .column-body { padding: 10px; min-height: 120px; }
+  .copy-cell p { font-size: 12px; line-height: 1.6; color: var(--ink-65); }
+  .copy-cell p b { color: var(--bc); }
+  .ideas { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 14px; }
+  .idea { border: 1px solid var(--card-border); border-radius: 12px; padding: 14px 16px; background: color-mix(in oklab, var(--b1) 30%, transparent); font-size: 12.5px; line-height: 1.65; color: var(--ink-80); }
+  .idea h4 { font-size: 14px; color: var(--bc); margin-bottom: 6px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+  .idea h4 .tag { font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-55); border: 1px solid var(--card-border); border-radius: 999px; padding: 1px 7px; font-weight: 600; }
+  .idea ul { padding-left: 16px; margin-top: 4px; } .idea li { margin: 4px 0; }
+  .idea b { color: var(--bc); }
+  .future { border: 1px dashed color-mix(in oklab, var(--s) 45%, transparent); }
+  .newlist { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin-bottom: 22px; }
+  .newlist .pat h4 { font-size: 13px; }
+  .sketch { position: relative; }
+  .sketch-tag { position: absolute; right: 12px; top: 10px; z-index: 2; font-family: 'Geist Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-45); border: 1px dashed var(--ink-30); border-radius: 999px; padding: 2px 8px; }
+  /* PR #128 sketch: the ring row (static, simplified) */
+  .ringrow { display: flex; gap: 6px; padding: 10px 14px; border-bottom: 1px solid var(--card-border); }
+  .ringrow .d { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 0; border-radius: 8px; border: 1px solid transparent; font-family: 'Geist Mono', monospace; font-size: 10px; color: var(--ink-45); letter-spacing: .08em; text-transform: uppercase; }
+  .ringrow .d.today { border-color: color-mix(in oklab, var(--p) 55%, transparent); color: var(--p); flex: 2.2; flex-direction: row; justify-content: center; gap: 10px; }
+  .ringrow .d i { width: 26px; height: 26px; border-radius: 99px; border: 3.5px solid var(--ink-20); display: block; }
+  .ringrow .d.past i { border-color: color-mix(in oklab, var(--su) 70%, transparent); }
+  .ringrow .d.today i { width: 34px; height: 34px; }
+  .ringrow .d .tl { display: flex; flex-direction: column; text-align: left; gap: 1px; }
+  .ringrow .d .tl small { font-size: 11px; color: var(--ink-65); text-transform: none; letter-spacing: 0; font-family: 'Geist', sans-serif; }
+  [data-theme='p5-dark'] .ringrow .d i { border-radius: 0; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div>
+    <div class="eyebrow">Daily rhythm · Open the day · design PR · 第 1 轮 · 2026-11-19 · 未定稿 · waits on owner approval</div>
+    <h1>Open the day：早上挑今天做什么</h1>
+    <p><b>要做的（owner，2026-11-19）。</b>board 上有一个 entry，点开是一个专门的 flow：desktop 上是 modal，mobile 上是 overlay。上半部分是 <b>Today</b>，一开始只放昨天没做完的，没有就是一个 empty prompt；下半部分是简略版的 backlog：一个推荐区，也能展开看全部，包括 priority matrix 第一象限（Do first）的 one-off。推荐现在用固定算法。Complete 和 Cancel 跟普通 modal 一样。还没做这个 ritual 的时候 Todo 是空的，empty 文案要有开启一天的 cheerful 感觉。entry 暂定 08:00–14:00，过了不显示。Night recap 另一个 mockup 画。</p>
+    <p><b>怎么看。</b>一个模块一个 tab：<b>E · Entry</b>（board 上的入口、Todo 没 open 时的 empty 文案）、<b>L · Layout</b>（modal 怎么排）、<b>S · Suggestions</b>（推荐怎么给）、<b>T · Start</b>（提交那一下和提交以后）。每个 tab 先是 Before（main 的产品），再是 2–3 个方案并排：手机一行并排在上，桌面一个方案一行在下；每个方案标了按 <code>design-language/README.md</code> › Principles 的得失，我推荐的那个有亮框。<b>R · Research</b> 是别的产品怎么做；<b>F · Final</b> 把推荐的合在一起，从 strip 一路点到 Start the day；<b>I · Ideas</b> 是 spec 要写的行为、Future 和要 owner 定的问题。After 都能点：+ 加到 Today、× 放回去、Show more、Start the day、Cancel，右上角 Reset。</p>
+    <p><b>用的 spike 默认</b>（<code>claude/daily-rhythm-rituals-spike</code>，owner 还没回答）：rhythm day 是 Los Angeles 时间 04:00 到第二天 04:00；Todo 严格是今天，每天第一次 sync 把还在 Todo 的清回 backlog、记 carried（Open the day 里标 ↩）；entry 在 08:00–14:00、今天还没 open 时出现；desktop 是居中的 modal，mobile 是全屏 overlay；点 backdrop 不关，Esc 等于 Cancel；没有 notification。推荐：每个 habit / project 今天推 <code>ceil(剩下的 ÷ 剩下的天数)</code> 减掉已在 Today 的；daily 的今天那张总推；这周已 track 的 one-off 算一组、按 quadrant 排；没 track 的 Do first 只在 Show more 里。</p>
+    <p><b>画在什么上。</b>Before 是 <code>main</code>（<code>6ed14d0</code>）的产品。After 的 board 也画在 main 上，只加这个设计的东西，每个 tab 的 note 写了加了什么；modal 里的卡用 PR #128 K · Card 定的那张卡（kind 行、标题、描述、左下 signal、右下 action，不显示 size），还没 build。PR #128 落地以后 strip 的位置见 E tab 底部的示意。<b>Fixture</b>：Thu Nov 19 09:12，<code>NORMAL</code>，这周 Nov 16 – Nov 22，剩下 D = 2 天（周四、周五）；一个 weekly habit（Workout 3× / week，做了 1）、一个 daily habit（Flashcards）、一个 project（Biomedical course，10 步，这周排了 Lecture 4–7 和 Problem set 2，Lecture 4 昨天没做完 ↩）、两个已 track 的 one-off（Renew passport ↩、Call the landlord）、两个没 track 的 Do first（Book the dentist、Fix the bike tire）。</p>
+  </div>
+  <div class="seg" id="theme-seg" role="group" aria-label="Theme">
+    <button data-theme-btn="mars-dark" class="on">mars-dark</button>
+    <button data-theme-btn="mars-light">mars-light</button>
+    <button data-theme-btn="p5-dark">p5-dark</button>
+  </div>
+</header>
+
+<!-- ═════════ R · Research ═════════ -->
+<section class="screen" data-screen="research">
+  <div class="col-label"><b>R · Research</b> · 别的产品怎么做早上的这一步 · 只记 pattern 和它对这个设计的用处<span class="line"></span></div>
+  <p class="note lead">读的是各家自己的页面（链接在每张卡上）。Apple 在前：HIG 的 Modality 和 Sheets 管这个 modal 怎么开、怎么关；Journal 的 suggestions 管「推荐要说清楚为什么」。下面每张卡的 <b>Fit</b> 说它推了哪个方案、或者为什么不用。</p>
+  <div class="patterns" id="research"></div>
+  <div class="col-label spaced"><b>合起来</b> · research 对四个模块的影响<span class="line"></span></div>
+  <div class="note" style="margin-top:0">
+    <ul>
+      <li><b>E · Entry</b>：Akiflow、Sunsama 都能在当天第一次打开时自动弹出 planning。我们不自动弹，用一条 strip：owner 要的是「board 上一个 entry」，自动弹一个盖住 board 的 modal 是打断（HIG：只在有明确好处时用 modal）。自动弹记进 Future。</li>
+      <li><b>L · Layout</b>：Sunsama 和 Akiflow 是好几步的向导；HIG 说 modal 的任务要短、不要做成 app 里的 app，多步就要有 Back。我们的事情只有一件（挑今天的卡），所以推荐一屏做完；向导作为 L-C 画出来对比。</li>
+      <li><b>S · Suggestions</b>：Todoist 把 overdue 放成单独一段、一键 Reschedule 全部；Journal 的推荐每条都看得出是从哪来的。对应 ↩ 一段在 Today 最上面、Suggested 的 Add all、每张推荐卡的 why 一行。</li>
+      <li><b>T · Start</b>：几家 planning 的最后一步都只是「进入今天」（Sunsama 的 Get Started），没有庆祝。和 Principles 3.5 一致：这是开始，不是赢，反馈小而且落在 Todo。</li>
+      <li><b>Todo 的 empty</b>：Atlassian 把「还没开始」（blank slate）和「做完了」（cleared）分开写：前者鼓励开始，后者庆祝。正好是 Todo 的两种空：没 open（这里新写的）和做完了（COL-5 的 All clear for the day）。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═════════ E · Entry ═════════ -->
+<section class="screen on" data-screen="entry">
+  <div class="col-label"><b>E · Entry</b> · 早上打开 board：入口在哪、Todo 空着说什么<span class="line"></span></div>
+  <p class="note lead">D1（spike）以后，每天第一次 sync 把 Todo 清回 backlog，所以早上没 open 之前 Todo 是空的。这一个 tab 定两件事：<b>① 入口</b>长什么样、放在哪（三个方案）；<b>② Todo 的 empty 文案</b>（spike 的 A–E 并排，加上 14:00 以后不提 ritual 的那一版）。点 After 里的入口会打开推荐的 modal（L-B + S-A），可以一路点下去；Reset 回到早上。</p>
+  <div class="col-label"><b>Before</b> · main 的产品 · Thu 09:12：昨天没做完的 Lecture 4 和两张 one-off 还在 Todo，今天的 Flashcards 在 backlog 里<span class="line"></span></div>
+  <div class="options" style="grid-template-columns: minmax(0, 1fr) 340px"><div id="e-before-desk"></div><div id="e-before-phone"></div></div>
+
+  <div class="col-label spaced after"><b>① 入口 · 三个方案</b> · 手机并排 · Thu 09:12，还没 open<span class="line"></span></div>
+  <div class="options" id="e-opts"></div>
+  <div id="e-desks"></div>
+  <div class="tbl-wrap"><table class="tbl" id="e-rank"></table></div>
+  <p class="note"><b>推荐 E-A</b>：一个入口，两端一样，放在它的结果要落下的 Todo 正上方；Todo 的虚线框照旧是一个没有按钮的 FinishBox。<b>After 比 Before 多的</b>（E-A）：① strip（LED、Open the day、一行说明、→），只在 08:00–14:00、今天还没 open 时出现；② Todo 空着时的虚线框和它的文案（② 选）；③ 不是这个设计、是 spike 的 D1 带来的：Todo 早上是空的，昨天没做完的回到 backlog，backlog 多了一段 One-offs，数到 8 以上写 8+。strip 的一行说明只说数字：<code>2 from yesterday · 4 suggested</code>，哪个是 0 就不写那一半，两个都是 0 写 <code>Pick today's tasks</code>（Principles 3.6）。</p>
+
+  <div class="col-label spaced after"><b>② Todo 的 empty 文案</b> · spike 的 A–E 并排，加 14:00 以后的一版；最后一格是 COL-5 已有的那句，对照用<span class="line"></span></div>
+  <div class="copy-grid" id="e-copy"></div>
+  <p class="note"><b>推荐 A</b>：标题在早上可以 cheer（owner 要 cheerful；3.5 只要求收尾的时候安静）；第一句说事实（今天还没东西），第二句说下一步，下一步的说法正好是 strip 上的字 Open the day，两处对得上（3.7）。不挑时间（D 的 morning 在 12:00 以后不对，3.6）。<b>14:00 以后</b>：strip 没了，文案不能再说 Open the day（3.6），换成 F 那版，标题不加感叹号。<b>和 COL-5 的关系</b>（spike）：今天已经做完过一张、Todo 又空了，显示 COL-5 的 All clear for the day，因为它说的是刚发生的事。open 以后再空，也是 COL-5。</p>
+
+  <div class="col-label spaced"><b>动效 · 这个 tab 的</b><span class="line"></span></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>什么</th><th>什么时候</th><th>谁怎么动</th><th>多久</th><th>减少动态效果</th></tr>
+    <tr><td>strip 的 LED</td><td>strip 在的时候一直</td><td>LED 的不透明度 1 → .35 → 1（产品的 <code>fx-pulse-opacity</code>）</td><td>2.4 s 一圈（Motion › LED pulse）</td><td>不闪，常亮</td></tr>
+    <tr><td>strip 出现</td><td>页面加载或回到前台时在窗口里（spike Q2）</td><td>不动，跟页面一起出来</td><td>—</td><td>—</td></tr>
+    <tr><td>strip、+ Today、按钮被按下</td><td>按下时</td><td>控件自己的反馈（6.2）：hover 只给 Open the day 加下划线；按下缩一点（strip .99、+ Today .94、按钮 .97）</td><td>150 ms</td><td>不缩</td></tr>
+    <tr><td>strip 离开</td><td>Start the day 成功</td><td>见 T · Start</td><td>240 ms</td><td>见 T</td></tr>
+    <tr><td>Todo 的虚线框</td><td>Todo 变空、或页面加载时就空</td><td>FinishBox 现有的 <code>fx-boot-in</code>（淡入，往上 6 px）</td><td>420 ms</td><td>只淡入</td></tr>
+  </table></div>
+
+  <div class="col-label spaced"><b>PR #128 落地以后</b> · 示意，不是这个设计的一部分：board 顶上换成每天一圈，Todo 叫 Today；strip 还在 Todo 正上方<span class="line"></span></div>
+  <div class="options" style="grid-template-columns: minmax(0, 1fr) 340px"><div id="e-128-desk"></div><div id="e-128-phone"></div></div>
+  <p class="note">#128 的 F · Final 把 Progress dashboard 换成一排日圈，Todo 列标 Today。strip 放在日圈下面、Todo 上面，和 main 上的位置一样（日圈说今天做了多少，strip 说今天还没开始）。没 open 时今天的圈是 <code>0 of 0</code>：#128 的 Ideas 2 正好在等 Open the day 定义「今天的总数」（方案 e），open 以后圈的分母就是 Start the day 放进 Todo 的张数。</p>
+</section>
+
+<!-- ═════════ L · Layout ═════════ -->
+<section class="screen" data-screen="layout">
+  <div class="col-label"><b>L · Layout</b> · modal / overlay 里怎么排 Today 和 backlog<span class="line"></span></div>
+  <p class="note lead">三个方案用同一套内容：Today（↩ 两张）、Suggested（S-A 的列表）、Show more。比较的是排法。按 owner 的四条看：<b>1.3</b> 动作最少、<b>2.2</b> 不把一大堆摊开、<b>4.1</b> 重要的先看到、<b>5.1 / 5.2</b> 一个组件、两端一张脸。都能点；Start the day 以后回到 board（T 的推荐动效），Reset 再来。</p>
+  <div class="col-label"><b>Before</b> · main 现在排今天的方法：打开 backlog，一张张拉（桌面拖，手机点 ↑ Todo）；没有「开始今天」这一步<span class="line"></span></div>
+  <div class="options" style="grid-template-columns: minmax(0, 1fr) 340px"><div id="l-before-desk"></div><div id="l-before-phone"></div></div>
+  <div class="col-label spaced after"><b>三个方案</b> · 手机并排<span class="line"></span></div>
+  <div class="options" id="l-opts"></div>
+  <div id="l-desks"></div>
+  <div class="tbl-wrap"><table class="tbl" id="l-rank"></table></div>
+  <p class="note"><b>推荐 L-B</b>：手机上就是 L-A 的一列；桌面多出来的宽度放成两栏，Today 在左（4.1：手机从上到下、桌面从左到右，同一个顺序），加进来的卡落在看得见的左栏（3.4）。这是「桌面可以多一个视图，不少一条路」（5.2）。<b>After 比 Before 多的</b>：整个 modal / overlay 是新的：标题 Open the day 和日期、Today 一段、Suggested 一段（右边 Add all）、Show more（展开以后 Habits · Projects · One-offs · From Priorities 四段，空的不显示）、底部 Cancel 和 Start the day。卡是 #128 的那张卡，右下的 action 槽放 <b>+ Today</b> 或 <b>×</b>；<b>Start the day 上的数字</b>就是 Today 的张数，Today 一段不再写数（1.1），加一张它就变（3.4）。</p>
+
+  <div class="col-label spaced"><b>手机外框（spike Q8）</b> · 全屏 overlay（spike 默认，新的 <code>fullscreen</code> variant） vs 拉满高度的 bottom sheet（现有的 <code>sheet</code>）<span class="line"></span></div>
+  <div class="phones" id="l-q8"></div>
+  <p class="note"><b>倾向全屏</b>（spike 默认，F 用它）：Start the day 是这一屏唯一的 primary，tab bar 被盖住不会误点；HIG 说专心做一件事可以用全屏。sheet 省一个 variant（1.2），顶上露一截 board 保留上下文，但露出来的 board 和 grabber 让人想往下拉关掉，而这里点外面不能关（选好的会丢），两种信号打架。由 owner 定。</p>
+
+  <div class="col-label spaced"><b>动效 · 这个 tab 的</b><span class="line"></span></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>什么</th><th>什么时候</th><th>谁怎么动</th><th>多久</th><th>减少动态效果</th></tr>
+    <tr><td>modal 打开（桌面）</td><td>点 strip</td><td>backdrop 出现；modal 用 OverlayShell 现有的 <code>fx-boot-in</code>（淡入，往上 6 px，从 .985 放大到 1）</td><td>420 ms</td><td>只淡入</td></tr>
+    <tr><td>overlay 打开（手机）</td><td>点 strip</td><td>从底部升上来，盖住 board 和 tab bar（daisyUI 的 modal-bottom 一样的方向）</td><td>420 ms，console snap</td><td>只淡入</td></tr>
+    <tr><td>关掉</td><td>Cancel、✕ / ⌄、Esc</td><td>桌面：淡出、往下 6 px；手机：降下去</td><td>240 ms</td><td>只淡出</td></tr>
+    <tr><td>加进 Today</td><td>点 + Today 或 Add all</td><td>卡从它在的列表里消失（不动画），出现在 Today 最下面，<code>land</code>：从上面 10 px 淡入落下；Start the day 上的数字跟着变（不动画）</td><td>240 ms</td><td>只淡入</td></tr>
+    <tr><td>放回去</td><td>点 ×</td><td>卡从 Today 消失，回到原来的位置（不动画）</td><td>—</td><td>—</td></tr>
+    <tr><td>Show more</td><td>点它</td><td>⌄ 转 180°；展开的部分 <code>fx-boot-in</code> 淡入</td><td>240 ms</td><td>不转，只出现</td></tr>
+    <tr><td>L-C 换一步</td><td>Next / Back</td><td>不动画，换内容</td><td>—</td><td>—</td></tr>
+  </table></div>
+</section>
+
+<!-- ═════════ S · Suggestions ═════════ -->
+<section class="screen" data-screen="suggest">
+  <div class="col-label"><b>S · Suggestions</b> · 推荐怎么给：列出来让人加、预先放进 Today、还是按 group 一张卡<span class="line"></span></div>
+  <p class="note lead">三个方案都放在 L-B 里（桌面两栏、手机一列）。推荐用的是 spike 的固定算法，数字是真的算出来的：Thu，D = 2；Flashcards 是 daily，今天那张总推；Workout 还剩 2，<code>ceil(2 ÷ 2) = 1</code>；Biomedical 这周还剩 5 步（含 ↩ 的 Lecture 4），<code>ceil(5 ÷ 2) = 3</code>，Today 里已有 1，推 2；两张 one-off 还剩 2，<code>ceil(2 ÷ 2) = 1</code>，Renew passport ↩ 已经在 Today，所以不推。加一张、放回一张，推荐当场重算（spike）。</p>
+  <div class="col-label"><b>Before</b> · 同 L：没有推荐，backlog 按 group 一张卡，自己挑<span class="line"></span></div>
+  <div class="options" style="grid-template-columns: minmax(0, 1fr) 340px"><div id="s-before-desk"></div><div id="s-before-phone"></div></div>
+  <div class="col-label spaced after"><b>三个方案</b> · 手机并排<span class="line"></span></div>
+  <div class="options" id="s-opts"></div>
+  <div id="s-desks"></div>
+  <div class="tbl-wrap"><table class="tbl" id="s-rank"></table></div>
+  <p class="note"><b>推荐 S-A</b>：MVP 是自己手动 plan（owner），推荐只是一排「建议加的」，看到的就是会落进 Todo 的那张卡；一个 group 推两张时，第二张没有 +，像 backlog 的队列一样等前一张（step 的顺序，R6）。<b>After 比 Before 多的</b>：Suggested 一段、Add all、卡右上的 why 一行（S-B 是 Today 里卡右上的 Suggested 和虚线边、S-C 是 group 卡的 pile 数推荐的张数）。</p>
+
+  <div class="col-label spaced"><b>Why 一行</b> · 卡的 kind 行右边，backlog 卡放 +N more 的那个槽（5.1）· 只说数据知道的（3.6）<span class="line"></span></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>情况</th><th>写什么</th><th>为什么这样写</th></tr>
+    <tr><td>daily habit</td><td><code>Today only</code></td><td>今天的 instance 过了今天就 expire（spike），这是它被推的原因；不写数字。</td></tr>
+    <tr><td>weekly habit、project</td><td><code>2 left in 2 days</code></td><td>R（这周还没做完的）和 D（剩下的天数，含今天）就是公式的两个输入。<b>拿不准</b>：habit 的 dots 已经画了做了几个（1.1），「2 left」和 dots 部分重复；project 的 path 画的是整个 project，这周剩几步它画不出来，不重复。另一种写法只写天数（<code>2 days left this week</code>），但每张卡都一样，等于没说。先用 spike 的写法，请 owner 看。</td></tr>
+    <tr><td>这周的 one-off</td><td><code>1 left in 2 days</code></td><td>所有已 track 的 one-off 算一组（spike），R 是这一组的。</td></tr>
+    <tr><td>只剩一天</td><td><code>3 left in 1 day</code></td><td>不写 last day：<code>NORMAL</code> 的周五后面还有周末，「最后一天」说多了。</td></tr>
+    <tr><td>周末（<code>NORMAL</code>）</td><td>Suggested 下面一行：<code>Nothing is suggested on weekends</code></td><td>D = 0，算法不推（spike）。只是事实，不劝人休息也不劝人干活。</td></tr>
+    <tr><td>推荐都加进去了</td><td><code>Everything suggested is in Today</code></td><td>2.3：一个列表空了就说它完了；Show more 还在下面，不推。</td></tr>
+  </table></div>
+</section>
+
+<!-- ═════════ T · Start ═════════ -->
+<section class="screen" data-screen="start">
+  <div class="col-label"><b>T · Start</b> · 按下 Start the day 那一下，和之后的 board<span class="line"></span></div>
+  <p class="note lead">Start the day 一次批量提交（spike）：Today 里的每张进 Todo，没 track 的 Do first 顺便 track 到这周，记下今天 open 过。然后 strip 消失、Todo 是刚挑的那几张。Principles 3.4（反馈要落在工作去的地方）和 3.5（这是开始，不是赢）一起决定它该多响。三个方案都在 L-B + S-A 上，先随便加几张再按 Start the day；Reset 重来。</p>
+  <div class="col-label"><b>Before</b> · main：没有这一步；拉一张，Todo 多一张，卡片没有专门的动效<span class="line"></span></div>
+  <div class="options" style="grid-template-columns: minmax(0, 1fr) 340px"><div id="t-before-desk"></div><div id="t-before-phone"></div></div>
+  <div class="col-label spaced after"><b>三个方案</b> · 手机并排<span class="line"></span></div>
+  <div class="options" id="t-opts"></div>
+  <div id="t-desks"></div>
+  <div class="tbl-wrap"><table class="tbl" id="t-rank"></table></div>
+  <p class="note"><b>推荐 T-A</b>：modal 收起，卡一张张落进 Todo，就这样。没有声音、没有火花、没有一句「好样的」：赢是做完的时候（3.3），早上只是把事情摆上桌。<b>After 比 Before 多的</b>：modal 收起和 strip 淡出（240 ms）、Todo 的卡依次落下（<code>land</code>）。</p>
+
+  <div class="col-label spaced"><b>其它状态</b> · 三个方案共用<span class="line"></span></div>
+  <div class="phones" id="t-states"></div>
+  <p class="note"><b>Today 是空的</b>：Start the day 不能按（一张都不选就是以后的 Skip，spike），按钮上没有数字。<b>保存失败</b>：整批在一个 transaction 里，一张都不动；modal 不关，底部左边一行红字 <code>Couldn't start the day · try again</code>，按钮还能按。文案是新的。<b>Cancel</b>：什么都不写，关掉，strip 还在；下一次打开从头来（昨天的 ↩ 和推荐，刚才加的不留）。</p>
+
+  <div class="col-label spaced"><b>动效 · 三个方案</b><span class="line"></span></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>方案</th><th>什么时候</th><th>谁怎么动</th><th>多久</th><th>减少动态效果</th></tr>
+    <tr><td>T-A</td><td>Start the day 成功</td><td>modal 淡出往下 6 px（手机：overlay 降下去），strip 同时淡出；然后 Todo 的卡依次 <code>land</code>：从上面 10 px 淡入落下，一张接一张</td><td>收起 240 ms；每张 240 ms，间隔 60 ms</td><td>收起只淡出；卡一起淡入，不错开</td></tr>
+    <tr><td>T-B</td><td>同上</td><td>先在 modal 里：按钮变成 ✓ Day opened（绿色、不能按），停住；然后同 T-A</td><td>停 900 ms，再 T-A</td><td>不停，直接 T-A</td></tr>
+    <tr><td>T-C</td><td>同上</td><td>桌面：Today 栏的每张卡从 modal 里飞到 Todo 列里它的位置（移动 + 缩放），modal 同时淡出；手机：overlay 降下去，Todo 一行里的卡依次 <code>land</code>（overlay 盖着 Todo，飞不过去）</td><td>飞 420 ms，间隔 40 ms</td><td>不飞，同 T-A 的减少版</td></tr>
+  </table></div>
+</section>
+
+<!-- ═════════ F · Final ═════════ -->
+<section class="screen" data-screen="final">
+  <div class="col-label"><b>F · Final · recommended · waits on owner approval</b> · E-A strip + 文案 A · L-B 两栏 · S-A 列表 · T-A 落进 Todo<span class="line"></span></div>
+  <p class="note lead">四个模块里我推荐的合在一起，不是定稿。从 board 开始：点 strip，加几张、放回几张、展开 Show more，按 Start the day；Cancel 回到 board，strip 还在；Reset 回到早上 09:12。下面一排是几种真实的组合：没有昨天的、周末（spike Q7 两种都画了）、14:00 以后、已经 open 过。</p>
+  <div class="col-label"><b>这次新加的</b> · 相对 main，按出现的地方分<span class="line"></span></div>
+  <div class="newlist" id="f-new"></div>
+  <div class="col-label after"><b>After</b> · Desktop<span class="line"></span></div>
+  <div class="tools"><button class="ghost-btn" data-reset="f-desk">Reset</button><span>Thu Nov 19 09:12 · 还没 open</span></div>
+  <div id="f-desk"></div>
+  <div class="col-label spaced after"><b>After</b> · Phone · 和几种组合<span class="line"></span></div>
+  <div class="phones" id="f-phones"></div>
+  <div class="col-label spaced"><b>Before</b> · main · Thu 09:12<span class="line"></span></div>
+  <div class="options" style="grid-template-columns: minmax(0, 1fr) 340px"><div id="f-before-desk"></div><div id="f-before-phone"></div></div>
+</section>
+
+<!-- ═════════ I · Ideas ═════════ -->
+<section class="screen" data-screen="ideas">
+  <div class="col-label"><b>I · Ideas</b> · 给 spec 的行为、以后做的、要 owner 定的<span class="line"></span></div>
+  <div class="ideas" id="ideas"></div>
+</section>
+
+<nav class="seg screen-nav" aria-label="Screens">
+  <button data-screen-btn="research">R · Research</button>
+  <button data-screen-btn="entry" class="on">E · Entry</button>
+  <button data-screen-btn="layout">L · Layout</button>
+  <button data-screen-btn="suggest">S · Suggestions</button>
+  <button data-screen-btn="start">T · Start</button>
+  <button data-screen-btn="final">F · Final</button>
+  <button data-screen-btn="ideas">I · Ideas</button>
+</nav>
+<script>
+/* ── Icons (Heroicons outline paths, 24×24) ── */
+const P = {
+  habit: 'M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99',
+  project: 'M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z',
+  oneoff: 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
+  board: 'M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z',
+  table: 'M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0 1 12 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5',
+  pencil: 'm16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10',
+  inbox: 'M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.256.512a2.25 2.25 0 0 0 2.013 1.244h3.218a2.25 2.25 0 0 0 2.013-1.244l.256-.512a2.25 2.25 0 0 1 2.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 0 0-2.15-1.588H6.911a2.25 2.25 0 0 0-2.15 1.588L2.35 13.177a2.25 2.25 0 0 0-.1.661Z',
+  stack: 'M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571 3-5.571-3',
+  cog: 'M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z',
+  check: 'm4.5 12.75 6 6 9-13.5',
+  up: 'M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18',
+  left: 'M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18',
+  right: 'M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3',
+  chevLeft: 'M15.75 19.5 8.25 12l7.5-7.5',
+  chevUp: 'm4.5 15.75 7.5-7.5 7.5 7.5',
+  chevDown: 'm19.5 8.25-7.5 7.5-7.5-7.5',
+  x: 'M6 18 18 6M6 6l12 12',
+  plus: 'M12 4.5v15m7.5-7.5h-15',
+  undo: 'M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3',
+  sun: 'M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z',
+  warn: 'M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z',
+};
+const icon = (name, cls = '') => `<svg class="icon ${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="${P[name]}"/></svg>`;
+const COUNT_CAP = 8;
+const capped = count => (count > COUNT_CAP ? `${COUNT_CAP}+` : String(count));
+const SIZE_POINTS = {XS: 1, S: 2, M: 3, L: 5, XL: 8};
+const QUADRANT_ORDER = {'Do first': 0, 'Squeeze in': 1, Schedule: 2, 'Maybe later': 3};
+const MOTION = {leave: 240, land: 240, stagger: 60, beat: 900, fly: 420, flyStagger: 40};
+const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ── Fixture · ISO 2026-W47 · Mon Nov 16 – Sun Nov 22 · NORMAL ── */
+const WEEK_LABEL = 'Nov 16 – Nov 22';
+const TASKS = {
+  fc: {kind: 'habit', group: 'fc', daily: true, title: 'Flashcards', desc: '20 cards in Anki', cadence: 'Daily', target: 5, size: 'XS'},
+  wo2: {kind: 'habit', group: 'wo', title: 'Workout', desc: '45 min — gym or run', cadence: '3× / week', target: 3, copy: 1, size: 'M'},
+  wo3: {kind: 'habit', group: 'wo', title: 'Workout', desc: '45 min — gym or run', cadence: '3× / week', target: 3, copy: 2, size: 'M'},
+  bio4: {kind: 'project', group: 'bio', name: 'Biomedical course', title: 'Lecture 4 — Cell signaling', desc: 'Watch + one-page notes', n: 4, total: 10, size: 'M'},
+  bio5: {kind: 'project', group: 'bio', name: 'Biomedical course', title: 'Lecture 5 — Immunity basics', desc: 'Watch + the quiz', n: 5, total: 10, size: 'M'},
+  bio6: {kind: 'project', group: 'bio', name: 'Biomedical course', title: 'Lecture 6 — Neurons', desc: 'Watch + one-page notes', n: 6, total: 10, size: 'M'},
+  bio7: {kind: 'project', group: 'bio', name: 'Biomedical course', title: 'Lecture 7 — Synapses', desc: '', n: 7, total: 10, size: 'M'},
+  bio8: {kind: 'project', group: 'bio', name: 'Biomedical course', title: 'Problem set 2', desc: 'Lectures 4–7', n: 8, total: 10, size: 'L'},
+  passport: {kind: 'oneoff', tracked: true, quadrant: 'Do first', title: 'Renew passport', desc: 'Form DS-82 + a new photo', size: 'S'},
+  landlord: {kind: 'oneoff', tracked: true, quadrant: 'Schedule', title: 'Call the landlord', desc: 'Lease renewal for March', size: 'S'},
+  dentist: {kind: 'oneoff', tracked: false, quadrant: 'Do first', title: 'Book the dentist', desc: 'Six-month cleaning', size: 'S'},
+  bike: {kind: 'oneoff', tracked: false, quadrant: 'Do first', title: 'Fix the bike tire', desc: '', size: 'XS'},
+};
+/* what each day looks like: the pool is what is still open this week (in order); done = what the signals show as done */
+const FIXTURES = {
+  thu: {date: 'Thu, Nov 19', time: '9:12', D: 2, carried: ['bio4', 'passport'],
+    pool: ['fc', 'wo2', 'wo3', 'bio4', 'bio5', 'bio6', 'bio7', 'bio8', 'passport', 'landlord', 'dentist', 'bike'],
+    done: {fc: [0, 1, 2], wo: [0], bio: [1, 2, 3]}},
+  clear: {date: 'Thu, Nov 19', time: '9:12', D: 2, carried: [],
+    pool: ['fc', 'wo2', 'wo3', 'bio5', 'bio6', 'bio7', 'bio8', 'landlord', 'dentist', 'bike'],
+    done: {fc: [0, 1, 2], wo: [0], bio: [1, 2, 3, 4]}},
+  sat: {date: 'Sat, Nov 21', time: '10:05', D: 0, carried: [],
+    pool: ['wo3', 'bio7', 'bio8', 'landlord', 'dentist', 'bike'],
+    done: {fc: [0, 1, 2, 3, 4], wo: [0, 1], bio: [1, 2, 3, 4, 5, 6]}},
+};
+const KIND_LABEL = {habit: 'Habit', project: 'Project', oneoff: 'One-off'};
+const groupOf = id => {
+  const task = TASKS[id];
+  if (task.kind === 'oneoff') return task.tracked ? 'oneoffs' : 'dofirst';
+  return task.group;
+};
+/* COL-2's order: one-off, daily, weekly, step */
+const GROUP_ORDER = ['oneoffs', 'fc', 'wo', 'bio'];
+const SEQUENCED = new Set(['fc', 'wo', 'bio']);
+
+/* ── Signals ── */
+function dots(target, done, cur) {
+  let html = '';
+  for (let slot = 0; slot < target; slot++) html += `<i class="${done.includes(slot) ? 'on' : slot === cur ? 'cur' : ''}"></i>`;
+  return `<span class="dots">${html}</span>`;
+}
+function path(total, done, cur) {
+  let html = '';
+  for (let step = 1; step <= total; step++) html += `<i class="${done.includes(step) ? 'on' : ''} ${step === cur ? 'cur' : ''}"></i>`;
+  return `<span class="stepbar">${html}</span>`;
+}
+function signalOf(fx, id) {
+  const task = TASKS[id];
+  if (task.kind === 'habit') {
+    const done = fx.done[task.group];
+    const position = fx.pool.filter(other => TASKS[other].group === task.group).indexOf(id);
+    const cur = done.length + Math.max(position, 0);
+    return dots(task.target, done, cur);
+  }
+  if (task.kind === 'project') return path(task.total, fx.done.bio, task.n);
+  return '';
+}
+
+/* ── The modal's card: PR #128 K · Card (kind line · title · description · signal bottom left · action bottom right; no size) ── */
+function headLabel(task) {
+  if (task.kind === 'project') return `<span class="name">${task.name}</span>`;
+  if (task.kind === 'oneoff') return `<span>One-off</span><span class="qd-bar">|</span><span>${task.quadrant}</span>`;
+  return `<span>Habit</span>`;
+}
+function mcard(fx, id, {right = '', action = '', cls = '', pile = 0, style = ''} = {}) {
+  const task = TASKS[id];
+  const pileHtml = pile > 0 ? `<span class="pile" aria-hidden="true">${'<i></i>'.repeat(Math.min(pile, 3))}</span>` : '';
+  const face = `<div class="tc solid ${cls}" data-kind="${task.kind}" data-card="${id}" ${style}>
+    <div class="tc-head">${icon(task.kind, 'xs')}${headLabel(task)}${right}</div>
+    <div class="tc-row"><h3 class="tc-title">${task.title}</h3></div>
+    ${task.desc ? `<p class="tc-desc">${task.desc}</p>` : ''}
+    <div class="tc-foot">${signalOf(fx, id)}${action}</div>
+  </div>`;
+  return pileHtml ? `<div class="grp">${face}${pileHtml}</div>` : face;
+}
+const moreText = count => `<span class="ctx"><span class="more"><b>+${count}</b> more</span></span>`;
+
+/* ── main's board card (Before, and the board in After: the board itself doesn't change) ── */
+function boardCard(fx, id, {cls = '', style = ''} = {}) {
+  const task = TASKS[id];
+  const ctx = task.kind === 'project' ? `${task.n}/${task.total}` : task.kind === 'habit' ? task.cadence : task.quadrant;
+  const label = task.kind === 'project' ? `<span class="name">${task.name}</span>` : `<span>${KIND_LABEL[task.kind]}</span>`;
+  return `<div class="tc solid ${cls}" data-kind="${task.kind}" data-board-card="${id}" ${style}>
+    <div class="tc-head">${icon(task.kind, 'xs')}${label}<span class="ctx">${ctx}</span></div>
+    <div class="tc-row"><h3 class="tc-title">${task.title}</h3></div>
+    ${task.desc ? `<p class="tc-desc">${task.desc}</p>` : ''}
+    <div class="tc-foot">${signalOf(fx, id)}<span class="size">${task.size}<i>·</i>${SIZE_POINTS[task.size]}</span></div>
+  </div>`;
+}
+function miniCard(fx, id, {cls = '', style = ''} = {}) {
+  const task = TASKS[id];
+  const label = task.kind === 'project' ? `<span class="name">${task.name}</span>` : `<span>${KIND_LABEL[task.kind]}</span>`;
+  return `<div class="mini ${cls}" data-kind="${task.kind}" data-board-card="${id}" ${style}><div class="tc-head">${icon(task.kind, 'xxs')}${label}</div><h3 class="tc-title">${task.title}</h3><div class="tc-foot">${signalOf(fx, id)}<span class="size">${task.size}<i>·</i>${SIZE_POINTS[task.size]}</span></div></div>`;
+}
+/* main's backlog group card (BacklogGroupFace): the group's next task, +N more, a pile behind */
+function backlogGroups(fx, ids, {pull = false} = {}) {
+  const seen = new Map();
+  ids.filter(id => TASKS[id].kind !== 'oneoff').forEach(id => { const group = TASKS[id].group; if (!seen.has(group)) seen.set(group, []); seen.get(group).push(id); });
+  const render = ([, members]) => {
+    const [next, ...behind] = members;
+    const action = pull ? `<button class="act pull" tabindex="-1">${icon('up', 'xxs')}Todo</button>` : '';
+    return mcard(fx, next, {right: behind.length ? moreText(behind.length) : '', action, pile: behind.length});
+  };
+  const habits = [...seen].filter(([group]) => TASKS[seen.get(group)[0]].kind === 'habit').map(render).join('');
+  const projects = [...seen].filter(([group]) => TASKS[seen.get(group)[0]].kind === 'project').map(render).join('');
+  return `${habits ? `<div class="sec-label">Habits<span class="line"></span></div>${habits}` : ''}${projects ? `<div class="sec-label">Projects<span class="line"></span></div>${projects}` : ''}`;
+}
+
+/* ── Frames ── */
+const DOCK_TABS = [['board', 'Board'], ['table', 'Priorities'], ['project', 'Projects'], ['pencil', 'Plan'], ['inbox', 'Dump'], ['cog', 'Settings']];
+const dock = () => `<div class="dock">${DOCK_TABS.map(([ic, label]) => `<span class="tab ${label === 'Board' ? 'on' : ''}">${icon(ic)}<span>${label}</span></span>`).join('')}</div>`;
+const statusBar = time => `<div class="status"><span>${time}</span><span class="island"></span><span>●●● ▮</span></div>`;
+const appHead = (extra = '') => `<div class="app-head"><h2><span>Kanban</span> Planner</h2><span class="date-pill">${WEEK_LABEL}</span>${extra}</div>`;
+const rail = () => `<div class="rail"><div class="logo"></div>${DOCK_TABS.map(([ic, label]) => `<span class="nav ${label === 'Board' ? 'on' : ''}" title="${label}">${icon(ic)}</span>`).join('')}</div>`;
+const column = (label, count, body, {done = false} = {}) => `<div class="column ${done ? 'done' : ''}"><div class="column-head" style="color:${done ? 'var(--su)' : 'var(--in)'}"><span style="color:var(--bc)">${label}</span><span class="count-ghost">${count}</span></div><div class="column-body">${body}</div></div>`;
+const mrowHead = (label, count, color) => `<div class="mrow-head"><span class="lhs"><span class="led" style="color:${color}"></span>${label}</span><span class="count-ghost">${count}</span></div>`;
+const bkRail = count => `<div class="bk-rail" title="Open backlog">${icon('chevLeft', 'sm')}<span class="badge-count">${capped(count)}</span><span class="v">Backlog</span></div>`;
+const mobilePill = count => `<div class="pill mpill">${icon('inbox', 'sm')}<span>Backlog</span><span class="badge-count">${capped(count)}</span><span class="chev">${icon('chevUp', 'sm')}</span></div>`;
+
+/* main's ProgressDashboard. todayDone/todayTotal in tasks; points from sizes */
+function dashboard(fx, todoIds, {phone = false} = {}) {
+  const todayPts = todoIds.reduce((sum, id) => sum + SIZE_POINTS[TASKS[id].size], 0);
+  const total = todoIds.length;
+  const C = 2 * Math.PI * 22;
+  const week = fx === FIXTURES.sat ? {done: 11, total: 17, pts: '24 / 36', pct: 65} : {done: 5, total: 17, pts: '9 / 36', pct: 29};
+  if (phone) return `<div class="mdash">
+    <div class="row"><span class="k">Today</span><span class="n">0/${total}</span><div class="bar2"><b style="width:0%;background:var(--su)"></b></div><span><strong>0</strong> pts</span></div>
+    <div class="row"><span class="k">Week</span><span class="n">${week.done}/${week.total}</span><div class="bar2"><b style="width:${week.pct}%;background:var(--in)"></b></div><span><strong>${week.pts.split(' ')[0]}</strong> pts</span><span><strong class="avg">3.0</strong> avg</span></div>
+  </div>`;
+  return `<div class="dash">
+    <div style="display:flex;align-items:center;gap:12px"><div class="ring"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="22" fill="none" stroke-width="4" stroke="var(--ink-20)"/><circle cx="26" cy="26" r="22" fill="none" stroke-width="4" stroke="var(--su)" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C}"/></svg><span class="pct">0%</span></div><div class="lbl"><span class="k">Today</span><span class="sub">0 of ${total} tasks</span></div></div>
+    <span class="vsep"></span>
+    <div class="stat"><b style="color:var(--su)">0 / ${todayPts}</b><span class="k">Today Points</span></div>
+    <div class="stat"><b style="color:var(--in)">${week.pts}</b><span class="k">Week Points</span></div>
+    <div class="stat"><b style="color:var(--wa)">3.0</b><span class="k">Daily Avg</span></div>
+    <span class="vsep"></span>
+    <div class="wk"><div class="row"><span class="k">Week Progress</span><span class="mono" style="font-size:11px;color:var(--in);font-weight:600">${week.pct}%</span></div><div class="bar2"><b style="width:${week.pct}%;background:linear-gradient(90deg,var(--in),var(--su))"></b></div><span class="sub">${week.done} of ${week.total} tasks</span></div>
+  </div>`;
+}
+
+/* ═══════════ Before: main's board, Thu 09:12 ═══════════
+   Todo is not strictly today yet: yesterday's Lecture 4 and the tracked one-offs sit in Todo; one-offs never reach the backlog (BL-1) */
+const BEFORE = {todo: ['bio4', 'passport', 'landlord'], backlog: ['fc', 'wo2', 'wo3', 'bio5', 'bio6', 'bio7', 'bio8']};
+function beforeDesk({backlogOpen = false} = {}) {
+  const fx = FIXTURES.thu;
+  const todo = BEFORE.todo.map(id => boardCard(fx, id)).join('');
+  const backlog = backlogOpen
+    ? `<div class="backlog"><div class="backlog-head"><div class="backlog-title">${icon('inbox')}<span>Backlog</span><span class="badge-count">${capped(BEFORE.backlog.length)}</span></div><span style="opacity:.5">${icon('right', 'sm')}</span></div><div class="backlog-hint">${icon('left', 'sm')}Drag tasks left to Todo to start working</div><div class="backlog-body">${backlogGroups(fx, BEFORE.backlog)}</div></div>`
+    : bkRail(BEFORE.backlog.length);
+  return `<div class="desk">${rail()}<div class="desk-main">${appHead()}${dashboard(fx, BEFORE.todo)}<div class="board-wrap"><div class="board-cols">${column('Todo', BEFORE.todo.length, todo)}${column('Done', 0, '', {done: true})}</div>${backlog}</div></div></div>`;
+}
+function beforePhone({backlogOpen = false, cap = 'Before · main'} = {}) {
+  const fx = FIXTURES.thu;
+  const todo = BEFORE.todo.map(id => miniCard(fx, id)).join('');
+  const sheet = backlogOpen ? `<div class="mscrim"></div><div class="msheet"><div class="grab"></div>
+      <div class="backlog-head" style="border:0;padding:10px 16px 6px"><div class="backlog-title">${icon('inbox')}<span>Backlog</span><span class="badge-count">${capped(BEFORE.backlog.length)}</span></div><span style="opacity:.5">${icon('chevDown', 'sm')}</span></div>
+      <div class="backlog-hint" style="border:0;padding:0 16px 8px">${icon('up', 'sm')}Tap to pull a task onto the board</div>
+      <div class="backlog-body" style="padding:4px 14px 14px">${backlogGroups(fx, BEFORE.backlog, {pull: true})}</div></div>` : '';
+  return `<div class="phone-wrap"><div class="phone-cap before"><b>${cap}</b></div><div class="phone">${statusBar('9:12')}<div class="phone-body">${appHead()}${dashboard(fx, BEFORE.todo, {phone: true})}<div style="padding-top:8px;display:flex;flex-direction:column;gap:10px">${mrowHead('Todo', BEFORE.todo.length, 'var(--in)')}<div class="mrow">${todo}</div>${mrowHead('Done', 0, 'var(--su)')}<div class="mrow"></div></div>${mobilePill(BEFORE.backlog.length)}${sheet}</div>${dock()}</div></div>`;
+}
+
+/* ═══════════ The ritual: state, the recommendation, the modal ═══════════ */
+function initState(cfg) {
+  const fx = FIXTURES[cfg.fx || 'thu'];
+  const state = {fx, today: [...fx.carried], prefilled: [], moreOpen: false, step: 0, phase: cfg.phase || 'open', started: [...(cfg.started || [])], land: false, beat: false, error: !!cfg.error, everOpened: false};
+  if (cfg.sugg === 'prefill') {
+    const {sugg} = compute(state, {forMore: false});
+    state.prefilled = sugg.map(({id}) => id);
+    state.today.push(...state.prefilled);
+  }
+  if (cfg.today) state.today = [...cfg.today];
+  if (cfg.layout === 'guided' && !fx.carried.length) state.step = 1;
+  return state;
+}
+/* spike › 固定推荐算法: quota = ceil(R ÷ D) − already in Today; daily = all of today's; tracked one-offs = one group by quadrant; untracked Do first never */
+function compute(state, {prefillMode = false} = {}) {
+  const {fx, today} = state;
+  const inToday = id => today.includes(id);
+  const members = group => fx.pool.filter(id => groupOf(id) === group)
+    .sort((left, right) => (group === 'oneoffs' ? QUADRANT_ORDER[TASKS[left].quadrant] - QUADRANT_ORDER[TASKS[right].quadrant] : 0));
+  const sugg = [];
+  if (fx.D > 0 && !prefillMode) {
+    GROUP_ORDER.forEach(group => {
+      const items = members(group);
+      if (!items.length) return;
+      const remaining = items.length;
+      const isDaily = group === 'fc';
+      const quota = isDaily ? remaining : Math.ceil(remaining / fx.D);
+      const wanted = quota - items.filter(inToday).length;
+      const picks = wanted > 0 ? items.filter(id => !inToday(id)).slice(0, wanted) : [];
+      const why = isDaily ? 'Today only' : `${remaining} left in ${fx.D} day${fx.D > 1 ? 's' : ''}`;
+      picks.forEach((id, index) => sugg.push({id, group, why, first: index === 0}));
+    });
+  }
+  const suggested = new Set(sugg.map(({id}) => id));
+  /* Show more: every group once — a habit or project whose next task is suggested waits in Suggested (R6: only a group's next can be pulled) */
+  const more = {habits: [], projects: [], oneoffs: [], dofirst: []};
+  ['fc', 'wo', 'bio'].forEach(group => {
+    const rest = members(group).filter(id => !inToday(id));
+    if (!rest.length || rest.some(id => suggested.has(id))) return;
+    more[TASKS[rest[0]].kind === 'habit' ? 'habits' : 'projects'].push({next: rest[0], behind: rest.length - 1});
+  });
+  members('oneoffs').filter(id => !inToday(id) && !suggested.has(id)).forEach(id => more.oneoffs.push({next: id, behind: 0}));
+  members('dofirst').filter(id => !inToday(id)).forEach(id => more.dofirst.push({next: id, behind: 0}));
+  const moreCount = Object.values(more).flat().reduce((sum, {behind}) => sum + 1 + behind, 0);
+  return {sugg, more, moreCount};
+}
+/* only a group's last-added card can go back, so a project's steps stay in order */
+function canRemove(state, id) {
+  const group = groupOf(id);
+  if (!SEQUENCED.has(group)) return true;
+  const inGroup = state.today.filter(other => groupOf(other) === group);
+  return inGroup[inGroup.length - 1] === id;
+}
+
+const addBtn = (inst, id) => `<button class="act" data-i="${inst}" data-a="add" data-id="${id}" aria-label="Add ${TASKS[id].title} to today">${icon('plus', 'xxs')}Today</button>`;
+const rmBtn = (inst, id) => `<button class="act rm" data-i="${inst}" data-a="rm" data-id="${id}" aria-label="Put ${TASKS[id].title} back">${icon('x', 'xxs')}</button>`;
+
+function todaySection(inst, cfg, state) {
+  const {fx, today, prefilled} = state;
+  const cards = today.map(id => {
+    const isCarried = fx.carried.includes(id);
+    const right = isCarried ? `<span class="ctx carry" title="Left over from yesterday">${icon('undo', 'xxs')}Yesterday</span>` : prefilled.includes(id) ? `<span class="ctx why">Suggested</span>` : '';
+    const cls = `${prefilled.includes(id) ? 'sugg' : ''} ${state.fresh === id ? 'landing' : ''}`;
+    return mcard(fx, id, {right, action: canRemove(state, id) ? rmBtn(inst, id) : '', cls});
+  }).join('');
+  const emptyTitle = fx.carried.length ? 'Today is empty' : 'Nothing carried over';
+  const empty = `<div class="finish" data-fk="today"><b>${emptyTitle}</b><div class="lines"><small>Add what you'll do today</small></div></div>`;
+  return `<div class="sec-row"><div class="sec-label">Today<span class="line"></span></div></div>${cards || empty}`;
+}
+function suggestSection(inst, cfg, state, computed) {
+  const {fx} = state;
+  const {sugg} = computed;
+  const addAll = sugg.length > 1 ? `<button class="ghost-link" data-i="${inst}" data-a="addall">Add all</button>` : '';
+  let body;
+  if (fx.D === 0) body = `<div class="quiet-line">Nothing is suggested on weekends</div>`;
+  else if (!sugg.length) body = `<div class="quiet-line">Everything suggested is in Today</div>`;
+  else if (cfg.sugg === 'group') {
+    /* S-C: one card per group — the backlog's face, the pile counts the suggestions behind it */
+    const groups = [];
+    sugg.forEach(item => { const last = groups[groups.length - 1]; if (last && last.group === item.group && item.group !== 'oneoffs') last.items.push(item); else groups.push({group: item.group, items: [item]}); });
+    body = groups.map(({items}) => {
+      const [head] = items;
+      const right = `<span class="ctx why">${items.length > 1 ? `${items.length} for today · ` : ''}${head.why}</span>`;
+      return mcard(fx, head.id, {right, action: addBtn(inst, head.id), pile: items.length - 1});
+    }).join('');
+  } else {
+    /* S-A: each suggestion is the card that will land; a group's later ones wait for the one before (no +) */
+    body = sugg.map(({id, why, first, group}) => mcard(fx, id, {right: `<span class="ctx why">${why}</span>`, action: first || !SEQUENCED.has(group) ? addBtn(inst, id) : ''})).join('');
+  }
+  return `<div class="sec-row"><div class="sec-label">Suggested<span class="line"></span></div>${addAll}</div>${body}`;
+}
+function moreSection(inst, cfg, state, computed) {
+  const {fx, moreOpen} = state;
+  const {more, moreCount} = computed;
+  if (!moreCount) return '';
+  const toggle = `<button class="showmore ${moreOpen ? 'open' : ''}" data-i="${inst}" data-a="more" aria-expanded="${moreOpen}">${moreOpen ? 'Show less' : 'Show more'}<span class="count-ghost">${capped(moreCount)}</span>${icon('chevDown', 'sm')}</button>`;
+  if (!moreOpen) return toggle;
+  const block = (label, items) => (items.length ? `<div class="sec-label">${label}<span class="line"></span></div>${items.map(({next, behind}) => mcard(fx, next, {right: behind ? moreText(behind) : '', action: addBtn(inst, next), pile: behind})).join('')}` : '');
+  return `${toggle}<div class="more-body" data-fk="more">${block('Habits', more.habits)}${block('Projects', more.projects)}${block('One-offs', more.oneoffs)}${block('From Priorities', more.dofirst)}</div>`;
+}
+function modalHead(inst, cfg, state, phone) {
+  const {fx} = state;
+  const steps = cfg.layout === 'guided' ? ` · <span>Step ${state.step + 1 - (fx.carried.length ? 0 : 1)} of ${fx.carried.length ? 3 : 2}</span>` : '';
+  return `<div class="ov-head"><div><div class="ttl">${icon('sun')}Open the day</div><div class="subt"><span>${fx.date}</span>${steps}</div></div><button class="x" data-i="${inst}" data-a="cancel" aria-label="Cancel">${icon(phone ? 'chevDown' : 'x')}</button></div>`;
+}
+function modalFoot(inst, cfg, state) {
+  const count = state.today.length;
+  const err = state.error ? `<span class="err">${icon('warn', 'sm')}Couldn't start the day · try again</span>` : '';
+  if (state.beat) return `<div class="ov-foot"><button class="btn opened" disabled style="opacity:1">${icon('check', 'sm')}Day opened</button></div>`;
+  const start = `<button class="btn primary" data-i="${inst}" data-a="start" ${count ? '' : 'disabled'}>Start the day${count ? `<span class="badge-count">${count}</span>` : ''}</button>`;
+  if (cfg.layout === 'guided') {
+    const first = state.step === (state.fx.carried.length ? 0 : 1);
+    const last = state.step === 2;
+    const back = first ? `<button class="btn ghost" data-i="${inst}" data-a="cancel">Cancel</button>` : `<button class="btn ghost" data-i="${inst}" data-a="back">Back</button>`;
+    const next = last ? start : `<button class="btn primary" data-i="${inst}" data-a="next">Next${count ? `<span class="badge-count">${count}</span>` : ''}</button>`;
+    const total = state.fx.carried.length ? 3 : 2;
+    const at = state.step - (state.fx.carried.length ? 0 : 1);
+    const stepdots = `<span class="stepdots">${Array.from({length: total}, (_, index) => `<i class="${index === at ? 'on' : ''}"></i>`).join('')}</span>`;
+    return `<div class="ov-foot">${err || stepdots}${back}${next}</div>`;
+  }
+  return `<div class="ov-foot">${err}<button class="btn ghost" data-i="${inst}" data-a="cancel">Cancel</button>${start}</div>`;
+}
+function modalBody(inst, cfg, state, phone) {
+  const computed = compute(state, {prefillMode: cfg.sugg === 'prefill'});
+  const today = todaySection(inst, cfg, state);
+  const pick = `${cfg.sugg === 'prefill' ? '' : suggestSection(inst, cfg, state, computed)}${moreSection(inst, cfg, state, computed)}`;
+  if (cfg.layout === 'guided') {
+    if (state.step === 0) {
+      const {fx} = state;
+      const carried = fx.carried.filter(id => state.today.includes(id));
+      const put = fx.carried.filter(id => !state.today.includes(id));
+      return `<div class="ov-body"><p class="gstep"><b>From yesterday</b><br>Keep what you'll still do today</p>${carried.map(id => mcard(fx, id, {right: `<span class="ctx carry">${icon('undo', 'xxs')}Yesterday</span>`, action: canRemove(state, id) ? rmBtn(inst, id) : ''})).join('')}${put.length ? `<div class="quiet-line">${put.length} put back in the backlog</div>` : ''}</div>`;
+    }
+    if (state.step === 1) return `<div class="ov-body"><p class="gstep"><b>Pick for today</b><br>Add from the suggestions or the rest of the backlog</p>${pick || '<div class="quiet-line">Nothing left in the backlog</div>'}</div>`;
+    return `<div class="ov-body"><p class="gstep"><b>Your day</b><br>Start when it looks right</p>${today}</div>`;
+  }
+  if (cfg.layout === 'split' && !phone) return `<div class="ov-split"><div class="pane today-pane">${today}</div><div class="pane">${pick}</div></div>`;
+  return `<div class="ov-body">${today}${pick}</div>`;
+}
+function modalHtml(inst, cfg, state, phone, leaving = false) {
+  const anim = leaving ? 'leaving' : state.everOpened ? '' : 'boot';
+  if (phone) {
+    const shell = cfg.shell === 'sheet' ? 'ovsheet' : 'ovfull';
+    return `<div class="${shell} ${anim}" role="dialog" aria-label="Open the day" style="top:${cfg.shell === 'sheet' ? 80 : 34}px">${cfg.shell === 'sheet' ? '<div class="grab"></div>' : ''}${modalHead(inst, cfg, state, true)}${modalBody(inst, cfg, state, true)}${modalFoot(inst, cfg, state)}</div>`;
+  }
+  return `<div class="mscrim2"></div><div class="modal ${cfg.layout === 'split' ? 'wide' : ''} ${anim}" role="dialog" aria-label="Open the day">${modalHead(inst, cfg, state, false)}${modalBody(inst, cfg, state, false)}${modalFoot(inst, cfg, state)}</div>`;
+}
+
+/* ═══════════ After: the board (main + the entry + the strict-today Todo) ═══════════ */
+const STRIP_COPY = fx => {
+  const parts = [];
+  const carried = fx.carried.length;
+  const suggested = compute({fx, today: [...fx.carried]}).sugg.length;
+  if (carried) parts.push(`${carried} from yesterday`);
+  if (suggested) parts.push(`${suggested} suggested`);
+  return parts.length ? parts.join(' · ') : "Pick today's tasks";
+};
+const strip = (inst, fx, leaving = false) => `<div class="strip-slot"><button class="ritual ${leaving ? 'leaving' : ''}" data-i="${inst}" data-a="open"><span class="led"></span><span class="rt"><span class="t">Open the day</span><span class="s">${STRIP_COPY(fx)}</span></span><span class="go">${icon('right', 'sm')}</span></button></div>`;
+const EMPTY_COPY = {
+  A: ['Fresh day, fresh start!', 'Nothing on today yet', "Open the day to pick what you'll do"],
+  B: ['Ready when you are!', 'Today is a blank page', 'Open the day and fill it with what matters'],
+  C: ["Let's make today count!", "Your day hasn't started yet", "Open the day to choose today's tasks"],
+  D: ['Good morning!', 'A new day is waiting', 'Open the day to plan it in a minute'],
+  E: ['New day, new wins!', 'Todo fills up once you open the day', 'Pick a few things and get rolling'],
+  late: ['Nothing on today yet', "Pull something from the backlog when you're ready"],
+  col5: ['All clear for the day', 'Everything you pulled for today is done', 'Pull more from the backlog or call it a day'],
+  boxEntry: ['Fresh day, fresh start!', "Pick what you'll do today"],
+};
+function finishBox(key, {cls = '', button = '', fk = ''} = {}) {
+  const [title, ...lines] = EMPTY_COPY[key];
+  return `<div class="finish ${cls}" ${fk ? `data-fk="${fk}"` : ''}><b>${title}</b><div class="lines">${lines.map(line => `<small>${line}</small>`).join('')}</div>${button}</div>`;
+}
+function todoEmpty(inst, cfg) {
+  if (cfg.entry === 'box') return finishBox('boxEntry', {cls: 'prompt', fk: 'todo', button: `<button class="btn primary entry-btn" data-i="${inst}" data-a="open" style="height:32px">${icon('sun', 'sm')}Open the day</button>`});
+  return finishBox(cfg.copy || 'A', {fk: 'todo'});
+}
+function boardTodo(inst, cfg, state) {
+  if (state.phase === 'started' || state.phase === 'opened') return state.started;
+  return cfg.todoBefore || [];
+}
+function landStyle(index) { return `style="animation-delay:${index * MOTION.stagger}ms"`; }
+function boardDeskHtml(inst, cfg, state, {stripLeaving = false} = {}) {
+  const {fx} = state;
+  const todoIds = boardTodo(inst, cfg, state);
+  const landing = state.land;
+  const todo = todoIds.length ? todoIds.map((id, index) => boardCard(fx, id, {cls: landing ? 'landing' : '', style: landing ? landStyle(index) : ''})).join('') : todoEmpty(inst, cfg);
+  const backlogCount = fx.pool.filter(id => !todoIds.includes(id) && TASKS[id].tracked !== false).length;
+  const showEntry = (state.phase === 'board' || state.phase === 'open') && cfg.window !== false;
+  const chip = showEntry && cfg.entry === 'chip' ? `<button class="hchip" data-i="${inst}" data-a="open"><span class="led"></span>Open the day</button>` : '';
+  const stripHtml = (showEntry && (cfg.entry || 'strip') === 'strip') || stripLeaving ? strip(inst, fx, stripLeaving) : '';
+  return `${rail()}<div class="desk-main">${appHead(chip)}${dashboard(fx, todoIds)}<div class="board-wrap"><div class="board-main">${stripHtml}<div class="board-cols">${column('Todo', todoIds.length, todo)}${column('Done', 0, '', {done: true})}</div></div>${bkRail(backlogCount)}</div></div>`;
+}
+function boardPhoneHtml(inst, cfg, state, {stripLeaving = false} = {}) {
+  const {fx} = state;
+  const todoIds = boardTodo(inst, cfg, state);
+  const landing = state.land;
+  const todo = todoIds.length ? todoIds.map((id, index) => miniCard(fx, id, {cls: landing ? 'landing' : '', style: landing ? landStyle(index) : ''})).join('') : todoEmpty(inst, cfg);
+  const backlogCount = fx.pool.filter(id => !todoIds.includes(id) && TASKS[id].tracked !== false).length;
+  const showEntry = (state.phase === 'board' || state.phase === 'open') && cfg.window !== false;
+  const chip = showEntry && cfg.entry === 'chip' ? `<button class="hchip" data-i="${inst}" data-a="open"><span class="led"></span>Open the day</button>` : '';
+  const stripHtml = (showEntry && (cfg.entry || 'strip') === 'strip') || stripLeaving ? strip(inst, fx, stripLeaving) : '';
+  return `${appHead(chip)}${dashboard(fx, todoIds, {phone: true})}${stripHtml}<div style="padding-top:8px;display:flex;flex-direction:column;gap:10px">${mrowHead('Todo', todoIds.length, 'var(--in)')}<div class="mrow">${todo}</div>${mrowHead('Done', 0, 'var(--su)')}<div class="mrow"></div></div>${mobilePill(backlogCount)}`;
+}
+
+/* ── Instances: one state per drawn screen; every click goes through one handler ── */
+const INST = {};
+let lastInst = null;
+function mount(id, cfg) {
+  INST[id] = {cfg, state: initState(cfg)};
+  renderInst(id);
+}
+function renderInst(id, extra = {}) {
+  const {cfg, state} = INST[id];
+  const root = document.getElementById(id);
+  if (!root) return;
+  const open = state.phase === 'open';
+  const keepScroll = [...root.querySelectorAll('.ov-body, .pane')].map(el => el.scrollTop);
+  /* a box or a section eases in only when it appears, never again on a later render */
+  const shown = new Set([...root.querySelectorAll('[data-fk]')].map(el => el.dataset.fk));
+  if (cfg.mode === 'desk') {
+    root.innerHTML = `<div class="desk">${boardDeskHtml(id, cfg, state, extra)}${open ? modalHtml(id, cfg, state, false) : ''}</div>`;
+  } else {
+    root.innerHTML = `<div class="phone-wrap">${cfg.cap ? `<div class="phone-cap"><b>${cfg.cap}</b></div>` : ''}<div class="phone">${statusBar(cfg.time || state.fx.time)}<div class="phone-body">${boardPhoneHtml(id, cfg, state, extra)}</div>${dock()}${open ? modalHtml(id, cfg, state, true) : ''}</div></div>`;
+  }
+  [...root.querySelectorAll('.ov-body, .pane')].forEach((el, index) => { if (keepScroll[index] != null) el.scrollTop = keepScroll[index]; });
+  root.querySelectorAll('[data-fk]').forEach(el => { if (shown.has(el.dataset.fk)) el.style.animation = 'none'; });
+  if (open) state.everOpened = true;
+  state.fresh = null;
+  state.land = false;
+}
+function wrap(id, cfg) { return `<div id="${id}"></div>`; }
+
+/* Start the day: T-A lands quietly; T-B holds a beat in the modal first; T-C flies the cards into Todo on desktop */
+function closeModal(id, after, {stripLeaves = true} = {}) {
+  const root = document.getElementById(id);
+  root.querySelectorAll('.modal, .ovfull, .ovsheet').forEach(el => { el.classList.remove('boot'); el.classList.add('leaving'); });
+  root.querySelectorAll('.mscrim2').forEach(el => { el.style.transition = `opacity ${MOTION.leave}ms`; el.style.opacity = '0'; });
+  if (stripLeaves) root.querySelectorAll('.ritual').forEach(el => el.classList.add('leaving'));
+  setTimeout(after, reducedMotion() ? 0 : MOTION.leave);
+}
+function startDay(id) {
+  const inst = INST[id];
+  const {cfg, state} = inst;
+  if (state.error) { state.error = false; renderInst(id); return; }
+  const commit = () => { state.phase = 'started'; state.started = [...state.today]; state.land = true; renderInst(id); };
+  if (cfg.start === 'beat' && !reducedMotion()) {
+    state.beat = true; renderInst(id);
+    setTimeout(() => { state.beat = false; closeModal(id, commit); }, MOTION.beat);
+    return;
+  }
+  if (cfg.start === 'fly' && cfg.mode === 'desk' && !reducedMotion()) { flyStart(id); return; }
+  closeModal(id, commit);
+}
+function flyStart(id) {
+  const {state} = INST[id];
+  const root = document.getElementById(id);
+  const deskEl = root.querySelector('.desk');
+  const base = deskEl.getBoundingClientRect();
+  const from = [...root.querySelectorAll('.today-pane [data-card]')].map(el => ({id: el.dataset.card, rect: el.getBoundingClientRect(), html: el.outerHTML}));
+  const oldModal = [...root.querySelectorAll('.mscrim2, .modal')];
+  state.phase = 'started'; state.started = [...state.today];
+  renderInst(id);
+  const newDesk = root.querySelector('.desk');
+  oldModal.forEach(el => { newDesk.appendChild(el); el.classList.remove('boot'); });
+  oldModal.forEach(el => el.animate([{opacity: 1}, {opacity: 0}], {duration: MOTION.fly, easing: 'cubic-bezier(.2,0,0,1)', fill: 'forwards'}).finished.then(() => el.remove()));
+  newDesk.querySelectorAll('.modal [data-card]').forEach(el => { el.style.visibility = 'hidden'; });
+  from.forEach(({id: cardId, rect, html}, index) => {
+    const target = newDesk.querySelector(`.board-cols [data-board-card="${cardId}"]`);
+    if (!target) return;
+    const to = target.getBoundingClientRect();
+    target.style.opacity = '0';
+    const holder = document.createElement('div');
+    holder.innerHTML = html;
+    const clone = holder.firstElementChild;
+    Object.assign(clone.style, {position: 'absolute', left: `${rect.left - base.left}px`, top: `${rect.top - base.top}px`, width: `${rect.width}px`, margin: 0, zIndex: 30, pointerEvents: 'none', transformOrigin: '0 0'});
+    newDesk.appendChild(clone);
+    const dx = to.left - rect.left;
+    const dy = to.top - rect.top;
+    const scale = to.width / rect.width;
+    clone.animate([{transform: 'none', opacity: 1}, {transform: `translate(${dx}px, ${dy}px) scale(${scale})`, opacity: 1}], {duration: MOTION.fly, delay: index * MOTION.flyStagger, easing: 'cubic-bezier(.2,0,0,1)', fill: 'forwards'}).finished.then(() => {
+      target.style.transition = 'opacity 120ms'; target.style.opacity = '1'; clone.remove();
+    });
+  });
+}
+
+document.addEventListener('click', event => {
+  const button = event.target.closest('[data-a]');
+  const touched = event.target.closest('[id]');
+  if (touched && INST[touched.id]) lastInst = touched.id;
+  if (button) {
+    const id = button.dataset.i;
+    lastInst = id;
+    const inst = INST[id];
+    if (!inst || button.disabled) return;
+    const {cfg, state} = inst;
+    const action = button.dataset.a;
+    if (action === 'open') { state.phase = 'open'; state.everOpened = false; const fresh = initState({...cfg, phase: 'open'}); Object.assign(state, {today: fresh.today, prefilled: fresh.prefilled, step: fresh.step, moreOpen: false}); renderInst(id); return; }
+    if (action === 'cancel') { closeModal(id, () => { state.phase = 'board'; renderInst(id); }, {stripLeaves: false}); return; }
+    if (action === 'add') { state.today.push(button.dataset.id); state.fresh = button.dataset.id; }
+    if (action === 'rm') state.today = state.today.filter(other => other !== button.dataset.id);
+    if (action === 'addall') { compute(state).sugg.forEach(({id: sid}) => state.today.push(sid)); }
+    if (action === 'more') state.moreOpen = !state.moreOpen;
+    if (action === 'next') state.step = Math.min(2, state.step + 1);
+    if (action === 'back') state.step = Math.max(state.fx.carried.length ? 0 : 1, state.step - 1);
+    if (action === 'start') { startDay(id); return; }
+    renderInst(id);
+    return;
+  }
+  const reset = event.target.closest('[data-reset]');
+  if (reset) {
+    reset.dataset.reset.split(' ').forEach(id => { if (INST[id]) { INST[id].state = initState(INST[id].cfg); renderInst(id); } });
+  }
+});
+document.addEventListener('keydown', event => {
+  if (event.key !== 'Escape') return;
+  const inst = INST[lastInst];
+  if (inst && inst.state.phase === 'open' && inst.cfg.escapable) closeModal(lastInst, () => { inst.state.phase = 'board'; renderInst(lastInst); }, {stripLeaves: false});
+});
+
+/* ── Page chrome: tabs and theme ── */
+document.addEventListener('click', event => {
+  const screenBtn = event.target.closest('[data-screen-btn]');
+  if (screenBtn) {
+    document.querySelectorAll('[data-screen-btn]').forEach(btn => btn.classList.toggle('on', btn === screenBtn));
+    document.querySelectorAll('[data-screen]').forEach(screen => screen.classList.toggle('on', screen.dataset.screen === screenBtn.dataset.screenBtn));
+    window.scrollTo({top: 0});
+  }
+  const themeBtn = event.target.closest('[data-theme-btn]');
+  if (themeBtn) {
+    document.documentElement.dataset.theme = themeBtn.dataset.themeBtn;
+    document.querySelectorAll('[data-theme-btn]').forEach(btn => btn.classList.toggle('on', btn === themeBtn));
+  }
+});
+
+/* ═══════════ Content of each tab ═══════════ */
+const optBox = ({letter, title, rec, why, rank, body}) => `<div class="opt ${rec ? 'rec' : ''}"><div class="opt-head"><span class="letter">${letter}</span><h3>${title}</h3><span class="tag ${rec ? '' : 'muted'}">${rec ? 'recommended' : 'option'}</span></div><p class="why">${why}</p><div class="rank">${rank}</div>${body}</div>`;
+const deskRow = (letter, title, id, rec, resetIds) => `<div class="desk-row"><div class="tools"><span class="cap" style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-55)"><b style="color:var(--p)">${letter}</b> · ${title} · Desktop${rec ? ' · recommended' : ''}</span><button class="ghost-btn" data-reset="${resetIds}">Reset</button></div>${wrap(id)}</div>`;
+const rankTable = (options, rows) => `<tr><th>Principle</th>${options.map(option => `<th>${option}</th>`).join('')}</tr>${rows.map(([principle, ...cells]) => `<tr><td>${principle}</td>${cells.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}`;
+const ok = text => `<span class="good">✓</span> ${text}`;
+const no = text => `<span class="bad">✗</span> ${text}`;
+const meh = text => `<span class="meh">~</span> ${text}`;
+const resetBtn = ids => `<button class="ghost-btn" data-reset="${ids}">Reset</button>`;
+
+/* ── R · Research ── */
+const RESEARCH = [
+  ['先回顾昨天，再排今天', 'Akiflow · Rituals', 'https://akiflow.featurebase.app/en/help/articles/0805246-rituals', 'Daily Planning 四步：先看昨天的 recap，再看 Inbox 和这周的 to-do，选今天的 focus、把不急的推后，最后给 shutdown 留个提醒。昨天没做 shutdown，它就变成 planning 的第一步。', '<b>推了 Today 从 ↩ 开始</b>：昨天没做完的先摆在 Today 里，让人先决定它们。四步的向导画成 L-C 对比；我们只有一件事要做，不分步。'],
+  ['一个有名字的仪式，分几步', 'Sunsama · Daily planning and shutdown', 'https://www.sunsama.com/features/daily-planning-and-shutdown', '每天一遍「five Ps」：Process（回顾昨天）、Plan、Prioritize（什么可以等）、Prepare、Publish（发到 Slack）。', '<b>仪式感来自有名字、有开始和结束</b>，不一定来自步数：标题 Open the day、一个 Start the day 收尾就够。Publish 不要（个人 app）。'],
+  ['planning 的最后一步只是「开始」', 'Sunsama · Daily planning basics', 'https://help.sunsama.com/docs/daily-planning-the-basics', '从 backlog、integration、weekly objectives 往今天加；看预计工作量别排太满；最后一步点 Get Started，flow 结束。', '<b>推了 T-A</b>：结束那一下就是进入今天，没有庆祝。工作量提示不做（spike Q6：上限以后从最近几周学）。'],
+  ['没做完的自动滚到明天', 'Sunsama · Task rollover', 'https://help.sunsama.com/docs/task-rollover-and-recurring-tasks-the-basics', '今天没做完的，午夜自动滚到第二天；连着滚了好几天的会被收进 archive，并提示「N tasks moved to archive」。', '<b>和 spike 的 D1 一样</b>：sync 把 Todo 清回 backlog、记 carried。↩ 只认前一天，没 open 就过去的那天不再标，等于 Sunsama 的「滚久了就不再推到你面前」。'],
+  ['今天只留今天要做的', 'Things · Today', 'https://culturedcode.com/things/support/articles/4001304/', 'Things 建议每天早上看一遍 Today，只留今天真会做的；可以晚点做的放进 This Evening，留在 Today 底部，看得见但不抢眼。', '<b>推了 2.2 的做法</b>：Today 只放挑出来的；其余的在 Show more 后面折起来。'],
+  ['过期的一段 + 一键处理', 'Todoist · Today view', 'https://todoist.com/help/articles/360000030999', 'Today 里 overdue 的任务单独一段，右边一个 Reschedule，一次改掉整段；也可以拖到底部推到明天。', '<b>推了 ↩ 和 Add all</b>：昨天的有自己的标记、排在 Today 最前；推荐有一个 Add all。整段 reschedule 不要：每张 ↩ 自己有 ×。'],
+  ['推荐要看得出从哪来', 'Apple · Journal suggestions', 'https://www.apple.com/newsroom/2023/12/apple-launches-journal-app-a-new-app-for-reflecting-on-everyday-moments/', 'Journal 的 suggestions 从你最近的活动里挑，每一条都连着一个具体的时刻，看得出是什么引出了它；用不用、用哪条由你挑。', '<b>推了 why 一行</b>：每张推荐卡的 kind 行右边写它为什么被推（<code>2 left in 2 days</code>），只写数据知道的（3.6）；加不加由人决定（MVP 是手动 plan）。'],
+  ['modal 只在值得的时候用，要短', 'Apple HIG · Modality', 'https://developer.apple.com/design/human-interface-guidelines/modality', '「Aim to keep modal tasks simple, short, and streamlined」；不要做成 app 里的 app，多层就只给一条路；复杂或多步的任务可以全屏；关掉会丢东西时先确认；标题要说出这个 modal 在做什么。', '<b>推了 L-B 一屏做完</b>、标题就叫 Open the day、手机全屏（spike 默认）。「会丢东西先确认」：点 backdrop 不关（spike），Cancel 不确认，因为丢的只是几下点击，下一次打开推荐还在。'],
+  ['Cancel 和 Done 成对', 'Apple HIG · Sheets', 'https://developer.apple.com/design/human-interface-guidelines/sheets', 'Done 一定要配 Cancel（或多步时的 Back），不要三个一起；多步的第一步是 Cancel，后面是 Back；有未保存的改动时，下拉关掉要先确认。', '<b>推了底部 Cancel + Start the day</b>。L-C 照这条画：第一步 Cancel，之后 Back。也是 Q8 倾向全屏的原因之一：sheet 让人想往下拉。'],
+  ['一天开始时自动打开', 'Akiflow · Changelog', 'https://akiflow.featurebase.app/en/changelog/sunny-rituals-start-your-day-with-the-daily-planning', '可以设成每天第一次打开 Akiflow 时直接打开 Daily Planning；Sunsama 也能在设置里让 planning 自动打开。', '<b>不用</b>：owner 要的是 board 上一个 entry，自动弹出盖住 board 是打断（HIG：只在有明确好处时用 modal）。记进 Future。'],
+  ['inbox 和今天之间来回拖', 'Structured · Getting started', 'https://help.structured.app/en/articles/380546', 'Inbox 放没有日期的任务；有空档就把 inbox 的拖到今天的时间线上，也能拖回 inbox。', '<b>推了 × 放回去</b>：Today 里的卡能放回下面的列表，回到原来的位置。桌面拖拽（右栏拖到左栏）可以以后加，是桌面多出来的手势（5.2）。'],
+  ['「还没开始」和「做完了」是两种空', 'Atlassian Design · Empty state', 'https://atlassian.design/foundations/content/designing-messages/empty-state', '标题短、不加句号；正文一两句，说为什么是空的、下一步去哪；blank slate 鼓励开始，清空了的庆祝；俏皮话留给一次性的大时刻。', '<b>推了文案 A</b>：标题 cheer、第一句说为什么空、第二句说下一步；和 COL-5（做完了的空）分开写。'],
+];
+
+function renderResearch() {
+  document.getElementById('research').innerHTML = RESEARCH.map(([title, who, url, what, fit]) => `<div class="pat"><h4>${title}</h4><div class="who"><a href="${url}" target="_blank" rel="noopener">${who}</a></div><div>${what}</div><div class="fit"><b>Fit</b> · ${fit}</div></div>`).join('');
+}
+
+/* ── E · Entry ── */
+function renderEntry() {
+  document.getElementById('e-before-desk').innerHTML = beforeDesk();
+  document.getElementById('e-before-phone').innerHTML = beforePhone({cap: 'Before · main · Todo 里是昨天的'});
+  const base = {fx: 'thu', phase: 'board', layout: 'split', sugg: 'list', start: 'land', escapable: true};
+  const options = [
+    {letter: 'E-A', key: 'strip', title: 'Strip above Todo', rec: true, why: 'board 上、Todo 正上方一条 strip：亮着的 LED、<b>Open the day</b>、一行数字、→。两端一样；open 以后消失。Todo 的虚线框照旧没有按钮，只说为什么空、下一步是什么。', rank: `${ok('1.3 一下')} · ${ok('4.1 今天第一件事在结果落下的地方上面')} · ${ok('5.1 FinishBox 不变')} · ${ok('5.2 两端一样')} · ${meh('1.1 框里的 Open the day 和 strip 指同一件事，但一个是解释、一个是控件')}`},
+    {letter: 'E-B', key: 'box', title: 'The empty Todo is the entry', rec: false, why: '不加 strip：Todo 的虚线框里放一个 <b>Open the day</b> 按钮，框就是入口。元素最少。但 Todo 不空的时候（没 open 就先拉了一张，spike Q12）入口没地方放，要另一个样子。', rank: `${ok('1.1 一个元素')} · ${ok('1.3')} · ${no('5.1 FinishBox 定义上没有按钮（COL-5 也没有），这里改了它的骨架')} · ${no('Todo 不空时要第二种入口')}`},
+    {letter: 'E-C', key: 'chip', title: 'A chip in the header', rec: false, why: 'header 里、周的日期旁边一个小 chip <b>Open the day</b>，占的地方最少，board 一点不往下挪。Todo 的框指向它。', rank: `${ok('1.2 改动最小')} · ${no('4.1 早上最重要的一件事成了角落里的小东西')} · ${no('4.3 手机 header 挤')} · ${no('仪式感弱（owner 要「仪式感」）')}`},
+  ];
+  document.getElementById('e-opts').innerHTML = options.map(option => optBox({...option, body: `<div class="tools">${resetBtn(`e-ph-${option.key}`)}</div>${wrap(`e-ph-${option.key}`)}`})).join('');
+  document.getElementById('e-desks').innerHTML = options.map(option => deskRow(option.letter, option.title, `e-dk-${option.key}`, option.rec, `e-dk-${option.key}`)).join('');
+  options.forEach(option => {
+    mount(`e-ph-${option.key}`, {...base, mode: 'phone', entry: option.key, cap: `${option.letter} · ${option.title}`});
+    mount(`e-dk-${option.key}`, {...base, mode: 'desk', entry: option.key});
+  });
+  document.getElementById('e-rank').innerHTML = rankTable(['E-A strip', 'E-B 框是入口', 'E-C header chip'], [
+    ['1.1 一个意思一个元素', meh('strip 是控件，框是解释，两处都说 Open the day'), ok('只有一个'), meh('同 E-A')],
+    ['1.2 改得最少', meh('多一条，open 后就走'), ok('只改框'), ok('只多一个 chip')],
+    ['1.3 动作最少', ok('一下'), ok('一下'), ok('一下')],
+    ['4.1 重要的先看到', ok('在 Todo 正上方'), ok('就在 Todo 里'), no('在角落')],
+    ['5.1 一个组件', ok('FinishBox 不变'), no('FinishBox 多了按钮；Todo 不空时还要第二种'), ok('FinishBox 不变')],
+    ['5.2 两端一样', ok(''), ok(''), meh('手机 header 放不下就得换位置')],
+    ['6.2 像能点', ok('→ 和 hover 下划线'), ok('primary 按钮'), ok('chip')],
+  ]);
+  /* copy */
+  const copyCells = [
+    ['A', true, 'Fresh day, fresh start!', '标题 cheer，第一句事实，第二句下一步（3.7）；第二句的 Open the day 就是 strip 上的字。不挑时间。'],
+    ['B', false, '', '「a blank page」「what matters」是比喻和判断，数据不知道什么重要（3.6 边缘）。'],
+    ['C', false, '', '「make today count」有点推人，早上的 Todo 该是 calm 的（2）。'],
+    ['D', false, '', '窗口是 08:00–14:00：12:00 以后的 Good morning 不对（3.6）。要用就得 12 点换文案，多一种状态。'],
+    ['E', false, '', '第一句把 Todo 为什么空说清楚了（好）；标题的 wins 还没有赢（3.5），第二句没有指向 strip。'],
+    ['F', false, 'late', '<b>14:00 以后</b>还没 open：strip 没了，所以不提 ritual（3.6）；下午了，标题不加感叹号（3.5）。周末不出现 strip（Q7 的另一种）时也用它。'],
+    ['COL-5', false, 'col5', '已有的（main）：今天做完过东西、Todo 又空了。和上面互不重叠：做完过，就是它。'],
+  ];
+  document.getElementById('e-copy').innerHTML = copyCells.map(([letter, rec, key, note]) => {
+    const copyKey = key === 'late' || key === 'col5' ? key : letter;
+    const cls = '';
+    return `<div class="copy-cell ${rec ? 'rec' : ''}"><div class="cc-head"><span class="letter ${rec ? '' : 'muted'}">${letter}</span>${rec ? 'recommended' : letter === 'F' ? 'after 14:00' : letter === 'COL-5' ? 'existing' : 'spike candidate'}</div><div class="cc-col"><div class="column-head" style="color:var(--in)"><span style="color:var(--bc)">Todo</span><span class="count-ghost">0</span></div><div class="column-body">${finishBox(copyKey, {cls})}</div></div><p>${note}</p></div>`;
+  }).join('');
+  /* PR #128 sketch */
+  const ringRow = phone => `<div class="ringrow">${(phone ? ['Tue', 'Wed', 'Thu', 'Fri'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']).map(day => day === 'Thu' ? `<div class="d today"><i></i><span class="tl">Today<small>0 of 0 done</small></span></div>` : `<div class="d ${['Mon', 'Tue', 'Wed'].includes(day) ? 'past' : ''}"><span>${day}</span><i></i></div>`).join('')}</div>`;
+  const fx = FIXTURES.thu;
+  document.getElementById('e-128-desk').innerHTML = `<div class="desk sketch"><span class="sketch-tag">sketch · PR #128</span>${rail()}<div class="desk-main">${appHead()}${ringRow(false)}<div class="board-wrap"><div class="board-main"><div class="strip-slot"><button class="ritual" tabindex="-1"><span class="led"></span><span class="rt"><span class="t">Open the day</span><span class="s">${STRIP_COPY(fx)}</span></span><span class="go">${icon('right', 'sm')}</span></button></div><div class="board-cols">${column('Todo · Today', 0, finishBox('A'))}${column('Done · This week', 4, '', {done: true})}</div></div>${bkRail(10)}</div></div></div>`;
+  document.getElementById('e-128-phone').innerHTML = `<div class="phone-wrap"><div class="phone-cap"><b>sketch · PR #128 · phone</b></div><div class="phone">${statusBar('9:12')}<div class="phone-body">${appHead()}${ringRow(true)}<div class="strip-slot"><button class="ritual" tabindex="-1"><span class="led"></span><span class="rt"><span class="t">Open the day</span><span class="s">${STRIP_COPY(fx)}</span></span><span class="go">${icon('right', 'sm')}</span></button></div><div style="padding:8px 0">${mrowHead('Todo', 0, 'var(--in)')}<div style="padding:4px 16px">${finishBox('A')}</div></div>${mobilePill(10)}</div>${dock()}</div></div>`;
+}
+
+/* ── L · Layout ── */
+function renderLayout() {
+  document.getElementById('l-before-desk').innerHTML = beforeDesk({backlogOpen: true});
+  document.getElementById('l-before-phone').innerHTML = beforePhone({backlogOpen: true, cap: 'Before · main · backlog sheet'});
+  const base = {fx: 'thu', phase: 'open', sugg: 'list', start: 'land', escapable: true};
+  const options = [
+    {letter: 'L-A', key: 'stacked', title: 'One stacked list', rec: false, why: '一列从上到下：<b>Today</b>、<b>Suggested</b>、<b>Show more</b>。两端完全一样；桌面是 620 px 宽的 modal。Today 一长，推荐就被推到下面要滚。', rank: `${ok('5.2 两端一模一样')} · ${ok('4.1 Today 在最上')} · ${ok('2.2')} · ${no('4.3 桌面的宽度空着、要滚')} · ${meh('3.4 桌面上加进去的卡可能在视野外，靠按钮上的数字')}`},
+    {letter: 'L-B', key: 'split', title: 'Two panes on desktop, one list on phones', rec: true, why: '桌面 900 px：左栏 <b>Today</b>，右栏 <b>Suggested + Show more</b>，各自滚；手机就是 L-A。加一张，它离开右栏、落在左栏，两边都看得见。', rank: `${ok('4.1 左到右 = 上到下')} · ${ok('4.3 用上桌面的宽度')} · ${ok('3.4 落在看得见的地方')} · ${ok('5.2 手机同 L-A，桌面多一个并排的视图')} · ${meh('桌面两个滚动区')}`},
+    {letter: 'L-C', key: 'guided', title: 'A short guided sequence', rec: false, why: '三步：<b>From yesterday</b>（留哪些 ↩）→ <b>Pick for today</b>（推荐 + Show more）→ <b>Your day</b>（看一眼，Start the day）。像 Sunsama / Akiflow。没有 ↩ 时从第二步开始。', rank: `${ok('仪式感最强')} · ${no('1.3 每天早上多按两次 Next')} · ${no('HIG：多步 = app 里的 app，要 Back')} · ${meh('4.1 Today 到最后才看到全貌')}`},
+  ];
+  document.getElementById('l-opts').innerHTML = options.map(option => optBox({...option, body: `<div class="tools">${resetBtn(`l-ph-${option.key}`)}</div>${wrap(`l-ph-${option.key}`)}`})).join('');
+  document.getElementById('l-desks').innerHTML = options.map(option => deskRow(option.letter, option.title, `l-dk-${option.key}`, option.rec, `l-dk-${option.key}`)).join('');
+  options.forEach(option => {
+    mount(`l-ph-${option.key}`, {...base, mode: 'phone', layout: option.key, cap: `${option.letter} · ${option.title}`});
+    mount(`l-dk-${option.key}`, {...base, mode: 'desk', layout: option.key});
+  });
+  document.getElementById('l-rank').innerHTML = rankTable(['L-A 一列', 'L-B 两栏', 'L-C 向导'], [
+    ['1.3 动作最少', ok('加完直接 Start'), ok('同 L-A'), no('+2 次 Next')],
+    ['2.2 不摊开一大堆', ok('Show more 折着'), ok('同 L-A'), ok('同 L-A')],
+    ['3.4 反馈落下', meh('桌面：Today 可能在视野外，靠按钮上的数'), ok('左栏看得见'), meh('第三步才看到')],
+    ['4.1 重要的先看到', ok('Today 在上'), ok('Today 在左'), meh('Today 在最后一步')],
+    ['4.3 有地方就别挤', no('桌面空着两边'), ok(''), ok('')],
+    ['5.1 一个组件', ok('一张卡'), ok('一张卡'), ok('一张卡')],
+    ['5.2 两端一条路', ok('一模一样'), ok('手机 = L-A，桌面多并排'), ok('')],
+    ['HIG Modality', ok('短、一屏'), ok('短、一屏'), no('多步要 Back')],
+  ]);
+  document.getElementById('l-q8').innerHTML = `${wrap('l-q8-full')}${wrap('l-q8-sheet')}`;
+  mount('l-q8-full', {...base, mode: 'phone', layout: 'split', cap: 'Q8 · full-screen overlay（spike 默认）'});
+  mount('l-q8-sheet', {...base, mode: 'phone', layout: 'split', shell: 'sheet', cap: 'Q8 · tall bottom sheet（现有 sheet）'});
+}
+
+/* ── S · Suggestions ── */
+function renderSuggest() {
+  document.getElementById('s-before-desk').innerHTML = beforeDesk({backlogOpen: true});
+  document.getElementById('s-before-phone').innerHTML = beforePhone({backlogOpen: true, cap: 'Before · main · 没有推荐'});
+  const base = {fx: 'thu', phase: 'open', layout: 'split', start: 'land', escapable: true};
+  const options = [
+    {letter: 'S-A', key: 'list', title: 'Listed, each with + Today', rec: true, why: '<b>Suggested</b> 一段，每张推荐就是会落进 Todo 的那张卡，右上一行 why，右下 <b>+ Today</b>；同一个 project 推两张时，第二张没有 +，等前一张。右上 <b>Add all</b>。', rank: `${ok('1.3 一下一张，Add all 一下全部')} · ${ok('3.4 看到的就是落下的')} · ${ok('3.6 why 一行')} · ${ok('MVP 手动 plan')} · ${meh('5.1 一个 group 可能出现两张')}`},
+    {letter: 'S-B', key: 'prefill', title: 'Pre-filled into Today', rec: false, why: '打开时推荐已经放进 Today（虚线边、右上 Suggested），不想要的点 × 拿掉；没有 Suggested 一段。接受就一下 Start the day。是「LLM 推荐 + 手动调整」那条路的样子。', rank: `${ok('1.3 一下开始一天')} · ${no('2.2 一打开今天就是满的')} · ${no('owner：MVP 是自己手动 plan')} · ${meh('Today 的空状态永远看不到')}`},
+    {letter: 'S-C', key: 'group', title: 'One card per habit or project', rec: false, why: '推荐按 group：一个 habit 或 project 一张卡，就是 board backlog 的那张脸，pile 的层数是还推几张，why 写 <b>2 for today · 5 left in 2 days</b>。+ 一次加一张，下一张翻上来。', rank: `${ok('5.1 和 board 的 backlog 一张脸')} · ${ok('1.1 一个 group 一张')} · ${ok('4.2 pile 说后面还有')} · ${meh('1.3 推两张要点两下')} · ${meh('3.4 第二张藏在 pile 里')}`},
+  ];
+  document.getElementById('s-opts').innerHTML = options.map(option => optBox({...option, body: `<div class="tools">${resetBtn(`s-ph-${option.key}`)}</div>${wrap(`s-ph-${option.key}`)}`})).join('');
+  document.getElementById('s-desks').innerHTML = options.map(option => deskRow(option.letter, option.title, `s-dk-${option.key}`, option.rec, `s-dk-${option.key}`)).join('');
+  options.forEach(option => {
+    mount(`s-ph-${option.key}`, {...base, mode: 'phone', sugg: option.key, cap: `${option.letter} · ${option.title}`});
+    mount(`s-dk-${option.key}`, {...base, mode: 'desk', sugg: option.key});
+  });
+  document.getElementById('s-rank').innerHTML = rankTable(['S-A 列表', 'S-B 预先放好', 'S-C 按 group'], [
+    ['1.1 一个意思一个元素', meh('Bio 的两张都列出来'), ok(''), ok('一个 group 一张')],
+    ['1.3 动作最少', ok('+ / Add all'), ok('直接 Start'), meh('多张要多点')],
+    ['2.2 不摊开一大堆', ok('只列今天的份'), no('Today 一打开就满'), ok('')],
+    ['3.4 反馈落下', ok('那张卡落进 Today'), meh('没有「加」这个动作'), meh('下一张翻上来')],
+    ['3.6 只说知道的', ok('why 一行'), meh('只说 Suggested，不说为什么'), ok('why 一行')],
+    ['5.1 一个组件', meh('同一张卡；一个 group 两张'), ok('同一张卡 + 虚线'), ok('board backlog 的脸')],
+    ['6.1 状态不像控件', ok(''), meh('虚线边要和可拖的区分开'), ok('')],
+    ['owner 的 MVP', ok('手动 plan'), no('是 ultimate goal 的样子'), ok('手动 plan')],
+  ]);
+}
+
+/* ── T · Start ── */
+function renderStart() {
+  document.getElementById('t-before-desk').innerHTML = beforeDesk({backlogOpen: true});
+  document.getElementById('t-before-phone').innerHTML = beforePhone({backlogOpen: true, cap: 'Before · main · 拉一张算一张'});
+  const base = {fx: 'thu', phase: 'open', layout: 'split', sugg: 'list', escapable: true};
+  const options = [
+    {letter: 'T-A', key: 'land', title: 'Close, then the cards land in Todo', rec: true, why: 'modal 收起（240 ms），strip 同时淡出；Todo 里的卡一张接一张从上面落下（每张 240 ms，间隔 60 ms）。安静，落在工作去的地方。', rank: `${ok('3.4 落在 Todo')} · ${ok('3.5 是开始，不是赢')} · ${ok('3.3 比完成一张卡还小')} · ${ok('1.3 不等')}`},
+    {letter: 'T-B', key: 'beat', title: 'A beat in the modal first', rec: false, why: '先在 modal 里停一下：按钮变成绿色的 <b>✓ Day opened</b>，900 ms；然后同 T-A。给仪式一个「完成了」的瞬间。', rank: `${meh('3.5 一点小仪式')} · ${no('1.3 每天早上等 0.9 秒')} · ${no('3.4 反馈在 modal 里，不在工作去的地方')}`},
+    {letter: 'T-C', key: 'fly', title: 'The cards fly into Todo', rec: false, why: '桌面：左栏的每张卡从 modal 里飞到 Todo 列里自己的位置，modal 同时淡出。手机：overlay 盖着 Todo，飞不过去，只能同 T-A。', rank: `${ok('3.4 看得见走到哪')} · ${no('3.5 用了完成时「扔进圈里」的语言，开始和完成混了')} · ${no('3.3 比开始该有的大')} · ${meh('5.2 手机做不到')}`},
+  ];
+  document.getElementById('t-opts').innerHTML = options.map(option => optBox({...option, body: `<div class="tools">${resetBtn(`t-ph-${option.key}`)}<span>先加几张，再 Start the day</span></div>${wrap(`t-ph-${option.key}`)}`})).join('');
+  document.getElementById('t-desks').innerHTML = options.map(option => deskRow(option.letter, option.title, `t-dk-${option.key}`, option.rec, `t-dk-${option.key}`)).join('');
+  options.forEach(option => {
+    mount(`t-ph-${option.key}`, {...base, mode: 'phone', start: option.key, cap: `${option.letter} · ${option.title}`});
+    mount(`t-dk-${option.key}`, {...base, mode: 'desk', start: option.key});
+  });
+  document.getElementById('t-rank').innerHTML = rankTable(['T-A 落进 Todo', 'T-B 先停一下', 'T-C 飞过去'], [
+    ['1.3 不多一步', ok(''), no('等 900 ms'), ok('')],
+    ['3.3 大小对得上', ok('小'), ok('小'), no('像完成')],
+    ['3.4 落在工作去的地方', ok('Todo 里依次落下'), no('在 modal 里'), ok('飞进 Todo')],
+    ['3.5 话和时刻对得上', ok('不说话'), meh('Day opened'), ok('不说话')],
+    ['5.2 两端一样', ok(''), ok(''), meh('手机只能落下')],
+    ['Motion baseline', ok('240 ms'), meh('900 ms 的停顿不在 token 里'), meh('420 ms')],
+  ]);
+  document.getElementById('t-states').innerHTML = `${wrap('t-st-empty')}${wrap('t-st-error')}`;
+  mount('t-st-empty', {...base, mode: 'phone', start: 'land', today: [], cap: 'Today 空了：Start the day 不能按'});
+  mount('t-st-error', {...base, mode: 'phone', start: 'land', error: true, cap: '保存失败：modal 不关，再按一次（mockup 里第二次成功）'});
+}
+
+/* ── F · Final ── */
+const NEW_PARTS = [
+  ['Board · strip', 'Todo 正上方，两端一样：LED（2.4 s 呼吸）、Open the day、一行数字（<code>2 from yesterday · 4 suggested</code>）、→。08:00–14:00、今天还没 open 才出现；open 后淡出（E-A、T-A）。'],
+  ['Board · Todo 没 open 时', '虚线框（FinishBox）：Fresh day, fresh start! / Nothing on today yet / Open the day to pick what you\'ll do；14:00 以后换成 Nothing on today yet / Pull something from the backlog when you\'re ready（E ②）。'],
+  ['Board · 不是这个设计、是 spike D1', 'Todo 早上是空的；昨天没做完的回到 backlog（↩ 只在 Open the day 里看得到）；backlog 多了一段 One-offs、数字变大（8+）。'],
+  ['Modal · 外框', '桌面居中 900 px，两栏；手机全屏、盖住 tab bar（Q8）。标题 Open the day + 日期；✕ / ⌄ 和 Cancel 一样；点 backdrop 不关；Esc = Cancel（L-B）。'],
+  ['Modal · Today', '一开始是 ↩ 的卡（kind 行右边 ↩ Yesterday）；每张 × 放回去，一个 habit / project 只有最后加进来的那张有 ×；空了是虚线框 Nothing carried over / Add what you\'ll do today（↩ 被拿光了写 Today is empty）。'],
+  ['Modal · Suggested', '固定算法算出的卡，kind 行右边 why（<code>Today only</code>、<code>5 left in 2 days</code>），右下 + Today；一个 project 推两张，第二张等前一张；Add all；周末 Nothing is suggested on weekends；加完 Everything suggested is in Today（S-A）。'],
+  ['Modal · Show more', '折着，右边是数（8+ 封顶）；展开是 Habits · Projects · One-offs · From Priorities，每个 group 一张卡（+N more、pile），没 track 的 Do first 在最后一段，加进来就 track 到这周。'],
+  ['Modal · 底部', 'Cancel + Start the day，按钮上的数是 Today 的张数（Today 一段不再写数）；Today 空了不能按；失败时左边一行红字、不关。'],
+  ['Start the day 以后', 'modal 收起 240 ms、strip 淡出；Todo 的卡依次落下（240 ms，间隔 60 ms）；没有庆祝（T-A）。'],
+];
+function renderFinal() {
+  document.getElementById('f-new').innerHTML = NEW_PARTS.map(([title, body]) => `<div class="pat"><h4>${title}</h4><div>${body}</div></div>`).join('');
+  const base = {layout: 'split', sugg: 'list', start: 'land', entry: 'strip', escapable: true};
+  mount('f-desk', {...base, mode: 'desk', fx: 'thu', phase: 'board'});
+  const phones = [
+    ['f-ph-thu', {fx: 'thu', phase: 'board', cap: 'Thu 09:12 · 有 ↩ · 点 strip 开始'}],
+    ['f-ph-clear', {fx: 'clear', phase: 'open', cap: 'Thu · 昨天全做完了，没有 ↩'}],
+    ['f-ph-sat', {fx: 'sat', phase: 'open', cap: 'Sat · NORMAL · Q7 一：照样出现，没有推荐'}],
+    ['f-ph-sat-off', {fx: 'sat', phase: 'board', window: false, copy: 'late', cap: 'Sat · NORMAL · Q7 二：周末不出现'}],
+    ['f-ph-late', {fx: 'thu', phase: 'board', window: false, copy: 'late', time: '14:20', cap: 'Thu 14:20 · 没 open，过了窗口'}],
+    ['f-ph-opened', {fx: 'thu', phase: 'opened', started: ['bio4', 'passport', 'fc', 'wo2', 'bio5'], cap: 'Thu 11:00 · 已经 open 过：没有 strip'}],
+  ];
+  document.getElementById('f-phones').innerHTML = phones.map(([id]) => `<div><div class="tools" style="justify-content:center">${resetBtn(id)}</div>${wrap(id)}</div>`).join('');
+  phones.forEach(([id, cfg]) => mount(id, {...base, mode: 'phone', ...cfg}));
+  document.getElementById('f-before-desk').innerHTML = beforeDesk();
+  document.getElementById('f-before-phone').innerHTML = beforePhone();
+}
+
+/* ── I · Ideas ── */
+const IDEAS = [
+  ['给 spec 的行为', 'spec', `<ul>
+    <li><b>推荐当场重算</b>：Today 每变一次，Suggested 和 Show more 按 spike 的算法重算；一个 habit / project 只出现在一处：它的下一张被推荐，就在 Suggested，否则在 Show more（每个 group 一张卡）。</li>
+    <li><b>只能按顺序加</b>：一个 project 推两张时，只有第一张有 + Today；Show more 里的 + 加的是这个 group 的下一张（R6）。</li>
+    <li><b>× 只在最后加进来的那张</b>（同一个 habit / project 里）；one-off 每张都有。↩ 的卡算最先加进来的。</li>
+    <li><b>Today 的空状态看来源</b>：没有 ↩ 写 Nothing carried over；有 ↩ 但被拿光了写 Today is empty（3.6）。</li>
+    <li><b>strip 的数</b>：<code>{n} from yesterday</code> 和 <code>{n} suggested</code>，0 的那半不写，都是 0 写 Pick today's tasks。推荐的数按打开时 Today 只有 ↩ 来算。</li>
+    <li><b>Cancel 不留东西</b>：下次打开从 ↩ 和推荐重新开始。</li>
+    <li><b>Start the day 的数</b>就是 Today 的张数；Today 空了不能按。</li>
+    <li><b>没 open 就先拉了卡</b>（spike Q12）：拉进来的那几张打开时就在 Today 里、没有 ×；strip 和 Todo 的框照常（Todo 不空就没有框）。没画，等 Q12 定了再画。</li>
+    <li><b>Show more 的数</b>算的是折起来的所有卡（group 后面的也算），8 以上写 8+（2.1）。</li>
+  </ul>`],
+  ['Future · LLM 推荐 + 手动调整', 'future', `<p>推荐区现在是固定算法（spike）。以后换成 LLM：读最近几周的完成情况和这周的目标，给出今天的一组卡，每张带一句 reason；user 照样在同一个 modal 里加、删、调整。<b>样子不用变</b>：S-A 的 why 一行就放 reason；如果 LLM 更有把握，可以走 S-B 那条路（预先放进 Today、虚线边、× 拿掉）。入口可能是一个 MCP tool（例如 <code>propose_today</code>）或 modal 里的一个按钮。</p>`],
+  ['Future · Skip → 好好休息的 board', 'future', `<p>以后加一个 Skip：今天不 open（<code>Day.skippedAt</code>）。之后 board 变成另一个样子，让 user 好好休息：Todo 和 strip 换成一张 rest 卡，backlog 还在。现在 Today 空的时候 Start the day 不能按，正是给 Skip 留的位置（一张都不选 = Skip）。样子单独设计，不在这个 mockup 里画。</p>`],
+  ['Future · 其它', 'future', `<ul>
+    <li><b>自动打开</b>：每天第一次打开 app 自动弹出 Open the day（Akiflow、Sunsama 都有这个选项）。现在不做，只有 strip。</li>
+    <li><b>推荐的上限</b>：从最近几周学出来的 capacity（spike Q6），超了在 Today 上说一句。</li>
+    <li><b>桌面拖拽</b>：右栏拖到左栏、左栏拖回去，是桌面多出来的手势（5.2）。</li>
+  </ul>`],
+  ['要 owner 定的（会改样子的）', 'questions', `<ul>
+    <li>每个 tab 的方案：E-A / B / C、L-A / B / C、S-A / B / C、T-A / B / C。</li>
+    <li>Todo 的 empty 文案 A–E（spike Q9），和 14:00 以后的 F（Q10）。</li>
+    <li>手机外框：全屏还是拉满的 sheet（Q8）。</li>
+    <li>周末 <code>NORMAL</code>：照样出现、推荐为空，还是不出现（Q7）。F 两种都画了。</li>
+    <li>habit 卡的 why 一行和 dots 部分重复（1.1），要不要换写法（S 的 Why 表）。</li>
+    <li>折起来那一行叫 Show more 还是 Show all：展开的不含已推荐的，所以我写了 more（3.6）。</li>
+    <li>↩ 的写法：<code>↩ Yesterday</code>（现在）还是只放 ↩（4.2：小细节说状态），或者 <code>From yesterday</code>。</li>
+  </ul>`],
+  ['我自己定的默认（spike 之外）', 'defaults', `<ul>
+    <li>strip 在 Todo 正上方（main 上在 dashboard 下面，#128 上在日圈下面），不在 header 下面。</li>
+    <li>Today 一段不写数，数在 Start the day 按钮上。</li>
+    <li>卡的 action 槽：+ Today、×；why 和 ↩ 放在 kind 行右边（backlog 卡放 +N more 的槽）。</li>
+    <li>Show more 里的分段名：Habits · Projects · One-offs · From Priorities（没 track 的 Do first）。</li>
+    <li>失败文案 <code>Couldn't start the day · try again</code>。</li>
+    <li>Start the day 以后没有 toast，也没有一句话。</li>
+  </ul>`],
+];
+function renderIdeas() {
+  document.getElementById('ideas').innerHTML = IDEAS.map(([title, kind, body]) => `<div class="idea ${kind === 'future' ? 'future' : ''}"><h4>${title}<span class="tag">${kind}</span></h4>${body}</div>`).join('');
+}
+
+renderResearch();
+renderEntry();
+renderLayout();
+renderSuggest();
+renderStart();
+renderFinal();
+renderIdeas();
+</script>
+</body>
+</html>
