@@ -268,17 +268,25 @@ export const trackRingCelebrations = (page: Page) =>
   page.addInitScript(key => {
     const store = window as unknown as Record<string, number>;
     store[key] = 0;
+    // The class after a change is the next change's old value, or the class
+    // now for the last one: by the time the records arrive, a class taken off
+    // and put back to restart an animation is already back.
+    const hasClose = (value: string | null) =>
+      (value ?? '').split(/\s+/).includes('fx-ring-close');
     new MutationObserver(records => {
-      for (const {target, oldValue} of records) {
+      records.forEach(({target, oldValue}, index) => {
         if (
-          target instanceof Element &&
-          target.hasAttribute('data-today-ring') &&
-          target.classList.contains('fx-ring-close') &&
-          !oldValue?.includes('fx-ring-close')
+          !(target instanceof Element) ||
+          !target.hasAttribute('data-today-ring')
         ) {
-          store[key] += 1;
+          return;
         }
-      }
+        const next = records
+          .slice(index + 1)
+          .find(later => later.target === target);
+        const after = next ? next.oldValue : target.getAttribute('class');
+        if (hasClose(after) && !hasClose(oldValue)) store[key] += 1;
+      });
     }).observe(document, {
       subtree: true,
       attributes: true,
