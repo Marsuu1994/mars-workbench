@@ -19,10 +19,10 @@ const SPEC = `# Board
 - **COL-1** Two columns.
 - **COL-2** Todo is sorted:
   - by kind: one-offs first
-- **COL-3** *(removing)* Done runs latest first; replaced by COL-4.
-- **COL-4** *(pending)* Done runs by kind.
-- **BL-8** *(pending)* A pile per group.
-- **ST-2 Returning user** — *(bug)* The recap leaves out steps.
+- *(removing)* **COL-3** Done runs latest first; replaced by COL-4.
+- *(pending)* **COL-4** Done runs by kind.
+- *(pending)* **BL-8** A pile per group.
+- *(bug)* **ST-2 Returning user** — The recap leaves out steps.
 
 | ID | Action | Where |
 | --- | --- | --- |
@@ -67,6 +67,18 @@ describe('parseSpecItems', () => {
       {id: 'ST-2', pending: false, removing: false, bug: true},
       {id: 'A1', pending: false, removing: false, bug: false},
       {id: 'J1', pending: false, removing: false, bug: false},
+    ]);
+  });
+
+  it("reads a marker before a table row's ID", () => {
+    expect(
+      parseSpecItems('| *(pending)* A8 | Open a queue | the card |'),
+    ).toEqual([{id: 'A8', pending: true, removing: false, bug: false}]);
+  });
+
+  it('reads no marker written after the ID, where it no longer belongs', () => {
+    expect(parseSpecItems('- **BL-8** *(pending)* A pile per group.')).toEqual([
+      {id: 'BL-8', pending: false, removing: false, bug: false},
     ]);
   });
 });

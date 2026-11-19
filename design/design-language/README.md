@@ -154,11 +154,13 @@ it is done and offers what could come next without pushing it. Good: an empty To
 reads "Today's plan is done · Pull more from the backlog, or call it a day." — both
 choices weighed the same (#115 R25).
 
-### 3. Loud wins — finishing feels like a game
+### 3. Feedback — sized to the moment, in motion and in words
 
-The moment of finishing is where the product gets loud: strong, varied feedback
-borrowed from games — Balatro is the reference (#115 R23). Loud is for that moment,
-not for what stays on screen: a done card at rest is quiet (6.1).
+Feedback fits the moment it answers. Finishing is where the product gets loud: strong,
+varied feedback borrowed from games — Balatro is the reference (#115 R23). Loud is for
+that moment, not for what stays on screen: a done card at rest is quiet (6.1). The
+words follow the same rule: they cheer a win, stay quiet as the day winds down, and
+never claim more than the screen knows (3.5–3.8).
 
 **3.1 Feedback is strong.** Completing is rewarded with motion, colour and particles
 the user can feel. Good: the card lifts, wobbles and is tossed into today's ring (#115
@@ -175,6 +177,31 @@ when the plan is done (#115 R2, R5).
 
 **3.4 Feedback lands somewhere.** The reward shows where the work went. Good: the card
 flies into today's ring on both widths, and the ring grows as it lands (#115 R23–24).
+
+**3.5 Words match the moment.** A title cheers where the user has just won something,
+and stays quiet where the day is winding down. Good: an emptied backlog reads
+"Everything's on deck!"; an emptied Todo, mostly seen in the evening, reads "All clear
+for the day", with no exclamation mark (backlog grouping mockup, tab 6).
+
+**3.6 Words say only what the screen knows.** A line states what the data behind it
+shows, in every case the screen can be in. When a design's copy, or wording the owner
+asks for, claims more than the data knows, the agent says so and asks the owner before
+using it. Bad: "This week's plan is done" on an emptied backlog, which only knows that
+everything was pulled, while Todo may still hold the week. Good: "This week's plan is
+all on the board"; Todo's "All clear for the day" shows only once something was done
+today (backlog grouping mockup, tab 6).
+
+**3.7 A description is whole sentences, without punctuation.** It states the fact,
+then the next step, each a whole sentence on its own line, with no commas or full
+stops unless one is truly needed; an exclamation mark stays where it carries strong
+feeling. Bad: "Pull more from the backlog, or call it a day." Good: "This week's plan
+is all on the board" / "Adjust your plan to add more or call it a week" (backlog
+grouping mockup, tab 6).
+
+**3.8 Sentence case.** User-facing copy is sentence case; Title Case is for headers
+only (page and section titles, nav labels). The same action keeps its casing across
+states. Bad: "Sign Out" whose confirm reads "Sign out?". Good: "Sign out" / "Sign
+out?" / "Create task", with headers like "Settings" keeping theirs.
 
 ### 4. Hierarchy — the important at a glance
 
@@ -242,7 +269,7 @@ it looks clickable and only repeats the pill (#58); a filled ✓ circle on a don
 row reads muted with "✓ Mon, Oct 5" on the right (#58).
 
 **6.2 Controls look tappable, and their feedback stays small.** This is a control's
-own feedback — hover and press; the loud feedback belongs to wins (3). Hover is the least it
+own feedback — hover and press; the loud feedback belongs to wins (3.1–3.4). Hover is the least it
 can be; press and selection carry the weight; hover never changes how a selected
 element looks. Bad: a whole cell lighting up and lifting on hover; hover dimming a
 selected day's glow (#115 R14). Good: a day cell — hover an underline, press a slight

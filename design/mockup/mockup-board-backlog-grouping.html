@@ -146,6 +146,37 @@
   .backlog-body { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
   .backlog-body.roomy { gap: 14px; }
   .empty { font-size: 12px; text-align: center; color: color-mix(in oklab, var(--bc) 45%, transparent); padding: 24px 6px; }
+  /* 修订 2026-11-18: the empty backlog's finish line, the same dashed box as #115's empty Todo */
+  .bk-empty { border: 1px dashed color-mix(in oklab, var(--su) 40%, transparent); border-radius: var(--rc); padding: 18px 14px; text-align: center; font-size: 13px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .bk-empty b { color: var(--bc); font-size: 14px; }
+  .bk-empty small { color: color-mix(in oklab, var(--bc) 55%, transparent); font-size: 12px; line-height: 1.45; }
+  .bk-empty b + small { margin-top: 2px; }
+  .bk-empty small + small { margin-top: -4px; }
+  .todo-phone { width: 340px; max-width: 100%; border: 1px solid var(--card-border); border-radius: 14px; overflow: hidden; background: color-mix(in oklab, var(--b2) 60%, transparent); }
+  [data-theme='p5-dark'] .todo-phone { border-radius: 0; }
+  .todo-phone .column-body { padding: 12px; }
+  [data-theme='p5-dark'] .bk-empty { border-radius: 0; border-width: 1.5px; }
+  .bk-empty.enter { animation: bkEnter .4s cubic-bezier(.2,0,0,1); }
+  @keyframes bkEnter { from { opacity: 0; transform: translateY(6px) scale(.98); } }
+  @media (prefers-reduced-motion: reduce) { .bk-empty.enter { animation: none; } }
+  .empty-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 18px; align-items: start; }
+  .empty-grid .board-main { height: 380px; }
+  .empty-grid .board-cols { grid-template-columns: 1fr; }
+  .empty-grid .backlog { width: 280px; }
+  .empty-grid .sub, .entry-row .sub, .todo-opt .sub { font-family: 'Geist Mono', monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 50%, transparent); margin-bottom: 6px; }
+  .opt-head { display: flex; align-items: baseline; gap: 10px; margin: 26px 0 10px; font-size: 13px; font-weight: 700; }
+  .opt-head .tag { font-family: 'Geist Mono', monospace; font-size: 10.5px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--card-border); color: color-mix(in oklab, var(--bc) 60%, transparent); font-weight: 600; }
+  .opt-head .tag.rec { border-color: var(--p); color: var(--p); }
+  .opt-head .why { font-weight: 400; font-size: 12px; color: color-mix(in oklab, var(--bc) 60%, transparent); }
+  .entry-row { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+  .entry-row .none { width: 200px; height: 44px; border: 1px dashed var(--card-border); border-radius: 16px; display: grid; place-items: center; font-size: 11px; color: color-mix(in oklab, var(--bc) 45%, transparent); }
+  .todo-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; align-items: start; }
+  .todo-opt { display: flex; flex-direction: column; }
+  .board.narrow .board-main { height: 300px; }
+  .board.narrow .board-cols { grid-template-columns: 1fr; }
+  .board.narrow .rail { width: 48px; flex-shrink: 0; border-left: 1px solid var(--card-border); display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 14px; }
+  .board.narrow .rail .v { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 13px; font-weight: 600; color: color-mix(in oklab, var(--bc) 60%, transparent); }
+  @media (max-width: 1100px) { .empty-grid, .todo-grid { grid-template-columns: 1fr; } }
 
   /* ── The kind-first TaskCard (production face) ── */
   .tc { position: relative; background: var(--card-bg); border: 1px solid var(--card-border); border-left: 3px solid var(--k); border-radius: var(--rc); box-shadow: var(--card-shadow); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; transition: transform .15s cubic-bezier(.2,0,0,1), opacity .2s; user-select: none; }
@@ -321,12 +352,13 @@
 
 <header class="topbar">
   <div>
-    <div class="eyebrow">Board · Backlog · design PR · final version · decided 2026-11-05 · 修订 2026-11-05 · 修订 2026-11-07 · 修订 2026-11-10</div>
+    <div class="eyebrow">Board · Backlog · design PR · final version · decided 2026-11-05 · 修订 2026-11-05 · 修订 2026-11-07 · 修订 2026-11-10 · 修订 2026-11-18（空的 backlog 和 Todo，decided 2026-11-18）</div>
     <h1>Backlog grouping — 定稿</h1>
     <p>第 1 轮选了 <b>D</b>：一个 habit 一行；一个 project 只露出下一步，其余的点一下展开。Backlog 卡片去掉了 <b>Weekly × 3</b> / <b>Step 4/9</b> 这行文字、<b>size</b>，以及 <b>done / total</b> 分数：dots 和 path 已经表达了进度；board 上的 habit 卡也去掉分数。两种卡片的右上角都是 <b>+N more</b>，表示下一个后面还排着几个，卡片下面垫着最多三层的薄 <b>pile</b>（第 3 页）；只有 project 的那个带 ⌄，点开是它的 queue。Mobile 上 <b>↑ Todo</b> 在右下角。Badge 数的是 <b>backlog 里所有 task</b>，超过 8 显示 <b>8+</b>。</p>
     <p><b>修订（2026-11-05，定稿后发现）：</b>habit 卡补回 description，布局和 project 卡对齐：标题行、description、进度行（habit 是 dots，project 是 path），mobile 上 ↑ Todo 在同样的右下角。同一组逻辑上相近的卡片保持同一套结构，只用颜色和进度标记的样式区分。</p>
     <p><b>修订（2026-11-07）：</b>habit 也垫 <b>pile</b>，和 project 一样：后面每排着一个 instance 垫一层，最多三层。两种卡片剩下的唯一区别是能不能展开：project 的 <b>+N more ⌄</b> 打开它后面的 step，每一步标题不同、顺序要看得见；habit 的 <b>+N more</b> 只是文字，后面的 instance 是同一件事，展开没有新信息。</p>
     <p><b>修订（2026-11-10）：</b>backlog 里去掉了 one-off。One-off 从不在 backlog 里等：Track 把它直接放进 Todo，carry 到下一周时保留原来的状态，所以 backlog 只有 habit 和 project 两种卡片。</p>
+    <p><b>修订（2026-11-18，decided 2026-11-18）：</b>backlog 空了，入口不再消失：desktop 的 strip 和 mobile 的 pill 都留着，badge 显示 <b>0</b>；打开后是一个虚线框，标题 <b>Everything's on deck!</b>，下面一句事实、一句下一步，都是不加标点的完整句子。今天至少做完一件、Todo 又空了时，Todo 显示同一个框，标题 <b>All clear for the day</b>（第 6 页）。</p>
   </div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
     <div class="seg" id="themes">
@@ -384,7 +416,15 @@
 
 <!-- ═════════ 5 · Research ═════════ -->
 <section class="screen" data-screen="research">
-  <div class="col-label"><b>第 2 轮 · 进度标记旁的分数，以及封顶计数</b><span class="line"></span></div>
+  <div class="col-label"><b>修订 2026-11-18 · 列表做完以后的空状态</b><span class="line"></span></div>
+  <div class="patterns">
+    <div class="pat"><h4>空状态要给出下一步</h4><div class="who">Apple HIG › Writing</div>HIG 把"做完的 to-do list"列为一种空状态，说空状态通常是暂时的，要告诉用户接下来能做什么，可能的话给一个按钮或链接（<a href="https://developer.apple.com/design/human-interface-guidelines/writing">HIG</a>）。<div class="fit"><b>→ 给出下一步，但只用文字。</b>Apple 默认会推一个动作；我们的 2.3 要求两个选择分量一样，所以不放按钮。</div></div>
+    <div class="pat"><h4>收工：入口留着，换成完成的状态</h4><div class="who">Sunsama daily shutdown</div>做完 shutdown 显示 "Shutdown completed!" 和一句用户自己选的话（鼓励、自定义、或者不显示）；导航里的 Shutdown 不消失，而是带上一个 ✓（<a href="https://help.sunsama.com/docs/daily-shutdown">help</a>）。<div class="fit"><b>→ 最接近的先例：</b>平静地说这一段做完了，入口留着、换个状态。我们留着入口，badge 显示 0。</div></div>
+    <div class="pat"><h4>"You're all caught up"，不推任何动作</h4><div class="who">Linear inbox（二手来源）</div>一句话加一张随机换的小插图，没有按钮（<a href="https://pivotlog.net/what-good-empty-states-look-like/">pivotlog</a>）。<div class="fit">说清楚做完了，但没说接下来能做什么；我们的第二行补上这一点。</div></div>
+    <div class="pat"><h4>Badge 到 0 就隐藏</h4><div class="who">Things 3</div>Today 的 badge 只在里面有 to-do 时出现（<a href="https://culturedcode.com/things/support/articles/3340494/">Things support</a>）。查过的产品里没有一个在 badge 上显示 0。<div class="fit"><b>→ 我们是有意不同：</b>backlog 的入口两端一致、永远找得到，打开就是这个终点线。</div></div>
+  </div>
+
+  <div class="col-label spaced"><b>第 2 轮 · 进度标记旁的分数，以及封顶计数</b><span class="line"></span></div>
   <div class="patterns">
     <div class="pat"><h4>Visible "x of y"：只在有意义时显示</h4><div class="who">Primer · Carbon · WCAG guidance</div>各家 design system 都要求 progress bar 必须有 <i>accessible name</i>，但屏幕上显示数值是可选的：数值已经以文字形式出现在旁边时，Primer 不再加单独的 label（<a href="https://primer.style/product/components/progress-bar/accessibility">Primer</a>）；Carbon 只在上下文已经清楚时才省略可见 label（<a href="https://carbon.preventx.com/docs/components/progress-bar/">Carbon</a>）；只有数字、没有 name 是不合格的写法（<a href="https://getwcag.com/accessibility-guide/aria-progressbar-name">getwcag</a>）。<div class="fit"><b>→ 定了：屏幕上不显示</b>，dots 和 path 就是进度；分数作为它们的 accessible name（aria-valuetext "1 of 3 done this week"）。</div></div>
     <div class="pat"><h4>Capped badges</h4><div class="who">MUI · Flutter · Braze</div>计数 badge 用 "+" 封顶：MUI 默认 99+（<a href="https://v3.mui.com/demos/badges/">MUI</a>），Flutter 的 Material badge 是 999+。Braze 的 iOS 指南提到，badge 数超过两位数后用户就不再看了（<a href="https://www.braze.com/docs/user_guide/channels/push/platform_specific_resources/ios/utilizing_badge_count">Braze</a>）。<div class="fit"><b>→ 8+。</b>那些上限是为了宽度；我们的上限是为了这一周给人的感觉，所以低得多。这是有意的产品选择，不是惯例。展开 panel 仍能看到全部。</div></div>
@@ -399,12 +439,40 @@
   </div>
 </section>
 
+<!-- ═════════ 6 · Empty (修订 2026-11-18) ═════════ -->
+<section class="screen" data-screen="empty">
+  <div class="col-label"><b>空的 backlog</b> · 修订 2026-11-18 · decided 2026-11-18 · 入口留着，计数 0<span class="line"></span></div>
+  <p class="note" style="margin-top:0">Backlog 拉空，说明这周排的 habit 和 step 都已经上了 board。现在的产品里这时 mobile 的 pill 直接消失，desktop 的 strip 显示 0、panel 里一行灰字。改成：<b>两端入口都留着，badge 显示 0</b>（strip、pill、panel 和 sheet 的 header 都一样）；打开后是一个虚线框：标题 cheer 一下（<b>Everything's on deck!</b>，强反馈），下面两句完整的话、不加标点——第一句说事实，第二句说下一步。框里只有文字，不放按钮：改计划再加，或者这周就到这，分量一样（Principle 2.3）。拖拽提示那一行在空的时候也去掉（1.1）。</p>
+  <p class="note">事实那句只说 backlog 知道的：都上 board 了，不说做完了——<b>情况 1</b>（周一全拉上来，Todo 还一堆）和<b>情况 2</b>（一周都做完）都属实。</p>
+
+  <div class="opt-head"><span class="tag">Before</span>现在的产品<span class="why">desktop 一行灰字；mobile pill 消失</span></div>
+  <div class="empty-grid" id="empty-before"></div>
+
+  <div class="opt-head"><span class="tag rec">After</span>Everything's on deck!<span class="why">情况 2 里 Todo 的框见下面</span></div>
+  <div class="empty-grid" id="empty-after"></div>
+
+  <div class="col-label spaced"><b>收起时的入口</b><span class="line"></span></div>
+  <div class="entry-row" id="empty-entries"></div>
+
+  <div class="col-label spaced"><b>试一下</b> · mobile · 点 ↑ Todo 把最后两个拉走<span class="line"></span></div>
+  <div class="phones" id="empty-phones"></div>
+  <p class="note">拉走最后一个时，sheet 不关，虚线框轻轻弹进来，header 的 badge 变成 0；关掉以后 pill 还在，badge 是 0，点开还是这个框。Desktop 一样：panel 里拖走最后一张，框弹进来，strip 留着显示 0。</p>
+
+  <div class="col-label spaced"><b>空的 Todo</b> · 同一个虚线框 · decided 2026-11-18<span class="line"></span></div>
+  <p class="note" style="margin-top:0">今天至少做完了一件、Todo 又空了时，Todo 显示同一个虚线框：标题 <b>All clear for the day</b>，不加感叹号——看到它的时候多半是晚上，不需要强烈反馈，小小的正好；下面一句事实 <b>Everything you pulled for today is done</b>，一句下一步 <b>Pull more from the backlog or call it a day</b>。今天什么都还没做（比如早上还没拉卡）时，Todo 照旧是现在的空状态，因为这时说 done 不属实。现在的产品里空 Todo 只有一行灰字。这一块取代 #115 定稿里的 <i>Today's plan is done · Pull more from the backlog, or call it a day.</i>：同样的位置和意思，换成这里的写法。backlog 也空了就是上面的情况 2，两个框各说各的。</p>
+  <div class="opt-head"><span class="tag">Before</span>现在的产品</div>
+  <div class="empty-grid" id="todo-before"></div>
+  <div class="opt-head"><span class="tag rec">After</span>All clear for the day</div>
+  <div class="empty-grid" id="todo-options"></div>
+</section>
+
 <nav class="seg screen-nav" id="screens">
   <button data-screen-btn="desktop" class="on">1 · Desktop</button>
   <button data-screen-btn="mobile">2 · Mobile</button>
   <button data-screen-btn="pile">3 · Pile</button>
   <button data-screen-btn="anatomy">4 · Card & count</button>
   <button data-screen-btn="research">5 · Research</button>
+  <button data-screen-btn="empty">6 · Empty ✓</button>
 </nav>
 
 <script>
@@ -529,13 +597,23 @@ function projectCard(group, ctx) {
   </div>${below}</div>`;
 }
 
+/* 修订 2026-11-18: an empty list is a finish line — a cheering title, then the facts and the next step
+   as whole sentences with no punctuation. The backlog's entry stays (0). */
+const BACKLOG_EMPTY = {title: "Everything's on deck!", lines: ["This week's plan is all on the board", 'Adjust your plan to add more or call it a week']};
+/* The empty Todo, once at least one task is done today: quiet, no exclamation — it's mostly seen in the evening */
+const TODO_EMPTY = {title: 'All clear for the day', lines: ['Everything you pulled for today is done', 'Pull more from the backlog or call it a day']};
+const finishBox = ({title, lines}, entering) => `<div class="bk-empty ${entering ? 'enter' : ''}"><b>${title}</b>${lines.map(line => `<small>${line}</small>`).join('')}</div>`;
+const todoEmpty = () => finishBox(TODO_EMPTY);
+
 /* No one-off face: a one-off never waits in the backlog (tracking puts it in Todo) */
 const FACE = {habit: habitRow, project: projectCard};
 
 function renderBody(state, option, mobile) {
   const ctx = {state, mobile};
   const live = state.groups.filter(group => remaining(group).length > 0);
-  if (live.length === 0) return `<p class="empty">You're all caught up — no staged tasks.</p>`;
+  if (live.length === 0) return option === 'before'
+    ? `<p class="empty">You're all caught up — no staged tasks.</p>`
+    : finishBox(BACKLOG_EMPTY, state.justEmptied);
   if (option === 'before') {
     return live.map(group => remaining(group).map((item, offset) => card(cardModel(group, item), {
       drag: mobile ? '' : `data-drag="${group.id}" data-index="${group.pulled + offset}"`,
@@ -551,10 +629,13 @@ function renderBody(state, option, mobile) {
 function renderBacklog(state, option, {mobile = false} = {}) {
   const count = stagedCount(state);
   const shown = option === 'before' ? String(count) : capped(count);
+  // After: with nothing to drag or tap, the hint line goes too
+  const hint = option !== 'before' && count === 0 ? ''
+    : `<div class="backlog-hint">${icon(mobile ? 'up' : 'left', 'sm')}${mobile ? 'Tap to pull a task onto the board' : 'Drag tasks left to Todo to start working'}</div>`;
   return `<div class="${mobile ? '' : 'backlog'}" style="${mobile ? 'display:flex;flex-direction:column;min-height:0;flex:1' : ''}">
     <div class="backlog-head"><div class="backlog-title">${icon('inbox')}<span>Backlog</span><span class="badge-count ${state.bumped ? 'bump' : ''}" title="${count} staged tasks">${shown}</span></div>
       <span style="opacity:.5">${icon(mobile ? 'x' : 'right', 'sm')}</span></div>
-    <div class="backlog-hint">${icon(mobile ? 'up' : 'left', 'sm')}${mobile ? 'Tap to pull a task onto the board' : 'Drag tasks left to Todo to start working'}</div>
+    ${hint}
     <div class="backlog-body ${option === 'before' ? '' : 'roomy'}">${renderBody(state, option, mobile)}</div>
   </div>`;
 }
@@ -581,7 +662,7 @@ function renderPhone({key, label, option}) {
   const count = stagedCount(state);
   return `<div class="phone-wrap" data-phone="${key}" >
     <div class="phone-cap ${option === 'before' ? 'before' : ''}"><b>${label}</b></div>
-    <div class="pill">${icon('inbox')}<span>Backlog</span><span class="badge-count">${option === 'before' ? count : capped(count)}</span><span class="chev">${icon('chevUp', 'sm')}</span></div>
+    ${option === 'before' && count === 0 ? '<div class="pill" style="visibility:hidden"></div>' : `<div class="pill">${icon('inbox')}<span>Backlog</span><span class="badge-count">${option === 'before' ? count : capped(count)}</span><span class="chev">${icon('chevUp', 'sm')}</span></div>`}
     <div class="phone">
       <div class="peek"><div class="bar" style="width:60%"></div><div class="bar" style="width:85%"></div></div>
       <div class="scrim"></div>
@@ -644,12 +725,68 @@ function renderAnatomy() {
     </div>`).join('');
 }
 
+/* Empty screen (修订 2026-11-18): the empty backlog in two real cases, then the empty Todo's three titles */
+const emptyOf = () => ({...freshState(), groups: []});
+const CASE_TODO = [
+  {kind: 'habit', title: 'Read', desc: '30 pages, any book', plan: 'Weekly × 3', target: 3, doneSlots: [], cur: 0, size: 'XS'},
+  {kind: 'project', name: 'Biomedical course', title: 'Lecture 4 — Cell signaling', desc: 'Watch + one-page notes', n: 4, total: 9, doneSteps: [1, 2, 3], size: 'XS'},
+  {kind: 'oneoff', title: 'File tax report', quadrant: 'Do first', size: 'S'},
+];
+const EMPTY_CASES = [
+  {label: '情况 1 · 周一全拉上 board，Todo 还有 3 张', todo: CASE_TODO},
+  {label: '情况 2 · 一周都做完了，Todo 也空了', todo: []},
+];
+function todoColumn(option, todo) {
+  const fraction = option === 'before';
+  const body = todo.length ? todo.map(model => card(model, {fraction})).join('')
+    : option === 'before' ? '<p class="empty">No tasks</p>' : todoEmpty();
+  return `<div class="column"><div class="column-head">Todo<span class="count-ghost">${todo.length}</span></div><div class="column-body">${body}</div></div>`;
+}
+function miniBoard(state, option, todo) {
+  return `<div class="board"><div class="board-main"><div class="board-cols">${todoColumn(option, todo)}</div>${renderBacklog(state, option)}</div></div>`;
+}
+const EMPTY_PHONES = [
+  {key: 'emptyBefore', label: 'Before · 现在', option: 'before'},
+  {key: 'emptyAfter', label: 'After', option: 'after'},
+];
+function lastTwoState() {
+  const state = freshState();
+  state.groups = state.groups.filter(group => group.id === 'sd' || group.id === 'pdb');
+  state.groups.find(group => group.id === 'pdb').items.splice(1);
+  return state;
+}
+/* the backlog still has work: the Read and Biomedical groups */
+function someLeftState() {
+  const state = freshState();
+  state.groups = state.groups.filter(group => group.id === 'read' || group.id === 'bio');
+  return state;
+}
+const collapsedBoard = () => `<div class="board narrow"><div class="board-main"><div class="board-cols">${todoColumn('after', [])}</div><div class="rail">${icon('chevLeft', 'sm')}<span class="badge-count" title="5 staged tasks">5</span><span class="v">Backlog</span></div></div></div>`;
+const todoPhone = option => `<div class="todo-phone">${todoColumn(option, [])}</div>`;
+function renderEmpty() {
+  const rows = {'empty-before': 'before', 'empty-after': 'after'};
+  for (const [id, option] of Object.entries(rows)) {
+    document.getElementById(id).innerHTML = EMPTY_CASES.map(({label, todo}) => `<div><div class="sub">${label}</div>${miniBoard(emptyOf(), option, todo)}</div>`).join('');
+  }
+  const strip = shown => `<div class="strip">${icon('chevLeft', 'sm')}<span class="badge-count" title="${shown} staged tasks">${shown}</span><span class="v">Backlog</span></div>`;
+  const pill = `<div class="pill" style="width:200px">${icon('inbox')}<span>Backlog</span><span class="badge-count" title="0 staged tasks">0</span><span class="chev">${icon('chevUp', 'sm')}</span></div>`;
+  document.getElementById('empty-entries').innerHTML = `
+    <div><div class="sub">Before · desktop</div>${strip('0')}</div>
+    <div><div class="sub">Before · mobile</div><div class="none">pill 消失</div></div>
+    <div><div class="sub">After · desktop</div>${strip('0')}</div>
+    <div><div class="sub">After · mobile</div>${pill}</div>`;
+  document.getElementById('empty-phones').innerHTML = EMPTY_PHONES.map(renderPhone).join('');
+  document.getElementById('todo-before').innerHTML = `<div><div class="sub">Desktop · backlog 还有 5 个</div>${miniBoard(someLeftState(), 'before', [])}</div><div><div class="sub">Mobile · Todo</div>${todoPhone('before')}</div>`;
+  document.getElementById('todo-options').innerHTML = `<div><div class="sub">Desktop · 今天做完了 3 件 · backlog 收起，还有 5 个</div>${collapsedBoard()}</div><div><div class="sub">Mobile · Todo</div>${todoPhone('after')}</div>`;
+}
+
 /* ── State ── */
 const surfaces = {};
 function resetAll() {
   surfaces.deskBefore = freshState();
   surfaces.deskAfter = freshState();
   surfaces.phones = Object.fromEntries(PHONES.map(({key}) => [key, freshState()]));
+  for (const {key} of EMPTY_PHONES) surfaces.phones[key] = lastTwoState();
   surfaces.piles = Object.fromEntries(PILE_VIEWS.flatMap(({kind, mobile}) => PILE_CASES.map(behindCount => [pileKey(kind, behindCount, mobile), pileState(kind, behindCount)])));
   renderAll();
 }
@@ -659,7 +796,8 @@ function renderAll() {
   document.getElementById('phones').innerHTML = PHONES.map(renderPhone).join('');
   renderAnatomy();
   renderPiles();
-  for (const state of [surfaces.deskBefore, surfaces.deskAfter, ...Object.values(surfaces.phones)]) { state.bumped = null; state.fresh = null; }
+  renderEmpty();
+  for (const state of [surfaces.deskBefore, surfaces.deskAfter, ...Object.values(surfaces.phones)]) { state.bumped = null; state.fresh = null; state.justEmptied = false; }
 }
 function stateFor(el) {
   if (el.closest('#desk-before')) return surfaces.deskBefore;
@@ -682,6 +820,7 @@ function pull(state, groupId, index) {
   state.todo.push(cardModel(group, item));
   state.fresh = state.todo.length - 1;
   state.bumped = groupId;
+  state.justEmptied = stagedCount(state) === 0;
   renderAll();
 }
 
