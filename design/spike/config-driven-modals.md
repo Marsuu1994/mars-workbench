@@ -539,4 +539,4 @@ ProjectsPage (client) ◆
 | Q8 | 哪些 modal 进 URL（2026-11-19） | 全部页面 modal · 按「能从 server rows + URL 里的 id 重新得到」判断 · 只有 daily rhythm 的两个 | **按判断标准**：Projects 4 个、Priorities add、Edit habit、Open the day、Night recap 进；Review changes（显示没保存的改动）和 Settings 不进 |
 | Q9 | URL 那一层自己写还是用库（2026-11-19） | 自己写（原型，约 100 行）· nuqs · intercepting routes | **自己写**；等 URL state 不只 modal（筛选、视图）时再引入 nuqs，替换 `modalUrl.ts` 的解析部分 |
 | Q10 | URL 的样子（2026-11-19） | `?modal=editStep&stepId=…`（原型）· 一个参数 `?modal=editStep:…` · 路径 `/kanban/projects/steps/…/edit` | **原型的写法**：可读、和 `?project=` 并存、id 名就是 registry 的 key；路径要么走 2D，要么 rewrite，都不值 |
-| Q11 | 原型留不留在这个 PR（2026-11-19） | 留，作为实现的第一步 · 先 revert，等 Decision 再做 | **留**：只动 Projects 页，接口和 2B 一样，Q2 选别的就 revert 原型的 commit 和它后面修 e2e 的两个 |
+| Q11 | 原型留不留在这个 PR（2026-11-19） | 留，作为实现的第一步 · 先 revert，等 Decision 再做 | **留**：只动 Projects 页，接口和 2B 一样，Q2 选别的就 revert 原型的 commit 和它后面修 e2e 测试的几个 |
