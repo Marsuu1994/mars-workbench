@@ -259,6 +259,23 @@ body {
   );
   --fx-depth: var(--color-base-300);
   --fx-card-bg: var(--color-base-100);
+  /* The thin sheets a backlog card sits on, nearest first; a lifted card's
+     placeholder takes the nearest one's colour */
+  --fx-pile: color-mix(
+    in oklab,
+    var(--color-base-100) 88%,
+    var(--color-base-content)
+  );
+  --fx-pile-far: color-mix(
+    in oklab,
+    var(--color-base-100) 94%,
+    var(--color-base-content)
+  );
+  --fx-pile-border: color-mix(
+    in oklab,
+    var(--color-base-content) 20%,
+    transparent
+  );
   /* Ink on gradient fills — brand tiles, badges, avatars (text-on-gradient) */
   --fx-on-gradient: oklch(1 0 0); /* white */
   /* Geometry */
@@ -319,6 +336,23 @@ body {
   );
   --fx-depth: var(--color-base-300);
   --fx-card-bg: var(--color-base-100);
+  /* The thin sheets a backlog card sits on, nearest first; a lifted card's
+     placeholder takes the nearest one's colour */
+  --fx-pile: color-mix(
+    in oklab,
+    var(--color-base-300) 70%,
+    var(--color-base-100)
+  );
+  --fx-pile-far: color-mix(
+    in oklab,
+    var(--color-base-300) 40%,
+    var(--color-base-100)
+  );
+  --fx-pile-border: color-mix(
+    in oklab,
+    var(--color-base-content) 22%,
+    transparent
+  );
   /* Ink on gradient fills — brand tiles, badges, avatars (text-on-gradient) */
   --fx-on-gradient: oklch(1 0 0); /* white */
   /* Geometry */
@@ -380,6 +414,15 @@ body {
   --fx-field: oklch(0.53 0.2 26); /* large red fields   #c51d24 */
   --fx-depth: oklch(0.36 0.13 25); /* depth layer       #721216 */
   --fx-card-bg: oklch(0.17 0.008 20); /* raised card     #191313 */
+  /* The thin sheets a backlog card sits on, nearest first; a lifted card's
+     placeholder takes the nearest one's colour */
+  --fx-pile: oklch(0.25 0.008 20);
+  --fx-pile-far: oklch(0.21 0.006 20);
+  --fx-pile-border: color-mix(
+    in oklab,
+    var(--color-base-content) 32%,
+    transparent
+  );
   /* Ink on gradient fills — brand tiles, badges, avatars (text-on-gradient) */
   --fx-on-gradient: oklch(1 0 0); /* white */
   /* Geometry — P5 has no rounded corners */
@@ -524,6 +567,10 @@ body {
     transition:
       box-shadow 0.15s cubic-bezier(0.2, 0, 0, 1),
       transform 0.15s cubic-bezier(0.2, 0, 0, 1);
+  }
+  /* A thin sheet of a backlog card's pile, under the card */
+  .fx-pile-sheet {
+    box-shadow: 0 2px 5px oklch(0 0 0 / 0.22);
   }
   .fx-card:hover {
     box-shadow:
@@ -973,6 +1020,19 @@ body {
 }
 [data-theme='p5-dark'] .fx-card.fx-kind-edge {
   border-left: 4px solid var(--fx-k, currentColor);
+}
+/* The backlog's pile sheets and a project's queue hang under their card
+   (fx-tucked: no top edge); P5 gives them, and a finish box, its thicker
+   line and flat offset */
+[data-theme='p5-dark'] :is(.fx-pile-sheet, .fx-tucked) {
+  border-width: 1.5px;
+  border-top-width: 0;
+}
+[data-theme='p5-dark'] .fx-pile-sheet {
+  box-shadow: 2px 2px 0 var(--color-base-300);
+}
+[data-theme='p5-dark'] .fx-finish-box {
+  border-width: 1.5px;
 }
 [data-theme='p5-dark'] .fx-pip {
   border-radius: 0;

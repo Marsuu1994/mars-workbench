@@ -5,13 +5,17 @@ import {DragDropContext, type DropResult} from '@hello-pangea/dnd';
 import type {BoardData} from '@/types/board';
 import {TaskStatus} from '@/utils/enums';
 import {toBoardCards, type BoardCard} from '@/utils/boardCardUtils';
+import {countBacklogTasks, toBacklogSections} from '@/utils/backlogGroupUtils';
+import {hasTaskDoneToday} from '@/utils/taskUtils';
 import {updateTaskStatusAction} from '@/actions/taskActions';
 import {useOptimisticTasks} from '@/hooks/useOptimisticTasks';
+import {useTranslations} from 'next-intl';
 import {BoardHeader} from '@/components/domain/shared/BoardHeader';
+import {FinishBox} from '@/components/ui/FinishBox';
 import {BoardColumn} from './BoardColumn';
 import {DesktopBacklog} from './DesktopBacklog';
 import {MobileBacklog} from './MobileBacklog';
-import {MobileBacklogCard} from './MobileBacklogCard';
+import {BacklogGroupList} from './backlog-group/BacklogGroupList';
 import {ProgressDashboard} from './ProgressDashboard';
 import {TaskCard} from './TaskCard';
 import {BoardPageContext, type BoardPageContextValue} from './BoardPageContext';
@@ -19,12 +23,14 @@ import {BoardPageContext, type BoardPageContextValue} from './BoardPageContext';
 /**
  * The board page (/kanban): header, progress dashboard and the board in a
  * definite-height column (h-full against AppShell's <main>). Keeps the tasks
- * as state, derives the cards with toBoardCards, and renders them into the
- * columns and backlogs — frames that know nothing about cards. Moves are
- * optimistic and roll back per task on failure; the mobile pull reaches its
- * cards through BoardPageContext.
+ * as state, derives the cards with toBoardCards and the backlog's groups
+ * with toBacklogSections, and renders them into the columns and backlogs —
+ * frames that know nothing about cards. Moves are optimistic and roll back
+ * per task on failure; the mobile pull reaches its cards through
+ * BoardPageContext.
  */
 export const BoardPage = ({plan, progress, tasks, projects}: BoardData) => {
+  const tTodo = useTranslations('Board.Todo');
   const {localTasks, runOptimisticTaskUpdate} = useOptimisticTasks(tasks);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -37,6 +43,19 @@ export const BoardPage = ({plan, progress, tasks, projects}: BoardData) => {
     [TaskStatus.DONE]: doneCards,
     [TaskStatus.BACKLOG]: backlogCards,
   } = cardsByStatus;
+  const backlogSections = useMemo(
+    () => toBacklogSections(backlogCards, {plan, projects}),
+    [backlogCards, plan, projects],
+  );
+  const backlogCount = countBacklogTasks(backlogSections);
+  // An empty Todo says the day is clear once something was finished today; a
+  // card dropped on Done counts at once, since its doneAt is stamped here
+  const isDayClear =
+    todoCards.length === 0 &&
+    hasTaskDoneToday(
+      doneCards.map(({task}) => task),
+      new Date(),
+    );
 
   function moveTask(taskId: string, status: TaskStatus, errorLabel: string) {
     // The server stamps doneAt; stamping it here too puts a card dropped on
@@ -58,14 +77,12 @@ export const BoardPage = ({plan, progress, tasks, projects}: BoardData) => {
     if (!destination) return;
     if (destination.droppableId === source.droppableId) return;
 
-    // Backlog is a drag source only — no un-pull back into the backlog.
-    if (destination.droppableId === TaskStatus.BACKLOG) return;
+    // Only Todo and Done take drops: the backlog's groups are drag sources
+    // only — no un-pull back into the backlog.
+    const status = destination.droppableId;
+    if (status !== TaskStatus.TODO && status !== TaskStatus.DONE) return;
 
-    moveTask(
-      draggableId,
-      destination.droppableId as TaskStatus,
-      'Failed to update task status:',
-    );
+    moveTask(draggableId, status, 'Failed to update task status:');
   }
 
   // Mobile tap-to-pull: BACKLOG → TODO.
@@ -80,10 +97,16 @@ export const BoardPage = ({plan, progress, tasks, projects}: BoardData) => {
       <TaskCard key={card.task.id} card={card} index={index} />
     ));
 
-  const renderMobileBacklogCards = () =>
-    backlogCards.map(card => (
-      <MobileBacklogCard key={card.task.id} card={card} />
-    ));
+  const renderTodo = () =>
+    isDayClear ? (
+      <FinishBox
+        title={tTodo('DayClear.title')}
+        lines={[tTodo('DayClear.fact'), tTodo('DayClear.nextStep')]}
+        className="w-full flex-shrink-0"
+      />
+    ) : (
+      renderDraggableCards(todoCards)
+    );
 
   const renderBoard = () => (
     <DragDropContext
@@ -104,7 +127,7 @@ export const BoardPage = ({plan, progress, tasks, projects}: BoardData) => {
             count={todoCards.length}
             isDragActive={isDragging}
           >
-            {renderDraggableCards(todoCards)}
+            {renderTodo()}
           </BoardColumn>
           <BoardColumn
             status={TaskStatus.DONE}
@@ -114,12 +137,12 @@ export const BoardPage = ({plan, progress, tasks, projects}: BoardData) => {
             {renderDraggableCards(doneCards)}
           </BoardColumn>
         </div>
-        <DesktopBacklog count={backlogCards.length}>
-          {renderDraggableCards(backlogCards)}
+        <DesktopBacklog count={backlogCount}>
+          <BacklogGroupList sections={backlogSections} variant="desktop" />
         </DesktopBacklog>
       </div>
-      <MobileBacklog count={backlogCards.length}>
-        {renderMobileBacklogCards()}
+      <MobileBacklog count={backlogCount}>
+        <BacklogGroupList sections={backlogSections} variant="mobile" />
       </MobileBacklog>
     </DragDropContext>
   );

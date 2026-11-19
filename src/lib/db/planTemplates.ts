@@ -20,7 +20,9 @@ export type BoardPlanTemplate = {
 
 /**
  * A plan's template lines with each template's size, for the board: one join,
- * where `getPlanWithTemplates`' nested select takes three queries.
+ * where `getPlanWithTemplates`' nested select takes three queries. The lines
+ * run in the order their habits were created (the template's own creation,
+ * not when it joined the plan), then by the habit's id: the backlog's order.
  */
 export async function getBoardPlanTemplatesByPlanId(
   userId: string,
@@ -37,7 +39,7 @@ export async function getBoardPlanTemplatesByPlanId(
     JOIN task_templates ON task_templates.id = plan_templates.template_id
     WHERE plan_templates.plan_id = ${planId}::uuid
       AND plans.user_id = ${userId}::uuid
-    ORDER BY plan_templates.created_at, plan_templates.id
+    ORDER BY task_templates.created_at, task_templates.id
   `;
 }
 

@@ -6,6 +6,7 @@ What the `implement-spec` skill and the `implement-spec-reviewer` agent both rea
 
 - `test/README.md`, in full: which layer tests an item, how every test is written, and how a test holds a spec ID.
 - AGENTS.md › Layers, › Coding Conventions and › UI Workflow: where the code goes, how it is written, and how a decided mockup is built (exactly, production first, the Design Console synced as the UI lands).
+- `design/design-language/README.md`, in full: how a theme's look reaches a component, which tables a `globals.css` change updates, and how user-facing copy reads.
 - `design/specs/README.md` › Items and IDs: what the markers mean, and when an implementation PR is done.
 - `src/app/design/README.md`: the Design Console's scenarios, whose fixtures the component tests share.
 

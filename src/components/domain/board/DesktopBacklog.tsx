@@ -1,7 +1,6 @@
 'use client';
 
-import {useEffect, useRef, useState, type ReactNode} from 'react';
-import {Droppable} from '@hello-pangea/dnd';
+import {Fragment, useEffect, useRef, useState, type ReactNode} from 'react';
 import {useTranslations} from 'next-intl';
 import {
   InboxStackIcon,
@@ -9,25 +8,28 @@ import {
   ChevronRightIcon,
   ArrowLeftIcon,
 } from '@heroicons/react/24/outline';
-import {TaskStatus} from '@/utils/enums';
+import {FinishBox} from '@/components/ui/FinishBox';
 import {BacklogCountBadge} from './BacklogCountBadge';
 
 interface DesktopBacklogProps {
-  /** Staged cards — the count pill and the empty state */
+  /** Every task waiting — the count, and the finish box at zero */
   count: number;
-  /** The staged cards, rendered by BoardPage */
+  /** The backlog's groups, rendered by BoardPage */
   children: ReactNode;
 }
 
 /**
  * Desktop-only collapsible right-edge backlog that stages BACKLOG tasks. The
- * user drags a card onto the Todo column to pull it onto the board
- * (BACKLOG → TODO). Rendered inside BoardPage's DragDropContext, which also
- * renders the cards into it.
+ * user drags a group's card onto Todo or Done to pull it onto the board.
+ * Rendered inside BoardPage's DragDropContext, which also renders the
+ * groups into it. Emptied, the strip stays and shows 0, and the panel shows
+ * that everything is on deck.
  */
 export const DesktopBacklog = ({count, children}: DesktopBacklogProps) => {
   const t = useTranslations('Board.Backlog');
   const [isOpen, setIsOpen] = useState(false);
+  // Bumped on every close: the groups remount, so their queues open closed
+  const [closeCount, setCloseCount] = useState(0);
   const openButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   // Set by the toggles, so the first render leaves focus where it is
@@ -43,6 +45,7 @@ export const DesktopBacklog = ({count, children}: DesktopBacklogProps) => {
   const toggle = (nextIsOpen: boolean) => {
     hasToggledRef.current = true;
     setIsOpen(nextIsOpen);
+    if (!nextIsOpen) setCloseCount(prev => prev + 1);
   };
 
   const countPill = <BacklogCountBadge count={count} />;
@@ -90,27 +93,25 @@ export const DesktopBacklog = ({count, children}: DesktopBacklogProps) => {
     </div>
   );
 
+  const renderEmpty = () => (
+    <FinishBox
+      title={t('Empty.title')}
+      lines={[t('Empty.fact'), t('Empty.nextStep')]}
+    />
+  );
+
+  // Each group is a drop zone with drops disabled (BacklogGroup): cards only
+  // leave the backlog. Without it, the collapsed backlog's invisible panel
+  // (kept mounted for the cross-fade, overlapping the Done column) wins
+  // dnd's geometric hit-test and steals Done drops.
   const renderBody = () => (
-    // isDropDisabled: cards only leave the backlog. Without it, the collapsed
-    // backlog's invisible panel (kept mounted for the cross-fade, overlapping
-    // the Done column) wins dnd's geometric hit-test and steals Done drops.
-    <Droppable droppableId={TaskStatus.BACKLOG} isDropDisabled>
-      {provided => (
-        <div
-          ref={provided.innerRef}
-          {...provided.droppableProps}
-          className="flex-1 overflow-y-auto p-3 flex flex-col gap-2"
-        >
-          {count === 0 && (
-            <p className="text-center text-xs text-base-content/40 mt-6 px-4">
-              {t('emptyState')}
-            </p>
-          )}
-          {children}
-          {provided.placeholder}
-        </div>
+    <div className="flex-1 overflow-y-auto p-3">
+      {count === 0 ? (
+        renderEmpty()
+      ) : (
+        <Fragment key={closeCount}>{children}</Fragment>
       )}
-    </Droppable>
+    </div>
   );
 
   return (
@@ -122,16 +123,17 @@ export const DesktopBacklog = ({count, children}: DesktopBacklogProps) => {
       {/* Both states stay mounted and cross-fade so width + content animate
           together — instant content swaps would otherwise read as a jump. */}
       {renderCollapsed()}
-      <div
+      <section
+        aria-label={t('title')}
         inert={!isOpen}
         className={`absolute inset-y-0 right-0 w-[300px] flex flex-col bg-base-100/10 transition-opacity duration-200 ${
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
       >
         {renderHeader()}
-        {renderHint()}
+        {count > 0 && renderHint()}
         {renderBody()}
-      </div>
+      </section>
     </div>
   );
 };

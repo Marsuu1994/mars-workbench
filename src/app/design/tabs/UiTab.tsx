@@ -16,6 +16,7 @@ import {
 
 import {Pill} from '@/components/ui/Pill';
 import {EmptyState} from '@/components/ui/EmptyState';
+import {FinishBox} from '@/components/ui/FinishBox';
 import {TabBar} from '@/components/ui/TabBar';
 import {Banner} from '@/components/ui/Banner';
 import {InlineConfirmButton} from '@/components/ui/InlineConfirmButton';
@@ -47,6 +48,8 @@ import {
   EMPTY_STATE_INLINE_DEMO_TITLE,
   EMPTY_STATE_INLINE_DEMO_DESC,
   EMPTY_STATE_INLINE_DEMO_CTA,
+  FINISH_BOX_DEMO_TITLE,
+  FINISH_BOX_DEMO_LINES,
   BANNER_DEMO_INTRO,
   BANNER_DEMO_DONE_TITLE,
   BANNER_DEMO_DONE,
@@ -248,6 +251,19 @@ export const UiTab = () => {
           </Row>
         </Variant>
       </div>
+    </Section>
+  );
+
+  const renderFinishBox = () => (
+    <Section
+      title="FinishBox"
+      description="A finish line where a list used to be: a dashed box with a title and one or two whole sentences, no button. The emptied backlog and a cleared Todo use it; it eases in when it appears."
+    >
+      <FinishBox
+        className="max-w-xs"
+        title={FINISH_BOX_DEMO_TITLE}
+        lines={FINISH_BOX_DEMO_LINES}
+      />
     </Section>
   );
 
@@ -639,6 +655,7 @@ export const UiTab = () => {
         {renderFormKit()}
         {renderContentBlocks()}
         {renderEmptyState()}
+        {renderFinishBox()}
         {renderTabBar()}
         {renderBanner()}
         {renderConfirmButton()}

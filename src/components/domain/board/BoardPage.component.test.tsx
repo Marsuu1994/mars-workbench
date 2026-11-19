@@ -6,6 +6,7 @@ import type {TaskItem} from '@/lib/db/tasks';
 import type {BoardData} from '@/types/board';
 import {TaskStatus} from '@/utils/enums';
 import {
+  BACKLOG_CLEAR_TASKS,
   MID_WEEK_PROGRESS,
   MID_WEEK_TASKS,
   SCENARIO_PLAN,
@@ -24,8 +25,8 @@ const MID_WEEK_BOARD: BoardData = {
   projects: SCENARIO_PROJECTS,
 };
 
-/** The fixture's backlog holds five tasks. */
-const BACKLOG_COUNT = 5;
+/** The fixture's backlog holds seven tasks, in four groups. */
+const BACKLOG_COUNT = 7;
 
 /** The test runner's window is desktop-sized; a mobile test resizes it. */
 const DESKTOP_VIEWPORT = {width: 1280, height: 800};
@@ -42,13 +43,16 @@ const waitForRollbackWindow = () =>
 type BoardColumnStatus = 'BACKLOG' | 'TODO' | 'DONE';
 
 /**
- * A column's drop zone: dnd keys them by status. The board's cards are read
+ * A column's drop zone, which dnd keys by status, or the desktop backlog's
+ * panel. The board's cards are read
  * from the DOM, retried with `expect.poll` — a locator built from an element
  * (`page.elementLocator`) pins its text, which a move changes.
  */
 const getColumn = (status: BoardColumnStatus) => {
   const column = document.querySelector<HTMLElement>(
-    `[data-rfd-droppable-id="${status}"]`,
+    status === 'BACKLOG'
+      ? 'section[aria-label="Backlog"]'
+      : `[data-rfd-droppable-id="${status}"]`,
   );
   if (!column) throw new Error(`No ${status} column`);
   return column;
@@ -93,22 +97,20 @@ const getShownByTitle = (title: string) => {
   return element;
 };
 
-const countShownByTitle = (title: string) =>
-  [...document.querySelectorAll(`[title="${title}"]`)].filter(element =>
-    element.checkVisibility(),
-  ).length;
-
 const getOpenSheet = () => {
   const sheet = document.querySelector('dialog[open]');
   if (!sheet) throw new Error('The sheet is not open');
   return sheet;
 };
 
-/** A sheet card's ↑ Todo button. */
-const getPullButton = (card: Element) => {
-  const button = [...card.querySelectorAll('button')].find(
+/** A sheet card's ↑ Todo button, if it has one. */
+const findPullButton = (card: Element) =>
+  [...card.querySelectorAll('button')].find(
     candidate => candidate.textContent === 'Todo',
   );
+
+const getPullButton = (card: Element) => {
+  const button = findPullButton(card);
   if (!button) throw new Error('No ↑ Todo on the card');
   return button;
 };
@@ -122,6 +124,10 @@ const getSegments = (card: HTMLElement) =>
   [...card.querySelectorAll<HTMLElement>('.flex-1.rounded-selector')].filter(
     segment => segment.checkVisibility(),
   );
+
+/** What a screen reader hears for a card's dots or path. */
+const readProgressLabel = (card: HTMLElement) =>
+  card.querySelector('[role="img"]')?.getAttribute('aria-label');
 
 const fillOf = (mark: HTMLElement) => getComputedStyle(mark).backgroundColor;
 const isRinged = (mark: HTMLElement) =>
@@ -221,10 +227,134 @@ const findTaskByTitle = (title: string) => {
   return task;
 };
 
+/** The shown badge in a backlog entry or header: what the eye reads. */
+const readBacklogBadge = (container: Element) =>
+  [...container.querySelectorAll<HTMLElement>('.badge')].find(badge =>
+    badge.checkVisibility(),
+  )?.textContent;
+
+/** The desktop panel's header, beside its close button. */
+const getPanelHeader = () => {
+  const header = getShownByTitle('Close backlog').parentElement;
+  if (!header) throw new Error('No panel header');
+  return header;
+};
+
+/**
+ * The backlog's sections and cards in the order they're shown: each
+ * section's label, then the title of each of its groups' cards.
+ */
+const readBacklogOutline = (container: Element) =>
+  [...container.querySelectorAll('h3, h4')]
+    .filter(heading => heading.checkVisibility())
+    .map(heading => heading.textContent);
+
+/** A group around its card: the card, and its pile or queue under it. */
+const getGroupOf = (card: HTMLElement) => {
+  const group =
+    card.closest('[data-rfd-droppable-id]')?.parentElement ??
+    card.parentElement;
+  if (!group) throw new Error('The card is in no group');
+  return group;
+};
+
+/** The thin sheets under a group's card. */
+const getPileSheets = (card: HTMLElement) => [
+  ...getGroupOf(card).querySelectorAll<HTMLElement>('[aria-hidden="true"] > i'),
+];
+
+/** "+N more" on a card, or null without one. */
+const readMoreCount = (card: HTMLElement) =>
+  [...card.querySelectorAll('span')]
+    .map(element => element.textContent)
+    .find(text => /^\+\d+ more$/.test(text)) ?? null;
+
+/** A project card's +N more, the toggle of its queue. */
+const getQueueToggle = (card: HTMLElement) => {
+  const toggle = card.querySelector<HTMLElement>('button[aria-expanded]');
+  if (!toggle) throw new Error('No queue toggle on the card');
+  return toggle;
+};
+
+/** The rows of every open queue in a container: step number, then title. */
+const readQueueRows = (container: Element) =>
+  [...container.querySelectorAll('ol > li')].map(row => row.textContent);
+
+/** The place dnd keeps for a lifted card. */
+const getLiftPlaceholder = (container: Element) => {
+  const placeholder = container.querySelector<HTMLElement>(
+    '[data-rfd-placeholder-context-id]',
+  );
+  if (!placeholder) throw new Error('No placeholder in the backlog');
+  return placeholder;
+};
+
+/**
+ * What the backlog shows besides a lifted card: the count, the hint, the
+ * other cards and every pile, where each one sits.
+ */
+const readBacklogLayout = (panel: HTMLElement) => ({
+  header: getPanelHeader().textContent,
+  hasHint: panel.textContent.includes(DRAG_HINT),
+  moreCounts: [...panel.querySelectorAll<HTMLElement>('.card')].map(card =>
+    readMoreCount(card),
+  ),
+  cards: [...panel.querySelectorAll<HTMLElement>('.card')]
+    .filter(card => card.style.position !== 'fixed')
+    .map(card => ({
+      title: card.querySelector('h3')?.textContent,
+      top: Math.round(card.getBoundingClientRect().top),
+    }))
+    .filter(({title}) => title !== 'Read'),
+  sheetTops: [...panel.querySelectorAll('[aria-hidden="true"] > i')].map(
+    sheet => Math.round(sheet.getBoundingClientRect().top),
+  ),
+});
+
+/** The emptied backlog's box: a title, two sentences and no button or link. */
+const expectBacklogFinishBox = (container: Element) => {
+  const title = [...container.querySelectorAll('p')].find(
+    paragraph => paragraph.textContent === "Everything's on deck!",
+  );
+  const box = title?.parentElement;
+  if (!box) throw new Error('No finish box');
+  expect(box.textContent).toContain("This week's plan is all on the board");
+  expect(box.textContent).toContain(
+    'Adjust your plan to add more or call it a week',
+  );
+  expect(box.querySelector('button, a')).toBeNull();
+};
+
+/** The mid-week fixture with only these backlog tasks left in the backlog. */
+const withOnlyBacklog = (titles: string[]) =>
+  MID_WEEK_TASKS.filter(
+    task => task.status !== TaskStatus.BACKLOG || titles.includes(task.title),
+  );
+
+/** More copies of Read waiting in the backlog, after its first two. */
+const extraReadCopies = (count: number): TaskItem[] => {
+  const read = findTaskByTitle('Read');
+  return Array.from({length: count}, (_, offset) => ({
+    ...read,
+    id: `extra-read-${offset}`,
+    instanceIndex: 2 + offset,
+  }));
+};
+
+const BIO_LECTURE_4_ID = 'scn-step-bio-4';
+const BIO_LECTURE_TITLES = [
+  'Lecture 4 — Cell signaling',
+  'Lecture 5 — Immunity basics',
+  'Lecture 6 — Neurons',
+];
+const BIO_LECTURE_4_TITLE = 'Lecture 4 — Cell signaling';
+const DRAG_HINT = 'Drag tasks left to Todo to start working';
+const DAY_CLEAR_TITLE = 'All clear for the day';
+const TAP_HINT = 'Tap to pull a task onto the board';
+
 const PDB_RENDER = {id: 'scn-step-pdb-2', title: 'Render it with Mol*'};
 const TAX_REPORT_TITLE = 'File tax report';
 const DESIGN_CASE_TITLE = 'System design case';
-const EMPTY_BACKLOG_MESSAGE = "You're all caught up — no staged tasks.";
 
 /**
  * The board fills its parent's height, as it fills AppShell's <main>; the
@@ -288,8 +418,78 @@ describe('Columns', () => {
   });
 });
 
+describe('Todo when the day is clear', () => {
+  /** The board with Todo empty: every Todo card finished at `doneAt`. */
+  const withTodoFinishedAt = (doneAt: Date) =>
+    MID_WEEK_TASKS.map(task =>
+      task.status === TaskStatus.TODO
+        ? {...task, status: TaskStatus.DONE, doneAt}
+        : task,
+    );
+
+  const findDayClearBox = () => {
+    const title = [...getColumn('TODO').querySelectorAll('p')].find(
+      paragraph =>
+        paragraph.checkVisibility() &&
+        paragraph.textContent === DAY_CLEAR_TITLE,
+    );
+    return title?.parentElement ?? null;
+  };
+
+  const expectDayClearBox = () => {
+    const box = findDayClearBox();
+    if (!box) throw new Error('Todo shows no box');
+    expect(box.textContent).toContain(
+      'Everything you pulled for today is done',
+    );
+    expect(box.textContent).toContain(
+      'Pull more from the backlog or call it a day',
+    );
+    expect(box.querySelector('button, a')).toBeNull();
+  };
+
+  it('COL-5 an empty Todo, once something was finished today, says the day is clear', async () => {
+    await renderBoard({tasks: withTodoFinishedAt(new Date())});
+
+    expect(readColumnTitles('TODO')).toEqual([]);
+    expectDayClearBox();
+  });
+
+  it('COL-5 on mobile the box shows in the Todo row', async () => {
+    await useMobileWidth();
+    await renderBoard({tasks: withTodoFinishedAt(new Date())});
+
+    expectDayClearBox();
+  });
+
+  it('COL-5 an empty Todo shows nothing when nothing was finished today', async () => {
+    // The fixture's Done tasks were all finished on days long past
+    await renderBoard({
+      tasks: MID_WEEK_TASKS.filter(task => task.status !== TaskStatus.TODO),
+    });
+
+    expect(readColumnTitles('TODO')).toEqual([]);
+    expect(getColumn('TODO').textContent).toBe('');
+  });
+
+  it('COL-5 the box shows as soon as the last Todo card lands on Done, before the server answers', async () => {
+    keepSaving();
+    await renderBoard({
+      tasks: MID_WEEK_TASKS.filter(
+        task =>
+          task.status !== TaskStatus.TODO || task.title === TAX_REPORT_TITLE,
+      ),
+    });
+    expect(findDayClearBox()).toBeNull();
+
+    await dragTodoCardOntoDone(TAX_REPORT_TITLE);
+
+    expectDayClearBox();
+  });
+});
+
 describe('Task cards', () => {
-  it('CARD-1 CARD-3 a habit card shows its kind and how often it runs, its title and description, then its dots and size', async () => {
+  it('CARD-1 CARD-8 a habit card shows its kind and how often it runs, its title and description, then its dots alone and size', async () => {
     await renderBoard();
     const {card} = getCard('TODO', 'LeetCode');
 
@@ -297,10 +497,12 @@ describe('Task cards', () => {
       'Habit',
       'LeetCode',
       'One medium, 45-min timer',
-      '1/3',
+      'XS',
     ]);
     expect(card.innerText).toContain('3× / week');
-    expect(card.innerText).toContain('XS');
+    // No count beside the dots; a screen reader reads them as one
+    expect(card.innerText).not.toContain('1/3');
+    expect(readProgressLabel(card)).toBe('1 of 3 done this week');
 
     // LeetCode runs three times: one done, this card, one in the backlog
     const dots = getDots(card);
@@ -311,7 +513,7 @@ describe('Task cards', () => {
     expect(dots.map(isRinged)).toEqual([false, true, false]);
   });
 
-  it('CARD-3 a habit no longer on the plan shows no details and no progress', async () => {
+  it('CARD-8 a habit no longer on the plan shows no details and no progress', async () => {
     await renderBoard({
       plan: {
         ...SCENARIO_PLAN,
@@ -388,33 +590,48 @@ describe('Task cards', () => {
 });
 
 describe('Backlog', () => {
-  it('BL-2 BL-3 BL-4 on desktop the backlog is a closed strip showing how many tasks wait, opening into a panel that shows it too', async () => {
+  it('BL-2 BL-8 BL-4 on desktop the backlog is a closed strip showing how many tasks wait, opening into a panel that shows it too', async () => {
     await renderBoard();
 
     const strip = getShownByTitle('Open backlog');
-    expect(strip.textContent).toContain(String(BACKLOG_COUNT));
+    expect(readBacklogBadge(strip)).toBe(String(BACKLOG_COUNT));
     expect(getColumn('BACKLOG').closest('[inert]')).not.toBeNull();
 
     await userEvent.click(strip);
 
     expect(getColumn('BACKLOG').closest('[inert]')).toBeNull();
-    const header = getShownByTitle('Close backlog').parentElement;
-    expect(header?.textContent).toContain(String(BACKLOG_COUNT));
+    expect(readBacklogBadge(getPanelHeader())).toBe(String(BACKLOG_COUNT));
   });
 
-  it('BL-2 BL-3 BL-4 on mobile the backlog is a pill showing how many tasks wait, opening a sheet that shows it too', async () => {
+  it('BL-2 BL-8 BL-4 on mobile the backlog is a pill showing how many tasks wait, opening a sheet that shows it too', async () => {
     await useMobileWidth();
     await renderBoard();
 
     const pill = getShownByTitle('Open backlog');
-    expect(pill.textContent).toContain(String(BACKLOG_COUNT));
+    expect(readBacklogBadge(pill)).toBe(String(BACKLOG_COUNT));
     expect(document.querySelector('dialog[open]')).toBeNull();
 
     await userEvent.click(pill);
 
-    const sheet = getOpenSheet();
-    expect(sheet.textContent).toContain(String(BACKLOG_COUNT));
-    expect(readTitles(sheet)).toHaveLength(BACKLOG_COUNT);
+    expect(readBacklogBadge(getOpenSheet())).toBe(String(BACKLOG_COUNT));
+  });
+
+  it('BL-8 at exactly 8 the count shows the number', async () => {
+    await renderBoard({tasks: [...MID_WEEK_TASKS, ...extraReadCopies(1)]});
+
+    expect(readBacklogBadge(getShownByTitle('Open backlog'))).toBe('8');
+  });
+
+  it('BL-8 past 8 the count shows 8+, and a screen reader hears the real number', async () => {
+    // Three more copies of Read: ten tasks wait, in four groups
+    await renderBoard({tasks: [...MID_WEEK_TASKS, ...extraReadCopies(3)]});
+    const strip = getShownByTitle('Open backlog');
+
+    expect(readBacklogBadge(strip)).toBe('8+');
+    expect(strip.textContent).toContain('10 staged tasks');
+    await userEvent.click(strip);
+    expect(readBacklogBadge(getPanelHeader())).toBe('8+');
+    expect(getPanelHeader().textContent).toContain('10 staged tasks');
   });
 
   it("BL-5 A2 A3 keyboard focus reaches only the side of the desktop backlog that's showing", async () => {
@@ -445,85 +662,393 @@ describe('Backlog', () => {
     await expect.poll(() => document.activeElement).toBe(strip);
   });
 
-  it("BL-6 A5 MV-1 on mobile a backlog card has ↑ Todo and can't be dragged; tapping it pulls the card into Todo, and the sheet stays open", async () => {
-    keepSaving();
-    await useMobileWidth();
-    await renderBoard();
-    await openBacklog();
-    const sheet = getOpenSheet();
-    const {card} = findCard(sheet, DESIGN_CASE_TITLE);
-    expect(isDragHandle(card)).toBe(false);
-
-    await userEvent.click(getPullButton(card));
-
-    expect(updateTaskStatusAction).toHaveBeenCalledWith(
-      findTaskByTitle(DESIGN_CASE_TITLE).id,
-      {status: TaskStatus.TODO},
-    );
-    await expect.poll(() => readTitles(sheet)).not.toContain(DESIGN_CASE_TITLE);
-    expect(getOpenSheet()).toBe(sheet);
-    expect(sheet.textContent).toContain(String(BACKLOG_COUNT - 1));
-    expect(readColumnTitles('TODO')).toContain(DESIGN_CASE_TITLE);
-  });
-
-  it('BL-7 when the backlog is empty, the desktop strip shows 0 and the panel an empty message', async () => {
-    await renderBoard({
-      tasks: MID_WEEK_TASKS.filter(task => task.status !== TaskStatus.BACKLOG),
-    });
+  it('BL-15 when the backlog is empty on desktop, the strip shows 0 and the panel says everything is on deck, with no hint', async () => {
+    await renderBoard({tasks: BACKLOG_CLEAR_TASKS});
 
     const strip = getShownByTitle('Open backlog');
-    expect(strip.textContent).toContain('0');
+    expect(readBacklogBadge(strip)).toBe('0');
     await userEvent.click(strip);
-    expect(getColumn('BACKLOG').textContent).toContain(EMPTY_BACKLOG_MESSAGE);
+
+    const panel = getColumn('BACKLOG');
+    expect(readBacklogBadge(getPanelHeader())).toBe('0');
+    expectBacklogFinishBox(panel);
+    expect(panel.textContent).not.toContain(DRAG_HINT);
+    expect(readTitles(panel)).toEqual([]);
   });
 
-  it('BL-7 on mobile an empty backlog has no pill; the sheet shows its empty message once its last task is pulled', async () => {
+  it('BL-15 on mobile the pill stays at 0; pulling the last task keeps the sheet open and shows that everything is on deck', async () => {
     keepSaving();
     await useMobileWidth();
-    await renderBoard({
-      tasks: MID_WEEK_TASKS.filter(
-        task =>
-          task.status !== TaskStatus.BACKLOG ||
-          task.title === DESIGN_CASE_TITLE,
-      ),
-    });
+    await renderBoard({tasks: withOnlyBacklog([DESIGN_CASE_TITLE])});
     await openBacklog();
     const sheet = getOpenSheet();
+    expect(sheet.textContent).toContain(TAP_HINT);
 
     await userEvent.click(
       getPullButton(findCard(sheet, DESIGN_CASE_TITLE).card),
     );
 
-    await expect.poll(() => sheet.textContent).toContain(EMPTY_BACKLOG_MESSAGE);
-    expect(countShownByTitle('Open backlog')).toBe(0);
+    await expect.poll(() => readTitles(sheet)).toEqual([]);
+    expect(getOpenSheet()).toBe(sheet);
+    expect(readBacklogBadge(sheet)).toBe('0');
+    expectBacklogFinishBox(sheet);
+    expect(sheet.textContent).not.toContain(TAP_HINT);
+
+    await userEvent.click(sheet.querySelector('[title="Close backlog"]')!);
+    await expect.poll(() => document.querySelector('dialog[open]')).toBeNull();
+    expect(readBacklogBadge(getShownByTitle('Open backlog'))).toBe('0');
+  });
+});
+
+describe('Backlog groups', () => {
+  it('BL-9 BL-16 on desktop each habit and each project is one card showing its next task, in Habits then Projects, by the order they were created', async () => {
+    await renderBoard();
+    await openBacklog();
+    const panel = getColumn('BACKLOG');
+
+    // Read's next is its first copy; Biomedical course's its lowest step
+    expect(readBacklogOutline(panel)).toEqual([
+      'Habits',
+      'LeetCode',
+      'Read',
+      DESIGN_CASE_TITLE,
+      'Projects',
+      BIO_LECTURE_4_TITLE,
+    ]);
+  });
+
+  it('BL-16 the groups follow when their habits were created, whatever their tasks', async () => {
+    // The plan lists its habits oldest first; here System design is the oldest
+    await renderBoard({
+      plan: {
+        ...SCENARIO_PLAN,
+        planTemplates: SCENARIO_PLAN.planTemplates.toReversed(),
+      },
+    });
+    await openBacklog();
+
+    expect(readTitles(getColumn('BACKLOG'))).toEqual([
+      DESIGN_CASE_TITLE,
+      'Read',
+      'LeetCode',
+      BIO_LECTURE_4_TITLE,
+    ]);
+  });
+
+  it('BL-9 on mobile the sheet shows the same groups in their sections', async () => {
+    await useMobileWidth();
+    await renderBoard();
+    await openBacklog();
+
+    expect(readBacklogOutline(getOpenSheet())).toEqual([
+      'Habits',
+      'LeetCode',
+      'Read',
+      DESIGN_CASE_TITLE,
+      'Projects',
+      BIO_LECTURE_4_TITLE,
+    ]);
+  });
+
+  it("BL-9 a section with no group in it isn't shown", async () => {
+    await renderBoard({tasks: withOnlyBacklog(['Read'])});
+    await openBacklog();
+
+    expect(readBacklogOutline(getColumn('BACKLOG'))).toEqual([
+      'Habits',
+      'Read',
+    ]);
+  });
+
+  it("BL-10 a backlog card shows its kind, the next task's title and description, then its progress — no details, no size, no count", async () => {
+    await renderBoard();
+    await openBacklog();
+
+    const {card: habit} = getCard('BACKLOG', 'LeetCode');
+    expectTopToBottom(habit, ['Habit', 'LeetCode', 'One medium, 45-min timer']);
+    // LeetCode runs three times: one done, one in Todo, this one ringed
+    expect(getDots(habit).map(isRinged)).toEqual([false, false, true]);
+    expect(readProgressLabel(habit)).toBe('1 of 3 done this week');
+    expect(habit.innerText).not.toMatch(/× \/ week|1\/3|XS/);
+
+    const {card: step} = getCard('BACKLOG', BIO_LECTURE_4_TITLE);
+    expectTopToBottom(step, [
+      'Biomedical course',
+      BIO_LECTURE_4_TITLE,
+      'Watch + one-page notes',
+    ]);
+    // Lectures 1–3 done, 4 is next: the fourth segment of seven is ringed
+    expect(getSegments(step).map(isRinged)).toEqual([
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+    ]);
+    expect(readProgressLabel(step)).toBe('3 of 7 steps done');
+    expect(step.innerText).not.toMatch(/4\/7|XS/);
+    // Desktop drags the card; it has no ↑ Todo
+    expect(isDragHandle(step)).toBe(true);
+    expect(findPullButton(step)).toBeUndefined();
+  });
+
+  it("BL-10 on mobile a backlog card has ↑ Todo and can't be dragged", async () => {
+    await useMobileWidth();
+    await renderBoard();
+    await openBacklog();
+    const {card} = findCard(getOpenSheet(), 'Read');
+
+    expect(isDragHandle(card)).toBe(false);
+    expect(getPullButton(card)).toBeDefined();
+  });
+
+  it('BL-11 a group with tasks behind its next one shows +N more and a sheet for each, at most three; its last task shows neither', async () => {
+    // Read gets five copies: four behind its next one
+    await renderBoard({tasks: [...MID_WEEK_TASKS, ...extraReadCopies(3)]});
+    await openBacklog();
+
+    const read = getCard('BACKLOG', 'Read').card;
+    expect(readMoreCount(read)).toBe('+4 more');
+    expect(getPileSheets(read)).toHaveLength(3);
+    const bio = getCard('BACKLOG', BIO_LECTURE_4_TITLE).card;
+    expect(readMoreCount(bio)).toBe('+2 more');
+    expect(getPileSheets(bio)).toHaveLength(2);
+    const leetcode = getCard('BACKLOG', 'LeetCode').card;
+    expect(readMoreCount(leetcode)).toBeNull();
+    expect(getPileSheets(leetcode)).toHaveLength(0);
+
+    // The sheets carry no text, and taps go through them
+    for (const sheet of getPileSheets(read)) {
+      expect(sheet.textContent).toBe('');
+      expect(getComputedStyle(sheet).pointerEvents).toBe('none');
+    }
+  });
+
+  it("BL-12 A8 a project's +N more opens its queue in place of the sheets and closes it again; a habit's opens nothing", async () => {
+    await renderBoard();
+    await openBacklog();
+    const bio = getCard('BACKLOG', BIO_LECTURE_4_TITLE).card;
+    const read = getCard('BACKLOG', 'Read').card;
+    expect(read.querySelector('button')).toBeNull();
+
+    await userEvent.click(getQueueToggle(bio));
+
+    await expect
+      .poll(() => readQueueRows(getGroupOf(bio)))
+      .toEqual(['5Lecture 5 — Immunity basics', '6Lecture 6 — Neurons']);
+    expect(getPileSheets(bio)).toHaveLength(0);
+    expect(getQueueToggle(bio).getAttribute('aria-expanded')).toBe('true');
+
+    await userEvent.click(getQueueToggle(bio));
+
+    await expect.poll(() => readQueueRows(getGroupOf(bio))).toEqual([]);
+    expect(getPileSheets(bio)).toHaveLength(2);
+  });
+
+  it('BL-12 closing the backlog closes every open queue', async () => {
+    await renderBoard();
+    await openBacklog();
+    await userEvent.click(
+      getQueueToggle(getCard('BACKLOG', BIO_LECTURE_4_TITLE).card),
+    );
+    await expect
+      .poll(() => readQueueRows(getColumn('BACKLOG')))
+      .toHaveLength(2);
+
+    await userEvent.click(getShownByTitle('Close backlog'));
+    await openBacklog();
+
+    const bio = getCard('BACKLOG', BIO_LECTURE_4_TITLE).card;
+    expect(readQueueRows(getColumn('BACKLOG'))).toEqual([]);
+    expect(getPileSheets(bio)).toHaveLength(2);
+  });
+
+  it('BL-12 on mobile closing the sheet closes every open queue', async () => {
+    await useMobileWidth();
+    await renderBoard();
+    await openBacklog();
+    const sheet = getOpenSheet();
+    await userEvent.click(
+      getQueueToggle(findCard(sheet, BIO_LECTURE_4_TITLE).card),
+    );
+    await expect.poll(() => readQueueRows(sheet)).toHaveLength(2);
+
+    await userEvent.click(
+      sheet.querySelector<HTMLElement>('[title="Close backlog"]')!,
+    );
+    await expect.poll(() => document.querySelector('dialog[open]')).toBeNull();
+    await openBacklog();
+
+    expect(readQueueRows(getOpenSheet())).toEqual([]);
+    expect(
+      getPileSheets(findCard(getOpenSheet(), BIO_LECTURE_4_TITLE).card),
+    ).toHaveLength(2);
+  });
+
+  it("R6 the steps in a project's queue can't be dragged and have no ↑ Todo", async () => {
+    await useMobileWidth();
+    await renderBoard();
+    await openBacklog();
+    const sheet = getOpenSheet();
+    const {card} = findCard(sheet, BIO_LECTURE_4_TITLE);
+
+    await userEvent.click(getQueueToggle(card));
+
+    await expect.poll(() => readQueueRows(getGroupOf(card))).toHaveLength(2);
+    const rows = [...getGroupOf(card).querySelectorAll('li')];
+    expect(rows).toHaveLength(2);
+    for (const row of rows) {
+      expect(row.querySelector('button')).toBeNull();
+      expect(row.closest('[data-rfd-drag-handle-draggable-id]')).toBeNull();
+    }
+  });
+
+  it("R6 on desktop only a group's next task is a drag handle", async () => {
+    await renderBoard();
+    await openBacklog();
+    const panel = getColumn('BACKLOG');
+    await userEvent.click(
+      getQueueToggle(getCard('BACKLOG', BIO_LECTURE_4_TITLE).card),
+    );
+
+    // One drag handle per group, whatever waits behind
+    await expect.poll(() => readQueueRows(panel)).toHaveLength(2);
+    const handles = [
+      ...panel.querySelectorAll('[data-rfd-drag-handle-draggable-id]'),
+    ].map(handle => handle.getAttribute('data-rfd-drag-handle-draggable-id'));
+    expect(handles).toHaveLength(4);
+    expect(handles).toContain(BIO_LECTURE_4_ID);
+    expect(handles).not.toContain('scn-step-bio-5');
+  });
+
+  it('BL-14 a lifted backlog card leaves a placeholder of its size, and nothing else changes until the drop; a cancelled drag puts it back', async () => {
+    keepSaving();
+    await renderBoard();
+    await openBacklog();
+    const panel = getColumn('BACKLOG');
+    const {card: read} = getCard('BACKLOG', 'Read');
+    const readBox = read.getBoundingClientRect();
+    const [sheet] = getPileSheets(read);
+    const before = readBacklogLayout(panel);
+
+    read.focus();
+    await userEvent.keyboard('[Space]');
+    await expect.poll(readAnnouncement).toMatch(/lifted/);
+    // Over Done: out of the backlog, where a shared list would close the gap
+    await userEvent.keyboard('[ArrowLeft]');
+    await expect.poll(readAnnouncement).toMatch(/to list DONE/);
+    await waitForRollbackWindow();
+
+    const placeholder = getLiftPlaceholder(panel);
+    const placeholderBox = placeholder.getBoundingClientRect();
+    expect(placeholderBox.height).toBeCloseTo(readBox.height, 0);
+    expect(placeholderBox.top).toBeCloseTo(readBox.top, 0);
+    expect(placeholder.textContent).toBe('');
+    expect(fillOf(placeholder)).toBe(fillOf(sheet));
+    expect(readBacklogLayout(panel)).toEqual(before);
+
+    await userEvent.keyboard('[Escape]');
+    await expect.poll(readAnnouncement).toMatch(/cancelled|returned/);
+    await expect
+      .poll(() => document.querySelector('[data-rfd-placeholder-context-id]'))
+      .toBeNull();
+    await expect
+      .poll(() => getCard('BACKLOG', 'Read').card.getBoundingClientRect().top)
+      .toBeCloseTo(readBox.top, 0);
+    expect(updateTaskStatusAction).not.toHaveBeenCalled();
   });
 });
 
 describe('A move', () => {
-  it('A4 BL-6 MV-1 a backlog card dragged out of the panel onto Todo lands in its place by kind, and the count drops', async () => {
+  it("A4 MV-5 BL-13 a group's next task dragged onto Todo lands in its place at once; the card shows the task after it and its open queue stays open until no step is left behind", async () => {
     keepSaving();
     await renderBoard();
     await openBacklog();
+    await userEvent.click(
+      getQueueToggle(getCard('BACKLOG', BIO_LECTURE_4_TITLE).card),
+    );
 
     // From the panel, one column left is Done and two is Todo
-    await dragCard('BACKLOG', 'LeetCode', ['ArrowLeft', 'ArrowLeft']);
+    await dragCard('BACKLOG', BIO_LECTURE_4_TITLE, ['ArrowLeft', 'ArrowLeft']);
 
     expect(readColumnTitles('TODO')).toEqual([
       TAX_REPORT_TITLE,
       'Workout',
       'LeetCode',
-      'LeetCode',
+      // Both projects' first tasks were made together: their ids break the tie
+      BIO_LECTURE_4_TITLE,
       PDB_RENDER.title,
     ]);
-    expect(
-      getShownByTitle('Close backlog').parentElement?.textContent,
-    ).toContain(String(BACKLOG_COUNT - 1));
-    expect(updateTaskStatusAction).toHaveBeenCalledWith(expect.any(String), {
+    expect(readHeaderCount('TODO')).toBe('5');
+    expect(readBacklogBadge(getPanelHeader())).toBe(String(BACKLOG_COUNT - 1));
+    // The queue's first row is now on the card, and the queue stays open
+    const bio = getCard('BACKLOG', 'Lecture 5 — Immunity basics').card;
+    expect(readMoreCount(bio)).toBe('+1 more');
+    expect(readQueueRows(getGroupOf(bio))).toEqual(['6Lecture 6 — Neurons']);
+    expect(updateTaskStatusAction).toHaveBeenCalledWith(BIO_LECTURE_4_ID, {
       status: TaskStatus.TODO,
     });
+
+    // The task that came up can be dragged out in turn
+    await dragCard('BACKLOG', BIO_LECTURE_TITLES[1], [
+      'ArrowLeft',
+      'ArrowLeft',
+    ]);
+    expect(readColumnTitles('TODO')).toContain(BIO_LECTURE_TITLES[1]);
+    // No step is left behind the last one: its queue is gone with the rest
+    const lastLecture = getCard('BACKLOG', BIO_LECTURE_TITLES[2]).card;
+    expect(readMoreCount(lastLecture)).toBeNull();
+    expect(getGroupOf(lastLecture).querySelector('ol')).toBeNull();
   });
 
-  it('A6 CARD-7 a backlog card dragged onto Done fills its dot at once, before the server answers', async () => {
+  it('A5 MV-5 BL-13 on mobile ↑ Todo pulls the next task at once and the sheet stays open; the pile thins, then the group and its section go', async () => {
+    keepSaving();
+    await useMobileWidth();
+    // Read's four copies, alone in Habits, and Biomedical course's steps
+    await renderBoard({
+      tasks: [
+        ...withOnlyBacklog(['Read', ...BIO_LECTURE_TITLES]),
+        ...extraReadCopies(2),
+      ],
+    });
+    await openBacklog();
+    const sheet = getOpenSheet();
+    const readCard = () => findCard(sheet, 'Read').card;
+    expect(readMoreCount(readCard())).toBe('+3 more');
+    expect(getPileSheets(readCard())).toHaveLength(3);
+    expect(isDragHandle(readCard())).toBe(false);
+
+    // Each tap: +N more goes down by one; the sheets once fewer than three wait
+    const expected = [
+      {more: '+2 more', sheets: 2},
+      {more: '+1 more', sheets: 1},
+      {more: null, sheets: 0},
+    ];
+    for (const [pulled, {more, sheets}] of expected.entries()) {
+      await userEvent.click(getPullButton(readCard()));
+      await expect
+        .poll(() => readHeaderCount('TODO'))
+        .toBe(String(4 + pulled + 1));
+      expect(readMoreCount(readCard())).toBe(more);
+      expect(getPileSheets(readCard())).toHaveLength(sheets);
+      expect(getOpenSheet()).toBe(sheet);
+    }
+    expect(updateTaskStatusAction).toHaveBeenCalledWith(
+      findTaskByTitle('Read').id,
+      {status: TaskStatus.TODO},
+    );
+
+    await userEvent.click(getPullButton(readCard()));
+
+    await expect
+      .poll(() => readBacklogOutline(sheet))
+      .toEqual(['Projects', BIO_LECTURE_4_TITLE]);
+    expect(readBacklogBadge(sheet)).toBe('3');
+  });
+
+  it('A6 CARD-7 MV-5 a backlog card dragged onto Done fills its dot at once, and a screen reader reads one more done', async () => {
     keepSaving();
     await renderBoard();
     await openBacklog();
@@ -532,16 +1057,19 @@ describe('A move', () => {
 
     await dragCard('BACKLOG', DESIGN_CASE_TITLE, ['ArrowLeft']);
 
-    const [doneDot] = getDots(getCard('DONE', DESIGN_CASE_TITLE).card);
+    const {card} = getCard('DONE', DESIGN_CASE_TITLE);
+    const [doneDot] = getDots(card);
     expect(fillOf(doneDot)).not.toBe(emptyFill);
+    expect(readProgressLabel(card)).toBe('1 of 1 done this week');
     expect(readColumnTitles('DONE')[0]).toBe(DESIGN_CASE_TITLE);
+    expect(readBacklogBadge(getPanelHeader())).toBe(String(BACKLOG_COUNT - 1));
     expect(updateTaskStatusAction).toHaveBeenCalledWith(
       findTaskByTitle(DESIGN_CASE_TITLE).id,
       {status: TaskStatus.DONE},
     );
   });
 
-  it('A7 MV-1 MV-3 a card dragged onto Done is on top of it at once; progress counts it once the server answers', async () => {
+  it('A7 MV-5 MV-3 a card dragged onto Done is on top of it at once; progress counts it once the server answers', async () => {
     const save = Promise.withResolvers<SaveResult>();
     vi.mocked(updateTaskStatusAction).mockReturnValue(save.promise);
     const screen = await renderBoard();

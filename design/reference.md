@@ -201,7 +201,7 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `createManyTaskTemplates` | Batch-create templates; returned ids preserve input order |
 | `updateTaskTemplate` | Update a template, owner-scoped (count 0 = not found) |
 | **`planTemplates.ts`** | |
-| `getBoardPlanTemplatesByPlanId` | A plan's template lines with each template's size, for the board (one join) |
+| `getBoardPlanTemplatesByPlanId` | A plan's template lines with each template's size, for the board (one join), in the order their habits were created — the backlog's order |
 | `createManyPlanTemplates` | Bulk link templates to a plan with per-plan type/frequency |
 | `updatePlanTemplate` | Update a link's type and frequency |
 | **`updateOrNull.ts`** | |
