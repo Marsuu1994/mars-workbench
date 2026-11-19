@@ -9,11 +9,21 @@
 /** An item's ID: `<AREA>-n` (`COL-2`), or `A`, `R` or `J` and a number. */
 const ID = String.raw`(?:[A-Z]+-\d+|[ARJ]\d+)`;
 
-/** A list item that starts with a bold ID: `- **COL-2** …`, `- **J1 New user** …`. */
-const LIST_ITEM_ID = new RegExp(String.raw`^\s*-\s+\*\*(${ID})\b`);
+/** An item's marker, read only where it belongs: before the ID (`*(pending)* **BL-8**`). */
+const MARKER = String.raw`\*\((pending|removing|bug)\)\*`;
 
-/** A table row whose first cell is an ID: `| A4 | Pull to Todo | …`. */
-const TABLE_ROW_ID = new RegExp(String.raw`^\|\s*(${ID})\s*\|`);
+/** A marker anywhere on a line, to catch one written after the ID. */
+const ANY_MARKER = new RegExp(MARKER);
+
+/** A list item that starts with a bold ID, its marker before it: `- **COL-2** …`, `- *(pending)* **J5 A week's work - desktop** …`. */
+const LIST_ITEM_ID = new RegExp(
+  String.raw`^\s*-\s+(?:${MARKER}\s+)?\*\*(${ID})\b`,
+);
+
+/** A table row whose first cell is an ID, its marker before it: `| A4 | Pull to Todo | …`, `| *(pending)* A8 | …`. */
+const TABLE_ROW_ID = new RegExp(
+  String.raw`^\|\s*(?:${MARKER}\s+)?(${ID})\s*\|`,
+);
 
 /** The IDs at the start of a test's title: `CARD-2 R4 a Done card …`. */
 const TITLE_IDS = new RegExp(String.raw`^(?:${ID}\s+)+`);
@@ -42,6 +52,11 @@ export interface SpecItem {
   removing: boolean;
   /** A known bug: an `it.fails` holds it */
   bug: boolean;
+  /**
+   * A marker on the item's line but not before its ID, where it isn't read:
+   * how the line should start instead (`- *(removing)* **BL-6** …`), or null
+   */
+  misplacedMarker: string | null;
 }
 
 export interface TestTitle {
@@ -184,14 +199,22 @@ export const findLegacyProblems = ({
 /** Every item in a spec, in order, with its markers. */
 export const parseSpecItems = (markdown: string): SpecItem[] =>
   markdown.split('\n').flatMap(line => {
-    const id = (line.match(LIST_ITEM_ID) ?? line.match(TABLE_ROW_ID))?.[1];
-    if (!id) return [];
+    const listMatch = line.match(LIST_ITEM_ID);
+    const match = listMatch ?? line.match(TABLE_ROW_ID);
+    if (!match) return [];
+    const [, marker, id] = match;
+    const strayMarker = marker ? undefined : line.match(ANY_MARKER)?.[1];
     return [
       {
         id,
-        pending: line.includes('*(pending)*'),
-        removing: line.includes('*(removing)*'),
-        bug: line.includes('*(bug)*'),
+        pending: marker === 'pending',
+        removing: marker === 'removing',
+        bug: marker === 'bug',
+        misplacedMarker: strayMarker
+          ? listMatch
+            ? `- *(${strayMarker})* **${id}** …`
+            : `| *(${strayMarker})* ${id} | …`
+          : null,
       },
     ];
   });
@@ -277,7 +300,7 @@ const findHolders = (specs: Spec[], testFiles: TestFile[]) => {
 
 /**
  * Everything wrong between the v2 specs and the tests, one sentence each:
- * an item no test holds, a bug no `it.fails` holds, an item that isn't a bug
+ * a marker written after its ID, an item no test holds, a bug no `it.fails` holds, an item that isn't a bug
  * held only by `it.fails`, a title naming an ID its spec doesn't have (or one
  * still pending), an ID used twice, and a skipped block in a test file.
  */
@@ -290,9 +313,15 @@ export const findSpecProblems = (
   for (const [specPath, items] of itemsBySpec) {
     const seen = new Set<string>();
     const holders = holdersBySpec.get(specPath);
-    for (const {id, pending, bug} of items) {
+    for (const {id, pending, bug, misplacedMarker} of items) {
       if (seen.has(id)) problems.push(`${specPath}: ${id} is used twice.`);
       seen.add(id);
+      if (misplacedMarker) {
+        problems.push(
+          `${specPath}: ${id}'s marker sits after its ID, where it isn't read — move it before the ID: \`${misplacedMarker}\`.`,
+        );
+        continue;
+      }
       const heldBy = holders?.get(id) ?? [];
       if (pending) {
         for (const {path} of heldBy) {

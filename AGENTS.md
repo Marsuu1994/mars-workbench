@@ -38,6 +38,7 @@ design/                            # Design docs — index in design/README.md
 ├── design-language/               # Per-theme visual specs + the shared fx-* skeleton
 ├── tracker.md                     # Roadmap — open items only
 ├── future-ideas.md                # Problems seen coming but not worth doing yet, each with a first idea
+├── session-log.md                 # A local session's parking lot, wrapped up before its final PR — rules at its top
 ├── reference.md                   # Lookup tables: server actions, services, DAL
 ├── specs/                         # One spec per page (was flows/) — rules in its README
 ├── spike/                         # Spike docs for open questions; archived/ = implemented
@@ -97,7 +98,7 @@ A rule that only one kind of file needs lives with that file. Read it before you
 | a mockup (`design/mockup/`) | `design/README.md` › Mockups: how a mockup is drawn, and when a design is decided |
 | an experiment (`experiments/`) | `experiments/AGENTS.md` |
 | `reviews/`, or addressing the owner's review on a PR | `reviews/AGENTS.md` |
-| themes, `globals.css`, visual patterns | `design/design-language/README.md` |
+| themes, `globals.css`, visual patterns, how user-facing copy reads | `design/design-language/README.md` |
 | how a page's data flows from server to client | `design/baseline.md` › Architecture Decision |
 
 ### Adding a rule
@@ -192,8 +193,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
   ```
 
 - **No magic literals.** Fixed, non-user-facing literals — routes, numbers, thresholds, durations, style tokens, config values — go into an exported constant in a `constants.ts` next to the component (or a feature `constants/` folder). Bad: `maxLength={280}`, `href="/kanban/plans/new"` inline. Good: `MESSAGE_MAX_LENGTH`, `CREATE_PLAN_HREF` imported from `./constants`.
-- **All user-facing copy goes through `next-intl`**: strings live under a namespace in `src/i18n/en.json`, read with `useTranslations` (client) or `getTranslations` (server components, actions, `generateMetadata`). Use ICU for plurals and interpolation, `Enums.*` keys for enum labels, and `t.rich` for inline markup; decorative glyphs and emoji stay in the JSX. Never translated: LLM-facing text (`mcp/prompts/`, `utils/errorMessages.ts`) and internal `throw new Error(...)` messages. Bad: `export const TITLE = 'Create Weekly Plan';`. Good: `{"Plan": {"taskCount": "{count, plural, one {# task} other {# tasks}}"}}` read as `t('taskCount', {count})`.
-- **User-facing copy is sentence case**; Title Case is for headers only (page and section titles, nav labels). The same action keeps its casing across states. Bad: "Sign Out" whose confirm reads "Sign out?". Good: "Sign out" / "Sign out?" / "Create task", with headers like "Settings" keeping theirs.
+- **User-facing copy is the mockup's, and goes through `next-intl`**: the words come from the decided mockup, or the Design Console once it's built, and how they read is `design/design-language/README.md` › Principles › 3.5–3.8. Strings live under a namespace in `src/i18n/en.json`, read with `useTranslations` (client) or `getTranslations` (server components, actions, `generateMetadata`). Use ICU for plurals and interpolation, `Enums.*` keys for enum labels, and `t.rich` for inline markup; decorative glyphs and emoji stay in the JSX. Never translated: LLM-facing text (`mcp/prompts/`, `utils/errorMessages.ts`) and internal `throw new Error(...)` messages. Bad: `export const TITLE = 'Create Weekly Plan';`. Good: `{"Plan": {"taskCount": "{count, plural, one {# task} other {# tasks}}"}}` read as `t('taskCount', {count})`.
 
 ## Code Style
 
@@ -217,7 +217,10 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 
 ## Version Control
 
-- **Local sessions** (on the owner's machine): never commit, push or take another outward-facing VCS action without explicit permission — make and stage the changes, summarize them, and wait for approval. GitHub goes through the `gh` CLI: open a PR with `gh pr create`, read reviews with `gh pr view --comments` or `gh api`, and read a red CI job with `gh run view <run-id> --log-failed`, filtered, then fix it in the main session.
+- **Local sessions** (on the owner's machine):
+  - Permission: never commit, push or take another outward-facing VCS action without explicit permission — make and stage the changes, summarize them, and wait for approval.
+  - GitHub goes through the `gh` CLI: open a PR with `gh pr create`, read reviews with `gh pr view --comments` or `gh api`, and read a red CI job with `gh run view <run-id> --log-failed`, filtered, then fix it in the main session.
+  - The PR's description: once a PR is open, every push that adds commits rewrites its description (`gh pr edit --body-file`) to say what the PR is now, not what its first commit was — its counts, decisions and checks.
 - **Remote sessions** (cloud containers such as Claude Code on the web): commit and push with `git push -u origin <branch>` without asking.
 - **A PR opens only when the owner asks for one**, in either kind of session. Once a remote session's PR is open, it subscribes to its activity (`subscribe_pr_activity`) and sees it through until it merges or closes: red CI and review comments are the session's to fix.
 - Never commit or push to `main`; changes land through pull requests.

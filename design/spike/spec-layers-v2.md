@@ -97,13 +97,15 @@ it('A2 Finish moves the card to the top of Done at once, and back when it fails'
 
 > **BL-1** Holds the plan's `BACKLOG` tasks: habit instances and the project steps scheduled this week. Never one-offs.
 > **BL-2** The count is every staged task, not every group; past 8 it reads `8+`, its accessible name keeps the real number.
-> **BL-7** *(pending)* A habit's staged instances are one group, a project's staged steps another: habits first (daily, then weekly), then projects, each by earliest `createdAt`.
-> **BL-8** *(pending)* A group shows one card, its next task, on a pile: one thin sheet per task behind it, at most three; **+N more** counts them.
+> *(pending)* **BL-7** A habit's staged instances are one group, a project's staged steps another: habits first (daily, then weekly), then projects, each by earliest `createdAt`.
+> *(pending)* **BL-8** A group shows one card, its next task, on a pile: one thin sheet per task behind it, at most three; **+N more** counts them.
 >
 > | ID | Action | Where | Server action | Result |
 > | --- | --- | --- | --- | --- |
-> | A3 | Pull to Todo | drag a backlog card onto Todo (desktop), ↑ Todo (mobile) | `updateTaskStatusAction` → `TODO` | *(pending)* takes the group's next task; the group shows the one behind it |
-> | A8 | Expand a project *(pending)* | a project group's **+N more ⌄** | — | its queue, the steps behind the next in step order, replaces the pile |
+> | A3 | Pull to Todo | drag a backlog card onto Todo (desktop), ↑ Todo (mobile) | `updateTaskStatusAction` → `TODO` | takes the group's next task; the group shows the one behind it |
+> | *(pending)* A8 | Expand a project | a project group's **+N more ⌄** | — | its queue, the steps behind the next in step order, replaces the pile |
+
+（2026-11-18 起 marker 写在 ID 前面，`check:spec` 只认那个位置：`design/specs/README.md` › Items and IDs。A3 那一行原来只把 Result 标成 pending；现在的格式没有「半条 pending」，改一条 built 的 item 要标 *(removing)*，再给新的 ID。）
 
 ### 4. TDD：spec 先行，test 跟着实现补上
 

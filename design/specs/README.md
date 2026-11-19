@@ -15,16 +15,20 @@ Sections, in order:
 - **Actions** — a table: `ID · Action · Where · Server action · Result`; a client-only action's server action is `—`.
 - **Rules** — the limits on the actions, each stated where it holds: on the board (UI) or on the server.
 - **Journeys** — how the page is used day to day, as a chain of action IDs: the happy path only.
+  - A journey runs the same steps on the same data at both widths. The desktop journey is written out in full, and the mobile one sits right after it, pointing to it and naming only the steps that differ (a drag that is a tap on a phone). Journeys sit by what they do, never grouped by width.
+  - A journey's title names its width after a dash, `J5 A week's work - desktop`, never in brackets, which are kept for the markers. A path only one width has, such as finishing a backlog card by dragging it onto Done, is a journey of its own marked `- desktop-only` (or `- mobile-only`), with no pair.
+  - A design that changes how the page looks updates the journeys it touches, with data that shows it (a backlog holding piles); a new journey is only for a new path or a new state the user reaches, such as an empty column.
 
 A page without a screen (sync, MCP) has only the sections it needs: MCP's Actions are its tools, one row per tool.
 
 ### Items and IDs
 
 - Every item starts with an ID: `<AREA>-n` (`COL-2`, `BL-5`), `A` for actions, `R` for rules, `J` for journeys. A new ID is one more than the highest its area has in the doc (`BL-9` → `BL-10`), whether the item is new or replaces a changed one. IDs are never renumbered. When the highest ID of an area is deleted, the next new item takes its number again: an ID names one item in the spec as it stands, and an older PR or review that names it meant the item of its day.
+- Items sit where a reader looks for them, not in ID order: the IDs only name items. A new item sits beside the one it replaces or the ones it belongs with, and an area with many items on one subject gives them a `###` heading of their own (Board › Backlog › Groups).
 - One ID is one thing a test's title can state in a sentence. A card's parts are one item, not one per field. Two statements are two items, even about the same thing: Done cards locked on the board is one, the server refusing the move another.
 - An item says its facts in full rather than pointing to another area's ("in Todo's order"): two areas that agree today can part later. Pointing to an action, a move or a rule is fine.
 - Every item is held by at least one test that names its ID in its title (`test/README.md` › Spec IDs).
-- An item's marker says where it stands. The markers matter most while the spec is merged and its implementation PR isn't yet:
+- An item's marker says where it stands, and sits before its ID, so it is the first thing a reader sees: `- *(pending)* **BL-8** …`, `| *(pending)* A8 | …`; `check:spec` reads a marker nowhere else. The markers matter most while the spec is merged and its implementation PR isn't yet:
   - no marker: built, and held by a test.
   - *(pending)*: designed but not built. No test may name it yet; the implementation PR drops the marker and writes its test.
   - *(removing)*: built and still held by its test, but the design drops it. The implementation PR deletes the item, and `check:spec` then fails until its test is deleted too.
@@ -42,10 +46,10 @@ A design's items come from its decided mockup (what counts as decided: `design/R
   - what an area shows: that area's section;
   - each thing the user can do: Actions, with its server action, or `—` when it stays on the client;
   - each limit: Rules;
-  - a new daily path: Journeys.
+  - a new daily path or a new state the user reaches: Journeys (Spec v2 › Journeys).
 - **Decidable**: an item states what the user can observe — what is counted, the numbers and caps, the order, what is absent — so that, given the data, anyone can say whether the screen does it, and two tests of it would assert the same thing. Bad: "A group shows a pile." Good: "A group with tasks behind its next one shows one thin sheet for each of them, at most three, and **+N more**, N being how many are behind; the last task of a group shows neither."
 - **Each layout**: when desktop and mobile differ, the item says what each one does.
-- **Both sides of a limit**: when the UI stops the user from changing data in some way (only a project's next step can be pulled), the server refuses it too, and that refusal is an item of its own in Rules: a data rule lives where every write path passes (AGENTS.md › Layers).
+- **Both sides of a limit**: when the UI stops the user from changing data in some way (a Done card can't be dragged back), the server refuses it too, and that refusal is an item of its own in Rules (R4 on the board, R1 on the server): a data rule lives where every write path passes (AGENTS.md › Layers). Only the owner makes an exception, never the agent; its item says the server doesn't hold the limit and which writes stay free of it. The exceptions so far: Board R6, where only the board limits pulling to a group's next task; the server doesn't check the order, so a write path outside the board, such as a future Claude tool over MCP, wouldn't be held to it.
 - **Only what was decided**: what neither the decided mockup nor the owner's words decide is a question for the owner, not an item. The mockup's options that weren't picked, its research and its ideas for the spec decide nothing, and its Before is only today's state. An item that needs the owner's answer waits for it.
 - **Only what the design changes**: built items the design doesn't touch stay as they are. A built item that is simply wrong is a fix of its own, not part of the design's change.
 

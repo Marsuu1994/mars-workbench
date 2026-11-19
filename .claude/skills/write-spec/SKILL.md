@@ -14,6 +14,8 @@ The spec is what the implementation is built and tested against, and the session
 - the page is listed in `design/specs/legacy.txt`: the doc is migrated to spec v2 first (`design/specs/README.md` › Legacy docs), a task of its own;
 - nothing in the mockup is marked decided.
 
+When the decided mockup leaves out a case the items need — a state it doesn't draw, such as an empty list, the last one of something or an error — the design isn't finished there. Tell the owner, and offer to draw it first with the `ui-design` skill, rather than writing the item from a guess or asking the owner to pick between behaviours in words.
+
 ## 2. Write
 
 1. **List what the decided mockup shows**, section by section, as `design/specs/README.md` › Writing items from a design › Covers the design sorts it, and set each line beside today's spec. Each line ends up as a new item, a change to a built one, or a question for the owner.
@@ -23,7 +25,7 @@ The spec is what the implementation is built and tested against, and the session
 ## 3. Review
 
 1. Spawn the `write-spec-reviewer` agent with its brief: the spec's path, the mockup's path and its decided tab, the review log's path, the base to diff against, the owner's answers in this session that the review log doesn't hold yet, and the questions left open for the owner.
-2. Fix each FAIL and run the reviewer once more. A FAIL you think is wrong goes to the owner with both readings; don't argue it away.
+2. Fix each FAIL, and run the reviewer again after every change to the spec, however small — a fix, the owner's new answer, a reordering — until it passes. A FAIL you think is wrong goes to the owner with both readings; don't argue it away.
 
 ## 4. Report and hand off
 
