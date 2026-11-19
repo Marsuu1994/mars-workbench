@@ -61,6 +61,7 @@ What you can do in the app today, page by page. How it is built lives in [design
 - A project is a goal with an ordered list of steps. Steps never expire.
 - Create, edit and archive projects; add, edit, reorder and delete their steps.
 - Send a step to this week's backlog, or take it back. A finished project offers to archive itself.
+- The open form is part of the address: a link or a refresh opens it again, and back closes it.
 
 ### Plan
 

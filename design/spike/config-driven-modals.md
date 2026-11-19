@@ -1,6 +1,6 @@
 # Spike: Config-driven modals — 一个 modal 框架 + 按 id 开关
 
-**Status: awaiting owner review** · 2026-10-27 · 回答 tracker 条目 Milestone — Quality gate › Step 10 › *Config-driven modals on the page structure*（含其下的 *Close on React's transition*）· 上游：`component-structure.md`（标准结构，Projects 页为准）、`archived/projects-page-refactor.md` ›「给 config-driven modal spike 的初步发现」、`archived/mutation-layer.md`（`useModalSubmit`、Next 首写 bug 和 16.4.3 的实测）
+**Status: awaiting owner review** · 2026-10-27，2026-11-19 更新（URL 控制 modal、框架调研、原型）· 回答 tracker 条目 Milestone — Quality gate › Step 10 › *Config-driven modals on the page structure*（含其下的 *Close on React's transition*）· 上游：`component-structure.md`（标准结构，Projects 页为准）、`archived/projects-page-refactor.md` ›「给 config-driven modal spike 的初步发现」、`archived/mutation-layer.md`（`useModalSubmit`、Next 首写 bug 和 16.4.3 的实测）
 
 > 语言约定：叙述用中文；产品名词、状态和代码标识保留英文（project / step / one-off / habit、`OverlayShell`、`useModalSubmit`、`openModal` …），和代码、tracker 一一对应。
 
@@ -15,6 +15,9 @@
   2. 之前公司的做法：**用 hook 按 id 控制 modal 开关**。能不能和 1 融到一起？
   3. 加上我的想法和其他方案；**desktop / mobile 都要 cover**；mobile 上的 drawer 这类 modal-like 的东西不管。
 - Owner 判断：其他页面还没改成标准结构，但思路相同，不影响这里的判断。本稿以 Projects 页为准来写，其他页面按「改成标准结构之后」来设计。
+- **2026-11-19 更新**：
+  - `main` 合进来了。Board、Priorities、Dump 已经是标准结构（PR #98），只剩 Plan 等 Phase 2 的 Plan week；下面的现状表仍然准确，Priorities 的 `addModal` 现在在 `PrioritiesPage` 里。
+  - Owner 新的问题，也是这次最重要的一点：**modal 的开关能不能由 URL 控制**，这样 daily rhythm（`daily-rhythm-rituals.md` 的 Open the day、Night recap）以后用 notification 传一个 modal 的 URL 进来就能直接打开，像 Projects 页的 `?project=`。顺便调研有没有好的框架做这件事。答案在「URL 控制 modal」和「框架调研」两节，结论改了轴 2 的推荐（2B → 2E）。
 
 ## 现状 · 现在有哪些 modal
 
@@ -208,7 +211,7 @@ Projects 已经是一个 discriminated union（`OpenModal`），按 id 打开、
 - 优点：没有新东西。
 - 缺点：每页写法不同；Projects 的 context 里有 4 个 `openXxx`；每加一个 modal 就多一个 open 函数、一个 shell、一段 target 解析。
 
-### Option 2B · 页面级的 `useModalState` + `ModalHost`，按 id 打开（推荐）
+### Option 2B · 页面级的 `useModalState` + `ModalHost`，按 id 打开（2E 在它上面，见下）
 
 把 Projects 现在的写法做成通用的：一个 params 类型表（kind → 打开时要的 id）、一个 hook、一个 host。Host 挂在 page container 里，所以 render 函数能直接用页面的 rows 和写入。
 
@@ -284,19 +287,118 @@ const pageContext = {…, showModal, closeModal}; // 4 个 openXxx → 1 个 sho
   - 新依赖（NiceModal、Mantine）或一个新的 Zustand store，而换来的「哪里都能开」现在只有 Settings 用得上。
 - 结论：不推荐。**Settings 继续用它自己的 `settingsStore`**：它的两个入口（dock tab、sidebar 用户行）是不同 breakpoint 下的兄弟节点，没有共同的父组件，这正是全局 store 该用的地方——它用 2C，其余用 2B，两者共用轴 1 的 `ModalPanel` 和 preset。
 
-### Option 2D · 打开的 modal 放进 URL
+### Option 2D · Next 的 intercepting + parallel routes（`@modal` slot + `(.)` 路由）
 
-`?modal=editStep&stepId=…`（Midday 式，`searchParams`），或者 Next 的 intercepting + parallel routes（`@modal` slot + `(.)` 路由）。
+Next 官方的「URL 驱动 modal」写法：`app/kanban/@modal/(.)open-day/page.tsx` 在页面里软导航时拦截 `/kanban/open-day`，渲染成 modal；`app/kanban/open-day/page.tsx` 是同一个 URL 的完整页面。
 
-- 优点：刷新后还开着、可以分享链接、浏览器后退能关掉 modal。
+- 优点：框架自带；modal 内容可以是 Server Component，自己读数据；后退关、前进重开。
 - 缺点：
-  - 表单刷新后重开，但输入已经丢了——对表单没意义。
-  - 后退关 modal 在 mobile 上的主要好处，Android 已经有了：Chromium 的 `<dialog>` 会把系统返回手势当成 cancel（CloseWatcher）；iOS PWA 没有系统返回手势。
-  - 和 Projects 的 `?project=` 共用 history，每开一次 modal 多一条记录；提交后关 modal 就是一次 URL 变更，碰上 action 进行中 `pushState` 的上游 bug（vercel/next.js#100489），要等提交完成才能改。
-  - Intercepting routes 把每个 modal 变成路由段（slot、`default.tsx`、软 / 硬导航两套行为），而表单要的是页面的 client state（乐观 rows、选中项），放在路由里拿不到。
-- 结论：不推荐用于表单。以后要是有「可分享的详情视图」（比如一个 project 的只读详情），再单独考虑。
+  - **冷启动打开的是另一个页面，不是 board 上的 modal**。Next 文档原话：「on refresh or initial load, navigating to `/login` will take the user to the main login page」（`node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/parallel-routes.md` › Modals）。Notification 点开、刷新、分享链接都是硬导航，用户看到的是一个单独的 `/kanban/open-day` 页，而不是 board 加一层 modal——正好不是我们要的。要让它一样，就得在完整页面里再渲染一遍 board，等于两份。
+  - 每个 modal 是一个路由段：slot、`default.tsx`（否则硬导航 404）、离开时让 slot 回 `null` 的那一页。5 个 modal 就是十几个文件。
+  - Modal 拿不到页面的 client state：乐观 rows、page context 的写入都在 board 的 container 里，slot 是它的兄弟，不是孩子。表单 modal 打开期间 Claude 改了 rows，slot 里的数据和 board 的数据是两份。
+- 结论：不推荐。它适合「modal 是一个可以独立成页的东西」（照片、商品详情），我们的 modal 都是页面上的操作。
 
-**我的建议：2B，Settings 留在 2C 的 store 上。**
+### Option 2E · 页面级 registry，open state 放在 search params 里（推荐，原型已做）
+
+就是 2B，只是 `openModal` 不放 `useState`，放在 URL：`?modal=<kind>&<id>=…`。Projects 页的 `?project=` 已经是这个做法：`useSearchParams` 读，`history.pushState` 写，Next 的 router 跟着更新、不发请求（`node_modules/next/dist/docs/01-app/01-getting-started/04-linking-and-navigating.md` › Native History API）。
+
+```ts
+// domain/projects/constants.ts — 每个 kind 打开时要的 id；类型从这里推出来，只写一次
+export const PROJECTS_MODAL_KEYS = {
+  newProject: [],
+  editProject: ['projectId'],
+  addStep: ['projectId'],
+  editStep: ['stepId'],
+} as const satisfies ModalParamKeys;
+
+// ui/overlay/useUrlModalState.ts — 和 2B 的 useModalState 同一个接口
+const {openModal, showModal, closeModal} = useUrlModalState(PROJECTS_MODAL_KEYS);
+showModal('editStep', {stepId}); // → /kanban/projects?project=…&modal=editStep&stepId=…
+
+// utils/modalUrl.ts — 纯函数，server 也能用：notification、邮件、测试拼同一个链接
+getModalHref('/kanban/projects', PROJECTS_MODAL_KEYS, 'editStep', {stepId});
+```
+
+- 优点：
+  - **链接能直接打开 modal**：notification、刷新、分享的 URL 都落在页面上、modal 已经开着。这是 owner 这次要的。
+  - 2B 的好处全在：registry 挂在 page container 里，按 id 从 live rows 解析，行没了就不开；不需要全局 store。
+  - 后退关 modal、前进重开；Android 上系统返回手势先被 `<dialog>` 当成 cancel（CloseWatcher），cancel 再走 `closeModal`，一次手势关掉 modal 也退掉那条记录，不会两次。
+  - 没有新依赖：约 100 行（格式 + hook），Projects 已经在用同一套机制。
+- 缺点：
+  - 刷新后表单重开，但输入丢了（字段在 client state 里）。对「从 row 重新算出来的 modal」没关系，对填到一半的表单有一点怪，和现在「刷新 modal 就没了」比不算更差。
+  - 每开一次 modal 多一条 history 记录（这正是后退能关它的原因）。
+  - URL 变更不能发生在 action 进行中（vercel/next.js#100489，16.4 / 16.5 上仍 open）：关闭必须在提交之后。3A 天然满足（等 `freshData` 落地才关）；3B 要用 `afterCommit` 把关闭挪到提交之后。原型在 3A 上。
+- 结论：**推荐，取代 2B 的 `useModalState`**。哪些 modal 进 URL 见下一节的判断标准。
+
+**我的建议：2E（2B 的 registry + URL 里的 open state），Settings 留在 2C 的 store 上。**
+
+---
+
+## URL 控制 modal：daily rhythm 和以后的 notification（2026-11-19 新增）
+
+Owner 的问题：modal 的开关能不能由 URL 控制，这样 daily rhythm 的 Open the day / Night recap 以后用 notification 直接传一个 modal 的 URL 进来就能打开，像现在 Projects 页那样。
+
+**答案：能，而且不用框架。** 这个 PR 的原型把 Projects 页的 4 个 modal 改成了 URL 驱动（commit「Spike prototype: the Projects page's open modal lives in the URL」）：
+
+- `src/utils/modalUrl.ts`：格式。`readOpenModal`（URL → 哪个 modal、什么 id；未知 kind、缺 id 都当没开）、`getModalHref`（拼链接）。纯函数，unit test 覆盖。
+- `src/components/ui/overlay/useUrlModalState.ts`：hook，接口和 2B 的 `useModalState` 一样。
+- `ProjectsPage`：`useState<OpenModal>` 换成 hook，context 的 `openXxx` 不变，其他组件一行没改。
+- 实测：`/kanban/projects?modal=editStep&stepId=…` 的**第一次 server 渲染**就已经带着 Edit Step 表单和那个 step 的标题（dev server + seeded 用户，`curl` 看 HTML），hydrate 后 `<dialog>` 打开，没有先闪一下没 modal 的页面。e2e「Modal URL Flow」覆盖下表；这个容器里没有 Chromium，e2e 交给 CI 跑。
+
+**History 怎么走**
+
+| 情况 | 发生什么 |
+| --- | --- |
+| 页面里点开 | `pushState` 一条，entry 带一个标记（`modalOpenedInApp`，Next 的 `pushState` 会保留我们的 state） |
+| 页面里关（Cancel、✕、Esc、保存成功） | entry 有标记 → `history.back()`，回到打开前那条；之后的前进能重开 |
+| 链接打开（notification、刷新、粘贴 URL） | 页面直接带着 modal 渲染 |
+| 链接打开后关 | entry 没有标记（不是我们 push 的）→ `replaceState` 去掉 modal 参数；后退离开这一页，不会回到 modal |
+| 后退 / Android 返回手势 | URL 先变，`<dialog>` 跟着关；`<dialog>` 的 close 事件再调 `closeModal`，这时 URL 已经没有 modal，直接返回 |
+| 保存成功时 `onSuccess` 和 `onClose` 都关 | 第二次在 `back()` 落地前到达，hook 记住刚退过的 href，不会退两次 |
+| 新建 project 成功 | 新 project 的 `?project=` **替换** modal 那条（`replaceState`），后退回到按 New project 的地方 |
+| id 对应的行不在了（Claude 删了，或链接过期） | registry 解析不到，modal 不开 |
+
+**Notification 那一端（这个 channel 不做，只确认路通）**
+
+- Server 用 `getModalHref('/kanban', BOARD_MODAL_KEYS, 'openDay', {})` 拼出 `/kanban?modal=openDay`，放进 push payload。
+- Service worker 的 `notificationclick`：已有窗口就 `client.focus()` 再 `client.navigate(url)`，没有就 `clients.openWindow(url)`。两种都是一次正常的页面加载，落在上表的「链接打开」那一行。（想要已开着的窗口不重新加载，可以改成 `postMessage` 给页面、页面自己 `pushState`；以后再说。）
+- 现在的 `public/sw.js` 只是一个空的 fetch handler，push 和 `notificationclick` 都还没有。
+
+**Daily rhythm 怎么用**
+
+```ts
+// domain/board/constants.ts
+export const BOARD_MODAL_KEYS = {openDay: [], nightRecap: []} as const satisfies ModalParamKeys;
+```
+
+- Board 的 registry 决定能不能开：`openDay` 只在 Open the day 的窗口内、今天还没 open 时解析成 panel，否则返回 `null`——过期的 notification 点进来只看到 board，不会打开一个不该开的 ritual（strip 的显示条件和 registry 用同一个判断）。窗口的规则在 `daily-rhythm-rituals.md` 里定，这里只要求它是 board 拿得到的一个 server 值。
+- 两个 ritual 打开时显示的内容（昨天没做完的、推荐、今天的 Todo / Done）都能从 server rows 重新算，所以刷新后重开也是对的；用户在 modal 里做了一半的选择会丢，和表单一样。
+- Night recap 提交后不关、换成庆祝：URL 不动，「Write it down」走 `router.push('/kanban/dump')`，Close 走 `closeModal`。
+
+**哪些 modal 进 URL：判断标准**
+
+一个 modal 进 URL，当且仅当它显示的东西**能从 server rows + URL 里的 id 重新得到**：
+
+| Modal | 进 URL？ | 为什么 |
+| --- | --- | --- |
+| Projects 的 4 个、Priorities 的 add、以后的 Edit habit | 进 | 只靠 id 和 rows |
+| Open the day、Night recap | 进 | 同上，而且这是 notification 要的 |
+| Plan 的 Review changes | 不进 | 它显示的是表单里还没保存的改动，刷新后没了，重开是空的 |
+| Settings | 不进 | 全局，两个入口没有共同的父组件，留 `settingsStore` |
+
+Plan form 的 template modal 跟着 Plan week（Phase 2）重写时再按这条判断。
+
+## 框架调研：有没有现成的库做这件事
+
+| 方案 | 是什么 | 适不适合 |
+| --- | --- | --- |
+| **自己写（原型）** | `useSearchParams` + `history.pushState`，约 100 行，类型从 `PROJECTS_MODAL_KEYS` 推 | **推荐**。Next 14.1 起 router 原生接管 `pushState`，需要的只剩格式和「关闭时退一条还是替换」的规则，后者是我们自己的语义，库也不会替我们定 |
+| [nuqs](https://nuqs.dev)（2.10.3，peer `next >=14.2`） | 类型安全的 search params state：`useQueryStates({modal: parseAsStringLiteral(kinds), stepId: parseAsString})`，`history: 'push'`、`shallow`（默认不发请求）、`createSerializer` 在 server 拼链接 | 可以，是这类库里最成熟的。但它管的是「一个参数的值」，modal 的语义（kind 和它的 id 是一组、关闭退一条还是替换、两次关闭不退两次）还是要包一层；多一个依赖和一个根 `NuqsAdapter`。等 URL state 不只 modal（board 的筛选、Priorities 的视图）时再引入，替换掉 `modalUrl.ts` 的解析部分 |
+| Next intercepting + parallel routes | 见 Option 2D | 不适合：冷启动打开的是独立页面 |
+| TanStack Router search params | 有 schema 的 search params，路由级类型 | 要换掉 Next 的 router，不现实 |
+| `@ebay/nice-modal-react`、Mantine `modals` | 全局 modal manager（2C） | 没有 URL；有人在外面包一层同步 URL，但那就是我们的 hook 再加一个依赖 |
+
+参考：[nuqs docs › Options](https://nuqs.dev/docs/options)、[nuqs README](https://github.com/47ng/nuqs)、[Next.js › Intercepting Routes](https://nextjs.org/docs/app/api-reference/file-conventions/intercepting-routes)、[Next.js › Parallel Routes › Modals](https://nextjs.org/docs/app/api-reference/file-conventions/parallel-routes)，以及安装版本的 `node_modules/next/dist/docs/`。
 
 ---
 
@@ -350,7 +452,7 @@ export function useModalSubmit({onClose}: {onClose: () => void}) {
 
 ```text
 ProjectsPage (client) ◆
-├ useModalState<ProjectsModalParams>()     openModal · showModal · closeModal
+├ useUrlModalState(PROJECTS_MODAL_KEYS)    openModal · showModal · closeModal，open state 在 ?modal=
 ├ <ProjectsPageContext value>              …写入、导航 + showModal / closeModal
 │  └ ProjectStep …                         showModal('editStep', {stepId})
 └ <ModalHost openModal registry onClose>   一个 OverlayShell，preset 来自 registry
@@ -400,21 +502,22 @@ ProjectsPage (client) ◆
 
 ---
 
-## 实现计划（按推荐：1B + 2B + 3B，范围按 Q7 的建议）
+## 实现计划（按推荐：1B + 2E + 3B，范围按 Q7 的建议）
 
 本 PR 继续用来实现（spike、Decision、代码在一个 PR 里）。一步一个 commit：
 
-1. **`ui/overlay/` 的通用件**：`OVERLAY_PRESET`、`ModalPanel`（header / banner / body 滚动 / footer，armed state 在里面）、`useModalState`、`ModalHost`；`ui/form/` 加 `TitleField`、`NotesField`。Gallery 加 `ModalPanel` specimen。
-2. **`useModalSubmit` 改成 transition 版**（3B），先跑首写探针；不过关就保留 `freshData`（3A），后面几步照做。
-3. **Projects**：`ProjectFormPanel`、`StepFormPanel` 改用 `ModalPanel`，读 page context；删 `ProjectModal`、`StepModal`；`ProjectsPage` 用 registry + `ModalHost`，context 的 4 个 `openXxx` 换成 `showModal` / `closeModal`；archive / unarchive 改用 transition，删 `useWaitForFreshData`（3B 时）。Scenario 包 inert context。
-4. **共用和其他 modal 的框架**：`TaskModalPanel` 改用 `ModalPanel`，删 `TaskModal` shell 和那段「template 变了就重置表单」的 render 期 reset（每次打开都是新 mount，用不上）；Plan form 和 Priorities 暂时各自用一个 `OverlayShell {...OVERLAY_PRESET.form}` 包它（几行），等它们改成标准结构时再接 registry。`ReviewChangesPanel`、`SettingsPanel` 改用 `ModalPanel`。
-5. **文档**：AGENTS.md › *Page structure* 一句话写 modal（页面 container 用 `useModalState` + registry 按 id 打开；page-specific panel 读 context，shared panel 收 props；新 modal 用 `ModalPanel`）；`baseline.md` › Architecture Decision 写完整规则；`reference.md`（如果涉及）；tracker 删掉本条和它的 *Close on transition* 子条目；README Current State 和 Update Log；spike 移到 `archived/`。
+1. **`ui/overlay/` 的通用件**：`OVERLAY_PRESET`、`ModalPanel`（header / banner / body 滚动 / footer，armed state 在里面）、`useUrlModalState`（原型已在，`utils/modalUrl.ts` 是格式）、`ModalHost`；`ui/form/` 加 `TitleField`、`NotesField`。Gallery 加 `ModalPanel` specimen。
+2. **`useModalSubmit` 改成 transition 版**（3B），先跑首写探针；不过关就保留 `freshData`（3A），后面几步照做。3B 时 `closeModal` 的 URL 变更走 `afterCommit`，不能在 action 进行中（#100489）；探针要包括「保存后 URL 关 modal」这一种。
+3. **Projects**：`ProjectFormPanel`、`StepFormPanel` 改用 `ModalPanel`，读 page context；删 `ProjectModal`、`StepModal`；`ProjectsPage` 用 registry + `ModalHost`（URL 那一半原型已做），context 的 4 个 `openXxx` 换成 `showModal` / `closeModal`；archive / unarchive 改用 transition，删 `useWaitForFreshData`（3B 时）。Scenario 包 inert context。
+4. **共用和其他 modal 的框架**：`TaskModalPanel` 改用 `ModalPanel`，删 `TaskModal` shell 和那段「template 变了就重置表单」的 render 期 reset（每次打开都是新 mount，用不上）；Priorities 已经是标准结构，直接接 registry 和 URL（`?modal=addOneOff&quadrant=…`，quadrant 可选，`modalUrl.ts` 要加可选参数）；Plan form 暂时用一个 `OverlayShell {...OVERLAY_PRESET.form}` 包它（几行），等 Plan week 时再接。`ReviewChangesPanel`、`SettingsPanel` 改用 `ModalPanel`。
+5. **文档**：AGENTS.md › *Page structure* 一句话写 modal（页面 container 用 `useUrlModalState` + registry 按 id 打开，open state 在 URL；page-specific panel 读 context，shared panel 收 props；新 modal 用 `ModalPanel`）；`baseline.md` › Architecture Decision 写完整规则；`reference.md`（如果涉及）；tracker 删掉本条和它的 *Close on transition* 子条目；README Current State 和 Update Log；spike 移到 `archived/`。
 
-**验证**：format、lint、typecheck、knip、`npm test`；e2e（每个 modal 的提交、archive、delete step、settings sign out 都在 journey 里）；首写探针的数字写进 PR。改了 modal 的高度和滚动、scenario 的 frame，按 UI Workflow 交给 `ui-verifier` 在 mobile 和 desktop 各看一遍 Projects、Plan、Priorities、Settings 的 modal tab。
+**验证**：format、lint、typecheck、knip、`npm test`；e2e（每个 modal 的提交、archive、delete step、settings sign out 都在 journey 里，链接打开 / 后退关 / 保存后的 history 在「Modal URL Flow」里）；首写探针的数字写进 PR。改了 modal 的高度和滚动、scenario 的 frame，按 UI Workflow 交给 `ui-verifier` 在 mobile 和 desktop 各看一遍 Projects、Plan、Priorities、Settings 的 modal tab。
 
 ## 风险
 
-- **和 Board / Priorities / Dump 的 page-structure PR 冲突**（Q9 实验还没跑）：第 4 步只动 Priorities 里 `TaskModal` 的那几行；registry 留给它改成标准结构那一刻。
+- **和 daily rhythm、board tap-to-complete 的 PR 冲突**：两边都会改 board。本 PR 不碰 board，`BOARD_MODAL_KEYS` 和 board 的 registry 跟 Open the day 的实现 PR 一起来，按本 spike 定下的写法。
+- **URL 和 history 的边角**：一个 modal 链接打开、用户又在页面里打开另一个，history 里会有两条 modal；registry 只认最新的 URL，行为是对的，只是后退多一步。Next 改动 `pushState` 的接管方式（我们依赖它保留 state 对象）时要重测，`Workaround` 不需要，但升级 Next 时跑一遍「Modal URL Flow」。
 - **`ModalPanel` 变成万能组件**：只收 5 个 modal 共有的东西；一个 modal 的特殊需求放 `children`，review 时按这条把关。
 - **3B 的卡住风险**：见轴 3；探针是闸门，看门狗是备选。
 - **一页一个 shell**：几个 kind 共用一个 `<dialog>`，关闭时内容先卸载（和现在 `{isOpen && <Panel/>}` 一样，不是新问题）；preset 不同的两个 modal 之间切换要在 `ModalHost` 里记住上一个 preset，避免关闭瞬间盒子变宽。
@@ -426,9 +529,13 @@ ProjectsPage (client) ◆
 | # | 问题 | 选项 | 推荐 |
 | --- | --- | --- | --- |
 | Q1 | 渲染：config 到哪一层 | **1A** 维持 shell + panel，抽小件 · **1B** 框架（shell preset、header、banner、footer、danger）是 config，字段是 JSX · **1C** 字段也是 config | **1B**；表单多到十几个或要运行时定义表单时，再在上面加 1C |
-| Q2 | 开关：open state 放在哪 | **2A** 每页 `useState`（现状）· **2B** 页面级 `useModalState` + registry + `ModalHost`，按 id 打开 · **2C** 全局 store / NiceModal · **2D** URL | **2B**；Settings 留在它自己的 store（2C 的唯一合理场景） |
+| Q2 | 开关：open state 放在哪 | **2A** 每页 `useState`（现状）· **2B** 页面级 `useModalState` + registry + `ModalHost`，按 id 打开 · **2C** 全局 store / NiceModal · **2D** intercepting + parallel routes · **2E** 2B 的 registry，open state 放在 `?modal=` | **2E**（2026-11-19 从 2B 改过来）：notification 和刷新能直接打开 modal，后退能关；Settings 留在它自己的 store（2C 的唯一合理场景） |
 | Q3 | Modal panel 怎么拿 close 和导航 | page-specific 读 page context、shared 收 props · 全部收 props（现状） | **按 page-specific / shared 分**，取代规则 5 的 pending 半句 |
 | Q4 | 提交后什么时候关（tracker 的 *Close on transition*） | **3A** 继续等 `freshData` · **3B** 在 transition 里关，URL 变更等提交后 | **3B**，以首写探针为闸门；不过关退回 3A |
 | Q5 | 非表单的 modal 算不算在内 | Review changes、Settings 也用 `ModalPanel` · 只管表单 | **都用 `ModalPanel`**；开关上 Settings 留 store，Review changes 的 registry 等 Plan week |
 | Q6 | Body 滚动 / 高度约定 | 进 `ModalPanel`，并掉 tracker › Plan 的 Review changes 高度条目 · 只给表单加，Review changes 那条照旧 | **进 `ModalPanel`，一起修**；iPhone 安全区等 owner 的截图再定 |
-| Q7 | 范围和顺序 | 本 PR：通用件 + Projects 全套 + 所有 modal 换框架，Priorities / Plan 的 registry 跟着它们的标准结构走 · 本 PR 只做通用件和 Projects · 等 page-structure PR 合并后一次做完所有页面 | **第一种**：框架一次换完，registry 跟页面结构走，不和 Q9 的 PR 抢同一批文件 |
+| Q7 | 范围和顺序 | 本 PR：通用件 + Projects 全套 + 所有 modal 换框架，Priorities / Plan 的 registry 跟着它们的标准结构走 · 本 PR 只做通用件和 Projects · 等 page-structure PR 合并后一次做完所有页面 | **第一种**；page-structure PR 已经合了，所以 Priorities 的 registry 这次一起做，只有 Plan 等 Plan week |
+| Q8 | 哪些 modal 进 URL（2026-11-19） | 全部页面 modal · 按「能从 server rows + URL 里的 id 重新得到」判断 · 只有 daily rhythm 的两个 | **按判断标准**：Projects 4 个、Priorities add、Edit habit、Open the day、Night recap 进；Review changes（显示没保存的改动）和 Settings 不进 |
+| Q9 | URL 那一层自己写还是用库（2026-11-19） | 自己写（原型，约 100 行）· nuqs · intercepting routes | **自己写**；等 URL state 不只 modal（筛选、视图）时再引入 nuqs，替换 `modalUrl.ts` 的解析部分 |
+| Q10 | URL 的样子（2026-11-19） | `?modal=editStep&stepId=…`（原型）· 一个参数 `?modal=editStep:…` · 路径 `/kanban/projects/steps/…/edit` | **原型的写法**：可读、和 `?project=` 并存、id 名就是 registry 的 key；路径要么走 2D，要么 rewrite，都不值 |
+| Q11 | 原型留不留在这个 PR（2026-11-19） | 留，作为实现的第一步 · 先 revert，等 Decision 再做 | **留**：只动 Projects 页，接口和 2B 一样，Q2 选别的就 revert 那一个 commit |
