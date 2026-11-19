@@ -18,7 +18,6 @@ How agents work on this repository: the experiments under `experiments/` (rules 
   - Why: every readability miss in the backlog grouping spec session was the owner's catch, not `write-spec-reviewer`'s — items listed in ID order, BL-9 saying two things, journeys grouped by width with the mobile one rewritten in full, markers after the ID
   - A fresh review does better than one anchored on the work: PR #122's review, from a separate Claude Code session, found what `write-spec-reviewer` passed — R6 naming an MCP write path that doesn't exist, the mockup's outdated habit card, a sort tie no one could decide, a journey a phone can't run (the sheet is modal), and `check:spec` silently misreading a misplaced *(removing)*
   - First case: `design/design-language/README.md` › Principles › 3, where the copy principles (3.5–3.8) were added beside Loud wins (3.1–3.4) and need one rewrite as a single Feedback section
-  - Later, maybe: a general `review-pr` skill that sends a PR to `write-spec-reviewer`, `implement-spec-reviewer` or `ui-verifier` by its shape, once each has real runs behind it
 - [ ] Rewrite Documentation Style around readability — AGENTS.md › Documentation Style becomes the outline of how docs read for a person, and every folder keeps only its own specific rules, pointing back rather than restating (owner, 2026-11-18)
   - Spec: the readability rules now sit in four sections of `design/specs/README.md` (Spec v2, Journeys, Items and IDs, Writing items from a design); gather them in one place that points to the outline
   - Copy: `design/design-language/README.md` › Principles › 3; tests: `test/README.md`
@@ -40,7 +39,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
   - [ ] 6 · Test first as the workflow — acceptance tests written before the code (as `it.fails`, flipped when the work starts), so red CI is the spec the implementer works against, against today's spike-only brief: fewer misreadings of the spec, at what cost in time. 1b is the first task built this way; a comparison needs the same task run both ways
 - [ ] Rules the page-structure runs were missing — defects ten implementations each made because no rule or tool said otherwise (`experiments/page-structure-parallel/try2/report.md` › 反复出现的问题)
   - [ ] A page's input type is `<Feature>PageData` in `src/types/<feature>.ts`, built from DAL rows and returned by its service (AGENTS.md › Page structure)
-  - [ ] A type for what an action returns is derived from the action or defined once in `src/types/`, never re-declared (AGENTS.md › General)
+  - [ ] A type for what an action returns is derived from the action, never written out again — `check:duplicate-types` holds two declared types with one shape, but what an action returns is inferred, not declared, so a hand-written copy of it still passes
   - [ ] A check that every code name quoted in AGENTS.md and the READMEs it indexes still exists in `src/`
   - [ ] Prettier sorts Tailwind classes; one function style for helpers and handlers (lint)
   - [ ] Design Console: a desktop-only tab doesn't run its play step at phone width (it opens the mobile sheet)
@@ -63,6 +62,12 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 
 ### Medium
 
+- [ ] A general review skill — one `review` skill that every implementation PR goes through: it holds the checks that are the same whatever the task and need more than the diff, repeated code first, and it calls the task's own reviewer for the rest, as `implement-spec` calls `implement-spec-reviewer` (owner, 2026-11-19)
+  - Why: PR #126, the first run of `implement-spec`. `implement-spec-reviewer` holds the diff against the spec and the rules its context lists, and passed two things that needed more:
+    - per-theme Tailwind variants in components, against a `design/design-language/README.md` rule its context doesn't list; a general review the owner asked for by hand caught it
+    - a type declared a second time with the same shape, which shows only beside the rest of `src/`; no reviewer caught it
+  - What it holds: what a script can't decide. A helper that repeats an existing one under another name, or a type that is nearly an existing one and should extend or pick from it, is compared against a list of what `src/` exports that a script prints, rather than searched for. Types with one and the same shape are `check:duplicate-types`' already
+  - It takes the place of the general review asked for by hand, and of the earlier idea of a `review-pr` skill that sent a PR to one reviewer by its shape: the general skill runs on every PR and calls `write-spec-reviewer`, `implement-spec-reviewer` or `ui-verifier` as the PR needs
 - [ ] What makes a spec review catch more — PR #122's review, from a separate Claude Code session, found 15 problems in a spec change `write-spec-reviewer` had passed; 12 needed something the reviewer is never given, so its brief and inputs look like the cause more than its model. An experiment can tell the two apart (2026-11-18)
   - What each of the 15 needed (`reviews/pr-122.md`, round 1):
     - a file the reviewer doesn't review, 9: the mockup itself (5), the rule docs (2) and the scripts (2)

@@ -9,11 +9,10 @@ import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {ChoicePills} from '@/components/ui/form/ChoicePills';
 import {Stepper} from '@/components/ui/form/Stepper';
 import {FREQ_MIN, FREQ_MAX} from '@/utils/planUtils';
+import type {PlanLine} from '@/utils/taskUtils';
 
-interface TemplateItemConfig {
-  type: TaskType;
-  frequency: number;
-}
+/** How a selected template runs this week: its plan line, without the template's id. */
+export type TemplateItemConfig = Pick<PlanLine, 'type' | 'frequency'>;
 
 interface TemplateItemProps {
   template: TaskTemplateItem;

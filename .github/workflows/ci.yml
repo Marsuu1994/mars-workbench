@@ -107,6 +107,30 @@ jobs:
       - name: Check spec coverage
         run: npm run check:spec
 
+  duplicate-types:
+    name: Duplicate types
+    runs-on: ubuntu-latest
+    env:
+      # prisma.config.ts requires DIRECT_URL even though generate never
+      # connects; a placeholder is enough.
+      DIRECT_URL: postgresql://ci:ci@localhost:5432/ci
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node and dependencies
+        uses: ./.github/actions/setup
+
+      # The shapes are read through the type checker, which needs the
+      # generated client's types (gitignored).
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      # No two types under src/ are declared with the same shape
+      # (AGENTS.md › Coding Conventions › General, DRY).
+      - name: Check duplicate types
+        run: npm run check:duplicate-types
+
   test:
     name: Unit + integration tests (Vitest)
     runs-on: ubuntu-latest

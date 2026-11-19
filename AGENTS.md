@@ -153,7 +153,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 ### General
 
 - Domain helpers live in `src/utils/`.
-- **DRY — one definition per piece of logic, markup or type.** Markup that repeats with only data or color differences becomes one parameterized sub-component; a semantic color difference comes from a `Record<Key, string>` of literal Tailwind classes (never `` `bg-${accent}` `` — Tailwind can't see it). Identical type shapes collapse to one, and shapes sharing a core extend a base. Bad: five near-identical added / removed / modified sections, each hand-writing the same dot + title + note row; `AddedTemplate` and `RemovedTemplate` declared as identical interfaces. Good: one `ChangeRow` driven by `ACCENT: Record<Accent, {dot: string; border: string}>`; `TemplateChange extends TemplateRef`.
+- **DRY — one definition per piece of logic, markup or type.** Markup that repeats with only data or color differences becomes one parameterized sub-component; a semantic color difference comes from a `Record<Key, string>` of literal Tailwind classes (never `` `bg-${accent}` `` — Tailwind can't see it). A type is declared once: where its shape already exists, import it or derive it (`Pick`, `Omit`, `extends`) rather than write it out again (`npm run check:duplicate-types`, CI), and shapes sharing a core extend a base. Bad: five near-identical added / removed / modified sections, each hand-writing the same dot + title + note row; `AddedTemplate` and `RemovedTemplate` declared as identical interfaces. Good: one `ChangeRow` driven by `ACCENT: Record<Accent, {dot: string; border: string}>`; `TemplateChange extends TemplateRef`.
 - **Components that belong together share a kebab-case folder** named for the group, each in a file named after it (one component per file is linted; a one-off block that needs the parent's scope is a render function instead). Good: `projects/project-list/` holding `ProjectList.tsx`, `ProjectCard.tsx` and `ArchivedProjectRow.tsx`.
 - **Destructure** when two or more properties of the same object are used, instead of repeating `obj.a`, `obj.b`; a single one-off access can stay. Bad: `const feed = useDumpFeed(...); … feed.entries … feed.hasMore`. Good: `const {entries, capture, hasMore} = useDumpFeed(...);` (for a nullish source: `const {entries, nextCursor} = result ?? {entries: [], nextCursor: null};`).
 - **Name things plainly — clear and boring beats short or clever.** A function says what it returns or does, including what it looks up by; a variable or parameter — callback parameters included — says what it holds. Full words only: `id`, `tx` (Prisma transaction) and `prev` (setState updater) are fine, single letters are linted (allowed ones in `eslint.config.mjs`), and `t` is next-intl's alone. Bad: `getPlanningPlan(userId, planId)`, `templates.map(t => …)`, `runTool(ctx, body)`. Good: `getPlanContextByPlanId(userId, planId)`, `templates.map(template => …)`, `runTool(context, toolFunction)`.
@@ -203,7 +203,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 ## Tooling
 
 - **Prettier owns formatting** (`.prettierrc.json`; code only — Markdown and `design/` are ignored); don't hand-tune spacing or quotes against it. **ESLint owns correctness** and enforces no `any`, no `console.log` (`console.error` / `warn` allowed) and the server-only import boundary. In production code (`src/` outside the Design Console) it also enforces named exports and `const` arrow components (Next.js convention files excepted), one component per file, and no single-letter names.
-- CI runs `format:check`, `lint`, `typecheck`, `knip`, `check:themes`, `check:spec`, the Vitest suite (unit and integration with their coverage floors, component tests in a job of their own) and the Playwright suite — run all but Playwright before pushing (Version Control).
+- CI runs `format:check`, `lint`, `typecheck`, `knip`, `check:themes`, `check:spec`, `check:duplicate-types`, the Vitest suite (unit and integration with their coverage floors, component tests in a job of their own) and the Playwright suite — run all but Playwright before pushing (Version Control).
 
 ## Data & State
 
@@ -229,7 +229,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
   1. `design/tracker.md`: delete finished items and sub-bullets.
   2. README Current State: rewrite the sections the change touches.
   3. AGENTS.md, or a README it indexes: only when a rule or a directory's responsibility changed.
-  4. Run `npm run format`, then `lint`, `typecheck`, `knip`, `check:spec`, `test:coverage` and `test:component` (and `check:themes` when CSS variables changed). `test:coverage` and not `npm test`: CI fails below the coverage floors, which `npm test` doesn't check. CI runs e2e; run `npm run test:e2e` too when a change touches a page's flow.
+  4. Run `npm run format`, then `lint`, `typecheck`, `knip`, `check:spec`, `check:duplicate-types`, `test:coverage` and `test:component` (and `check:themes` when CSS variables changed). `test:coverage` and not `npm test`: CI fails below the coverage floors, which `npm test` doesn't check. CI runs e2e; run `npm run test:e2e` too when a change touches a page's flow.
 - **Act on submitted reviews only.** A pending review — comments drafted but not yet submitted — can still change: don't reply to, resolve or push for its comments; at most mention that one is pending.
 
 ## Commands
@@ -246,6 +246,7 @@ npm run check:themes # Every theme declares the same CSS variables (CI)
 npm run check:review-log  # Every owner review on a PR has its entry in reviews/ (CI; GITHUB_REPOSITORY and PR_NUMBER locally)
 npm run check:mockup-links  # Every mockup a PR changes is linked from its description (CI; same env)
 npm run check:spec   # Every item in a spec v2 doc is held by a test that names it, and no legacy doc grows (CI); `-- --list <page>` lists each item's tests
+npm run check:duplicate-types  # No type under src/ repeats another's shape (CI; needs the generated Prisma client)
 npm run e2e:timing -- <report.json>  # Each e2e spec's time per project, from Playwright's JSON report (CI job summary)
 npm test             # Every Vitest layer: unit + integration in UTC and Los Angeles time (a local Postgres: test/README.md), component in Chromium
 npm run test:unit    # Unit tests only, no database
