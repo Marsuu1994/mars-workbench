@@ -78,6 +78,33 @@ Night recap 的窗口跨过午夜（21:00–04:00）。照现在的规则，凌�
 
 推荐 O1。每个 ritual 在提交的同一个 transaction 里 upsert 这一行。
 
+### 每天的 snapshot：day ring 的今天总数和做完数
+
+Board 的 day ring（`specs/board.md` 的 RING-2，PR #132）现在这样数一天：
+
+- 今天：今天做完的 + Todo 里的卡；
+- 过去的一天：那天做完的 + 那天 expire 的 daily habit task。
+
+Spec 把这个算法标成了 temporary workaround：没有任何地方记下「那天排了什么」，所以一天的数隔夜会变。
+
+- 晚上还留在 Todo 的卡，第二天不再算进昨天的总数：没做完的一天看起来像做完了。
+- 没从 backlog 拉出来的 daily habit task 当晚 expire，第二天反而算进昨天的总数：昨晚合上的圈又缺了一段。
+- Phase 2 去掉 Daily 以后没有 task 按天 expire，过去的圈只剩「满」和「空」两种。
+
+Owner（2026-11-19，PR #132 的 review，原话）：
+
+> 我们需要去define怎么判断task是今天的pending item，早上把backlog的task拿到今天，那么这就是今天的total number + 1，晚上把task 挪到明天。所以确实需要一份plan的snapshot我们才有准确的今天总数和done数
+
+这正是两个 ritual 要写的数据：Open the day 把 task 拿进今天，Night recap 把没做完的挪到明天。所以 snapshot 跟着上一节的 `Day` 行走：
+
+- 记什么：那一天的总数和做完数，按 kind 分开（ring 的弧按 habit、step、one-off 着色，读屏也按 kind 读）。可以是 `Day` 上的六个数，也可以是一列 JSON。
+- 什么时候记：一天结束的时候。Wrap the day 提交时记；没 wrap 的那天，在下一个 rhythm day 的第一次 sync 里记，赶在把 Todo 清回 backlog（Data › D1）之前。
+- 今天还没结束时：ring 照样从 task 当场算，snapshot 只管已经结束的天。
+- 有了它，board 可以拿掉 RING-2 的 workaround，以及 ST-4 里「过去每天 expire 了几个 daily habit task」那个数。
+- 做完的比总数多时（例如总数定在早上，白天又做了计划外的）：owner 已定，圈按满的画，数字照实写（board spec 的 RING-3）。
+
+「今天的总数」到底含哪些 task 还没定，见 Q13。
+
 ## Flow 1 · Open the day
 
 ### 结构
@@ -269,13 +296,13 @@ Owner 说的是 expire。但现在 project step 和 one-off 从来不 expire，e
 2. Design PR：`design/mockup/mockup-daily-rhythm-rituals.html`，用 `ui-design` skill，一个 ritual 一个 tab，最后合成一个 F · Final：strip 的两种、两个 modal 的 desktop 和 mobile、几种数据组合（有 ↩ / 没有、周末、step 很多的一天、全做完的晚上、一张都没做的晚上）、Todo empty state 的几条文案并排、庆祝的动效 tab。
 3. Spec：`write-spec` 把 mockup 写进 `specs/board.md` 的两节新内容（Open the day、Night recap），Data 一节的规则（rhythm day、sync 清回、`carriedOn`、BL-1 的改动、Let go）写进 `specs/shared.md` 和 board 的 Rules。
 4. 实现，从 `main`，大概三个 PR：
-   - 数据：schema + migration（`Task.carriedOn`、`Day`）、rhythm day、sync 和 carry-over 的改动；
+   - 数据：schema + migration（`Task.carriedOn`、`Day` 和它每天的 snapshot）、rhythm day、sync 和 carry-over 的改动；board 的 ring 改成读 snapshot；
    - Open the day：推荐 util（unit test 覆盖上面的例子和每条边界）、service + action（integration test）、strip、modal、Todo empty state、Design Console 的 scenario；
    - Night recap：service + action、modal、庆祝、跳 Dump、scenario。
 
 ## Dependencies · 和别的工作的关系
 
-- **Board tap-to-complete（PR #128，另一个 thread 在做）**：会改 board 的 header、Todo 的标题（Today）、Today ring 和 Todo 的 empty 提醒（COL-5），也会定完成动画。strip 放在哪、Todo 的 empty state 和它的提醒怎么共存、recap 的庆祝怎么复用它的动画，要等它的 F · Final 定了再画进 mockup。D1 和 rhythm day 让「Todo = 今天」成立，正好回答它的 Ideas 2（方案 e）；那边要不要接，由那边决定。
+- **Board tap-to-complete（PR #128，另一个 thread 在做）**：会改 board 的 header、Todo 的标题（Today）、Today ring 和 Todo 的 empty 提醒（COL-5），也会定完成动画。strip 放在哪、Todo 的 empty state 和它的提醒怎么共存、recap 的庆祝怎么复用它的动画，要等它的 F · Final 定了再画进 mockup。D1 和 rhythm day 让「Todo = 今天」成立，正好回答它的 Ideas 2（方案 e）。它的 spec（PR #132）先把 ring 的算法写成 temporary workaround（RING-2），等这里的每天 snapshot（见「每天的 snapshot」和 Q13）。
 - **Config-driven modals（Quality gate › Step 10，PR #93）**：两个 ritual 的 modal 应该按它定下来的写法写。
 - **Phase 2 去掉 Daily 和 Plan mode**（tracker › Week model Phase 2）：到那时算法里 daily 和 `NORMAL` 周末两条就没了，其余不变。
 
@@ -293,3 +320,10 @@ Owner 说的是 expire。但现在 project step 和 one-off 从来不 expire，e
 10. **14:00 以后还没 open**：Todo 的 empty 换成不提 ritual 的一版（推荐），还是什么都不显示？
 11. **跳到 Dump**：只是跳过去、输入框获得焦点，还是带一个开头（例如日期）？另外 Night recap 的 Tomorrow 默认选中可以吗？
 12. **open 以后还能再打开 Open the day 吗？** 推荐：不能，strip 消失，白天从 backlog 拉。没 open 就直接从 backlog 拉卡也照旧能拉，拉进来的那几张打开 ritual 时就在 Today 里、没有 ×。
+13. **今天的总数怎么数（每天的 snapshot）**：一张 task 怎样算今天的 pending item？早上 Open the day 拿进 Today 的算，总数 +1（owner 已说）。还要定的：
+    - open 以后白天又从 backlog 拉的：也让总数 +1（和 board 现在的 RING-2 一样），还是总数定在早上、做完它算超额（圈按满的画）？
+    - 晚上 Night recap 选 Tomorrow 的：留在今天的总数里、算没做完，还是从今天的总数里拿掉？
+    - Let go 的：同上。
+    - 没 open 就过去的那天：总数按什么算？
+
+    推荐：白天拉的也 +1；Tomorrow 和 Let go 都留在今天的总数里、算没做完，不然每个 wrap 过的一天都是满圈，和现在「隔夜变满」是同一个问题；没 open 的那天按当天结束时的 Todo + 做完的算。
