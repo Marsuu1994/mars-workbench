@@ -150,9 +150,10 @@ R14). Good: the backlog folded to an edge (a pill on phones) and opened to plan 
 R14).
 
 **2.3 An empty list is a finish line.** When the planned work runs out, the screen says
-it is done and offers what could come next without pushing it. Good: an empty Todo
-reads "Today's plan is done · Pull more from the backlog, or call it a day." — both
-choices weighed the same (#115 R25).
+it is done and offers what could come next without pushing it. Good: an emptied Todo
+reads "All clear for the day", then "Everything you pulled for today is done" and "Pull
+more from the backlog or call it a day" — both choices weighed the same (#115 R25;
+the words #122).
 
 ### 3. Feedback — sized to the moment, in motion and in words
 
@@ -181,7 +182,7 @@ flies into today's ring on both widths, and the ring grows as it lands (#115 R23
 **3.5 Words match the moment.** A title cheers where the user has just won something,
 and stays quiet where the day is winding down. Good: an emptied backlog reads
 "Everything's on deck!"; an emptied Todo, mostly seen in the evening, reads "All clear
-for the day", with no exclamation mark (backlog grouping mockup, tab 6).
+for the day", with no exclamation mark (#122).
 
 **3.6 Words say only what the screen knows.** A line states what the data behind it
 shows, in every case the screen can be in. When a design's copy, or wording the owner
@@ -189,14 +190,13 @@ asks for, claims more than the data knows, the agent says so and asks the owner 
 using it. Bad: "This week's plan is done" on an emptied backlog, which only knows that
 everything was pulled, while Todo may still hold the week. Good: "This week's plan is
 all on the board"; Todo's "All clear for the day" shows only once something was done
-today (backlog grouping mockup, tab 6).
+today (#122).
 
 **3.7 A description is whole sentences, without punctuation.** It states the fact,
-then the next step, each a whole sentence on its own line, with no commas or full
-stops unless one is truly needed; an exclamation mark stays where it carries strong
+then the next step, each a whole sentence starting on its own line (a long one may
+wrap), with no commas or full stops unless one is truly needed; an exclamation mark stays where it carries strong
 feeling. Bad: "Pull more from the backlog, or call it a day." Good: "This week's plan
-is all on the board" / "Adjust your plan to add more or call it a week" (backlog
-grouping mockup, tab 6).
+is all on the board" / "Adjust your plan to add more or call it a week" (#122).
 
 **3.8 Sentence case.** User-facing copy is sentence case; Title Case is for headers
 only (page and section titles, nav labels). The same action keeps its casing across

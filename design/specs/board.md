@@ -33,7 +33,12 @@ Opening `/kanban` runs the sync first (`specs/shared.md`). The page then shows o
 
 ## Task cards
 
-- **CARD-1** Every card shows, from top to bottom:
+- *(removing)* **CARD-1** Replaced by CARD-9. Every card shows, from top to bottom:
+  - kind: what kind of task it is, with its details beside it; a project step shows its project's name in place of the kind
+  - title: the task's title
+  - description: the task's description, cut off after two lines
+  - progress and size: the kind's progress, then the task's size with its points
+- *(pending)* **CARD-9** Every card on the board, in Todo and Done, shows, from top to bottom (a backlog card is BL-10):
   - kind: what kind of task it is, with its details beside it; a project step shows its project's name in place of the kind
   - title: the task's title
   - description: the task's description, cut off after two lines
@@ -44,7 +49,7 @@ Opening `/kanban` runs the sync first (`specs/shared.md`). The page then shows o
   - progress: the week's dots, and how many of them are done out of the total
   - dots: one for each time the habit runs this week. A daily habit gets N for each day it runs (weekdays in `NORMAL` mode, every day in `EXTREME` mode); a weekly habit gets N. A dot is filled when its task is done and empty when it isn't, and the card's own task has a ring around its dot.
   - off the plan: if the habit is no longer on the plan, its cards show no details and no progress
-- *(pending)* **CARD-8** **Habit cards.**
+- *(pending)* **CARD-8** **Habit cards** on the board, in Todo and Done (a backlog card is BL-10).
   - details: how often the habit runs, Daily × N or Weekly × N
   - progress: the week's dots alone, with no count of how many are done beside them. A screen reader reads the dots as how many are done out of the total.
   - dots: one for each time the habit runs this week. A daily habit gets N for each day it runs (weekdays in `NORMAL` mode, every day in `EXTREME` mode); a weekly habit gets N. A dot is filled when its task is done and empty when it isn't, and the card's own task has a ring around its dot.
@@ -82,10 +87,7 @@ Opening `/kanban` runs the sync first (`specs/shared.md`). The page then shows o
 ### Groups
 
 - *(pending)* **BL-9** The backlog's tasks wait in groups: one habit's tasks in the backlog are one group, and one project's steps in the backlog are another. On both widths each group is one card, showing the group's next task: a habit's lowest copy, or a project's lowest step. A group with only one task is a plain card; when more tasks wait behind its next one, its card sits on a pile of them (BL-11). The groups sit in two sections, Habits and then Projects, and a section with no group in it isn't shown.
-- *(pending)* **BL-16** The groups are sorted:
-  - Habits: daily habits first, then weekly habits; within a kind, groups come in the order their first task was created
-  - Projects: groups come in the order their first step was created
-  - ties: anything still tied goes by when it was created, then by id
+- *(pending)* **BL-16** Within each section, the groups are sorted by when their habit or project was created, the oldest first; the tasks themselves play no part. Groups whose habits or projects were created at the same moment go by the habit's or the project's id.
 - *(pending)* **BL-10** A backlog card shows, from top to bottom:
   - kind: a habit card shows its kind, and a step card its project's name; neither shows details (no Daily × N or Weekly × N, no step n/N)
   - title: the next task's title
@@ -97,8 +99,11 @@ Opening `/kanban` runs the sync first (`specs/shared.md`). The page then shows o
   - mobile: the card has ↑ Todo and can't be dragged, so on mobile a backlog task reaches Done only through Todo
 - *(pending)* **BL-11** A group with tasks behind its next one shows **+N more** on its card, N being how many are behind, and under the card one thin sheet for each of them, at most three. The sheets have no text and can't be tapped. A group's last task shows neither.
 - *(pending)* **BL-12** A project's **+N more** has a chevron, and opens the project's queue (A8): in place of the sheets, a row for each step behind the next one, in step order, each showing its step number and title. Pressing it again closes the queue. A habit's **+N more** is text only and opens nothing. Closing the backlog (A3) closes every open queue, so the backlog always opens with its queues closed.
-- *(pending)* **BL-13** When a group's next task leaves the backlog, the group's card shows the task after it: **+N more** goes down by one, and the sheets under it go down by one once fewer than three are behind. When its last task leaves, the group's card is gone, and its section too once no group is left in it.
-- *(pending)* **BL-14** On desktop, as soon as the user lifts a backlog card to drag it, its group shows the task after it (BL-13), as if the top card had come off the pile. If the drag is cancelled, the lifted card goes back on top and the group is as it was. When the lifted card is the last task in the backlog, the panel just stays empty, its hint still showing, until the card is dropped on the board: only then does the box of an empty backlog show (BL-15).
+- *(pending)* **BL-13** When a group's next task leaves the backlog, the backlog changes as soon as the card is dropped or its ↑ Todo tapped, before the server answers (MV-5):
+  - the group's card shows the task after it, **+N more** goes down by one, and the sheets under it go down by one once fewer than three are behind
+  - a project's open queue stays open, its first row now on the card, and is gone once no step is left behind the next one
+  - when the group's last task leaves, its card is gone, and its section too once no group is left in it
+- *(pending)* **BL-14** On desktop, while the user drags a backlog card, its place in the panel holds a blank space of the card's size, with nothing in it. Nothing else in the backlog changes until the card is dropped (BL-13): the sheets under it, the other groups, the hint and the count stay as they were. If the drag is cancelled, the card goes back into its place.
 
 ## Progress
 
@@ -158,7 +163,7 @@ What happens when a card moves (A4–A7):
 - **R3** The server only moves the user's own tasks.
 - **R4** On the board, a card in Done can't be dragged.
 - **R5** On the board, nothing can be dropped into the backlog.
-- *(pending)* **R6** On the board, only a group's next task can be pulled out of the backlog: the steps in a project's queue can't be dragged and have no ↑ Todo. This limit is the board's alone. The server moves any task in the backlog, whatever its place in its group (R1), so writes from outside the board, such as Claude's over MCP, aren't held to it.
+- *(pending)* **R6** On the board, only a group's next task can be pulled out of the backlog: the steps in a project's queue can't be dragged and have no ↑ Todo. Only the board holds this limit: the server doesn't check a task's place in its group when it moves it (R1), so a write path outside the board, such as a future Claude tool over MCP, wouldn't be held to it.
 
 When the server refuses a move, the card goes back as in MV-4.
 
@@ -191,13 +196,13 @@ When the server refuses a move, the card goes back as in MV-4.
   - open the project's queue (A8): the step behind its next one shows in place of its pile
   - pull the project's next step into Todo (A4): it's in Todo; Todo's count goes up by one and the backlog's goes down by one. The project's card now shows its second step as a plain card, with no **+N more** and no queue (BL-13). Once saved, today's total goes up by one (MV-3).
   - pull the habit's next task into Todo (A4): the same, and the habit's card now shows its second task as a plain card
-  - finish the habit task (A7): it's on top of Done, its dot fills and a screen reader reads the habit's dots as one more done; Todo's count goes down and Done's goes up. Once saved, today's and the week's done counts and points count it.
   - close the backlog (A3): the strip shows 2
+  - finish the habit task (A7): it's on top of Done, its dot fills and a screen reader reads the habit's dots as one more done; Todo's count goes down and Done's goes up. Once saved, today's and the week's done counts and points count it.
   - reload: the step is still in Todo and the habit task in Done, and the progress is the same; the strip shows 2, and opened, the backlog holds both groups as plain cards
 - *(pending)* **J6 A week's work - mobile**: J5 on a phone, with the same data and the same steps, except:
   - open the backlog (A2): the pill opens the sheet
   - pull each task (A5): tap ↑ Todo on its card in place of dragging it, and the sheet stays open for the next
-  - close the backlog (A3): the pill shows 2
+  - close the backlog (A3): the pill shows 2, and the board behind the sheet can be reached again
 - *(pending)* **J11 Finish from the backlog - desktop-only**, with a habit's two tasks in the backlog:
   - the board (ST-3): Todo and Done are empty, and nothing is done today
   - open the backlog (A2): the habit's card shows **+1 more**, on a pile of one sheet
@@ -213,7 +218,7 @@ When the server refuses a move, the card goes back as in MV-4.
   - the board (ST-3): the strip shows 2
   - open the backlog (A2): the habit's card shows **+1 more**, on a pile of one sheet, and the count reads 2
   - pull its next task into Todo (A4): the habit's card shows its second task as a plain card, and the count reads 1
-  - lift the last card (BL-14): the panel is empty, its hint still showing
+  - lift the last card (BL-14): its place holds a blank space, and the hint and the count of 1 stay
   - drop it on Todo (A4): the panel shows that everything is on deck, with no hint, and the count reads 0 (BL-15)
   - close the backlog (A3): the strip stays and shows 0
   - open it again (A2): the panel shows that everything is on deck again

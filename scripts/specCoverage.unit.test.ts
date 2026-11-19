@@ -59,27 +59,91 @@ const HOLDING_EVERY_ITEM = [
 describe('parseSpecItems', () => {
   it('reads the IDs of list items and table rows, with their markers', () => {
     expect(parseSpecItems(SPEC)).toEqual([
-      {id: 'COL-1', pending: false, removing: false, bug: false},
-      {id: 'COL-2', pending: false, removing: false, bug: false},
-      {id: 'COL-3', pending: false, removing: true, bug: false},
-      {id: 'COL-4', pending: true, removing: false, bug: false},
-      {id: 'BL-8', pending: true, removing: false, bug: false},
-      {id: 'ST-2', pending: false, removing: false, bug: true},
-      {id: 'A1', pending: false, removing: false, bug: false},
-      {id: 'J1', pending: false, removing: false, bug: false},
+      {
+        id: 'COL-1',
+        pending: false,
+        removing: false,
+        bug: false,
+        misplacedMarker: false,
+      },
+      {
+        id: 'COL-2',
+        pending: false,
+        removing: false,
+        bug: false,
+        misplacedMarker: false,
+      },
+      {
+        id: 'COL-3',
+        pending: false,
+        removing: true,
+        bug: false,
+        misplacedMarker: false,
+      },
+      {
+        id: 'COL-4',
+        pending: true,
+        removing: false,
+        bug: false,
+        misplacedMarker: false,
+      },
+      {
+        id: 'BL-8',
+        pending: true,
+        removing: false,
+        bug: false,
+        misplacedMarker: false,
+      },
+      {
+        id: 'ST-2',
+        pending: false,
+        removing: false,
+        bug: true,
+        misplacedMarker: false,
+      },
+      {
+        id: 'A1',
+        pending: false,
+        removing: false,
+        bug: false,
+        misplacedMarker: false,
+      },
+      {
+        id: 'J1',
+        pending: false,
+        removing: false,
+        bug: false,
+        misplacedMarker: false,
+      },
     ]);
   });
 
   it("reads a marker before a table row's ID", () => {
     expect(
       parseSpecItems('| *(pending)* A8 | Open a queue | the card |'),
-    ).toEqual([{id: 'A8', pending: true, removing: false, bug: false}]);
+    ).toEqual([
+      {
+        id: 'A8',
+        pending: true,
+        removing: false,
+        bug: false,
+        misplacedMarker: false,
+      },
+    ]);
   });
 
-  it('reads no marker written after the ID, where it no longer belongs', () => {
-    expect(parseSpecItems('- **BL-8** *(pending)* A pile per group.')).toEqual([
-      {id: 'BL-8', pending: false, removing: false, bug: false},
-    ]);
+  it('flags a marker written after the ID, which it does not read', () => {
+    expect(parseSpecItems('- **BL-6** *(removing)* Replaced by BL-9.')).toEqual(
+      [
+        {
+          id: 'BL-6',
+          pending: false,
+          removing: false,
+          bug: false,
+          misplacedMarker: true,
+        },
+      ],
+    );
   });
 });
 
@@ -128,6 +192,21 @@ describe('findSpecProblems', () => {
     );
     expect(findSpecProblems([spec], [testFile(calls)])).toEqual([
       `${SPEC_PATH}: no test holds COL-3 — name it at the start of the title of the test that checks it.`,
+    ]);
+  });
+
+  it('reports a marker written after its ID, and nothing else about that item', () => {
+    const misplaced = {
+      path: SPEC_PATH,
+      markdown: SPEC.replace(
+        '- *(pending)* **BL-8** A pile per group.',
+        '- **BL-8** *(pending)* A pile per group.',
+      ),
+    };
+    expect(
+      findSpecProblems([misplaced], [testFile(HOLDING_EVERY_ITEM)]),
+    ).toEqual([
+      `${SPEC_PATH}: BL-8's marker sits after its ID, where it isn't read — move it before the ID: \`- *(pending)* **BL-8** …\`.`,
     ]);
   });
 

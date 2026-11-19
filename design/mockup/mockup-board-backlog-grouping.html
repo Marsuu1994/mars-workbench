@@ -163,20 +163,18 @@
   .empty-grid .board-main { height: 380px; }
   .empty-grid .board-cols { grid-template-columns: 1fr; }
   .empty-grid .backlog { width: 280px; }
-  .empty-grid .sub, .entry-row .sub, .todo-opt .sub { font-family: 'Geist Mono', monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 50%, transparent); margin-bottom: 6px; }
+  .empty-grid .sub, .entry-row .sub { font-family: 'Geist Mono', monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in oklab, var(--bc) 50%, transparent); margin-bottom: 6px; }
   .opt-head { display: flex; align-items: baseline; gap: 10px; margin: 26px 0 10px; font-size: 13px; font-weight: 700; }
   .opt-head .tag { font-family: 'Geist Mono', monospace; font-size: 10.5px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--card-border); color: color-mix(in oklab, var(--bc) 60%, transparent); font-weight: 600; }
   .opt-head .tag.rec { border-color: var(--p); color: var(--p); }
   .opt-head .why { font-weight: 400; font-size: 12px; color: color-mix(in oklab, var(--bc) 60%, transparent); }
   .entry-row { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
   .entry-row .none { width: 200px; height: 44px; border: 1px dashed var(--card-border); border-radius: 16px; display: grid; place-items: center; font-size: 11px; color: color-mix(in oklab, var(--bc) 45%, transparent); }
-  .todo-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; align-items: start; }
-  .todo-opt { display: flex; flex-direction: column; }
   .board.narrow .board-main { height: 300px; }
   .board.narrow .board-cols { grid-template-columns: 1fr; }
   .board.narrow .rail { width: 48px; flex-shrink: 0; border-left: 1px solid var(--card-border); display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 14px; }
   .board.narrow .rail .v { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 13px; font-weight: 600; color: color-mix(in oklab, var(--bc) 60%, transparent); }
-  @media (max-width: 1100px) { .empty-grid, .todo-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 1100px) { .empty-grid { grid-template-columns: 1fr; } }
 
   /* ── The kind-first TaskCard (production face) ── */
   .tc { position: relative; background: var(--card-bg); border: 1px solid var(--card-border); border-left: 3px solid var(--k); border-radius: var(--rc); box-shadow: var(--card-shadow); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; transition: transform .15s cubic-bezier(.2,0,0,1), opacity .2s; user-select: none; }
@@ -228,6 +226,7 @@
   .bk-top .ttl { flex: 1; min-width: 0; font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .bk-top .kname { flex: 1; min-width: 0; font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: .02em; color: var(--k); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .bk-title { font-size: 14px; font-weight: 500; line-height: 1.3; }
+  .bk-top .kname.kind { text-transform: uppercase; letter-spacing: .12em; }
   .bk-desc { font-size: 12px; color: color-mix(in oklab, var(--bc) 58%, transparent); line-height: 1.4; margin-top: -2px; }
   .bk-bot { display: flex; align-items: center; gap: 8px; min-height: 18px; }
   .bk-bot .sp { flex: 1; }
@@ -297,6 +296,8 @@
   /* drag ghost */
   .ghost { position: fixed; z-index: 999; pointer-events: none; width: 274px; transform: rotate(2deg) scale(1.02); box-shadow: 0 12px 30px oklch(0 0 0 / .4); opacity: .95; }
   .lifted { opacity: .35; }
+  /* 修订 2026-11-18: a lifted backlog card leaves a blank space of its size; the pile under it stays */
+  .bk.lifted { opacity: 1; visibility: hidden; }
 
   /* ── Mobile ── */
   .phones { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px 20px; align-items: start; }
@@ -352,13 +353,14 @@
 
 <header class="topbar">
   <div>
-    <div class="eyebrow">Board · Backlog · design PR · final version · decided 2026-11-05 · 修订 2026-11-05 · 修订 2026-11-07 · 修订 2026-11-10 · 修订 2026-11-18（空的 backlog 和 Todo，decided 2026-11-18）</div>
+    <div class="eyebrow">Board · Backlog · design PR · final version · decided 2026-11-05 · 修订 2026-11-05 · 修订 2026-11-07 · 修订 2026-11-10 · 修订 2026-11-18（空的 backlog 和 Todo，decided 2026-11-18） · 修订 2026-11-18 晚（PR #122 review）</div>
     <h1>Backlog grouping — 定稿</h1>
     <p>第 1 轮选了 <b>D</b>：一个 habit 一行；一个 project 只露出下一步，其余的点一下展开。Backlog 卡片去掉了 <b>Weekly × 3</b> / <b>Step 4/9</b> 这行文字、<b>size</b>，以及 <b>done / total</b> 分数：dots 和 path 已经表达了进度；board 上的 habit 卡也去掉分数。两种卡片的右上角都是 <b>+N more</b>，表示下一个后面还排着几个，卡片下面垫着最多三层的薄 <b>pile</b>（第 3 页）；只有 project 的那个带 ⌄，点开是它的 queue。Mobile 上 <b>↑ Todo</b> 在右下角。Badge 数的是 <b>backlog 里所有 task</b>，超过 8 显示 <b>8+</b>。</p>
     <p><b>修订（2026-11-05，定稿后发现）：</b>habit 卡补回 description，布局和 project 卡对齐：标题行、description、进度行（habit 是 dots，project 是 path），mobile 上 ↑ Todo 在同样的右下角。同一组逻辑上相近的卡片保持同一套结构，只用颜色和进度标记的样式区分。</p>
     <p><b>修订（2026-11-07）：</b>habit 也垫 <b>pile</b>，和 project 一样：后面每排着一个 instance 垫一层，最多三层。两种卡片剩下的唯一区别是能不能展开：project 的 <b>+N more ⌄</b> 打开它后面的 step，每一步标题不同、顺序要看得见；habit 的 <b>+N more</b> 只是文字，后面的 instance 是同一件事，展开没有新信息。</p>
     <p><b>修订（2026-11-10）：</b>backlog 里去掉了 one-off。One-off 从不在 backlog 里等：Track 把它直接放进 Todo，carry 到下一周时保留原来的状态，所以 backlog 只有 habit 和 project 两种卡片。</p>
     <p><b>修订（2026-11-18，decided 2026-11-18）：</b>backlog 空了，入口不再消失：desktop 的 strip 和 mobile 的 pill 都留着，badge 显示 <b>0</b>；打开后是一个虚线框，标题 <b>Everything's on deck!</b>，下面一句事实、一句下一步，都是不加标点的完整句子。今天至少做完一件、Todo 又空了时，Todo 显示同一个框，标题 <b>All clear for the day</b>（第 6 页）。</p>
+    <p><b>修订（2026-11-18 晚，owner 在 PR #122 的 review 后定）：</b>① habit 卡换成 board 的同一张卡（PR #115 tab K）：第一行 <b>HABIT</b> 和 +N more，标题在第二行。② Desktop 拖起 backlog 卡时，原地留一块同样大小的空白，什么都不标，也不露出下一张；pile、计数和其他组都不动，放下后才更新：下一张接上来、开着的 queue 少一行但保持打开，不等 server。③ Backlog 的 group 按 habit 或 project 自己的创建时间排，同时创建的按 id，不再看单个 task，也不再分 daily / weekly。</p>
   </div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
     <div class="seg" id="themes">
@@ -404,7 +406,7 @@
   <ul class="changes">
     <li><span class="k">① context text</span><b>去掉 plan line 和 step n/N</b>Dots 已经表达了 habit 这一周的进度；path 已经表达了 step 在 project 里的位置。Project 名保留：它是这个 step 属于谁，不是在重复进度。</li>
     <li><span class="k">② done / total</span><b>两种卡片都不显示分数</b>由 dots 和 path 表达；backlog 里不再有 1/3 和 3/9，board 上 habit 卡的 1/3 也去掉。分数留作进度的 accessible name（"1 of 3 done this week"）。</li>
-    <li><span class="k">⑤ 结构</span><b>habit 和 project 卡同一套结构</b>标题行（右上角 +N more）、description、进度行（dots / path）、下面的 pile，mobile 上 ↑ Todo 在右下角；habit 的 description 在定稿后补回（修订 2026-11-05），pile 也补上（修订 2026-11-07）。唯一的区别：project 能展开，habit 不能。</li>
+    <li><span class="k">⑤ 结构</span><b>habit 和 project 卡同一套结构</b>kind 行（habit 是 HABIT，project 是它的名字；右上角 +N more）、标题、description、进度行（dots / path）、下面的 pile，mobile 上 ↑ Todo 在右下角；habit 的 description 在定稿后补回（修订 2026-11-05），pile 也补上（修订 2026-11-07）。唯一的区别：project 能展开，habit 不能。</li>
     <li><span class="k">③ size</span><b>去掉 size chip</b>Desktop 和 mobile 都去掉。Points 仍计入 dashboard。</li>
     <li><span class="k">④ corners</span><b>+N more · ↑ Todo 在右下角</b>两种卡片数的都是下一个<i>后面</i>还有几个，所以 project 的数字和它展开的行数一致：Read 排了两个，显示 <i>+1 more</i>；Biomedical course 这周三步，显示 <i>+2 more ⌄</i>；最后一个什么都不显示。后面还有的 habit 和 project 都垫着薄 pile，最多三层（第 3 页）。Mobile 上每张卡的 ↑ Todo 都移到右下角。</li>
   </ul>
@@ -463,7 +465,7 @@
   <div class="opt-head"><span class="tag">Before</span>现在的产品</div>
   <div class="empty-grid" id="todo-before"></div>
   <div class="opt-head"><span class="tag rec">After</span>All clear for the day</div>
-  <div class="empty-grid" id="todo-options"></div>
+  <div class="empty-grid" id="todo-after"></div>
 </section>
 
 <nav class="seg screen-nav" id="screens">
@@ -565,14 +567,17 @@ const moreText = (count, bumped) => `<span class="more ${bumped ? 'bump' : ''}">
 const PILE_MAX = 3;
 const pile = behindCount => (behindCount > 0 ? `<span class="pile" aria-hidden="true">${'<i></i>'.repeat(Math.min(behindCount, PILE_MAX))}</span>` : '');
 
-/* A habit sits on the same pile as a project, but never opens: the
+/* 修订 2026-11-18: the board's one card (PR #115, tab K · Card) — HABIT on the first line with
+   +N more, the title under it, like a project's card under its name.
+   A habit sits on the same pile as a project, but never opens: the
    instances behind it are the same task, so there is nothing to show */
 function habitRow(group, ctx) {
   const [top, ...behind] = remaining(group);
   const bumped = ctx.state.bumped === group.id;
   const drag = ctx.mobile ? '' : `data-drag="${group.id}" data-index="${group.pulled}"`;
   return `<div class="grp"><div class="bk habit ${bumped ? 'rise' : ''}" data-kind="habit" ${drag}>
-    <div class="bk-top"><span class="ic">${icon('habit', 'sm')}</span><span class="ttl">${group.title}</span>${behind.length > 0 ? moreText(behind.length, bumped) : ''}</div>
+    <div class="bk-top"><span class="ic">${icon('habit', 'xs')}</span><span class="kname kind">Habit</span>${behind.length > 0 ? moreText(behind.length, bumped) : ''}</div>
+    <div class="bk-title">${group.title}</div>
     ${group.desc ? `<p class="bk-desc">${group.desc}</p>` : ''}
     <div class="bk-bot">${dots({target: group.target, doneSlots: group.done, cur: top.slot})}<span class="sp"></span>${ctx.mobile ? pullBtn(group.id, group.pulled) : ''}</div>
   </div>${pile(behind.length)}</div>`;
@@ -725,7 +730,7 @@ function renderAnatomy() {
     </div>`).join('');
 }
 
-/* Empty screen (修订 2026-11-18): the empty backlog in two real cases, then the empty Todo's three titles */
+/* Empty screen (修订 2026-11-18): the empty backlog in two real cases, then the empty Todo, Before and After */
 const emptyOf = () => ({...freshState(), groups: []});
 const CASE_TODO = [
   {kind: 'habit', title: 'Read', desc: '30 pages, any book', plan: 'Weekly × 3', target: 3, doneSlots: [], cur: 0, size: 'XS'},
@@ -739,7 +744,7 @@ const EMPTY_CASES = [
 function todoColumn(option, todo) {
   const fraction = option === 'before';
   const body = todo.length ? todo.map(model => card(model, {fraction})).join('')
-    : option === 'before' ? '<p class="empty">No tasks</p>' : todoEmpty();
+    : option === 'before' ? '' : todoEmpty();
   return `<div class="column"><div class="column-head">Todo<span class="count-ghost">${todo.length}</span></div><div class="column-body">${body}</div></div>`;
 }
 function miniBoard(state, option, todo) {
@@ -777,7 +782,7 @@ function renderEmpty() {
     <div><div class="sub">After · mobile</div>${pill}</div>`;
   document.getElementById('empty-phones').innerHTML = EMPTY_PHONES.map(renderPhone).join('');
   document.getElementById('todo-before').innerHTML = `<div><div class="sub">Desktop · backlog 还有 5 个</div>${miniBoard(someLeftState(), 'before', [])}</div><div><div class="sub">Mobile · Todo</div>${todoPhone('before')}</div>`;
-  document.getElementById('todo-options').innerHTML = `<div><div class="sub">Desktop · 今天做完了 3 件 · backlog 收起，还有 5 个</div>${collapsedBoard()}</div><div><div class="sub">Mobile · Todo</div>${todoPhone('after')}</div>`;
+  document.getElementById('todo-after').innerHTML = `<div><div class="sub">Desktop · 今天做完了 3 件 · backlog 收起，还有 5 个</div>${collapsedBoard()}</div><div><div class="sub">Mobile · Todo</div>${todoPhone('after')}</div>`;
 }
 
 /* ── State ── */
@@ -861,7 +866,7 @@ let drag = null;
 document.addEventListener('pointerdown', event => {
   if (event.target.closest('button')) return;
   const source = event.target.closest('[data-drag]');
-  if (!source || !source.closest('.board')) return;
+  if (!source || !source.closest('.board') || !stateFor(source)) return;
   drag = {source, board: source.closest('.board'), startX: event.clientX, startY: event.clientY, ghost: null};
 });
 document.addEventListener('pointermove', event => {

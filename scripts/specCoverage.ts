@@ -12,6 +12,9 @@ const ID = String.raw`(?:[A-Z]+-\d+|[ARJ]\d+)`;
 /** An item's marker, read only where it belongs: before the ID (`*(pending)* **BL-8**`). */
 const MARKER = String.raw`\*\((pending|removing|bug)\)\*`;
 
+/** A marker anywhere on a line, to catch one written after the ID. */
+const ANY_MARKER = new RegExp(MARKER);
+
 /** A list item that starts with a bold ID, its marker before it: `- **COL-2** …`, `- *(pending)* **J5 A week's work - desktop** …`. */
 const LIST_ITEM_ID = new RegExp(
   String.raw`^\s*-\s+(?:${MARKER}\s+)?\*\*(${ID})\b`,
@@ -49,6 +52,8 @@ export interface SpecItem {
   removing: boolean;
   /** A known bug: an `it.fails` holds it */
   bug: boolean;
+  /** A marker on the item's line but not before its ID, where it isn't read */
+  misplacedMarker: boolean;
 }
 
 export interface TestTitle {
@@ -200,6 +205,7 @@ export const parseSpecItems = (markdown: string): SpecItem[] =>
         pending: marker === 'pending',
         removing: marker === 'removing',
         bug: marker === 'bug',
+        misplacedMarker: !marker && ANY_MARKER.test(line),
       },
     ];
   });
@@ -285,7 +291,7 @@ const findHolders = (specs: Spec[], testFiles: TestFile[]) => {
 
 /**
  * Everything wrong between the v2 specs and the tests, one sentence each:
- * an item no test holds, a bug no `it.fails` holds, an item that isn't a bug
+ * a marker written after its ID, an item no test holds, a bug no `it.fails` holds, an item that isn't a bug
  * held only by `it.fails`, a title naming an ID its spec doesn't have (or one
  * still pending), an ID used twice, and a skipped block in a test file.
  */
@@ -298,9 +304,15 @@ export const findSpecProblems = (
   for (const [specPath, items] of itemsBySpec) {
     const seen = new Set<string>();
     const holders = holdersBySpec.get(specPath);
-    for (const {id, pending, bug} of items) {
+    for (const {id, pending, bug, misplacedMarker} of items) {
       if (seen.has(id)) problems.push(`${specPath}: ${id} is used twice.`);
       seen.add(id);
+      if (misplacedMarker) {
+        problems.push(
+          `${specPath}: ${id}'s marker sits after its ID, where it isn't read — move it before the ID: \`- *(pending)* **${id}** …\`.`,
+        );
+        continue;
+      }
       const heldBy = holders?.get(id) ?? [];
       if (pending) {
         for (const {path} of heldBy) {
