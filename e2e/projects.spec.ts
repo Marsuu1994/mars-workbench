@@ -183,35 +183,6 @@ test.describe('Modal URL Flow', () => {
     );
     const editStepUrl = new RegExp(`modal=editStep&stepId=${firstStep.id}`);
 
-    // DIAGNOSTIC (temporary): what Next's router fetches and writes to history
-    page.on('request', request => {
-      const headers = request.headers();
-      if (headers.rsc || headers['next-action']) {
-        console.warn('[diag] request', request.method(), request.url());
-      }
-    });
-    page.on('console', message => {
-      if (message.text().startsWith('[hist]')) console.warn(message.text());
-    });
-    await page.addInitScript(() => {
-      for (const method of ['pushState', 'replaceState'] as const) {
-        const original = window.history[method].bind(window.history);
-        window.history[method] = (data, unused, url) => {
-          const keys = data ? Object.keys(data).join(',') : 'null';
-          console.warn(`[hist] ${method} ${String(url)} keys=${keys}`);
-          return original(data, unused, url);
-        };
-      }
-      window.addEventListener('popstate', () =>
-        console.warn(`[hist] popstate ${location.href}`),
-      );
-      document.addEventListener(
-        'close',
-        () => console.warn(`[hist] dialog close ${location.href}`),
-        true,
-      );
-    });
-
     // Loaded with the modal in the URL: it opens on the step it names, and
     // closing it takes the modal out of the URL
     await openPage(
@@ -226,11 +197,12 @@ test.describe('Modal URL Flow', () => {
     await expect(page).not.toHaveURL(/modal=/);
 
     // Opened in the page: back closes it, forward opens it again
-    console.warn('[diag] before card click', page.url());
     await page.getByRole('button', {name: new RegExp(COURSE.title)}).click();
-    console.warn('[diag] after card click', page.url());
-    await page.getByRole('button', {name: 'Edit step'}).first().click();
-    console.warn('[diag] after edit click', page.url());
+    // Exact: a step's draggable row is a button too, named with all it holds
+    await page
+      .getByRole('button', {name: 'Edit step', exact: true})
+      .first()
+      .click();
     await expect(page).toHaveURL(editStepUrl);
     await expect(titleField).toHaveValue(COURSE.steps[0]);
     await page.goBack();
