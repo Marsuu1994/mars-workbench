@@ -70,3 +70,6 @@ src/generated/prisma
 
 # One-time DB scripts (may contain PII / destructive ops — never commit)
 /scripts/one-time/
+
+# Conversation transcripts kept for future experiments (personal data — never commit; the shared datasets go to the private evals repository)
+/experiments/dataset/
