@@ -23,7 +23,7 @@ Before drawing, find how other products solve the same problem — what the rese
 
 ## 4. Options
 
-Draw `design/mockup/mockup-<area>.html` as `design/README.md` › Mockups says: its name and its links, the options and how they are ranked, the research screen, the data it is drawn with, what is clickable, a tab per module, what Before and After may show, the language, the freshness script, and the render check before a push.
+Draw `design/mockup/mockup-<area>.html` as `design/README.md` › Mockups says.
 
 Rewrite the tracker item to say what the design does. When the owner asks for the PR (AGENTS.md › Version Control), its description opens with the mockup's link, and the questions the owner has to decide come under it.
 

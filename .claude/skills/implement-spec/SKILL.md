@@ -5,7 +5,11 @@ description: Building a page's *(pending)* spec items — a test for each at the
 
 # Implement spec — from pending items to built and tested
 
-The scope is the spec: the items still marked *(pending)* or *(removing)* on the page. The spec says what each item does and the decided mockup how it looks. Behaviour no item states doesn't stop the work: decide, build the smallest thing that fits the design, and report the decision at the end (step 5). Ask the owner first only when the decision would change data, change a rule the server holds, reach another page, or go against an item. A question the spec left open (the inputs say where to find them) does stop it: a spec is settled before it is built, so an open question means the step before this one isn't finished. Stop on the items it touches and raise it with the owner. A part of the mockup that can't be built as drawn is raised first too (AGENTS.md › UI Workflow).
+The scope is the spec: the items still marked *(pending)* or *(removing)* on the page. The spec says what each item does and the decided mockup how it looks. What to do where the spec doesn't settle something:
+
+- Behaviour no item states: decide, build the smallest thing that fits the design, and report the decision at the end (step 5). Ask the owner first only when the decision would change data, change a rule the server holds, reach another page, or go against an item.
+- A question the spec left open (the inputs say where to find them): stop on the items it touches and raise it with the owner. A spec is settled before it is built, so an open question means the step before this one isn't finished.
+- A part of the mockup that can't be built as drawn: raise it first (AGENTS.md › UI Workflow).
 
 ## 1. Read
 

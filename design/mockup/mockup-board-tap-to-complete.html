@@ -502,9 +502,14 @@
   .pz-day.today.closed { border-color: color-mix(in oklab, var(--su) 60%, transparent); box-shadow: 0 0 16px color-mix(in oklab, var(--su) 14%, transparent); }
   .pz-day.today.closed .dn { color: var(--su); }
   .pz-day.today .v .all { color: var(--su); font-family: inherit; }
-  .cel-empty { border: 1px dashed color-mix(in oklab, var(--su) 40%, transparent); border-radius: var(--rc); padding: 18px 14px; text-align: center; font-size: 13px; color: var(--ink-80); display: flex; flex-direction: column; align-items: center; gap: 6px; }
-  .cel-empty b { color: var(--bc); font-size: 14px; }
-  .cel-empty small { color: var(--ink-55); font-size: 12px; }
+  .cel-empty, .bk-empty { border: 1px dashed color-mix(in oklab, var(--su) 40%, transparent); border-radius: var(--rc); padding: 18px 14px; text-align: center; font-size: 13px; color: var(--ink-80); display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .cel-empty b, .bk-empty b { color: var(--bc); font-size: 14px; }
+  .cel-empty small, .bk-empty small { color: var(--ink-55); font-size: 12px; }
+  .bk-demo { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+  .bk-demo .bk-box { border: 1px solid var(--card-border); border-radius: 12px; overflow: hidden; background: var(--b2); }
+  .bk-demo .backlog { border-left: 0; }
+  .bk-demo .backlog-body { max-height: 420px; }
+  .bk-demo .bk-old-empty { text-align: center; font-size: 12px; color: var(--ink-45); margin-top: 24px; padding: 0 16px; }
   .cel-empty.enter { animation: celEnter .4s var(--ease); }
   @keyframes celEnter { from { opacity: 0; transform: translateY(6px); } }
   .ideas { display: flex; flex-direction: column; gap: 14px; max-width: 980px; }
@@ -717,7 +722,7 @@
   <div>
     <div class="eyebrow">Board · Phase 2 · design PR · pending 2026-11-19（定稿过：final version · decided 2026-11-11）· 第 1 轮 2026-11-06 · 第 2–18 轮一个模块一个模块定，2026-11-09 合在一起 · 第 22–25 轮：M · 完成动画 · 第 25–28 轮：桌面 Todo 加 Today、Todo 空了的提醒 · 第 28–29 轮：K · Card，所有卡片合成一个组件</div>
     <h1>Board：点一下选中，✓ Complete 完成</h1>
-    <p>有 active plan 的白天，默认屏就是 board。第一个 tab <b>F · Final</b> 是合在一起的定稿：Before 是现在的产品，After 是 P · Progress、C · Celebration、D · Done、T · Tap twice、M · 完成动画五个模块合起来的样子，桌面和手机都能直接点。后面五个 tab 是每个模块的决定和研究，<b>K · Card</b> 把所有卡片放在一起对照，给实现用；<b>I · Ideas</b> 记着这个设计带出来、要在别处或以后做的事。第 1 轮的 1–6 屏已被这些决定取代，留在 commit 历史里（<code>53d9220</code> 及以前）。</p>
+    <p>有 active plan 的白天，默认屏就是 board。第一个 tab <b>F · Final</b> 是合在一起的定稿：Before 是现在的产品，After 是 P · Progress、C · Celebration、D · Done、T · Tap twice、M · 完成动画五个模块合起来的样子，桌面和手机都能直接点。后面五个 tab 是每个模块的决定和研究，<b>K · Card</b> 把所有卡片放在一起对照，给实现用；<b>B · Backlog</b> 记 backlog 这里的两处修订（2026-11-19，等 owner 确认）；<b>I · Ideas</b> 记着这个设计带出来、要在别处或以后做的事。第 1 轮的 1–6 屏已被这些决定取代，留在 commit 历史里（<code>53d9220</code> 及以前）。</p>
     <p><b>Pending · 2026-11-19（owner）。</b>这个设计在 2026-11-11 定稿过，现在改回 pending。动手写 spec 或实现之前先处理下面两件事，处理完由 owner 重新定稿（<code>design/README.md</code> › Mockups）。各个 tab 上的 ✓ 和「定稿」记的是当时每个模块的决定，留着不动。</p>
     <p><b>① 没写明的动画。</b>这个文件有 17 个 <code>@keyframes</code>：<code>armDown</code>、<code>armIn</code>、<code>bigPulse</code>、<code>burst</code>、<code>celEnter</code>、<code>countdown</code>、<code>doneIn</code>、<code>draw</code>、<code>freshRow</code>、<code>halo</code>、<code>moShine</code>、<code>pop</code>、<code>pulled</code>、<code>rise</code>、<code>spark</code>、<code>spin</code>、<code>tick</code>。<b>M · 完成动画</b>写明了完成时的 juice 和飞进今天的圈；其余的逐个确认：是设计的一部分，就在它所属组件的 tab 里写明什么触发、哪个元素动、怎么动、多久、系统开了「减少动态效果」时怎样；不是，就从 mockup 里删掉。Before 不做产品没有的动效。</p>
     <p><b>② 和现在的产品对齐。</b>Before 照动手时的产品重画，文字里说「现在的产品」的地方逐句对照代码。定稿之后产品已经在变：PR #126 把 backlog 改成按 habit 和 project 分组，并给空的 backlog 和空的 Todo 加了虚线框。</p>
@@ -726,7 +731,7 @@
 
 <!-- ═════════ F · Final: the four modules on one board (round 18) ═════════ -->
 <section class="screen on" data-screen="final">
-  <div class="col-label"><b>F · Final · pending 2026-11-19（见页首）· 之前：final version · decided 2026-11-09 · 修订 · amended 2026-11-10（第 25 轮：合进 M，桌面 Todo 加 Today、Todo 空了的提醒，第 28 轮定稿）· 修订 · amended 2026-11-11（第 28 轮：卡片合成一个组件，one-off 的 quadrant 挪进标签；第 29 轮定稿）</b> · P 进度圈 · C 庆祝 · D 做完的去哪 · T 点两下完成 · M 完成动画 · K 卡片，合在一块 board 上<span class="line"></span></div>
+  <div class="col-label"><b>F · Final · pending 2026-11-19（见页首）· 修订 · amended 2026-11-19（PR #127：backlog 去掉标题下的提示、补上空状态，见 B · Backlog；Todo 空了的文案换成 All clear for the day，见 D · Done；等 owner 确认）· 之前：final version · decided 2026-11-09 · 修订 · amended 2026-11-10（第 25 轮：合进 M，桌面 Todo 加 Today、Todo 空了的提醒，第 28 轮定稿）· 修订 · amended 2026-11-11（第 28 轮：卡片合成一个组件，one-off 的 quadrant 挪进标签；第 29 轮定稿）</b> · P 进度圈 · C 庆祝 · D 做完的去哪 · T 点两下完成 · M 完成动画 · K 卡片，合在一块 board 上<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:14px">每一块怎么来的，见后面五个 tab 和 <code>reviews/pr-115.md</code>。下面的 After 都能直接操作：点卡片选中，再点 <b>✓ Complete</b> 完成（只点卡片别处是取消）——卡片随机来一种 juice，再飞进今天的圈（M）；全部做完会播大反馈，Todo 空了留一块提醒。点今天或之前的某一格，看那天做完的；Backlog 点开，卡片上有 <b>↑ Todo</b>。桌面和手机的 After 上面各有 <b>Complete all →</b>（一张张做完，直接看大反馈，可以拿来录 demo）和 <b>Reset</b>。Fixture：Thu Nov 5 12:40，今天做完 1 / 5。</p>
   <div class="col-label"><b>这次新加的</b> · 相对现在的产品，按 board 上的位置分，每块注明来自哪个模块（第 28 轮和原来的「解剖」合成一节）<span class="line"></span></div>
   <div class="patterns" id="fin-new" style="margin-bottom:22px;grid-template-columns:repeat(auto-fill, minmax(230px, 1fr))"></div>
@@ -773,8 +778,8 @@
 
 <!-- ═════════ C · Celebration (round 2–3) ═════════ -->
 <section class="screen" data-screen="celebration">
-  <div class="col-label"><b>C · Celebration · 定稿 · decided 2026-11-08</b> · 每完成一个是小反馈；今天排的全部做完时，圈转一圈、迸出火花；之后今天那格变绿、Todo 里留一张「Today's plan is done」（第 25 轮单独拿到 D · Done 的「Todo 空了」）<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px">Owner 选了第 1 轮 celebration 的 B，并且要求做完以后有一个一直留着的视觉标记；第 2 轮的 C（Todo 里的小结卡）已排除（commit <code>2d59d33</code>）；第 3 轮在各种颜色组合下并排比较了 A（光晕 + ✓）和 B，owner 选了 <b>B</b>，A 留在 commit <code>783b6b6</code>。<b>小反馈</b>：✓ 150 ms 填满，卡片 240 ms 收起，今天的圈接上一段自己颜色的弧（500 ms），格子轻轻一跳。<b>大反馈</b>：圈顺时针转一圈（700 ms），12 颗火花按今天做完的比例着色迸出、淡掉，✓ 画出来（✓ 本身不转），文案 <b>All 5 done</b>，一个 Success 振动。<b>留下来的</b>：今天那格的框变绿、圈带 ✓；Todo 空了的地方是 <b>Today's plan is done</b> · Pull more from the backlog, or call it a day.</p>
+  <div class="col-label"><b>C · Celebration · 定稿 · decided 2026-11-08</b> · 每完成一个是小反馈；今天排的全部做完时，圈转一圈、迸出火花；之后今天那格变绿、Todo 里留一张「All clear for the day」（第 25 轮单独拿到 D · Done 的「Todo 空了」；文案 2026-11-19 修订）<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:14px">Owner 选了第 1 轮 celebration 的 B，并且要求做完以后有一个一直留着的视觉标记；第 2 轮的 C（Todo 里的小结卡）已排除（commit <code>2d59d33</code>）；第 3 轮在各种颜色组合下并排比较了 A（光晕 + ✓）和 B，owner 选了 <b>B</b>，A 留在 commit <code>783b6b6</code>。<b>小反馈</b>：✓ 150 ms 填满，卡片 240 ms 收起，今天的圈接上一段自己颜色的弧（500 ms），格子轻轻一跳。<b>大反馈</b>：圈顺时针转一圈（700 ms），12 颗火花按今天做完的比例着色迸出、淡掉，✓ 画出来（✓ 本身不转），文案 <b>All 5 done</b>，一个 Success 振动。<b>留下来的</b>：今天那格的框变绿、圈带 ✓；Todo 空了的地方是 <b>All clear for the day</b> 和下面两句（文案 2026-11-19 修订，见 D · Done）。</p>
   <div class="col-label"><b>不同的颜色组合</b> · 只有今天那格 · 一列一种当天的组合 · 先一个个接上，最后一个合上时播大反馈<span class="line"></span></div>
   <div class="pz-tools"><button class="ghost-btn" id="cmp-play">▶ Play</button><span class="hint">一个个做完，约 0.6 s 一个；最后一个做完时播大反馈。可以反复点。</span></div>
   <div class="cmp-wrap"><div class="cmp" id="cmp"></div></div>
@@ -802,7 +807,7 @@
   <div id="done-mobile"></div>
 
   <div class="col-label spaced"><b>Todo 空了 · 定稿 · decided 2026-11-11</b>（第 25 轮画，第 28 轮定） · Todo 一空就留一块提醒，两端一样<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:12px">这块原来是 C · Celebration 的一部分（今天排的做完以后，Todo 里留一张），第 25 轮单独拿出来：<b>只要 Todo 空了</b>就显示——虚线框，<b>Today's plan is done</b>，下面一句 <b>Pull more from the backlog, or call it a day.</b> 什么算「today」先不管（今天的总数怎么算是 Ideas 2，交给 flow），只看 Todo 空没空。桌面在 Todo 列里，手机在 Todo 列表里；最后一张卡飞走时它轻轻弹进来。下面是静态的；在 F · Final 里按 <b>Complete all</b> 看它出现。</p>
+  <p class="note" style="margin-top:0;margin-bottom:12px">这块原来是 C · Celebration 的一部分（今天排的做完以后，Todo 里留一张），第 25 轮单独拿出来：<b>只要 Todo 空了</b>就显示——虚线框，标题加下面一句。什么算「today」先不管（今天的总数怎么算是 Ideas 2，交给 flow），只看 Todo 空没空。<b>修订 2026-11-19（PR #127）</b>：文案和条件换成 backlog grouping 定的那一版（PR #122，board spec 的 COL-5）——标题 <b>All clear for the day</b>，下面两句 <b>Everything you pulled for today is done</b> 和 <b>Pull more from the backlog or call it a day</b>，各占一行、不加标点；只有今天至少做完一件时才显示。桌面在 Todo 列里，手机在 Todo 列表里；最后一张卡飞走时它轻轻弹进来。下面是静态的；在 F · Final 里按 <b>Complete all</b> 看它出现。</p>
   <div id="todo-empty"></div>
 
   <div class="col-label spaced"><b>日格像按钮 · 定稿 · decided 2026-11-09</b> · 第 6、14、15 轮：hover 只加下划线，选中是全亮的边框 + 青光<span class="line"></span></div>
@@ -860,6 +865,17 @@
 </section>
 
 <!-- ═════════ I · Ideas ═════════ -->
+<section class="screen" data-screen="backlog">
+  <div class="col-label"><b>B · Backlog · 修订 2026-11-19（PR #127 的 review）· 等 owner 确认</b> · 标题下面的提示去掉 · 拉空以后显示虚线框，入口留着<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:14px">Owner 在 PR #127 的 review 里提的两处，都只动 backlog，已经合进 F · Final（在那里把 backlog 一张张拉空就能看到）。这个 tab 是静态的对照，没有动效：虚线框直接出现，不弹进来。Backlog 里的卡片、pile 和 <b>+N more</b> 都没有变，见 K · Card。</p>
+  <div class="col-label spaced"><b>① 标题下面的提示去掉</b> · 两端都是<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:12px">现在的产品在 Backlog 标题下面有一行提示：桌面是 <b>Drag tasks left to Todo to start working</b>，手机的 sheet 是 <b>Tap to pull a task onto the board</b>。After 两端都没有这一行，标题下面直接是卡片。每张卡右下角已经有 <b>↑ Todo</b>。</p>
+  <div class="bk-demo" id="bk-hint"></div>
+  <div class="col-label spaced"><b>② 空的 backlog</b> · 入口留着，数量显示 0 · 打开是一块虚线框<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:12px">F · Final 原来没有画拉空以后的样子。现在的产品：桌面的窄条显示 0，panel 里是一行灰字 <b>You're all caught up — no staged tasks.</b>；手机的 pill 直接消失。After 用 backlog grouping 定的那一版（PR #122，board spec 的 BL-15）：桌面的窄条和手机的 pill 都留着，数量显示 <b>0</b>；打开以后在卡片的位置是一块虚线框，标题 <b>Everything's on deck!</b>，下面两句 <b>This week's plan is all on the board</b> 和 <b>Adjust your plan to add more or call it a week</b>，没有按钮。拉走最后一张时 panel 和 sheet 不关。</p>
+  <div class="bk-demo" id="bk-empty-demo"></div>
+</section>
+
 <section class="screen" data-screen="ideas">
   <div class="col-label"><b>I · Ideas</b> · 设计过程中冒出来、要在别处或以后改的想法<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:14px">这里记的是这个 mockup 自己不改、但不能忘的事。第 18 轮整合时逐条过了一遍：每条的标签写它去了哪——tracker 的哪一节、实现 PR 的 flow doc、<code>design/future-ideas.md</code>（看到了、但暂时没必要做的），或者已经定了。mockup 在实现后会删掉，所以还开着的都已经落到别处。</p>
@@ -874,6 +890,7 @@
   <button data-screen-btn="tap">T · Tap twice ✓</button>
   <button data-screen-btn="motion">M · 完成动画 ✓</button>
   <button data-screen-btn="card">K · Card ✓</button>
+  <button data-screen-btn="backlog">B · Backlog</button>
   <button data-screen-btn="ideas">I · Ideas</button>
 </nav>
 
@@ -1091,7 +1108,10 @@ const BACKLOG_BEFORE = [
   {kind: 'project', name: 'Protein 3D viewer', title: 'Add residue picking', desc: 'Click a residue → highlight + label', n: 3, total: 4, doneSteps: [1]},
   {kind: 'project', name: 'Protein 3D viewer', title: 'Deploy the viewer', n: 4, total: 4, doneSteps: [1]},
 ];
-const backlogFrame = (count, body, shown = capped) => `<div class="backlog"><div class="backlog-head"><div class="backlog-title">${icon('inbox')}<span>Backlog</span><span class="badge-count" title="${count} staged tasks">${shown(count)}</span></div><span style="opacity:.5">${icon('right', 'sm')}</span></div><div class="backlog-hint">${icon('left', 'sm')}Drag tasks left to Todo to start working</div><div class="backlog-body">${body}</div></div>`;
+/* B · Backlog (amended 2026-11-19, PR #127): After has no hint under the title, and an emptied backlog shows a box */
+const BACKLOG_EMPTY = `<div class="bk-empty"><b>Everything's on deck!</b><small>This week's plan is all on the board</small><small>Adjust your plan to add more or call it a week</small></div>`;
+const BACKLOG_HINT = `<div class="backlog-hint">${icon('left', 'sm')}Drag tasks left to Todo to start working</div>`;
+const backlogFrame = (count, body, shown = capped, {hint = true} = {}) => `<div class="backlog"><div class="backlog-head"><div class="backlog-title">${icon('inbox')}<span>Backlog</span><span class="badge-count" title="${count} staged tasks">${shown(count)}</span></div><span style="opacity:.5">${icon('right', 'sm')}</span></div>${hint ? BACKLOG_HINT : ''}<div class="backlog-body">${body}</div></div>`;
 const backlogBefore = () => backlogFrame(BACKLOG_BEFORE.length, BACKLOG_BEFORE.map(model => card(withSize(model), {showSize: true, drag: 'data-drag', cls: 'solid'})).join(''), String);
 /* main's mockup-board-backlog-grouping.html (PR #109, revised in #114): "+N more" counts what sits
    behind the next one; a habit and a project both sit on a pile of at most three sheets; only the
@@ -1109,7 +1129,7 @@ function backlogCards(items = FIX.backlog, {pull = false} = {}) {
   const projects = indexed.filter(([item]) => item.kind === 'project').map(([item, idx]) => backlogCard({...item, desc: item.title === 'Add residue picking' ? 'Click a residue → highlight + label' : item.desc || ''}, idx)).join('');
   return `${habits ? `<div class="sec-label">Habits<span class="line"></span></div>${habits}` : ''}${projects ? `<div class="sec-label">Projects<span class="line"></span></div>${projects}` : ''}`;
 }
-const backlogAfter = (items = FIX.backlog, {pull = false, count = backlogCount({backlog: items})} = {}) => backlogFrame(count, backlogCards(items, {pull}));
+const backlogAfter = (items = FIX.backlog, {pull = false, count = backlogCount({backlog: items})} = {}) => backlogFrame(count, backlogCards(items, {pull}) || BACKLOG_EMPTY, capped, {hint: false});
 const mobilePill = () => `<div class="pill mpill">${icon('inbox', 'sm')}<span>Backlog</span><span class="badge-count">${BACKLOG_BEFORE.length}</span>${icon('chevUp', 'sm')}</div>`;
 
 /* ── Before screens (static) ── */
@@ -1293,13 +1313,13 @@ const CEL_VARIANTS = [
   {
     key: 'b', letter: 'B', title: 'Apple 式：圈合上时转一圈，迸出今天做过的颜色的火花', tag: '定稿',
     doneCopy: planned => `<b class="all">All ${planned} done</b>`,
-    empty: `<b>Today's plan is done</b><small>Pull more from the backlog, or call it a day.</small>`,
+    empty: `<b>All clear for the day</b><small>Everything you pulled for today is done</small><small>Pull more from the backlog or call it a day</small>`,
     onBig: (root, day) => root.querySelectorAll('.pz-day.today').forEach(cell => {
       cell.classList.add('big-b');
       const colors = sparkColors(day, SPARK_COUNT);
       cell.querySelector('.pz-ringwrap').insertAdjacentHTML('beforeend', colors.map((color, index) => `<i class="spark" style="--angle:${index * (360 / SPARK_COUNT)}deg;--color:${color}"></i>`).join(''));
     }),
-    why: `<b>大反馈</b>：圈合上时整圈顺时针转一圈（700 ms），12 颗小火花从圈边迸出、淡掉，颜色按今天做完的比例分（只做了 habit 的一天，火花全是绿色），然后 ✓ 出现；文案变成 <b>All 5 done</b>，一个「成功」振动。<br><b>留下来的</b>：和 A 一样——绿色的框、带 ✓ 的圈、Todo 里那张 <b>Today's plan is done</b>。<br><b>好在哪</b>：最接近 Apple 合环时的热闹，一天一次，值得被记住；火花用的是今天做的三类事的颜色，等于把今天又回放一遍。<br><b>差在哪</b>：要在 Settings 里加一个开关（Sunsama、Todoist 都有）；飞东西——每天都一样的大动画很快会被预期掉（Schultz 1997），之后只剩「这次怎么没有」；在 board 顶部转动会抢 undo snackbar 的注意力；reduced motion 要另画一套（只留 ✓ 和颜色）。`,
+    why: `<b>大反馈</b>：圈合上时整圈顺时针转一圈（700 ms），12 颗小火花从圈边迸出、淡掉，颜色按今天做完的比例分（只做了 habit 的一天，火花全是绿色），然后 ✓ 出现；文案变成 <b>All 5 done</b>，一个「成功」振动。<br><b>留下来的</b>：和 A 一样——绿色的框、带 ✓ 的圈、Todo 里那张 <b>All clear for the day</b>。<br><b>好在哪</b>：最接近 Apple 合环时的热闹，一天一次，值得被记住；火花用的是今天做的三类事的颜色，等于把今天又回放一遍。<br><b>差在哪</b>：要在 Settings 里加一个开关（Sunsama、Todoist 都有）；飞东西——每天都一样的大动画很快会被预期掉（Schultz 1997），之后只剩「这次怎么没有」；在 board 顶部转动会抢 undo snackbar 的注意力；reduced motion 要另画一套（只留 ✓ 和颜色）。`,
   },
 ]
 ;
@@ -1427,7 +1447,7 @@ const CEL_PATTERNS = [
   ['达到每日目标：加分 + 可以关', 'Todoist', '每日 / 每周目标（默认 5 / 25）达到时加 Karma、连续天数 +1，设置里能「Turn goal celebrations on or off」（<a href="https://todoist.com/help/articles/206209959">Todoist</a>）；达到时弹一个祝贺框（<a href="https://www.techrepublic.com/article/how-to-set-todoist-karma-productivity-goals/">TechRepublic</a>）。', '→ 学可以关；不学分数和连续天数（spike Q12 已定不做 streak）。'],
   ['点燃的火焰一直亮着', 'Duolingo', '做完一课 Duo 跳起来变成一团火，这个动画让新用户第 7 天的留存高了 1.7%（<a href="https://blog.duolingo.com/how-duolingo-streak-builds-habit">Duolingo</a>）；7 / 30 / 100 / 365 天的里程碑才有特别的动画，故意少（<a href="https://blog.duolingo.com/streak-milestone-design-animation">Duolingo</a>）。', '→ 「一直亮着的状态」= 我们的绿框 + 带 ✓ 的圈；大的特别动画留给少见的时刻。'],
   ['一天一样的大奖励会被预期掉', 'Schultz, Dayan & Montague 1997', '多巴胺神经元编码的是「实际 - 预期」的奖励差，奖励可以预期以后，反应就移到了提示上（<a href="https://pubmed.ncbi.nlm.nih.gov/9054347/">Science 1997</a>）。', '→ 每天都一样的烟花会很快失去作用：A 的大反馈只是小反馈放大，B 的火花风险最大。'],
-  ['说状态，不夸人；说「守住了」，不说「做到了」', 'Deci, Koestner & Ryan 1999 · Fishbach & Dhar 2005', '信息性的反馈支持内在动机，控制性的表扬不会（<a href="https://depts.washington.edu/techdocs/papers/deciExtrinsicRewardsAndIntrinsicMotivation99.pdf">meta-analysis</a>）；强调「进度」会让人觉得可以松一下，强调「承诺」能让人坚持（<a href="https://ideas.repec.org/a/oup/jconrs/v32y2005i3p370-377.html">JCR 2005</a>）。', '→ 文案是 <b>Today\'s plan is done</b>，不是「Great job!」。'],
+  ['说状态，不夸人；说「守住了」，不说「做到了」', 'Deci, Koestner & Ryan 1999 · Fishbach & Dhar 2005', '信息性的反馈支持内在动机，控制性的表扬不会（<a href="https://depts.washington.edu/techdocs/papers/deciExtrinsicRewardsAndIntrinsicMotivation99.pdf">meta-analysis</a>）；强调「进度」会让人觉得可以松一下，强调「承诺」能让人坚持（<a href="https://ideas.repec.org/a/oup/jconrs/v32y2005i3p370-377.html">JCR 2005</a>）。', '→ 文案是 <b>All clear for the day</b>（文案 2026-11-19 修订），不是「Great job!」。'],
   ['反馈太多会让人看不出是哪个动作带来的', 'Kao et al., CHI 2024', '「juicy」的反馈通过胜任感和好奇心起作用，但放大过头会盖住动作和反馈之间的联系（<a href="https://spiral.imperial.ac.uk/entities/publication/253c32f5-d124-4a23-88b5-9aaaf114608d">CHI 2024</a>）。', '→ 大反馈落在今天的圈上，就是刚刚一直在长的那个圈。'],
   ['Reduced motion', 'WCAG 2.3.3 · Apple HIG', '交互触发的动画要能关（<a href="https://www.w3.org/WAI/WCAG21/Understanding/animation-from-interactions.html">WCAG</a>）；Reduce Motion 下减少缩放和周边的动画（<a href="https://developer.apple.com/design/human-interface-guidelines/accessibility">HIG</a>）。', '→ 三个方向在 reduced motion 下都只剩颜色、✓ 和文字的切换。'],
 ];
@@ -1934,8 +1954,7 @@ function finPhoneSheets(state) {
   if (!state.backlogOpen) return '';
   return `<div class="scrim" data-fin-close></div><div class="sheet bk-sheet" role="dialog" aria-label="Backlog"><div class="grab"></div>
     <div class="dp-head"><b>Backlog</b><span>${capped(backlogCount(state))}</span><button class="x ghost-btn" data-fin-close style="border:0;padding:4px" title="Close">${icon('x', 'xs')}</button></div>
-    <div class="backlog-hint">${icon('up', 'sm')}Tap Todo to pull a task onto the board</div>
-    <div class="bk-body">${backlogCards(state.backlog, {pull: true})}</div></div>`;
+    <div class="bk-body">${backlogCards(state.backlog, {pull: true}) || BACKLOG_EMPTY}</div></div>`;
 }
 function finDeskHtml(state) {
   return `${appHead()}<div class="done-anchor btnrow btn-glow">${finRow(state, 'desk')}${dayPop(state)}</div>
@@ -2070,7 +2089,7 @@ const FIN_NEW = [
   ['Column', 'D', [
     '桌面 Todo · Done 两列都撑到底，表头右边各一个标签：Todo 是 <b>Today</b>，Done 是 <b>This week</b>；手机不改。',
     'Done 列放这周做完的，不分组，最新的在最上面（排序写进 flow，Ideas 11）。',
-    "Todo 空了留一块虚线框：<b>Today's plan is done</b> · Pull more from the backlog, or call it a day.，最后一张飞走时弹进来；两端一样，什么算 today 先不管。",
+    "Todo 空了、今天又至少做完一件时留一块虚线框：<b>All clear for the day</b>，下面两句 Everything you pulled for today is done 和 Pull more from the backlog or call it a day，最后一张飞走时弹进来；两端一样（文案和条件 2026-11-19 修订，见 D · Done）。",
     '手机拿掉 Done 那一行：做完的藏在那天的圈后面。',
   ]],
   ['Card', 'T · M · K', [
@@ -2080,8 +2099,10 @@ const FIN_NEW = [
     '完成的卡（桌面 Done 列）：变暗、标题划掉、不显示 description，里面一层淡光，没有边框和角标；刚完成的亮一下。',
     '手机从横滑的 mini 卡换成竖排的全宽卡，卡面和桌面一样；卡上不再显示 size（<code>M · 3</code>），size 本身留不留是 Phase 2 spike 的事。',
   ]],
-  ['Backlog', 'D · T', [
+  ['Backlog', 'D · T · B', [
     '默认收起：桌面是右边一条带数量的窄条，手机还是底部的 pill。',
+    '标题下面那行提示去掉，两端都是（修订 2026-11-19，见 B · Backlog）。',
+    "拉空以后入口留着、数量显示 0，打开是一块虚线框：<b>Everything's on deck!</b>（修订 2026-11-19，见 B · Backlog）。",
     '打开以后每张卡右下角有 <b>↑ Todo</b>，两端一样；桌面照样能拖（Backlog → Todo、Todo → Done），和现在的产品一样（没画）。',
   ]],
 ];
@@ -2109,6 +2130,30 @@ function todoEmptySeed() {
   const state = todoEmptySeed();
   document.getElementById('todo-empty').innerHTML = `<div class="pz-cap">Desktop · 1280 px</div><div class="pz-desk dpane-desk">${finDeskHtml(state)}</div>
     <div class="phones" style="margin-top:20px"><div class="pz-phonewrap"><div class="pz-cap">Phone · 375 px</div><div class="pz-phone done-phone fin-phone" style="width:359px">${finPhoneHtml(state)}</div></div></div>`;
+}
+/* ═══════════ B · Backlog (amended 2026-11-19, PR #127): no hint under the title, and the emptied backlog, drawn statically ═══════════ */
+{
+  const cap = text => `<div class="pz-cap">${text}</div>`;
+  const box = (title, body) => `<div>${cap(title)}<div class="bk-box">${body}</div></div>`;
+  const phoneOf = state => `<div class="pz-phonewrap"><div class="pz-phone done-phone fin-phone" style="width:359px">${finPhoneHtml(state)}</div></div>`;
+  const open = finSeed();
+  open.backlogOpen = true;
+  document.getElementById('bk-hint').innerHTML = [
+    box('Before · 现在的产品 · Desktop', backlogBefore()),
+    box('After · Desktop', backlogAfter(FIX.backlog, {pull: true})),
+    `<div>${cap('After · Phone · sheet')}${phoneOf(open)}</div>`,
+  ].join('');
+  const emptied = finSeed();
+  emptied.backlog = [];
+  emptied.backlogOpen = true;
+  const closed = {...emptied, backlogOpen: false};
+  const oldEmpty = `<p class="bk-old-empty">You're all caught up — no staged tasks.</p>`;
+  document.getElementById('bk-empty-demo').innerHTML = [
+    box('Before · 现在的产品 · Desktop', backlogFrame(0, oldEmpty, String)),
+    box('After · Desktop', backlogAfter([], {pull: true})),
+    `<div>${cap('After · Phone · sheet 开着')}${phoneOf(emptied)}</div>`,
+    `<div>${cap('After · Phone · 关上以后 pill 显示 0')}${phoneOf(closed)}</div>`,
+  ].join('');
 }
 /* ═══════════ K · Card (round 28): the board's one card, by where it sits, against the product's ═══════════ */
 {
