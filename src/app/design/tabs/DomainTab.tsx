@@ -9,7 +9,7 @@ import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {BoardHeader} from '@/components/domain/shared/BoardHeader';
 import {TaskCard} from '@/components/domain/board/TaskCard';
 import {TaskCardMiniFace} from '@/components/domain/board/TaskCardMiniFace';
-import {MobileBacklogCard} from '@/components/domain/board/MobileBacklogCard';
+import {BacklogGroupList} from '@/components/domain/board/backlog-group/BacklogGroupList';
 import {BoardPageContext} from '@/components/domain/board/BoardPageContext';
 import {BoardColumn} from '@/components/domain/board/BoardColumn';
 import {ProgressDashboard} from '@/components/domain/board/ProgressDashboard';
@@ -25,7 +25,8 @@ import {ThemePicker} from '@/components/domain/auth/ThemePicker';
 import type {ThemeName} from '@/utils/theme';
 
 import {Zone, Section, Variant, Row} from '../GalleryParts';
-import {SIZE_TO_POINTS, TaskStatus, TaskType} from '@/utils/enums';
+import {BACKLOG_SECTIONS} from '../scenarios/board/fixtures';
+import {SIZE_TO_POINTS, TaskType} from '@/utils/enums';
 import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
 import {
   SIZE_FIXTURES,
@@ -164,19 +165,14 @@ export const DomainTab = () => {
     </Section>
   );
 
-  const renderMobileBacklogCard = () => (
+  const renderBacklogGroups = () => (
     <Section
-      title="MobileBacklogCard"
-      description="The mobile backlog sheet's card: the full face on a plain card, with the ↑ Todo pull beside the title."
+      title="BacklogGroup"
+      description="The backlog's groups as the mobile sheet shows them: one card per habit and per project, its next task on top — the kind (a step's project), +N more, the title, the description, the dots or the path with the next one ringed, and ↑ Todo. A pile of up to three sheets stands for what waits behind; a project's +N more opens its queue. Desktop drags the same card out of the panel."
     >
       <BoardPageContext value={inertBoardPageContext()}>
-        <div className="flex max-w-sm flex-col gap-2.5">
-          {MINI_CARD_FIXTURES.slice(0, 2).map(({card}) => (
-            <MobileBacklogCard
-              key={card.task.id}
-              card={{...card, task: {...card.task, status: TaskStatus.BACKLOG}}}
-            />
-          ))}
+        <div className="max-w-sm">
+          <BacklogGroupList sections={BACKLOG_SECTIONS} variant="mobile" />
         </div>
       </BoardPageContext>
     </Section>
@@ -361,7 +357,7 @@ export const DomainTab = () => {
         {renderTaskCards()}
         {renderMiniFaces()}
         {renderStepPath()}
-        {renderMobileBacklogCard()}
+        {renderBacklogGroups()}
         {renderBoardColumn()}
         {renderProgress()}
       </Zone>

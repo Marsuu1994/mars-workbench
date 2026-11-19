@@ -88,12 +88,6 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 
 ## Board
 
-### Medium
-
-- [ ] Group the backlog — one habit's staged instances, and one project's steps on this week, sit together as one group (desktop panel and mobile sheet); a habit and a project each show their next one on a thin pile, "+N more" top right, and only a project's "+N more ⌄" opens the rest; the backlog card drops the plan line, step n/N, size and the done / total fraction (the board's habit card drops its fraction too); the badge counts staged tasks, capped at 8+. Design decided (PR #109; habits' pile added 2026-11-07): mockup `design/mockup/mockup-board-backlog-grouping.html`. PR #44 built stacking on the old card face. Its cards are the board's one card (PR #115 mockup, tab K · Card): a habit card's title sits under its HABIT kind line, not on the first line.
-  - [ ] PR 4 — build it from `main` with the `implement-spec` skill, clearing the pending items in `specs/board.md` (spec written in PR 3, no questions open; mockup tab 6 · Empty adds the empty backlog's and empty Todo's finish boxes)
-    - BL-14's lift keeps a placeholder in place while the other groups stay put; `@hello-pangea/dnd` may close the gap by default instead, so check how a lift behaves in the Design Console first (PR #122 review, round 4)
-
 ### Future
 
 - [ ] Per-kind risk rules — Phase 1 switched risk off (badges, borders, 15:00 / 20:00 clock thresholds); bring it back per kind, as a colour on the card's signal line (never the kind edge): habit pace (amber when what's left needs every remaining day), project step carried 2× (amber — split it?), one-off due date (amber within 2 days, red on the day — the only red). First explored in PR #47's initial mockup (commit `d3ecc25`, Cards & risk screen); the research behind the rules, the options and the two columns they need (`carriedCount`, `dueAt`) in `design/spike/week-model-phase2-pain-points.md` › 痛点 5
@@ -168,6 +162,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
       - [ ] Plan form — create/update submit failures (`FormErrorAlert` banner above the actions)
       - [ ] Task modal — template create/edit and priority-task add failures (footer `FormErrorAlert`)
       - [ ] Board — drag/status-update failures (currently silent optimistic rollback + `console.error`)
+        - Spec first: review `design/specs/board.md`'s error cases and decide whether they become a section of their own; today they are MV-4 and the Rules' closing line, and one isn't written at all: when a pull from an open queue fails and the step comes back, the queue opens again, since it was never closed (owner, 2026-11-19)
       - [ ] Priorities — reprioritize / track / complete / undo failures (currently silent optimistic rollback + `console.error`)
       - [ ] Projects — archive / unarchive and optimistic step writes (+ This week, ×, reorder) fail silently (rollback + `console.error`)
       - [ ] Auth — OAuth sign-in failure surface (none today; login just returns to the button)

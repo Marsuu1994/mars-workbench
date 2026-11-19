@@ -51,7 +51,8 @@ What you can do in the app today, page by page. How it is built lives in [design
 - This week's tasks in two columns, Todo and Done. Drag a card to Done when you finish it.
 - Each card shows what kind of work it is (a habit, a project step or a one-off), where it comes from, and its size.
 - A habit not done on its day expires and stays on the card as a missed dot.
-- The backlog holds the rest of this week's habits and project steps. Pull them onto the board when you are ready.
+- The backlog holds the rest of this week's habits and project steps, one card per habit and one per project, each showing what comes next. Pull them onto the board when you are ready. A project's card opens to show the steps behind its next one.
+- Once everything pulled for today is done, Todo says the day is clear; once the backlog is empty, it says the week's plan is all on the board.
 - The top of the page shows today's progress, a few stats and how far the week has come.
 - With no plan, the board says so; once a week ends, it recaps how that week went.
 

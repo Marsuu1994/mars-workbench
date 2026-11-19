@@ -6,8 +6,7 @@ import type {BoardCard} from '@/utils/boardCardUtils';
 import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {cn} from '@/components/ui/cn';
 import {TaskCardHead} from './TaskCardHead';
-import {HabitSignal} from './HabitSignal';
-import {StepPath} from './StepPath';
+import {TaskCardSignal} from './TaskCardSignal';
 
 interface TaskCardMiniFaceProps {
   card: BoardCard;
@@ -29,23 +28,6 @@ export const TaskCardMiniFace = ({card, className}: TaskCardMiniFaceProps) => {
   const renderName = () =>
     card.kind === TaskKind.PROJECT ? card.step?.projectTitle : undefined;
 
-  const renderSignal = () => {
-    switch (card.kind) {
-      case TaskKind.HABIT:
-        return card.habitWeek ? (
-          <HabitSignal
-            habitWeek={card.habitWeek}
-            currentSlot={card.currentSlot}
-            variant="mini"
-          />
-        ) : null;
-      case TaskKind.PROJECT:
-        return card.step ? <StepPath step={card.step} variant="mini" /> : null;
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className={cn('flex h-full flex-col gap-1 px-[9px] py-2', className)}>
       <TaskCardHead kind={card.kind} variant="mini" name={renderName()} />
@@ -59,7 +41,7 @@ export const TaskCardMiniFace = ({card, className}: TaskCardMiniFaceProps) => {
       </h3>
 
       <div className="mt-auto flex items-center gap-1">
-        {renderSignal()}
+        <TaskCardSignal card={card} variant="mini" />
         <SizeChip
           size={task.size}
           points={task.points}

@@ -44,9 +44,12 @@ A behaviour is tested in the layer its logic lives in:
 
 A behaviour whose parts live in different layers is tested in each: the returning user's recap is computed on the server (integration) and shown by the empty board (component), both tests naming ST-2.
 
-A part that only a real server shows is tested by e2e too, even when its logic lives in a lower layer: the page getting the saved data without a reload, a redirect, what's still there after a reload. A component test can only stand in for these, so a journey step asserts them. `design/specs/board.md` MV-3 is the example: the integration test checks the action asks for a reload, the component test fakes the new props, and only J3's A7 step shows the progress actually moving.
+What a unit, integration or component test can hold is held there, never by e2e alone. e2e is the high-level check, and holds only two things:
 
-Beyond that, e2e proves only that a journey is wired end to end: the action lands and the page shows it, asserted once. The edge cases of a value are integration tests, and how each state looks is a component test, which the Design Console also shows the owner. Bad: an e2e test per progress-bar state. Good: one drag to Done asserting today's count went up, and the counts' edge cases in `boardService.int.test.ts`.
+- **that a journey is wired end to end**: the action lands and the page shows it, asserted once;
+- **what only a real server shows**: the page getting the saved data without a reload, a redirect, what's still there after a reload. A component test can only stand in for these, so a journey step asserts them, even when their logic lives in a lower layer. `design/specs/board.md` MV-3 is the example: the integration test checks the action asks for a reload, the component test fakes the new props, and only J5's A7 step shows the progress actually moving.
+
+A journey step may assert more as it passes, but it holds nothing a lower layer could: the edge cases of a value are integration tests, and how each state looks is a component test, which the Design Console also shows the owner. A break that only e2e catches is a lower-layer test missing. Bad: an e2e test per progress-bar state. Bad: BL-13's queue closing once no step is left behind, held only by J5's and J6's steps until PR #126's review, when a component test reaches the same state with one more drag. Good: one drag to Done asserting today's count went up, and the counts' edge cases in `boardService.int.test.ts`.
 
 ## Every test
 
@@ -90,7 +93,7 @@ Beyond that, e2e proves only that a journey is wired end to end: the action land
 
 ## Spec IDs
 
-A page migrated to spec v2 (`design/specs/README.md`) has an ID on every item, and a test names the IDs it holds at the start of its title: `it('CARD-2 R4 a Done card is dimmed …')`, `test('J3 …')`, a journey's `test.step('A4 …')`. A test may hold several IDs and an ID may be held by several tests; what counts is that every ID is held by at least one, in the layer Which layer gives it.
+A page migrated to spec v2 (`design/specs/README.md`) has an ID on every item, and a test names the IDs it holds at the start of its title: `it('CARD-2 R4 a Done card is dimmed …')`, `test('J5 …')`, a journey's `test.step('A4 …')`. A test may hold several IDs and an ID may be held by several tests; what counts is that every ID is held by at least one, in the layer Which layer gives it.
 
 - **Name the spec**: a test file whose titles name IDs says which spec they're from, on its first line: `// Spec: design/specs/board.md`. A file can hold several specs' items, one comment per spec. `check:spec` reads titles only in files with this comment, so an unrelated title such as `UTF-8 input is decoded` is never taken for an ID, and a test in a file without it holds nothing.
 - **Write it from the item's text**: the assertions are the outcomes the item states — its counts, caps, order and what is absent — read off the item, not off the code under test. An item that can't be asserted as written is a question about the spec, not a reason to assert whatever the code does.

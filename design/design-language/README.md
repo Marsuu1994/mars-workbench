@@ -64,6 +64,8 @@ disables them.
 | `fx-panel` / `fx-panel-solid` | Console panel (glass / no-blur). Glass is for stationary chrome only — never in scroll containers | modals |
 | `fx-corners` | Targeting-reticle corner brackets (inset 2px to clear the radius) | task modal, gallery specimens |
 | `fx-card` / `fx-card-lift` | Card edge-light + hover lift (shadow only — the kind edge always wins); lift = drag state class swap | `TaskCard` |
+| `fx-pile-sheet` | One thin sheet of a backlog card's pile: a soft drop shadow; its fill and border come from `--fx-pile`, `--fx-pile-far` and `--fx-pile-border` | backlog group pile |
+| `fx-tucked` | Marks a strip that hangs under a card with no top edge of its own; no look in the HUD skin, a hook for p5-dark's | a project's backlog queue |
 | `fx-kind-edge` + `fx-k-{success,secondary,info}` | A card's 3px left border in its kind's colour. Unlayered, so it beats the card's own Tailwind border utilities | task cards (via `TASK_KIND_STYLE`) |
 | `fx-pip` | One round mark of a card's progress signal; colour and size come from utilities | habit week dots |
 | `fx-target` | Drop-zone highlight, mars-orange channel; pulse = pseudo-element opacity (`@utility`, composes as `md:fx-target`) | board columns, gallery |
@@ -76,7 +78,8 @@ disables them.
 | `fx-orbit` | Rotating conic tail behind the progress ring — continuous by deliberate product choice (transform-only on a tiny masked layer; reduced-motion disables it); the ring's halo is a static SVG under-circle, not a CSS filter | `ProgressDashboard` |
 | `fx-glow-pulse` | Breathing brand halo — pre-composited shadow on a pseudo-element, opacity-only loop | login `BrandIcon` |
 | `fx-text-gradient` | Cyan→violet headline gradient. Restraint rule: first word only | gallery title, login "Mars" |
-| `fx-boot-in` | 420ms mount animation (rise + scale + fade) | modals |
+| `fx-boot-in` | 420ms mount animation (rise + scale + fade) | modals, `FinishBox` |
+| `fx-finish-box` | Marks a finish box, the dashed box where a finished list used to be; no look in the HUD skin, a hook for p5-dark's | `FinishBox` |
 | `fx-countdown` | Clock bar draining over `--fx-countdown-ms`; its `animationend` is the dismissal. Holds while its host is hovered and inside `data-time="frozen"` (scenario frames, gallery specimens); deliberately kept out of the reduced-motion list | `Toast` |
 | `fx-nav-rail` | Luminous active-nav left rail | sidebar active item |
 | `fx-quadrant` + `fx-q-{error,primary,warning,neutral}` + `fx-q-{tl,tr,bl,br}` | Per-quadrant corner bloom keyed to semantic hue | priority matrix |

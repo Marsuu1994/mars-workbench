@@ -75,7 +75,7 @@ describe('toBoardCards', () => {
     expect(idsOf(TaskStatus.DONE)).toEqual(['unit-2', 'passport']);
   });
 
-  it('CARD-3 gives a habit card its plan line and its own dot', () => {
+  it('CARD-8 gives a habit card its plan line and its own dot', () => {
     expect(findCard(TaskStatus.TODO, 'review')).toMatchObject({
       kind: TaskKind.HABIT,
       habitWeek: {target: 1, done: 0},
