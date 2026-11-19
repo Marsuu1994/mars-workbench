@@ -9,13 +9,13 @@ This skill covers the design: one design PR, from the first draft to the round t
 
 ## 1. Rules
 
-Read AGENTS.md › UI Workflow, then `design/README.md` › Mockups (how a mockup is drawn, hosted and reviewed), then `design/design-language/README.md` › Principles. The Principles are what the owner judges a design by: check every option against them before showing it.
+Read AGENTS.md › UI Workflow, then `design/README.md` › Mockups (how a mockup is drawn, hosted and reviewed), then `design/design-language/README.md` › Principles (what the owner judges a design by, and how an agent uses them) and › Motion (shared baseline) (how anything that moves is timed).
 
 ## 2. What exists
 
-- The current spec (`design/specs/<feature>.md`): where it covers the area, design within it; where it doesn't yet — the spec may come after the mockup — the owner's prompt is the requirement. Either way, list what the spec will need to say as a question on the PR, for the spec to write.
+- The current spec (`design/specs/<feature>.md`): where it covers the area, design within it; where it doesn't yet — the spec may come after the mockup — the owner's prompt is the requirement. Either way, what the design implies about behaviour goes where `design/README.md` › Mockups says, for the spec to write.
 - The feature's Design Console scenario pages (`src/app/design/scenarios/<feature>/`): the states the screen is in today.
-- The components the change touches: their structure, tokens and `fx-*` utilities. Draw Before from them exactly, and grow After out of the same parts — the same card faces, kind colours and signals — rather than new ones.
+- The components the change touches: their structure, tokens, `fx-*` utilities and motion. They are what Before is drawn from (`design/README.md` › Mockups) and what After reuses before it adds a part of its own (Principles › 5).
 
 ## 3. Research
 
@@ -23,13 +23,13 @@ Before drawing, find how other products solve the same problem — what the rese
 
 ## 4. Options
 
-Draw `design/mockup/mockup-<area>.html` as `design/README.md` › Mockups says — options, research, language, the freshness script — ranked by the Principles, with your recommendation. Draw what the owner will actually meet: the real combinations of data side by side (a habit-heavy day, a one-colour day), not one tidy case; and where the design is an interaction, make After clickable, so the owner tries it rather than reads about it. A design with several parts goes one module at a time, each on its own tab, merged into one final tab at the end. Check it renders before pushing: every screen, every theme, no console errors.
+Draw `design/mockup/mockup-<area>.html` as `design/README.md` › Mockups says: its name and its links, the options and how they are ranked, the research screen, what Before and After may show, the language, the freshness script. Draw what the owner will actually meet: the real combinations of data side by side (a habit-heavy day, a one-colour day), not one tidy case; and where the design is an interaction, make After clickable, so the owner tries it rather than reads about it. A design with several parts goes one module at a time, each on its own tab, merged into one final tab at the end. Check it renders before pushing: every screen, every theme, no console errors.
 
-Rewrite the tracker item to say what the design does and link the mockup. When the owner asks for the PR (AGENTS.md › Version Control), open it with the mockup's raw.githack link at the top of the description and the questions the owner has to decide under it; the Mockup links check prints the exact line when it is missing.
+Rewrite the tracker item to say what the design does. When the owner asks for the PR (AGENTS.md › Version Control), its description opens with the mockup's link, and the questions the owner has to decide come under it.
 
 ## 5. Review rounds
 
-The owner answers on the PR or in a local session, and often decides on seeing — "draw it and let me look", "take it out and let me see" — so answer a doubt with a drawing, not an argument. Each round: change the mockup, push, answer each point, and log the round in `reviews/pr-<NNN>.md` (`reviews/AGENTS.md`; local-session rounds too). A pick is not approval: only the owner's explicit approval makes a design or a module decided (`design/README.md` › Mockups); then the tracker item says decided.
+The owner answers on the PR or in a local session, and often decides on seeing — "draw it and let me look", "take it out and let me see" — so answer a doubt with a drawing, not an argument. Each round: change the mockup, push, answer each point, and log the round (`reviews/AGENTS.md`). When a design or a module counts as decided is in `design/README.md` › Mockups; once it does, the tracker item says decided.
 
 ## 6. Handoff
 
