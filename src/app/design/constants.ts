@@ -563,7 +563,7 @@ export const inertPrioritiesPageContext = (
   completeTask: () => undefined,
 });
 
-/** The page context a MobileBacklogCard renders in, outside the board page:
+/** The page context the backlog's groups render in, outside the board page:
     inert handlers (the frame swallows clicks). */
 export const inertBoardPageContext = (): BoardPageContextValue => ({
   pullToTodo: () => undefined,
@@ -757,6 +757,11 @@ export const EMPTY_STATE_INLINE_DEMO_TITLE = 'No steps yet';
 export const EMPTY_STATE_INLINE_DEMO_DESC =
   'A project is a path of small steps, about 1–3 hours each.';
 export const EMPTY_STATE_INLINE_DEMO_CTA = 'Add the first step';
+export const FINISH_BOX_DEMO_TITLE = 'All read';
+export const FINISH_BOX_DEMO_LINES = [
+  'Every chapter on the list is done',
+  'Add another book or take a break',
+];
 
 /** Banner specimens — one per tone, with and without an action. */
 export const BANNER_DEMO_INTRO =

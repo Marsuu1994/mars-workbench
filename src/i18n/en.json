@@ -43,11 +43,28 @@
     "Backlog": {
       "title": "Backlog",
       "hintDragToTodo": "Drag tasks left to Todo to start working",
-      "emptyState": "You're all caught up — no staged tasks.",
       "openLabel": "Open backlog",
       "closeLabel": "Close backlog",
       "hintTapToTodo": "Tap to pull a task onto the board",
-      "pullToTodoLabel": "Todo"
+      "pullToTodoLabel": "Todo",
+      "countLabel": "{count, plural, one {# staged task} other {# staged tasks}}",
+      "habitsSection": "Habits",
+      "projectsSection": "Projects",
+      "moreCount": "<number>+{count}</number> more",
+      "showQueueLabel": "Show the steps behind it",
+      "hideQueueLabel": "Hide the steps behind it",
+      "Empty": {
+        "title": "Everything's on deck!",
+        "fact": "This week's plan is all on the board",
+        "nextStep": "Adjust your plan to add more or call it a week"
+      }
+    },
+    "Todo": {
+      "DayClear": {
+        "title": "All clear for the day",
+        "fact": "Everything you pulled for today is done",
+        "nextStep": "Pull more from the backlog or call it a day"
+      }
     },
     "Header": {
       "titlePrefix": "Kanban",
@@ -58,6 +75,8 @@
       "planLineDaily": "{frequency, plural, one {Daily} other {#× / day}}",
       "planLineWeekly": "{frequency}× / week",
       "stepContext": "{number}/{count}",
+      "habitProgressLabel": "{done} of {total} done this week",
+      "stepProgressLabel": "{done} of {total} steps done",
       "Quadrant": {
         "DO_FIRST": "Do first",
         "SCHEDULE": "Schedule",
