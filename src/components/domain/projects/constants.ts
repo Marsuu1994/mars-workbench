@@ -1,3 +1,5 @@
+import type {ModalParamKeys} from '@/utils/modalUrl';
+
 /* Projects page constants. Style tokens are literal classes only —
    Tailwind can't see interpolated names. */
 
@@ -24,3 +26,13 @@ export const CREATE_PLAN_HREF = '/kanban/plans/new';
     client (history.pushState) so Next's router follows without a request. */
 export const getProjectHref = (projectId: string) =>
   `${PROJECTS_HREF}?project=${projectId}`;
+
+/** The page's modals and the ids each opens with, kept in the URL as
+    `?modal=<kind>&<id>=…` (src/utils/modalUrl.ts). A modal whose row is
+    gone (Claude deleted it) doesn't open. */
+export const PROJECTS_MODAL_KEYS = {
+  newProject: [],
+  editProject: ['projectId'],
+  addStep: ['projectId'],
+  editStep: ['stepId'],
+} as const satisfies ModalParamKeys;
