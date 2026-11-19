@@ -30,7 +30,7 @@ supabase/                          # Local Supabase stack config (Postgres + Aut
 scripts/                           # Repo checks run in CI; the local stack's setup, seed, and dev and e2e sessions
 test/                              # Test helpers and conventions (README); unit and integration tests sit next to their modules
 e2e/                               # Playwright specs: a spec v2 page's journeys, a legacy doc's flows (test/README.md)
-.claude/agents/                    # Claude Code subagents: ui-verifier, write-spec-reviewer, implement-spec-reviewer, ci-fixer (Workflow › Subagents)
+.claude/agents/                    # Claude Code subagents: ui-verifier, write-spec-reviewer, implement-spec-reviewer (Workflow › Subagents)
 .claude/skills/                    # Claude Code skills: ui-design, write-spec, implement-spec (UI Workflow)
 .claude/context/                   # What a skill and the subagent reviewing its work both read, as pointers (Workflow › Adding a rule)
 design/                            # Design docs — index in design/README.md
@@ -118,7 +118,6 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 - `ui-verifier`: the browser check (UI Workflow).
 - `write-spec-reviewer`: a spec change written from a design, by the `write-spec` skill.
 - `implement-spec-reviewer`: a change that builds spec items, by the `implement-spec` skill, before the push.
-- `ci-fixer`: CI red on GitHub, with the failing job's URL; green checks and few-line local failures, run yourself.
 
 ## UI Workflow
 
@@ -218,7 +217,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 
 ## Version Control
 
-- **Local sessions** (on the owner's machine): never commit, push or take another outward-facing VCS action without explicit permission — make and stage the changes, summarize them, and wait for approval.
+- **Local sessions** (on the owner's machine): never commit, push or take another outward-facing VCS action without explicit permission — make and stage the changes, summarize them, and wait for approval. GitHub goes through the `gh` CLI: open a PR with `gh pr create`, read reviews with `gh pr view --comments` or `gh api`, and read a red CI job with `gh run view <run-id> --log-failed`, filtered, then fix it in the main session.
 - **Remote sessions** (cloud containers such as Claude Code on the web): commit and push with `git push -u origin <branch>` without asking.
 - **A PR opens only when the owner asks for one**, in either kind of session. Once a remote session's PR is open, it subscribes to its activity (`subscribe_pr_activity`) and sees it through until it merges or closes: red CI and review comments are the session's to fix.
 - Never commit or push to `main`; changes land through pull requests.
