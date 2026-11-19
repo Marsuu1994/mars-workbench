@@ -26,6 +26,10 @@ A file in `mockup/` is a design that isn't fully implemented yet. A mockup is se
 - Put the freshness script in its `<head>` — the `<script data-mockup-latest>` block of any current mockup, copied as is. A branch link on raw.githack can serve a copy minutes old; the script moves the page to the newest commit's link, which never goes stale, so the description's branch link always opens the latest round. The Mockup links check fails a changed mockup without it.
 - When the owner has to choose, draw every option side by side on one screen — not behind a switch — each with its Before / After, desktop and mobile. Rank them by `design-language/README.md` › Principles, and say which you recommend.
 - Back a choice with a research screen: how other products solve it, each point with its source.
+- Draw what the owner will actually meet: the real combinations of data side by side (a habit-heavy day, a one-colour day), not one tidy case.
+- Where the design is an interaction, make After clickable, so the owner tries it rather than reads about it.
+- A design with several parts goes one module at a time, each on its own tab, merged into one final tab at the end.
+- Check that it renders before every push: every screen, in every theme, with no console errors.
 - A mockup settles how a design looks and feels. What it implies about behaviour — a sort order, what a count counts, an edge case — goes into the mockup's ideas for the spec, not decided on the drawing.
 - Everything a mockup shows is either today's product or a part of the design that its notes name. The owner approves a design by looking at it, and whoever writes its spec and builds it reads the mockup the same way, so nothing is on it by accident:
   - Before: the product exactly as it is, drawn from its components — their structure, tokens, `fx-*` utilities and motion. It does nothing the product doesn't do.

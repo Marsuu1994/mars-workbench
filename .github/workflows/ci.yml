@@ -84,7 +84,7 @@ jobs:
           install: 'false'
 
       # Dependency-free script: every theme must declare the same CSS
-      # custom properties (see AGENTS.md → Themes).
+      # custom properties (design/design-language/README.md → Architecture).
       - name: Check theme variables
         run: npm run check:themes
 

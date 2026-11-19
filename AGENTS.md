@@ -173,8 +173,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
 
 ### Themes
 
-- **One theme per page.** The theme lives only on `<html data-theme>`: the server renders it from the cookie, the settings sheet and the Design Console re-stamp it. Never nest a `data-theme` scope — theme-gated rules like `[data-theme='p5-dark'] .fx-card` match through any ancestor. Bad: `<div data-theme="mars-light">` around a preview. Good: `document.documentElement.setAttribute('data-theme', next)`.
-- **One variable contract.** Every theme declares the same custom properties in `globals.css`, in the same section order; a new variable lands in every theme in the same change, named by role rather than one theme's palette (`npm run check:themes`, CI). Bad: `--fx-blood-red` declared by p5-dark alone. Good: `--fx-depth` in every theme, p5's value being its blood red.
+- One theme scope per page, and one variable contract that every theme declares (`npm run check:themes`, CI): `design/design-language/README.md` › Architecture: one skeleton, N skins.
 
 ### JSX & components
 

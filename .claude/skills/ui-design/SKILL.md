@@ -23,7 +23,7 @@ Before drawing, find how other products solve the same problem — what the rese
 
 ## 4. Options
 
-Draw `design/mockup/mockup-<area>.html` as `design/README.md` › Mockups says: its name and its links, the options and how they are ranked, the research screen, what Before and After may show, the language, the freshness script. Draw what the owner will actually meet: the real combinations of data side by side (a habit-heavy day, a one-colour day), not one tidy case; and where the design is an interaction, make After clickable, so the owner tries it rather than reads about it. A design with several parts goes one module at a time, each on its own tab, merged into one final tab at the end. Check it renders before pushing: every screen, every theme, no console errors.
+Draw `design/mockup/mockup-<area>.html` as `design/README.md` › Mockups says: its name and its links, the options and how they are ranked, the research screen, the data it is drawn with, what is clickable, a tab per module, what Before and After may show, the language, the freshness script, and the render check before a push.
 
 Rewrite the tracker item to say what the design does. When the owner asks for the PR (AGENTS.md › Version Control), its description opens with the mockup's link, and the questions the owner has to decide come under it.
 
