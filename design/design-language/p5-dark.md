@@ -101,6 +101,9 @@ are p5-dark's, and the mars themes declare token-derived equivalents:
 | `--fx-field` | 0.53 0.2 26 | `#c51d24` | Large red *fields*: CTA fills, header wedges, rails, calling-card surfaces | Payload on it is always paper white (5.2:1, AA) or larger display type; never body copy in any other color |
 | `--fx-depth` | 0.36 0.13 25 | `#721216` | The flat *depth layer* — hard offset shadows behind panels/cards (P5 fakes depth with a darker flat red behind the shape) | Decoration only; never carries text, 1.6:1 on bases is fine because it is never information |
 | `--fx-card-bg` | 0.17 0.008 20 | `#191313` | Raised task-card surface between base-100 and neutral | Signals stay body-grade on it: primary 4.64:1, error 4.69:1, others ≥ 11:1 |
+| `--fx-pile` | 0.25 0.008 20 | `#252020` | The nearest sheet of a backlog card's pile, and a lifted card's placeholder | Decoration only; never carries text |
+| `--fx-pile-far` | 0.21 0.006 20 | `#1b1717` | The sheets further down the pile | Decoration only; never carries text |
+| `--fx-pile-border` | base-content at 32% | — | The pile's sheets' border, and the placeholder's | Decoration only |
 
 The reds derive from the research palette (fan-sampled P5 fields cluster around
 `#D92323`/`#CC2C34`; the darkened "shadow red" around `#732424`).
@@ -150,6 +153,8 @@ did.
 | `fx-panel` / `fx-panel-solid` | Glass console panel | **Paper panel**: base-100 fill, 2px solid paper border at 85%, hard `8px 8px 0` blood-red offset shadow; rectangular. Corner cuts are opt-in via `fx-cut` with a parent `drop-shadow` (a clip-path clips the box-shadow away). Both names = same opaque skin |
 | `fx-corners` | Cyan reticle brackets | **Crop marks**: same 8-stroke bracket geometry, 2px, phantom red — the calling card's print marks |
 | `fx-card` / `fx-card-lift` | Edge-light + glow hover | **Sticker card**: `--fx-card-bg` fill, 1.5px paper border at 14%, `3px 3px 0` ink offset at rest; hover = `4px 4px 0` primary offset + `translate(-1px,-1px)` (no border-color change — the kind edge still wins, at 4px here); lift (drag) = `7px 7px 0` blood-red + `rotate(-1.2deg)` class swap |
+| `fx-pile-sheet` | Thin sheet with a soft drop shadow | **Stacked sticker**: 1.5px border with no top edge, and a hard `2px 2px 0` base-300 offset in place of the soft shadow |
+| `fx-tucked` | No look of its own | 1.5px border with no top edge, the line of the card it hangs under |
 | `fx-target` | Orange dashed outline + pulsing halo | **Hazard target**: orange 2px dashed outline + flat diagonal hazard stripes (repeating-linear-gradient, hard stops — stripes are flat fills, not gradations) + opacity pulse. Channel unchanged |
 | `fx-glow` / `fx-glow-accent` | Soft luminous halo | **Pop shadow**: hard `4px 4px 0` **ink** offset at rest; hover/focus deepens to `5px 5px 0` blood-red (blood-orange for the accent variant). Depth stays ink/blood — a channel-colored offset under a same-channel fill would vanish. Buttons skew as a whole (oblique button text is allowed) and have no corner cuts |
 | `fx-chip` | currentColor rounded chip | currentColor **parallelogram**: `skewX(-10deg)`, 1.5px full-strength currentColor border, fill at 12%; text stays skewed (P5 labels are oblique). Derivation from `currentColor` unchanged — `text-*` pairing still works |
@@ -162,6 +167,7 @@ did.
 | `fx-glow-pulse` | Breathing halo (login icon) | Breathing **double offset**: red + blood-red stacked hard shadows, opacity loop on pseudo-element |
 | `fx-text-gradient` | Cyan→violet gradient text | **Flat phantom red** (gradients banned). The ransom-note treatment — one word in an inverted tile, tilted −2.5° to −4° — is `fx-tile`, opted into separately, never substituted automatically. Restraint rule unchanged: one per heading |
 | `fx-boot-in` | 420ms rise+fade | **Snap-in**: 240ms slide from −14px/−2.5° with overshoot settle (keyframed past rest, no bounce library). P5's stated principle is zero-latency UI — entrances get *faster* |
+| `fx-finish-box` | No look of its own (a dashed success border from utilities) | The dashed border thickens to 1.5px |
 | `fx-nav-rail` | Luminous left rail | **White flip**: active item becomes paper bg + ink text on a skewed clip wedge + red `3px 3px 0` offset — the P5 selection flip (selected items invert, not underline) |
 | `fx-quadrant` + `fx-q-*` | Radial corner bloom | **Corner wedge**: flat clip-path triangle in the quadrant channel color at ≈8% + halftone overlay. Same `fx-q-{hue}` / `fx-q-{corner}` keying |
 | `fx-grid-flow` | Login grid crawl | **Speed-line crawl**: diagonal line field on a transform loop (login only) |

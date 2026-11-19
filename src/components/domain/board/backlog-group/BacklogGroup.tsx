@@ -25,9 +25,12 @@ const CARD_CLASS = 'card fx-card bg-base-100 border border-base-content/10';
 
 /**
  * While the card is lifted, dnd keeps its place with a placeholder of its
- * size; it is drawn like the pile's sheets, with nothing on it. Each group
- * is a drop zone of its own (drops disabled) so the lift moves nothing else:
- * in one shared list, dnd closes a lifted card's gap once it leaves the list.
+ * size; it is drawn like the pile's sheets, with nothing on it.
+ *
+ * Workaround (@hello-pangea/dnd): dnd gives the placeholder no class of its
+ * own, so these classes find it by `data-rfd-placeholder-context-id`, an
+ * attribute dnd sets for its own use and doesn't document. If an upgrade
+ * renames it, the placeholder is drawn blank, with no border and no fill.
  */
 const LIFT_PLACEHOLDER_CLASS =
   '[&>[data-rfd-placeholder-context-id]]:rounded-box [&>[data-rfd-placeholder-context-id]]:border [&>[data-rfd-placeholder-context-id]]:border-(--fx-pile-border) [&>[data-rfd-placeholder-context-id]]:bg-(--fx-pile)';
@@ -66,6 +69,10 @@ export const BacklogGroup = ({group, variant}: BacklogGroupProps) => {
     <BacklogGroupFace group={group} queue={queue} action={action} />
   );
 
+  // Workaround (@hello-pangea/dnd): each group is a drop zone of its own, with
+  // drops disabled. In one list shared by every group, dnd closes a lifted
+  // card's gap as soon as the card leaves the list, and every group below it
+  // moves up while the card is still in the air (BL-14).
   const renderDraggableCard = () => (
     <Droppable
       droppableId={`${BACKLOG_GROUP_DROPPABLE_PREFIX}${key}`}
@@ -77,9 +84,11 @@ export const BacklogGroup = ({group, variant}: BacklogGroupProps) => {
           {...provided.droppableProps}
           className={`relative z-[1] flex flex-col ${LIFT_PLACEHOLDER_CLASS}`}
         >
-          {/* Keyed by the task: when the next task leaves, the one after it
-              mounts a Draggable of its own — dnd won't lift one whose id
-              changed under it */}
+          {/* Workaround (@hello-pangea/dnd): keyed by the task, so when the
+              next task leaves, the one after it mounts a Draggable of its
+              own. Without the key the same Draggable gets the new task's
+              id, and dnd never lifts it again: the card that came up can't
+              be dragged */}
           <Draggable key={next.task.id} draggableId={next.task.id} index={0}>
             {(draggable, snapshot) => (
               <div

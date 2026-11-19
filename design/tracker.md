@@ -162,6 +162,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
       - [ ] Plan form — create/update submit failures (`FormErrorAlert` banner above the actions)
       - [ ] Task modal — template create/edit and priority-task add failures (footer `FormErrorAlert`)
       - [ ] Board — drag/status-update failures (currently silent optimistic rollback + `console.error`)
+        - Spec first: review `design/specs/board.md`'s error cases and decide whether they become a section of their own; today they are MV-4 and the Rules' closing line, and one isn't written at all: when a pull from an open queue fails and the step comes back, the queue opens again, since it was never closed (owner, 2026-11-19)
       - [ ] Priorities — reprioritize / track / complete / undo failures (currently silent optimistic rollback + `console.error`)
       - [ ] Projects — archive / unarchive and optimistic step writes (+ This week, ×, reorder) fail silently (rollback + `console.error`)
       - [ ] Auth — OAuth sign-in failure surface (none today; login just returns to the button)

@@ -962,7 +962,7 @@ describe('Backlog groups', () => {
 });
 
 describe('A move', () => {
-  it("A4 MV-5 BL-13 a group's next task dragged onto Todo lands in its place at once; the card shows the task after it and its open queue stays open", async () => {
+  it("A4 MV-5 BL-13 a group's next task dragged onto Todo lands in its place at once; the card shows the task after it and its open queue stays open until no step is left behind", async () => {
     keepSaving();
     await renderBoard();
     await openBacklog();
@@ -997,9 +997,10 @@ describe('A move', () => {
       'ArrowLeft',
     ]);
     expect(readColumnTitles('TODO')).toContain(BIO_LECTURE_TITLES[1]);
-    expect(readBacklogOutline(getColumn('BACKLOG'))).toContain(
-      BIO_LECTURE_TITLES[2],
-    );
+    // No step is left behind the last one: its queue is gone with the rest
+    const lastLecture = getCard('BACKLOG', BIO_LECTURE_TITLES[2]).card;
+    expect(readMoreCount(lastLecture)).toBeNull();
+    expect(getGroupOf(lastLecture).querySelector('ol')).toBeNull();
   });
 
   it('A5 MV-5 BL-13 on mobile ↑ Todo pulls the next task at once and the sheet stays open; the pile thins, then the group and its section go', async () => {
