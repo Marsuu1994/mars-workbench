@@ -344,33 +344,36 @@
 
   /* ── NEW: the Open the day modal / overlay ── */
   .mscrim2 { position: absolute; inset: 0; background: var(--scrim); z-index: 20; }
-  .modal { position: absolute; z-index: 21; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(620px, calc(100% - 48px)); max-height: calc(100% - 40px); display: flex; flex-direction: column; background: var(--panel-solid); border: 1px solid var(--card-border); border-radius: var(--rbox); box-shadow: inset 0 1px 0 var(--edge), 0 24px 60px oklch(0 0 0 / .45); overflow: hidden; }
+  .modal { position: absolute; z-index: 21; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(600px, calc(100% - 48px)); max-height: calc(100% - 40px); display: flex; flex-direction: column; background: var(--panel-solid); border: 1px solid var(--card-border); border-radius: var(--rbox); box-shadow: inset 0 1px 0 var(--edge), 0 24px 60px oklch(0 0 0 / .45); overflow: hidden; }
   .modal.wide { width: min(900px, calc(100% - 48px)); }
   .modal.boot { animation: modalIn .42s var(--ease) both; }
   .modal.leaving { animation: modalOut .24s var(--ease) forwards; }
   .modal::after { content: ''; position: absolute; inset: 2px; pointer-events: none; --l: 14px; --g: linear-gradient(color-mix(in oklab, var(--p) 55%, transparent), color-mix(in oklab, var(--p) 55%, transparent)); background: var(--g) 0 0 / var(--l) 1.5px, var(--g) 0 0 / 1.5px var(--l), var(--g) 100% 0 / var(--l) 1.5px, var(--g) 100% 0 / 1.5px var(--l), var(--g) 0 100% / var(--l) 1.5px, var(--g) 0 100% / 1.5px var(--l), var(--g) 100% 100% / var(--l) 1.5px, var(--g) 100% 100% / 1.5px var(--l); background-repeat: no-repeat; border-radius: calc(var(--rbox) - 2px); }
   .ovfull { position: absolute; z-index: 21; left: 0; right: 0; top: 0; bottom: 0; display: flex; flex-direction: column; background: var(--panel-solid); }
-  .ovfull.boot { animation: sheetUp .42s var(--ease) both; }
+  .ovfull.boot { animation: sheetUp .24s var(--ease) both; }
   .ovfull.leaving { animation: sheetDown .24s var(--ease) forwards; }
   .ovsheet { position: absolute; z-index: 21; left: 0; right: 0; top: 46px; bottom: 0; display: flex; flex-direction: column; background: var(--panel-solid); border-radius: 18px 18px 0 0; border-top: 1px solid var(--card-border); box-shadow: 0 -10px 30px oklch(0 0 0 / .3); }
   [data-theme='p5-dark'] .ovsheet { border-radius: 0; }
   .ovsheet .grab { width: 36px; height: 4px; border-radius: 4px; background: var(--ink-20); margin: 8px auto 0; flex-shrink: 0; }
-  .ovsheet.boot { animation: sheetUp .42s var(--ease) both; }
+  .ovsheet.boot { animation: sheetUp .24s var(--ease) both; }
   .ovsheet.leaving { animation: sheetDown .24s var(--ease) forwards; }
-  .ov-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 16px 20px 12px; border-bottom: 1px solid var(--card-border); flex-shrink: 0; }
-  .ovfull .ov-head { padding-top: 6px; }
+  .ov-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 14px 18px 12px; border-bottom: 1px solid var(--card-border); flex-shrink: 0; }
+  .phone .ov-head { padding: 10px 14px; }
   .ov-head .ttl { display: flex; align-items: center; gap: 8px; font-family: var(--display); font-size: 18px; font-weight: 700; }
   [data-theme='p5-dark'] .ov-head .ttl { font-weight: 400; letter-spacing: .04em; font-size: 20px; }
   .ov-head .ttl .icon { color: var(--wa); width: 20px; height: 20px; }
-  .ov-head .subt { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--ink-55); margin-top: 2px; display: flex; gap: 8px; align-items: center; }
+  .ov-head .subt { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--ink-55); margin-top: 2px; display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: center; }
+  .ov-head .subt b { color: var(--ink-80); font-weight: 600; }
+  .ov-head .subt .hint { color: var(--ink-45); }
   .ov-head .x { border: 0; background: transparent; color: var(--ink-55); cursor: pointer; padding: 4px; display: inline-flex; }
-  .ov-body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 20px 18px; display: flex; flex-direction: column; gap: 10px; scrollbar-width: thin; }
+  .ov-body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 18px 18px; display: flex; flex-direction: column; gap: 10px; scrollbar-width: thin; }
   .phone .ov-body { padding: 12px 14px 16px; }
   .ov-split { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr); }
   .ov-split > .pane { min-height: 0; overflow-y: auto; padding: 14px 18px 18px; display: flex; flex-direction: column; gap: 10px; scrollbar-width: thin; }
   .ov-split > .pane.today-pane { background: color-mix(in oklab, var(--p) 4%, transparent); border-right: 1px solid var(--card-border); }
-  .ov-foot { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 12px 20px; border-top: 1px solid var(--card-border); flex-shrink: 0; background: var(--panel-solid); }
-  .phone .ov-foot { padding: 10px 14px 14px; }
+  .ov-foot { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--card-border); flex-shrink: 0; background: var(--panel-solid); }
+  .phone .ov-foot { padding: 10px 14px 18px; }
+  .phone .ov-foot .btn { height: 44px; }
   .phone .ov-foot .btn.primary { flex: 1; }
   .ov-foot .err { margin-right: auto; font-size: 12px; color: var(--er); display: flex; gap: 6px; align-items: center; }
   .ov-foot .stepdots { margin-right: auto; display: flex; gap: 6px; }
@@ -388,6 +391,44 @@
   .more-body { display: flex; flex-direction: column; gap: 10px; animation: fx-boot-in .24s var(--ease) both; }
   .gstep { font-size: 13px; color: var(--ink-65); line-height: 1.5; margin: 2px 0 4px; }
   .gstep b { color: var(--bc); }
+
+  /* ── Round 2: the whole suggestion card is the hit area (+ Today stays the visible affordance) ── */
+  .tc.tap { cursor: pointer; transition: transform .15s var(--ease); }
+  .tc.tap:hover .act { border-color: var(--p); }
+  .tc.tap:active { transform: scale(.985); }
+  .sec-label.quiet { color: var(--ink-45); margin-top: 6px; }
+  /* ── Round 2: the Start snackbar (src/components/ui/Toast.tsx, tone neutral) ── */
+  .snack { position: absolute; left: 50%; transform: translateX(-50%); bottom: 16px; z-index: 15; }
+  .phone .snack { bottom: 128px; }
+  .snack-box { position: relative; display: flex; align-items: center; gap: 8px; overflow: hidden; white-space: nowrap; border-radius: 10px; border: 1px solid color-mix(in oklab, var(--bc) 15%, transparent); background: color-mix(in oklab, var(--b1) 90%, transparent); color: var(--bc); padding: 8px 14px; font-size: 12px; font-weight: 600; box-shadow: 0 10px 24px oklch(0 0 0 / .3); backdrop-filter: blur(4px); animation: fx-boot-in .42s var(--ease) both; }
+  [data-theme='p5-dark'] .snack-box { border-radius: 0; }
+  .snack-box .undo { margin-left: 4px; border-radius: 6px; border: 1px solid color-mix(in oklab, var(--bc) 15%, transparent); background: color-mix(in oklab, var(--bc) 10%, transparent); padding: 4px 10px; font-size: 12px; font-weight: 700; color: var(--bc); cursor: pointer; }
+  .snack-box .undo:hover { border-color: color-mix(in oklab, var(--bc) 40%, transparent); }
+  .snack-box .clock { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: color-mix(in oklab, var(--bc) 40%, transparent); transform-origin: left; animation: fx-countdown 5s linear forwards; }
+  .snack-box:hover > .clock { animation-play-state: paused; }
+  @keyframes fx-countdown { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+  /* ── Round 2: the round-2 box and the RitualSheet anatomy ── */
+  .r2box { max-width: 1280px; margin: 0 auto 22px; border: 1px solid color-mix(in oklab, var(--p) 40%, transparent); border-radius: 12px; padding: 12px 16px; background: color-mix(in oklab, var(--p) 6%, transparent); font-size: 12.5px; line-height: 1.65; color: var(--ink-80); }
+  [data-theme='p5-dark'] .r2box { border-radius: 0; }
+  .r2box h4 { font-size: 13px; color: var(--p); margin-bottom: 4px; font-family: 'Geist Mono', monospace; letter-spacing: .06em; }
+  .r2box ol { padding-left: 20px; } .r2box li { margin: 2px 0; } .r2box b { color: var(--bc); }
+  .r2box .src { font-family: 'Geist Mono', monospace; font-size: 10.5px; color: var(--ink-55); white-space: nowrap; }
+  .anat { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; align-items: start; }
+  .sk { border: 1px solid var(--card-border); border-radius: 14px; background: var(--panel-solid); overflow: hidden; font-size: 12px; }
+  [data-theme='p5-dark'] .sk { border-radius: 0; }
+  .sk > div { margin: 6px; border-radius: 8px; padding: 8px 10px; }
+  .sk .sh { border: 1.5px dashed color-mix(in oklab, var(--p) 55%, transparent); }
+  .sk .own { color: var(--s); font-weight: 600; }
+  .sk .k { display: block; font-family: 'Geist Mono', monospace; font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--p); margin-bottom: 4px; font-weight: 600; }
+  .sk .ttlrow { display: flex; align-items: center; gap: 6px; font-family: var(--display); font-weight: 700; font-size: 14px; }
+  .sk .ttlrow .icon { color: var(--wa); width: 16px; height: 16px; }
+  .sk small { display: block; font-family: 'Geist Mono', monospace; font-size: 10px; color: var(--ink-55); margin-top: 2px; }
+  .sk .stub { height: 22px; border-radius: 6px; border: 1px solid var(--card-border); border-left: 3px solid var(--k, var(--ink-30)); margin-top: 4px; display: flex; align-items: center; padding: 0 8px; font-size: 11px; color: var(--ink-65); }
+  .sk .lbl { font-family: 'Geist Mono', monospace; font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-55); margin-top: 6px; }
+  .sk .footrow { display: flex; justify-content: flex-end; gap: 6px; align-items: center; }
+  .sk .footrow span { border: 1px solid var(--card-border); border-radius: 6px; padding: 3px 8px; font-size: 11px; }
+  .sk .footrow span.pri { background: var(--p); color: var(--pc); border-color: transparent; font-weight: 700; }
+  .sk .footrow span.pri b { font-family: 'Geist Mono', monospace; margin-left: 4px; }
 
   /* ── Motion (each one is set out in its module's motion table) ── */
   @keyframes fx-pulse-opacity { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
@@ -459,12 +500,12 @@
 
 <header class="topbar">
   <div>
-    <div class="eyebrow">Daily rhythm · Open the day · design PR · 第 1 轮 · 2026-11-19 · 未定稿 · waits on owner approval</div>
+    <div class="eyebrow">Daily rhythm · Open the day · design PR · 第 2 轮 · 2026-11-19 · 等 owner 看 · 没有定稿 · waits on owner approval</div>
     <h1>Open the day：早上挑今天做什么</h1>
     <p><b>要做的（owner，2026-11-19）。</b>board 上有一个 entry，点开是一个专门的 flow：desktop 上是 modal，mobile 上是 overlay。上半部分是 <b>Today</b>，一开始只放昨天没做完的，没有就是一个 empty prompt；下半部分是简略版的 backlog：一个推荐区，也能展开看全部，包括 priority matrix 第一象限（Do first）的 one-off。推荐现在用固定算法。Complete 和 Cancel 跟普通 modal 一样。还没做这个 ritual 的时候 Todo 是空的，empty 文案要有开启一天的 cheerful 感觉。entry 暂定 08:00–14:00，过了不显示。Night recap 另一个 mockup 画。</p>
-    <p><b>怎么看。</b>一个模块一个 tab：<b>E · Entry</b>（board 上的入口、Todo 没 open 时的 empty 文案）、<b>L · Layout</b>（modal 怎么排）、<b>S · Suggestions</b>（推荐怎么给）、<b>T · Start</b>（提交那一下和提交以后）。每个 tab 先是 Before（main 的产品），再是 2–3 个方案并排：手机一行并排在上，桌面一个方案一行在下；每个方案标了按 <code>design-language/README.md</code> › Principles 的得失，我推荐的那个有亮框。<b>R · Research</b> 是别的产品怎么做；<b>F · Final</b> 把推荐的合在一起，从 strip 一路点到 Start the day；<b>I · Ideas</b> 是 spec 要写的行为、Future 和要 owner 定的问题。After 都能点：+ 加到 Today、× 放回去、Show more、Start the day、Cancel，右上角 Reset。</p>
-    <p><b>用的 spike 默认</b>（<code>claude/daily-rhythm-rituals-spike</code>，owner 还没回答）：rhythm day 是 Los Angeles 时间 04:00 到第二天 04:00；Todo 严格是今天，每天第一次 sync 把还在 Todo 的清回 backlog、记 carried（Open the day 里标 ↩）；entry 在 08:00–14:00、今天还没 open 时出现；desktop 是居中的 modal，mobile 是全屏 overlay；点 backdrop 不关，Esc 等于 Cancel；没有 notification。推荐：每个 habit / project 今天推 <code>ceil(剩下的 ÷ 剩下的天数)</code> 减掉已在 Today 的；daily 的今天那张总推；这周已 track 的 one-off 算一组、按 quadrant 排；没 track 的 Do first 只在 Show more 里。</p>
-    <p><b>画在什么上。</b>Before 是 <code>main</code>（<code>6ed14d0</code>）的产品。After 的 board 也画在 main 上，只加这个设计的东西，每个 tab 的 note 写了加了什么；modal 里的卡用 PR #128 K · Card 定的那张卡（kind 行、标题、描述、左下 signal、右下 action，不显示 size），还没 build。PR #128 落地以后 strip 的位置见 E tab 底部的示意。<b>Fixture</b>：Thu Nov 19 09:12，<code>NORMAL</code>，这周 Nov 16 – Nov 22，剩下 D = 2 天（周四、周五）；一个 weekly habit（Workout 3× / week，做了 1）、一个 daily habit（Flashcards）、一个 project（Biomedical course，10 步，这周排了 Lecture 4–7 和 Problem set 2，Lecture 4 昨天没做完 ↩）、两个已 track 的 one-off（Renew passport ↩、Call the landlord）、两个没 track 的 Do first（Book the dentist、Fix the bike tire）。</p>
+    <p><b>怎么看。</b>一个模块一个 tab：<b>E · Entry</b>（board 上的入口、Todo 没 open 时的 empty 文案）、<b>L · Layout</b>（modal 怎么排，和 Night recap 共用的 RitualSheet 解剖）、<b>S · Suggestions</b>（推荐怎么给）、<b>T · Start</b>（提交那一下和提交以后）。每个 tab 先是 Before（main 的产品），再是 2–3 个方案并排：手机一行并排在上，桌面一个方案一行在下；每个方案标了按 <code>design-language/README.md</code> › Principles 的得失，我推荐的那个有亮框。<b>R · Research</b> 是别的产品怎么做；<b>F · Final</b> 把推荐的合在一起，从 strip 一路点到 Start the day；<b>I · Ideas</b> 是 spec 要写的行为、Future 和要 owner 定的问题。After 都能点：点推荐卡（或它的 + Today）加到 Today、× 放回去、Show more、Start the day、Undo、Cancel，每个画面上面有 Reset。</p>
+    <p><b>用的 spike 默认</b>（<code>claude/daily-rhythm-rituals-spike</code>，owner 还没回答）：rhythm day 是 Los Angeles 时间 04:00 到第二天 04:00；Todo 严格是今天，每天第一次 sync 把还在 Todo 的清回 backlog、记 carried（Open the day 里标 ↩）；entry 在 08:00–14:00、今天还没 open 时出现；desktop 是居中的 modal，mobile 是全屏 overlay；点 backdrop 不关，Esc 等于 Cancel；没有 notification。推荐：每个 habit / project 今天推 <code>ceil(剩下的 ÷ 剩下的天数)</code> 减掉已在 Today 的；这周已 track 的 one-off 算一组、按 quadrant 排；没 track 的 Do first 只在 Show more 里。spike 里「daily 的今天那张总推」只在 Phase 2 去掉 Daily 以前有用，第 2 轮不画（见 I · Ideas）。</p>
+    <p><b>画在什么上。</b>Before 是 <code>main</code>（<code>6ed14d0</code>）的产品。After 的 board 也画在 main 上，只加这个设计的东西，每个 tab 的 note 写了加了什么；modal 里的卡用 PR #128 K · Card 定的那张卡（kind 行、标题、描述、左下 signal、右下 action，不显示 size），还没 build。PR #128 落地以后 strip 的位置见 E tab 底部的示意。<b>Fixture</b>：Thu Nov 19 09:12，<code>NORMAL</code>，这周 Nov 16 – Nov 22，剩下 D = 2 天（周四、周五）；两个 weekly habit（Workout 3× / week，做了 1；Flashcards 5× / week，做了 3）、一个 project（Biomedical course，10 步，这周排了 Lecture 4–7 和 Problem set 2，Lecture 4 昨天没做完 ↩）、两个已 track 的 one-off（Renew passport ↩、Call the landlord）、两个没 track 的 Do first（Book the dentist、Fix the bike tire）。另一种早上：08:50 先从 backlog 拉了一张 Workout，09:12 再 open（Already today，L tab 和 F tab）。</p>
   </div>
   <div class="seg" id="theme-seg" role="group" aria-label="Theme">
     <button data-theme-btn="mars-dark" class="on">mars-dark</button>
@@ -473,18 +514,33 @@
   </div>
 </header>
 
+<aside class="r2box">
+  <h4>第 2 轮改了什么</h4>
+  <ol>
+    <li><b>一个 RitualSheet</b>：和 Night recap 用同一个 modal 骨架（header 图标 + 标题 + 日期副标、按 label 分段的 body、Cancel + 一个带数字的 primary），桌面 600 px、手机全屏，padding、圆角、动效数字一样；L tab 加了「解剖」。因为两边都是 600 px，L 的推荐从两栏的 L-B（900 px）换成一列的 L-A，L-B 留着当方案。<span class="src">来自 demo-11-06 的 Open the day · Close the day 草稿（解剖屏）</span></li>
+    <li><b>E-D 自动弹一次，然后是 strip</b>：多画一个 Entry 方案，排名靠后、不推荐。<span class="src">来自 demo-11-06 草稿</span></li>
+    <li><b>整张推荐卡都能点</b>：点卡就加进 Today，+ Today 还在，是看得见的提示。<span class="src">来自 demo-11-06 草稿（tap 整行）</span></li>
+    <li><b>Already today</b>：open 时已经在 Todo 的卡列在 Today 下面一个安静的 label 里，不算进 Start 的数。回答了第 1 轮的 Q12。<span class="src">来自 demo-11-06 草稿</span></li>
+    <li><b>副标的软提示</b> <code>4 picked · you usually finish 4 on a Thursday</code>：只是字，不变色、不拦；要 owner 定要不要。<span class="src">来自 demo-11-06 草稿（草稿里也没答）</span></li>
+    <li><b>T-D：落进 Todo，再一条 Undo snackbar</b>，推荐；第 1 轮的 T-A 变成第二。<span class="src">来自 demo-11-06 草稿</span></li>
+    <li><b>推荐和 Show more 按 kind 固定顺序</b>（Habits · Projects · One-offs），组内不排。<span class="src">来自 demo-11-06 草稿（Chernev 2015）</span></li>
+    <li><b>Flashcards 改成 5× / week</b>：Phase 2 只有 Weekly × N，所以不再在 Daily 上画新东西；第 1 轮只对 daily 的规则（<code>Today only</code>、今天那张总推）只留成一条注。<span class="src">tracker · owner 2026-11-16</span></li>
+    <li><b>Cancel 不变</b>，不用草稿的 Not today（owner 的 spec：像普通 modal）；<b>Research</b> 加了草稿里撑得住这里某个选择的来源。<span class="src">第 1 轮 · demo-11-06 草稿</span></li>
+  </ol>
+</aside>
+
 <!-- ═════════ R · Research ═════════ -->
 <section class="screen" data-screen="research">
   <div class="col-label"><b>R · Research</b> · 别的产品怎么做早上的这一步 · 只记 pattern 和它对这个设计的用处<span class="line"></span></div>
-  <p class="note lead">读的是各家自己的页面（链接在每张卡上）。Apple 在前：HIG 的 Modality 和 Sheets 管这个 modal 怎么开、怎么关；Journal 的 suggestions 管「推荐要说清楚为什么」。下面每张卡的 <b>Fit</b> 说它推了哪个方案、或者为什么不用。</p>
+  <p class="note lead">读的是各家自己的页面（链接在每张卡上）。第 2 轮加了 demo-11-06 草稿里用过、又撑得住这里某个选择的来源（My Day、Things 多选、Scheibehenne / Chernev、Jachimowicz、Masicampo & Baumeister、Hobson、NN/g）；草稿里的 Smit 2015、Scullin 2018、Marvin 撑的是晚上那一边，放在 Night recap。Apple 在前：HIG 的 Modality 和 Sheets 管这个 modal 怎么开、怎么关；Journal 的 suggestions 管「推荐要说清楚为什么」。下面每张卡的 <b>Fit</b> 说它推了哪个方案、或者为什么不用。</p>
   <div class="patterns" id="research"></div>
   <div class="col-label spaced"><b>合起来</b> · research 对四个模块的影响<span class="line"></span></div>
   <div class="note" style="margin-top:0">
     <ul>
-      <li><b>E · Entry</b>：Akiflow、Sunsama 都能在当天第一次打开时自动弹出 planning。我们不自动弹，用一条 strip：owner 要的是「board 上一个 entry」，自动弹一个盖住 board 的 modal 是打断（HIG：只在有明确好处时用 modal）。自动弹记进 Future。</li>
-      <li><b>L · Layout</b>：Sunsama 和 Akiflow 是好几步的向导；HIG 说 modal 的任务要短、不要做成 app 里的 app，多步就要有 Back。我们的事情只有一件（挑今天的卡），所以推荐一屏做完；向导作为 L-C 画出来对比。</li>
-      <li><b>S · Suggestions</b>：Todoist 把 overdue 放成单独一段、一键 Reschedule 全部；Journal 的推荐每条都看得出是从哪来的。对应 ↩ 一段在 Today 最上面、Suggested 的 Add all、每张推荐卡的 why 一行。</li>
-      <li><b>T · Start</b>：几家 planning 的最后一步都只是「进入今天」（Sunsama 的 Get Started），没有庆祝。和 Principles 3.5 一致：这是开始，不是赢，反馈小而且落在 Todo。</li>
+      <li><b>E · Entry</b>：Akiflow、Sunsama 都能在当天第一次打开时自动弹出 planning。推荐不自动弹，用一条 strip：owner 要的是「board 上一个 entry」，自动弹一个盖住 board 的 modal 是打断（HIG：只在有明确好处时用 modal）。第 2 轮把自动弹画成 E-D，排最后。</li>
+      <li><b>L · Layout</b>：Sunsama 和 Akiflow 是好几步的向导；HIG 说 modal 的任务要短、不要做成 app 里的 app，多步就要有 Back。我们的事情只有一件（挑今天的卡），所以推荐一屏做完；向导作为 L-C 画出来对比。早晚同一个外框（Hobson 2018）让推荐落在一列的 L-A。</li>
+      <li><b>S · Suggestions</b>：Todoist 把 overdue 放成单独一段、一键 Reschedule 全部；Journal 的推荐每条都看得出是从哪来的；My Day 的推荐点一下就加。对应 ↩ 一段在 Today 最上面、Suggested 的 Add all、每张推荐卡的 why 一行、整张卡能点；固定顺序、组内不排（Chernev 2015）。</li>
+      <li><b>T · Start</b>：几家 planning 的最后一步都只是「进入今天」（Sunsama 的 Get Started），没有庆祝。和 Principles 3.5 一致：这是开始，不是赢，反馈小而且落在 Todo。第 2 轮再加一条 Undo（NN/g：能撤回就别先问）。</li>
       <li><b>Todo 的 empty</b>：Atlassian 把「还没开始」（blank slate）和「做完了」（cleared）分开写：前者鼓励开始，后者庆祝。正好是 Todo 的两种空：没 open（这里新写的）和做完了（COL-5 的 All clear for the day）。</li>
     </ul>
   </div>
@@ -493,15 +549,16 @@
 <!-- ═════════ E · Entry ═════════ -->
 <section class="screen on" data-screen="entry">
   <div class="col-label"><b>E · Entry</b> · 早上打开 board：入口在哪、Todo 空着说什么<span class="line"></span></div>
-  <p class="note lead">D1（spike）以后，每天第一次 sync 把 Todo 清回 backlog，所以早上没 open 之前 Todo 是空的。这一个 tab 定两件事：<b>① 入口</b>长什么样、放在哪（三个方案）；<b>② Todo 的 empty 文案</b>（spike 的 A–E 并排，加上 14:00 以后不提 ritual 的那一版）。点 After 里的入口会打开推荐的 modal（L-B + S-A），可以一路点下去；Reset 回到早上。</p>
-  <div class="col-label"><b>Before</b> · main 的产品 · Thu 09:12：昨天没做完的 Lecture 4 和两张 one-off 还在 Todo，今天的 Flashcards 在 backlog 里<span class="line"></span></div>
+  <p class="note lead">D1（spike）以后，每天第一次 sync 把 Todo 清回 backlog，所以早上没 open 之前 Todo 是空的。这一个 tab 定两件事：<b>① 入口</b>长什么样、放在哪（四个方案，E-D 是第 2 轮加的）；<b>② Todo 的 empty 文案</b>（spike 的 A–E 并排，加上 14:00 以后不提 ritual 的那一版）。点 After 里的入口会打开推荐的 modal（L-A + S-A + T-D），可以一路点下去；Reset 回到早上。</p>
+  <div class="col-label"><b>Before</b> · main 的产品 · Thu 09:12：昨天没做完的 Lecture 4 和两张 one-off 还在 Todo，Flashcards 和 Workout 在 backlog 里<span class="line"></span></div>
   <div class="options" style="grid-template-columns: minmax(0, 1fr) 340px"><div id="e-before-desk"></div><div id="e-before-phone"></div></div>
 
-  <div class="col-label spaced after"><b>① 入口 · 三个方案</b> · 手机并排 · Thu 09:12，还没 open<span class="line"></span></div>
+  <div class="col-label spaced after"><b>① 入口 · 四个方案</b> · 手机并排 · Thu 09:12，还没 open<span class="line"></span></div>
   <div class="options" id="e-opts"></div>
   <div id="e-desks"></div>
   <div class="tbl-wrap"><table class="tbl" id="e-rank"></table></div>
   <p class="note"><b>推荐 E-A</b>：一个入口，两端一样，放在它的结果要落下的 Todo 正上方；Todo 的虚线框照旧是一个没有按钮的 FinishBox。<b>After 比 Before 多的</b>（E-A）：① strip（LED、Open the day、一行说明、→），只在 08:00–14:00、今天还没 open 时出现；② Todo 空着时的虚线框和它的文案（② 选）；③ 不是这个设计、是 spike 的 D1 带来的：Todo 早上是空的，昨天没做完的回到 backlog，backlog 多了一段 One-offs，数到 8 以上写 8+。strip 的一行说明只说数字：<code>2 from yesterday · 4 suggested</code>，哪个是 0 就不写那一半，两个都是 0 写 <code>Pick today's tasks</code>（Principles 3.6）。</p>
+  <p class="note"><b>E-D（第 2 轮，来自 demo-11-06 草稿）</b>：草稿的做法是今天第一次在窗口里打开 board 时 modal 自己升起来，Cancel 以后就是 E-A 的 strip，这个窗口里不再弹。画出来是因为它省掉一下（1.3），Akiflow 和 Sunsama 也有这个选项。<b>排在最后、不推荐</b>：owner 的 spec 写的是 board 上「一个 entry」；一打开就被一个盖住 board 的 modal 迎面拦住，是 2.x（calm ahead）反对的那种压力，也是 HIG 说的「只在有明确好处时用 modal」。<b>After 比 E-A 多的</b>：只有「第一次自动打开」这一下；modal、strip、Todo 的框和 E-A 一模一样。点 Reset 再看一次自动打开。</p>
 
   <div class="col-label spaced after"><b>② Todo 的 empty 文案</b> · spike 的 A–E 并排，加 14:00 以后的一版；最后一格是 COL-5 已有的那句，对照用<span class="line"></span></div>
   <div class="copy-grid" id="e-copy"></div>
@@ -512,7 +569,8 @@
     <tr><th>什么</th><th>什么时候</th><th>谁怎么动</th><th>多久</th><th>减少动态效果</th></tr>
     <tr><td>strip 的 LED</td><td>strip 在的时候一直</td><td>LED 的不透明度 1 → .35 → 1（产品的 <code>fx-pulse-opacity</code>）</td><td>2.4 s 一圈（Motion › LED pulse）</td><td>不闪，常亮</td></tr>
     <tr><td>strip 出现</td><td>页面加载或回到前台时在窗口里（spike Q2）</td><td>不动，跟页面一起出来</td><td>—</td><td>—</td></tr>
-    <tr><td>strip、+ Today、按钮被按下</td><td>按下时</td><td>控件自己的反馈（6.2）：hover 只给 Open the day 加下划线；按下缩一点（strip .99、+ Today .94、按钮 .97）</td><td>150 ms</td><td>不缩</td></tr>
+    <tr><td>strip、推荐卡、+ Today、按钮被按下</td><td>按下时</td><td>控件自己的反馈（6.2）：hover 只给 Open the day 加下划线、给推荐卡的 + Today 边框加深；按下缩一点（strip .99、推荐卡 .985、+ Today .94、按钮 .97）</td><td>150 ms</td><td>不缩</td></tr>
+    <tr><td>E-D 自动打开</td><td>08:00–14:00 里今天第一次打开 board、还没 open</td><td>和点 strip 一样：桌面 modal <code>fx-boot-in</code>，手机 overlay 从底部升起（L tab）</td><td>420 ms / 240 ms</td><td>只淡入</td></tr>
     <tr><td>strip 离开</td><td>Start the day 成功</td><td>见 T · Start</td><td>240 ms</td><td>见 T</td></tr>
     <tr><td>Todo 的虚线框</td><td>Todo 变空、或页面加载时就空</td><td>FinishBox 现有的 <code>fx-boot-in</code>（淡入，往上 6 px）</td><td>420 ms</td><td>只淡入</td></tr>
   </table></div>
@@ -525,26 +583,35 @@
 <!-- ═════════ L · Layout ═════════ -->
 <section class="screen" data-screen="layout">
   <div class="col-label"><b>L · Layout</b> · modal / overlay 里怎么排 Today 和 backlog<span class="line"></span></div>
-  <p class="note lead">三个方案用同一套内容：Today（↩ 两张）、Suggested（S-A 的列表）、Show more。比较的是排法。按 owner 的四条看：<b>1.3</b> 动作最少、<b>2.2</b> 不把一大堆摊开、<b>4.1</b> 重要的先看到、<b>5.1 / 5.2</b> 一个组件、两端一张脸。都能点；Start the day 以后回到 board（T 的推荐动效），Reset 再来。</p>
+  <p class="note lead">三个方案用同一套内容：Today（↩ 两张）、Suggested（S-A 的列表）、Show more。比较的是排法。<b>第 2 轮</b>：Night recap 和这里是同一个 RitualSheet（下面的解剖），桌面一样宽 600 px，所以推荐换成 L-A；L-B 的 900 px 两栏要第二种骨架，排第二。按 owner 的四条看：<b>1.3</b> 动作最少、<b>2.2</b> 不把一大堆摊开、<b>4.1</b> 重要的先看到、<b>5.1 / 5.2</b> 一个组件、两端一张脸。都能点；Start the day 以后回到 board（T 的推荐 T-D），Reset 再来。</p>
   <div class="col-label"><b>Before</b> · main 现在排今天的方法：打开 backlog，一张张拉（桌面拖，手机点 ↑ Todo）；没有「开始今天」这一步<span class="line"></span></div>
   <div class="options" style="grid-template-columns: minmax(0, 1fr) 340px"><div id="l-before-desk"></div><div id="l-before-phone"></div></div>
   <div class="col-label spaced after"><b>三个方案</b> · 手机并排<span class="line"></span></div>
   <div class="options" id="l-opts"></div>
   <div id="l-desks"></div>
   <div class="tbl-wrap"><table class="tbl" id="l-rank"></table></div>
-  <p class="note"><b>推荐 L-B</b>：手机上就是 L-A 的一列；桌面多出来的宽度放成两栏，Today 在左（4.1：手机从上到下、桌面从左到右，同一个顺序），加进来的卡落在看得见的左栏（3.4）。这是「桌面可以多一个视图，不少一条路」（5.2）。<b>After 比 Before 多的</b>：整个 modal / overlay 是新的：标题 Open the day 和日期、Today 一段、Suggested 一段（右边 Add all）、Show more（展开以后 Habits · Projects · One-offs · From Priorities 四段，空的不显示）、底部 Cancel 和 Start the day。卡是 #128 的那张卡，右下的 action 槽放 <b>+ Today</b> 或 <b>×</b>；<b>Start the day 上的数字</b>就是 Today 的张数，Today 一段不再写数（1.1），加一张它就变（3.4）。</p>
+  <p class="note"><b>推荐 L-A（第 2 轮）</b>：一列，两端一模一样，桌面是 600 px 的 modal，和 Night recap 同一个外框（5.1：一个组件，一个地方填它的槽，不改骨架）。第 1 轮推荐的 L-B 用桌面多出来的宽度放成两栏，加进来的卡落在看得见的左栏（3.4），这一点 L-A 比不过：Today 长了以后，加进去的卡可能落在视野上面，看得见的反馈只剩副标和按钮上的数。但两栏要 900 px，Night recap 就得跟着变宽或者两个 ritual 两种外框，所以排第二。<b>After 比 Before 多的</b>：整个 modal / overlay 是新的：标题 Open the day，副标是日期、<code>N picked</code> 和软提示 <code>you usually finish 4 on a Thursday</code>（第 2 轮，只是字）；Today 一段（open 时已在 Todo 的卡在它下面的 Already today，第 2 轮）、Suggested 一段（右边 Add all）、Show more（展开以后 Habits · Projects · One-offs · From Priorities 四段，空的不显示）、底部 Cancel 和 Start the day。卡是 #128 的那张卡，右下的 action 槽放 <b>+ Today</b> 或 <b>×</b>；推荐卡和 Show more 的卡整张都能点（第 2 轮），+ Today 是看得见的提示。<b>Start the day 上的数字</b>就是挑进 Today 的张数（Already today 不算），加一张它就变（3.4）。</p>
+
+  <div class="col-label spaced"><b>Already today（第 2 轮）</b> · Thu 08:50 先从 backlog 拉了一张 Workout，09:12 才 open · 回答第 1 轮 Q12<span class="line"></span></div>
+  <div class="options" style="grid-template-columns: minmax(0, 1fr) 340px"><div id="l-already-desk"></div><div id="l-already-phone"></div></div>
+  <p class="note">open 的时候 Todo 里已经有的卡（今天第一次 sync 以后拉的）列在 Today 最下面，一个安静的 label <b>Already today</b> 下面；没有 ×（R1：user 不能把 Todo 放回 backlog），不算进 <code>N picked</code> 和 Start the day 的数。推荐把它算作「已在 Today」：Workout 这周剩 2、今天份是 1，已经在了，所以不再推 Workout。Today 里一张都没挑也能按 Start the day（按钮上没有数），因为今天已经有东西了。<b>After 比 Before 多的</b>：Already today 的 label 和它下面的卡。没有动效。</p>
+
+  <div class="col-label spaced"><b>解剖 · 一个 RitualSheet</b> · 早上 Open the day 和晚上 Night recap 共用的槽，和各自填进去的东西（第 2 轮，来自 demo-11-06 草稿的解剖屏）<span class="line"></span></div>
+  <div class="anat" id="l-anat"></div>
+  <div class="tbl-wrap"><table class="tbl" id="l-anat-tbl"></table></div>
+  <p class="note">虚线框是共用的槽，紫色字是这个 ritual 自己填的。实现上是一个组件（OverlayShell 上的一个 RitualSheet），两个 ritual 只换标题、副标、body 的段落和按钮文字，顺序每天一样（Hobson 2018：ritual 的效果来自固定的顺序和重复）。右边 Night recap 的内容只是示意，以它自己的 mockup 为准；共用的数字两个 mockup 一样。</p>
 
   <div class="col-label spaced"><b>手机外框（spike Q8）</b> · 全屏 overlay（spike 默认，新的 <code>fullscreen</code> variant） vs 拉满高度的 bottom sheet（现有的 <code>sheet</code>）<span class="line"></span></div>
   <div class="phones" id="l-q8"></div>
-  <p class="note"><b>倾向全屏</b>（spike 默认，F 用它）：Start the day 是这一屏唯一的 primary，tab bar 被盖住不会误点；HIG 说专心做一件事可以用全屏。sheet 省一个 variant（1.2），顶上露一截 board 保留上下文，但露出来的 board 和 grabber 让人想往下拉关掉，而这里点外面不能关（选好的会丢），两种信号打架。由 owner 定。</p>
+  <p class="note"><b>倾向全屏</b>（spike 默认，F 用它；第 2 轮 Night recap 也是全屏，两个 ritual 一样）：Start the day 是这一屏唯一的 primary，tab bar 被盖住不会误点；HIG 说专心做一件事可以用全屏。sheet 省一个 variant（1.2），顶上露一截 board 保留上下文，但露出来的 board 和 grabber 让人想往下拉关掉，而这里点外面不能关（选好的会丢），两种信号打架。NN/g 的 bottom sheet 一文站 sheet 那边（保留 context）。由 owner 定，定了两个 ritual 一起改。</p>
 
   <div class="col-label spaced"><b>动效 · 这个 tab 的</b><span class="line"></span></div>
   <div class="tbl-wrap"><table class="tbl">
     <tr><th>什么</th><th>什么时候</th><th>谁怎么动</th><th>多久</th><th>减少动态效果</th></tr>
     <tr><td>modal 打开（桌面）</td><td>点 strip</td><td>backdrop 出现；modal 用 OverlayShell 现有的 <code>fx-boot-in</code>（淡入，往上 6 px，从 .985 放大到 1）</td><td>420 ms</td><td>只淡入</td></tr>
-    <tr><td>overlay 打开（手机）</td><td>点 strip</td><td>从底部升上来，盖住 board 和 tab bar（daisyUI 的 modal-bottom 一样的方向）</td><td>420 ms，console snap</td><td>只淡入</td></tr>
+    <tr><td>overlay 打开（手机）</td><td>点 strip</td><td>从底部升上来，盖住 board 和 tab bar（daisyUI 的 modal-bottom 一样的方向）</td><td>240 ms，console snap（第 2 轮：和 Night recap 一样，structural）</td><td>只淡入</td></tr>
     <tr><td>关掉</td><td>Cancel、✕ / ⌄、Esc</td><td>桌面：淡出、往下 6 px；手机：降下去</td><td>240 ms</td><td>只淡出</td></tr>
-    <tr><td>加进 Today</td><td>点 + Today 或 Add all</td><td>卡从它在的列表里消失（不动画），出现在 Today 最下面，<code>land</code>：从上面 10 px 淡入落下；Start the day 上的数字跟着变（不动画）</td><td>240 ms</td><td>只淡入</td></tr>
+    <tr><td>加进 Today</td><td>点推荐卡、它的 + Today 或 Add all</td><td>卡从它在的列表里消失（不动画），出现在 Today 最下面，<code>land</code>：从上面 10 px 淡入落下；Start the day 上的数字跟着变（不动画）</td><td>240 ms</td><td>只淡入</td></tr>
     <tr><td>放回去</td><td>点 ×</td><td>卡从 Today 消失，回到原来的位置（不动画）</td><td>—</td><td>—</td></tr>
     <tr><td>Show more</td><td>点它</td><td>⌄ 转 180°；展开的部分 <code>fx-boot-in</code> 淡入</td><td>240 ms</td><td>不转，只出现</td></tr>
     <tr><td>L-C 换一步</td><td>Next / Back</td><td>不动画，换内容</td><td>—</td><td>—</td></tr>
@@ -554,38 +621,38 @@
 <!-- ═════════ S · Suggestions ═════════ -->
 <section class="screen" data-screen="suggest">
   <div class="col-label"><b>S · Suggestions</b> · 推荐怎么给：列出来让人加、预先放进 Today、还是按 group 一张卡<span class="line"></span></div>
-  <p class="note lead">三个方案都放在 L-B 里（桌面两栏、手机一列）。推荐用的是 spike 的固定算法，数字是真的算出来的：Thu，D = 2；Flashcards 是 daily，今天那张总推；Workout 还剩 2，<code>ceil(2 ÷ 2) = 1</code>；Biomedical 这周还剩 5 步（含 ↩ 的 Lecture 4），<code>ceil(5 ÷ 2) = 3</code>，Today 里已有 1，推 2；两张 one-off 还剩 2，<code>ceil(2 ÷ 2) = 1</code>，Renew passport ↩ 已经在 Today，所以不推。加一张、放回一张，推荐当场重算（spike）。</p>
+  <p class="note lead">三个方案都放在 L-A 里（第 2 轮的推荐，一列）。推荐用的是 spike 的固定算法，数字是真的算出来的：Thu，D = 2；Flashcards 这周还剩 2，<code>ceil(2 ÷ 2) = 1</code>；Workout 还剩 2，<code>ceil(2 ÷ 2) = 1</code>；Biomedical 这周还剩 5 步（含 ↩ 的 Lecture 4），<code>ceil(5 ÷ 2) = 3</code>，Today 里已有 1，推 2；两张 one-off 还剩 2，<code>ceil(2 ÷ 2) = 1</code>，Renew passport ↩ 已经在 Today，所以不推。加一张、放回一张，推荐当场重算（spike）。<b>第 2 轮</b>：推荐和 Show more 都按 kind 的固定顺序 Habits · Projects · One-offs 排（Show more 最后多一段 From Priorities），组内不按分数排、用原来的顺序（step 的顺序、matrix 的 quadrant 顺序）；整张卡都能点。</p>
   <div class="col-label"><b>Before</b> · 同 L：没有推荐，backlog 按 group 一张卡，自己挑<span class="line"></span></div>
   <div class="options" style="grid-template-columns: minmax(0, 1fr) 340px"><div id="s-before-desk"></div><div id="s-before-phone"></div></div>
   <div class="col-label spaced after"><b>三个方案</b> · 手机并排<span class="line"></span></div>
   <div class="options" id="s-opts"></div>
   <div id="s-desks"></div>
   <div class="tbl-wrap"><table class="tbl" id="s-rank"></table></div>
-  <p class="note"><b>推荐 S-A</b>：MVP 是自己手动 plan（owner），推荐只是一排「建议加的」，看到的就是会落进 Todo 的那张卡；一个 group 推两张时，第二张没有 +，像 backlog 的队列一样等前一张（step 的顺序，R6）。<b>After 比 Before 多的</b>：Suggested 一段、Add all、卡右上的 why 一行（S-B 是 Today 里卡右上的 Suggested 和虚线边、S-C 是 group 卡的 pile 数推荐的张数）。</p>
+  <p class="note"><b>推荐 S-A</b>：MVP 是自己手动 plan（owner），推荐只是一排「建议加的」，看到的就是会落进 Todo 的那张卡；一个 group 推两张时，第二张没有 +，像 backlog 的队列一样等前一张（step 的顺序，R6）。<b>After 比 Before 多的</b>：Suggested 一段、Add all、卡右上的 why 一行（S-B 是 Today 里卡右上的 Suggested 和虚线边、S-C 是 group 卡的 pile 数推荐的张数）。<b>第 2 轮，三个方案都有</b>：① 有 + Today 的卡整张是 hit area，点哪里都加进 Today，+ Today 留着，是看得见的提示（来自 demo-11-06 草稿的「tap 整行」）；选中的样子就是卡离开这里、落进 Today，不另画一个选中态（1.1）。hover 只把 + Today 的边框加深，按下整张缩到 .985（6.2）；没有 + 的卡（等前一张的）点了没反应。② 固定顺序 Habits · Projects · One-offs，不加小标题：卡的 kind 行和颜色已经说了是哪种（1.1、5.3），少一个「怎么排」的决定（Chernev 2015）。</p>
 
   <div class="col-label spaced"><b>Why 一行</b> · 卡的 kind 行右边，backlog 卡放 +N more 的那个槽（5.1）· 只说数据知道的（3.6）<span class="line"></span></div>
   <div class="tbl-wrap"><table class="tbl">
     <tr><th>情况</th><th>写什么</th><th>为什么这样写</th></tr>
-    <tr><td>daily habit</td><td><code>Today only</code></td><td>今天的 instance 过了今天就 expire（spike），这是它被推的原因；不写数字。</td></tr>
     <tr><td>weekly habit、project</td><td><code>2 left in 2 days</code></td><td>R（这周还没做完的）和 D（剩下的天数，含今天）就是公式的两个输入。<b>拿不准</b>：habit 的 dots 已经画了做了几个（1.1），「2 left」和 dots 部分重复；project 的 path 画的是整个 project，这周剩几步它画不出来，不重复。另一种写法只写天数（<code>2 days left this week</code>），但每张卡都一样，等于没说。先用 spike 的写法，请 owner 看。</td></tr>
     <tr><td>这周的 one-off</td><td><code>1 left in 2 days</code></td><td>所有已 track 的 one-off 算一组（spike），R 是这一组的。</td></tr>
     <tr><td>只剩一天</td><td><code>3 left in 1 day</code></td><td>不写 last day：<code>NORMAL</code> 的周五后面还有周末，「最后一天」说多了。</td></tr>
     <tr><td>周末（<code>NORMAL</code>）</td><td>Suggested 下面一行：<code>Nothing is suggested on weekends</code></td><td>D = 0，算法不推（spike）。只是事实，不劝人休息也不劝人干活。</td></tr>
     <tr><td>推荐都加进去了</td><td><code>Everything suggested is in Today</code></td><td>2.3：一个列表空了就说它完了；Show more 还在下面，不推。</td></tr>
   </table></div>
+  <p class="note"><b>Daily habit（只到 Phase 2）</b>：第 1 轮有一行 daily habit 写 <code>Today only</code>、今天那张总推。owner 2026-11-16 定了 Phase 2 只有 Weekly × N、去掉 Daily（tracker），所以第 2 轮的 fixture 不画 daily，这一行只在 Phase 2 落地以前、还有 daily habit 的时候有用。</p>
 </section>
 
 <!-- ═════════ T · Start ═════════ -->
 <section class="screen" data-screen="start">
   <div class="col-label"><b>T · Start</b> · 按下 Start the day 那一下，和之后的 board<span class="line"></span></div>
-  <p class="note lead">Start the day 一次批量提交（spike）：Today 里的每张进 Todo，没 track 的 Do first 顺便 track 到这周，记下今天 open 过。然后 strip 消失、Todo 是刚挑的那几张。Principles 3.4（反馈要落在工作去的地方）和 3.5（这是开始，不是赢）一起决定它该多响。三个方案都在 L-B + S-A 上，先随便加几张再按 Start the day；Reset 重来。</p>
+  <p class="note lead">Start the day 一次批量提交（spike）：Today 里的每张进 Todo，没 track 的 Do first 顺便 track 到这周，记下今天 open 过。然后 strip 消失、Todo 是刚挑的那几张。Principles 3.4（反馈要落在工作去的地方）和 3.5（这是开始，不是赢）一起决定它该多响。四个方案都在 L-A + S-A 上（T-D 是第 2 轮加的），先随便加几张再按 Start the day；Reset 重来。</p>
   <div class="col-label"><b>Before</b> · main：没有这一步；拉一张，Todo 多一张，卡片没有专门的动效<span class="line"></span></div>
   <div class="options" style="grid-template-columns: minmax(0, 1fr) 340px"><div id="t-before-desk"></div><div id="t-before-phone"></div></div>
-  <div class="col-label spaced after"><b>三个方案</b> · 手机并排<span class="line"></span></div>
+  <div class="col-label spaced after"><b>四个方案</b> · 手机并排<span class="line"></span></div>
   <div class="options" id="t-opts"></div>
   <div id="t-desks"></div>
   <div class="tbl-wrap"><table class="tbl" id="t-rank"></table></div>
-  <p class="note"><b>推荐 T-A</b>：modal 收起，卡一张张落进 Todo，就这样。没有声音、没有火花、没有一句「好样的」：赢是做完的时候（3.3），早上只是把事情摆上桌。<b>After 比 Before 多的</b>：modal 收起和 strip 淡出（240 ms）、Todo 的卡依次落下（<code>land</code>）。</p>
+  <p class="note"><b>推荐 T-D（第 2 轮，来自 demo-11-06 草稿）</b>：先和 T-A 一样，modal 收起、卡一张张落进 Todo；然后底部一条 snackbar <code>N on the board today</code> + <b>Undo</b>，5 秒，只有一个 action，和 Priorities 页 Marked done 的那条是同一个 Toast。Start the day 一次动了好多张卡（↩ 的、推荐的、顺便 track 的 Do first），R1 又不让 user 把 Todo 的卡放回 backlog，按错了没有别的路回去；Undo 是最便宜的保险。数字是 board 上今天的张数（挑的 + Already today），屏幕知道的（3.6）。用 neutral 色，不用 Priorities 的 success 绿：这是开始，不是赢（3.5）。手机上放在 Backlog pill 上面，不盖住它。<b>和 1.3 的关系，要 owner 看</b>：1.3 说「user 撤不回的动作在原地给一个确认状态，不要事后一条 undo 横幅」（#115 的 ✓ Complete 就是这么定的）。这里的确认状态就是 modal 本身（挑完才按 Start the day），T-D 在它后面又加了 Undo，等于两层；但 Priorities 页的 Marked done 已经是这个样子。T-A（第 1 轮推荐）排第二：最安静，没有回头路。<b>After 比 Before 多的</b>：modal 收起和 strip 淡出（240 ms）、Todo 的卡依次落下（<code>land</code>）；T-D 再加 snackbar（文字、Undo、底部 2 px 倒计时条）。点 Undo：卡离开 Todo，strip 回来，Todo 是空的虚线框，和 open 以前一样。</p>
 
   <div class="col-label spaced"><b>其它状态</b> · 三个方案共用<span class="line"></span></div>
   <div class="phones" id="t-states"></div>
@@ -596,14 +663,16 @@
     <tr><th>方案</th><th>什么时候</th><th>谁怎么动</th><th>多久</th><th>减少动态效果</th></tr>
     <tr><td>T-A</td><td>Start the day 成功</td><td>modal 淡出往下 6 px（手机：overlay 降下去），strip 同时淡出；然后 Todo 的卡依次 <code>land</code>：从上面 10 px 淡入落下，一张接一张</td><td>收起 240 ms；每张 240 ms，间隔 60 ms</td><td>收起只淡出；卡一起淡入，不错开</td></tr>
     <tr><td>T-B</td><td>同上</td><td>先在 modal 里：按钮变成 ✓ Day opened（绿色、不能按），停住；然后同 T-A</td><td>停 900 ms，再 T-A</td><td>不停，直接 T-A</td></tr>
-    <tr><td>T-C</td><td>同上</td><td>桌面：Today 栏的每张卡从 modal 里飞到 Todo 列里它的位置（移动 + 缩放），modal 同时淡出；手机：overlay 降下去，Todo 一行里的卡依次 <code>land</code>（overlay 盖着 Todo，飞不过去）</td><td>飞 420 ms，间隔 40 ms</td><td>不飞，同 T-A 的减少版</td></tr>
+    <tr><td>T-C</td><td>同上</td><td>桌面：Today 的每张卡从 modal 里飞到 Todo 列里它的位置（移动 + 缩放），modal 同时淡出；手机：overlay 降下去，Todo 一行里的卡依次 <code>land</code>（overlay 盖着 Todo，飞不过去）</td><td>飞 420 ms，间隔 40 ms</td><td>不飞，同 T-A 的减少版</td></tr>
+    <tr><td>T-D</td><td>同上，然后</td><td>同 T-A；modal 收起的同时 snackbar 用 Toast 现有的 <code>fx-boot-in</code> 出现（淡入，往上 6 px）；底部 2 px 的条用 <code>fx-countdown</code> 在 5 s 里从右往左缩完，鼠标停在上面时暂停；缩完 snackbar 直接消失（Toast 没有退场动画）</td><td>进 420 ms；停 5 s</td><td>只淡入；倒计时条照走（产品的 fx-countdown 不在减少动态的列表里）</td></tr>
+    <tr><td>T-D · Undo</td><td>5 s 里点 Undo</td><td>snackbar 消失；Todo 的卡消失（不动画），strip 回来（不动画），Todo 的虚线框 <code>fx-boot-in</code></td><td>420 ms（虚线框）</td><td>只淡入</td></tr>
   </table></div>
 </section>
 
 <!-- ═════════ F · Final ═════════ -->
 <section class="screen" data-screen="final">
-  <div class="col-label"><b>F · Final · recommended · waits on owner approval</b> · E-A strip + 文案 A · L-B 两栏 · S-A 列表 · T-A 落进 Todo<span class="line"></span></div>
-  <p class="note lead">四个模块里我推荐的合在一起，不是定稿。从 board 开始：点 strip，加几张、放回几张、展开 Show more，按 Start the day；Cancel 回到 board，strip 还在；Reset 回到早上 09:12。下面一排是几种真实的组合：没有昨天的、周末（spike Q7 两种都画了）、14:00 以后、已经 open 过。</p>
+  <div class="col-label"><b>F · Final · 第 2 轮 · recommended · waits on owner approval</b> · E-A strip + 文案 A · L-A 一列（RitualSheet，600 px）· S-A 列表、按 kind、整张卡能点 · T-D 落进 Todo + Undo<span class="line"></span></div>
+  <p class="note lead">四个模块里我推荐的合在一起，不是定稿。从 board 开始：点 strip，点卡加几张、放回几张、展开 Show more，按 Start the day，5 秒里可以 Undo；Cancel 回到 board，strip 还在；Reset 回到早上 09:12。下面一排是几种真实的组合：open 以前先拉过一张（Already today）、没有昨天的、周末（spike Q7 两种都画了）、14:00 以后、已经 open 过。</p>
   <div class="col-label"><b>这次新加的</b> · 相对 main，按出现的地方分<span class="line"></span></div>
   <div class="newlist" id="f-new"></div>
   <div class="col-label after"><b>After</b> · Desktop<span class="line"></span></div>
@@ -652,6 +721,7 @@ const P = {
   x: 'M6 18 18 6M6 6l12 12',
   plus: 'M12 4.5v15m7.5-7.5h-15',
   undo: 'M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3',
+  moon: 'M21.752 15.002A9.718 9.718 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z',
   sun: 'M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z',
   warn: 'M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z',
 };
@@ -666,7 +736,9 @@ const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)'
 /* ── Fixture · ISO 2026-W47 · Mon Nov 16 – Sun Nov 22 · NORMAL ── */
 const WEEK_LABEL = 'Nov 16 – Nov 22';
 const TASKS = {
-  fc: {kind: 'habit', group: 'fc', daily: true, title: 'Flashcards', desc: '20 cards in Anki', cadence: 'Daily', target: 5, size: 'XS'},
+  /* Phase 2 keeps Weekly × N only (owner, 2026-11-16): Flashcards is 5× / week, not a daily */
+  fc4: {kind: 'habit', group: 'fc', title: 'Flashcards', desc: '20 cards in Anki', cadence: '5× / week', target: 5, copy: 3, size: 'XS'},
+  fc5: {kind: 'habit', group: 'fc', title: 'Flashcards', desc: '20 cards in Anki', cadence: '5× / week', target: 5, copy: 4, size: 'XS'},
   wo2: {kind: 'habit', group: 'wo', title: 'Workout', desc: '45 min — gym or run', cadence: '3× / week', target: 3, copy: 1, size: 'M'},
   wo3: {kind: 'habit', group: 'wo', title: 'Workout', desc: '45 min — gym or run', cadence: '3× / week', target: 3, copy: 2, size: 'M'},
   bio4: {kind: 'project', group: 'bio', name: 'Biomedical course', title: 'Lecture 4 — Cell signaling', desc: 'Watch + one-page notes', n: 4, total: 10, size: 'M'},
@@ -681,13 +753,17 @@ const TASKS = {
 };
 /* what each day looks like: the pool is what is still open this week (in order); done = what the signals show as done */
 const FIXTURES = {
-  thu: {date: 'Thu, Nov 19', time: '9:12', D: 2, carried: ['bio4', 'passport'],
-    pool: ['fc', 'wo2', 'wo3', 'bio4', 'bio5', 'bio6', 'bio7', 'bio8', 'passport', 'landlord', 'dentist', 'bike'],
+  thu: {date: 'Thu, Nov 19', time: '9:12', D: 2, carried: ['bio4', 'passport'], usual: 4, weekday: 'Thursday',
+    pool: ['fc4', 'fc5', 'wo2', 'wo3', 'bio4', 'bio5', 'bio6', 'bio7', 'bio8', 'passport', 'landlord', 'dentist', 'bike'],
     done: {fc: [0, 1, 2], wo: [0], bio: [1, 2, 3]}},
-  clear: {date: 'Thu, Nov 19', time: '9:12', D: 2, carried: [],
-    pool: ['fc', 'wo2', 'wo3', 'bio5', 'bio6', 'bio7', 'bio8', 'landlord', 'dentist', 'bike'],
+  /* the same morning, but Workout was pulled from the backlog at 08:50, before the ritual: it is Already today */
+  pulled: {date: 'Thu, Nov 19', time: '9:12', D: 2, carried: ['bio4', 'passport'], already: ['wo2'], usual: 4, weekday: 'Thursday',
+    pool: ['fc4', 'fc5', 'wo2', 'wo3', 'bio4', 'bio5', 'bio6', 'bio7', 'bio8', 'passport', 'landlord', 'dentist', 'bike'],
+    done: {fc: [0, 1, 2], wo: [0], bio: [1, 2, 3]}},
+  clear: {date: 'Thu, Nov 19', time: '9:12', D: 2, carried: [], usual: 4, weekday: 'Thursday',
+    pool: ['fc4', 'fc5', 'wo2', 'wo3', 'bio5', 'bio6', 'bio7', 'bio8', 'landlord', 'dentist', 'bike'],
     done: {fc: [0, 1, 2], wo: [0], bio: [1, 2, 3, 4]}},
-  sat: {date: 'Sat, Nov 21', time: '10:05', D: 0, carried: [],
+  sat: {date: 'Sat, Nov 21', time: '10:05', D: 0, carried: [], usual: 2, weekday: 'Saturday',
     pool: ['wo3', 'bio7', 'bio8', 'landlord', 'dentist', 'bike'],
     done: {fc: [0, 1, 2, 3, 4], wo: [0, 1], bio: [1, 2, 3, 4, 5, 6]}},
 };
@@ -697,8 +773,8 @@ const groupOf = id => {
   if (task.kind === 'oneoff') return task.tracked ? 'oneoffs' : 'dofirst';
   return task.group;
 };
-/* COL-2's order: one-off, daily, weekly, step */
-const GROUP_ORDER = ['oneoffs', 'fc', 'wo', 'bio'];
+/* Round 2: one fixed order by kind for Suggested and Show more — Habits · Projects · One-offs (Chernev 2015); no sorting inside a group */
+const GROUP_ORDER = ['fc', 'wo', 'bio', 'oneoffs'];
 const SEQUENCED = new Set(['fc', 'wo', 'bio']);
 
 /* ── Signals ── */
@@ -730,10 +806,12 @@ function headLabel(task) {
   if (task.kind === 'oneoff') return `<span>One-off</span><span class="qd-bar">|</span><span>${task.quadrant}</span>`;
   return `<span>Habit</span>`;
 }
-function mcard(fx, id, {right = '', action = '', cls = '', pile = 0, style = ''} = {}) {
+function mcard(fx, id, {right = '', action = '', cls = '', pile = 0, style = '', tap = '', today = false} = {}) {
   const task = TASKS[id];
   const pileHtml = pile > 0 ? `<span class="pile" aria-hidden="true">${'<i></i>'.repeat(Math.min(pile, 3))}</span>` : '';
-  const face = `<div class="tc solid ${cls}" data-kind="${task.kind}" data-card="${id}" ${style}>
+  /* tap = the instance id: the whole card adds it to Today (round 2); its + Today stays the visible affordance */
+  const tapAttrs = tap ? `data-i="${tap}" data-a="add" data-id="${id}"` : '';
+  const face = `<div class="tc solid ${cls} ${tap ? 'tap' : ''}" data-kind="${task.kind}" data-card="${id}" ${today ? 'data-today' : ''} ${tapAttrs} ${style}>
     <div class="tc-head">${icon(task.kind, 'xs')}${headLabel(task)}${right}</div>
     <div class="tc-row"><h3 class="tc-title">${task.title}</h3></div>
     ${task.desc ? `<p class="tc-desc">${task.desc}</p>` : ''}
@@ -808,7 +886,7 @@ function dashboard(fx, todoIds, {phone = false} = {}) {
 
 /* ═══════════ Before: main's board, Thu 09:12 ═══════════
    Todo is not strictly today yet: yesterday's Lecture 4 and the tracked one-offs sit in Todo; one-offs never reach the backlog (BL-1) */
-const BEFORE = {todo: ['bio4', 'passport', 'landlord'], backlog: ['fc', 'wo2', 'wo3', 'bio5', 'bio6', 'bio7', 'bio8']};
+const BEFORE = {todo: ['bio4', 'passport', 'landlord'], backlog: ['fc4', 'fc5', 'wo2', 'wo3', 'bio5', 'bio6', 'bio7', 'bio8']};
 function beforeDesk({backlogOpen = false} = {}) {
   const fx = FIXTURES.thu;
   const todo = BEFORE.todo.map(id => boardCard(fx, id)).join('');
@@ -830,7 +908,7 @@ function beforePhone({backlogOpen = false, cap = 'Before · main'} = {}) {
 /* ═══════════ The ritual: state, the recommendation, the modal ═══════════ */
 function initState(cfg) {
   const fx = FIXTURES[cfg.fx || 'thu'];
-  const state = {fx, today: [...fx.carried], prefilled: [], moreOpen: false, step: 0, phase: cfg.phase || 'open', started: [...(cfg.started || [])], land: false, beat: false, error: !!cfg.error, everOpened: false};
+  const state = {fx, today: [...fx.carried], already: [...(fx.already || [])], snack: 0, prefilled: [], moreOpen: false, step: 0, phase: cfg.phase || 'open', started: [...(cfg.started || [])], land: false, beat: false, error: !!cfg.error, everOpened: false};
   if (cfg.sugg === 'prefill') {
     const {sugg} = compute(state, {forMore: false});
     state.prefilled = sugg.map(({id}) => id);
@@ -840,10 +918,12 @@ function initState(cfg) {
   if (cfg.layout === 'guided' && !fx.carried.length) state.step = 1;
   return state;
 }
-/* spike › 固定推荐算法: quota = ceil(R ÷ D) − already in Today; daily = all of today's; tracked one-offs = one group by quadrant; untracked Do first never */
+/* spike › 固定推荐算法: quota = ceil(R ÷ D) − already in Today (Already today counts); tracked one-offs = one group by quadrant; untracked Do first never */
 function compute(state, {prefillMode = false} = {}) {
   const {fx, today} = state;
-  const inToday = id => today.includes(id);
+  const already = state.already || fx.already || [];
+  /* a card already in Todo when the ritual opens counts as in Today, so its group isn't suggested again */
+  const inToday = id => today.includes(id) || already.includes(id);
   const members = group => fx.pool.filter(id => groupOf(id) === group)
     .sort((left, right) => (group === 'oneoffs' ? QUADRANT_ORDER[TASKS[left].quadrant] - QUADRANT_ORDER[TASKS[right].quadrant] : 0));
   const sugg = [];
@@ -852,11 +932,11 @@ function compute(state, {prefillMode = false} = {}) {
       const items = members(group);
       if (!items.length) return;
       const remaining = items.length;
-      const isDaily = group === 'fc';
-      const quota = isDaily ? remaining : Math.ceil(remaining / fx.D);
+      /* until Phase 2 drops Daily, a daily habit's today instance is always suggested ("Today only"); no fixture draws one */
+      const quota = Math.ceil(remaining / fx.D);
       const wanted = quota - items.filter(inToday).length;
       const picks = wanted > 0 ? items.filter(id => !inToday(id)).slice(0, wanted) : [];
-      const why = isDaily ? 'Today only' : `${remaining} left in ${fx.D} day${fx.D > 1 ? 's' : ''}`;
+      const why = `${remaining} left in ${fx.D} day${fx.D > 1 ? 's' : ''}`;
       picks.forEach((id, index) => sugg.push({id, group, why, first: index === 0}));
     });
   }
@@ -890,11 +970,13 @@ function todaySection(inst, cfg, state) {
     const isCarried = fx.carried.includes(id);
     const right = isCarried ? `<span class="ctx carry" title="Left over from yesterday">${icon('undo', 'xxs')}Yesterday</span>` : prefilled.includes(id) ? `<span class="ctx why">Suggested</span>` : '';
     const cls = `${prefilled.includes(id) ? 'sugg' : ''} ${state.fresh === id ? 'landing' : ''}`;
-    return mcard(fx, id, {right, action: canRemove(state, id) ? rmBtn(inst, id) : '', cls});
+    return mcard(fx, id, {right, action: canRemove(state, id) ? rmBtn(inst, id) : '', cls, today: true});
   }).join('');
   const emptyTitle = fx.carried.length ? 'Today is empty' : 'Nothing carried over';
   const empty = `<div class="finish" data-fk="today"><b>${emptyTitle}</b><div class="lines"><small>Add what you'll do today</small></div></div>`;
-  return `<div class="sec-row"><div class="sec-label">Today<span class="line"></span></div></div>${cards || empty}`;
+  /* round 2: what was already in Todo when the ritual opened — listed, never counted, no × (R1) */
+  const already = state.already.length ? `<div class="sec-label quiet">Already today<span class="line"></span></div>${state.already.map(id => mcard(fx, id, {today: true})).join('')}` : '';
+  return `<div class="sec-row"><div class="sec-label">Today<span class="line"></span></div></div>${cards || empty}${already}`;
 }
 function suggestSection(inst, cfg, state, computed) {
   const {fx} = state;
@@ -910,11 +992,14 @@ function suggestSection(inst, cfg, state, computed) {
     body = groups.map(({items}) => {
       const [head] = items;
       const right = `<span class="ctx why">${items.length > 1 ? `${items.length} for today · ` : ''}${head.why}</span>`;
-      return mcard(fx, head.id, {right, action: addBtn(inst, head.id), pile: items.length - 1});
+      return mcard(fx, head.id, {right, action: addBtn(inst, head.id), pile: items.length - 1, tap: inst});
     }).join('');
   } else {
     /* S-A: each suggestion is the card that will land; a group's later ones wait for the one before (no +) */
-    body = sugg.map(({id, why, first, group}) => mcard(fx, id, {right: `<span class="ctx why">${why}</span>`, action: first || !SEQUENCED.has(group) ? addBtn(inst, id) : ''})).join('');
+    body = sugg.map(({id, why, first, group}) => {
+      const addable = first || !SEQUENCED.has(group);
+      return mcard(fx, id, {right: `<span class="ctx why">${why}</span>`, action: addable ? addBtn(inst, id) : '', tap: addable ? inst : ''});
+    }).join('');
   }
   return `<div class="sec-row"><div class="sec-label">Suggested<span class="line"></span></div>${addAll}</div>${body}`;
 }
@@ -924,19 +1009,22 @@ function moreSection(inst, cfg, state, computed) {
   if (!moreCount) return '';
   const toggle = `<button class="showmore ${moreOpen ? 'open' : ''}" data-i="${inst}" data-a="more" aria-expanded="${moreOpen}">${moreOpen ? 'Show less' : 'Show more'}<span class="count-ghost">${capped(moreCount)}</span>${icon('chevDown', 'sm')}</button>`;
   if (!moreOpen) return toggle;
-  const block = (label, items) => (items.length ? `<div class="sec-label">${label}<span class="line"></span></div>${items.map(({next, behind}) => mcard(fx, next, {right: behind ? moreText(behind) : '', action: addBtn(inst, next), pile: behind})).join('')}` : '');
+  const block = (label, items) => (items.length ? `<div class="sec-label">${label}<span class="line"></span></div>${items.map(({next, behind}) => mcard(fx, next, {right: behind ? moreText(behind) : '', action: addBtn(inst, next), pile: behind, tap: inst})).join('')}` : '');
   return `${toggle}<div class="more-body" data-fk="more">${block('Habits', more.habits)}${block('Projects', more.projects)}${block('One-offs', more.oneoffs)}${block('From Priorities', more.dofirst)}</div>`;
 }
 function modalHead(inst, cfg, state, phone) {
   const {fx} = state;
   const steps = cfg.layout === 'guided' ? ` · <span>Step ${state.step + 1 - (fx.carried.length ? 0 : 1)} of ${fx.carried.length ? 3 : 2}</span>` : '';
-  return `<div class="ov-head"><div><div class="ttl">${icon('sun')}Open the day</div><div class="subt"><span>${fx.date}</span>${steps}</div></div><button class="x" data-i="${inst}" data-a="cancel" aria-label="Cancel">${icon(phone ? 'chevDown' : 'x')}</button></div>`;
+  /* round 2: the soft hint — text only, from the user's own history; never amber, never blocking (owner to decide) */
+  const hint = cfg.hint === false ? '' : `<span>·</span><span><b>${state.today.length}</b> picked</span><span>·</span><span class="hint">you usually finish ${fx.usual} on a ${fx.weekday}</span>`;
+  return `<div class="ov-head"><div><div class="ttl">${icon('sun')}Open the day</div><div class="subt"><span>${fx.date}</span>${hint}${steps}</div></div><button class="x" data-i="${inst}" data-a="cancel" aria-label="Cancel">${icon(phone ? 'chevDown' : 'x')}</button></div>`;
 }
 function modalFoot(inst, cfg, state) {
   const count = state.today.length;
   const err = state.error ? `<span class="err">${icon('warn', 'sm')}Couldn't start the day · try again</span>` : '';
   if (state.beat) return `<div class="ov-foot"><button class="btn opened" disabled style="opacity:1">${icon('check', 'sm')}Day opened</button></div>`;
-  const start = `<button class="btn primary" data-i="${inst}" data-a="start" ${count ? '' : 'disabled'}>Start the day${count ? `<span class="badge-count">${count}</span>` : ''}</button>`;
+  const canStart = count > 0 || state.already.length > 0;
+  const start = `<button class="btn primary" data-i="${inst}" data-a="start" ${canStart ? '' : 'disabled'}>Start the day${count ? `<span class="badge-count">${count}</span>` : ''}</button>`;
   if (cfg.layout === 'guided') {
     const first = state.step === (state.fx.carried.length ? 0 : 1);
     const last = state.step === 2;
@@ -979,7 +1067,7 @@ function modalHtml(inst, cfg, state, phone, leaving = false) {
 const STRIP_COPY = fx => {
   const parts = [];
   const carried = fx.carried.length;
-  const suggested = compute({fx, today: [...fx.carried]}).sugg.length;
+  const suggested = compute({fx, today: [...fx.carried], already: fx.already || []}).sugg.length;
   if (carried) parts.push(`${carried} from yesterday`);
   if (suggested) parts.push(`${suggested} suggested`);
   return parts.length ? parts.join(' · ') : "Pick today's tasks";
@@ -1005,8 +1093,12 @@ function todoEmpty(inst, cfg) {
 }
 function boardTodo(inst, cfg, state) {
   if (state.phase === 'started' || state.phase === 'opened') return state.started;
-  return cfg.todoBefore || [];
+  return cfg.todoBefore || state.fx.already || [];
 }
+/* E-D auto-opens once, then it is E-A's strip */
+const entryKind = cfg => (cfg.entry === 'auto' ? 'strip' : cfg.entry || 'strip');
+/* T-D: the Toast (tone neutral) — "N on the board today" + Undo, a 5 s countdown bar */
+const snackbar = (inst, state) => (state.snack ? `<div class="snack"><div class="snack-box" role="status" aria-live="polite"><span>${state.snack} on the board today</span><button class="undo" data-i="${inst}" data-a="undo">Undo</button><span class="clock" data-i="${inst}" aria-hidden="true"></span></div></div>` : '');
 function landStyle(index) { return `style="animation-delay:${index * MOTION.stagger}ms"`; }
 function boardDeskHtml(inst, cfg, state, {stripLeaving = false} = {}) {
   const {fx} = state;
@@ -1016,8 +1108,8 @@ function boardDeskHtml(inst, cfg, state, {stripLeaving = false} = {}) {
   const backlogCount = fx.pool.filter(id => !todoIds.includes(id) && TASKS[id].tracked !== false).length;
   const showEntry = (state.phase === 'board' || state.phase === 'open') && cfg.window !== false;
   const chip = showEntry && cfg.entry === 'chip' ? `<button class="hchip" data-i="${inst}" data-a="open"><span class="led"></span>Open the day</button>` : '';
-  const stripHtml = (showEntry && (cfg.entry || 'strip') === 'strip') || stripLeaving ? strip(inst, fx, stripLeaving) : '';
-  return `${rail()}<div class="desk-main">${appHead(chip)}${dashboard(fx, todoIds)}<div class="board-wrap"><div class="board-main">${stripHtml}<div class="board-cols">${column('Todo', todoIds.length, todo)}${column('Done', 0, '', {done: true})}</div></div>${bkRail(backlogCount)}</div></div>`;
+  const stripHtml = (showEntry && entryKind(cfg) === 'strip') || stripLeaving ? strip(inst, fx, stripLeaving) : '';
+  return `${rail()}<div class="desk-main">${appHead(chip)}${dashboard(fx, todoIds)}<div class="board-wrap"><div class="board-main">${stripHtml}<div class="board-cols">${column('Todo', todoIds.length, todo)}${column('Done', 0, '', {done: true})}</div></div>${bkRail(backlogCount)}</div></div>${snackbar(inst, state)}`;
 }
 function boardPhoneHtml(inst, cfg, state, {stripLeaving = false} = {}) {
   const {fx} = state;
@@ -1027,7 +1119,7 @@ function boardPhoneHtml(inst, cfg, state, {stripLeaving = false} = {}) {
   const backlogCount = fx.pool.filter(id => !todoIds.includes(id) && TASKS[id].tracked !== false).length;
   const showEntry = (state.phase === 'board' || state.phase === 'open') && cfg.window !== false;
   const chip = showEntry && cfg.entry === 'chip' ? `<button class="hchip" data-i="${inst}" data-a="open"><span class="led"></span>Open the day</button>` : '';
-  const stripHtml = (showEntry && (cfg.entry || 'strip') === 'strip') || stripLeaving ? strip(inst, fx, stripLeaving) : '';
+  const stripHtml = (showEntry && entryKind(cfg) === 'strip') || stripLeaving ? strip(inst, fx, stripLeaving) : '';
   return `${appHead(chip)}${dashboard(fx, todoIds, {phone: true})}${stripHtml}<div style="padding-top:8px;display:flex;flex-direction:column;gap:10px">${mrowHead('Todo', todoIds.length, 'var(--in)')}<div class="mrow">${todo}</div>${mrowHead('Done', 0, 'var(--su)')}<div class="mrow"></div></div>${mobilePill(backlogCount)}`;
 }
 
@@ -1049,7 +1141,7 @@ function renderInst(id, extra = {}) {
   if (cfg.mode === 'desk') {
     root.innerHTML = `<div class="desk">${boardDeskHtml(id, cfg, state, extra)}${open ? modalHtml(id, cfg, state, false) : ''}</div>`;
   } else {
-    root.innerHTML = `<div class="phone-wrap">${cfg.cap ? `<div class="phone-cap"><b>${cfg.cap}</b></div>` : ''}<div class="phone">${statusBar(cfg.time || state.fx.time)}<div class="phone-body">${boardPhoneHtml(id, cfg, state, extra)}</div>${dock()}${open ? modalHtml(id, cfg, state, true) : ''}</div></div>`;
+    root.innerHTML = `<div class="phone-wrap">${cfg.cap ? `<div class="phone-cap"><b>${cfg.cap}</b></div>` : ''}<div class="phone">${statusBar(cfg.time || state.fx.time)}<div class="phone-body">${boardPhoneHtml(id, cfg, state, extra)}</div>${dock()}${snackbar(id, state)}${open ? modalHtml(id, cfg, state, true) : ''}</div></div>`;
   }
   [...root.querySelectorAll('.ov-body, .pane')].forEach((el, index) => { if (keepScroll[index] != null) el.scrollTop = keepScroll[index]; });
   root.querySelectorAll('[data-fk]').forEach(el => { if (shown.has(el.dataset.fk)) el.style.animation = 'none'; });
@@ -1071,7 +1163,7 @@ function startDay(id) {
   const inst = INST[id];
   const {cfg, state} = inst;
   if (state.error) { state.error = false; renderInst(id); return; }
-  const commit = () => { state.phase = 'started'; state.started = [...state.today]; state.land = true; renderInst(id); };
+  const commit = () => { state.phase = 'started'; state.started = [...state.already, ...state.today]; state.land = true; if (cfg.start === 'snack') state.snack = state.started.length; renderInst(id); };
   if (cfg.start === 'beat' && !reducedMotion()) {
     state.beat = true; renderInst(id);
     setTimeout(() => { state.beat = false; closeModal(id, commit); }, MOTION.beat);
@@ -1085,9 +1177,9 @@ function flyStart(id) {
   const root = document.getElementById(id);
   const deskEl = root.querySelector('.desk');
   const base = deskEl.getBoundingClientRect();
-  const from = [...root.querySelectorAll('.today-pane [data-card]')].map(el => ({id: el.dataset.card, rect: el.getBoundingClientRect(), html: el.outerHTML}));
+  const from = [...root.querySelectorAll('.modal [data-today]')].map(el => ({id: el.dataset.card, rect: el.getBoundingClientRect(), html: el.outerHTML}));
   const oldModal = [...root.querySelectorAll('.mscrim2, .modal')];
-  state.phase = 'started'; state.started = [...state.today];
+  state.phase = 'started'; state.started = [...state.already, ...state.today];
   renderInst(id);
   const newDesk = root.querySelector('.desk');
   oldModal.forEach(el => { newDesk.appendChild(el); el.classList.remove('boot'); });
@@ -1123,7 +1215,7 @@ document.addEventListener('click', event => {
     if (!inst || button.disabled) return;
     const {cfg, state} = inst;
     const action = button.dataset.a;
-    if (action === 'open') { state.phase = 'open'; state.everOpened = false; const fresh = initState({...cfg, phase: 'open'}); Object.assign(state, {today: fresh.today, prefilled: fresh.prefilled, step: fresh.step, moreOpen: false}); renderInst(id); return; }
+    if (action === 'open') { state.phase = 'open'; state.everOpened = false; const fresh = initState({...cfg, phase: 'open'}); Object.assign(state, {today: fresh.today, already: fresh.already, snack: 0, prefilled: fresh.prefilled, step: fresh.step, moreOpen: false}); renderInst(id); return; }
     if (action === 'cancel') { closeModal(id, () => { state.phase = 'board'; renderInst(id); }, {stripLeaves: false}); return; }
     if (action === 'add') { state.today.push(button.dataset.id); state.fresh = button.dataset.id; }
     if (action === 'rm') state.today = state.today.filter(other => other !== button.dataset.id);
@@ -1132,6 +1224,8 @@ document.addEventListener('click', event => {
     if (action === 'next') state.step = Math.min(2, state.step + 1);
     if (action === 'back') state.step = Math.max(state.fx.carried.length ? 0 : 1, state.step - 1);
     if (action === 'start') { startDay(id); return; }
+    /* T-D's Undo restores the snapshot from before Start: Todo as it was, the strip back, nothing opened */
+    if (action === 'undo') { inst.state = initState({...cfg, phase: 'board'}); renderInst(id); return; }
     renderInst(id);
     return;
   }
@@ -1139,6 +1233,12 @@ document.addEventListener('click', event => {
   if (reset) {
     reset.dataset.reset.split(' ').forEach(id => { if (INST[id]) { INST[id].state = initState(INST[id].cfg); renderInst(id); } });
   }
+});
+/* the countdown bar's animationend is the dismissal, as in the product's Toast (it holds while hovered) */
+document.addEventListener('animationend', event => {
+  if (!event.target.classList || !event.target.classList.contains('clock')) return;
+  const inst = INST[event.target.dataset.i];
+  if (inst && inst.state.snack) { inst.state.snack = 0; renderInst(event.target.dataset.i); }
 });
 document.addEventListener('keydown', event => {
   if (event.key !== 'Escape') return;
@@ -1179,41 +1279,55 @@ const RESEARCH = [
   ['今天只留今天要做的', 'Things · Today', 'https://culturedcode.com/things/support/articles/4001304/', 'Things 建议每天早上看一遍 Today，只留今天真会做的；可以晚点做的放进 This Evening，留在 Today 底部，看得见但不抢眼。', '<b>推了 2.2 的做法</b>：Today 只放挑出来的；其余的在 Show more 后面折起来。'],
   ['过期的一段 + 一键处理', 'Todoist · Today view', 'https://todoist.com/help/articles/360000030999', 'Today 里 overdue 的任务单独一段，右边一个 Reschedule，一次改掉整段；也可以拖到底部推到明天。', '<b>推了 ↩ 和 Add all</b>：昨天的有自己的标记、排在 Today 最前；推荐有一个 Add all。整段 reschedule 不要：每张 ↩ 自己有 ×。'],
   ['推荐要看得出从哪来', 'Apple · Journal suggestions', 'https://www.apple.com/newsroom/2023/12/apple-launches-journal-app-a-new-app-for-reflecting-on-everyday-moments/', 'Journal 的 suggestions 从你最近的活动里挑，每一条都连着一个具体的时刻，看得出是什么引出了它；用不用、用哪条由你挑。', '<b>推了 why 一行</b>：每张推荐卡的 kind 行右边写它为什么被推（<code>2 left in 2 days</code>），只写数据知道的（3.6）；加不加由人决定（MVP 是手动 plan）。'],
-  ['modal 只在值得的时候用，要短', 'Apple HIG · Modality', 'https://developer.apple.com/design/human-interface-guidelines/modality', '「Aim to keep modal tasks simple, short, and streamlined」；不要做成 app 里的 app，多层就只给一条路；复杂或多步的任务可以全屏；关掉会丢东西时先确认；标题要说出这个 modal 在做什么。', '<b>推了 L-B 一屏做完</b>、标题就叫 Open the day、手机全屏（spike 默认）。「会丢东西先确认」：点 backdrop 不关（spike），Cancel 不确认，因为丢的只是几下点击，下一次打开推荐还在。'],
+  ['modal 只在值得的时候用，要短', 'Apple HIG · Modality', 'https://developer.apple.com/design/human-interface-guidelines/modality', '「Aim to keep modal tasks simple, short, and streamlined」；不要做成 app 里的 app，多层就只给一条路；复杂或多步的任务可以全屏；关掉会丢东西时先确认；标题要说出这个 modal 在做什么。', '<b>推了一屏做完</b>（L-A，第 1 轮是 L-B）、标题就叫 Open the day、手机全屏（spike 默认）。「会丢东西先确认」：点 backdrop 不关（spike），Cancel 不确认，因为丢的只是几下点击，下一次打开推荐还在。'],
   ['Cancel 和 Done 成对', 'Apple HIG · Sheets', 'https://developer.apple.com/design/human-interface-guidelines/sheets', 'Done 一定要配 Cancel（或多步时的 Back），不要三个一起；多步的第一步是 Cancel，后面是 Back；有未保存的改动时，下拉关掉要先确认。', '<b>推了底部 Cancel + Start the day</b>。L-C 照这条画：第一步 Cancel，之后 Back。也是 Q8 倾向全屏的原因之一：sheet 让人想往下拉。'],
-  ['一天开始时自动打开', 'Akiflow · Changelog', 'https://akiflow.featurebase.app/en/changelog/sunny-rituals-start-your-day-with-the-daily-planning', '可以设成每天第一次打开 Akiflow 时直接打开 Daily Planning；Sunsama 也能在设置里让 planning 自动打开。', '<b>不用</b>：owner 要的是 board 上一个 entry，自动弹出盖住 board 是打断（HIG：只在有明确好处时用 modal）。记进 Future。'],
+  ['一天开始时自动打开', 'Akiflow · Changelog', 'https://akiflow.featurebase.app/en/changelog/sunny-rituals-start-your-day-with-the-daily-planning', '可以设成每天第一次打开 Akiflow 时直接打开 Daily Planning；Sunsama 也能在设置里让 planning 自动打开。', '<b>第 2 轮画成 E-D，排最后</b>：owner 要的是 board 上一个 entry，自动弹出盖住 board 是打断（HIG：只在有明确好处时用 modal；Principles 2.x）。'],
   ['inbox 和今天之间来回拖', 'Structured · Getting started', 'https://help.structured.app/en/articles/380546', 'Inbox 放没有日期的任务；有空档就把 inbox 的拖到今天的时间线上，也能拖回 inbox。', '<b>推了 × 放回去</b>：Today 里的卡能放回下面的列表，回到原来的位置。桌面拖拽（右栏拖到左栏）可以以后加，是桌面多出来的手势（5.2）。'],
+  /* round 2: the sources demo-11-06's draft used that back something here (links as the draft gives them) */
+  ['一个每天清空的今天，旁边一栏点一下就加的推荐', 'Microsoft To Do · My Day and suggestions', 'https://support.microsoft.com/en-us/ToDo/my-day-and-suggestions', 'My Day 每天清空重来；Suggestions 一栏列出可能今天做的，点一下就进 My Day。', '<b>第 2 轮</b>：推荐是一列点一下就加的卡，整张卡都能点；My Day 每天清空就是 spike 的 D1。'],
+  ['先选几个，再一次移过去', 'Things · Multiple selection', 'https://www.culturedcode.com/things/support/articles/2803582', '选中几个 to-do，再用一个工具栏一次移动、改日期。', '<b>撑 Start the day 一次提交</b>：Today 里挑好的一下全部进 Todo，不是一张一张拉。'],
+  ['伤人的是难比，不是选项多', 'Scheibehenne 2010 · Chernev 2015', 'https://doi.org/10.1016/j.jcps.2014.08.002', 'choice overload 的 meta 分析平均效应接近零（Scheibehenne 2010，<a href="https://doi.org/10.1086/651235" target="_blank" rel="noopener">DOI 10.1086/651235</a>）；Chernev 2015 发现真正让人卡住的是决定本身难：要排序、要比较。', '<b>第 2 轮</b>：推荐和 Show more 按 kind 固定顺序、组内不排（少一个怎么排的决定）；推荐没有硬上限，副标的软提示只是字、不拦（Scheibehenne）。'],
+  ['默认就是决定', 'Jachimowicz 2019 · meta', 'https://collaborate.princeton.edu/en/publications/when-and-why-defaults-influence-decisions-a-meta-analysis-of-defa/', '默认选项的平均效应量 d = 0.68：最省力的决定是不用做的那个。', '<b>撑 Today 从 ↩ 开始</b>：昨天的已经在 Today 里，不想要才点 ×。更强的默认（S-B 把推荐预先放进去）是 owner 说的以后那条路，MVP 不用。'],
+  ['给没做完的定一个计划，它就不再占着脑子', 'Masicampo & Baumeister 2011', 'https://doi.org/10.1037/a0024192', '没完成的目标会一直侵入注意力；做出一个具体的计划（什么时候、怎么做）以后，这种侵入就消失了，不用真的做完。', '<b>撑 ↩ 排在 Today 最前</b>：早上第一件事是给昨天没做完的一个决定（留在今天，或 × 放回去）。'],
+  ['ritual = 固定的顺序 + 重复', 'Hobson 2018', 'https://doi.org/10.1177/1088868317734944', 'ritual 的效果来自固定的动作顺序和每次重复，不在动作本身。', '<b>撑一个 RitualSheet</b>：早上和晚上同一个外框、同一个顺序（header、分段、Cancel + 一个 primary），每天一样（L tab 的解剖）。'],
+  ['bottom sheet 留住 context', 'NN/g · Bottom sheets · Modal dialogs', 'https://www.nngroup.com/articles/bottom-sheet/', 'bottom sheet 的好处是看得见后面的页面；modal 用在短、专心的任务上（<a href="https://www.nngroup.com/articles/modal-nonmodal-dialog/" target="_blank" rel="noopener">modal vs nonmodal</a>）。', '<b>Q8 的另一边</b>：它站 sheet；我们还是倾向全屏，理由在 L tab 的 Q8。'],
+  ['少弹确认，多给 Undo', 'NN/g · Confirmation dialogs', '', '确认框用多了，人会不看就点；能撤回的动作给 Undo 比先问一句好。草稿只写了名字，没有链接；第 2 轮没核实到原文。', '<b>撑 T-D</b>：Start the day 不弹确认，事后 5 秒 Undo。和 Principles 1.3 的关系见 T tab。'],
   ['「还没开始」和「做完了」是两种空', 'Atlassian Design · Empty state', 'https://atlassian.design/foundations/content/designing-messages/empty-state', '标题短、不加句号；正文一两句，说为什么是空的、下一步去哪；blank slate 鼓励开始，清空了的庆祝；俏皮话留给一次性的大时刻。', '<b>推了文案 A</b>：标题 cheer、第一句说为什么空、第二句说下一步；和 COL-5（做完了的空）分开写。'],
 ];
 
 function renderResearch() {
-  document.getElementById('research').innerHTML = RESEARCH.map(([title, who, url, what, fit]) => `<div class="pat"><h4>${title}</h4><div class="who"><a href="${url}" target="_blank" rel="noopener">${who}</a></div><div>${what}</div><div class="fit"><b>Fit</b> · ${fit}</div></div>`).join('');
+  document.getElementById('research').innerHTML = RESEARCH.map(([title, who, url, what, fit]) => `<div class="pat"><h4>${title}</h4><div class="who">${url ? `<a href="${url}" target="_blank" rel="noopener">${who}</a>` : who}</div><div>${what}</div><div class="fit"><b>Fit</b> · ${fit}</div></div>`).join('');
 }
 
 /* ── E · Entry ── */
 function renderEntry() {
   document.getElementById('e-before-desk').innerHTML = beforeDesk();
   document.getElementById('e-before-phone').innerHTML = beforePhone({cap: 'Before · main · Todo 里是昨天的'});
-  const base = {fx: 'thu', phase: 'board', layout: 'split', sugg: 'list', start: 'land', escapable: true};
+  const base = {fx: 'thu', phase: 'board', layout: 'stacked', sugg: 'list', start: 'snack', escapable: true};
   const options = [
     {letter: 'E-A', key: 'strip', title: 'Strip above Todo', rec: true, why: 'board 上、Todo 正上方一条 strip：亮着的 LED、<b>Open the day</b>、一行数字、→。两端一样；open 以后消失。Todo 的虚线框照旧没有按钮，只说为什么空、下一步是什么。', rank: `${ok('1.3 一下')} · ${ok('4.1 今天第一件事在结果落下的地方上面')} · ${ok('5.1 FinishBox 不变')} · ${ok('5.2 两端一样')} · ${meh('1.1 框里的 Open the day 和 strip 指同一件事，但一个是解释、一个是控件')}`},
-    {letter: 'E-B', key: 'box', title: 'The empty Todo is the entry', rec: false, why: '不加 strip：Todo 的虚线框里放一个 <b>Open the day</b> 按钮，框就是入口。元素最少。但 Todo 不空的时候（没 open 就先拉了一张，spike Q12）入口没地方放，要另一个样子。', rank: `${ok('1.1 一个元素')} · ${ok('1.3')} · ${no('5.1 FinishBox 定义上没有按钮（COL-5 也没有），这里改了它的骨架')} · ${no('Todo 不空时要第二种入口')}`},
+    {letter: 'E-B', key: 'box', title: 'The empty Todo is the entry', rec: false, why: '不加 strip：Todo 的虚线框里放一个 <b>Open the day</b> 按钮，框就是入口。元素最少。但 Todo 不空的时候（没 open 就先拉了一张，第 2 轮的 Already today）入口没地方放，要另一个样子。', rank: `${ok('1.1 一个元素')} · ${ok('1.3')} · ${no('5.1 FinishBox 定义上没有按钮（COL-5 也没有），这里改了它的骨架')} · ${no('Todo 不空时要第二种入口')}`},
     {letter: 'E-C', key: 'chip', title: 'A chip in the header', rec: false, why: 'header 里、周的日期旁边一个小 chip <b>Open the day</b>，占的地方最少，board 一点不往下挪。Todo 的框指向它。', rank: `${ok('1.2 改动最小')} · ${no('4.1 早上最重要的一件事成了角落里的小东西')} · ${no('4.3 手机 header 挤')} · ${no('仪式感弱（owner 要「仪式感」）')}`},
+    {letter: 'E-D', key: 'auto', title: 'Auto-opens once, then the strip', rec: false, why: '第 2 轮，来自 demo-11-06 草稿：窗口里今天第一次打开 board，modal 自己升起来；Cancel 以后就是 E-A 的 strip，不再弹。少按一下，但一打开就被拦住。点 Reset 再看一次。', rank: `${ok('1.3 零下')} · ${no('owner 的 spec：board 上一个 entry')} · ${no('2.x 一打开就是一个盖住 board 的 modal')} · ${no('HIG：modal 只在有明确好处时用')} · 排第四`},
   ];
   document.getElementById('e-opts').innerHTML = options.map(option => optBox({...option, body: `<div class="tools">${resetBtn(`e-ph-${option.key}`)}</div>${wrap(`e-ph-${option.key}`)}`})).join('');
   document.getElementById('e-desks').innerHTML = options.map(option => deskRow(option.letter, option.title, `e-dk-${option.key}`, option.rec, `e-dk-${option.key}`)).join('');
   options.forEach(option => {
-    mount(`e-ph-${option.key}`, {...base, mode: 'phone', entry: option.key, cap: `${option.letter} · ${option.title}`});
-    mount(`e-dk-${option.key}`, {...base, mode: 'desk', entry: option.key});
+    const phase = option.key === 'auto' ? 'open' : 'board';
+    mount(`e-ph-${option.key}`, {...base, mode: 'phone', phase, entry: option.key, cap: `${option.letter} · ${option.title}`});
+    mount(`e-dk-${option.key}`, {...base, mode: 'desk', phase, entry: option.key});
   });
-  document.getElementById('e-rank').innerHTML = rankTable(['E-A strip', 'E-B 框是入口', 'E-C header chip'], [
-    ['1.1 一个意思一个元素', meh('strip 是控件，框是解释，两处都说 Open the day'), ok('只有一个'), meh('同 E-A')],
-    ['1.2 改得最少', meh('多一条，open 后就走'), ok('只改框'), ok('只多一个 chip')],
-    ['1.3 动作最少', ok('一下'), ok('一下'), ok('一下')],
-    ['4.1 重要的先看到', ok('在 Todo 正上方'), ok('就在 Todo 里'), no('在角落')],
-    ['5.1 一个组件', ok('FinishBox 不变'), no('FinishBox 多了按钮；Todo 不空时还要第二种'), ok('FinishBox 不变')],
-    ['5.2 两端一样', ok(''), ok(''), meh('手机 header 放不下就得换位置')],
-    ['6.2 像能点', ok('→ 和 hover 下划线'), ok('primary 按钮'), ok('chip')],
+  document.getElementById('e-rank').innerHTML = rankTable(['E-A strip', 'E-B 框是入口', 'E-C header chip', 'E-D 自动弹一次'], [
+    ['owner 的 spec', ok('一个 entry'), ok('一个 entry'), ok('一个 entry'), no('先弹，entry 是第二次')],
+    ['1.1 一个意思一个元素', meh('strip 是控件，框是解释，两处都说 Open the day'), ok('只有一个'), meh('同 E-A'), meh('同 E-A')],
+    ['1.2 改得最少', meh('多一条，open 后就走'), ok('只改框'), ok('只多一个 chip'), meh('E-A 再加自动打开')],
+    ['1.3 动作最少', ok('一下'), ok('一下'), ok('一下'), ok('零下')],
+    ['2.x calm ahead', ok('board 先是安静的'), ok(''), ok(''), no('一打开就被 modal 迎面拦住')],
+    ['4.1 重要的先看到', ok('在 Todo 正上方'), ok('就在 Todo 里'), no('在角落'), ok('盖住一切')],
+    ['5.1 一个组件', ok('FinishBox 不变'), no('FinishBox 多了按钮；Todo 不空时还要第二种'), ok('FinishBox 不变'), ok('同 E-A')],
+    ['5.2 两端一样', ok(''), ok(''), meh('手机 header 放不下就得换位置'), ok('')],
+    ['6.2 像能点', ok('→ 和 hover 下划线'), ok('primary 按钮'), ok('chip'), ok('同 E-A')],
+    ['排名', ok('1 · 推荐'), meh('2'), meh('3'), meh('4')],
   ]);
   /* copy */
   const copyCells = [
@@ -1241,10 +1355,10 @@ function renderEntry() {
 function renderLayout() {
   document.getElementById('l-before-desk').innerHTML = beforeDesk({backlogOpen: true});
   document.getElementById('l-before-phone').innerHTML = beforePhone({backlogOpen: true, cap: 'Before · main · backlog sheet'});
-  const base = {fx: 'thu', phase: 'open', sugg: 'list', start: 'land', escapable: true};
+  const base = {fx: 'thu', phase: 'open', sugg: 'list', start: 'snack', escapable: true};
   const options = [
-    {letter: 'L-A', key: 'stacked', title: 'One stacked list', rec: false, why: '一列从上到下：<b>Today</b>、<b>Suggested</b>、<b>Show more</b>。两端完全一样；桌面是 620 px 宽的 modal。Today 一长，推荐就被推到下面要滚。', rank: `${ok('5.2 两端一模一样')} · ${ok('4.1 Today 在最上')} · ${ok('2.2')} · ${no('4.3 桌面的宽度空着、要滚')} · ${meh('3.4 桌面上加进去的卡可能在视野外，靠按钮上的数字')}`},
-    {letter: 'L-B', key: 'split', title: 'Two panes on desktop, one list on phones', rec: true, why: '桌面 900 px：左栏 <b>Today</b>，右栏 <b>Suggested + Show more</b>，各自滚；手机就是 L-A。加一张，它离开右栏、落在左栏，两边都看得见。', rank: `${ok('4.1 左到右 = 上到下')} · ${ok('4.3 用上桌面的宽度')} · ${ok('3.4 落在看得见的地方')} · ${ok('5.2 手机同 L-A，桌面多一个并排的视图')} · ${meh('桌面两个滚动区')}`},
+    {letter: 'L-A', key: 'stacked', title: 'One stacked list', rec: true, why: '一列从上到下：<b>Today</b>、<b>Suggested</b>、<b>Show more</b>。两端完全一样；桌面是 600 px 宽的 modal，和 Night recap 同一个 RitualSheet（第 2 轮推荐）。Today 一长，推荐就被推到下面要滚。', rank: `${ok('5.1 和 Night recap 一个外框')} · ${ok('5.2 两端一模一样')} · ${ok('4.1 Today 在最上')} · ${ok('2.2')} · ${meh('3.4 加进去的卡可能在视野外，靠副标和按钮上的数')}`},
+    {letter: 'L-B', key: 'split', title: 'Two panes on desktop, one list on phones', rec: false, why: '第 1 轮的推荐。桌面 900 px：左栏 <b>Today</b>，右栏 <b>Suggested + Show more</b>，各自滚；手机就是 L-A。加一张，它离开右栏、落在左栏，两边都看得见。但 Night recap 是 600 px 的一列，两个 ritual 就是两种外框。', rank: `${ok('4.1 左到右 = 上到下')} · ${ok('4.3 用上桌面的宽度')} · ${ok('3.4 落在看得见的地方')} · ${no('5.1 和 Night recap 两种宽度、两种骨架')} · ${meh('桌面两个滚动区')} · 排第二`},
     {letter: 'L-C', key: 'guided', title: 'A short guided sequence', rec: false, why: '三步：<b>From yesterday</b>（留哪些 ↩）→ <b>Pick for today</b>（推荐 + Show more）→ <b>Your day</b>（看一眼，Start the day）。像 Sunsama / Akiflow。没有 ↩ 时从第二步开始。', rank: `${ok('仪式感最强')} · ${no('1.3 每天早上多按两次 Next')} · ${no('HIG：多步 = app 里的 app，要 Back')} · ${meh('4.1 Today 到最后才看到全貌')}`},
   ];
   document.getElementById('l-opts').innerHTML = options.map(option => optBox({...option, body: `<div class="tools">${resetBtn(`l-ph-${option.key}`)}</div>${wrap(`l-ph-${option.key}`)}`})).join('');
@@ -1254,27 +1368,54 @@ function renderLayout() {
     mount(`l-dk-${option.key}`, {...base, mode: 'desk', layout: option.key});
   });
   document.getElementById('l-rank').innerHTML = rankTable(['L-A 一列', 'L-B 两栏', 'L-C 向导'], [
+    ['5.1 和 Night recap 一个 RitualSheet（第 2 轮）', ok('600 px 一列，同一个骨架'), no('900 px 两栏，第二种骨架'), meh('600 px，但多了步数和 Back')],
     ['1.3 动作最少', ok('加完直接 Start'), ok('同 L-A'), no('+2 次 Next')],
     ['2.2 不摊开一大堆', ok('Show more 折着'), ok('同 L-A'), ok('同 L-A')],
     ['3.4 反馈落下', meh('桌面：Today 可能在视野外，靠按钮上的数'), ok('左栏看得见'), meh('第三步才看到')],
     ['4.1 重要的先看到', ok('Today 在上'), ok('Today 在左'), meh('Today 在最后一步')],
-    ['4.3 有地方就别挤', no('桌面空着两边'), ok(''), ok('')],
+    ['4.3 有地方就别挤', meh('600 px 一列，不空也不挤'), ok(''), ok('')],
     ['5.1 一个组件', ok('一张卡'), ok('一张卡'), ok('一张卡')],
     ['5.2 两端一条路', ok('一模一样'), ok('手机 = L-A，桌面多并排'), ok('')],
     ['HIG Modality', ok('短、一屏'), ok('短、一屏'), no('多步要 Back')],
+    ['排名', ok('1 · 推荐'), meh('2'), meh('3')],
   ]);
+  /* Already today: Workout pulled at 08:50, the ritual opened at 09:12 */
+  mount('l-already-desk', {...base, mode: 'desk', layout: 'stacked', fx: 'pulled'});
+  mount('l-already-phone', {...base, mode: 'phone', layout: 'stacked', fx: 'pulled', cap: 'Already today · Workout 08:50 就拉了'});
+  renderAnatomy();
   document.getElementById('l-q8').innerHTML = `${wrap('l-q8-full')}${wrap('l-q8-sheet')}`;
-  mount('l-q8-full', {...base, mode: 'phone', layout: 'split', cap: 'Q8 · full-screen overlay（spike 默认）'});
-  mount('l-q8-sheet', {...base, mode: 'phone', layout: 'split', shell: 'sheet', cap: 'Q8 · tall bottom sheet（现有 sheet）'});
+  mount('l-q8-full', {...base, mode: 'phone', layout: 'stacked', cap: 'Q8 · full-screen overlay（spike 默认，第 2 轮两个 ritual 都用）'});
+  mount('l-q8-sheet', {...base, mode: 'phone', layout: 'stacked', shell: 'sheet', cap: 'Q8 · tall bottom sheet（现有 sheet）'});
+}
+
+/* ── L · the RitualSheet anatomy: the shared slots (dashed) and what each ritual fills (purple) ── */
+const ANATOMY = [
+  ['外框', '桌面居中 modal，宽 600 px，圆角 14 px（p5-dark 0），四角的瞄准框（OverlayShell 的 corners）；点 backdrop 不关，Esc = Cancel。手机全屏 overlay，从状态栏下面到底，盖住 tab bar。', '—', '—'],
+  ['Header', '图标 20 px + 标题（display 字体 18 px）+ 一行 mono 11 px 的日期副标；右上 ✕（手机 ⌄）= Cancel。padding 14 / 18 / 12 px（手机 10 / 14 px），下面一条线。', '☀ Open the day · <code>Thu, Nov 19 · N picked · you usually finish 4 on a Thursday</code>', '晚上的图标和 Night recap · 日期（和它自己的数）'],
+  ['Body', '按 sec-label 分段（mono 10 px 大写 + 一条线），段里是 PR #128 的那张卡；段之间 10 px；padding 14 / 18 / 18 px（手机 12 / 14 / 16 px）；自己滚。', 'Today（↩ + 挑的 + Already today）· Suggested · Show more', 'Done today（圈 + 做完的 ✓ 行）· 还开着的卡和它们的去处'],
+  ['Footer', '右边 Cancel（ghost）+ 一个 primary，有数的时候 primary 后面带一个 mono 的数；padding 12 / 18 px（手机 10 / 14 / 18 px，按钮 44 px 高、primary 撑满）；失败时左边一行红字，modal 不关。', '<code>Start the day</code> + 挑的张数', '<code>Wrap the day</code>'],
+  ['动效', '桌面打开 <code>fx-boot-in</code> 420 ms；手机从底部升起 240 ms；关掉 240 ms（桌面淡出往下 6 px，手机降下去）；全是 console snap；减少动态效果时只淡入淡出。', '—', '—'],
+  ['提交以后', '一次提交，整批在一个 transaction 里。', '回到 board：卡落进 Todo + Undo snackbar（T-D）', '同一个外框里换成庆祝画面'],
+];
+function renderAnatomy() {
+  const card = (kind, text) => `<div class="stub" data-kind="${kind}">${text}</div>`;
+  const morning = `<div class="sk"><div class="sh"><span class="k">Header · 共用</span><div class="ttlrow">${icon('sun')}<span class="own">Open the day</span></div><small>Thu, Nov 19 · <span class="own">2 picked · you usually finish 4 on a Thursday</span></small></div>
+    <div class="sh"><span class="k">Body · 共用的分段 + 卡</span><div class="lbl own">Today</div>${card('project', 'Lecture 4 ↩')}${card('oneoff', 'Renew passport ↩')}<div class="lbl own">Already today</div>${card('habit', 'Workout')}<div class="lbl own">Suggested</div>${card('habit', 'Flashcards · + Today')}<div class="lbl own">Show more</div></div>
+    <div class="sh"><span class="k">Footer · 共用</span><div class="footrow"><span>Cancel</span><span class="pri"><span class="own" style="color:inherit">Start the day</span><b>2</b></span></div></div></div>`;
+  const night = `<div class="sk"><div class="sh"><span class="k">Header · 共用</span><div class="ttlrow">${icon('moon')}<span class="own">Night recap</span></div><small>Thu, Nov 19 · <span class="own">2 done today</span></small></div>
+    <div class="sh"><span class="k">Body · 共用的分段 + 卡</span><div class="lbl own">Done today</div>${card('habit', '✓ Flashcards')}${card('project', '✓ Lecture 5')}<div class="lbl own">Still open</div>${card('project', 'Lecture 6 · → Tomorrow')}</div>
+    <div class="sh"><span class="k">Footer · 共用</span><div class="footrow"><span>Cancel</span><span class="pri"><span class="own" style="color:inherit">Wrap the day</span></span></div></div></div>`;
+  document.getElementById('l-anat').innerHTML = `<div><div class="phone-cap" style="max-width:none;text-align:left;margin-bottom:6px"><b>Open the day</b> · 这个 mockup</div>${morning}</div><div><div class="phone-cap" style="max-width:none;text-align:left;margin-bottom:6px"><b>Night recap</b> · 示意，以它的 mockup 为准</div>${night}</div>`;
+  document.getElementById('l-anat-tbl').innerHTML = `<tr><th>槽</th><th>共用（两个 mockup 一样的数）</th><th>Open the day 填</th><th>Night recap 填</th></tr>${ANATOMY.map(([slot, shared, morningFill, nightFill]) => `<tr><td>${slot}</td><td>${shared}</td><td>${morningFill}</td><td>${nightFill}</td></tr>`).join('')}`;
 }
 
 /* ── S · Suggestions ── */
 function renderSuggest() {
   document.getElementById('s-before-desk').innerHTML = beforeDesk({backlogOpen: true});
   document.getElementById('s-before-phone').innerHTML = beforePhone({backlogOpen: true, cap: 'Before · main · 没有推荐'});
-  const base = {fx: 'thu', phase: 'open', layout: 'split', start: 'land', escapable: true};
+  const base = {fx: 'thu', phase: 'open', layout: 'stacked', start: 'snack', escapable: true};
   const options = [
-    {letter: 'S-A', key: 'list', title: 'Listed, each with + Today', rec: true, why: '<b>Suggested</b> 一段，每张推荐就是会落进 Todo 的那张卡，右上一行 why，右下 <b>+ Today</b>；同一个 project 推两张时，第二张没有 +，等前一张。右上 <b>Add all</b>。', rank: `${ok('1.3 一下一张，Add all 一下全部')} · ${ok('3.4 看到的就是落下的')} · ${ok('3.6 why 一行')} · ${ok('MVP 手动 plan')} · ${meh('5.1 一个 group 可能出现两张')}`},
+    {letter: 'S-A', key: 'list', title: 'Listed, each with + Today', rec: true, why: '<b>Suggested</b> 一段，每张推荐就是会落进 Todo 的那张卡，右上一行 why，右下 <b>+ Today</b>，点整张卡也一样（第 2 轮）；按 Habits · Projects · One-offs 排；同一个 project 推两张时，第二张没有 +，等前一张。右上 <b>Add all</b>。', rank: `${ok('1.3 一下一张，Add all 一下全部')} · ${ok('3.4 看到的就是落下的')} · ${ok('3.6 why 一行')} · ${ok('MVP 手动 plan')} · ${meh('5.1 一个 group 可能出现两张')}`},
     {letter: 'S-B', key: 'prefill', title: 'Pre-filled into Today', rec: false, why: '打开时推荐已经放进 Today（虚线边、右上 Suggested），不想要的点 × 拿掉；没有 Suggested 一段。接受就一下 Start the day。是「LLM 推荐 + 手动调整」那条路的样子。', rank: `${ok('1.3 一下开始一天')} · ${no('2.2 一打开今天就是满的')} · ${no('owner：MVP 是自己手动 plan')} · ${meh('Today 的空状态永远看不到')}`},
     {letter: 'S-C', key: 'group', title: 'One card per habit or project', rec: false, why: '推荐按 group：一个 habit 或 project 一张卡，就是 board backlog 的那张脸，pile 的层数是还推几张，why 写 <b>2 for today · 5 left in 2 days</b>。+ 一次加一张，下一张翻上来。', rank: `${ok('5.1 和 board 的 backlog 一张脸')} · ${ok('1.1 一个 group 一张')} · ${ok('4.2 pile 说后面还有')} · ${meh('1.3 推两张要点两下')} · ${meh('3.4 第二张藏在 pile 里')}`},
   ];
@@ -1300,9 +1441,10 @@ function renderSuggest() {
 function renderStart() {
   document.getElementById('t-before-desk').innerHTML = beforeDesk({backlogOpen: true});
   document.getElementById('t-before-phone').innerHTML = beforePhone({backlogOpen: true, cap: 'Before · main · 拉一张算一张'});
-  const base = {fx: 'thu', phase: 'open', layout: 'split', sugg: 'list', escapable: true};
+  const base = {fx: 'thu', phase: 'open', layout: 'stacked', sugg: 'list', escapable: true};
   const options = [
-    {letter: 'T-A', key: 'land', title: 'Close, then the cards land in Todo', rec: true, why: 'modal 收起（240 ms），strip 同时淡出；Todo 里的卡一张接一张从上面落下（每张 240 ms，间隔 60 ms）。安静，落在工作去的地方。', rank: `${ok('3.4 落在 Todo')} · ${ok('3.5 是开始，不是赢')} · ${ok('3.3 比完成一张卡还小')} · ${ok('1.3 不等')}`},
+    {letter: 'T-D', key: 'snack', title: 'Land, then an Undo snackbar', rec: true, why: '第 2 轮，来自 demo-11-06 草稿。先同 T-A；然后底部一条 snackbar <b>N on the board today</b> + <b>Undo</b>，5 秒，底部一条 2 px 的条倒计时，和 Priorities 页的 Marked done 同一个 Toast（neutral 色）。点 Undo，回到 open 以前。', rank: `${ok('3.4 落在 Todo')} · ${ok('3.5 不庆祝，neutral 色')} · ${ok('一次动很多张，R1 又不让放回 backlog：便宜的保险')} · ${ok('5.1 Priorities 现有的 Toast')} · ${no('1.3 字面上：确认之后又一条 undo 横幅')}`},
+    {letter: 'T-A', key: 'land', title: 'Close, then the cards land in Todo', rec: false, why: '第 1 轮的推荐。modal 收起（240 ms），strip 同时淡出；Todo 里的卡一张接一张从上面落下（每张 240 ms，间隔 60 ms）。安静，落在工作去的地方；按错了没有回头路。', rank: `${ok('3.4 落在 Todo')} · ${ok('3.5 是开始，不是赢')} · ${ok('3.3 比完成一张卡还小')} · ${ok('1.3 不等')} · ${no('按错了回不去')} · 排第二`},
     {letter: 'T-B', key: 'beat', title: 'A beat in the modal first', rec: false, why: '先在 modal 里停一下：按钮变成绿色的 <b>✓ Day opened</b>，900 ms；然后同 T-A。给仪式一个「完成了」的瞬间。', rank: `${meh('3.5 一点小仪式')} · ${no('1.3 每天早上等 0.9 秒')} · ${no('3.4 反馈在 modal 里，不在工作去的地方')}`},
     {letter: 'T-C', key: 'fly', title: 'The cards fly into Todo', rec: false, why: '桌面：左栏的每张卡从 modal 里飞到 Todo 列里自己的位置，modal 同时淡出。手机：overlay 盖着 Todo，飞不过去，只能同 T-A。', rank: `${ok('3.4 看得见走到哪')} · ${no('3.5 用了完成时「扔进圈里」的语言，开始和完成混了')} · ${no('3.3 比开始该有的大')} · ${meh('5.2 手机做不到')}`},
   ];
@@ -1312,13 +1454,17 @@ function renderStart() {
     mount(`t-ph-${option.key}`, {...base, mode: 'phone', start: option.key, cap: `${option.letter} · ${option.title}`});
     mount(`t-dk-${option.key}`, {...base, mode: 'desk', start: option.key});
   });
-  document.getElementById('t-rank').innerHTML = rankTable(['T-A 落进 Todo', 'T-B 先停一下', 'T-C 飞过去'], [
-    ['1.3 不多一步', ok(''), no('等 900 ms'), ok('')],
-    ['3.3 大小对得上', ok('小'), ok('小'), no('像完成')],
-    ['3.4 落在工作去的地方', ok('Todo 里依次落下'), no('在 modal 里'), ok('飞进 Todo')],
-    ['3.5 话和时刻对得上', ok('不说话'), meh('Day opened'), ok('不说话')],
-    ['5.2 两端一样', ok(''), ok(''), meh('手机只能落下')],
-    ['Motion baseline', ok('240 ms'), meh('900 ms 的停顿不在 token 里'), meh('420 ms')],
+  document.getElementById('t-rank').innerHTML = rankTable(['T-D 落下 + Undo', 'T-A 落进 Todo', 'T-B 先停一下', 'T-C 飞过去'], [
+    ['1.3 不多一步', ok('不等；Undo 不用就不用管'), ok(''), no('等 900 ms'), ok('')],
+    ['1.3 不要事后的 undo 横幅', no('字面上违反；Priorities 的 Marked done 已经这样（owner 看）'), ok(''), ok(''), ok('')],
+    ['按错了能回去', ok('5 秒 Undo'), no(''), no(''), no('')],
+    ['3.3 大小对得上', ok('小'), ok('小'), ok('小'), no('像完成')],
+    ['3.4 落在工作去的地方', ok('Todo 里依次落下'), ok('Todo 里依次落下'), no('在 modal 里'), ok('飞进 Todo')],
+    ['3.5 话和时刻对得上', ok('只说 board 上几张'), ok('不说话'), meh('Day opened'), ok('不说话')],
+    ['5.1 一个组件', ok('现有的 Toast'), ok(''), ok(''), ok('')],
+    ['5.2 两端一样', ok(''), ok(''), ok(''), meh('手机只能落下')],
+    ['Motion baseline', ok('240 ms + Toast 的 420 ms'), ok('240 ms'), meh('900 ms 的停顿不在 token 里'), meh('420 ms')],
+    ['排名', ok('1 · 推荐'), meh('2'), meh('3'), meh('4')],
   ]);
   document.getElementById('t-states').innerHTML = `${wrap('t-st-empty')}${wrap('t-st-error')}`;
   mount('t-st-empty', {...base, mode: 'phone', start: 'land', today: [], cap: 'Today 空了：Start the day 不能按'});
@@ -1327,27 +1473,29 @@ function renderStart() {
 
 /* ── F · Final ── */
 const NEW_PARTS = [
-  ['Board · strip', 'Todo 正上方，两端一样：LED（2.4 s 呼吸）、Open the day、一行数字（<code>2 from yesterday · 4 suggested</code>）、→。08:00–14:00、今天还没 open 才出现；open 后淡出（E-A、T-A）。'],
+  ['Board · strip', 'Todo 正上方，两端一样：LED（2.4 s 呼吸）、Open the day、一行数字（<code>2 from yesterday · 4 suggested</code>）、→。08:00–14:00、今天还没 open 才出现；不自动弹（E-D 没推荐）；open 后淡出（E-A、T-D）。'],
   ['Board · Todo 没 open 时', '虚线框（FinishBox）：Fresh day, fresh start! / Nothing on today yet / Open the day to pick what you\'ll do；14:00 以后换成 Nothing on today yet / Pull something from the backlog when you\'re ready（E ②）。'],
   ['Board · 不是这个设计、是 spike D1', 'Todo 早上是空的；昨天没做完的回到 backlog（↩ 只在 Open the day 里看得到）；backlog 多了一段 One-offs、数字变大（8+）。'],
-  ['Modal · 外框', '桌面居中 900 px，两栏；手机全屏、盖住 tab bar（Q8）。标题 Open the day + 日期；✕ / ⌄ 和 Cancel 一样；点 backdrop 不关；Esc = Cancel（L-B）。'],
-  ['Modal · Today', '一开始是 ↩ 的卡（kind 行右边 ↩ Yesterday）；每张 × 放回去，一个 habit / project 只有最后加进来的那张有 ×；空了是虚线框 Nothing carried over / Add what you\'ll do today（↩ 被拿光了写 Today is empty）。'],
-  ['Modal · Suggested', '固定算法算出的卡，kind 行右边 why（<code>Today only</code>、<code>5 left in 2 days</code>），右下 + Today；一个 project 推两张，第二张等前一张；Add all；周末 Nothing is suggested on weekends；加完 Everything suggested is in Today（S-A）。'],
-  ['Modal · Show more', '折着，右边是数（8+ 封顶）；展开是 Habits · Projects · One-offs · From Priorities，每个 group 一张卡（+N more、pile），没 track 的 Do first 在最后一段，加进来就 track 到这周。'],
-  ['Modal · 底部', 'Cancel + Start the day，按钮上的数是 Today 的张数（Today 一段不再写数）；Today 空了不能按；失败时左边一行红字、不关。'],
-  ['Start the day 以后', 'modal 收起 240 ms、strip 淡出；Todo 的卡依次落下（240 ms，间隔 60 ms）；没有庆祝（T-A）。'],
+  ['Modal · 外框（RitualSheet）', '和 Night recap 同一个：桌面居中 600 px，一列；手机全屏、盖住 tab bar（Q8）。✕ / ⌄ 和 Cancel 一样；点 backdrop 不关；Esc = Cancel（L-A，数字见 L tab 的解剖）。'],
+  ['Modal · 副标', '日期 · <code>N picked</code> · <code>you usually finish 4 on a Thursday</code>（自己的历史，只是字，不变色、不拦；要 owner 定）。'],
+  ['Modal · Today', '一开始是 ↩ 的卡（kind 行右边 ↩ Yesterday）；每张 × 放回去，一个 habit / project 只有最后加进来的那张有 ×；空了是虚线框 Nothing carried over / Add what you\'ll do today（↩ 被拿光了写 Today is empty）。open 时已经在 Todo 的在最下面的 Already today，没有 ×，不算数。'],
+  ['Modal · Suggested', '固定算法算出的卡，按 Habits · Projects · One-offs 排，kind 行右边 why（<code>2 left in 2 days</code>），右下 + Today，整张卡都能点；一个 project 推两张，第二张等前一张；Add all；周末 Nothing is suggested on weekends；加完 Everything suggested is in Today（S-A）。'],
+  ['Modal · Show more', '折着，右边是数（8+ 封顶）；展开是 Habits · Projects · One-offs · From Priorities，每个 group 一张卡（+N more、pile），整张能点；没 track 的 Do first 在最后一段，加进来就 track 到这周。'],
+  ['Modal · 底部', 'Cancel + Start the day，按钮上的数是挑进 Today 的张数（Already today 不算）；一张都没有时不能按；失败时左边一行红字、不关。'],
+  ['Start the day 以后', 'modal 收起 240 ms、strip 淡出；Todo 的卡依次落下（240 ms，间隔 60 ms）；然后 snackbar <code>N on the board today</code> + Undo，5 秒（T-D）。Undo 回到 open 以前。'],
 ];
 function renderFinal() {
   document.getElementById('f-new').innerHTML = NEW_PARTS.map(([title, body]) => `<div class="pat"><h4>${title}</h4><div>${body}</div></div>`).join('');
-  const base = {layout: 'split', sugg: 'list', start: 'land', entry: 'strip', escapable: true};
+  const base = {layout: 'stacked', sugg: 'list', start: 'snack', entry: 'strip', escapable: true};
   mount('f-desk', {...base, mode: 'desk', fx: 'thu', phase: 'board'});
   const phones = [
     ['f-ph-thu', {fx: 'thu', phase: 'board', cap: 'Thu 09:12 · 有 ↩ · 点 strip 开始'}],
+    ['f-ph-pulled', {fx: 'pulled', phase: 'board', cap: 'Thu 09:12 · 08:50 先拉了 Workout · Already today'}],
     ['f-ph-clear', {fx: 'clear', phase: 'open', cap: 'Thu · 昨天全做完了，没有 ↩'}],
     ['f-ph-sat', {fx: 'sat', phase: 'open', cap: 'Sat · NORMAL · Q7 一：照样出现，没有推荐'}],
     ['f-ph-sat-off', {fx: 'sat', phase: 'board', window: false, copy: 'late', cap: 'Sat · NORMAL · Q7 二：周末不出现'}],
     ['f-ph-late', {fx: 'thu', phase: 'board', window: false, copy: 'late', time: '14:20', cap: 'Thu 14:20 · 没 open，过了窗口'}],
-    ['f-ph-opened', {fx: 'thu', phase: 'opened', started: ['bio4', 'passport', 'fc', 'wo2', 'bio5'], cap: 'Thu 11:00 · 已经 open 过：没有 strip'}],
+    ['f-ph-opened', {fx: 'thu', phase: 'opened', started: ['bio4', 'passport', 'fc4', 'wo2', 'bio5', 'bio6'], cap: 'Thu 11:00 · 已经 open 过：没有 strip'}],
   ];
   document.getElementById('f-phones').innerHTML = phones.map(([id]) => `<div><div class="tools" style="justify-content:center">${resetBtn(id)}</div>${wrap(id)}</div>`).join('');
   phones.forEach(([id, cfg]) => mount(id, {...base, mode: 'phone', ...cfg}));
@@ -1360,25 +1508,34 @@ const IDEAS = [
   ['给 spec 的行为', 'spec', `<ul>
     <li><b>推荐当场重算</b>：Today 每变一次，Suggested 和 Show more 按 spike 的算法重算；一个 habit / project 只出现在一处：它的下一张被推荐，就在 Suggested，否则在 Show more（每个 group 一张卡）。</li>
     <li><b>只能按顺序加</b>：一个 project 推两张时，只有第一张有 + Today；Show more 里的 + 加的是这个 group 的下一张（R6）。</li>
-    <li><b>× 只在最后加进来的那张</b>（同一个 habit / project 里）；one-off 每张都有。↩ 的卡算最先加进来的。</li>
+    <li><b>× 只在最后加进来的那张</b>（同一个 habit / project 里）；one-off 每张都有。↩ 的卡算最先加进来的。Already today 的卡没有 ×。</li>
     <li><b>Today 的空状态看来源</b>：没有 ↩ 写 Nothing carried over；有 ↩ 但被拿光了写 Today is empty（3.6）。</li>
     <li><b>strip 的数</b>：<code>{n} from yesterday</code> 和 <code>{n} suggested</code>，0 的那半不写，都是 0 写 Pick today's tasks。推荐的数按打开时 Today 只有 ↩ 来算。</li>
     <li><b>Cancel 不留东西</b>：下次打开从 ↩ 和推荐重新开始。</li>
-    <li><b>Start the day 的数</b>就是 Today 的张数；Today 空了不能按。</li>
-    <li><b>没 open 就先拉了卡</b>（spike Q12）：拉进来的那几张打开时就在 Today 里、没有 ×；strip 和 Todo 的框照常（Todo 不空就没有框）。没画，等 Q12 定了再画。</li>
+    <li><b>Start the day 的数</b>是挑进 Today 的张数，不含 Already today；挑的和 Already today 都是 0 才不能按（只有 Already today 也能按，按钮上没有数）。</li>
+    <li><b>Already today</b>（第 2 轮，回答第 1 轮 Q12）：open 时 Todo 里已经有的卡（今天第一次 sync 以后拉的）列在 Today 最下面的 Already today 下，没有 ×（R1），不算进 <code>N picked</code> 和 Start 的数；推荐把它们算作「已在 Today」，同一个 group 不再推；snackbar 的数算上它们。strip 和 Todo 照常（Todo 不空就没有虚线框）。</li>
+    <li><b>整张卡是 hit area</b>（第 2 轮）：Suggested 和 Show more 里有 + Today 的卡，整张是一个按钮（accessible name <code>Add {title} to today</code>），+ Today 是它看得见的样子；没有 + 的（等前一张的）不能点。选中的样子就是卡移进 Today。</li>
+    <li><b>固定顺序</b>（第 2 轮）：Suggested 和 Show more 都按 Habits · Projects · One-offs（· From Priorities）排；组内用原来的顺序（step 的顺序、matrix 里 quadrant 的顺序），不按推荐分数排。</li>
+    <li><b>副标的软提示</b>（第 2 轮，要 owner 定）：<code>{date} · {n} picked · you usually finish {usual} on a {weekday}</code>。usual 从 user 自己的历史算（例如最近几周同一个星期几做完的张数的中位数，spec 定）；历史不够的时候不显示这半句。只是字，挑多了也不变色、不拦。</li>
+    <li><b>Undo</b>（第 2 轮，T-D）：Start the day 以后 5 秒里，Undo 恢复 Start 以前的快照，和 Priorities 的 Undo 一样是一个 server action：Today 里挑的卡回到 backlog（↩ 的保留 carried），Start 顺便 track 的 Do first 取消 track，今天的 openedAt 清掉，strip 回来。因为 R1 不让 user 把 Todo 的卡放回 backlog，这只能是一个专门的 undo，不是 user 的 move。5 秒过了就没有回头路。</li>
+    <li><b>Daily（只到 Phase 2）</b>：Phase 2 去掉 Daily 以前，还有 daily habit 的时候，它今天那张总推、why 写 <code>Today only</code>（第 1 轮的规则）；Phase 2 落地就删掉这条。</li>
     <li><b>Show more 的数</b>算的是折起来的所有卡（group 后面的也算），8 以上写 8+（2.1）。</li>
   </ul>`],
   ['Future · LLM 推荐 + 手动调整', 'future', `<p>推荐区现在是固定算法（spike）。以后换成 LLM：读最近几周的完成情况和这周的目标，给出今天的一组卡，每张带一句 reason；user 照样在同一个 modal 里加、删、调整。<b>样子不用变</b>：S-A 的 why 一行就放 reason；如果 LLM 更有把握，可以走 S-B 那条路（预先放进 Today、虚线边、× 拿掉）。入口可能是一个 MCP tool（例如 <code>propose_today</code>）或 modal 里的一个按钮。</p>`],
   ['Future · Skip → 好好休息的 board', 'future', `<p>以后加一个 Skip：今天不 open（<code>Day.skippedAt</code>）。之后 board 变成另一个样子，让 user 好好休息：Todo 和 strip 换成一张 rest 卡，backlog 还在。现在 Today 空的时候 Start the day 不能按，正是给 Skip 留的位置（一张都不选 = Skip）。样子单独设计，不在这个 mockup 里画。</p>`],
   ['Future · 其它', 'future', `<ul>
-    <li><b>自动打开</b>：每天第一次打开 app 自动弹出 Open the day（Akiflow、Sunsama 都有这个选项）。现在不做，只有 strip。</li>
+    <li><b>自动打开</b>：每天第一次打开 app 自动弹出 Open the day（Akiflow、Sunsama 都有这个选项）。第 2 轮画成 E-D，不推荐；以后可以做成一个设置。</li>
     <li><b>推荐的上限</b>：从最近几周学出来的 capacity（spike Q6），超了在 Today 上说一句。</li>
     <li><b>桌面拖拽</b>：右栏拖到左栏、左栏拖回去，是桌面多出来的手势（5.2）。</li>
   </ul>`],
   ['要 owner 定的（会改样子的）', 'questions', `<ul>
-    <li>每个 tab 的方案：E-A / B / C、L-A / B / C、S-A / B / C、T-A / B / C。</li>
+    <li>每个 tab 的方案：E-A / B / C / D、L-A / B / C、S-A / B / C、T-A / B / C / D。</li>
+    <li><b>新</b> · L：两个 ritual 共用 600 px 的一列（L-A），还是 Open the day 要桌面两栏（L-B，900 px，Night recap 就得跟着变或者不一样）。</li>
+    <li><b>新</b> · 副标的软提示 <code>you usually finish 4 on a Thursday</code> 要不要（demo-11-06 草稿里也没答）。另外 <code>4 picked</code> 和 Start the day 按钮上的数是同一个数（1.1），要不要只留软提示那半句。</li>
+    <li><b>新</b> · T-D 的 Undo snackbar 和 1.3「不要事后一条 undo 横幅」字面上冲突（#115 的 ✓ Complete 就是按 1.3 去掉了 snackbar）；Priorities 的 Marked done 又是这样。要 T-D，还是 T-A。</li>
+    <li><b>新</b> · Already today 放在 Today 最下面（现在）还是最上面（草稿）。</li>
     <li>Todo 的 empty 文案 A–E（spike Q9），和 14:00 以后的 F（Q10）。</li>
-    <li>手机外框：全屏还是拉满的 sheet（Q8）。</li>
+    <li>手机外框：全屏还是拉满的 sheet（Q8）。第 2 轮两个 ritual 都是全屏，定了一起改。</li>
     <li>周末 <code>NORMAL</code>：照样出现、推荐为空，还是不出现（Q7）。F 两种都画了。</li>
     <li>habit 卡的 why 一行和 dots 部分重复（1.1），要不要换写法（S 的 Why 表）。</li>
     <li>折起来那一行叫 Show more 还是 Show all：展开的不含已推荐的，所以我写了 more（3.6）。</li>
@@ -1390,7 +1547,9 @@ const IDEAS = [
     <li>卡的 action 槽：+ Today、×；why 和 ↩ 放在 kind 行右边（backlog 卡放 +N more 的槽）。</li>
     <li>Show more 里的分段名：Habits · Projects · One-offs · From Priorities（没 track 的 Do first）。</li>
     <li>失败文案 <code>Couldn't start the day · try again</code>。</li>
-    <li>Start the day 以后没有 toast，也没有一句话。</li>
+    <li>snackbar 文案 <code>{n} on the board today</code>（n 是 board 上今天的张数）；用 Toast 的 neutral 色，不用 Priorities 的 success 绿（3.5）；手机上放在 Backlog pill 上面。</li>
+    <li>RitualSheet 共用的数字（L tab 的解剖）：600 px、padding 14 / 18、手机 10 / 14、手机按钮 44 px、打开 420 / 240 ms、关掉 240 ms。</li>
+    <li>Already today 的 label 用 sec-label 的安静版（更淡的字），放在 Today 最下面。</li>
   </ul>`],
 ];
 function renderIdeas() {
