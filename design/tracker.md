@@ -176,7 +176,8 @@ How agents work on this repository: the experiments under `experiments/` (rules 
   - [ ] Step 14 — Code review agent: explored as Harness engineering › 3 (above), which settles its scope
 - [ ] Spike: tracking production errors — today a crash leaves nothing to debug (2026-10-30: dragging a daily card to Done on the phone PWA ended on Next's "Application error" page; the write had saved, and no log or report showed why)
 - [ ] Persist sidebar collapse state across page refreshes (localStorage with SSR hydration)
-- [ ] Daily rhythm — Open / Close-the-day rituals and phone notifications for unfinished tasks; starts after the Quality gate milestone. Spike `design/spike/daily-rhythm-notifications.md` in PR #33 (awaiting review, written before Phase 1); when picked up, regroup its sheets by kind, map "Still on it" to staying in Todo (the board has no Doing column), re-derive the midday nudge's triggers (it keys off the risk clock and In Progress cards, both gone; the per-kind risk rules in `design/spike/week-model-phase2-pain-points.md` › 痛点 5 are the proposed replacement), and have Close the day list all of today's done work (PR #115 mockup Ideas 7)
+- [ ] Daily rhythm — two rituals on the board, Open the day (8 AM–2 PM: pick today's tasks from yesterday's leftovers and a fixed per-day suggestion) and Night recap (9 PM–4 AM: move what's left to Done, tomorrow or let go, then a celebration and a prompt to write in Dump); starts after the Quality gate milestone. Spike `design/spike/daily-rhythm-rituals.md` (awaiting owner review)
+  - Phone notifications for unfinished tasks stay out of this step: PR #33's spike `daily-rhythm-notifications.md` (never merged), whose midday nudge keys off the risk clock and In Progress cards, both gone; the per-kind risk rules in `design/spike/week-model-phase2-pain-points.md` › 痛点 5 are the proposed replacement
 
 ### Medium
 
