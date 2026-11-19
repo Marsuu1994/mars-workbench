@@ -191,7 +191,8 @@ test.describe('Modal URL Flow', () => {
     );
     await expect(modal.getByText('Edit Step')).toBeVisible();
     await expect(titleField).toHaveValue(COURSE.steps[0]);
-    await modal.getByRole('button', {name: 'Cancel'}).click();
+    // The footer's Cancel; the header's × is labelled Cancel too
+    await modal.getByText('Cancel', {exact: true}).click();
     await expect(modal).toBeHidden();
     await expect(page).not.toHaveURL(/modal=/);
 
