@@ -3,6 +3,7 @@
 import type {ReactNode} from 'react';
 import {TaskKind} from '@/utils/taskUtils';
 import type {BacklogGroup} from '@/utils/backlogGroupUtils';
+import {TaskCardDescription} from '../TaskCardDescription';
 import {TaskCardHead} from '../TaskCardHead';
 import {TaskCardSignal} from '../TaskCardSignal';
 import {BacklogMoreCount} from './BacklogMoreCount';
@@ -17,9 +18,10 @@ interface BacklogGroupFaceProps {
 
 /**
  * A backlog card's face, showing its group's next task: the kind (a step's
- * project name) with +N more on the right, the title, the description, then
- * the progress — a habit's week dots or the project's path, the next task's
- * mark ringed. No details, no size and no count of what's done.
+ * project name) with +N more on the right, the title, the description (two
+ * lines at most), then the progress — a habit's week dots or the project's
+ * path, the next task's mark ringed. No details, no size and no count of
+ * what's done.
  */
 export const BacklogGroupFace = ({
   group,
@@ -49,11 +51,7 @@ export const BacklogGroupFace = ({
         context={renderMoreCount()}
       />
       <h3 className="text-sm font-medium leading-snug">{task.title}</h3>
-      {task.description && (
-        <p className="-mt-0.5 text-xs leading-snug text-base-content/60 break-words">
-          {task.description}
-        </p>
-      )}
+      <TaskCardDescription description={task.description} />
       <div className="flex min-h-[18px] items-center gap-2">
         <TaskCardSignal card={next} variant="card" />
         {action && <span className="ml-auto">{action}</span>}
