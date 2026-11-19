@@ -722,7 +722,7 @@
   <div>
     <div class="eyebrow">Board · Phase 2 · design PR · pending 2026-11-19（定稿过：final version · decided 2026-11-11）· 第 1 轮 2026-11-06 · 第 2–18 轮一个模块一个模块定，2026-11-09 合在一起 · 第 22–25 轮：M · 完成动画 · 第 25–28 轮：桌面 Todo 加 Today、Todo 空了的提醒 · 第 28–29 轮：K · Card，所有卡片合成一个组件</div>
     <h1>Board：点一下选中，✓ Complete 完成</h1>
-    <p>有 active plan 的白天，默认屏就是 board。第一个 tab <b>F · Final</b> 是合在一起的定稿：Before 是现在的产品，After 是 P · Progress、C · Celebration、D · Done、T · Tap twice、M · 完成动画五个模块合起来的样子，桌面和手机都能直接点。后面五个 tab 是每个模块的决定和研究，<b>K · Card</b> 把所有卡片放在一起对照，给实现用；<b>B · Backlog</b> 记 backlog 这里的两处修订（2026-11-19，等 owner 确认）；<b>I · Ideas</b> 记着这个设计带出来、要在别处或以后做的事。第 1 轮的 1–6 屏已被这些决定取代，留在 commit 历史里（<code>53d9220</code> 及以前）。</p>
+    <p>有 active plan 的白天，默认屏就是 board。第一个 tab <b>F · Final</b> 是合在一起的定稿：Before 是现在的产品，After 是 P · Progress、C · Celebration、D · Done、T · Tap twice、M · 完成动画五个模块合起来的样子，桌面和手机都能直接点。后面五个 tab 是每个模块的决定和研究，<b>K · Card</b> 把所有卡片放在一起对照，给实现用；<b>B · Backlog</b> 记 backlog 这里的两处修订（decided 2026-11-19）；<b>I · Ideas</b> 记着这个设计带出来、要在别处或以后做的事。第 1 轮的 1–6 屏已被这些决定取代，留在 commit 历史里（<code>53d9220</code> 及以前）。</p>
     <p><b>Pending · 2026-11-19（owner）。</b>这个设计在 2026-11-11 定稿过，现在改回 pending。动手写 spec 或实现之前先处理下面两件事，处理完由 owner 重新定稿（<code>design/README.md</code> › Mockups）。各个 tab 上的 ✓ 和「定稿」记的是当时每个模块的决定，留着不动。</p>
     <p><b>① 没写明的动画。</b>这个文件有 17 个 <code>@keyframes</code>：<code>armDown</code>、<code>armIn</code>、<code>bigPulse</code>、<code>burst</code>、<code>celEnter</code>、<code>countdown</code>、<code>doneIn</code>、<code>draw</code>、<code>freshRow</code>、<code>halo</code>、<code>moShine</code>、<code>pop</code>、<code>pulled</code>、<code>rise</code>、<code>spark</code>、<code>spin</code>、<code>tick</code>。<b>M · 完成动画</b>写明了完成时的 juice 和飞进今天的圈；其余的逐个确认：是设计的一部分，就在它所属组件的 tab 里写明什么触发、哪个元素动、怎么动、多久、系统开了「减少动态效果」时怎样；不是，就从 mockup 里删掉。Before 不做产品没有的动效。</p>
     <p><b>② 和现在的产品对齐。</b>Before 照动手时的产品重画，文字里说「现在的产品」的地方逐句对照代码。定稿之后产品已经在变：PR #126 把 backlog 改成按 habit 和 project 分组，并给空的 backlog 和空的 Todo 加了虚线框。</p>
@@ -731,7 +731,7 @@
 
 <!-- ═════════ F · Final: the four modules on one board (round 18) ═════════ -->
 <section class="screen on" data-screen="final">
-  <div class="col-label"><b>F · Final · pending 2026-11-19（见页首）· 修订 · amended 2026-11-19（PR #127：backlog 去掉标题下的提示、补上空状态，见 B · Backlog；Todo 空了的文案换成 All clear for the day，见 D · Done；等 owner 确认）· 之前：final version · decided 2026-11-09 · 修订 · amended 2026-11-10（第 25 轮：合进 M，桌面 Todo 加 Today、Todo 空了的提醒，第 28 轮定稿）· 修订 · amended 2026-11-11（第 28 轮：卡片合成一个组件，one-off 的 quadrant 挪进标签；第 29 轮定稿）</b> · P 进度圈 · C 庆祝 · D 做完的去哪 · T 点两下完成 · M 完成动画 · K 卡片，合在一块 board 上<span class="line"></span></div>
+  <div class="col-label"><b>F · Final · pending 2026-11-19（见页首）· 修订 · amended 2026-11-19（PR #127：backlog 去掉标题下的提示、补上空状态，见 B · Backlog；Todo 空了的文案换成 All clear for the day，见 D · Done；decided 2026-11-19）· 之前：final version · decided 2026-11-09 · 修订 · amended 2026-11-10（第 25 轮：合进 M，桌面 Todo 加 Today、Todo 空了的提醒，第 28 轮定稿）· 修订 · amended 2026-11-11（第 28 轮：卡片合成一个组件，one-off 的 quadrant 挪进标签；第 29 轮定稿）</b> · P 进度圈 · C 庆祝 · D 做完的去哪 · T 点两下完成 · M 完成动画 · K 卡片，合在一块 board 上<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:14px">每一块怎么来的，见后面五个 tab 和 <code>reviews/pr-115.md</code>。下面的 After 都能直接操作：点卡片选中，再点 <b>✓ Complete</b> 完成（只点卡片别处是取消）——卡片随机来一种 juice，再飞进今天的圈（M）；全部做完会播大反馈，Todo 空了留一块提醒。点今天或之前的某一格，看那天做完的；Backlog 点开，卡片上有 <b>↑ Todo</b>。桌面和手机的 After 上面各有 <b>Complete all →</b>（一张张做完，直接看大反馈，可以拿来录 demo）和 <b>Reset</b>。Fixture：Thu Nov 5 12:40，今天做完 1 / 5。</p>
   <div class="col-label"><b>这次新加的</b> · 相对现在的产品，按 board 上的位置分，每块注明来自哪个模块（第 28 轮和原来的「解剖」合成一节）<span class="line"></span></div>
   <div class="patterns" id="fin-new" style="margin-bottom:22px;grid-template-columns:repeat(auto-fill, minmax(230px, 1fr))"></div>
@@ -866,7 +866,7 @@
 
 <!-- ═════════ I · Ideas ═════════ -->
 <section class="screen" data-screen="backlog">
-  <div class="col-label"><b>B · Backlog · 修订 2026-11-19（PR #127 的 review）· 等 owner 确认</b> · 标题下面的提示去掉 · 拉空以后显示虚线框，入口留着<span class="line"></span></div>
+  <div class="col-label"><b>B · Backlog · 定稿 · decided 2026-11-19</b>（PR #127 的 review 里提出并定稿） · 标题下面的提示去掉 · 拉空以后显示虚线框，入口留着<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:14px">Owner 在 PR #127 的 review 里提的两处，都只动 backlog，已经合进 F · Final（在那里把 backlog 一张张拉空就能看到）。这个 tab 是静态的对照，没有动效：虚线框直接出现，不弹进来。Backlog 里的卡片、pile 和 <b>+N more</b> 都没有变，见 K · Card。</p>
   <div class="col-label spaced"><b>① 标题下面的提示去掉</b> · 两端都是<span class="line"></span></div>
   <p class="note" style="margin-top:0;margin-bottom:12px">现在的产品在 Backlog 标题下面有一行提示：桌面是 <b>Drag tasks left to Todo to start working</b>，手机的 sheet 是 <b>Tap to pull a task onto the board</b>。After 两端都没有这一行，标题下面直接是卡片。每张卡右下角已经有 <b>↑ Todo</b>。</p>
@@ -890,7 +890,7 @@
   <button data-screen-btn="tap">T · Tap twice ✓</button>
   <button data-screen-btn="motion">M · 完成动画 ✓</button>
   <button data-screen-btn="card">K · Card ✓</button>
-  <button data-screen-btn="backlog">B · Backlog</button>
+  <button data-screen-btn="backlog">B · Backlog ✓</button>
   <button data-screen-btn="ideas">I · Ideas</button>
 </nav>
 
