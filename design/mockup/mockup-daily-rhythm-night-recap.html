@@ -48,6 +48,7 @@
     --card-border: color-mix(in oklab, var(--bc) 10%, transparent);
     --card-shadow: inset 0 1px 0 var(--edge);
     --modal-shadow: 0 24px 60px oklch(0 0 0 / .5);
+    --scrim: oklch(0.08 0.02 265 / .62);
     --page: radial-gradient(1200px 600px at 10% -10%, color-mix(in oklab, var(--p) 10%, transparent), transparent 60%),
             radial-gradient(900px 500px at 110% 110%, color-mix(in oklab, var(--s) 10%, transparent), transparent 60%), var(--b2);
     --display: 'Geist', system-ui, sans-serif;
@@ -60,6 +61,7 @@
     --edge: oklch(1 0 0 / 0.7);
     --card-border: color-mix(in oklab, var(--bc) 12%, transparent);
     --modal-shadow: 0 24px 60px oklch(0.35 0.04 265 / .25);
+    --scrim: oklch(0.3 0.03 265 / .38);
     --page: radial-gradient(1200px 600px at 10% -10%, color-mix(in oklab, var(--a) 14%, transparent), transparent 60%),
             radial-gradient(900px 500px at 110% 110%, color-mix(in oklab, var(--s) 10%, transparent), transparent 60%), var(--b2);
   }
@@ -73,6 +75,7 @@
     --card-border: color-mix(in oklab, var(--bc) 14%, transparent);
     --card-shadow: 3px 3px 0 var(--b3);
     --modal-shadow: 6px 6px 0 var(--p);
+    --scrim: oklch(0.05 0.01 20 / .7);
     --page: repeating-radial-gradient(circle at 0 0, color-mix(in oklab, var(--bc) 4%, transparent) 0 1px, transparent 1px 6px), var(--b2);
     --display: 'Anton', 'Arial Narrow', sans-serif;
   }
@@ -193,7 +196,7 @@
   .dock { height: 64px; flex-shrink: 0; border-top: 1px solid var(--card-border); background: color-mix(in oklab, var(--b1) 94%, var(--b3)); display: grid; grid-template-columns: repeat(6, 1fr); align-items: center; padding: 0 4px 6px; }
   .dock .tab { display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--ink-45); font-size: 9.5px; font-weight: 600; }
   .dock .tab.on { color: var(--p); }
-  .scrim { position: absolute; inset: 0; background: oklch(0 0 0 / .5); z-index: 5; }
+  .scrim { position: absolute; inset: 0; background: var(--scrim); z-index: 5; }
   .pill { position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 3; display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 14px; border-radius: 16px; background: var(--b1); border: 1px solid var(--card-border); box-shadow: 0 6px 16px oklch(0 0 0 / .25); font-size: 14px; font-weight: 600; }
   .pill .icon { color: var(--p); } .pill .badge-count { margin-left: auto; }
   .badge-count { font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: var(--p); color: var(--pc); min-width: 20px; text-align: center; display: inline-block; }
@@ -305,24 +308,27 @@
   [data-theme='p5-dark'] .hchip { border-radius: 0; }
 
   /* ══ ② The recap modal ══ */
-  .rm { position: absolute; z-index: 6; left: 50%; top: 26px; transform: translateX(-50%); width: 600px; max-width: calc(100% - 32px); height: calc(100% - 52px); background: var(--b1); border: 1px solid var(--card-border); border-radius: var(--rm); box-shadow: var(--modal-shadow); display: flex; flex-direction: column; overflow: hidden; }
+  /* One RitualSheet for both rituals (shared with mockup-daily-rhythm-open-the-day.html): see F · Final › 解剖 */
+  .rm { position: absolute; z-index: 6; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 600px; max-width: calc(100% - 48px); max-height: calc(100% - 40px); background: var(--b1); border: 1px solid var(--card-border); border-radius: var(--rm); box-shadow: var(--modal-shadow); display: flex; flex-direction: column; overflow: hidden; }
   [data-theme='p5-dark'] .rm { border-width: 1.5px; }
   .rm.enter { animation: bootIn .42s var(--ease) both; }
-  @keyframes bootIn { from { opacity: 0; transform: translateX(-50%) translateY(6px) scale(.985); } }
-  .rm.full { left: 0; right: 0; top: 34px; bottom: 0; width: auto; height: auto; max-width: none; transform: none; border-radius: 0; border: 0; box-shadow: none; }
-  .rm.full.enter { animation: riseIn .24s var(--ease) both; }
+  @keyframes bootIn { from { opacity: 0; transform: translate(-50%, calc(-50% + 6px)) scale(.985); } }
+  .rm.full { left: 0; right: 0; top: 34px; bottom: 0; width: auto; height: auto; max-width: none; max-height: none; transform: none; border-radius: 0; border: 0; box-shadow: none; }
+  .rm.full.enter { animation: riseIn .42s var(--ease) both; }
   @keyframes riseIn { from { transform: translateY(100%); } }
-  .rm-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--card-border); flex-shrink: 0; }
-  .rm-head .icon { color: var(--p); }
-  .rm-head h3 { font-size: 16px; font-weight: 700; font-family: var(--display); }
-  [data-theme='p5-dark'] .rm-head h3 { font-weight: 400; letter-spacing: .04em; font-size: 18px; }
-  .rm-head .date { margin-left: auto; font-family: 'Geist Mono', monospace; font-size: 11.5px; color: var(--ink-55); }
-  .rm-body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 18px 18px; display: flex; flex-direction: column; gap: 10px; scrollbar-width: thin; }
+  .rm-head { display: flex; align-items: flex-start; gap: 10px; padding: 16px 20px 12px; border-bottom: 1px solid var(--card-border); flex-shrink: 0; }
+  .rm.full .rm-head { padding: 12px 14px 10px; }
+  .rm-head > .icon { width: 20px; height: 20px; color: var(--p); margin-top: 1px; }
+  .rm-head h3 { font-size: 18px; font-weight: 700; font-family: var(--display); line-height: 1.2; }
+  [data-theme='p5-dark'] .rm-head h3 { font-weight: 400; letter-spacing: .04em; font-size: 20px; }
+  .rm-head .subt { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--ink-55); margin-top: 2px; }
+  .rm-body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 20px 18px; display: flex; flex-direction: column; gap: 10px; scrollbar-width: thin; }
   .rm.full .rm-body { padding: 12px 14px 16px; }
-  .rm-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 18px; border-top: 1px solid var(--card-border); flex-shrink: 0; background: var(--b1); }
-  .rm.full .rm-foot { padding: 10px 14px 18px; }
-  .rm.full .rm-foot .btn { flex: 1; height: 44px; font-size: 14px; }
-  .sec { display: flex; align-items: center; gap: 8px; font-family: 'Geist Mono', monospace; font-size: 10.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-55); margin-top: 4px; }
+  .rm-foot { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 12px 20px; border-top: 1px solid var(--card-border); flex-shrink: 0; background: var(--b1); }
+  .rm.full .rm-foot { padding: 10px 14px 14px; }
+  .rm-foot .btn { height: 38px; }
+  .rm.full .rm-foot .btn.primary { flex: 1; }
+  .sec { display: flex; align-items: center; gap: 8px; font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-55); margin-top: 4px; }
   .sec .line { flex: 1; height: 1px; background: var(--card-border); }
   .sec .count-ghost { margin-left: 0; }
   .quiet { font-size: 13px; color: var(--ink-55); padding: 4px 2px; }
@@ -391,7 +397,34 @@
   .moves button:hover:not(:disabled) { color: var(--p); border-color: var(--p); }
   .moves button:disabled { opacity: .3; cursor: not-allowed; }
 
+  /* D · a default chip in the description slot, ✓ in the action slot, Let go as quiet text (round 2, from the demo-11-06 draft) */
+  .fate { display: inline-flex; align-items: center; gap: 5px; align-self: flex-start; max-width: 100%; height: 22px; padding: 0 9px; border-radius: 999px; font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 600; color: var(--p); background: color-mix(in oklab, var(--p) 10%, transparent); white-space: nowrap; overflow: hidden; }
+  .fate span { overflow: hidden; text-overflow: ellipsis; }
+  .fate.letgo { color: var(--ink-65); background: var(--ink-10); }
+  .fate.done { color: var(--su); background: color-mix(in oklab, var(--su) 12%, transparent); }
+  [data-theme='p5-dark'] .fate { border-radius: 0; }
+  .tc.marked .tc-title { text-decoration: line-through; color: var(--ink-55); }
+  .fate-acts { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+  .letgo-btn { position: relative; border: 0; background: transparent; color: var(--ink-45); font-size: 12px; cursor: pointer; padding: 6px 4px; white-space: nowrap; }
+  .letgo-btn::after { content: ''; position: absolute; inset: -6px -2px; }
+  .letgo-btn:hover { color: var(--ink-80); text-decoration: underline; text-underline-offset: 3px; }
+  .fate-check { position: relative; width: 32px; height: 32px; border-radius: 99px; border: 1.5px solid var(--ink-30); display: grid; place-items: center; color: var(--ink-45); background: transparent; cursor: pointer; flex-shrink: 0; padding: 0; transition: background .15s var(--ease), border-color .15s var(--ease), color .15s var(--ease); }
+  .fate-check::after { content: ''; position: absolute; inset: -6px; }
+  .fate-check:hover { border-color: var(--su); color: var(--su); }
+  .fate-check:active { transform: scale(.94); }
+  .fate-check.on { background: var(--su); border-color: var(--su); color: var(--suc); }
+  [data-theme='p5-dark'] .fate-check { border-radius: 0; }
+
   /* ══ ③ Summary of the day ══ */
+  /* D · the finished cards as muted ✓ rows under the ring (round 2, from the demo-11-06 draft) */
+  .dnrows { display: flex; flex-direction: column; gap: 4px; }
+  .dn-row { display: flex; align-items: center; gap: 8px; min-height: 32px; padding: 6px 10px; border-radius: 8px; background: color-mix(in oklab, var(--b2) 50%, transparent); border-left: 3px solid color-mix(in oklab, var(--k) 45%, transparent); font-size: 13px; color: var(--ink-55); }
+  [data-theme='p5-dark'] .dn-row { border-radius: 0; }
+  .dn-row .tick { color: var(--su); display: grid; }
+  .dn-row .ic { color: color-mix(in oklab, var(--k) 70%, transparent); display: grid; }
+  .dn-row .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-decoration: line-through; text-decoration-color: var(--ink-30); }
+  .dnrows .show-all { border: 0; width: auto; align-self: flex-start; padding: 4px 2px; }
+
   .lrows { display: flex; flex-direction: column; border: 1px solid var(--card-border); border-radius: 10px; overflow: hidden; }
   [data-theme='p5-dark'] .lrows, [data-theme='p5-dark'] .answered, [data-theme='p5-dark'] .bucket { border-radius: 0; }
   .lrow { display: flex; align-items: center; gap: 10px; padding: 7px 12px; border-top: 1px solid color-mix(in oklab, var(--bc) 6%, transparent); font-size: 13px; min-height: 36px; }
@@ -430,6 +463,8 @@
   .cel .fact { font-size: 22px; font-weight: 700; line-height: 1.2; }
   .cel .fact b { font-family: 'Geist Mono', monospace; }
   .cel .prompt { font-size: 14px; color: var(--ink-65); line-height: 1.45; }
+  .cel .tmrw { font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: .04em; color: var(--ink-55); }
+  .cel .tmrw b { color: var(--bc); }
   .cel .acts { display: flex; gap: 10px; margin-top: auto; width: 100%; justify-content: center; }
   .rm.full .cel .acts .btn { flex: 1; height: 44px; font-size: 14px; }
   .star { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 99px; background: var(--c); box-shadow: 0 0 6px var(--c), 0 0 14px color-mix(in oklab, var(--c) 60%, transparent); }
@@ -479,6 +514,22 @@
   .kb .kr i.w { width: 150px; }
   .kb .lbl { text-align: center; font-family: 'Geist Mono', monospace; font-size: 9.5px; color: var(--ink-45); }
 
+  /* ══ Page chrome: round 2 box, and the RitualSheet anatomy ══ */
+  .r2box { max-width: 1280px; margin: 0 auto 22px; border: 1px solid color-mix(in oklab, var(--p) 35%, transparent); border-radius: 14px; padding: 14px 16px 16px; background: color-mix(in oklab, var(--p) 4%, transparent); }
+  .r2box .changes li { background: color-mix(in oklab, var(--b1) 50%, transparent); }
+  .r2box .src { display: block; margin-top: 4px; font-family: 'Geist Mono', monospace; font-size: 10.5px; color: var(--ink-45); }
+  .anat { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr); gap: 0 14px; }
+  @media (max-width: 900px) { .anat { grid-template-columns: minmax(0, 1fr); gap: 8px; } .anat .mid { border-radius: 10px !important; border-width: 1.5px !important; } }
+  .anat .hd { font-family: 'Geist Mono', monospace; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-55); padding: 0 2px 8px; }
+  .anat .hd b { color: var(--bc); }
+  .anat .var { border: 1.5px dashed color-mix(in oklab, var(--s) 55%, transparent); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; line-height: 1.55; color: var(--ink-80); margin-bottom: 10px; background: color-mix(in oklab, var(--s) 5%, transparent); }
+  .anat .mid { border-left: 1.5px dashed color-mix(in oklab, var(--p) 60%, transparent); border-right: 1.5px dashed color-mix(in oklab, var(--p) 60%, transparent); padding: 10px 14px; font-size: 12.5px; line-height: 1.55; color: var(--ink-80); background: color-mix(in oklab, var(--p) 5%, transparent); margin-bottom: 10px; }
+  .anat .mid.first { border-top: 1.5px dashed color-mix(in oklab, var(--p) 60%, transparent); border-radius: 10px 10px 0 0; }
+  .anat .mid.last { border-bottom: 1.5px dashed color-mix(in oklab, var(--p) 60%, transparent); border-radius: 0 0 10px 10px; }
+  .anat .k { display: block; font-family: 'Geist Mono', monospace; font-size: 10.5px; letter-spacing: .08em; color: var(--p); margin-bottom: 3px; }
+  .anat .var .k { color: var(--s); }
+  .anat code { font-family: 'Geist Mono', monospace; font-size: 11.5px; }
+
   /* ══ PR #128's top row, drawn small (entry with the ring row) ══ */
   .pz-row { display: flex; align-items: flex-end; gap: 6px; padding: 10px 16px; border-bottom: 1px solid var(--card-border); background: color-mix(in oklab, var(--b2) 50%, transparent); }
   .pz-day { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 6px 2px 7px; border-radius: 10px; border: 1px solid transparent; }
@@ -493,11 +544,11 @@
 
 <header class="topbar">
   <div>
-    <div class="eyebrow">Daily rhythm · Night recap · design PR · 第 1 轮 draft 2026-11-19 · 等 owner 看 · 没有定稿</div>
+    <div class="eyebrow">Daily rhythm · Night recap · design PR · 第 2 轮 · 2026-11-19 · 等 owner 看 · 没有定稿</div>
     <h1>Night recap：晚上把今天收尾</h1>
-    <p>晚上 21:00 到凌晨 04:00（rhythm day，Los Angeles 时间），board 上出现一个 entry；点开是 <b>Night recap</b>：先看今天做完了什么（<b>Done today</b>），再给还在 Todo 的每一张一个去处（<b>Done · Tomorrow · Let go</b>，默认 Tomorrow），按 <b>Wrap the day</b> 一次提交，然后是庆祝、一张图、一句日记 prompt，<b>Write it down</b> 跳到 Dump，或者 <b>Close</b>。Open the day 由另一个 mockup 画，这里不画。</p>
-    <p>一个模块一个 tab，每个 tab 2–3 个方案并排（上下排在同一屏，不藏在开关后面），每个方案有 Before / After、桌面和手机，按 <code>design-language</code> › Principles 排了序，写了推荐和理由。<b>R · Research</b> 是研究，<b>F · Final</b> 把每个模块推荐的方案合在一起，标 <b>recommended · waits on owner approval</b>——没有定稿。Before 是 <code>main</code>（<code>6ed14d0</code>）的 board 和 Dump；After 的卡片画法沿用 PR #128（tap-to-complete，还没合）的 K · Card，让两个 mockup 看起来是一个产品。每个方案都能点：entry → recap → 选去处 → Wrap the day → 庆祝 → Write it down / Close；每个画框右上角有 <b>Reset</b>。</p>
-    <p><b>用的默认值（spike 推荐的，owner 还没答）</b>：rhythm day 04:00–04:00；Todo 严格等于今天（D1）；entry 21:00–04:00、今天还没 wrap、且 Todo 或今天的 Done 至少一张时才出现；桌面居中 modal（比 task modal 宽），手机全屏 overlay；点 backdrop 不关，Esc = Cancel；Let go 按 kind 分（Q4）；图片用一组固定插画、每晚随机一张（G1）；不做 notification。<b>这个 mockup 自己加的默认值</b>见 F · Final 的「拿不准的」。Fixture：Thu Nov 19 2026 21:40，周 Nov 16 – Nov 22。</p>
+    <p>晚上 21:00 到凌晨 04:00（rhythm day，Los Angeles 时间），board 上出现一个 entry；点开是 <b>Night recap</b>：先看今天做完了什么（<b>Done today</b>：今天的圈和做完的卡），再给还在 Todo 的每一张一个去处（默认 <b>→ Tomorrow</b>，✓ 是 Done，<b>Let go</b> 放下），按 <b>Wrap the day</b> 一次提交，然后是庆祝、一张图、明天的一句和日记 prompt，<b>Write it down</b> 跳到 Dump，或者 <b>Close</b>。Open the day 由另一个 mockup（<code>mockup-daily-rhythm-open-the-day.html</code>）画，两个用同一个 RitualSheet（F · Final 的「解剖」）。</p>
+    <p>一个模块一个 tab，每个 tab 3–4 个方案并排（上下排在同一屏，不藏在开关后面），每个方案有 Before / After、桌面和手机，按 <code>design-language</code> › Principles 排了序，写了推荐和理由。<b>R · Research</b> 是研究，<b>F · Final</b> 把每个模块推荐的方案合在一起，标 <b>recommended · waits on owner approval</b>——没有定稿。Before 是 <code>main</code>（<code>6ed14d0</code>）的 board 和 Dump；After 的卡片画法沿用 PR #128（tap-to-complete，还没合）的 K · Card，让两个 mockup 看起来是一个产品。每个方案都能点：entry → recap → 选去处 → Wrap the day → 庆祝 → Write it down / Close；每个画框右上角有 <b>Reset</b>。</p>
+    <p><b>用的默认值（spike 推荐的，owner 还没答）</b>：rhythm day 04:00–04:00；Todo 严格等于今天（D1）；entry 21:00–04:00、今天还没 wrap、且 Todo 或今天的 Done 至少一张时才出现；桌面 600px 居中 modal，手机全屏 overlay（和 Open the day 同一个 RitualSheet）；点 backdrop 不关，Esc = Cancel；Let go 按 kind 分（Q4）；图片用一组固定插画、每晚随机一张（G1）；不做 notification。<b>这个 mockup 自己加的默认值</b>见 F · Final 的「拿不准的」。Fixture：Thu Nov 19 2026 21:40，周 Nov 16 – Nov 22；habit 都是 N× / week（Phase 2 没有 Daily，见第 2 轮）。</p>
   </div>
   <div class="seg" id="theme-seg" role="group" aria-label="Theme">
     <button class="on" data-theme-btn="mars-dark">mars-dark</button>
@@ -506,17 +557,22 @@
   </div>
 </header>
 
+<section class="r2box">
+  <div class="col-label" style="margin-bottom:10px"><b>第 2 轮改了什么</b> · owner 让我和 demo-11-06 分支上的 daily rhythm 草稿比一比、出一个 refine 版；第 1 轮的方案都留着（owner 还没选）<span class="line"></span></div>
+  <ul class="changes"><li><b>一个 RitualSheet</b>和 Open the day 共用一个骨架：头（图标 + 标题 + 日期副标）、按标签分段的身体、底（Cancel + 一个 primary），桌面 600px 居中、手机全屏，同一组 padding、圆角和动效。日期从右边挪到标题下面。数字和槽位见 F 的「解剖」<span class="src">来自 demo-11-06 的 Open the day · Close the day 草稿（解剖屏）</span></li><li><b>Cancel 不变</b>底部还是 Cancel，不用草稿的 Later：spec 说像一个普通的 modal<span class="src">第 1 轮</span></li><li><b>1 · Entry 加 D：自动开一次，然后 strip</b>排第 2、不推荐：spec 写的是 entry，迎面盖住 board 违反 2.2。推荐还是 A 的 strip<span class="src">来自 demo-11-06 的草稿</span></li><li><b>2 · Recap 加 D，并改推荐</b>每张卡默认一个 → Tomorrow chip，✓ 是 Done，更轻的 Let go 放下；第 1 轮的三段控件 A 排第 2<span class="src">来自 demo-11-06 的草稿（③B）</span></li><li><b>3 · Summary 加 D，并改推荐</b>圈和「N done today」下面直接列做完的卡（muted ✓ 行，超过 4 行 +N more），不再藏在 Show what got done 后面<span class="src">来自 demo-11-06 的草稿</span></li><li><b>4 · 庆祝以明天收尾</b>加一句 Tomorrow · Fri, Nov 20 · N waiting（留在 Tomorrow 的卡）；第 1 轮的星星、插画、文案和两个按钮不变<span class="src">来自 demo-11-06 的草稿（Day closed）</span></li><li><b>Habit 都是 N× / week</b>fixture 里的 Workout、Flashcards 从 Daily 改成 5× / week，剩下的那一次可以去 Tomorrow；daily habit 的例外只留一句过渡说明（2 · Recap）<span class="src">tracker · owner 2026-11-16：Phase 2 只有 Weekly × N</span></li><li><b>Pick tomorrow now 只进 Ideas</b>草稿的 Day closed 有它；spec 只有 Write it down / Close，所以不画成按钮<span class="src">来自 demo-11-06 的草稿</span></li><li><b>Research 加了草稿的来源</b>Smit 2015、Jachimowicz 2019、Hobson 2018、Marvin、HIG Segmented controls / Modality、NN/g、Sunsama 自动打开；Scullin 2018 补了 DOI<span class="src">来自 demo-11-06 的草稿（Research 屏）</span></li></ul>
+</section>
+
 <!-- ═════════ R · Research ═════════ -->
 <section class="screen" data-screen="research">
   <div class="col-label"><b>R · Research</b> · 别的产品怎么做晚上的收尾：只记 pattern 和它对这个设计的意义<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px">先看 Apple（HIG 和它自己的 app），再看做 daily planning / shutdown 的产品（Sunsama、Akiflow、Structured、Things、Todoist），晚上的情绪类产品（Headspace、Daylio、Apple Journal 和 State of Mind），和庆祝做得好的（Apple Watch 合环、Duolingo）。每条下面的「用在哪」指向这个 mockup 的模块。</p>
+  <p class="note" style="margin-top:0;margin-bottom:14px">先看 Apple（HIG 和它自己的 app），再看做 daily planning / shutdown 的产品（Sunsama、Akiflow、Structured、Things、Todoist、Marvin），晚上的情绪类产品（Headspace、Daylio、Apple Journal 和 State of Mind），和庆祝做得好的（Apple Watch 合环、Duolingo）。标「第 2 轮」的是从 demo-11-06 草稿的 Research 屏拿来、在这一轮用上的，链接用草稿给的。每条下面的「用在哪」指向这个 mockup 的模块。</p>
   <div class="patterns" id="research"></div>
 </section>
 
 <!-- ═════════ 1 · Entry ═════════ -->
 <section class="screen" data-screen="entry">
   <div class="col-label"><b>1 · Entry</b> · board 上从哪里进 Night recap · 和 Todo 的「All clear for the day」（COL-5）怎么共处<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px">三个方案：A 是 spike 的 strip（header 下面一条），B 把 entry 放进 Todo 列里，C 是 header 里的一个小 chip。每个 After 都能点，点开的是 2 · Recap 推荐的 modal。下面一行是同一个方案在四种晚上的样子（缩小的手机），看它和 COL-5 的虚线框怎么叠。<b>COL-5 本身不变</b>：Todo 空了、今天又做完过东西时显示虚线框，三句话照旧；A 和 C 不碰它，B 会给它加一个按钮。</p>
+  <p class="note" style="margin-top:0;margin-bottom:14px">四个方案：A 是 spike 的 strip（header 下面一条），D 是 demo-11-06 草稿的做法（modal 自己开一次，之后是 A 的 strip，第 2 轮加的），B 把 entry 放进 Todo 列里，C 是 header 里的一个小 chip。每个 After 都能点，点开的是 2 · Recap 推荐的 modal。下面一行是同一个方案在四种晚上的样子（缩小的手机），看它和 COL-5 的虚线框怎么叠。<b>COL-5 本身不变</b>：Todo 空了、今天又做完过东西时显示虚线框，三句话照旧；A 和 C 不碰它，B 会给它加一个按钮。</p>
   <div id="entry-before"></div>
   <div id="entry-opts"></div>
   <div class="col-label spaced"><b>动效</b> · 这个模块的<span class="line"></span></div>
@@ -526,7 +582,7 @@
 <!-- ═════════ 2 · Recap ═════════ -->
 <section class="screen" data-screen="recap">
   <div class="col-label"><b>2 · Recap</b> · modal / overlay 里，每张还开着的卡怎么得到它的去处<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px">三个方案：A 每张卡底下一个三段控件，一屏全部；B 一次一张（Structured 的 Replan）；C 三个桶，卡在桶之间移动。三个方案的 Done today 都用 3 · Summary 推荐的 B（今天的圈）。默认 Tomorrow，所以<b>什么都不点、直接 Wrap the day</b> 和不 recap 的结果一样（spike Data › D1）。<b>daily habit 是例外</b>：它今晚本来就会 expire，明天有自己的那一张，所以它的 Tomorrow 不能选，默认 Let go（这是这个 mockup 加的，见 F 的「拿不准的」）。Let go 那一行写明这张卡去哪：habit → 这次跳过（dot 留空），step → 回到它的 project，one-off → 回到 Priorities 原来的象限。</p>
+  <p class="note" style="margin-top:0;margin-bottom:14px">四个方案：D 是 demo-11-06 草稿的默认 chip（第 2 轮加的，现在推荐）；A 每张卡底下一个三段控件，一屏全部；B 一次一张（Structured 的 Replan）；C 三个桶，卡在桶之间移动。四个方案的 Done today 都用 3 · Summary 推荐的 D（圈 + 做完的行）。modal 本身的头、分段和底是和 Open the day 共用的 RitualSheet，数字在 F 的「解剖」。默认 Tomorrow，所以<b>什么都不点、直接 Wrap the day</b> 和不 recap 的结果一样（spike Data › D1）。Let go 写明这张卡去哪：habit → 这次跳过（dot 留空），step → 回到它的 project，one-off → 回到 Priorities 原来的象限。<b>Habit 都是 N× / week</b>（第 2 轮）：tracker 记了 owner 2026-11-16 的决定，Phase 2 的 habit 只有 Weekly × N、没有 Daily，所以 fixture 里的 habit 剩下的那一次和别的卡一样可以去 Tomorrow。<b>过渡说明</b>：在 Phase 2 去掉 Daily 之前，daily habit 是例外——它今晚就 expire、明天有新的一张，所以它的默认 chip 是 Skipped tonight、没有 Tomorrow 和 Keep for tomorrow（A 里 Tomorrow 那段是灰的）；这里不画。</p>
   <div id="recap-before"></div>
   <div id="recap-opts"></div>
   <div class="col-label spaced"><b>动效</b> · 这个模块的<span class="line"></span></div>
@@ -536,7 +592,7 @@
 <!-- ═════════ 3 · Summary ═════════ -->
 <section class="screen" data-screen="summary">
   <div class="col-label"><b>3 · Summary</b> · Done today 怎么显示：清单、今天的圈、还是按 kind 计数<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px">Done today 是「总结」的部分，放在最上面：先说做成了什么。只读，按做完的时间。三个方案都用 2 · Recap 推荐的 A 来答下面的卡；在下面把一张卡设成 Done，上面的总结当场跟着变（这是 After 新加的，见每个方案的说明）。下面一行是四种晚上。<b>一张都没做的晚上</b>三个方案都写 <b>Nothing checked off today</b>，不加评价（3.6）。</p>
+  <p class="note" style="margin-top:0;margin-bottom:14px">Done today 是「总结」的部分，放在最上面：先说做成了什么。只读，按做完的时间。四个方案（D 是第 2 轮从 demo-11-06 草稿加的）都用 2 · Recap 推荐的 D 来答下面的卡；在下面把一张卡设成 Done，上面的总结当场跟着变（这是 After 新加的，见每个方案的说明）。下面一行是四种晚上。<b>一张都没做的晚上</b>四个方案都写 <b>Nothing checked off today</b>，不加评价（3.6）。</p>
   <div id="summary-before"></div>
   <div id="summary-opts"></div>
   <div class="col-label spaced"><b>动效</b> · 这个模块的<span class="line"></span></div>
@@ -546,7 +602,7 @@
 <!-- ═════════ 4 · Celebration ═════════ -->
 <section class="screen" data-screen="celebration">
   <div class="col-label"><b>4 · Celebration</b> · Wrap the day 之后：庆祝动画、一张图、两句话、两个按钮<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px">合上一天是这一天最大的 win（3.3），但它发生在晚上（3.5：文字要安静）。三个方案的结束画面一样（图、<b>Day wrapped</b>、今天做完几件、日记 prompt、<b>Write it down</b> / <b>Close</b>，文案在 5 · Diary 里定），只是动的方式不同。每个画框打开在 recap，按 <b>Wrap the day</b> 看庆祝，<b>Replay</b> 再播一次。按钮从庆祝一开始就在、能按，不用等动画播完（HIG：Let people cancel motion）。</p>
+  <p class="note" style="margin-top:0;margin-bottom:14px">合上一天是这一天最大的 win（3.3），但它发生在晚上（3.5：文字要安静）。三个方案的结束画面一样（图、<b>Day wrapped</b>、今天做完几件、明天那一句、日记 prompt、<b>Write it down</b> / <b>Close</b>，文案在 5 · Diary 里定），只是动的方式不同。<b>第 2 轮加了明天那一句</b>（来自 demo-11-06 草稿的 Day closed）：<b>Tomorrow · Fri, Nov 20 · 1 waiting</b>，数的是 Wrap 时留在 Tomorrow 的卡；一张都没有时不显示。Scullin 2018：睡前写下明天要做的比写今天做完的更快入睡，所以这一屏以明天收尾。它和别的字一起淡入，没有自己的动画。每个画框打开在 recap，按 <b>Wrap the day</b> 看庆祝，<b>Replay</b> 再播一次。按钮从庆祝一开始就在、能按，不用等动画播完（HIG：Let people cancel motion）。</p>
   <div id="cel-before"></div>
   <div id="cel-opts"></div>
   <div class="col-label spaced"><b>插画</b> · 一组固定的插画，每晚随机一张（G1）· 这四张是我画的样稿，最终用哪一组、什么风格要 owner 定<span class="line"></span></div>
@@ -574,10 +630,13 @@
 
 <!-- ═════════ F · Final ═════════ -->
 <section class="screen on" data-screen="final">
-  <div class="col-label"><b>F · Final · recommended · waits on owner approval</b> · 每个模块推荐的方案合在一起：1A strip · 2A 三段控件 · 3B 今天的圈 · 4C 做完的变成星星 · 5 文案 A + Dump C<span class="line"></span></div>
-  <p class="note" style="margin-top:0;margin-bottom:14px">没有定稿：owner 看过、在某个模块上点头之前，这里只是推荐。整个流程都能点：点 strip 打开 recap，改几张卡的去处（上面的圈跟着变），<b>Wrap the day</b> 看庆祝，<b>Write it down</b> 到 Dump，或者 <b>Close</b> 回 board（strip 没了，Todo 按你的选择清掉）。画框上面的按钮换 fixture。下面两行是四种晚上的 recap 和庆祝的结束画面，并排。</p>
+  <div class="col-label"><b>F · Final · recommended · waits on owner approval</b> · 第 2 轮推荐的方案合在一起：1A strip · 2D 默认 → Tomorrow · 3D 圈 + 做完的卡 · 4C 星星 + 明天那一句 · 5 文案 A + Dump C<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:14px">没有定稿：owner 看过、在某个模块上点头之前，这里只是推荐。整个流程都能点：点 strip 打开 recap，给几张卡点 ✓ 或 Let go（上面的圈和做完的行跟着变），<b>Wrap the day</b> 看庆祝，<b>Write it down</b> 到 Dump，或者 <b>Close</b> 回 board（strip 没了，Todo 按你的选择清掉）。画框上面的按钮换 fixture。下面两行是四种晚上的 recap 和庆祝的结束画面，并排。</p>
   <div class="col-label"><b>这次新加的</b> · 相对现在的产品（<code>main</code>），每块注明来自哪个模块<span class="line"></span></div>
   <ul class="changes" id="fin-new" style="margin-bottom:22px"></ul>
+  <div class="col-label"><b>解剖 · 一个 RitualSheet</b> · 和 Open the day 共用的槽位（中间，青色虚线），两个 ritual 各自填进去的（两边，紫色虚线）<span class="line"></span></div>
+  <p class="note" style="margin-top:0;margin-bottom:12px">来自 demo-11-06 草稿的解剖屏：早晚是同一个组件，只换内容，不换骨架（5.1；Hobson 2018：ritual 靠固定的顺序）。中间一列从上到下就是这个 modal 本身：外框、头、身体、底、提交之后。数字两个 mockup 一样；对不上的地方算 bug。</p>
+  <div class="anat" id="fin-anat"></div>
   <div id="fin-before"></div>
   <div class="col-label spaced after"><b>After</b> · 能点的整个流程<span class="line"></span></div>
   <div class="seg" id="fin-night" role="group" aria-label="Fixture" style="margin-bottom:10px"></div>
@@ -639,14 +698,15 @@ const capped = count => (count > COUNT_CAP ? `${COUNT_CAP}+` : String(count));
 const WEEK_LABEL = 'Nov 16 – Nov 22';
 const NOW = '21:40';
 const DATE_LABEL = 'Thu, Nov 19';
+const TOMORROW_LABEL = 'Fri, Nov 20';
 const BACKLOG_BASE = 6;
 const STAR_MAX = 12;
 const SUMMARY_ROWS = 4;
 
 /* ── Fixture · Thu Nov 19 2026, 21:40 (Los Angeles) · week Nov 16 – Nov 22 ── */
 const T = {
-  wo: {kind: 'habit', title: 'Workout', desc: '45 min — gym or run', cadence: 'Daily', daily: true, target: 7, doneSlots: [0, 1, 2], cur: 3, size: 'M'},
-  fc: {kind: 'habit', title: 'Flashcards', desc: '20 cards in the deck app', cadence: 'Daily', daily: true, target: 7, doneSlots: [0, 1, 2], cur: 3, size: 'XS'},
+  wo: {kind: 'habit', title: 'Workout', desc: '45 min — gym or run', cadence: '5× / week', target: 5, doneSlots: [0, 1, 2], cur: 3, size: 'M'},
+  fc: {kind: 'habit', title: 'Flashcards', desc: '20 cards in the deck app', cadence: '5× / week', target: 5, doneSlots: [0, 1, 2], cur: 3, size: 'XS'},
   lc: {kind: 'habit', title: 'LeetCode', desc: 'One medium, 45-min timer', cadence: '4× / week', target: 4, doneSlots: [0, 1], cur: 2, size: 'S'},
   rd: {kind: 'habit', title: 'Read', desc: '30 pages, any book', cadence: '3× / week', target: 3, doneSlots: [0], cur: 1, size: 'XS'},
   l4: {kind: 'project', name: 'Biomedical course', title: 'Lecture 4 — Cell signaling', desc: 'Watch + one-page notes', n: 4, total: 9, doneSteps: [1, 2, 3], size: 'M'},
@@ -659,7 +719,7 @@ const T = {
 /* done: [task, time it was finished], earliest first · open: what is still in Todo at 21:40 */
 const NIGHTS = {
   good: {label: 'A good day', zh: '做得不错：五张做完，剩一张', done: [['wo', '07:10'], ['lc', '12:40'], ['l4', '15:20'], ['dent', '16:05'], ['rd', '20:30']], open: ['mol']},
-  heavy: {label: 'A heavy evening', zh: '很满的晚上：四张还开着，daily 和 weekly habit、step、one-off 都有', done: [['wo', '07:30']], open: ['fc', 'lc', 'l5', 'tax']},
+  heavy: {label: 'A heavy evening', zh: '很满的晚上：四张还开着，两个 habit、一个 step、一个 one-off', done: [['wo', '07:30']], open: ['fc', 'lc', 'l5', 'tax']},
   all: {label: 'Everything done', zh: '全做完了：Still open 是空的', done: [['wo', '07:05'], ['fc', '08:40'], ['l4', '14:10'], ['tax', '18:30']], open: []},
   zero: {label: 'Nothing done', zh: '一张都没做，三张还开着', done: [], open: ['wo', 'l4', 'land']},
 };
@@ -668,8 +728,9 @@ function nightTasks(key) {
   const {done, open} = NIGHTS[key];
   return {done: done.map(([id, at]) => ({...T[id], id, at})), open: open.map(id => ({...T[id], id}))};
 }
-/* Tomorrow is the default, so a straight Wrap does what the sync would do anyway; a daily habit
-   expires tonight (tomorrow brings its own), so its default is Let go and Tomorrow is not offered */
+/* Tomorrow is the default, so a straight Wrap does what the sync would do anyway. Phase 2 has
+   Weekly × N habits only (owner, 2026-11-16), so every fixture card can go to Tomorrow; until then a
+   daily habit (model.daily) expires tonight, defaults to Let go and is not offered Tomorrow */
 const defaultAnswer = model => (model.daily ? 'letgo' : 'tomorrow');
 
 /* ── Signals ── */
@@ -860,6 +921,7 @@ function entrySub(state) {
   return parts.join(' · ');
 }
 const entryShown = state => !state.before && state.phase === 'board';
+const hasStrip = state => state.entry === 'A' || state.entry === 'D';
 const stripA = state => `<button class="strip" data-act="open" aria-label="Open Night recap"><span class="led pulse"></span>${icon('moon', 'sm')}<span><span class="t" style="display:block">Night recap</span><span class="s" style="display:block">${entrySub(state)}</span></span><span class="go">${icon('right', 'sm')}</span></button>`;
 const entryB = state => `<button class="tentry" data-act="open">${icon('moon', 'sm')}<span><span class="t" style="display:block">Night recap</span><span class="s" style="display:block">${entrySub(state)}</span></span><span class="go">${icon('right', 'xs')}</span></button>`;
 const entryBMini = state => `<button class="mini entry" data-act="open"><div class="tc-head">${icon('moon', 'xxs')}<span>Night recap</span></div><h3 class="tc-title">Wrap the day</h3><div class="tc-foot"><span class="mono" style="font-size:9.5px;color:var(--ink-55)">${entrySub(state)}</span></div></button>`;
@@ -870,7 +932,7 @@ function boardDesk(state) {
   const {todo, doneCol, backlog} = boardLists(state);
   const shown = entryShown(state);
   const head = appHead(shown && state.entry === 'C' ? chipC('desk') : '');
-  const strip = shown && state.entry === 'A' ? stripA(state) : '';
+  const strip = shown && hasStrip(state) ? stripA(state) : '';
   let todoBody = '';
   if (todo.length) todoBody = (shown && state.entry === 'B' ? entryB(state) : '') + todo.map(model => faceBefore(model)).join('');
   else if (doneCol.length) todoBody = finishBox(shown && state.entry === 'B' ? finishLinkB : '');
@@ -880,7 +942,7 @@ function boardPhone(state) {
   const {todo, doneCol, backlog} = boardLists(state);
   const shown = entryShown(state);
   const head = appHead(shown && state.entry === 'C' ? chipC('phone') : '');
-  const strip = shown && state.entry === 'A' ? stripA(state) : '';
+  const strip = shown && hasStrip(state) ? stripA(state) : '';
   let todoRow = '';
   if (todo.length) todoRow = (shown && state.entry === 'B' ? entryBMini(state) : '') + todo.map(model => mini(model)).join('');
   else if (doneCol.length) todoRow = finishBox(shown && state.entry === 'B' ? finishLinkB : '');
@@ -911,6 +973,19 @@ const tomorrowLocked = (model, value) => value === 'tomorrow' && model.daily;
 function rowA(model, idx, answer) {
   const segment = ([value, label]) => `<button data-act="answer" data-idx="${idx}" data-val="${value}" class="${answer === value ? 'on' : ''}" aria-pressed="${answer === value}" ${tomorrowLocked(model, value) ? 'disabled title="Tomorrow brings a new one"' : ''}>${label}</button>`;
   return `<div class="tc solid" data-kind="${model.kind}">${headAfter(model)}<h3 class="tc-title">${model.title}</h3>${outcomeLine(model, answer)}${model.kind === 'oneoff' ? '' : `<div class="tc-foot">${signal(model, answer === 'done')}</div>`}<div class="seg3" role="group" aria-label="Where ${model.title} goes">${ANSWERS.map(segment).join('')}</div></div>`;
+}
+/* D · the card's description slot is a status chip, Tomorrow by default; ✓ in the action slot marks it Done,
+   the quieter Let go gives it up and the chip then says what Let go does for its kind */
+function rowD(model, idx, answer) {
+  const chipIcon = answer === 'tomorrow' ? 'right' : outcomeIcon(model, answer);
+  const chipText = answer === 'tomorrow' ? 'Tomorrow' : answer === 'done' ? 'Done today' : outcomeText(model, answer);
+  const textAction = (value, label) => `<button class="letgo-btn" data-act="answer" data-idx="${idx}" data-val="${value}">${label}</button>`;
+  let secondary = '';
+  if (answer === 'tomorrow') secondary = textAction('letgo', 'Let go');
+  else if (answer === 'letgo' && !model.daily) secondary = textAction('tomorrow', 'Keep for tomorrow');
+  const isDone = answer === 'done';
+  const check = `<button class="fate-check ${isDone ? 'on' : ''}" data-act="answer" data-idx="${idx}" data-val="${isDone ? defaultAnswer(model) : 'done'}" aria-pressed="${isDone}" aria-label="Done: ${model.title}">${icon('check', 'sm')}</button>`;
+  return `<div class="tc solid ${isDone ? 'marked' : ''}" data-kind="${model.kind}">${headAfter(model)}<h3 class="tc-title">${model.title}</h3><span class="fate ${answer}">${icon(chipIcon, 'xs')}<span>${chipText}</span></span><div class="tc-foot">${signal(model, isDone)}<span class="fate-acts">${secondary}${check}</span></div></div>`;
 }
 /* B · one card at a time */
 function stageB(state, open) {
@@ -946,6 +1021,7 @@ function stillOpen(state) {
   if (!open.length) return '';
   let body;
   switch (state.recap) {
+    case 'D': body = open.map((model, idx) => rowD(model, idx, state.answers[idx])).join(''); break;
     case 'A': body = open.map((model, idx) => rowA(model, idx, state.answers[idx])).join(''); break;
     case 'B': body = stageB(state, open); break;
     case 'C': body = bucketsC(state, open); break;
@@ -988,8 +1064,19 @@ function summaryC(state) {
   const toggle = `<button class="show-all" style="border:0;width:auto;padding:4px 2px" data-act="sum">${state.sumOpen ? 'Hide the list' : 'Show what got done'}</button>`;
   return `${head}<div class="kchips">${chips}${toggle}</div>${state.sumOpen ? lrows(list) : ''}`;
 }
+/* D · the ring and its count stay; the finished cards themselves sit under it as muted ✓ rows, folded after 4 */
+const doneRow = model => `<div class="dn-row" data-kind="${model.kind}"><span class="tick">${icon('check', 'xs')}</span><span class="ic">${icon(model.kind, 'xs')}</span><span class="t">${model.title}</span></div>`;
+function summaryD(state, size = 56) {
+  const list = doneToday(state);
+  const text = list.length ? `<span class="big"><b>${list.length}</b> done today</span>` : `<span class="big">${NOTHING_DONE}</span>`;
+  const shown = state.sumOpen ? list : list.slice(0, SUMMARY_ROWS);
+  const more = list.length > SUMMARY_ROWS ? `<button class="show-all" data-act="sum">${state.sumOpen ? 'Show less' : `+${capped(list.length - shown.length)} more`}</button>` : '';
+  const rows = list.length ? `<div class="dnrows">${shown.map(doneRow).join('')}${more}</div>` : '';
+  return `<div class="sec">Done today<span class="line"></span></div><div class="sumring">${dayRing(list, plannedToday(state), size, 'sum')}<div class="tl">${text}</div></div>${rows}`;
+}
 function summary(state) {
   switch (state.summary) {
+    case 'D': return summaryD(state);
     case 'A': return summaryA(state);
     case 'B': return summaryB(state);
     case 'C': return summaryC(state);
@@ -1010,6 +1097,11 @@ function factHtml(state) {
   if (!list.length) return NOTHING_DONE;
   return list.length === plannedToday(state) ? `All <b>${list.length}</b> done today` : `<b>${list.length}</b> done today`;
 }
+/* the closing line about tomorrow (Scullin 2018): counts the cards left on Tomorrow, hidden when none */
+function tomorrowLine(state) {
+  const count = state.answers.filter(answer => answer === 'tomorrow').length;
+  return count ? `<p class="tmrw">Tomorrow · ${TOMORROW_LABEL} · <b>${capped(count)}</b> waiting</p>` : '';
+}
 function celView(state, mode) {
   const list = doneToday(state);
   const copy = COPY[state.copy];
@@ -1019,6 +1111,7 @@ function celView(state, mode) {
     <div class="art ${state.cel === 'B' ? 'has-ring' : ''}">${artSvg(state.art)}${stars}${ring}</div>
     ${copy.title ? `<h4>${copy.title}</h4>` : ''}
     <p class="fact">${factHtml(state)}</p>
+    ${tomorrowLine(state)}
     <p class="prompt">${copy.prompt}</p>
     <div class="acts"><button class="btn ghost" data-act="close">Close</button><button class="btn primary" data-act="write">${icon('pencilSq', 'sm')}Write it down</button></div>
     <div class="fxl"></div>
@@ -1027,7 +1120,7 @@ function celView(state, mode) {
 function modal(state, mode) {
   const cls = `rm ${mode === 'phone' ? 'full' : ''} ${state.enter ? 'enter' : ''}`;
   if (state.phase === 'cel') return `<div class="${cls}" role="dialog" aria-label="Day wrapped">${celView(state, mode)}</div>`;
-  const head = `<div class="rm-head">${icon('moon')}<h3>Night recap</h3><span class="date">${DATE_LABEL}</span></div>`;
+  const head = `<div class="rm-head">${icon('moon')}<div><h3>Night recap</h3><div class="subt">${DATE_LABEL}</div></div></div>`;
   return `<div class="${cls}" role="dialog" aria-modal="true" aria-label="Night recap">${head}<div class="rm-body">${summary(state)}${stillOpen(state)}</div><div class="rm-foot"><button class="btn ghost" data-act="cancel">Cancel</button><button class="btn primary" data-act="wrap">Wrap the day</button></div></div>`;
 }
 
@@ -1071,10 +1164,10 @@ function phoneFrame(state) {
    board (entry shows) → recap → cel → dump | after (board, entry gone) */
 const FLOWS = {};
 let flowSeq = 0;
-const FLOW_DEFAULTS = {entry: 'A', recap: 'A', summary: 'B', cel: 'C', dump: 'C', copy: 'A', night: 'heavy', mode: 'desk', start: 'board', before: false, cap: '', controls: true};
+const FLOW_DEFAULTS = {entry: 'A', recap: 'D', summary: 'D', cel: 'C', dump: 'C', copy: 'A', night: 'heavy', mode: 'desk', start: 'board', before: false, cap: '', controls: true};
 function resetFlow(state) {
   const {open} = nightTasks(state.night);
-  Object.assign(state, {phase: state.start, answers: open.map(defaultAnswer), touched: open.map(() => false), step: 0, sumOpen: false, art: state.artFixed ?? NIGHT_ART[state.night], play: false, enter: false, slide: false});
+  Object.assign(state, {phase: state.start, answers: open.map(defaultAnswer), touched: open.map(() => false), step: 0, sumOpen: false, art: state.artFixed ?? NIGHT_ART[state.night], play: false, enter: state.entry === 'D' && state.start === 'recap', slide: false});
 }
 function flow(config) {
   const id = `f${++flowSeq}`;
@@ -1260,7 +1353,7 @@ function playStars(cel, list, reduced, allDone) {
 /* ═══════════ Module content ═══════════ */
 const RANK_MARK = {y: '✓', n: '✗', m: '~'};
 const rankLine = items => items.map(([mark, text]) => `<span class="${mark}">${RANK_MARK[mark]} ${text}</span>`).join(' · ');
-const RANK_WORD = ['rank 1 · recommended · waits on owner approval', 'rank 2', 'rank 3'];
+const RANK_WORD = ['rank 1 · recommended · waits on owner approval', 'rank 2', 'rank 3', 'rank 4'];
 let lastFlowId = '';
 function trackedFlow(config) {
   const html = flow(config);
@@ -1299,13 +1392,31 @@ const RESEARCH = [
     fit: '<b>用在哪</b>：2 · Recap 的核心，每张还开着的卡都有一个去处（Done · Tomorrow · Let go），而不是只看一眼。'},
   {title: '什么都不做 = 顺延', who: `Sunsama · ${link('https://help.sunsama.com/docs/task-rollover-and-recurring-tasks-the-basics', 'Task rollover')}`,
     body: 'Sunsama 里没处理的任务默认滚到第二天。默认值就是「不决定」时会发生的事，所以 shutdown 只需要处理例外。',
-    fit: '<b>用在哪</b>：默认 Tomorrow，直接 Wrap the day 和不 recap 一样（1.3）。daily habit 例外：它今晚就 expire，明天有新的一张，所以默认 Let go。'},
+    fit: '<b>用在哪</b>：默认 Tomorrow，直接 Wrap the day 和不 recap 一样（1.3）。Phase 2 之前的 daily habit 例外：它今晚就 expire，明天有新的一张。'},
+  {title: '默认值本身就是决定（第 2 轮）', who: `Jachimowicz et al. 2019 · ${link('https://collaborate.princeton.edu/en/publications/when-and-why-defaults-influence-decisions-a-meta-analysis-of-defa/', 'meta-analysis')} · Amazing Marvin · ${link('https://amazingmarvin.com/features/day-planning', 'Day planning')}`,
+    body: '58 项研究的 meta-analysis：默认选项对选择的效应量 d = 0.68，最省力的决定是不用做的那个。Marvin 和 Sunsama 一样，没做完的任务不算 overdue，自动出现在明天。',
+    fit: '<b>用在哪</b>：2 · Recap 的 D：默认的 → Tomorrow 只是一个状态 chip，不画成要点的控件，只有例外（✓ Done、Let go）要一个 tap。'},
+  {title: '每一行的决定不用 segmented control（第 2 轮）', who: `Apple HIG · ${link('https://developer.apple.com/design/human-interface-guidelines/segmented-controls', 'Segmented controls')}`,
+    body: 'HIG：segmented control 用来在 2–5 个互斥的选项之间切换一个视图或一个设置；在列表里每一行放一个，一屏就是几排同样重的按钮。',
+    fit: '<b>用在哪</b>：2 · Recap 的 A 排到 D 后面的理由之一：A 每张卡三个一样重的按钮，D 只有一个 ✓ 和一个更轻的文字。'},
+  {title: '没做完的事要有 where / when，才能放下（第 2 轮）', who: `Smit 2015 · ${link('https://doi.org/10.1111/joop.12137', 'DOI 10.1111/joop.12137')} · Newport · ${link('https://calnewport.com/drastically-reduce-stress-with-a-work-shutdown-ritual/', 'Shutdown ritual')}`,
+    body: 'Smit 的研究：没完成的工作目标会在晚上侵入思绪；写下何时何地接着做之后，它们和已完成的一样安静。Newport 的 shutdown ritual 以一句固定的终止语收尾。',
+    fit: '<b>用在哪</b>：Night recap 不是 review，是给剩下的每一张一个去处；「Day wrapped」是那句终止语。'},
+  {title: 'Ritual 的效果来自固定的顺序和重复（第 2 轮）', who: `Hobson et al. 2018 · ${link('https://doi.org/10.1177/1088868317734944', 'DOI 10.1177/1088868317734944')}`,
+    body: '对 ritual 的综述：起作用的是每次一样的步骤和顺序，而不是步骤本身的内容。',
+    fit: '<b>用在哪</b>：早晚两个 ritual 用同一个 RitualSheet（F 的「解剖」）：同一个头、同一种分段、同一个底，顺序每次一样。'},
+  {title: '到点自动打开一次，关掉后还能回来（第 2 轮）', who: `Sunsama · ${link('https://help.sunsama.com/docs/getting-started/basics/daily-planning-the-basics', 'Daily planning basics')}`,
+    body: 'Sunsama 的 daily planning 每天自动弹出一次，可以关掉，之后从侧栏再进去。',
+    fit: '<b>用在哪</b>：1 · Entry 的 D（自动开一次，然后 strip），画出来比较，不推荐：owner 的 spec 写的是 entry。'},
+  {title: '短的、和当前页面紧密相关的任务用 modal，Cancel 要明显（第 2 轮）', who: `Apple HIG · ${link('https://developer.apple.com/design/human-interface-guidelines/modality', 'Modality')} · NN/g · ${link('https://www.nngroup.com/articles/modal-nonmodal-dialog/', 'Modal &amp; nonmodal dialogs')}`,
+    body: 'HIG Modality：modal 给一件短的、自成一体的任务，要有明显的取消方式。NN/g：modal 打断用户，只用在需要用户此刻做决定的地方，并保留下面的页面作为上下文。',
+    fit: '<b>用在哪</b>：RitualSheet 的底：Cancel + 一个 primary，像一个普通的 modal（owner 的 spec），不用草稿的「Later」。'},
   {title: '一次一张、没有批量操作', who: `Structured · ${link('https://help.structured.app/en/articles/4511874', 'Replan')}`,
     body: 'Structured 的 Replan 把过期的任务一张一张放到你面前，每张选「今天」「之后」或删掉，没有「全部顺延」按钮。逼你看每一张，但张数多时很慢。',
     fit: '<b>用在哪</b>：2 · Recap 的方案 B。我们有默认值，所以批量操作本来就不需要；一次一张的代价是步数（1.3）。'},
   {title: '先回顾，再处理', who: `Sunsama · ${link('https://help.sunsama.com/docs/daily-shutdown', 'Daily shutdown')} · Akiflow · ${link('https://akiflow.featurebase.app/en/help/articles/0805246-rituals', 'Rituals')}`,
-    body: 'Sunsama 的 shutdown 第一屏是「Today in review」：今天做了什么、花了多少时间。Akiflow 的 Daily Shutdown 第一步也是回顾今天完成的任务，再处理没做完的。',
-    fit: '<b>用在哪</b>：Done today 放在最上面（4.1：先说做成了什么），Still open 在下面。3 · Summary 比较它怎么显示。'},
+    body: 'Sunsama 的 shutdown 第一屏是「Today in review」：今天做了什么、花了多少时间。Akiflow 的 Daily Shutdown 第一步也是回顾今天完成的任务，再处理没做完的。两者都把做完的任务本身列出来，不只给一个数。',
+    fit: '<b>用在哪</b>：Done today 放在最上面（4.1：先说做成了什么），Still open 在下面。3 · Summary 的 D（第 2 轮）把做完的卡直接列在圈下面：认出来（recognition）比回想（recall）省力。'},
   {title: '剩下的还在，但安静', who: `Things · ${link('https://culturedcode.com/things/support/articles/4001304/', 'This Evening')}`,
     body: 'Things 的 Today 有一个 This Evening 分组：晚上要做的放在下面，白天它们在、但不抢眼。没做完的不会变红，也没有「过期」的字样。',
     fit: '<b>用在哪</b>：entry 只说事实（「5 done · 1 still open」），不用警示色、不写 overdue（2.2、3.5）。'},
@@ -1321,9 +1432,9 @@ const RESEARCH = [
   {title: '先轻轻打卡，写字是可选的', who: `Daylio · ${link('https://mindwobble.pages.dev/software/daylio/', 'review')} · Apple State of Mind · ${link('https://support.apple.com/guide/watch/apd7de0f5610/watchos', 'Apple Support')}`,
     body: 'Daylio 先点一个心情、几个活动就算记完，写字是之后的可选项。Apple 的 State of Mind 也是先选一个感受，再选要不要加更多。写日记的门槛越低，越多人会做。',
     fit: '<b>用在哪</b>：Write it down 和 Close 两个按钮并列（2.3：两个选择一样重），不逼人写。'},
-  {title: '睡前写下要做的事，比写已经做完的更容易睡着', who: `Scullin et al. 2018 · ${link('https://news.web.baylor.edu/news/story/2018/can-writing-your-dos-help-you-doze-baylor-study-suggests-jotting-down-tasks-can', 'Baylor')}`,
+  {title: '睡前写下要做的事，比写已经做完的更容易睡着', who: `Scullin et al. 2018 · ${link('https://news.web.baylor.edu/news/story/2018/can-writing-your-dos-help-you-doze-baylor-study-suggests-jotting-down-tasks-can', 'Baylor')} · ${link('https://doi.org/10.1037/xge0000374', 'DOI 10.1037/xge0000374')}`,
     body: 'Baylor 的研究：睡前花 5 分钟写下明天要做的事的人，比写今天已经完成的事的人入睡更快，写得越具体越快。把脑子里的东西倒出来，有助于放下。',
-    fit: '<b>用在哪</b>：Dump 的定位本来就是「Get it out of your head」，所以 prompt 推荐 A「Anything on your mind before bed?」，不推荐偏回顾的 D。'},
+    fit: '<b>用在哪</b>：Dump 的定位本来就是「Get it out of your head」，所以 prompt 推荐 A「Anything on your mind before bed?」，不推荐偏回顾的 D。第 2 轮：庆祝画面以「Tomorrow · Fri, Nov 20 · 1 waiting」收尾（来自草稿），说明天，不只说今天。'},
   {title: '给 prompt，但从最近的事开始', who: `Apple Journal · ${link('https://www.apple.com/newsroom/2023/12/apple-launches-journal-app-a-new-app-for-reflecting-on-everyday-moments/', 'Newsroom')}`,
     body: 'Apple Journal 用 reflection prompt 和「最近的时刻」做建议，帮你开始写，但不在你的输入框里替你写字。',
     fit: '<b>用在哪</b>：到 Dump 时把 prompt 当 placeholder（5 · Dump 方案 C），不预填文字（方案 B）。'},
@@ -1334,12 +1445,15 @@ const RESEARCH = [
 put('research', RESEARCH.map(pattern => `<div class="pat"><h4>${pattern.title}</h4><div class="who">${pattern.who}</div><p>${pattern.body}</p><p class="fit">${pattern.fit}</p></div>`).join(''));
 
 /* ── 1 · Entry ── */
-const BASE_ENTRY = {start: 'board', night: 'good', recap: 'A', summary: 'B', cel: 'C', dump: 'C', copy: 'A'};
+const BASE_ENTRY = {start: 'board', night: 'good', recap: 'D', summary: 'D', cel: 'C', dump: 'C', copy: 'A'};
 put('entry-before', beforePair({night: 'good'}, '<code>main</code> 晚上 21:40 的 board：没有晚上的入口，Todo 里剩下的卡要等凌晨 04:00 的 sync 自己处理'));
 put('entry-opts', optBlocks([
   {letter: 'A', title: 'Strip：header 下面一条', config: {entry: 'A'},
     why: 'spike 推荐的。header 下面一整条，LED 慢慢闪、月亮、<b>Night recap</b> 和一句事实（「5 done · 1 still open」，为 0 的那半句不写）。两个宽度一样（5.2），在页面最上面所以晚上一眼能看到（4.1），又不在 Todo 里所以 COL-5 的「All clear for the day」原样不动（1.2）。全做完的晚上，strip 写「4 done」，下面是 COL-5 的虚线框，两者不打架：一个是今天的入口，一个是 Todo 空了。After 新加的：只有 strip 这一条，dashboard 和列都下移一条的高度。<b>和 spike 不同</b>：spike 在手机上把它放在 Todo 那一行上面，这里放在 header 下面、dashboard 上面，两个宽度位置一样。',
     rank: [['y', '4.1 最上面'], ['y', '5.2 两个宽度一样'], ['y', '1.2 COL-5 不动'], ['y', '6.2 整条是按钮，hover 下划线、按下缩一点'], ['m', '2.2 多一条：只在晚上、wrap 后消失']]},
+  {letter: 'D', title: '自动开一次，然后是 strip', config: {entry: 'D', start: 'recap'}, nights: false,
+    why: 'demo-11-06 草稿的做法（第 2 轮加的）：21:00 以后第一次打开 board、今天还没 wrap 时，modal 自己升起一次（Sunsama 的 daily planning 每天自动弹一次）；按 Cancel 之后今晚不再自动开，只剩 A 的 strip。省掉一次点击（1.3）。<b>排第 2、不推荐</b>：owner 的 spec 写的是「board 上一个 entry」；而且晚上一打开 app 就被一个 modal 迎面盖住，是还没做完的事迎上来，不是等用户去点，正是 2 · Calm ahead 要避免的（2.2）。这个画框一打开就是自动升起的 modal，按 <b>Cancel</b> 看留下的 strip，<b>Reset</b> 再看一次。四种晚上 Cancel 之后和 A 一样，不重画。',
+    rank: [['y', '1.3 少一次点击'], ['y', '4.1 一打开就在'], ['n', 'owner 的 spec 写的是 entry'], ['n', '2.2 迎面盖住 board'], ['m', '要记住今晚开过没有']]},
   {letter: 'B', title: '放进 Todo：列里第一张', config: {entry: 'B'},
     why: '入口变成 Todo 列最上面的一张虚线卡（手机是 Todo 那一行的第一张 mini 卡），因为 recap 处理的就是 Todo。问题是：Todo 空了的晚上（全做完），卡没地方放，只能给 COL-5 的虚线框加一个「Wrap the day →」按钮，改了 COL-5「两个选择一样重、不推」的规则（2.3），也让一个框有了两个意思（1.1）。入口卡长得像任务卡，又不是任务（5.1：一个 slot 一种意思）。',
     rank: [['y', '4.1 在 Todo 旁边'], ['n', '2.3 COL-5 多一个按钮'], ['n', '5.1 像卡又不是卡'], ['m', '1.2 两种晚上两种样子']]},
@@ -1352,25 +1466,32 @@ put('entry-motion', motionTable([
   ['strip 在的时候', 'LED', 'opacity 1 → .35 → 1，一直循环（fx-led-pulse）', '2.4s · ease-in-out', '不闪，常亮'],
   ['hover / 按下 strip', 'strip', 'hover：→ 下划线；按下：scale .99', '150ms · console snap', '没有 scale'],
   ['点 strip', 'modal（桌面）', 'fx-boot-in：opacity 0 → 1，translateY 6px → 0，scale .985 → 1', '420ms · console snap', 'opacity 150ms'],
-  ['点 strip', 'overlay（手机）', '从下往上推进来：translateY 100% → 0', '240ms · console snap', 'opacity 150ms'],
+  ['点 strip', 'overlay（手机）', '从下往上推进来：translateY 100% → 0', '420ms · console snap', 'opacity 150ms'],
+  ['D：今晚第一次打开 board', 'modal / overlay', '页面画好以后自己升起，和点 strip 一样（420ms boot-in / 420ms 推进来）；Cancel 后 strip 已经在，不另做动画', '420ms · console snap', 'opacity 150ms'],
   ['Wrap 之后 Close', 'strip', '直接没了（revalidate 后不再渲染），不做退场动画：一天收好了，安静', '—', '—'],
 ]));
 
 /* ── 2 · Recap ── */
-const BASE_RECAP = {start: 'recap', night: 'heavy', entry: 'A', summary: 'B', cel: 'C', dump: 'C', copy: 'A'};
+const BASE_RECAP = {start: 'recap', night: 'heavy', entry: 'A', summary: 'D', cel: 'C', dump: 'C', copy: 'A'};
 put('recap-before', beforePair({night: 'heavy'}, '<code>main</code> 没有 recap：很满的晚上，四张还在 Todo，凌晨 04:00 的 sync 把 habit expire、把 step 和 one-off 送回 backlog，用户没机会说'));
 put('recap-opts', optBlocks([
+  {letter: 'D', title: '默认 → Tomorrow chip · ✓ 是 Done · Let go 是更轻的文字', config: {recap: 'D'},
+    why: 'demo-11-06 草稿的「默认 → Tomorrow」（第 2 轮加的）。每张还开着的卡还是 PR #128 的卡面；描述那一行是一个<b>状态 chip</b>，默认写 <b>→ Tomorrow</b>：什么都不点，它就去明天（明早 Open the day 的 Today 里会有它，D1）。做完了点右下角的 <b>✓</b>——和 PR #128 Todo 卡上的 ✓ 是同一个 action slot（5.1）——标题划掉、chip 变成 <b>Done today</b>，上面 Done today 当场多一行、圈长一段（3.4）；再点一下退回 Tomorrow。真不想要了点它旁边更轻的文字 <b>Let go</b>，chip 改成 Let go 对这个 kind 做的事（Skipped this time / Back to Biomedical course / Back to Do first on Priorities），文字变成 <b>Keep for tomorrow</b>。<b>为什么赢过 A</b>：三个去处一样，但默认的那个不用画成要点的控件，只有例外要一个 tap（Jachimowicz 2019：默认本身就是决定；1.3）；每张卡从三个一样重的按钮变成一个 ✓ 和一个文字（1.1）；chip 是状态、长得不像按钮，✓ 和 Let go 才是控件（6.1、6.2）。✓ 选中时填实，是控件的选中态，不是 Done 卡上的状态标记（#115 R16 说的是后者）。卡的高度不随状态变（6.3）。',
+    rank: [['y', '1.3 只点例外'], ['y', '1.1 每张少两个按钮'], ['y', '6.1 chip 是状态，✓ 是控件'], ['y', '5.1 ✓ 在 #128 的 action slot'], ['y', '3.4 ✓ 落进 Done today'], ['m', 'Let go 是文字，比按钮弱（刻意的：它是例外）']]},
   {letter: 'A', title: '每张卡底下一个三段控件', config: {recap: 'A'},
-    why: '每张还开着的卡用 PR #128 的同一张卡面（kind 一行、标题、signal 在左下），描述那一行换成<b>这张卡会去哪</b>（「Back in tomorrow\'s Open the day」「Back to Biomedical course」），下面是 <b>Done · Tomorrow · Let go</b> 三段控件。一屏全部看到，默认已选好，只点要改的（1.3）。选 Done 时卡的 dot 或 step 当场填上，上面 Done today 的圈当场长一段（3.4：反馈落在它去的地方）。去处那一行高度固定，切换时卡不变高（6.3）。daily habit 的 Tomorrow 是灰的（title 写「Tomorrow brings a new one」）。',
-    rank: [['y', '1.3 默认好了，只点例外'], ['y', '5.1 同一张卡面'], ['y', '6.3 不变高'], ['y', '3.4 Done 当场落进圈'], ['m', '2.2 张数多时一屏很长']]},
+    why: '第 1 轮推荐的，第 2 轮排到 D 后面（理由见 D）。每张还开着的卡用 PR #128 的同一张卡面（kind 一行、标题、signal 在左下），描述那一行换成<b>这张卡会去哪</b>（「Back in tomorrow\'s Open the day」「Back to Biomedical course」），下面是 <b>Done · Tomorrow · Let go</b> 三段控件。一屏全部看到，默认已选好，只点要改的（1.3）。选 Done 时卡的 dot 或 step 当场填上，上面 Done today 的圈当场长一段（3.4：反馈落在它去的地方）。去处那一行高度固定，切换时卡不变高（6.3）。Phase 2 之前的 daily habit，Tomorrow 那段是灰的（title 写「Tomorrow brings a new one」），这里的 fixture 没有 daily habit。',
+    rank: [['y', '1.3 默认好了'], ['y', '5.1 同一张卡面'], ['y', '6.3 不变高'], ['y', '3.4 Done 当场落进圈'], ['n', '1.1 每张三个一样重的按钮'], ['m', '2.2 张数多时一屏很长']]},
   {letter: 'B', title: '一次一张', config: {recap: 'B'},
     why: 'Structured 的 Replan：一张大卡，下面三个大按钮，每个按钮写着它会把卡送去哪。答完自动到下一张；上面的小圆点能跳回任意一张。全部答完后是一个清单，点一行能改。专注（一次只看一件，2.2），但四张要点四次，什么都不想改也要点（1.3），所以加了一句「Cards you skip wait for tomorrow」让人直接 Wrap。两个状态（一张卡 / 清单）是两种布局（5.1 拉）。',
     rank: [['y', '2.2 一次只看一件'], ['y', '6.2 按钮大、说清楚去处'], ['n', '1.3 每张都要点'], ['m', '5.1 两种布局']]},
   {letter: 'C', title: '三个桶', config: {recap: 'C'},
-    why: '三栏：Done / Tomorrow / Let go，每张卡一开始在 Tomorrow（daily habit 在 Let go），卡上有「→ Done」「→ Let go」把它移过去；桌面以后可以加拖拽（只写在这里，没画）。一眼看到结果的分布，但卡在栏之间跳、栏的高度跟着变（6.3），手机上三栏太窄，卡面要缩成只剩标题（5.1、5.2）。',
+    why: '三栏：Done / Tomorrow / Let go，每张卡一开始在 Tomorrow（Phase 2 之前的 daily habit 在 Let go），卡上有「→ Done」「→ Let go」把它移过去；桌面以后可以加拖拽（只写在这里，没画）。一眼看到结果的分布，但卡在栏之间跳、栏的高度跟着变（6.3），手机上三栏太窄，卡面要缩成只剩标题（5.1、5.2）。',
     rank: [['y', '4.2 分布一眼可见'], ['n', '6.3 栏变高变矮'], ['n', '5.1 卡面缩水'], ['n', '5.2 手机三栏太挤']], nights: true},
 ], BASE_RECAP));
 put('recap-motion', motionTable([
+  ['D：点 ✓ / 再点一下', '✓', '圆圈填上绿色 / 退回空心；按下 scale .94', '150ms · console snap', '直接换'],
+  ['D：点 ✓ / Let go / Keep for tomorrow', 'chip', '文字和底色直接换（Tomorrow → Done today / Let go 的去处），高度不变', '—', '—'],
+  ['D：点 ✓', '标题 · dot 或 step · Done today', '标题划掉；今天那一格填上（240ms）；Done today 当场多一行（不做动画），圈长一段（500ms）', '240 / 500ms · console snap', '直接换'],
   ['A：选一段', '三段控件', '选中那段的底色和字色换掉，没有滑块移动', '150ms · console snap', '直接换'],
   ['A：选 Done / 取消 Done', '卡的 dot 或 step', '今天那一格填上 / 退回空的', '240ms · console snap', '直接换'],
   ['A：选 Done / 取消 Done', 'Done today 的圈', '那个 kind 的弧长一段 / 缩回去（stroke-dasharray）', '500ms · console snap', '直接换'],
@@ -1382,11 +1503,14 @@ put('recap-motion', motionTable([
 ]));
 
 /* ── 3 · Summary ── */
-const BASE_SUMMARY = {start: 'recap', night: 'good', entry: 'A', recap: 'A', cel: 'C', dump: 'C', copy: 'A'};
+const BASE_SUMMARY = {start: 'recap', night: 'good', entry: 'A', recap: 'D', cel: 'C', dump: 'C', copy: 'A'};
 put('summary-before', beforePair({night: 'good'}, '<code>main</code> 里今天做完的东西在 Done 列（桌面）或 Done 那一行（手机），还有上面 ProgressDashboard 的 Today 圈；没有一个地方专门说「今天」'));
 put('summary-opts', optBlocks([
+  {letter: 'D', title: '今天的圈，下面是做完的卡', config: {summary: 'D'},
+    why: 'demo-11-06 草稿的 Close the day（第 2 轮加的）：圈和「5 done today」和 B 一样，但做完的卡本身直接列在圈下面——一行一张，muted、标题划掉，前面一个 ✓ 字形（不是圆圈，6.1）和 kind 图标，左边一条 kind 色的细边；超过 4 行折成 <b>+N more</b>，点开后是 <b>Show less</b>。一眼认出今天做的那几件，比看一个数更像收尾，也不用回想（recognition，不是 recall）；B 把它们藏在「Show what got done」后面，要多点一下（1.3）。行比卡小、没有控件，和下面 Still open 的卡一眼分得开（4.2、6.1）。下面点 ✓，这里当场多一行、圈长一段（3.4）。',
+    rank: [['y', '4.1 数先、单后，一屏都在'], ['y', '1.3 不用点就看到'], ['y', '6.1 ✓ 是字形'], ['y', '3.4 ✓ 落进来'], ['m', '2.1 做得多的晚上折到 4 行']]},
   {letter: 'B', title: '今天的圈', config: {summary: 'B'},
-    why: 'PR #128 的那个 day ring：按 kind 分段，周长是今天的计划（今天做完的 + 打开 recap 时还开着的）。旁边一句「5 done today」和一个「Show what got done」，清单藏在后面（4.1：一个数先看到，细节在后面）。下面把卡设成 Done，圈当场长一段，全做完时圈合上、中间出 ✓（3.4、3.3）。同一个圈也是 board 上的那个，是同一个东西（5.1）。零完成的晚上圈是灰的，只写「Nothing checked off today」。',
+    why: '第 1 轮推荐的，第 2 轮排到 D 后面：做完的卡藏在一个按钮后面。PR #128 的那个 day ring：按 kind 分段，周长是今天的计划（今天做完的 + 打开 recap 时还开着的）。旁边一句「5 done today」和一个「Show what got done」，清单藏在后面（4.1：一个数先看到，细节在后面）。下面把卡设成 Done，圈当场长一段，全做完时圈合上、中间出 ✓（3.4、3.3）。同一个圈也是 board 上的那个，是同一个东西（5.1）。零完成的晚上圈是灰的，只写「Nothing checked off today」。',
     rank: [['y', '1.1 一个圈说完'], ['y', '4.1 先数后单'], ['y', '5.1 和 board 的圈是同一个'], ['y', '3.4 Done 落进圈'], ['m', '依赖 PR #128 的圈']]},
   {letter: 'A', title: '清单', config: {summary: 'A'},
     why: '一行一件，划掉、带完成时间，超过 4 行折叠成「Show all 5」。最直白，每件都看得到。但它和下面 Still open 的卡长得很像，一个只读、一个能改，靠划线区分（6.1 要小心）；做得多的日子是一长串，把 Still open 推到下面（4.1）。在 recap 里设成 Done 的卡排在最后，时间写「now」。',
@@ -1396,7 +1520,9 @@ put('summary-opts', optBlocks([
     rank: [['y', '5.3 kind 的颜色'], ['y', '2.1 小数字'], ['n', '1.1 三个数说一件事'], ['m', '4.1 总数要自己加']]},
 ], BASE_SUMMARY));
 put('summary-motion', motionTable([
-  ['打开 recap', '圈（B）', '直接画好，不播动画：modal 自己有入场', '—', '—'],
+  ['打开 recap', '圈（D、B）', '直接画好，不播动画：modal 自己有入场', '—', '—'],
+  ['下面点 ✓ / 退回', '做完的行（D）', '这一行直接出现在最后 / 直接消失，不做高度动画（6.3）；折起来时 +N more 的数直接换', '—', '—'],
+  ['+N more / Show less', '做完的行（D）', '直接展开 / 收起', '—', '—'],
   ['下面设成 Done / 取消', '圈（B）', '那个 kind 的弧长一段 / 缩回去', '500ms · console snap', '直接换'],
   ['下面设成 Done，圈合上', '✓（B）', '直接出现；大的庆祝留给 Wrap 之后', '—', '—'],
   ['Show what got done / Show all', '清单', '直接展开，不做高度动画（高度动画会推下面的卡，6.3）', '—', '—'],
@@ -1404,7 +1530,7 @@ put('summary-motion', motionTable([
 ]));
 
 /* ── 4 · Celebration ── */
-const BASE_CEL = {start: 'recap', night: 'good', entry: 'A', recap: 'A', summary: 'B', dump: 'C', copy: 'A'};
+const BASE_CEL = {start: 'recap', night: 'good', entry: 'A', recap: 'D', summary: 'D', dump: 'C', copy: 'A'};
 put('cel-before', beforePair({night: 'all'}, '<code>main</code> 做完最后一张时：卡飞进 Done、Todo 变成 COL-5 的「All clear for the day」。没有收尾这一刻，也没有图'));
 put('cel-opts', optBlocks([
   {letter: 'C', title: '做完的变成星星', config: {cel: 'C'}, nightConfig: {start: 'cel'},
@@ -1419,7 +1545,7 @@ put('cel-opts', optBlocks([
 ], BASE_CEL));
 put('art-row', ARTS.map((art, idx) => `<figure>${artSvg(idx)}<figcaption><b>${idx + 1} · ${art.name}</b> · ${art.zh}</figcaption></figure>`).join(''));
 put('cel-motion', motionTable([
-  ['按 Wrap the day（存好之后）', 'modal 内容', '换成庆祝画面：图、标题、事实、prompt、按钮依次 opacity 0 → 1 和 translateY 6px → 0；按钮一开始就能按', '420ms · console snap', 'opacity 150ms'],
+  ['按 Wrap the day（存好之后）', 'modal 内容', '换成庆祝画面：图、标题、事实、明天那一句、prompt、按钮一起 opacity 0 → 1 和 translateY 6px → 0；按钮一开始就能按', '420ms · console snap', 'opacity 150ms'],
   ['C：庆祝开始 260ms 后', '星（最多 12）', '每件从事实那一行中间飞到天空里它的位置，scale .4 → 1，一颗接一颗', '每颗 560ms，间隔 140ms · console snap', '星直接 opacity 0 → 1，200ms；数字直接是最终值'],
   ['C：每颗落下', '星 + 事实里的数', '星闪一下（scale 1 → 1.9 → 1）；数加 1', '360ms', '—'],
   ['C：全做完、最后一颗落下', '月亮', '亮一下（scale 1 → 1.25 → 1）', '600ms', '—'],
@@ -1439,7 +1565,7 @@ const COPY_NOTES = {
   C: ['m', '没有标题，少了「这一天收好了」的确认（3.3）· 祈使句'],
   D: ['m', '偏回顾，研究说睡前写要做的事更好；Dump 不是回顾的地方'],
 };
-put('copy-table', `<thead><tr><th>套</th><th>标题</th><th>事实（good day）</th><th>Prompt</th><th>按原则</th></tr></thead><tbody>${Object.entries(COPY).map(([key, copy]) => `<tr class="${key === 'A' ? 'rec' : ''}"><td>${key}${key === 'A' ? ' · recommended · waits on owner approval' : ''}</td><td>${copy.title || '（没有）'}</td><td>5 done today</td><td>${copy.prompt}</td><td><span class="${COPY_NOTES[key][0]}" style="color:var(--${COPY_NOTES[key][0] === 'y' ? 'su' : COPY_NOTES[key][0] === 'n' ? 'er' : 'wa'})">${RANK_MARK[COPY_NOTES[key][0]]}</span> ${COPY_NOTES[key][1]}</td></tr>`).join('')}<tr><td>按钮</td><td colspan="4"><b>Write it down</b>（primary，去 Dump）· <b>Close</b>（ghost）· 四套一样；sentence case（3.8）</td></tr></tbody>`);
+put('copy-table', `<thead><tr><th>套</th><th>标题</th><th>事实（good day）</th><th>Prompt</th><th>按原则</th></tr></thead><tbody>${Object.entries(COPY).map(([key, copy]) => `<tr class="${key === 'A' ? 'rec' : ''}"><td>${key}${key === 'A' ? ' · recommended · waits on owner approval' : ''}</td><td>${copy.title || '（没有）'}</td><td>5 done today</td><td>${copy.prompt}</td><td><span class="${COPY_NOTES[key][0]}" style="color:var(--${COPY_NOTES[key][0] === 'y' ? 'su' : COPY_NOTES[key][0] === 'n' ? 'er' : 'wa'})">${RANK_MARK[COPY_NOTES[key][0]]}</span> ${COPY_NOTES[key][1]}</td></tr>`).join('')}<tr><td>明天</td><td colspan="4"><b>Tomorrow · Fri, Nov 20 · 1 waiting</b>（第 2 轮，来自草稿）· 四套一样；数是留在 Tomorrow 的卡，0 张时不显示（3.6）</td></tr><tr><td>按钮</td><td colspan="4"><b>Write it down</b>（primary，去 Dump）· <b>Close</b>（ghost）· 四套一样；sentence case（3.8）</td></tr></tbody>`);
 put('copy-cards', Object.keys(COPY).map(key => `<div class="zoom">${flow({...BASE_CEL, start: 'cel', copy: key, mode: 'phone', cap: `Copy ${key}`})}</div>`).join(''));
 const FACT_WHY = {
   good: '做完 5 件、剩 1 件没做：只说做完的数，不说「还剩」',
@@ -1448,7 +1574,7 @@ const FACT_WHY = {
   zero: '一件没做：不安慰、不评价，只说事实（3.5、3.6）；没有星，只有图',
 };
 put('fact-table', `<thead><tr><th>晚上</th><th>事实</th><th>为什么这样写</th></tr></thead><tbody>${NIGHT_KEYS.map(key => { const probe = {...FLOW_DEFAULTS, night: key}; resetFlow(probe); return `<tr><td>${NIGHTS[key].label}</td><td>${factHtml(probe)}</td><td>${FACT_WHY[key]}</td></tr>`; }).join('')}</tbody>`);
-const BASE_DUMP = {start: 'dump', night: 'good', entry: 'A', recap: 'A', summary: 'B', cel: 'C', copy: 'A'};
+const BASE_DUMP = {start: 'dump', night: 'good', entry: 'A', recap: 'D', summary: 'D', cel: 'C', copy: 'A'};
 put('dump-before', beforePair({start: 'dump'}, '<code>main</code> 的 Dump：标题栏、composer（placeholder「What\'s on your mind?」、⌘↵ 存）、按天分组的 feed'));
 put('dump-opts', optBlocks([
   {letter: 'C', title: 'Prompt 当 placeholder', config: {dump: 'C'}, nights: false,
@@ -1470,16 +1596,24 @@ put('diary-motion', motionTable([
 ]));
 
 /* ── F · Final ── */
-const BASE_FINAL = {entry: 'A', recap: 'A', summary: 'B', cel: 'C', dump: 'C', copy: 'A'};
+const BASE_FINAL = {entry: 'A', recap: 'D', summary: 'D', cel: 'C', dump: 'C', copy: 'A'};
 const FIN_NEW = [
   ['1A', 'Strip', 'header 下面一条，21:00–04:00、今天还没 wrap、Todo 或今天的 Done 至少一张时出现；LED 慢闪、☾、Night recap、一句事实（5 done · 1 still open）'],
-  ['2', 'Night recap modal', '桌面居中、比 task modal 宽（600px）；手机全屏 overlay。点 backdrop 不关，Esc = Cancel。按钮 Cancel / Wrap the day'],
-  ['3B', 'Done today', '最上面，只读：今天的圈（按 kind 分段）+「N done today」+ Show what got done'],
-  ['2A', 'Still open', '每张卡一个 Done · Tomorrow · Let go 三段控件，默认 Tomorrow（daily habit 默认 Let go、不能选 Tomorrow），描述那一行写这张卡会去哪'],
-  ['4C', '庆祝', 'Wrap 之后：插画（一组里随机一张，和上一晚不同），今天做完的变成天空里的星，事实里的数往上数'],
+  ['2', 'Night recap modal', '和 Open the day 同一个 RitualSheet：桌面 600px 居中，手机全屏 overlay；头是 ☾ + Night recap + 日期副标。点 backdrop 不关，Esc = Cancel。按钮 Cancel / Wrap the day'],
+  ['3D', 'Done today', '最上面，只读：今天的圈（按 kind 分段）+「N done today」，下面是做完的卡（muted ✓ 行，超过 4 行 +N more）'],
+  ['2D', 'Still open', '每张卡一个状态 chip，默认 → Tomorrow；右下角 ✓ 改成 Done，更轻的 Let go 放下（chip 写 Let go 对这个 kind 做什么）'],
+  ['4C', '庆祝', 'Wrap 之后：插画（一组里随机一张，和上一晚不同），今天做完的变成天空里的星，事实里的数往上数，下面一句 Tomorrow · Fri, Nov 20 · N waiting'],
   ['5A', '文案', 'Day wrapped · N done today · Anything on your mind before bed? · Write it down / Close'],
   ['5C', 'Dump', 'Write it down 去 /kanban/dump?from=recap：composer 获得焦点，placeholder 是那句 prompt'],
 ];
+const ANATOMY = [
+  ['外框', '桌面：居中 modal，宽 <code>600px</code>（窄时 <code>100% − 48px</code>），最高 <code>100% − 40px</code>，圆角 14px（p5 是 0），1px 边，scrim 按 theme。点 backdrop 不关，Esc = Cancel。手机：status bar 下面的全屏 overlay，没有圆角、没有 grab handle。进来：桌面 fx-boot-in 420ms（opacity、translateY 6px、scale .985），手机从下推上来 420ms；出去 240ms 反过来；reduced motion 只剩 opacity 150ms', '入口：strip「Open the day」，08:00–14:00', '入口：strip「Night recap」，21:00–04:00'],
+  ['头', '20px 图标 + 标题（18px display，p5 20px）+ 下面一行日期副标（mono 11px）。padding 16 / 20 / 12，手机 12 / 14 / 10；下面一条细线', '☀ Open the day · 「Thu, Nov 19 · 4 picked · you usually finish 4 on a Thursday」', '☾ Night recap · 「Thu, Nov 19」（做完几件已经在圈旁边，不在副标里再说一遍，1.1）'],
+  ['身体', '按标签分段：mono 10px 大写 + 一条细线，标签旁边可以有 count。卡用 PR #128 的同一张卡面。padding 14 / 20 / 18，手机 12 / 14 / 16，间距 10px，自己滚', 'Today（Already today + 选上的）· Suggested · Show more（按 kind 分组）', 'Done today（圈 + 做完的 ✓ 行）· Still open（chip + Let go + ✓）'],
+  ['底', '右对齐：Cancel（ghost）+ 一个 primary，38px 高；手机 primary 占满剩下的宽。有数时数跟在 primary 里。padding 12 / 20，手机 10 / 14 / 14；上面一条细线', 'Cancel · Start the day（带个数）', 'Cancel · Wrap the day（没有数：要处理的已经在 Still open 的标签上，1.1）'],
+  ['提交之后', '同一个外框里换内容，或者关掉', 'modal 关掉，卡落进 Todo，snackbar「5 on the board today · Undo」', '原地换成庆祝：插画、星、Day wrapped、明天那一句、prompt、Write it down / Close'],
+];
+put('fin-anat', `<div class="hd">Morning · <b>Open the day</b> 填的</div><div class="hd">共用 · <b>RitualSheet</b></div><div class="hd">Night · <b>Night recap</b> 填的</div>` + ANATOMY.map(([slot, shared, morning, night], idx) => `<div class="var"><span class="k">${slot}</span>${morning}</div><div class="mid ${idx === 0 ? 'first' : ''} ${idx === ANATOMY.length - 1 ? 'last' : ''}"><span class="k">${slot}</span>${shared}</div><div class="var"><span class="k">${slot}</span>${night}</div>`).join(''));
 put('fin-new', FIN_NEW.map(([module, title, body]) => `<li><span class="k">${module}</span><b>${title}</b>${body}</li>`).join(''));
 put('fin-before', beforePair({night: 'heavy'}, '<code>main</code> 晚上 21:40，很满的晚上'));
 const FIN_FLOWS = [];
@@ -1505,21 +1639,27 @@ function fin128() {
 put('fin-128', fin128());
 const FIN_SPEC = [
   ['Entry 什么时候出现', '21:00–04:00（rhythm day，Los Angeles 时间），今天还没 wrap，且 Todo 至少一张或今天做完过至少一张。wrap 之后到 04:00 都不再出现'],
-  ['Done today 的顺序', '按完成时间从早到晚；在 recap 里设成 Done 的排在最后'],
+  ['Done today 的行', '按完成时间从早到晚；在 recap 里点了 ✓ 的排在最后。超过 4 行折成 +N more（N 过 8 写 8+，2.1）'],
   ['圈的分母', '今天做完的 + 打开 recap 时 Todo 里的，打开之后不变'],
-  ['daily habit', '只有 Done 和 Let go，默认 Let go（Let go = 今晚 expire，和 sync 一样）'],
+  ['Still open 的 chip', '默认 Tomorrow（= 不 recap 时 sync 会做的，D1）。✓ 在 Tomorrow 和 Done 之间来回；Let go 和 Keep for tomorrow 在 Tomorrow 和 Let go 之间来回'],
+  ['daily habit（过渡）', 'Phase 2 只有 Weekly × N（tracker · owner 2026-11-16），这条随 Phase 2 去掉：在那之前，daily habit 默认 chip 是 Skipped tonight，没有 Tomorrow 和 Keep for tomorrow（Let go = 今晚 expire，和 sync 一样）'],
   ['Let go 去哪', 'habit：这一次 expire；step：回到它的 project（离开这周）；one-off：回到 Priorities 原来的象限'],
   ['Wrap the day', '一次提交所有去处，Still open 是空的时候也能按；失败时 modal 留着，显示错误，去处不丢'],
   ['「All」', '只有 Still open 是空的、或全部设成 Done 时，事实写「All N done today」'],
   ['星', '最多 12 颗；超过 12 件，事实里的数照写'],
+  ['明天那一句', '数 Wrap 时留在 Tomorrow 的卡；日期是下一个 rhythm day（凌晨 00:00–04:00 wrap 时，「明天」是日历上的今天）；0 张时不显示'],
   ['插画', '一组固定的，每晚随机一张，和上一晚不同；颜色不跟 theme'],
   ['Write it down', '去 /kanban/dump?from=recap，composer 获得焦点，placeholder 换成 prompt；不带 from 时是原来的'],
   ['Esc', 'recap 里 = Cancel，庆祝画面上 = Close'],
+  ['以后（不画）· Pick tomorrow now', '草稿的 Day closed 有一个「Pick tomorrow now →」：用 Open the day 的同一个挑选界面，晚上就把明天挑好。spec 只列了 Write it down / Close，所以只记在这里'],
 ];
 put('fin-spec', FIN_SPEC.map(([title, body]) => `<li><b>${title}</b>${body}</li>`).join(''));
 const FIN_OPEN = [
   ['Strip 在手机上的位置', 'spike 写的是手机放在 Todo 那一行上面；这里两个宽度都放 header 下面（5.2）。哪个对要 owner 定'],
-  ['daily habit 不能选 Tomorrow', '这是这个 mockup 加的：daily habit 明天有新的一张，送到明天会变成两张。要是 owner 想让它也能顺延，就要定明天那两张怎么办'],
+  ['Entry 要不要自动开一次（1D）', '草稿是到点自动开一次，然后 strip；spec 写的是 entry，这里推荐 A。owner 要是想要 D，Open the day 也要跟着一样'],
+  ['Recap 里点 ✓ 要不要播 juice', '2D 的 ✓ 只填上、行进 Done today、圈长一段，不播 PR #128 的 juice 和 toss：大的留给 Wrap。要不要一个小的'],
+  ['明天那一句 0 张时', '这里不显示。也可以只写「Tomorrow · Fri, Nov 20」，或者把明天已经在 backlog 里等着的也算进来——那要先定「waiting」数什么（3.6）'],
+  ['Let go 的字', '2D 里 Let go 是一个词，点了以后 chip 才说它对这个 kind 做什么。要不要按 kind 直接写在按钮上（Skip this time / Back to project）'],
   ['庆祝：C 还是 B', 'C 安静、落在天空里；B 是 PR #128 已经认得的大 win。也可以两个都要，按 3.2 随机'],
   ['插画', '四张是样稿，风格、张数、谁来画都要定；C 方案要求每张留出天空的位置（12 个星位）'],
   ['Prompt 的语气', 'A「Anything on your mind before bed?」假设快睡了；要不要更中性（「Anything on your mind?」）'],
