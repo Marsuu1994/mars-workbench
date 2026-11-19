@@ -1,6 +1,6 @@
 'use client';
 
-import {useId, type KeyboardEvent} from 'react';
+import {useId, type KeyboardEvent, type MouseEvent} from 'react';
 import {useTranslations} from 'next-intl';
 import {
   Draggable,
@@ -37,6 +37,15 @@ export const TodoCard = ({card, index}: TodoCardProps) => {
   // the habit's dots or the step's path in what a screen reader hears.
   const faceId = useId();
 
+  // Workaround (@hello-pangea/dnd): a drag handle cancels the mousedown's
+  // default, so pressing a card doesn't focus it. Without this, Enter after a
+  // press reaches nothing, and closing the day's list by pressing a card
+  // leaves focus on the page (DAY-5).
+  const handleClick = (event: MouseEvent<HTMLElement>) => {
+    event.currentTarget.focus({preventScroll: true});
+    pressTodoCard(task.id);
+  };
+
   const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key !== 'Enter') return;
     event.preventDefault();
@@ -62,7 +71,7 @@ export const TodoCard = ({card, index}: TodoCardProps) => {
           : t('selectLabel', {title: task.title})
       }
       aria-describedby={faceId}
-      onClick={() => pressTodoCard(task.id)}
+      onClick={handleClick}
       onKeyDown={handleKeyDown}
       className={`card fx-card fx-press w-full flex-shrink-0 cursor-pointer border bg-base-100/70 ${edge} ${
         isSelected

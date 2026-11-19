@@ -982,9 +982,10 @@ body {
     animation: fx-done-in 0.9s cubic-bezier(0.2, 0, 0, 1);
   }
   /* The round mark growing into ✓ Complete, and Complete coming in beside it */
+  /* The mark grows with Tailwind's scale-*, which sets scale, not transform */
   .fx-arm .fx-arm-mark {
     transition:
-      transform 0.15s cubic-bezier(0.2, 0, 0, 1),
+      scale 0.15s cubic-bezier(0.2, 0, 0, 1),
       background-color 0.15s,
       border-color 0.15s,
       box-shadow 0.15s;

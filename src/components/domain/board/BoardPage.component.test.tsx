@@ -420,7 +420,8 @@ const readArcs = (cell: Element) =>
     .map(arc => ({
       kind: arc.dataset.arc,
       length: Number(arc.getAttribute('stroke-dasharray')?.split(' ')[0]),
-      start: -Number(arc.getAttribute('stroke-dashoffset') ?? 0),
+      // 0 - so that an offset of 0 reads as 0, not -0
+      start: 0 - Number(arc.getAttribute('stroke-dashoffset') ?? 0),
       color: getComputedStyle(arc).stroke,
     }))
     .filter(({length}) => length > 0);
@@ -503,6 +504,14 @@ const keepSaving = () =>
     unansweredSaves.push(save);
     return save.promise;
   });
+
+/** A save the test answers itself; answered once the test ends anyway, in
+    case the test fails before it does. */
+const holdSave = () => {
+  const save = Promise.withResolvers<SaveResult>();
+  unansweredSaves.push(save);
+  return save;
+};
 
 const findTaskByTitle = (title: string) => {
   const task = MID_WEEK_TASKS.find(candidate => candidate.title === title);
@@ -960,9 +969,13 @@ describe("A day's list", () => {
 
     const sheet = getOpenSheet();
     expect(sheet.matches(':modal')).toBe(true);
-    const box = sheet.querySelector('.modal-box')!.getBoundingClientRect();
-    expect(box.height).toBeLessThanOrEqual(MOBILE_VIEWPORT.height * 0.7);
-    expect(box.bottom).toBeCloseTo(MOBILE_VIEWPORT.height, 0);
+    const readBox = () =>
+      sheet.querySelector('.modal-box')!.getBoundingClientRect();
+    // It rises from below the screen, then rests on its bottom edge
+    await expect
+      .poll(() => readBox().bottom)
+      .toBeCloseTo(MOBILE_VIEWPORT.height, 0);
+    expect(readBox().height).toBeLessThanOrEqual(MOBILE_VIEWPORT.height * 0.7);
     // The board behind is dimmed, by the dialog or its backdrop
     const isTransparent = (color: string) =>
       color === 'transparent' || /, 0\)$|\/ 0\)$/.test(color);
@@ -1728,6 +1741,8 @@ describe('Backlog groups', () => {
 
     await userEvent.click(getShownByTitle('Close backlog'));
     await useMobileWidth();
+    // The pill takes the strip's place once the page has seen the new width
+    await expect.poll(() => getShownByTitle('Open backlog')).toBeTruthy();
     await openBacklog();
     for (const hint of OLD_HINTS) {
       expect(getOpenSheet().textContent).not.toContain(hint);
@@ -1891,6 +1906,29 @@ describe('Backlog groups', () => {
   });
 });
 
+/**
+ * The classes among `classNames` that each class change in `records` added.
+ * An element's class after a change is the next change's old value, or its
+ * class now for its last change: by the time the records arrive, a class
+ * taken off and put back (to restart an animation) is already back.
+ */
+const findClassAdditions = (records: MutationRecord[], classNames: string[]) =>
+  records.flatMap(({type, target, oldValue}, index) => {
+    if (type !== 'attributes' || !(target instanceof HTMLElement)) return [];
+    const next = records
+      .slice(index + 1)
+      .find(later => later.type === 'attributes' && later.target === target);
+    const after = (next ? (next.oldValue ?? '') : target.className).split(
+      /\s+/,
+    );
+    const before = (oldValue ?? '').split(/\s+/);
+    return classNames
+      .filter(
+        className => after.includes(className) && !before.includes(className),
+      )
+      .map(className => ({element: target, className}));
+  });
+
 describe('Motion', () => {
   /**
    * Every time an element gets one of `classNames`, while the test runs: the
@@ -1900,15 +1938,17 @@ describe('Motion', () => {
   const watchClasses = (classNames: string[]) => {
     const added: {element: HTMLElement; className: string}[] = [];
     const observer = new MutationObserver(records => {
-      for (const {target, oldValue} of records) {
-        if (!(target instanceof HTMLElement)) continue;
-        const before = (oldValue ?? '').split(/\s+/);
-        for (const className of classNames) {
-          if (
-            target.classList.contains(className) &&
-            !before.includes(className)
-          ) {
-            added.push({element: target, className});
+      added.push(...findClassAdditions(records, classNames));
+      // An element can also arrive with the class already on it
+      for (const {addedNodes} of records) {
+        for (const node of addedNodes) {
+          if (!(node instanceof HTMLElement)) continue;
+          for (const className of classNames) {
+            const arrived = [
+              ...(node.classList.contains(className) ? [node] : []),
+              ...node.querySelectorAll<HTMLElement>(`.${className}`),
+            ];
+            for (const element of arrived) added.push({element, className});
           }
         }
       }
@@ -1917,6 +1957,7 @@ describe('Motion', () => {
       attributes: true,
       attributeFilter: ['class'],
       attributeOldValue: true,
+      childList: true,
       subtree: true,
     });
     observers.push(observer);
@@ -2136,7 +2177,7 @@ describe('Motion', () => {
   });
 
   it('FX-5 on desktop a card finished on the page lands on top of Done and glows once; a render or a reload does not glow it again', async () => {
-    const save = Promise.withResolvers<SaveResult>();
+    const save = holdSave();
     vi.mocked(updateTaskStatusAction).mockReturnValue(save.promise);
     const glows = watchClasses(['fx-done-in']);
     const screen = await renderBoard();
@@ -2179,21 +2220,21 @@ describe('Motion', () => {
     await renderBoard();
     const card = getTodoCard(TAX_REPORT_TITLE);
     const mark = card.querySelector<HTMLElement>('.fx-arm-mark')!;
-    expect(getComputedStyle(mark).transitionDuration).toMatch(/0\.15s/);
-    const plainTransform = getComputedStyle(mark).transform;
+    // The mark grows by its scale, so the scale is what moves in 0.15 s
+    const {transitionProperty, transitionDuration} = getComputedStyle(mark);
+    const scaleIndex = transitionProperty.split(', ').indexOf('scale');
+    expect(scaleIndex).toBeGreaterThanOrEqual(0);
+    expect(transitionDuration.split(', ')[scaleIndex]).toBe('0.15s');
+    const plainScale = getComputedStyle(mark).scale;
 
     await selectCard(TAX_REPORT_TITLE);
 
     const word = card.querySelector<HTMLElement>('.fx-arm-word')!;
     expect(word.getAnimations().length).toBeGreaterThan(0);
-    await expect
-      .poll(() => getComputedStyle(mark).transform)
-      .not.toBe(plainTransform);
+    await expect.poll(() => getComputedStyle(mark).scale).not.toBe(plainScale);
 
     await pressOutside();
-    await expect
-      .poll(() => getComputedStyle(mark).transform)
-      .toBe(plainTransform);
+    await expect.poll(() => getComputedStyle(mark).scale).toBe(plainScale);
 
     await setReducedMotion(true);
     expect(getComputedStyle(mark).transitionDuration).toBe('0s');
@@ -2389,22 +2430,23 @@ describe('A move', () => {
     const [doneFill, todoFill] = backlogDots().map(fillOf);
     expect(doneFill).not.toBe(todoFill);
     await userEvent.click(getShownByTitle('Close backlog'));
+    // Done already holds the instance finished earlier in the week
+    const taskId = getTodoCard('LeetCode').dataset.todoCard;
+    const readTopDoneId = () =>
+      document.querySelector<HTMLElement>('[data-done-card]')?.dataset.doneCard;
 
     await completeByTap('LeetCode');
 
-    await expect
-      .poll(() => readColumnTitles('DONE')[0], MOTION_TIMEOUT)
-      .toBe('LeetCode');
+    await expect.poll(readTopDoneId, MOTION_TIMEOUT).toBe(taskId);
     expect(readColumnTitles('TODO')).not.toContain('LeetCode');
     await openBacklog();
     expect(backlogDots().map(fillOf).slice(0, 2)).toEqual([doneFill, doneFill]);
     expect(readProgressLabel(getCard('BACKLOG', 'LeetCode').card)).toBe(
       '2 of 3 done this week',
     );
-    expect(updateTaskStatusAction).toHaveBeenCalledWith(
-      findTaskByTitle('LeetCode').id,
-      {status: TaskStatus.DONE},
-    );
+    expect(updateTaskStatusAction).toHaveBeenCalledWith(taskId, {
+      status: TaskStatus.DONE,
+    });
   });
 
   it("A12 MV-6 on mobile a completed card leaves the board: it shows only in today's list", async () => {
@@ -2442,7 +2484,7 @@ describe('A move', () => {
   });
 
   it("A7 MV-6 MV-7 a card dragged onto Done is on top of it at once and counted in today's ring; the server's answer leaves the ring as it is", async () => {
-    const save = Promise.withResolvers<SaveResult>();
+    const save = holdSave();
     vi.mocked(updateTaskStatusAction).mockReturnValue(save.promise);
     const screen = await renderBoard();
     const {done, planned} = TODAY_COUNTS;
@@ -2471,8 +2513,8 @@ describe('A move', () => {
   });
 
   it('MV-4 a refused move puts only its card back, once the other cards have saved', async () => {
-    const failedSave = Promise.withResolvers<SaveResult>();
-    const otherSave = Promise.withResolvers<SaveResult>();
+    const failedSave = holdSave();
+    const otherSave = holdSave();
     vi.mocked(updateTaskStatusAction)
       .mockReturnValueOnce(failedSave.promise)
       .mockReturnValueOnce(otherSave.promise);
@@ -2505,18 +2547,13 @@ describe('A move', () => {
   });
 
   it('MV-8 MV-4 a refused completion that had closed the ring opens it again with no second celebration, and the card comes back into Todo', async () => {
-    const save = Promise.withResolvers<SaveResult>();
+    const save = holdSave();
     vi.mocked(updateTaskStatusAction).mockReturnValue(save.promise);
     await renderBoard({tasks: withOnlyTodo([TAX_REPORT_TITLE])});
     // Each time today's cell gets fx-ring-close, counted as it is added
     let closes = 0;
     const observer = new MutationObserver(records => {
-      for (const {oldValue} of records) {
-        const hadIt = (oldValue ?? '').split(/\s+/).includes('fx-ring-close');
-        if (!hadIt && getTodayMotion().classList.contains('fx-ring-close')) {
-          closes += 1;
-        }
-      }
+      closes += findClassAdditions(records, ['fx-ring-close']).length;
     });
     observer.observe(getTodayMotion(), {
       attributes: true,
