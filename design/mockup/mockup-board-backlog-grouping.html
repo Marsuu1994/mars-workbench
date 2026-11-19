@@ -296,8 +296,9 @@
   /* drag ghost */
   .ghost { position: fixed; z-index: 999; pointer-events: none; width: 274px; transform: rotate(2deg) scale(1.02); box-shadow: 0 12px 30px oklch(0 0 0 / .4); opacity: .95; }
   .lifted { opacity: .35; }
-  /* 修订 2026-11-18: a lifted backlog card leaves a blank space of its size; the pile under it stays */
-  .bk.lifted { opacity: 1; visibility: hidden; }
+  /* 修订 2026-11-18: a lifted backlog card leaves a placeholder of its size in the pile's silver, with nothing on it; the pile under it stays */
+  .bk.lifted { opacity: 1; background: var(--lip-1); border-color: var(--lip-border); border-left-color: var(--lip-border); box-shadow: none; }
+  .bk.lifted > * { visibility: hidden; }
 
   /* ── Mobile ── */
   .phones { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px 20px; align-items: start; }
@@ -360,7 +361,7 @@
     <p><b>修订（2026-11-07）：</b>habit 也垫 <b>pile</b>，和 project 一样：后面每排着一个 instance 垫一层，最多三层。两种卡片剩下的唯一区别是能不能展开：project 的 <b>+N more ⌄</b> 打开它后面的 step，每一步标题不同、顺序要看得见；habit 的 <b>+N more</b> 只是文字，后面的 instance 是同一件事，展开没有新信息。</p>
     <p><b>修订（2026-11-10）：</b>backlog 里去掉了 one-off。One-off 从不在 backlog 里等：Track 把它直接放进 Todo，carry 到下一周时保留原来的状态，所以 backlog 只有 habit 和 project 两种卡片。</p>
     <p><b>修订（2026-11-18，decided 2026-11-18）：</b>backlog 空了，入口不再消失：desktop 的 strip 和 mobile 的 pill 都留着，badge 显示 <b>0</b>；打开后是一个虚线框，标题 <b>Everything's on deck!</b>，下面一句事实、一句下一步，都是不加标点的完整句子。今天至少做完一件、Todo 又空了时，Todo 显示同一个框，标题 <b>All clear for the day</b>（第 6 页）。</p>
-    <p><b>修订（2026-11-18 晚，owner 在 PR #122 的 review 后定）：</b>① habit 卡换成 board 的同一张卡（PR #115 tab K）：第一行 <b>HABIT</b> 和 +N more，标题在第二行。② Desktop 拖起 backlog 卡时，原地留一块同样大小的空白，什么都不标，也不露出下一张；pile、计数和其他组都不动，放下后才更新：下一张接上来、开着的 queue 少一行但保持打开，不等 server。③ Backlog 的 group 按 habit 或 project 自己的创建时间排，同时创建的按 id，不再看单个 task，也不再分 daily / weekly。</p>
+    <p><b>修订（2026-11-18 晚，owner 在 PR #122 的 review 后定）：</b>① habit 卡换成 board 的同一张卡（PR #115 tab K）：第一行 <b>HABIT</b> 和 +N more，标题在第二行。② Desktop 拖起 backlog 卡时，原地留一块同样大小、pile 那种银色的占位，上面什么都不标，也不露出下一张；pile、计数和其他组都不动，放下后才更新：下一张接上来、开着的 queue 少一行但保持打开，不等 server。③ Backlog 的 group 按 habit 或 project 自己的创建时间排，同时创建的按 id，不再看单个 task，也不再分 daily / weekly。</p>
   </div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
     <div class="seg" id="themes">
@@ -461,7 +462,7 @@
   <p class="note">拉走最后一个时，sheet 不关，虚线框轻轻弹进来，header 的 badge 变成 0；关掉以后 pill 还在，badge 是 0，点开还是这个框。Desktop 一样：panel 里拖走最后一张，框弹进来，strip 留着显示 0。</p>
 
   <div class="col-label spaced"><b>空的 Todo</b> · 同一个虚线框 · decided 2026-11-18<span class="line"></span></div>
-  <p class="note" style="margin-top:0">今天至少做完了一件、Todo 又空了时，Todo 显示同一个虚线框：标题 <b>All clear for the day</b>，不加感叹号——看到它的时候多半是晚上，不需要强烈反馈，小小的正好；下面一句事实 <b>Everything you pulled for today is done</b>，一句下一步 <b>Pull more from the backlog or call it a day</b>。今天什么都还没做（比如早上还没拉卡）时，Todo 照旧是现在的空状态，因为这时说 done 不属实。现在的产品里空 Todo 只有一行灰字。这一块取代 #115 定稿里的 <i>Today's plan is done · Pull more from the backlog, or call it a day.</i>：同样的位置和意思，换成这里的写法。backlog 也空了就是上面的情况 2，两个框各说各的。</p>
+  <p class="note" style="margin-top:0">今天至少做完了一件、Todo 又空了时，Todo 显示同一个虚线框：标题 <b>All clear for the day</b>，不加感叹号——看到它的时候多半是晚上，不需要强烈反馈，小小的正好；下面一句事实 <b>Everything you pulled for today is done</b>，一句下一步 <b>Pull more from the backlog or call it a day</b>。今天什么都还没做（比如早上还没拉卡）时，Todo 照旧是现在的空状态，因为这时说 done 不属实。现在的产品里空 Todo 什么都不显示。这一块取代 #115 定稿里的 <i>Today's plan is done · Pull more from the backlog, or call it a day.</i>：同样的位置和意思，换成这里的写法。backlog 也空了就是上面的情况 2，两个框各说各的。</p>
   <div class="opt-head"><span class="tag">Before</span>现在的产品</div>
   <div class="empty-grid" id="todo-before"></div>
   <div class="opt-head"><span class="tag rec">After</span>All clear for the day</div>

@@ -103,7 +103,7 @@ Opening `/kanban` runs the sync first (`specs/shared.md`). The page then shows o
   - the group's card shows the task after it, **+N more** goes down by one, and the sheets under it go down by one once fewer than three are behind
   - a project's open queue stays open, its first row now on the card, and is gone once no step is left behind the next one
   - when the group's last task leaves, its card is gone, and its section too once no group is left in it
-- *(pending)* **BL-14** On desktop, while the user drags a backlog card, its place in the panel holds a blank space of the card's size, with nothing in it. Nothing else in the backlog changes until the card is dropped (BL-13): the sheets under it, the other groups, the hint and the count stay as they were. If the drag is cancelled, the card goes back into its place.
+- *(pending)* **BL-14** On desktop, while the user drags a backlog card, its place in the panel holds a placeholder of the card's size, drawn like the pile's sheets and with nothing on it. Nothing else in the backlog changes until the card is dropped (BL-13): the sheets under it, the other groups, the hint and the count stay as they were. If the drag is cancelled, the card goes back into its place.
 
 ## Progress
 
@@ -218,7 +218,7 @@ When the server refuses a move, the card goes back as in MV-4.
   - the board (ST-3): the strip shows 2
   - open the backlog (A2): the habit's card shows **+1 more**, on a pile of one sheet, and the count reads 2
   - pull its next task into Todo (A4): the habit's card shows its second task as a plain card, and the count reads 1
-  - lift the last card (BL-14): its place holds a blank space, and the hint and the count of 1 stay
+  - lift the last card (BL-14): its place holds an empty placeholder, and the hint and the count of 1 stay
   - drop it on Todo (A4): the panel shows that everything is on deck, with no hint, and the count reads 0 (BL-15)
   - close the backlog (A3): the strip stays and shows 0
   - open it again (A2): the panel shows that everything is on deck again
