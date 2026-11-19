@@ -61,6 +61,31 @@ How agents work on this repository: the experiments under `experiments/` (rules 
     - [ ] Skip e2e when a push changes nothing the app runs (only Markdown, `design/`, `reviews/`, `experiments/`): a path-filter job, and the e2e job skipped by a job-level `if` so a required check still passes (a workflow-level `paths` would leave it pending); each docs-only push saves the whole ~3 min
     - [ ] Cache the Supabase stack's Docker images between CI runs (`docker save` into `actions/cache`, `docker load` before `supabase start`), cutting the stack step's pulls and the registries' rate limits; measure how much of its 100 s the pulls are first
 
+### Medium
+
+- [ ] What makes a spec review catch more — PR #122's review, from a separate Claude Code session, found 15 problems in a spec change `write-spec-reviewer` had passed; 12 needed something the reviewer is never given, so its brief and inputs look like the cause more than its model. An experiment can tell the two apart (2026-11-18)
+  - What each of the 15 needed (`reviews/pr-122.md`, round 1):
+    - a file the reviewer doesn't review, 9: the mockup itself (5), the rule docs (2) and the scripts (2)
+    - the production code, 3: a journey a phone can't run because the backlog sheet is modal, a sort tie that is the usual case, and a write path that doesn't exist
+    - the mockup run in a browser with two states combined, 2: a lifted card, and a pull while a project's queue is open
+    - two items read against each other, 1
+  - Where the reviewer falls short (`.claude/agents/write-spec-reviewer.md`, `.claude/context/write-spec-context.md`):
+    - scope: it reviews the items a diff adds or marks and nothing else, while the PR changed 13 files, so its PASS reads wider than what it covered
+    - inputs: it never reads `src/`, so an item is held against the mockup (what will be) and never against the product (what is)
+    - the mockup: it reads the text and the script's functions; behaviour that lives in CSS, or that shows only when the page is clicked through, stays unseen
+    - Decidable: it tries one case the mockup shows, and the mockup's data has no tie, no third step and no two states at once
+    - the brief: the owner's answers reach it retold by the session that wrote the items, so an item backed by words passes even where the mockup shows otherwise
+    - the report: four fixed slots and one pass, with nowhere to say that the mockup is outdated or that a claim about the product is false
+  - Where the rules fall short (`design/specs/README.md`): every rule is about one item held against the mockup. None asks that a claim about today's product is checked in the code, that items don't contradict each other, that Decidable is tried on edge data (a tie, the last one, three or more), or that a sentence carried over from a built item is reread in its new place. The rule that a journey runs the same steps at both widths doesn't ask whether the product can run them, and it led to the journey a phone can't run
+  - What the review alone can't tell: how much its model and effort mattered. It ran on a larger model than the session that wrote the spec (the reviewer inherits that session's model), at xhigh effort, and its two rounds cost about $11, far more than one reviewer run. Only the 3 findings within the reviewer's reach (the open queue, the lift, the two items that disagree) could have turned on that
+  - Experiment: PR #122 at `28375ea`, with these 15 findings, is a labelled set. Run `write-spec-reviewer` on that commit in each variant below, and count what it finds and what it costs. It could become the evals repository's spec-review case (Harness engineering series › Setup)
+    - as it is: the baseline
+    - with `src/` among its inputs
+    - running the mockup in a browser
+    - reviewing the whole PR, not only the spec's diff
+    - on a larger model, and at a higher effort
+  - The 9 findings outside the reviewer's scope are what PR #122's tracker item *Doc and rule review for people* is for
+
 ## Board
 
 ### Medium
