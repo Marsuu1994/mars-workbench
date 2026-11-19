@@ -1,12 +1,11 @@
 // Spec: design/specs/board.md
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {cdp, page, userEvent} from 'vitest/browser';
+import {cdp, commands, page, userEvent} from 'vitest/browser';
 import {updateTaskStatusAction} from '@/actions/taskActions';
 import type {TaskItem} from '@/lib/db/tasks';
 import type {BoardData} from '@/types/board';
 import {TaskStatus} from '@/utils/enums';
 import {formatISODate, getISOWeekKey, getTodayDate} from '@/utils/dateUtils';
-import {countOtherDayCells, getMobileDayRange} from '@/utils/dayRingUtils';
 import {
   BACKLOG_CLEAR_TASKS,
   MID_WEEK_TASKS,
@@ -15,6 +14,7 @@ import {
 } from '@/app/design/scenarios/board/fixtures';
 import {renderPage} from '../../../../test/component/renderPage';
 import {BoardPage} from './BoardPage';
+import {RING_ARC_GAP} from './day-rings/constants';
 import {
   COMPLETE_VIBRATION,
   RING_CLOSE_VIBRATION,
@@ -278,6 +278,22 @@ const readKindLine = (card: HTMLElement) =>
 /** A card's size chip, as the old cards showed it (XS, S, M, L, XL). */
 const SIZE_TEXT = /\b(XS|S|M|L|XL)\b|\bpts?\b/;
 
+/** How long a held press takes to settle into its shrink (fx-press's 0.15s). */
+const PRESS_SETTLE_MS = 250;
+
+/** The element's transform while the mouse button is held down on it. */
+const readHeldTransform = async (element: HTMLElement) => {
+  element.dataset.pressProbe = '';
+  try {
+    await commands.holdPointer('[data-press-probe]');
+    await sleep(PRESS_SETTLE_MS);
+    return getComputedStyle(element).transform;
+  } finally {
+    await commands.releasePointer();
+    delete element.dataset.pressProbe;
+  }
+};
+
 const readAnnouncement = () =>
   document.querySelector('[id^="rfd-announcement"]')?.textContent ?? '';
 
@@ -391,12 +407,16 @@ const getRingSvg = (cell: Element) => {
   return svg;
 };
 
-/** A ring's arcs that show, habits first: their kind and visible length. */
+/**
+ * A ring's arcs that show, habits first: their kind, their visible length,
+ * and where each starts along the track, clockwise from the ring's start.
+ */
 const readArcs = (cell: Element) =>
   [...cell.querySelectorAll<SVGCircleElement>('[data-arc]')]
     .map(arc => ({
       kind: arc.dataset.arc,
       length: Number(arc.getAttribute('stroke-dasharray')?.split(' ')[0]),
+      start: -Number(arc.getAttribute('stroke-dashoffset') ?? 0),
       color: getComputedStyle(arc).stroke,
     }))
     .filter(({length}) => length > 0);
@@ -700,20 +720,27 @@ describe('Day rings', () => {
       getRingSvg(getTodayCell()).getBoundingClientRect().width;
     const dayRingSize = ringSizes().find(size => size !== todayRingSize);
 
-    await useMobileWidth();
+    // RING-1's widths and how many other days fit at each
+    const OTHER_DAYS_BY_WIDTH = [
+      {width: 320, others: 2},
+      {width: 430, others: 4},
+      {width: MOBILE_VIEWPORT.width, others: 3},
+    ];
+    for (const {width, others} of OTHER_DAYS_BY_WIDTH) {
+      await page.viewport(width, MOBILE_VIEWPORT.height);
 
-    // The row runs the screen's width less 20 px on each side
-    const otherCount = countOtherDayCells(MOBILE_VIEWPORT.width - 40);
-    expect(otherCount).toBe(3);
-    const {first, last} = getMobileDayRange(TODAY_INDEX, otherCount);
-    await expect.poll(() => getCells()).toHaveLength(otherCount + 1);
-    expect(
-      getCells().map(cell =>
-        cell === getTodayCell()
-          ? TODAY_NAME
-          : (cell.getAttribute('aria-label') ?? '').split(':')[0],
-      ),
-    ).toEqual(DAY_NAMES.slice(first, last + 1));
+      // The days before today, and early in the week the days after it
+      const first = Math.max(0, TODAY_INDEX - others);
+      await expect
+        .poll(() =>
+          getCells().map(cell =>
+            cell === getTodayCell()
+              ? TODAY_NAME
+              : (cell.getAttribute('aria-label') ?? '').split(':')[0],
+          ),
+        )
+        .toEqual(DAY_NAMES.slice(first, first + others + 1));
+    }
 
     const today = getTodayCell();
     expect(today.getBoundingClientRect().width).toBeGreaterThanOrEqual(132);
@@ -764,6 +791,16 @@ describe('Day rings', () => {
     const [habits, steps, oneOffs] = arcs.map(({length}) => length);
     expect(habits / steps).toBeCloseTo(3, 0);
     expect(oneOffs / steps).toBeCloseTo(2, 0);
+    // The ring starts at 12 o'clock, and each arc starts where the one before
+    // it ends, less the small gap that keeps the kinds apart
+    expect(getComputedStyle(getRingSvg(getTodayCell())).rotate).toBe('-90deg');
+    const [first, second, third] = arcs;
+    expect(first.start).toBe(0);
+    expect(second.start - first.length).toBeCloseTo(RING_ARC_GAP, 1);
+    expect(third.start - second.start - second.length).toBeCloseTo(
+      RING_ARC_GAP,
+      1,
+    );
     // Each kind in the colour of its cards' left edge
     expect(arcs.map(({color}) => color)).toEqual([
       edgeOf(getTodoCard('Workout')),
@@ -974,13 +1011,21 @@ describe("A day's list", () => {
     expect(getDayListPanel().querySelector('li')).toBeNull();
   });
 
-  it('DAY-4 A14 the list closes from its close button, a press outside it and Esc', async () => {
+  it('DAY-4 DAY-5 A14 the list closes from its close button, a press outside it and Esc; a press outside leaves focus where it put it', async () => {
     await renderBoard(LAST_WEEK_BOARD);
     const monday = getDayCell(lastWeekDate(0));
 
     await userEvent.click(monday);
     await userEvent.click(getDayListClose(getDayListPanel()));
     expect(findDayListPanel()).toBeNull();
+    expect(document.activeElement).toBe(monday);
+
+    await userEvent.click(monday);
+    // A press on a Todo card: focus goes to the card, not back to Monday
+    await userEvent.click(getTodoCard(TAX_REPORT_TITLE));
+    expect(findDayListPanel()).toBeNull();
+    expect(document.activeElement).toBe(getTodoCard(TAX_REPORT_TITLE));
+    await userEvent.keyboard('{Escape}');
 
     await userEvent.click(monday);
     await pressOutside();
@@ -1091,6 +1136,9 @@ describe('Columns', () => {
     await renderBoard();
 
     expect(findColumn('DONE')).toBeNull();
+    // The header has no Today tag on a phone: the name and the count
+    expect(getColumnFrame('TODO').innerText).not.toMatch(/\btoday\b/i);
+    expect(readHeaderCount('TODO')).toBe('4');
     expect(readColumnTitles('TODO')).toEqual([
       TAX_REPORT_TITLE,
       'Workout',
@@ -1201,6 +1249,11 @@ describe('Task cards', () => {
     expect(card.innerText).not.toMatch(/× \/ week|Daily|Weekly|1\/3/);
     expect(card.innerText).not.toMatch(SIZE_TEXT);
     expect(readProgressLabel(card)).toBe('1 of 3 done this week');
+    // The card's own label names it, and its face describes it, dots and all
+    const faceId = card.getAttribute('aria-describedby') ?? '';
+    expect(
+      document.getElementById(faceId)?.querySelector('[role="img"]'),
+    ).toBeTruthy();
 
     // LeetCode runs three times: one done, this card, one in the backlog
     const dots = getDots(card);
@@ -1420,9 +1473,10 @@ describe('Tap twice to complete', () => {
     );
     expect(getCompleteButton(TAX_REPORT_TITLE)).toBeDefined();
 
-    // Within the guard, Enter does nothing
+    // Within the guard, Enter does nothing: no pulse, and the card stays
     await userEvent.keyboard('{Enter}');
-    expect(updateTaskStatusAction).not.toHaveBeenCalled();
+    expect(vibrations).toEqual([]);
+    expect(isSelected(getTodoCard(TAX_REPORT_TITLE))).toBe(true);
 
     await waitPastArmGuard();
     await userEvent.keyboard('{Enter}');
@@ -1950,19 +2004,24 @@ describe('Motion', () => {
     expect(slid).toContain(findTaskByTitle('Workout').id);
   });
 
-  it('FX-2 while the card is in flight, presses on the Todo cards do nothing; the backlog still opens', async () => {
+  it("FX-2 while the card is in flight, presses on the Todo cards do nothing; the day's cells and the backlog still work", async () => {
     keepSaving();
     await renderBoard();
 
     await completeByTap(TAX_REPORT_TITLE);
     getTodoCard('Workout').click();
-    getShownByTitle('Open backlog').click();
+    expect(isSelected(getTodoCard('Workout'))).toBe(false);
 
+    // Today's cell opens its list, then the backlog opens (and closes it)
+    getTodayCell().click();
+    await expect.poll(findDayListPanel).not.toBeNull();
+    getShownByTitle('Open backlog').click();
     await expect.poll(() => getColumn('BACKLOG').closest('[inert]')).toBeNull();
+    expect(readColumnTitles('TODO')).toContain(TAX_REPORT_TITLE);
+
     await expect
       .poll(() => readColumnTitles('TODO'), MOTION_TIMEOUT)
       .not.toContain(TAX_REPORT_TITLE);
-    expect(findSelectedCards()).toEqual([]);
   });
 
   it('FX-2 a card dragged onto Done tosses nothing', async () => {
@@ -2029,6 +2088,24 @@ describe('Motion', () => {
         color => sparkColors.filter(spark => spark === color).length,
       ),
     ).toEqual([6, 1, 5]);
+  });
+
+  it('FX-4 RING-6 a card pulled into Todo while the last one is in flight keeps the ring open, so nothing celebrates', async () => {
+    keepSaving();
+    await renderBoard({tasks: withOnlyTodo([TAX_REPORT_TITLE])});
+    await openBacklog();
+    const celebrations = watchClasses(['fx-ring-close']);
+
+    await completeByTap(TAX_REPORT_TITLE);
+    getPullButton(getCard('BACKLOG', 'Read').card).click();
+
+    await expect
+      .poll(() => readColumnTitles('TODO'), MOTION_TIMEOUT)
+      .toEqual(['Read']);
+    expect(readTodayCount()).toBe('7 of 8 done');
+    expect(hasCheck(getTodayCell())).toBe(false);
+    expect(celebrations).toEqual([]);
+    expect(vibrations).toEqual([COMPLETE_VIBRATION]);
   });
 
   it('FX-4 a ring already closed when the page loads, and one under reduced motion, plays no celebration', async () => {
@@ -2143,41 +2220,32 @@ describe('Motion', () => {
 
   it("FX-8 Todo cards and the day's cells that are buttons shrink while held; Done cards, backlog cards and later days don't; under reduced motion nothing shrinks", async () => {
     const lastWeek = await renderBoard(LAST_WEEK_BOARD);
-    await openBacklog();
-    const isPressable = (element: Element) =>
-      element.classList.contains('fx-press');
+    const shrunkBy = (scale: number) =>
+      `matrix(${scale}, 0, 0, ${scale}, 0, 0)`;
 
-    const todoCard = getTodoCard(TAX_REPORT_TITLE);
-    expect(isPressable(todoCard)).toBe(true);
-    expect(getComputedStyle(todoCard).transitionDuration).toMatch(/0\.15s/);
-    for (const cell of getCells()) expect(isPressable(cell)).toBe(true);
-    expect(
-      getComputedStyle(getCells()[0]).getPropertyValue('--fx-press-scale'),
-    ).toBe('0.96');
-    expect(isPressable(getCard('DONE', 'Workout').card)).toBe(false);
-    expect(isPressable(getCard('BACKLOG', 'Read').card)).toBe(false);
-
-    // The shrink is the stylesheet's, while the element is :active
-    const pressRule = [...document.styleSheets]
-      .flatMap(sheet => [...sheet.cssRules])
-      .flatMap(rule =>
-        rule instanceof CSSLayerBlockRule ? [...rule.cssRules] : [rule],
-      )
-      .find(
-        rule =>
-          rule instanceof CSSStyleRule &&
-          rule.selectorText === '.fx-press:active',
-      ) as CSSStyleRule | undefined;
-    expect(pressRule?.style.transform).toBe(
-      'scale(var(--fx-press-scale, 0.985))',
+    expect(await readHeldTransform(getTodoCard(TAX_REPORT_TITLE))).toBe(
+      shrunkBy(0.985),
     );
+    expect(await readHeldTransform(getCard('DONE', 'Workout').card)).toBe(
+      'none',
+    );
+    expect(await readHeldTransform(getCells()[0])).toBe(shrunkBy(0.96));
+    await userEvent.keyboard('{Escape}');
+    await openBacklog();
+    expect(await readHeldTransform(getCard('BACKLOG', 'Read').card)).toBe(
+      'none',
+    );
+    await userEvent.click(getShownByTitle('Close backlog'));
 
     await setReducedMotion(true);
-    expect(getComputedStyle(todoCard).transitionDuration).toBe('0s');
+    expect(await readHeldTransform(getTodoCard('Workout'))).toBe('none');
+    expect(await readHeldTransform(getCells()[0])).toBe('none');
+    await userEvent.keyboard('{Escape}');
 
+    await setReducedMotion(false);
     await lastWeek.unmount();
     await renderBoard(NEXT_WEEK_BOARD);
-    for (const cell of getCells()) expect(isPressable(cell)).toBe(false);
+    expect(await readHeldTransform(getCells()[0])).toBe('none');
   });
 });
 
@@ -2346,8 +2414,8 @@ describe('A move', () => {
     expect(document.body.textContent).not.toContain(TAX_REPORT_TITLE);
     await userEvent.click(getTodayCell());
     await expect
-      .poll(() => readDayListRows(getDayListPanel()))
-      .toContain(TAX_REPORT_TITLE);
+      .poll(() => readDayListRows(getOpenSheet()))
+      .toContainEqual([TAX_REPORT_TITLE]);
   });
 
   it("MV-6 today's ring counts each move at once: a card finished from Todo adds a done, one pulled in adds a planned, one finished from the backlog adds both", async () => {
@@ -2433,18 +2501,20 @@ describe('A move', () => {
     const save = Promise.withResolvers<SaveResult>();
     vi.mocked(updateTaskStatusAction).mockReturnValue(save.promise);
     await renderBoard({tasks: withOnlyTodo([TAX_REPORT_TITLE])});
-    const closes: Element[] = [];
-    const observer = new MutationObserver(() => {
-      const motion = getTodayMotion();
-      if (
-        motion.classList.contains('fx-ring-close') &&
-        !closes.includes(motion)
-      )
-        closes.push(motion);
+    // Each time today's cell gets fx-ring-close, counted as it is added
+    let closes = 0;
+    const observer = new MutationObserver(records => {
+      for (const {oldValue} of records) {
+        const hadIt = (oldValue ?? '').split(/\s+/).includes('fx-ring-close');
+        if (!hadIt && getTodayMotion().classList.contains('fx-ring-close')) {
+          closes += 1;
+        }
+      }
     });
     observer.observe(getTodayMotion(), {
       attributes: true,
       attributeFilter: ['class'],
+      attributeOldValue: true,
     });
 
     await completeByTap(TAX_REPORT_TITLE);
@@ -2457,7 +2527,7 @@ describe('A move', () => {
       .toEqual([TAX_REPORT_TITLE]);
     expect(readTodayCount()).toBe('6 of 7 done');
     expect(hasCheck(getTodayCell())).toBe(false);
-    expect(closes).toHaveLength(1);
+    expect(closes).toBe(1);
     expect(
       vibrations.filter(pattern => pattern === RING_CLOSE_VIBRATION),
     ).toHaveLength(1);

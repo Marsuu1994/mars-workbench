@@ -89,8 +89,6 @@ describe('toBoardCards', () => {
       task: tasks[1],
       step: {
         projectTitle: 'Spanish A2 course',
-        number: 2,
-        count: 3,
         path: [true, true, false],
         currentSegment: 1,
       },

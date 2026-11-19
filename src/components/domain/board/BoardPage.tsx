@@ -95,6 +95,12 @@ export const BoardPage = ({
   const todayRing = rings.find(({state}) => state === DayState.TODAY);
   // An empty Todo says the day is clear once something was finished today
   const isDayClear = todoCards.length === 0 && (todayRing?.doneCount ?? 0) > 0;
+  // Today's ring as last rendered: a ✓ Complete finishes its card after the
+  // toss, and a pull during the toss may have opened the ring again
+  const todayRingRef = useRef(todayRing);
+  useEffect(() => {
+    todayRingRef.current = todayRing;
+  });
 
   useLayoutEffect(() => {
     const slideFrom = slideFromRef.current;
@@ -163,6 +169,7 @@ export const BoardPage = ({
   // Finishes a task on the page, by ✓ Complete or a drag onto Done: today's
   // cell jumps, and celebrates when this closes its ring (FX-3, FX-4)
   function finishTask(taskId: string, isFromBacklog: boolean) {
+    const todayRing = todayRingRef.current;
     const closesToday =
       todayRing !== undefined &&
       !todayRing.isClosed &&

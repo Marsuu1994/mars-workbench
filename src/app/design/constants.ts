@@ -176,31 +176,19 @@ const xs = {
 
 /** A habit's week as toBoardCards computes it: its slots in order (true =
     done). */
-const habitWeek = (
-  type: TaskType,
-  frequency: number,
-  slots: boolean[],
-): HabitWeek => ({
-  type,
-  frequency,
+const habitWeek = (slots: boolean[]): HabitWeek => ({
   slots,
   done: slots.filter(Boolean).length,
   target: slots.length,
 });
 
 // LeetCode 3× / week: #1 done, the Todo card is #2.
-const LEETCODE_WEEK = habitWeek(TaskType.WEEKLY, 3, [true, false, false]);
+const LEETCODE_WEEK = habitWeek([true, false, false]);
 // Workout daily (NORMAL): Mon and Wed done, Tue missed; the Todo card is
 // Thursday's, the Done card Wednesday's.
-const WORKOUT_WEEK = habitWeek(TaskType.DAILY, 1, [
-  true,
-  false,
-  true,
-  false,
-  false,
-]);
+const WORKOUT_WEEK = habitWeek([true, false, true, false, false]);
 // Read 2× / week, both still in the backlog; the card is #1.
-const READ_WEEK = habitWeek(TaskType.WEEKLY, 2, [false, false]);
+const READ_WEEK = habitWeek([false, false]);
 
 /** A habit card: its week, and the slot of its own (ringed) dot. */
 const habitCard = (
@@ -222,8 +210,6 @@ const stepContext = (
   path: boolean[],
 ): ProjectStepContext => ({
   projectTitle,
-  number,
-  count: path.length,
   path,
   currentSegment: number - 1,
 });

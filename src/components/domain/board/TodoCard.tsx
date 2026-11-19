@@ -1,6 +1,6 @@
 'use client';
 
-import type {KeyboardEvent} from 'react';
+import {useId, type KeyboardEvent} from 'react';
 import {useTranslations} from 'next-intl';
 import {
   Draggable,
@@ -33,6 +33,9 @@ export const TodoCard = ({card, index}: TodoCardProps) => {
   const {kind, task} = card;
   const isSelected = selectedTaskId === task.id;
   const {edge} = TASK_KIND_STYLE[kind];
+  // The label names the card; the face it describes keeps the kind line and
+  // the habit's dots or the step's path in what a screen reader hears.
+  const faceId = useId();
 
   const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key !== 'Enter') return;
@@ -58,6 +61,7 @@ export const TodoCard = ({card, index}: TodoCardProps) => {
           ? t('selectedLabel', {title: task.title})
           : t('selectLabel', {title: task.title})
       }
+      aria-describedby={faceId}
       onClick={() => pressTodoCard(task.id)}
       onKeyDown={handleKeyDown}
       className={`card fx-card fx-press w-full flex-shrink-0 cursor-pointer border bg-base-100/70 ${edge} ${
@@ -66,16 +70,18 @@ export const TodoCard = ({card, index}: TodoCardProps) => {
           : 'border-base-content/10'
       } ${snapshot?.isDragging ? 'fx-card-lift z-50 scale-[1.02]' : ''}`}
     >
-      <TaskCardFace
-        card={card}
-        action={
-          <TodoCardAction
-            taskId={task.id}
-            title={task.title}
-            isSelected={isSelected}
-          />
-        }
-      />
+      <div id={faceId}>
+        <TaskCardFace
+          card={card}
+          action={
+            <TodoCardAction
+              taskId={task.id}
+              title={task.title}
+              isSelected={isSelected}
+            />
+          }
+        />
+      </div>
     </div>
   );
 

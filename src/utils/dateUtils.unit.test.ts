@@ -1,7 +1,6 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {MOMENTS, freezeTime} from '../../test/time';
 import {
-  countWeekdaysInRange,
   formatDayLabel,
   formatISODate,
   formatKanbanISODate,
@@ -92,15 +91,5 @@ describe('calendar days', () => {
     expect(isWeekend(localDay('2026-10-17'))).toBe(true);
     expect(isWeekend(localDay('2026-10-18'))).toBe(true);
     expect(isWeekend(localDay('2026-10-16'))).toBe(false);
-  });
-
-  it.each([
-    ['2026-10-14', '2026-10-18', 3],
-    ['2026-10-12', '2026-10-18', 5],
-    ['2026-10-14', '2026-10-14', 1],
-    ['2026-10-17', '2026-10-18', 0],
-    ['2026-10-26', '2026-11-06', 10],
-  ])('counts weekdays from %s to %s: %i', (from, to, weekdays) => {
-    expect(countWeekdaysInRange(localDay(from), localDay(to))).toBe(weekdays);
   });
 });

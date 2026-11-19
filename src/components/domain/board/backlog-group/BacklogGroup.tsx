@@ -86,7 +86,7 @@ export const BacklogGroup = ({group, variant}: BacklogGroupProps) => {
   // Workaround (@hello-pangea/dnd): each group is a drop zone of its own, with
   // drops disabled. In one list shared by every group, dnd closes a lifted
   // card's gap as soon as the card leaves the list, and every group below it
-  // moves up while the card is still in the air (BL-14).
+  // moves up while the card is still in the air (BL-18).
   const renderDraggableCard = () => (
     <Droppable
       droppableId={`${BACKLOG_GROUP_DROPPABLE_PREFIX}${key}`}

@@ -17,7 +17,7 @@ interface BoardCardBase {
   task: TaskItem;
 }
 
-/** A habit instance: its plan line and week dots, and its own dot (ringed). */
+/** A habit instance: its week's dots, and its own dot (ringed). */
 export interface HabitCard extends BoardCardBase {
   kind: typeof TaskKind.HABIT;
   /** Absent when the template has no line on the plan */
@@ -26,20 +26,16 @@ export interface HabitCard extends BoardCardBase {
   currentSlot?: number;
 }
 
-/** A step card's context and signal: its project, its number, the path. */
+/** A step card's context and signal: its project and the path. */
 export interface ProjectStepContext {
   projectTitle: string;
-  /** The step's number in its project (its instanceIndex) */
-  number: number;
-  /** Steps in the project */
-  count: number;
   /** One mark per step, in path order; true when that step is done */
   path: boolean[];
   /** This step's mark in the path; absent when the lookup doesn't list it */
   currentSegment?: number;
 }
 
-/** A project step: its project's name, step n of N and the path. */
+/** A project step: its project's name and the path. */
 export interface ProjectStepCard extends BoardCardBase {
   kind: typeof TaskKind.PROJECT;
   /** Absent when the project isn't in the lookup */
@@ -85,8 +81,6 @@ function toProjectStepContext(
   const currentSegment = steps.findIndex(step => step.id === task.id);
   return {
     projectTitle: title,
-    number: task.instanceIndex,
-    count: steps.length,
     path: steps.map(
       step => (statusByTaskId.get(step.id) ?? step.status) === TaskStatus.DONE,
     ),

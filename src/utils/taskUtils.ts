@@ -72,10 +72,8 @@ export interface BoardPlan {
   planTemplates: PlanLine[];
 }
 
-/** A habit card's context and signal: its plan line plus this week's dots. */
+/** A habit card's signal: this week's dots. */
 export interface HabitWeek {
-  type: TaskTypeEnum;
-  frequency: number;
   /**
    * One mark per instance the line generates this week, in order — weekly:
    * by instance; daily: by day, then instance. True when that instance is done.
@@ -163,8 +161,6 @@ export function computeHabitWeeks(
     }
 
     habitWeekByTemplateId.set(templateId, {
-      type,
-      frequency,
       slots,
       done: slots.filter(Boolean).length,
       target: slotCount,

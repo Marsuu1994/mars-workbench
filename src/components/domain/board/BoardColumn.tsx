@@ -76,7 +76,7 @@ export const BoardColumn = ({
               </h2>
             </div>
             <div className="flex items-center gap-2 md:ml-auto">
-              <span className="fx-num text-[10px] font-semibold uppercase tracking-[0.12em] text-base-content/45">
+              <span className="hidden fx-num text-[10px] font-semibold uppercase tracking-[0.12em] text-base-content/45 md:inline">
                 {tColumns(tagKey)}
               </span>
               <span className="badge badge-ghost badge-sm fx-num">{count}</span>

@@ -64,8 +64,6 @@ describe('computeHabitWeeks', () => {
       plan(PlanMode.NORMAL),
     );
     expect(habitWeekByTemplateId.get('run')).toEqual({
-      type: TaskType.DAILY,
-      frequency: 1,
       slots: [true, false, false, false, false],
       done: 1,
       target: 5,

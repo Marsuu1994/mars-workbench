@@ -127,7 +127,7 @@ export const dragCardWithKeyboard = async (page: Page, drag: KeyboardDrag) => {
   await dropLiftedCard(page, drag);
 };
 
-/** A column's header count: how many cards it has (COL-1). */
+/** A column's header count: how many cards it has (COL-6). */
 export const findColumnCount = (
   page: Page,
   status: Exclude<BoardStatus, 'BACKLOG'>,

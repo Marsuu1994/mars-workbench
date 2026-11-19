@@ -26,7 +26,7 @@ const JUICE_CLASS: Record<Juice, string> = {
 
 /** How many chips the burst throws, and the gold they alternate with */
 const BURST_CHIP_COUNT = 12;
-const BURST_GOLD = 'oklch(0.85 0.16 85)';
+const BURST_GOLD = 'var(--color-warning)';
 /** How high the toss's arc rises above a straight line, in px */
 const TOSS_ARC_HEIGHT = 48;
 

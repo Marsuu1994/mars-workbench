@@ -58,7 +58,7 @@ The top of the board is a row of rings, one for each day of the plan's week, Mon
 
   The list is read only: its rows can't be pressed, dragged or moved back (R7).
 - **DAY-4** The open list closes when the user presses its close button, presses its day's cell again, presses anywhere outside it (on mobile, the dimmed board), or presses Esc (A14). Opening the backlog (A2) or selecting a card (A10) closes it too, and opening a day's list cancels a selected card (TAP-2).
-- **DAY-5** Keyboard and screen-reader users: each day's cell that is a button can be reached with Tab and pressed with Enter or Space, and a screen reader hears whether its list is open. Opening a list moves focus to its close button, and closing it moves focus back to the day's cell.
+- **DAY-5** Keyboard and screen-reader users: each day's cell that is a button can be reached with Tab and pressed with Enter or Space, and a screen reader hears whether its list is open. Opening a list moves focus to its close button, and closing it moves focus back to the day's cell. On desktop, a press outside the list is the exception: it leaves focus where that press put it, since the user has moved on to something else.
 
 ## Columns
 
@@ -159,7 +159,7 @@ What plays when a card is selected, completed and counted. How each motion looks
 | A11 | Cancel the selection | press the selected card again, press outside the Todo cards, press Esc, open a day's list or open the backlog | — | the card goes back to normal, with nothing finished (TAP-2) |
 | A12 | Complete | press ✓ Complete on the selected card, on either width | `updateTaskStatusAction` → `DONE` | the card plays its juice and is tossed into today's ring (FX-1, FX-2), then moves (A move) |
 | A13 | Open a day's list | press today's cell or a day's cell before it, in the row of rings | — | the day's list opens, in a panel on desktop or a sheet on mobile (DAY-2), and focus moves to its close button (DAY-5) |
-| A14 | Close a day's list | its close button, its day's cell again, anywhere outside it, or Esc | — | it closes, and focus goes back to the day's cell (DAY-5) |
+| A14 | Close a day's list | its close button, its day's cell again, anywhere outside it, or Esc | — | it closes, and focus goes back to the day's cell, except after a press outside it on desktop (DAY-5) |
 | A8 | Open or close a project's queue | **+N more** with its chevron, on a project's backlog card | — | the steps behind its next one show in place of the sheets under it, or are hidden again (BL-12) |
 
 ### A move
