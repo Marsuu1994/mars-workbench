@@ -906,7 +906,8 @@ describe('Day rings', () => {
       .poll(readTodayCount)
       .toBe(`${TODAY_COUNTS.done} of ${TODAY_COUNTS.done + 1} done`);
     expect(hasCheck(getTodayCell())).toBe(false);
-    expect(frameOf(getTodayCell())).not.toBe(closedFrame);
+    // The frame's colour eases to its new one (150 ms)
+    await expect.poll(() => frameOf(getTodayCell())).not.toBe(closedFrame);
     expect(readArcs(getTodayCell()).length).toBeGreaterThan(0);
 
     await userEvent.click(getShownByTitle('Close backlog'));
@@ -945,7 +946,7 @@ describe("A day's list", () => {
 
     expect(getDayListPanel().textContent).toContain('Mon');
     expect(monday.getAttribute('aria-expanded')).toBe('true');
-    expect(frameOf(monday)).not.toBe(plainFrame);
+    await expect.poll(() => frameOf(monday)).not.toBe(plainFrame);
 
     await userEvent.click(thursday);
 
@@ -953,7 +954,7 @@ describe("A day's list", () => {
     expect(readDayListRows(getDayListPanel())[0]).toEqual(['Workout']);
     expect(getDayListPanel().textContent).toContain('Thu');
     expect(monday.getAttribute('aria-expanded')).toBe('false');
-    expect(frameOf(monday)).toBe(plainFrame);
+    await expect.poll(() => frameOf(monday)).toBe(plainFrame);
 
     await userEvent.click(thursday);
 
