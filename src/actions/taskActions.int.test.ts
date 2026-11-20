@@ -29,7 +29,7 @@ beforeEach(() => {
 });
 
 describe('updateTaskStatusAction', () => {
-  it('MV-3 a move reloads the board', async () => {
+  it('MV-7 a move reloads the board', async () => {
     const {plan} = await createWeek(userId, {
       mode: PlanMode.NORMAL,
       newTemplates: [newHabit('Review', TaskType.WEEKLY)],
@@ -42,7 +42,7 @@ describe('updateTaskStatusAction', () => {
     expect(vi.mocked(revalidatePath).mock.calls).toEqual([['/kanban']]);
   });
 
-  it('MV-3 a one-off moved to Done reloads the priority matrix too', async () => {
+  it('MV-7 a one-off moved to Done reloads the priority matrix too', async () => {
     await createWeek(userId, {
       mode: PlanMode.NORMAL,
       newTemplates: [newHabit('Review', TaskType.WEEKLY)],

@@ -13,8 +13,8 @@ This file is the one home of the rules for writing a test. The `implement-spec` 
 
 Shared helpers live here in `test/`:
 
-- `component/`: the page's providers and stylesheet for component tests;
-- `factories.ts`: data written through the services;
+- `component/`: the page's providers and stylesheet for component tests, and the browser commands they call (holding the pointer down);
+- `factories.ts`: data written through the services (and, for an earlier day of the week, straight to the table: Unit and integration › Build data through the services);
 - `time.ts`: frozen moments of one week;
 - `buildTask.ts`: DAL rows for unit tests;
 - `seedData.ts` and `seedWeek.ts`: the dev user's seeded week (`npm run db:seed`);
@@ -47,9 +47,9 @@ A behaviour whose parts live in different layers is tested in each: the returnin
 What a unit, integration or component test can hold is held there, never by e2e alone. e2e is the high-level check, and holds only two things:
 
 - **that a journey is wired end to end**: the action lands and the page shows it, asserted once;
-- **what only a real server shows**: the page getting the saved data without a reload, a redirect, what's still there after a reload. A component test can only stand in for these, so a journey step asserts them, even when their logic lives in a lower layer. `design/specs/board.md` MV-3 is the example: the integration test checks the action asks for a reload, the component test fakes the new props, and only J5's A7 step shows the progress actually moving.
+- **what only a real server shows**: the page getting the saved data without a reload, a redirect, what's still there after a reload. A component test can only stand in for these, so a journey step asserts them, even when their logic lives in a lower layer. `design/specs/board.md` MV-7 is the example: the integration test checks the action asks for a reload, the component test fakes the new props, and only J12's reload shows the finished task still counted in today's ring.
 
-A journey step may assert more as it passes, but it holds nothing a lower layer could: the edge cases of a value are integration tests, and how each state looks is a component test, which the Design Console also shows the owner. A break that only e2e catches is a lower-layer test missing. Bad: an e2e test per progress-bar state. Bad: BL-13's queue closing once no step is left behind, held only by J5's and J6's steps until PR #126's review, when a component test reaches the same state with one more drag. Good: one drag to Done asserting today's count went up, and the counts' edge cases in `boardService.int.test.ts`.
+A journey step may assert more as it passes, but it holds nothing a lower layer could: the edge cases of a value are integration tests, and how each state looks is a component test, which the Design Console also shows the owner. A break that only e2e catches is a lower-layer test missing. Bad: an e2e test per progress-bar state. Bad: BL-13's queue closing once no step is left behind, held only by the week's-work journeys' steps until PR #126's review, when a component test reaches the same state with one more drag. Good: one drag to Done asserting today's count went up, and the counts' edge cases in `boardService.int.test.ts`.
 
 ## Every test
 
@@ -62,7 +62,7 @@ A journey step may assert more as it passes, but it holds nothing a lower layer 
 - **Both timezones**: every Vitest project runs once in `UTC` (Vercel) and once in `America/Los_Angeles` (`next dev` on the owner's Mac). A date bug usually shows in one of them only.
 - **A real database, never a mocked DAL or Prisma**: integration tests assert the state a service leaves behind, so they survive refactors that change how it calls the DAL. They run against `mars_test`, a database of its own beside the dev one; `test/integration/globalSetup.ts` finds a Postgres (`TEST_DATABASE_URL` in CI, else the local stack, else a cloud container's system Postgres, started on demand), creates and migrates the database and empties it before each run.
 - **A fresh user per test**: `newUserId()` in `beforeEach`. Every query is scoped by userId and the app tables have no foreign key to Auth, so tests never see each other's rows — no cleanup, and files run in parallel.
-- **Build data through the services** with `test/factories.ts`, frozen at a moment from `test/time.ts`: the data then has the dates and invariants the app would give it. Tests may read the database through Prisma to assert what a service left behind; app code outside the DAL may not.
+- **Build data through the services** with `test/factories.ts`, frozen at a moment from `test/time.ts`: the data then has the dates and invariants the app would give it. Tests may read the database through Prisma to assert what a service left behind; app code outside the DAL may not. The one helper that writes rows itself is `createEarlierDay`: the app only ever makes today's daily tasks and stamps a finish with the moment it happens, so no service can write a day that has passed.
 - **Freeze time with `freezeTime()`**, which fakes `Date` only, so database connections keep their timers; the integration setup restores real timers after each test.
 - **A known bug is an `it.fails`** naming its tracker item; flip it to `it` in the PR that fixes it.
 - **Coverage floors** in `vitest.config.mts` (`src/utils`, services + DAL) only go up: raise them when coverage grows, never lower them to pass. Components, actions and pages have no floor; component tests, e2e and the owner's acceptance cover them.
@@ -89,16 +89,16 @@ A journey step may assert more as it passes, but it holds nothing a lower layer 
 - **Specs import the factories, not the app's internals**: Playwright loads TypeScript as CommonJS, which is why the Prisma client is generated as CommonJS (`prisma/schema.prisma`). A spec writes data only through `seed`; reads go through the page.
 - **Let a server action land before leaving the page**: an optimistic update shows before its action saves it, and a reload or navigation right after one aborts the save — CI's slower runner loses that race where a local run doesn't. Start `waitForServerAction(page, path)` (`e2e/fixtures.ts`) before the click and await it before you leave.
 - **Timing**: CI's e2e job summary lists each spec's time per project (`npm run e2e:timing`, from the JSON report).
-- **Dates stay out of e2e**: the server is another process and its clock can't be frozen, so date logic is tested at the integration layer.
+- **Dates stay out of e2e**: the server is another process and its clock can't be frozen, so date logic is tested at the integration layer. One journey can't avoid the date: the board's look back at a day (J17, J18) needs two days of this week before today, so it skips on a Monday and a Tuesday. The items it walks are held every day by the component tests, which render last week's plan.
 
 ## Spec IDs
 
-A page migrated to spec v2 (`design/specs/README.md`) has an ID on every item, and a test names the IDs it holds at the start of its title: `it('CARD-2 R4 a Done card is dimmed …')`, `test('J5 …')`, a journey's `test.step('A4 …')`. A test may hold several IDs and an ID may be held by several tests; what counts is that every ID is held by at least one, in the layer Which layer gives it.
+A page migrated to spec v2 (`design/specs/README.md`) has an ID on every item, and a test names the IDs it holds at the start of its title: `it('CARD-2 R4 a Done card is dimmed …')`, `test('J12 …')`, a journey's `test.step('A4 …')`. A test may hold several IDs and an ID may be held by several tests; what counts is that every ID is held by at least one, in the layer Which layer gives it.
 
 - **Name the spec**: a test file whose titles name IDs says which spec they're from, on its first line: `// Spec: design/specs/board.md`. A file can hold several specs' items, one comment per spec. `check:spec` reads titles only in files with this comment, so an unrelated title such as `UTF-8 input is decoded` is never taken for an ID, and a test in a file without it holds nothing.
 - **Write it from the item's text**: the assertions are the outcomes the item states — its counts, caps, order and what is absent — read off the item, not off the code under test. An item that can't be asserted as written is a question about the spec, not a reason to assert whatever the code does.
 - **Write tests sparingly**: the IDs one scenario can assert together share one test (`CARD-2 R4` checks the Done card's look and its missing drag handle on the same render); split only when the layer differs or the scenario needs its own setup.
-- **A title names only what the test proves**: for each ID in its title, the test has an assertion that fails when that item breaks. A journey step that only reaches a state names no ID. Bad: `test.step('ST-3 the board', …)` that only opens the page. Good: `test.step('A7 MV-3 finish the step', …)` asserting the card is in Done and today's count went up, before any reload.
+- **A title names only what the test proves**: for each ID in its title, the test has an assertion that fails when that item breaks. A journey step that only reaches a state names no ID. Bad: `test.step('ST-4 the board', …)` that only opens the page. Good: `test.step('A12 MV-6 finish the step', …)` asserting the card is in Done and today's ring counts it, before any reload.
 - **The markers say which items need a test yet**, and when an implementation PR is done (`design/specs/README.md` › Items and IDs).
 - **`npm run check:spec`** (CI) fails when an item no test holds, a `(bug)` item no `it.fails` holds, a title naming an ID its spec doesn't have or one still pending, an item that isn't a `(bug)` held only by an `it.fails`, or an ID used twice. A skipped or commented-out test holds nothing, and a `describe.skip` fails the check, since the tests inside would still count. It also keeps the legacy docs from growing (`design/specs/README.md` › Legacy docs).
 - **`npm run check:spec -- --list <page>`** prints the page's items, each with where it stands (held, pending, removing, bug) and the tests holding it. CI writes the same list for every spec into the job summary.

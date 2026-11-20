@@ -24,6 +24,13 @@ export type PlayTarget = (
       /** Copy outside en.json (gallery demo strings): the name itself */
       name: string;
     }
+  | {
+      /**
+       * A control whose name holds fixture data or the date (a board card,
+       * today's ring): a CSS selector matching it alone
+       */
+      selector: string;
+    }
 ) & {
   /** CSS selector narrowing the search, e.g. one fixture card */
   within?: string;
@@ -73,6 +80,19 @@ const isVisible = (element: HTMLElement) => element.getClientRects().length > 0;
 const resolveByVisibility = (named: HTMLElement[]) =>
   named.length > 1 ? named.filter(isVisible) : named;
 
+/**
+ * InteractionShield lets a click through only while this gate is open, so
+ * human clicks stay swallowed.
+ */
+const clickThroughGate = (root: HTMLElement, element: HTMLElement) => {
+  root.dataset.playing = 'true';
+  try {
+    element.click();
+  } finally {
+    delete root.dataset.playing;
+  }
+};
+
 /** Clicks the single control named `name`, opening the gate just for it. */
 const clickByName = (root: HTMLElement, name: string, within?: string) => {
   const scope = within ? root.querySelector(within) : root;
@@ -87,14 +107,16 @@ const clickByName = (root: HTMLElement, name: string, within?: string) => {
     throw new Error(`${named.length} controls named "${name}"${visible}`);
   }
 
-  // InteractionShield lets a click through only while this gate is open, so
-  // human clicks stay swallowed.
-  root.dataset.playing = 'true';
-  try {
-    matches[0].click();
-  } finally {
-    delete root.dataset.playing;
+  clickThroughGate(root, matches[0]);
+};
+
+/** Clicks the single element `selector` matches, opening the gate just for it. */
+const clickBySelector = (root: HTMLElement, selector: string) => {
+  const matches = root.querySelectorAll<HTMLElement>(selector);
+  if (matches.length !== 1) {
+    throw new Error(`${matches.length} elements match "${selector}"`);
   }
+  clickThroughGate(root, matches[0]);
 };
 
 /** Lets React commit the previous step before the next one looks for its target. */
@@ -132,9 +154,13 @@ export const PlayRunner = ({steps, scopeRef, onError}: PlayRunnerProps) => {
         if (index > 0) await nextTask();
         if (!root.isConnected) return;
         const {within, ...target} = steps[index].click;
-        const name = 'label' in target ? t(target.label) : target.name;
         try {
-          clickByName(root, name, within);
+          if ('selector' in target) {
+            clickBySelector(root, target.selector);
+          } else {
+            const name = 'label' in target ? t(target.label) : target.name;
+            clickByName(root, name, within);
+          }
         } catch (error) {
           const reason = error instanceof Error ? error.message : String(error);
           throw new Error(`Play step ${index + 1} failed: ${reason}`);

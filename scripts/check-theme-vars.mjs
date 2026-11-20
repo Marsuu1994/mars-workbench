@@ -6,6 +6,13 @@
  * src/app/globals.css. A variable added for one theme must land in all of
  * them in the same change. Themes come from THEMES in src/utils/theme.ts, so
  * a new theme is held to the same contract the moment it is registered.
+ *
+ * It also holds one rule about the same file's keyframes: none mixes a
+ * colour from a variable (`color-mix(… var(--x) …)`). Tailwind rewrites that
+ * into a fallback inside `@supports`, which a keyframe can't hold, and the
+ * build then ships the keyframe empty without a warning: the animation runs
+ * and draws nothing. The colour is mixed in a variable on the animated
+ * element instead, and the keyframe reads the variable.
  */
 import {readFileSync} from 'node:fs';
 
@@ -59,9 +66,19 @@ const parseBlocks = css => {
 const DAISY_BLOCK = '@plugin "daisyui/theme"';
 const THEME_SCOPE = /^\[data-theme=(['"]?)([\w-]+)\1\]$/;
 
+const blocks = parseBlocks(readFileSync(CSS_PATH, 'utf8'));
+
+const KEYFRAMES_BLOCK = /^@keyframes\s+([\w-]+)$/;
+const MIX_FROM_VARIABLE = /color-mix\([^;{}]*var\(/;
+/** The keyframes that mix a colour from a variable, which the build empties */
+const emptiedKeyframes = blocks.flatMap(({selector, body}) => {
+  const name = selector.match(KEYFRAMES_BLOCK)?.[1];
+  return name && MIX_FROM_VARIABLE.test(stripComments(body)) ? [name] : [];
+});
+
 /** theme name → Set of custom properties it declares */
 const declared = new Map();
-for (const {selector, body} of parseBlocks(readFileSync(CSS_PATH, 'utf8'))) {
+for (const {selector, body} of blocks) {
   let theme = null;
   if (selector === DAISY_BLOCK) {
     theme = stripComments(body).match(/name:\s*(['"])([\w-]+)\1/)?.[2] ?? null;
@@ -102,9 +119,19 @@ if (problems.length > 0) {
   console.error('Theme variable contract broken — every theme must declare');
   console.error('the same custom properties (src/app/globals.css):');
   for (const problem of problems) console.error(`  • ${problem}`);
+}
+
+if (emptiedKeyframes.length > 0) {
+  console.error('Keyframes that mix a colour from a variable — the build');
+  console.error('ships them empty. Mix the colour in a variable on the');
+  console.error(`animated element and read it in the keyframe (${CSS_PATH}):`);
+  for (const name of emptiedKeyframes) console.error(`  • @keyframes ${name}`);
+}
+
+if (problems.length > 0 || emptiedKeyframes.length > 0) {
   process.exit(1);
 }
 
 console.log(
-  `Theme variable contract OK: ${themes.length} themes (${themes.join(', ')}) declare the same ${contract.size} variables.`,
+  `Theme variable contract OK: ${themes.length} themes (${themes.join(', ')}) declare the same ${contract.size} variables; no keyframe mixes a colour from a variable.`,
 );

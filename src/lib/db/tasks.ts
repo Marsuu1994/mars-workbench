@@ -1,5 +1,4 @@
 import {prisma} from '@/lib/prisma';
-import {KANBAN_TZ} from '@/utils/dateUtils';
 import {updateOrNull} from '@/lib/db/updateOrNull';
 import {
   Prisma,
@@ -36,21 +35,6 @@ export type TaskItem = {
  */
 export type CarryOverTaskType =
   typeof TaskType.AD_HOC | typeof TaskType.PROJECT;
-
-export type BoardMetrics = {
-  todayDoneCount: number;
-  todayDonePoints: number;
-  weekDoneCount: number;
-  weekDonePoints: number;
-  dailyPastCount: number;
-  dailyPastPoints: number;
-  weeklyCount: number;
-  weeklyPoints: number;
-  adhocCount: number;
-  adhocPoints: number;
-  projectCount: number;
-  projectPoints: number;
-};
 
 export const taskSelect = {
   id: true,
@@ -90,104 +74,32 @@ export async function getBoardTasksByPlanId(
   });
 }
 
-const EMPTY_BOARD_METRICS: BoardMetrics = {
-  todayDoneCount: 0,
-  todayDonePoints: 0,
-  weekDoneCount: 0,
-  weekDonePoints: 0,
-  dailyPastCount: 0,
-  dailyPastPoints: 0,
-  weeklyCount: 0,
-  weeklyPoints: 0,
-  adhocCount: 0,
-  adhocPoints: 0,
-  projectCount: 0,
-  projectPoints: 0,
-};
-
-type BoardMetricsRow = {
-  todayDoneCount: unknown;
-  todayDonePoints: unknown;
-  weekDoneCount: unknown;
-  weekDonePoints: unknown;
-  dailyPastCount: unknown;
-  dailyPastPoints: unknown;
-  weeklyCount: unknown;
-  weeklyPoints: unknown;
-  adhocCount: unknown;
-  adhocPoints: unknown;
-  projectCount: unknown;
-  projectPoints: unknown;
-};
-
-function toNumber(value: unknown): number {
-  if (typeof value === 'number') return value;
-  if (typeof value === 'bigint') return Number(value);
-  if (typeof value === 'string') return Number(value);
-  return 0;
-}
-
-function toLocalDateKey(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
 /**
- * Fetch all board-level metrics in one aggregate query for a plan. `today` is
- * the kanban day (getTodayDate); a task counts as done today when its doneAt
- * falls on that day in KANBAN_TZ, whatever the server's own timezone.
+ * How many daily habit tasks expired undone on each day of a plan, by the
+ * day as "YYYY-MM-DD". The daily sync expires a day's tasks once it has
+ * passed, so only past days have any.
  */
-export async function getBoardMetricsByPlanId(
+export async function getExpiredDailyCountsByPlanId(
   userId: string,
   planId: string,
-  today: Date,
-): Promise<BoardMetrics> {
-  const todayDateKey = toLocalDateKey(today);
-
-  const rows = await prisma.$queryRaw<BoardMetricsRow[]>`
-    SELECT
-      COUNT(*) FILTER (
-        WHERE status = 'DONE'
-          AND (done_at AT TIME ZONE ${KANBAN_TZ})::date = ${todayDateKey}::date
-      ) AS "todayDoneCount",
-      COALESCE(SUM(points) FILTER (
-        WHERE status = 'DONE'
-          AND (done_at AT TIME ZONE ${KANBAN_TZ})::date = ${todayDateKey}::date
-      ), 0) AS "todayDonePoints",
-      COUNT(*) FILTER (WHERE status = 'DONE') AS "weekDoneCount",
-      COALESCE(SUM(points) FILTER (WHERE status = 'DONE'), 0) AS "weekDonePoints",
-      COUNT(*) FILTER (WHERE for_date < ${todayDateKey}::date) AS "dailyPastCount",
-      COALESCE(SUM(points) FILTER (WHERE for_date < ${todayDateKey}::date), 0) AS "dailyPastPoints",
-      COUNT(*) FILTER (WHERE type = 'WEEKLY') AS "weeklyCount",
-      COALESCE(SUM(points) FILTER (WHERE type = 'WEEKLY'), 0) AS "weeklyPoints",
-      COUNT(*) FILTER (WHERE type = 'AD_HOC') AS "adhocCount",
-      COALESCE(SUM(points) FILTER (WHERE type = 'AD_HOC'), 0) AS "adhocPoints",
-      COUNT(*) FILTER (WHERE type = 'PROJECT') AS "projectCount",
-      COALESCE(SUM(points) FILTER (WHERE type = 'PROJECT'), 0) AS "projectPoints"
-    FROM tasks
-    WHERE plan_id = ${planId}::uuid
-      AND user_id = ${userId}::uuid
-  `;
-
-  const row = rows[0];
-  if (!row) return EMPTY_BOARD_METRICS;
-
-  return {
-    todayDoneCount: toNumber(row.todayDoneCount),
-    todayDonePoints: toNumber(row.todayDonePoints),
-    weekDoneCount: toNumber(row.weekDoneCount),
-    weekDonePoints: toNumber(row.weekDonePoints),
-    dailyPastCount: toNumber(row.dailyPastCount),
-    dailyPastPoints: toNumber(row.dailyPastPoints),
-    weeklyCount: toNumber(row.weeklyCount),
-    weeklyPoints: toNumber(row.weeklyPoints),
-    adhocCount: toNumber(row.adhocCount),
-    adhocPoints: toNumber(row.adhocPoints),
-    projectCount: toNumber(row.projectCount),
-    projectPoints: toNumber(row.projectPoints),
-  };
+): Promise<Record<string, number>> {
+  const grouped = await prisma.task.groupBy({
+    by: ['forDate'],
+    where: {
+      userId,
+      planId,
+      type: TaskType.DAILY,
+      status: TaskStatus.EXPIRED,
+      forDate: {not: null},
+    },
+    _count: {_all: true},
+  });
+  // A DATE column comes back at UTC midnight
+  return Object.fromEntries(
+    grouped.flatMap(({forDate, _count}) =>
+      forDate ? [[forDate.toISOString().slice(0, 10), _count._all]] : [],
+    ),
+  );
 }
 
 /** A new matrix task's own fields; the rest of its row is the same for all. */

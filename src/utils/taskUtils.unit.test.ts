@@ -7,7 +7,6 @@ import {
   TaskKind,
   computeHabitWeeks,
   getTaskKind,
-  hasTaskDoneToday,
   sortDoneTasks,
   sortTasks,
   type BoardPlan,
@@ -59,14 +58,12 @@ describe('computeHabitWeeks', () => {
     review('review-2', 1, TaskStatus.BACKLOG),
   ];
 
-  it('CARD-8 gives a daily line a dot for every weekday of a NORMAL week', () => {
+  it('CARD-10 gives a daily line a dot for every weekday of a NORMAL week', () => {
     const {habitWeekByTemplateId, slotByTaskId} = computeHabitWeeks(
       tasks,
       plan(PlanMode.NORMAL),
     );
     expect(habitWeekByTemplateId.get('run')).toEqual({
-      type: TaskType.DAILY,
-      frequency: 1,
       slots: [true, false, false, false, false],
       done: 1,
       target: 5,
@@ -76,7 +73,7 @@ describe('computeHabitWeeks', () => {
     expect(slotByTaskId.has('run-sat')).toBe(false);
   });
 
-  it('CARD-8 counts every day of an EXTREME week', () => {
+  it('CARD-10 counts every day of an EXTREME week', () => {
     const {habitWeekByTemplateId, slotByTaskId} = computeHabitWeeks(
       tasks,
       plan(PlanMode.EXTREME),
@@ -89,7 +86,7 @@ describe('computeHabitWeeks', () => {
     expect(slotByTaskId.get('run-sat')).toBe(5);
   });
 
-  it('CARD-8 gives a weekly line one dot per instance', () => {
+  it('CARD-10 gives a weekly line one dot per instance', () => {
     const {habitWeekByTemplateId, slotByTaskId} = computeHabitWeeks(
       tasks,
       plan(PlanMode.NORMAL),
@@ -102,7 +99,7 @@ describe('computeHabitWeeks', () => {
     expect(slotByTaskId.get('review-2')).toBe(1);
   });
 
-  it('CARD-8 keeps a DONE instance past a frequency cut', () => {
+  it('CARD-10 keeps a DONE instance past a frequency cut', () => {
     const cutTasks = [...tasks, review('review-3', 2, TaskStatus.DONE)];
     const {habitWeekByTemplateId} = computeHabitWeeks(
       cutTasks,
@@ -114,7 +111,7 @@ describe('computeHabitWeeks', () => {
     });
   });
 
-  it('CARD-8 leaves a daily instance past the frequency without a dot', () => {
+  it('CARD-10 leaves a daily instance past the frequency without a dot', () => {
     const secondRun = buildTask({
       ...runOn('run-mon-2', '2026-10-12', TaskStatus.DONE),
       instanceIndex: 1,
@@ -126,7 +123,7 @@ describe('computeHabitWeeks', () => {
     expect(slotByTaskId.has('run-mon-2')).toBe(false);
   });
 
-  it('CARD-8 gives a template with no instances an empty line', () => {
+  it('CARD-10 gives a template with no instances an empty line', () => {
     const {habitWeekByTemplateId} = computeHabitWeeks(
       [],
       plan(PlanMode.NORMAL),
@@ -302,28 +299,5 @@ describe('sortDoneTasks', () => {
       buildTask({id, status: TaskStatus.DONE, doneAt: at(1)}),
     );
     expect(sortDoneTasks(tasks).map(task => task.id)).toEqual(['a', 'b']);
-  });
-});
-
-describe('hasTaskDoneToday', () => {
-  /** Wednesday 23:45 in Los Angeles: already Thursday in UTC. */
-  const WEDNESDAY_LATE = new Date('2026-10-15T06:45:00Z');
-  const doneAt = (instant: string) => ({doneAt: new Date(instant)});
-
-  it('COL-5 counts a task finished earlier on the same Los Angeles day', () => {
-    // Wednesday 08:00 in Los Angeles
-    expect(
-      hasTaskDoneToday([doneAt('2026-10-14T15:00:00Z')], WEDNESDAY_LATE),
-    ).toBe(true);
-  });
-
-  it("COL-5 doesn't count yesterday's work, nor a task not finished", () => {
-    // Tuesday 23:00 in Los Angeles, already Wednesday in UTC
-    expect(
-      hasTaskDoneToday(
-        [doneAt('2026-10-14T06:00:00Z'), {doneAt: null}],
-        WEDNESDAY_LATE,
-      ),
-    ).toBe(false);
   });
 });

@@ -191,6 +191,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
   );
   ```
 
+- **A function passed to a prop that is empty or one line is written on the prop.** It doesn't get a name above the return. The exception is one that several props in the same file use: it is defined once and each prop takes it (DRY). Bad: `const NOOP = () => {};` above the component, for the one `onClose={NOOP}`. Good: `onClose={() => {}}`; `const close = () => closeDay({restoreFocus: false});` passed to both the sheet's and its list's `onClose`.
 - **No magic literals.** Fixed, non-user-facing literals — routes, numbers, thresholds, durations, style tokens, config values — go into an exported constant in a `constants.ts` next to the component (or a feature `constants/` folder). Bad: `maxLength={280}`, `href="/kanban/plans/new"` inline. Good: `MESSAGE_MAX_LENGTH`, `CREATE_PLAN_HREF` imported from `./constants`.
 - **User-facing copy is the mockup's, and goes through `next-intl`**: the words come from the decided mockup, or the Design Console once it's built, and how they read is `design/design-language/README.md` › Principles › 3.5–3.8. Strings live under a namespace in `src/i18n/en.json`, read with `useTranslations` (client) or `getTranslations` (server components, actions, `generateMetadata`). Use ICU for plurals and interpolation, `Enums.*` keys for enum labels, and `t.rich` for inline markup; decorative glyphs and emoji stay in the JSX. Never translated: LLM-facing text (`mcp/prompts/`, `utils/errorMessages.ts`) and internal `throw new Error(...)` messages. Bad: `export const TITLE = 'Create Weekly Plan';`. Good: `{"Plan": {"taskCount": "{count, plural, one {# task} other {# tasks}}"}}` read as `t('taskCount', {count})`.
 
@@ -228,7 +229,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
   1. `design/tracker.md`: delete finished items and sub-bullets.
   2. README Current State: rewrite the sections the change touches.
   3. AGENTS.md, or a README it indexes: only when a rule or a directory's responsibility changed.
-  4. Run `npm run format`, then `lint`, `typecheck`, `knip`, `check:spec`, `check:duplicate-types`, `test:coverage` and `test:component` (and `check:themes` when CSS variables changed). `test:coverage` and not `npm test`: CI fails below the coverage floors, which `npm test` doesn't check. CI runs e2e; run `npm run test:e2e` too when a change touches a page's flow.
+  4. Run `npm run format`, then `lint`, `typecheck`, `knip`, `check:spec`, `check:duplicate-types`, `test:coverage` and `test:component` (and `check:themes` when CSS variables or keyframes changed). `test:coverage` and not `npm test`: CI fails below the coverage floors, which `npm test` doesn't check. CI runs e2e; run `npm run test:e2e` too when a change touches a page's flow.
 - **Act on submitted reviews only.** A pending review — comments drafted but not yet submitted — can still change: don't reply to, resolve or push for its comments; at most mention that one is pending.
 
 ## Commands
@@ -241,7 +242,7 @@ npm run typecheck    # tsc --noEmit (CI; needs the generated Prisma client)
 npm run knip         # Unused files, exports and dependencies (CI; config in knip.jsonc)
 npm run format       # Format all code with Prettier
 npm run format:check # Verify formatting (CI)
-npm run check:themes # Every theme declares the same CSS variables (CI)
+npm run check:themes # Every theme declares the same CSS variables, and no keyframe mixes a colour from a variable (CI)
 npm run check:review-log  # Every owner review on a PR has its entry in reviews/ (CI; GITHUB_REPOSITORY and PR_NUMBER locally)
 npm run check:mockup-links  # Every mockup a PR changes is linked from its description (CI; same env)
 npm run check:spec   # Every item in a spec v2 doc is held by a test that names it, and no legacy doc grows (CI); `-- --list <page>` lists each item's tests

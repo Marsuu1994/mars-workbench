@@ -17,7 +17,9 @@ interface MobileBacklogProps {
 
 /**
  * Mobile-only backlog entry: a peeking pill docked above the bottom tab bar
- * that opens the backlog bottom sheet. The sheet stages BACKLOG tasks; tapping
+ * that opens the backlog bottom sheet, at most three quarters of the screen's
+ * height as it shows now (dvh: on iOS a vh counts the space under the
+ * browser's bars too). The sheet stages BACKLOG tasks; tapping
  * group card's "↑ Todo" button pulls its next task onto the board
  * (BACKLOG → TODO). The pill stays when the backlog is empty, showing 0. The
  * desktop equivalent is DesktopBacklog (drag-based); at md and up this
@@ -61,7 +63,7 @@ export const MobileBacklog = ({count, children}: MobileBacklogProps) => {
         isOpen={isOpen}
         onClose={close}
         closeLabel={t('closeLabel')}
-        boxClassName="p-0 max-h-[80vh] flex flex-col"
+        boxClassName="p-0 max-h-[75dvh] flex flex-col"
       >
         <MobileBacklogPanel count={count} onClose={close}>
           <Fragment key={closeCount}>{children}</Fragment>

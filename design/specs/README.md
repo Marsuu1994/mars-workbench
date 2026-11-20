@@ -16,7 +16,7 @@ Sections, in order:
 - **Rules** — the limits on the actions, each stated where it holds: on the board (UI) or on the server.
 - **Journeys** — how the page is used day to day, as a chain of action IDs: the happy path only.
   - A journey runs the same steps on the same data at both widths. The desktop journey is written out in full, and the mobile one sits right after it, pointing to it and naming only the steps that differ (a drag that is a tap on a phone). Journeys sit by what they do, never grouped by width.
-  - A journey's title names its width after a dash, `J5 A week's work - desktop`, never in brackets, which are kept for the markers. A path only one width has, such as finishing a backlog card by dragging it onto Done, is a journey of its own marked `- desktop-only` (or `- mobile-only`), with no pair.
+  - A journey's title names its width after a dash, `A week's work - desktop`, never in brackets, which are kept for the markers. A path only one width has, such as finishing a backlog card by dragging it onto Done, is a journey of its own marked `- desktop-only` (or `- mobile-only`), with no pair.
   - A design that changes how the page looks updates the journeys it touches, with data that shows it (a backlog holding piles); a new journey is only for a new path or a new state the user reaches, such as an empty column.
 
 A page without a screen (sync, MCP) has only the sections it needs: MCP's Actions are its tools, one row per tool.

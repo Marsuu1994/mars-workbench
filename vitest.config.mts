@@ -1,5 +1,6 @@
 import {playwright} from '@vitest/browser-playwright';
 import {defineConfig} from 'vitest/config';
+import {pointerCommands} from './test/component/pointerCommands';
 import {preinstalledChromiumPath} from './test/preinstalledChromium';
 
 /**
@@ -38,6 +39,7 @@ export default defineConfig({
             headless: true,
             viewport: DESKTOP_VIEWPORT,
             instances: [{browser: 'chromium'}],
+            commands: pointerCommands,
           },
         },
       },

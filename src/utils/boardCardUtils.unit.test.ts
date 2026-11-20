@@ -65,7 +65,7 @@ describe('toBoardCards', () => {
   const findCard = (status: keyof typeof cards, id: string) =>
     cards[status].find(card => card.task.id === id);
 
-  it('COL-1 BL-1 groups cards by status and skips EXPIRED', () => {
+  it('COL-6 BL-1 groups cards by status and skips EXPIRED', () => {
     expect(idsOf(TaskStatus.BACKLOG)).toEqual(['unit-3']);
     expect(idsOf(TaskStatus.TODO)).toEqual(['review', 'orphan-step']);
   });
@@ -75,7 +75,7 @@ describe('toBoardCards', () => {
     expect(idsOf(TaskStatus.DONE)).toEqual(['unit-2', 'passport']);
   });
 
-  it('CARD-8 gives a habit card its plan line and its own dot', () => {
+  it('CARD-10 gives a habit card its plan line and its own dot', () => {
     expect(findCard(TaskStatus.TODO, 'review')).toMatchObject({
       kind: TaskKind.HABIT,
       habitWeek: {target: 1, done: 0},
@@ -83,21 +83,19 @@ describe('toBoardCards', () => {
     });
   });
 
-  it("CARD-4 draws a step's path from the board's latest statuses", () => {
+  it("CARD-11 draws a step's path from the board's latest statuses", () => {
     expect(findCard(TaskStatus.DONE, 'unit-2')).toEqual({
       kind: TaskKind.PROJECT,
       task: tasks[1],
       step: {
         projectTitle: 'Spanish A2 course',
-        number: 2,
-        count: 3,
         path: [true, true, false],
         currentSegment: 1,
       },
     });
   });
 
-  it('CARD-4 leaves a step without context when its project is not in the lookup', () => {
+  it('CARD-11 leaves a step without context when its project is not in the lookup', () => {
     expect(findCard(TaskStatus.TODO, 'orphan-step')).toEqual({
       kind: TaskKind.PROJECT,
       task: tasks[3],
@@ -105,7 +103,7 @@ describe('toBoardCards', () => {
     });
   });
 
-  it('CARD-5 gives a one-off card nothing but the task', () => {
+  it('CARD-9 gives a one-off card nothing but the task', () => {
     expect(findCard(TaskStatus.DONE, 'passport')).toEqual({
       kind: TaskKind.ONE_OFF,
       task: tasks[4],

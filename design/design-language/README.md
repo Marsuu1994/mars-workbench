@@ -57,10 +57,13 @@ A theme is a **skin over a shared skeleton**, never a fork of components:
 
 The table below is the utility API and its **HUD skin** (shared by `mars-dark` /
 `mars-light`); [p5-dark.md](./p5-dark.md) specifies its own skin per utility. All
-utilities derive colors from daisyUI tokens via `color-mix()`. They live in
+utilities derive colors from daisyUI tokens via `color-mix()`. A keyframe never
+mixes one itself: Tailwind's fallback for `color-mix()` over a variable can't sit in
+a keyframe, and the build ships the keyframe empty, so the utility mixes the colour
+in a variable and the keyframe reads it (`npm run check:themes`). They live in
 `@layer components` — any Tailwind utility can override their properties. Loops
 animate opacity/transform only (composite-friendly); `prefers-reduced-motion`
-disables them.
+disables them, and the board's motion with them, except `fx-fade-out`.
 
 | Utility | Use | Where it's applied |
 | --- | --- | --- |
@@ -68,7 +71,8 @@ disables them.
 | `fx-chrome` / `fx-chrome-glass` | Chrome slab (always solid) / chrome that may blur. The dock stays solid — it floats over a scrolling board, where backdrop blur re-filters every frame; the sidebar's backdrop is static, so glass is cheap there | dock (solid), sidebar (glass) |
 | `fx-panel` / `fx-panel-solid` | Console panel (glass / no-blur). Glass is for stationary chrome only — never in scroll containers | modals |
 | `fx-corners` | Targeting-reticle corner brackets (inset 2px to clear the radius) | task modal, gallery specimens |
-| `fx-card` / `fx-card-lift` | Card edge-light + hover lift (shadow only — the kind edge always wins); lift = drag state class swap | `TaskCard` |
+| `fx-card` / `fx-card-lift` | Card edge-light + hover lift (shadow only — the kind edge always wins); lift = drag state class swap | `TodoCard`, `DoneCard`, backlog cards |
+| `fx-card-selected` | A selected card's confirming frame, on an `fx-card`: a success border on the three sides the kind edge leaves, and a success glow inside and around the card; a hover doesn't replace it | `TodoCard` |
 | `fx-pile-sheet` | One thin sheet of a backlog card's pile: a soft drop shadow; its fill and border come from `--fx-pile`, `--fx-pile-far` and `--fx-pile-border` | backlog group pile |
 | `fx-tucked` | Marks a strip that hangs under a card with no top edge of its own; no look in the HUD skin, a hook for p5-dark's | a project's backlog queue |
 | `fx-kind-edge` + `fx-k-{success,secondary,info}` | A card's 3px left border in its kind's colour. Unlayered, so it beats the card's own Tailwind border utilities | task cards (via `TASK_KIND_STYLE`) |
@@ -80,11 +84,21 @@ disables them.
 | `fx-num` | Mono tabular numerals | points, counts, %, dates, card kind lines |
 | `fx-led` (+`fx-led-pulse`) | Status LED dot from `currentColor` | column status, quadrant headers |
 | `fx-rule` / `fx-hairline-top` | Luminous gradient hairlines (single / multi-hue top edge) | dock top edge |
-| `fx-orbit` | Rotating conic tail behind the progress ring — continuous by deliberate product choice (transform-only on a tiny masked layer; reduced-motion disables it); the ring's halo is a static SVG under-circle, not a CSS filter | `ProgressDashboard` |
 | `fx-glow-pulse` | Breathing brand halo — pre-composited shadow on a pseudo-element, opacity-only loop | login `BrandIcon` |
 | `fx-text-gradient` | Cyan→violet headline gradient. Restraint rule: first word only | gallery title, login "Mars" |
 | `fx-boot-in` | 420ms mount animation (rise + scale + fade) | modals, `FinishBox` |
 | `fx-finish-box` | Marks a finish box, the dashed box where a finished list used to be; no look in the HUD skin, a hook for p5-dark's | `FinishBox` |
+| `fx-juice-wobble` / `fx-juice-shine` / `fx-juice-burst` / `fx-juice-flip` | The four juices a card plays where it stands when ✓ Complete is pressed, one picked at random and never the same twice in a row (wobble 360ms, a light sweep 420ms, a squash and pop 340ms, a flip 440ms); each ends in the lift pose `fx-toss` starts from | the completion copy of a Todo card (`completionMotion`) |
+| `fx-juice-chip` / `fx-juice-plus` | The burst juice's particles: twelve chips thrown out in the kind's colour and gold (`--fx-chip-color`, `--fx-chip-x/y`, `--fx-chip-turn`), and a rising **+1** | burst juice |
+| `fx-toss` | 300ms flight of the completion copy along an arc into today's ring (`--fx-toss-x/y` the landing offset, `--fx-toss-cy` the arc's height); the easing is baked into the keyframes | completion copy |
+| `fx-slide` | 240ms slide up of the cards that were below a tossed one, from `--fx-slide-from` | Todo cards |
+| `fx-fade-out` | 150ms fade of a completed card under reduced motion, in place of the juice and toss — the one board motion kept in the reduced-motion list on purpose | Todo cards |
+| `fx-ring-grow` | 500ms transition of a ring's arcs to their new lengths | `DayRingGraphic` |
+| `fx-ring-tick` | Today's cell gives one small jump when a card is finished | today's `DayCell` |
+| `fx-ring-close` (+ `fx-ring-svg`, `fx-ring-check`, `fx-ring-spark`) | Today's ring closing: the ring turns once (700ms), its ✓ draws itself, and sparks fly out in the shares of the day's done kinds (`--fx-spark-angle`, `--fx-spark-color`); sparks are invisible outside it | today's `DayCell`, `DayRingGraphic` |
+| `fx-done-in` | 900ms on a card landing at the top of Done, once: it starts fully lit inside a success frame and glow (`--fx-done-in-glow`), and dims into Done's look | `DoneCard` |
+| `fx-arm` (+ `fx-arm-mark`, `fx-arm-word`) | A selected Todo card's round mark grows into the filled ✓ (150ms transition) and **Complete** comes in beside it | `TodoCardAction` |
+| `fx-press` | Shrinks a pressable surface a little while it's held (`--fx-press-scale`, 0.985 by default) | Todo cards, day cells |
 | `fx-countdown` | Clock bar draining over `--fx-countdown-ms`; its `animationend` is the dismissal. Holds while its host is hovered and inside `data-time="frozen"` (scenario frames, gallery specimens); deliberately kept out of the reduced-motion list | `Toast` |
 | `fx-nav-rail` | Luminous active-nav left rail | sidebar active item |
 | `fx-quadrant` + `fx-q-{error,primary,warning,neutral}` + `fx-q-{tl,tr,bl,br}` | Per-quadrant corner bloom keyed to semantic hue | priority matrix |
@@ -292,8 +306,11 @@ phone width (#115 R2).
 ## Motion (shared baseline)
 
 One easing: `cubic-bezier(0.2, 0, 0, 1)` ("console snap"). HUD timings: 150ms
-micro (hover lift, glow ramp) · 240ms structural · 420ms `fx-boot-in`. Ambient
-loops are rare and slow: LED pulse 2.4s, orbit 2s, target pulse 1.6s. Drag lift
+micro (hover lift, glow ramp, press, a card's selection) · 240ms structural · 420ms
+`fx-boot-in`. The board's finishing moment keeps a few timings off these tokens,
+each decided by the owner: the juices and the toss (300–440ms), the ring's 500ms
+arcs and 700ms close, and `fx-done-in`'s 900ms glow. Ambient loops are rare and
+slow: LED pulse 2.4s, target pulse 1.6s. Drag lift
 is a class swap, never a transition. Backgrounds never move (except the login
 crawl). Theme specs may compress timings (p5-dark does) but never break the
 opacity/transform-only rule or the `prefers-reduced-motion` opt-out.

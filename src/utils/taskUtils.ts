@@ -1,10 +1,6 @@
 import type {TaskItem} from '@/lib/db/tasks';
 import {PlanMode, TaskStatus, TaskType as TaskTypeEnum} from '@/utils/enums';
-import {
-  formatKanbanISODate,
-  getMondayFromPeriodKey,
-  normalizeForDate,
-} from '@/utils/dateUtils';
+import {getMondayFromPeriodKey, normalizeForDate} from '@/utils/dateUtils';
 
 // ─── Kind ──────────────────────────────────────────────────────────────────
 
@@ -76,10 +72,8 @@ export interface BoardPlan {
   planTemplates: PlanLine[];
 }
 
-/** A habit card's context and signal: its plan line plus this week's dots. */
+/** A habit card's signal: this week's dots. */
 export interface HabitWeek {
-  type: TaskTypeEnum;
-  frequency: number;
   /**
    * One mark per instance the line generates this week, in order — weekly:
    * by instance; daily: by day, then instance. True when that instance is done.
@@ -167,8 +161,6 @@ export function computeHabitWeeks(
     }
 
     habitWeekByTemplateId.set(templateId, {
-      type,
-      frequency,
       slots,
       done: slots.filter(Boolean).length,
       target: slotCount,
@@ -257,18 +249,5 @@ export function sortDoneTasks(tasks: TaskItem[]): TaskItem[] {
 
   return [...tasks].sort(
     (a, b) => doneTime(b) - doneTime(a) || a.id.localeCompare(b.id),
-  );
-}
-
-// ─── Today ─────────────────────────────────────────────────────────────────
-
-/** Whether any of the tasks was finished on `now`'s day in KANBAN_TZ. */
-export function hasTaskDoneToday(
-  tasks: Pick<TaskItem, 'doneAt'>[],
-  now: Date,
-): boolean {
-  const today = formatKanbanISODate(now);
-  return tasks.some(
-    ({doneAt}) => doneAt !== null && formatKanbanISODate(doneAt) === today,
   );
 }

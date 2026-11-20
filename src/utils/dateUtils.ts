@@ -137,21 +137,6 @@ export function isWeekend(date: Date): boolean {
 }
 
 /**
- * Counts the number of weekdays (Mon–Fri) in a date range, inclusive of both ends.
- */
-export function countWeekdaysInRange(from: Date, to: Date): number {
-  let count = 0;
-  const current = new Date(from.getFullYear(), from.getMonth(), from.getDate());
-  const end = new Date(to.getFullYear(), to.getMonth(), to.getDate());
-  while (current <= end) {
-    const day = current.getDay();
-    if (day !== 0 && day !== 6) count++;
-    current.setDate(current.getDate() + 1);
-  }
-  return count;
-}
-
-/**
  * Whether a plan periodKey still covers today: ensureSynced's end-of-period
  * check, the single home of the "is this ACTIVE plan's period still
  * current?" rule.

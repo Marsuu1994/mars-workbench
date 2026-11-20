@@ -11,18 +11,33 @@ import type {BoardProject} from '@/lib/db/projects';
 import type {BoardPlan} from '@/utils/taskUtils';
 import {toBoardCards} from '@/utils/boardCardUtils';
 import {toBacklogSections} from '@/utils/backlogGroupUtils';
-import type {BoardProgress} from '@/types/board';
+import {getISOWeekKey, getTodayDate} from '@/utils/dateUtils';
 
 /* Board scenario fixtures — the real BoardPage fed fictional weeks that are
-   hard to reach against live data. */
+   hard to reach against live data. The board draws its rings against the
+   real clock, so the fixture week is the viewer's current week: done tasks
+   sit on the days before today, and today is wherever the week is. */
 
-// Friday of ISO week 28 (Mon Jul 6 – Sun Jul 12).
-const NOW = new Date('2026-07-10T15:00:00');
-const daysAgo = (n: number) => new Date(NOW.getTime() - n * 86_400_000);
+const NOW = new Date();
+const TODAY = getTodayDate();
+/** 0 for Monday … 6 for Sunday */
+const TODAY_INDEX = (TODAY.getDay() + 6) % 7;
+const SCENARIO_PERIOD_KEY = getISOWeekKey(TODAY);
+
+/**
+ * `offset` days from today, never before this week's Monday (early in the
+ * week, earlier work lands on Monday).
+ */
+const clampToWeek = (offset: number) => Math.max(offset, -TODAY_INDEX);
+const dayParts = (offset: number) =>
+  [TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + offset] as const;
+/** Noon in Los Angeles on the day `offset` days from today, kept in the week. */
+const doneOn = (offset: number) =>
+  new Date(Date.UTC(...dayParts(clampToWeek(offset)), 20));
 /** A daily instance's day, as Prisma returns a DATE (UTC midnight). */
-const forDay = (dayOfJuly: number) => new Date(Date.UTC(2026, 6, dayOfJuly));
-
-const SCENARIO_PERIOD_KEY = '2026-W28';
+const forDay = (offset: number) =>
+  new Date(Date.UTC(...dayParts(clampToWeek(offset))));
+const daysAgo = (count: number) => new Date(NOW.getTime() - count * 86_400_000);
 
 /** The active plan: NORMAL mode, one daily habit and three weekly ones. */
 export const SCENARIO_PLAN: BoardPlan = {
@@ -106,7 +121,7 @@ const BIO_LECTURE_3 = step({
   instanceIndex: 3,
   title: 'Lecture 3 — Membranes',
   status: TaskStatus.DONE,
-  doneAt: daysAgo(1),
+  doneAt: doneOn(-1),
 });
 const BIO_LECTURE_4 = step({
   id: 'scn-step-bio-4',
@@ -167,36 +182,41 @@ export const SCENARIO_PROJECTS: BoardProject[] = [
   },
 ];
 
+/** The Todo card the selected-card tab selects */
+export const TAX_REPORT_ID = 'scn-one-off-tax';
+
 // ── Mid-week, every kind ─────────────────────────────────────────────────────
-// Habits carry their plan line and week dots — each card rings its own dot:
-// Workout ran Mon and Wed, missed Tue and Thu (expired, not loaded), and
-// today's is open; LeetCode #1 is done. Project steps carry their project,
-// step n/N and the path. One-offs show their quadrant.
+// Habits carry their week dots — each card rings its own dot: Workout ran
+// four days and two days ago, missed the days between (expired, not loaded),
+// and today's is open; LeetCode #1 is done. Project steps carry their project
+// and the path. One-offs show their quadrant. Today has two one-offs done
+// and four cards in Todo.
 export const MID_WEEK_TASKS: TaskItem[] = [
   // Todo
-  workout({forDate: forDay(10)}),
+  workout({forDate: forDay(0)}),
   leetcode({instanceIndex: 1}),
   PDB_RENDER,
   oneOff({
+    id: TAX_REPORT_ID,
     title: 'File tax report',
     description: 'Federal + state, receipts in the blue folder',
     ...sized(TaskSize.SMALL),
   }),
   // Done
-  workout({status: TaskStatus.DONE, forDate: forDay(6), doneAt: daysAgo(4)}),
-  workout({status: TaskStatus.DONE, forDate: forDay(8), doneAt: daysAgo(2)}),
-  leetcode({instanceIndex: 0, status: TaskStatus.DONE, doneAt: daysAgo(1)}),
+  workout({status: TaskStatus.DONE, forDate: forDay(-4), doneAt: doneOn(-4)}),
+  workout({status: TaskStatus.DONE, forDate: forDay(-2), doneAt: doneOn(-2)}),
+  leetcode({instanceIndex: 0, status: TaskStatus.DONE, doneAt: doneOn(-1)}),
   BIO_LECTURE_3,
   oneOff({
     title: 'Call bank about card',
     status: TaskStatus.DONE,
-    doneAt: daysAgo(0),
+    doneAt: doneOn(0),
   }),
   oneOff({
     title: 'Return package',
     quadrant: PriorityQuadrant.SQUEEZE_IN,
     status: TaskStatus.DONE,
-    doneAt: daysAgo(0),
+    doneAt: doneOn(0),
   }),
   // Backlog: staged habit instances and three scheduled steps
   leetcode({instanceIndex: 2, status: TaskStatus.BACKLOG}),
@@ -215,25 +235,27 @@ export const MID_WEEK_TASKS: TaskItem[] = [
   }),
 ];
 
-export const MID_WEEK_PROGRESS: BoardProgress = {
-  todayDoneCount: 2,
-  todayTotalCount: 10,
-  todayDonePoints: 2,
-  todayTotalPoints: 13,
-  weekDoneCount: 6,
-  weekProjectedCount: 17,
-  weekDonePoints: 6,
-  weekProjectedPoints: 21,
-  daysElapsed: 5,
-};
+/**
+ * Workout's missed days this week: the ones between its done days (expired,
+ * so the board only gets their count), and none before Monday.
+ */
+export const MID_WEEK_EXPIRED_DAILY_COUNTS: Record<string, number> =
+  Object.fromEntries(
+    [-3, -1]
+      .filter(offset => offset >= -TODAY_INDEX)
+      .map(offset => [
+        new Date(Date.UTC(...dayParts(offset))).toISOString().slice(0, 10),
+        1,
+      ]),
+  );
 
 // ── The week's work done for today ──────────────────────────────────────────
-// Everything pulled for today is in Done, two of them finished just now (the
-// real clock: "today" is the viewer's), and the backlog still holds the rest.
-const JUST_NOW = new Date();
+// Everything pulled for today is in Done, finished just now, so today's ring
+// is closed, and the backlog still holds the rest.
+
 export const DAY_CLEAR_TASKS: TaskItem[] = MID_WEEK_TASKS.map(fixtureTask =>
   fixtureTask.status === TaskStatus.TODO
-    ? {...fixtureTask, status: TaskStatus.DONE, doneAt: JUST_NOW}
+    ? {...fixtureTask, status: TaskStatus.DONE, doneAt: NOW}
     : fixtureTask,
 );
 

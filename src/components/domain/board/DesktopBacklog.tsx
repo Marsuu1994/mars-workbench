@@ -6,7 +6,6 @@ import {
   InboxStackIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  ArrowLeftIcon,
 } from '@heroicons/react/24/outline';
 import {FinishBox} from '@/components/ui/FinishBox';
 import {BacklogCountBadge} from './BacklogCountBadge';
@@ -20,7 +19,7 @@ interface DesktopBacklogProps {
 
 /**
  * Desktop-only collapsible right-edge backlog that stages BACKLOG tasks. The
- * user drags a group's card onto Todo or Done to pull it onto the board.
+ * user pulls a group's card with its ↑ Todo, or drags it onto Todo or Done.
  * Rendered inside BoardPage's DragDropContext, which also renders the
  * groups into it. Emptied, the strip stays and shows 0, and the panel shows
  * that everything is on deck.
@@ -86,13 +85,6 @@ export const DesktopBacklog = ({count, children}: DesktopBacklogProps) => {
     </div>
   );
 
-  const renderHint = () => (
-    <div className="px-4 py-2.5 border-b border-base-content/10 flex items-center gap-1.5 text-xs text-base-content/50 flex-shrink-0">
-      <ArrowLeftIcon className="size-3.5 text-primary flex-shrink-0" />
-      {t('hintDragToTodo')}
-    </div>
-  );
-
   const renderEmpty = () => (
     <FinishBox
       title={t('Empty.title')}
@@ -131,7 +123,6 @@ export const DesktopBacklog = ({count, children}: DesktopBacklogProps) => {
         }`}
       >
         {renderHeader()}
-        {count > 0 && renderHint()}
         {renderBody()}
       </section>
     </div>
