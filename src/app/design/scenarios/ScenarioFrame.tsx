@@ -4,19 +4,23 @@ import {useRef, useState, type ReactNode} from 'react';
 import {cn} from '@/components/ui/cn';
 import {InteractionShield} from '../InteractionShield';
 import {PlayRunner, type PlayStep} from '../PlayRunner';
+import {SCENARIO_PAGE_MIN_HEIGHT, SCENARIO_SCREEN_HEIGHT} from '../constants';
 
 /** How a scenario frame sizes itself. */
-export type ScenarioDisplay = 'fill' | 'fit';
+export type ScenarioDisplay = 'screen' | 'page' | 'fit';
 
 interface ScenarioFrameProps {
   title: string;
   /** What state this scenario captures — the reason it's worth pinning */
   note?: string;
   /**
-   * fill (default): screen-level tabs ONLY — the frame fills the remaining
-   * viewport as a 1:1 stand-in for an app page inside AppShell's
-   * definite-height <main>, so h-full chains (board columns, backlog)
-   * resolve exactly like production.
+   * screen (default): an app page that scrolls inside itself (board columns,
+   * backlog, the Projects panes). The frame is exactly as tall as a typical
+   * browser window (SCENARIO_SCREEN_HEIGHT), whatever the console's own
+   * window is, so h-full chains resolve the way a user sees them.
+   * page: a page that scrolls as a whole in production (login, OAuth
+   * consent). The frame is at least as tall as a browser window and grows
+   * with the content, so the console page scrolls instead of the frame.
    * fit: everything standalone (empty states, sheets, inline modal panels)
    * — the frame wraps its content with generous vertical padding; tall
    * content scrolls with the page. Combine with `overlay` for modal panels.
@@ -40,17 +44,17 @@ interface ScenarioFrameProps {
  * fixed` descendants (e.g. the mobile dock) so they anchor inside the frame,
  * and `overflow-hidden` clips them to it.
  *
- * In fill mode the shield is `absolute inset-0` rather than a flex-1 child:
- * min-height:0 can't stop a flex item's *min-content contribution* from
- * propagating to ancestors (it's a floor, not a cap), so in-flow board
- * content would push the page past h-dvh and silently unbound the frame.
- * An abspos child contributes nothing to intrinsic sizing — the box's
- * [contain:layout] is already its containing block. min-h-96 keeps short
- * viewports usable by degrading into page scroll.
+ * In screen mode the shield is `absolute inset-0` rather than a flex-1
+ * child: min-height:0 can't stop a flex item's *min-content contribution*
+ * from propagating to ancestors (it's a floor, not a cap), so in-flow board
+ * content would stretch the frame past its fixed height. An abspos child
+ * contributes nothing to intrinsic sizing — the box's [contain:layout] is
+ * already its containing block. In page mode the shield stays in flow so
+ * the content can grow the frame.
  *
  * The overlay backdrop is painted on the frame box itself (not a content
  * wrapper), so it always spans the whole framed area: in fit mode the box is
- * exactly content + padding tall, in fill mode it is the whole frame.
+ * exactly content + padding tall, in screen mode it is the whole frame.
  *
  * A tab that pins an interaction state declares `play` steps instead of
  * passing scenario-only props: PlayRunner clicks the real controls after
@@ -62,17 +66,19 @@ interface ScenarioFrameProps {
 export const ScenarioFrame = ({
   title,
   note,
-  display = 'fill',
+  display = 'screen',
   overlay = false,
   play,
   children,
 }: ScenarioFrameProps) => {
-  const fill = display === 'fill';
+  const isScreen = display === 'screen';
+  const isPage = display === 'page';
+  const isFit = display === 'fit';
   const shieldRef = useRef<HTMLDivElement>(null);
   const [playError, setPlayError] = useState<string | null>(null);
 
   return (
-    <div className={cn('flex flex-col gap-2', fill && 'min-h-0 flex-1')}>
+    <div className="flex flex-col gap-2">
       <div className="flex flex-col gap-0.5">
         <h3 className="text-base font-semibold">{title}</h3>
         {note && <p className="text-sm text-base-content/50">{note}</p>}
@@ -85,7 +91,8 @@ export const ScenarioFrame = ({
       <div
         className={cn(
           'flex flex-col overflow-hidden rounded-xl border border-base-content/15 [contain:layout]',
-          fill && 'min-h-96 flex-1',
+          isScreen && SCENARIO_SCREEN_HEIGHT,
+          isPage && SCENARIO_PAGE_MIN_HEIGHT,
           overlay && 'bg-base-300/60',
         )}
         data-time="frozen"
@@ -93,10 +100,13 @@ export const ScenarioFrame = ({
         <InteractionShield
           ref={shieldRef}
           className={cn(
-            fill && 'absolute inset-0',
-            fill && overlay && 'flex items-center justify-center p-4 md:p-6',
-            !fill && 'py-12',
-            !fill && overlay && 'flex flex-col items-center px-4 md:px-6',
+            isScreen && 'absolute inset-0',
+            isScreen &&
+              overlay &&
+              'flex items-center justify-center p-4 md:p-6',
+            isPage && 'flex flex-1 flex-col',
+            isFit && 'py-12',
+            isFit && overlay && 'flex flex-col items-center px-4 md:px-6',
           )}
         >
           {children}

@@ -12,7 +12,7 @@ export interface ScenarioTab {
   title: string;
   /** What state this scenario captures — the reason it's worth pinning */
   note?: string;
-  /** Frame sizing — see ScenarioFrame. fill (default) or fit. */
+  /** Frame sizing — see ScenarioFrame. screen (default), page or fit. */
   display?: ScenarioDisplay;
   /** Dim the frame interior like a modal backdrop and center the panel. */
   overlay?: boolean;

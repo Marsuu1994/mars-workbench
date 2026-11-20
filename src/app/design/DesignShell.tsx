@@ -41,8 +41,8 @@ interface DesignShellProps {
  * Two layers, like AppShell: the outer div is a definite-height (h-dvh)
  * non-scrolling box — fx-shell-bg paints on a ::before with inset:0, which
  * would scroll away with the content if this element were the scroller — and
- * the inner div scrolls. The definite height is what lets fill-mode scenario
- * frames resolve their flex-1/h-full chains exactly like a real app page.
+ * the inner div scrolls. Scenario frames size themselves (ScenarioFrame), so
+ * a tall frame scrolls this inner div.
  */
 export const DesignShell = ({appTheme, children}: DesignShellProps) => {
   const [theme, setTheme] = useState<ThemeName>(appTheme);

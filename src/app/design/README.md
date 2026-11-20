@@ -12,7 +12,10 @@ npm run setup -- --no-db && npm run dev
 
 ## Frames
 
-- **Frame modes**: `fill` (the default) is for screen-level tabs only — a 1:1, viewport-bounded stand-in for the page inside AppShell's `<main>`. Everything standalone (empty states, sheets, inline modal panels) is `fit` — content height plus padding — and/or `overlay` for a dimmed modal backdrop.
+- **Frame modes**: a screen-level tab is as tall as a typical browser window (800px), whatever the console's own window is, and anything taller scrolls the console page, never the frame:
+  - `screen` (the default): an app page that scrolls inside itself (the board's columns, the Projects panes). The frame is exactly 800px tall, so the page lays out as a user sees it.
+  - `page`: a page that scrolls as a whole (login, OAuth consent). The frame is at least 800px tall and grows with the content.
+  - `fit`: everything standalone (empty states, sheets, inline modal panels), at its content's height plus padding; add `overlay` for a dimmed modal backdrop.
 - **Live-feel, no side effects**: frames wrap their content in an `InteractionShield`. Hover and scroll stay live; clicks, submits and drag-starts are swallowed, so wired handlers can never fire against fixture ids.
 - **Modals render inline** through their extracted `*Panel` / `*Content` components — the live `OverlayShell` top-layer dialog would escape the frame's clipping.
 - **Page contexts come from the console**: a specimen of a component that reads its page's context (`ProjectStep` reads `ProjectsPageContext`) renders inside that context with inert handlers (`inertProjectsPageContext`); a scenario renders the page itself, which provides it.

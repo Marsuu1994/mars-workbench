@@ -45,6 +45,14 @@ export const GALLERY_TAB_LABELS = [
   'Domain',
 ] as const;
 
+/**
+ * A scenario screen's height: a typical laptop browser window, so a screen
+ * looks the way a user sees it rather than taking the console window's
+ * height. Literal classes so Tailwind can see them.
+ */
+export const SCENARIO_SCREEN_HEIGHT = 'h-[800px]';
+export const SCENARIO_PAGE_MIN_HEIGHT = 'min-h-[800px]';
+
 export const SCENARIOS_HREF = '/design/scenarios';
 export const SCENARIO_HREFS = {
   board: '/design/scenarios/board',
