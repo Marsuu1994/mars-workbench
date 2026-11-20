@@ -17,7 +17,7 @@ The Next.js proxy (`src/proxy.ts`, delegating to `updateSession` in `src/lib/sup
 ### Rules
 
 - Every route is protected except `/auth/*` (login and the callback), `/api/mcp` and `/.well-known/` (the MCP endpoint answers 401 itself), and the public files: images, `sw.js` and `manifest.json` (a service worker script may not arrive through a redirect, and the login page needs a real manifest to stay installable).
-- Local dev (`npm run dev`) also serves the Design Console (`/design` and below) without a session, since it renders fixtures only; production builds, previews included, keep the gate on it too.
+- The Design Console (`/design` and below) is public too, in every build, since it renders fixtures only.
 
 ---
 
