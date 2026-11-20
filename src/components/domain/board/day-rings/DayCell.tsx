@@ -8,6 +8,14 @@ import {restartAnimationClass} from '../motion/completionMotion';
 import {DayRingGraphic} from './DayRingGraphic';
 import {DAY_NAME_KEYS, RING_SIZE} from './constants';
 
+/** A cell that is a button: it shrinks and darkens inside while pressed, and
+    a hover draws a line under it, nothing more. */
+const BUTTON_CELL_CLASS =
+  "fx-press relative cursor-pointer [--fx-press-scale:0.96] transition-[transform,box-shadow,border-color] duration-150 motion-reduce:transition-none active:shadow-[inset_0_2px_7px_oklch(0_0_0/0.4)] after:absolute after:inset-x-[22%] after:bottom-0.5 after:h-0.5 after:rounded-sm after:bg-primary after:opacity-0 after:shadow-[0_2px_8px_var(--color-primary)] after:transition-opacity after:duration-150 after:content-[''] hover:after:opacity-100 motion-reduce:after:transition-none";
+/** The cell whose list is open: a full frame and a glow rising inside it */
+const OPEN_CELL_CLASS =
+  'border-primary bg-[radial-gradient(ellipse_90%_80%_at_50%_100%,color-mix(in_oklab,var(--color-primary)_22%,transparent),transparent_75%)] shadow-[inset_0_0_14px_color-mix(in_oklab,var(--color-primary)_16%,transparent),0_0_12px_color-mix(in_oklab,var(--color-primary)_14%,transparent)]';
+
 interface DayCellProps {
   ring: DayRing;
   /** Under the cell: its day's list, when it is open on desktop */
@@ -89,13 +97,18 @@ export const DayCell = ({ring, children}: DayCellProps) => {
       })
     );
 
+  const dayNameColor = (): string => {
+    if (isOpen) return 'text-primary';
+    return isFuture ? 'text-base-content/30' : 'text-base-content/45';
+  };
+
   const renderToday = () => (
     <>
       {renderRing(RING_SIZE.today)}
       <span className="flex flex-col items-start gap-[3px]">
         <span
           className={`fx-num text-[10px] uppercase leading-none tracking-[0.1em] ${
-            isClosed ? 'text-success' : 'text-primary'
+            isClosed && !isOpen ? 'text-success' : 'text-primary'
           }`}
         >
           {t('today')}
@@ -110,9 +123,7 @@ export const DayCell = ({ring, children}: DayCellProps) => {
   const renderDay = () => (
     <>
       <span
-        className={`fx-num text-[10px] uppercase leading-none tracking-[0.1em] ${
-          isFuture ? 'text-base-content/30' : 'text-base-content/45'
-        }`}
+        className={`fx-num text-[10px] uppercase leading-none tracking-[0.1em] ${dayNameColor()}`}
       >
         {dayName}
       </span>
@@ -125,19 +136,12 @@ export const DayCell = ({ring, children}: DayCellProps) => {
     isToday
       ? 'flex-row justify-center gap-2.5 px-3 py-1.5'
       : 'flex-col gap-[5px] px-0.5 pt-1.5 pb-[7px]',
-    isOpen && 'border-primary bg-primary/10',
-    !isOpen &&
-      isToday &&
-      isClosed &&
-      'border-success/60 shadow-[0_0_16px] shadow-success/15',
-    !isOpen &&
-      isToday &&
-      !isClosed &&
-      'border-primary/50 shadow-[0_0_14px] shadow-primary/10',
+    isOpen && OPEN_CELL_CLASS,
+    !isOpen && isToday && isClosed && 'border-success/45',
+    !isOpen && isToday && !isClosed && 'border-primary/35',
     !isOpen && !isToday && 'border-transparent',
     isFuture && 'opacity-80',
-    !isFuture &&
-      'fx-press cursor-pointer [--fx-press-scale:0.96] hover:bg-base-content/5',
+    !isFuture && BUTTON_CELL_CLASS,
   ]
     .filter(Boolean)
     .join(' ');

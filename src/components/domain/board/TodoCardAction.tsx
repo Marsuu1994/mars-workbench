@@ -5,6 +5,10 @@ import {useTranslations} from 'next-intl';
 import {CheckIcon} from '@heroicons/react/24/outline';
 import {useBoardPageContext} from './BoardPageContext';
 
+/** ✓ Complete takes presses a little past its 22 px, so a thumb finds it */
+const PRESS_AREA_CLASS =
+  "after:absolute after:-inset-x-2 after:-inset-y-[11px] after:content-['']";
+
 interface TodoCardActionProps {
   taskId: string;
   title: string;
@@ -39,8 +43,10 @@ export const TodoCardAction = ({
       aria-hidden={!isSelected}
       aria-label={isSelected ? t('completeLabel', {title}) : undefined}
       onClick={handleClick}
-      className={`fx-arm inline-flex items-center gap-1 ${
-        isSelected ? 'cursor-pointer' : 'pointer-events-none'
+      className={`fx-arm relative inline-flex items-center gap-1 ${
+        isSelected
+          ? `cursor-pointer ${PRESS_AREA_CLASS}`
+          : 'pointer-events-none'
       }`}
     >
       {isSelected && (

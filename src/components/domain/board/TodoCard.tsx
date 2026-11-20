@@ -14,6 +14,11 @@ import {useBoardPageContext} from './BoardPageContext';
 import {TaskCardFace} from './TaskCardFace';
 import {TodoCardAction} from './TodoCardAction';
 
+/** The selected card's confirming frame: a green border, the kind's edge
+    kept, and a glow inside and around it */
+const SELECTED_CARD_CLASS =
+  'border-success/70 shadow-[inset_0_0_18px_color-mix(in_oklab,var(--color-success)_12%,transparent),0_0_14px_color-mix(in_oklab,var(--color-success)_14%,transparent)]';
+
 interface TodoCardProps {
   card: BoardCard;
   /** Position within Todo: Draggable needs it */
@@ -74,9 +79,7 @@ export const TodoCard = ({card, index}: TodoCardProps) => {
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       className={`card fx-card fx-press w-full flex-shrink-0 cursor-pointer border bg-base-100/70 ${edge} ${
-        isSelected
-          ? 'border-success/70 shadow-[inset_0_0_14px] shadow-success/15'
-          : 'border-base-content/10'
+        isSelected ? SELECTED_CARD_CLASS : 'border-base-content/10'
       } ${snapshot?.isDragging ? 'fx-card-lift z-50 scale-[1.02]' : ''}`}
     >
       <div id={faceId}>

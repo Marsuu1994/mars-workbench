@@ -22,7 +22,7 @@ export const DoneCard = ({card}: DoneCardProps) => {
   return (
     <div
       data-done-card={task.id}
-      className={`card fx-card w-full flex-shrink-0 border border-base-content/10 bg-base-100/70 opacity-50 shadow-[inset_0_0_14px] shadow-success/10 ${edge} ${
+      className={`card fx-card w-full flex-shrink-0 border border-base-content/10 bg-base-100/70 opacity-50 shadow-[inset_0_0_18px_color-mix(in_oklab,var(--color-success)_12%,transparent)] ${edge} ${
         freshDoneTaskId === task.id ? 'fx-done-in' : ''
       }`}
     >
