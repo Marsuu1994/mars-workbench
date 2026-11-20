@@ -11,6 +11,7 @@ import {
   completeSelectedCard,
   completeTodoCard,
   countRingCelebrations,
+  expectNoCelebration,
   dragCardWithKeyboard,
   dropLiftedCard,
   findBacklogCount,
@@ -38,7 +39,7 @@ import {
   readProgressLabel,
   trackRingCelebrations,
 } from './actions/board';
-import {expect, openPage, test, type Seed} from './fixtures';
+import {expect, openPage, reloadPage, test, type Seed} from './fixtures';
 
 const HABIT_TITLE = 'Flashcards';
 const PROJECT_TITLE = 'Spanish course';
@@ -387,10 +388,10 @@ test('J14 finish a habit task straight from the backlog', async ({
     ).toBeVisible();
   });
 
-  await page.reload();
+  await reloadPage(page);
   await expect(findBoardCard(page, 'DONE', HABIT_TITLE)).toBeAttached();
   await expect(todayCell).toContainText('All 1 done');
-  expect(await countRingCelebrations(page)).toBe(0);
+  await expectNoCelebration(page);
 });
 
 /** J15 on desktop, J16 on a phone: the same data and the same steps. */
@@ -452,10 +453,11 @@ const runWrapUpTheDay = async ({
     await expectCompleted(HABIT_TITLE);
     await expect(stepCard).toBeAttached();
     await expect(todayCell).toContainText('1 of 2 done');
+    expect(await readArcLength(todayCell, HABIT_ARC)).toBeGreaterThan(0);
     expect(await countRingCelebrations(page)).toBe(0);
   });
 
-  await test.step(`A10 A12 ${isMobile ? 'COL-7' : 'CARD-7'} RING-5 FX-4 COL-8 select the step and complete it: today's ring closes and celebrates, and the empty Todo says the day is clear`, async () => {
+  await test.step(`A10 A12 ${isMobile ? 'COL-6' : 'CARD-7'} RING-5 FX-4 COL-8 select the step and complete it: today's ring closes and celebrates, and the empty Todo says the day is clear`, async () => {
     const readFrame = () =>
       todayCell.evaluate(cell => getComputedStyle(cell).borderTopColor);
     const openFrame = await readFrame();
@@ -468,10 +470,10 @@ const runWrapUpTheDay = async ({
     await expect(dayClear).toBeVisible();
   });
 
-  await page.reload();
+  await reloadPage(page);
   await expect(todayCell).toContainText('All 2 done');
   await expect(dayClear).toBeVisible();
-  expect(await countRingCelebrations(page)).toBe(0);
+  await expectNoCelebration(page);
   if (isMobile) {
     await todayCell.click();
     await expect(findDayListRows(page, true)).toHaveText([

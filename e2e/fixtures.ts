@@ -119,6 +119,12 @@ export const openPage = async (page: Page, path: string) => {
   await page.waitForLoadState('networkidle');
 };
 
+/** Reloads the page and waits, as openPage does, until React has hydrated it. */
+export const reloadPage = async (page: Page) => {
+  await page.reload();
+  await page.waitForLoadState('networkidle');
+};
+
 /**
  * Waits for the next server action the page posts to `path` to answer. An
  * optimistic update shows before its action saves it, so a reload or

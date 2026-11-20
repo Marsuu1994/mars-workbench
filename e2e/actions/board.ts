@@ -4,8 +4,10 @@
  * is written once and runs in both projects.
  */
 import type {Locator, Page} from '@playwright/test';
-import {ARM_DEBOUNCE_MS} from '@/components/domain/board/taskCardConstants';
 import {expect, waitForServerAction} from '../fixtures';
+
+/** How long ✓ Complete ignores presses after it appears, in ms (TAP-3). */
+const ARM_GUARD_MS = 350;
 
 /** The board's drop zones; BACKLOG is the desktop panel's. */
 type BoardStatus = 'BACKLOG' | 'TODO' | 'DONE';
@@ -210,7 +212,7 @@ export const pressTodoCard = (page: Page, title: string) =>
  */
 export const completeSelectedCard = async (page: Page, title: string) => {
   // A press sooner than this after the select does nothing (TAP-3)
-  await page.waitForTimeout(ARM_DEBOUNCE_MS);
+  await page.waitForTimeout(ARM_GUARD_MS);
   const saved = waitForServerAction(page, '/kanban');
   await page.getByRole('button', {name: `Complete ${title}`}).click();
   await saved;
@@ -301,3 +303,15 @@ export const countRingCelebrations = (page: Page) =>
     key => (window as unknown as Record<string, number>)[key],
     CELEBRATIONS_KEY,
   );
+
+/**
+ * Nothing has celebrated since the page loaded: the count is still 0, and
+ * today's ring isn't in its celebration. Call once the page has hydrated,
+ * since a celebration on load would start only then.
+ */
+export const expectNoCelebration = async (page: Page) => {
+  expect(await countRingCelebrations(page)).toBe(0);
+  await expect(page.locator('[data-today-ring]')).not.toHaveClass(
+    /fx-ring-close/,
+  );
+};

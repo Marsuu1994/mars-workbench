@@ -212,6 +212,24 @@ const boxOf = (element: Element) => element.getBoundingClientRect().toJSON();
 const waitForRest = (element: Element) =>
   Promise.all(element.getAnimations().map(({finished}) => finished));
 
+/** At rest: its animations have ended, and none has left it moved or turned. */
+const expectAtRest = async (element: Element) => {
+  await waitForRest(element);
+  const {transform} = getComputedStyle(element);
+  expect(transform === 'none' || new DOMMatrix(transform).isIdentity).toBe(
+    true,
+  );
+};
+
+/** A box's centre, in the viewport. */
+const centreOf = (element: Element) => {
+  const {left, top, width, height} = element.getBoundingClientRect();
+  return {x: left + width / 2, y: top + height / 2};
+};
+
+const sum = (numbers: number[]) =>
+  numbers.reduce((total, number) => total + number, 0);
+
 /** Whether dnd made the card a drag handle. */
 const isDragHandle = (card: HTMLElement) =>
   card.hasAttribute('data-rfd-drag-handle-draggable-id');
@@ -304,6 +322,10 @@ const readHeldTransform = async (element: HTMLElement) => {
     delete element.dataset.pressProbe;
   }
 };
+
+/** Polls until an element let go of stands as it did before the press. */
+const expectLetGo = (element: HTMLElement) =>
+  expect.poll(() => getComputedStyle(element).transform).toBe('none');
 
 const readAnnouncement = () =>
   document.querySelector('[id^="rfd-announcement"]')?.textContent ?? '';
@@ -1267,9 +1289,16 @@ describe('Todo when the day is clear', () => {
     await renderBoard({tasks: withOnlyTodo([])});
 
     expect(readColumnTitles('TODO')).toEqual([]);
-    expect(expectDayClearBox().classList.contains('fx-boot-in')).toBe(true);
+    const box = expectDayClearBox();
+    expect(box.classList.contains('fx-boot-in')).toBe(true);
+    expect(box.getAnimations().length).toBeGreaterThan(0);
+    // It ends where it rests
+    await expectAtRest(box);
+    expect(getComputedStyle(box).opacity).toBe('1');
 
     await useMobileWidth();
+    // The pill takes the strip's place once the page has seen the new width
+    await expect.poll(() => getShownByTitle('Open backlog')).toBeTruthy();
     expectDayClearBox();
   });
 
@@ -1353,6 +1382,22 @@ describe('Task cards', () => {
     const {card} = getCard('DONE', 'LeetCode');
 
     expect(getDots(card).map(isRinged)).toEqual([true, false, false]);
+  });
+
+  it("CARD-11 a step's own segment is ringed in Done too", async () => {
+    await renderBoard();
+    const {card} = getCard('DONE', 'Lecture 3 — Membranes');
+
+    // The third lecture of seven
+    expect(getSegments(card).map(isRinged)).toEqual([
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+    ]);
   });
 
   it('CARD-10 a habit no longer on the plan shows no progress', async () => {
@@ -1527,12 +1572,16 @@ describe('Tap twice to complete', () => {
 
     await userEvent.click(card, onMark);
     await userEvent.click(card, onMark);
+    // Still inside the guard, well after a shorter one would have let go
+    await sleep(ARM_GUARD_MS - 150);
+    await userEvent.click(card, onMark);
 
+    // Given the time a finish under reduced motion takes, nothing was finished
+    await waitPastArmGuard();
     expect(isSelected(card)).toBe(true);
     expect(updateTaskStatusAction).not.toHaveBeenCalled();
     expect(readColumnTitles('TODO')).toContain(TAX_REPORT_TITLE);
 
-    await waitPastArmGuard();
     await userEvent.click(getCompleteButton(TAX_REPORT_TITLE));
 
     await expect
@@ -1567,6 +1616,12 @@ describe('Tap twice to complete', () => {
     expect(isSelected(getTodoCard(TAX_REPORT_TITLE))).toBe(true);
 
     await waitPastArmGuard();
+    // A key held down repeats, and a repeat isn't a press: it finishes nothing
+    card.dispatchEvent(
+      new KeyboardEvent('keydown', {key: 'Enter', repeat: true, bubbles: true}),
+    );
+    expect(vibrations).toEqual([]);
+
     await userEvent.keyboard('{Enter}');
 
     await expect
@@ -1574,7 +1629,7 @@ describe('Tap twice to complete', () => {
       .not.toContain(TAX_REPORT_TITLE);
   });
 
-  it('TAP-4 A15 on desktop Space still lifts a Todo card to drag it', async () => {
+  it('TAP-4 on desktop Space still lifts a Todo card to drag it', async () => {
     await renderBoard();
 
     getTodoCard(TAX_REPORT_TITLE).focus();
@@ -2079,6 +2134,8 @@ describe('Motion', () => {
 
   it('FX-1 ✓ Complete first plays a juice on a copy of the card where it stands, never the same one twice in a row', async () => {
     keepSaving();
+    // The same draw both times: only "not the last one" can tell them apart
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0);
     await renderBoard();
     const juices = watchClasses(JUICE_CLASSES);
     const card = getTodoCard(TAX_REPORT_TITLE);
@@ -2093,6 +2150,7 @@ describe('Motion', () => {
     expect(first.element).not.toBe(card);
     expect(first.element.style.position).toBe('fixed');
     expect(first.element.style.width).toBe(`${box.width}px`);
+    random.mockRestore();
   });
 
   it('FX-1 FX-2 under reduced motion no juice plays and nothing flies or slides: the card fades out where it stands', async () => {
@@ -2129,6 +2187,15 @@ describe('Motion', () => {
     expect(ghost.style.position).toBe('fixed');
     expect(ghost.getAttribute('aria-hidden')).toBe('true');
     expect(card.style.visibility).toBe('hidden');
+    // It flies from the card's place to the middle of today's ring
+    const from = centreOf(card);
+    const ring = centreOf(getTodayMotion());
+    expect(
+      from.x + parseFloat(ghost.style.getPropertyValue('--fx-toss-x')),
+    ).toBeCloseTo(ring.x, 0);
+    expect(
+      from.y + parseFloat(ghost.style.getPropertyValue('--fx-toss-y')),
+    ).toBeCloseTo(ring.y, 0);
     // In flight, the card is still Todo's
     expect(readColumnTitles('TODO')).toContain(TAX_REPORT_TITLE);
     expect(updateTaskStatusAction).not.toHaveBeenCalled();
@@ -2141,6 +2208,11 @@ describe('Motion', () => {
       .filter(({className}) => className === 'fx-slide')
       .map(({element}) => element.dataset.todoCard);
     expect(slid).toContain(findTaskByTitle('Workout').id);
+    // Once it has slid, the card stands in its place like any other
+    await expectAtRest(getTodoCard('Workout'));
+    await expect
+      .poll(() => getTodoCard('Workout').classList.contains('fx-slide'))
+      .toBe(false);
   });
 
   it('FX-2 a card dragged onto Done tosses nothing', async () => {
@@ -2164,6 +2236,7 @@ describe('Motion', () => {
     await dragTodoCardOntoDone(TAX_REPORT_TITLE);
 
     expect(ticks.map(({element}) => element)).toEqual([getTodayMotion()]);
+    await expectAtRest(getTodayMotion());
   });
 
   it('FX-3 under reduced motion the arcs take their lengths at once and the cell does not jump', async () => {
@@ -2194,6 +2267,7 @@ describe('Motion', () => {
       .map(animation => (animation as CSSAnimation).animationName);
     expect(names).toContain('fx-ring-spin');
     expect(names).toContain('fx-ring-spark');
+    expect(names).toContain('fx-ring-draw');
 
     // Done today: habits 3, steps 1, one-offs 3, so of twelve sparks six are
     // the habits' colour, one the steps' and five the one-offs'
@@ -2207,20 +2281,33 @@ describe('Motion', () => {
         color => sparkColors.filter(spark => spark === color).length,
       ),
     ).toEqual([6, 1, 5]);
+
+    // The ring turns once, from where it rests back to where it rests
+    const ring = getTodayCell().querySelector<SVGElement>('.fx-ring-svg')!;
+    const spin = ring
+      .getAnimations()
+      .find(
+        animation =>
+          (animation as CSSAnimation).animationName === 'fx-ring-spin',
+      )!;
+    const readTurn = () => {
+      const {rotate, transform} = getComputedStyle(ring);
+      return {rotate, transform};
+    };
+    spin.pause();
+    spin.currentTime = 0;
+    expect(readTurn()).toEqual({rotate: '-90deg', transform: 'none'});
+    spin.finish();
+    expect(readTurn()).toEqual({rotate: '-90deg', transform: 'none'});
   });
 
-  it('FX-4 RING-6 a card pulled into Todo while the last one is in flight keeps the ring open, so nothing celebrates', async () => {
+  it('FX-4 a card finished while another is still in Todo closes nothing, so nothing celebrates', async () => {
     keepSaving();
-    await renderBoard({tasks: withOnlyTodo([TAX_REPORT_TITLE])});
-    await openBacklog();
+    await renderBoard({tasks: withOnlyTodo([TAX_REPORT_TITLE, 'Workout'])});
     const celebrations = watchClasses(['fx-ring-close']);
 
-    await completeByTap(TAX_REPORT_TITLE);
-    getPullButton(getCard('BACKLOG', 'Read').card).click();
+    await completeAndLand('Workout');
 
-    await expect
-      .poll(() => readColumnTitles('TODO'), MOTION_TIMEOUT)
-      .toEqual(['Read']);
     expect(readTodayCount()).toBe('7 of 8 done');
     expect(hasCheck(getTodayCell())).toBe(false);
     expect(celebrations).toEqual([]);
@@ -2259,6 +2346,9 @@ describe('Motion', () => {
     expect(readColumnTitles('DONE')[0]).toBe(TAX_REPORT_TITLE);
     expect(glows.map(({element}) => element)).toEqual([card]);
     expect(card.getAnimations().length).toBeGreaterThan(0);
+    // The glow ends, and the card is left in Done's look
+    await expectAtRest(card);
+    expect(getComputedStyle(card).opacity).toBe('0.5');
 
     const taxReport = findTaskByTitle(TAX_REPORT_TITLE);
     const savedTasks = withTaskDone(MID_WEEK_BOARD.tasks, taxReport.id);
@@ -2325,6 +2415,10 @@ describe('Motion', () => {
 
     await dragTodoCardOntoDone(TAX_REPORT_TITLE);
     expect(vibrations).toEqual([COMPLETE_VIBRATION, RING_CLOSE_VIBRATION]);
+    // A double pulse is on, off, on; the ring's is the longer of the two
+    const [complete, ringClose] = vibrations;
+    expect(complete).toHaveLength(3);
+    expect(sum(ringClose)).toBeGreaterThan(sum(complete));
   });
 
   it('FX-7 completing the last card with ✓ Complete asks for both pulses', async () => {
@@ -2345,10 +2439,12 @@ describe('Motion', () => {
     expect(await readHeldTransform(getTodoCard(TAX_REPORT_TITLE))).toBe(
       shrunkBy(0.985),
     );
+    await expectLetGo(getTodoCard(TAX_REPORT_TITLE));
     expect(await readHeldTransform(getCard('DONE', 'Workout').card)).toBe(
       'none',
     );
     expect(await readHeldTransform(getCells()[0])).toBe(shrunkBy(0.96));
+    await expectLetGo(getCells()[0]);
     await userEvent.keyboard('{Escape}');
     await openBacklog();
     expect(await readHeldTransform(getCard('BACKLOG', 'Read').card)).toBe(
