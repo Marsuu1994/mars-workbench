@@ -4,6 +4,7 @@ import type {ReactNode} from 'react';
 import {TaskStatus} from '@/utils/enums';
 import {TaskKind} from '@/utils/taskUtils';
 import type {BoardCard} from '@/utils/boardCardUtils';
+import {TaskCardDescription} from './TaskCardDescription';
 import {TaskCardHead} from './TaskCardHead';
 import {TaskCardSignal} from './TaskCardSignal';
 
@@ -40,11 +41,7 @@ export const TaskCardFace = ({card, headExtra, action}: TaskCardFaceProps) => {
       >
         {task.title}
       </h3>
-      {task.description && !isDone && (
-        <p className="-mt-0.5 text-xs leading-snug text-base-content/60 line-clamp-2 break-words">
-          {task.description}
-        </p>
-      )}
+      {!isDone && <TaskCardDescription description={task.description} />}
       <div className="flex min-h-[18px] flex-wrap items-center gap-2">
         <TaskCardSignal card={card} />
         {action && <span className="ml-auto flex items-center">{action}</span>}

@@ -30,16 +30,18 @@ The top of the board is a row of rings, one for each day of the plan's week, Mon
   - desktop: all seven days, Monday to Sunday.
   - mobile: today's cell, and as many days before today as fit beside it. The row runs the screen's width less 20 px on each side, its cells sit 4 px apart, today's cell is kept at least 132 px wide and each other cell at least 54 px, and the cells share what is left equally. At 320, 375, 390 and 430 px that is 2, 3, 3 and 4 other days. Early in the week, when fewer days come before today than there is room for, the days after today fill the rest, so the row always shows the same number of cells at one width.
   - the rings keep their size whatever the screen's width; only the number of cells changes.
-- **RING-2** What a day's ring counts, in `KANBAN_TZ`:
+- **RING-2** What a day's ring counts, in `KANBAN_TZ`. This counting is a temporary workaround: nothing records yet what was planned for each day, so the page works it out from the tasks it holds. It stands until the daily rhythm keeps a snapshot of each day's total and done counts; the day rings' item in `design/tracker.md` says where that is designed.
   - done, for every day: the tasks on the plan finished that day, by when they were finished, of every kind.
   - planned, for today: the tasks done today, and every card in Todo. A task in the backlog isn't planned for today until it is pulled into Todo, so pulling a card adds one to today's planned count.
   - planned, for a day before today: the tasks done that day, and that day's daily habit tasks that expired without being done (ST-4).
   - planned, for a day after today: nothing yet; the day's work isn't known until it comes.
+  - when a day ends: its planned count is counted as a past day's from then on, so under this workaround it can change overnight. The Todo cards that don't expire with the day (weekly habit tasks, project steps and one-offs) stop counting for it, since they wait in Todo for the next day. A daily habit task that wasn't done expires with the day wherever it was: it keeps counting if it was in Todo, and starts counting if it was never pulled out of the backlog. A ring that was closed in the evening can therefore show an empty part the next morning, and a ring left open can show as closed.
 - **RING-3** How a ring is drawn:
   - the track: the whole ring is the day's planned count, and the part not done is an empty track.
   - the arcs: each done task adds an arc of the same length, in its kind's colour, the same colour as the left edge of its card. The arcs start at 12 o'clock and go clockwise, habits first, then project steps, then one-offs.
   - nothing planned: the ring is an empty track.
   - closed: when the day has something planned and everything planned is done, a ✓ sits in the ring's centre.
+  - more done than planned: the ring is drawn full and counts as closed, whatever its count reads. RING-2's counting can't give more done than planned as it stands; this holds for the counting that replaces it.
 - **RING-4** A screen reader reads each day's cell up to today as the day's name, then how many tasks are done out of how many are planned, then, for each kind that has any planned, how many of that kind are done out of how many: "Thu: 1 of 5 done — habits 1 of 2, steps 0 of 2, one-offs 0 of 1".
 - **RING-5** When today's ring is closed (RING-3), today's cell stays marked as closed for as long as it is: its frame turns to the success colour, its ring holds the ✓, and its count reads **All N done**, N being today's planned count. A ring that is closed when the page loads shows the same, with no celebration (FX-4).
 - **RING-6** Pulling a card into Todo after today's ring has closed opens it again: the ring shows an empty part, the ✓ goes, the frame loses its success colour, and the count reads **d of p done** again. Once the new card is done too, the ring closes again, with its celebration (FX-4).
@@ -76,34 +78,40 @@ The top of the board is a row of rings, one for each day of the plan's week, Mon
 
 ## Task cards
 
-This section is the board's one card, in Todo, in Done and in the backlog. What the backlog adds to it is BL-17.
+This section is the board's one card, in Todo, in Done and in the backlog. How the backlog groups its cards and piles them is the Backlog section's (BL-9, BL-11, BL-12).
 
 - **CARD-9** Every card, on both widths and in Todo, Done and the backlog, shows from top to bottom:
   - kind line: what kind of task it is; a project step shows its project's name in place of the kind, and a one-off shows its kind, a bar and the quadrant of the priority matrix it is in (**ONE-OFF | DO FIRST**). Nothing else stands on the line, apart from the backlog's **+N more** (BL-11).
   - title: the task's title
   - description: the task's description, cut off after two lines; none in Done (CARD-2)
   - progress: the kind's progress (CARD-10, CARD-11); a one-off has none
-  - action, at the bottom right: in Todo, a round mark that becomes ✓ Complete when the card is selected (TAP-1); in the backlog, ↑ Todo (BL-17); in Done, none
+  - action, at the bottom right, by where the card is:
+    - in Todo: a round mark that becomes ✓ Complete when the card is selected (TAP-1)
+    - in the backlog: ↑ Todo, on both widths, which pulls the task into Todo (A9)
+    - in Done: none
 
   No card shows the task's size or its points.
 - **CARD-2** A card in Done is dimmed, its title is struck through and its description is hidden. It can't be dragged (R4).
+- **CARD-12** Which cards can be dragged:
+  - desktop: a card in Todo or in the backlog can be dragged as well as moved by its action (A4, A6, A15).
+  - mobile: no card can be dragged. A card moves only by its action (CARD-9), so on mobile a backlog task reaches Done only through Todo.
 - **CARD-10** **Habit cards.** The kind line says it's a habit and shows nothing about how often it runs.
   - progress: the week's dots alone, with no count of how many are done beside them. A screen reader reads the dots as how many are done out of the total.
   - dots: one for each time the habit runs this week. A daily habit gets N for each day it runs (weekdays in `NORMAL` mode, every day in `EXTREME` mode); a weekly habit gets N. A dot is filled when its task is done and empty when it isn't, and the card's own task has a ring around its dot, in Todo, Done and the backlog alike.
   - off the plan: if the habit is no longer on the plan, its cards show no progress
 - **CARD-11** **Project step cards.** The kind line shows the project's name and nothing about the step's number.
-  - progress: the project's path, one segment per step in order. A segment is filled when its step is done and empty when it isn't, and the card's own step has a ring around it.
+  - progress: the project's path, one segment per step in order. A segment is filled when its step is done and empty when it isn't, and the card's own step has a ring around it, in Todo, Done and the backlog alike. A screen reader reads the path as how many steps are done out of the total.
   - no project: if the board didn't get the step's project, the card shows no progress
 - **CARD-7** When a card lands on Done, its dot or segment fills straight away, without waiting for the server.
 
 ### Tap twice to complete
 
-A Todo card is finished in two presses, on both widths: one to select it, and a second on its ✓ Complete. Desktop keeps dragging as well (A6, A7).
+A Todo card is finished in two presses, on both widths: one to select it, and a second on its ✓ Complete. Desktop keeps dragging as well (A6, A15).
 
 - **TAP-1** Pressing anywhere on a Todo card selects it (A10). A selected card has a confirming frame, and its round mark turns into a filled ✓ with **Complete** beside it: together they are its ✓ Complete button. Its size and its place don't change, and nothing else on the board moves. At most one card is selected: pressing another Todo card moves the selection to it. Cards in Done and in the backlog can't be selected.
-- **TAP-2** A selected card goes back to normal, with nothing finished, when the user presses it again anywhere but its ✓ Complete, presses anywhere outside the Todo cards, presses Esc, opens a day's list or opens the backlog (A11). Scrolling doesn't cancel it, and nothing cancels it on a timer.
+- **TAP-2** A selected card goes back to normal, with nothing finished, when the user presses it again anywhere but its ✓ Complete, presses anywhere outside the Todo cards, presses Esc, opens a day's list or opens the backlog (A11). Scrolling doesn't cancel it, and nothing cancels it on a timer. Left open on purpose (owner, 2026-11-19): whether a card stays selected once a drag starts. A selected card can be dragged like any other, and the implementation does whatever is simplest.
 - **TAP-3** Only ✓ Complete finishes a card by pressing (A12). For 350 ms after it appears it ignores presses, so a quick double press on the round mark selects the card without finishing it.
-- **TAP-4** Keyboard and screen-reader users: each Todo card can be reached with Tab, and Enter on it does what a press does, so on a selected card it does what ✓ Complete does, after the same 350 ms (TAP-3). On desktop, Space stays the key that lifts a card to drag it (A7). A screen reader hears whether the card is selected, and ✓ Complete is named after the task it finishes.
+- **TAP-4** Keyboard and screen-reader users: each Todo card can be reached with Tab. Enter on a card that isn't selected selects it; Enter on the selected card completes it, as ✓ Complete does, after the same 350 ms (TAP-3); Esc cancels the selection (TAP-2). On desktop, Space stays the key that lifts a card to drag it (A15). A screen reader hears whether the card is selected, and ✓ Complete is named after the task it finishes.
 
 ## Backlog
 
@@ -119,10 +127,6 @@ A Todo card is finished in two presses, on both widths: one to select it, and a 
 
 - **BL-9** The backlog's tasks wait in groups: one habit's tasks in the backlog are one group, and one project's steps in the backlog are another. On both widths each group is one card, showing the group's next task: a habit's lowest copy, or a project's lowest step. A group with only one task is a plain card; when more tasks wait behind its next one, its card sits on a pile of them (BL-11). The groups sit in two sections, Habits and then Projects, and a section with no group in it isn't shown.
 - **BL-16** Within each section, the groups are sorted by when their habit or project itself was created (a habit's own creation, not when it joined this week's plan), the oldest first; the tasks themselves play no part. Groups whose habits or projects were created at the same moment go by the habit's or the project's id.
-- **BL-17** A backlog card is the board's card (CARD-9) for the group's next task: its kind line, its title, its description cut off after two lines, and its progress, with the next task's dot or step ringed. A screen reader reads the dots or the path as how many are done out of the total. What it adds:
-  - ↑ Todo at its bottom right, on both widths, which pulls the task into Todo (A9)
-  - on desktop, the user can also drag the card out of the panel (A4, A6)
-  - on mobile, the card can't be dragged, so on mobile a backlog task reaches Done only through Todo
 - **BL-11** A group with tasks behind its next one shows **+N more** on its card, N being how many are behind, and under the card one thin sheet for each of them, at most three. The sheets have no text and can't be tapped. A group's last task shows neither.
 - **BL-12** A project's **+N more** has a chevron, and opens the project's queue (A8): in place of the sheets, a row for each step behind the next one, in step order, each showing its step number and title. Pressing it again closes the queue. A habit's **+N more** is text only and opens nothing. Closing the backlog (A3) closes every open queue, so the backlog always opens with its queues closed.
 - **BL-13** When a group's next task leaves the backlog, the backlog changes as soon as the card is dropped or its ↑ Todo tapped, before the server answers (MV-6):
@@ -136,7 +140,7 @@ A Todo card is finished in two presses, on both widths: one to select it, and a 
 What plays when a card is selected, completed and counted. How each motion looks (what moves, how far, for how long) is its `fx-*` utility's, in `design/design-language/README.md` › Motion and › FX utility layer. Each ends with the layout as it is at rest, and when the system asks for reduced motion, none of them plays, apart from the one fade FX-2 keeps.
 
 - **FX-1** Pressing ✓ Complete (A12) first plays a *juice* on the card where it stands: one of `fx-juice-wobble`, `fx-juice-shine`, `fx-juice-burst` and `fx-juice-flip`, picked at random each time, and never the same one twice in a row on the page. Under reduced motion no juice plays.
-- **FX-2** Once the juice has played, the card is tossed into today's ring with `fx-toss`: a copy of the card, drawn above the board so that no column cuts it off, flies from the card's place to today's cell, and the card leaves Todo once it lands (MV-6). Until it has landed, presses on the Todo cards do nothing, while the day's cells and the backlog still work. The cards that were below it then slide up into the space with `fx-slide`. Dragging a card onto Done tosses nothing. Under reduced motion nothing flies or slides: the card fades out where it stands with `fx-fade-out`, then leaves Todo, and the cards below it take its place at once.
+- **FX-2** Once the juice has played, the card is tossed into today's ring with `fx-toss`: a copy of the card, drawn above the board so that no column cuts it off, flies from the card's place to today's cell, and the card leaves Todo once it lands (MV-6). The cards that were below it then slide up into the space with `fx-slide`. Dragging a card onto Done tosses nothing. Under reduced motion nothing flies or slides: the card fades out where it stands with `fx-fade-out`, then leaves Todo, and the cards below it take its place at once. Left open on purpose (owner, 2026-11-19): what a press on another Todo card does while a card is in flight. Only rare use reaches it, so it has no item and no test, and the implementation does whatever is simplest.
 - **FX-3** Whenever a day's counts change on the page, its ring's arcs grow or shrink to their new lengths with `fx-ring-grow`; when a card is finished, today's cell also gives one small jump with `fx-ring-tick`. Under reduced motion the arcs take their new lengths at once and the cell doesn't jump.
 - **FX-4** When a task finished on the page closes today's ring (RING-3), by ✓ Complete or by a drag onto Done, today's cell celebrates with `fx-ring-close`: the ring turns once, sparks fly out of it, coloured in the same shares as today's done tasks by kind, and the ✓ draws itself in its centre. The page never plays it for a ring that is already closed when it loads. Under reduced motion it doesn't play: the ✓, the success frame and **All N done** appear at once (RING-5).
 - **FX-5** On desktop, a card finished on the page lands at the top of Done and glows once with `fx-done-in`, then stays in Done's look (CARD-2). Only that moment glows: the card doesn't glow again when the page renders or reloads. Under reduced motion it doesn't glow.
@@ -154,7 +158,7 @@ What plays when a card is selected, completed and counted. How each motion looks
 | A4 | Pull to Todo (desktop) | drag a backlog card onto Todo | `updateTaskStatusAction` → `TODO` | the card moves (A move) |
 | A9 | Pull to Todo | tap ↑ Todo on a backlog card, on either width | `updateTaskStatusAction` → `TODO` | the card moves (A move), and the panel or the sheet stays open for the next one |
 | A6 | Finish from the backlog | drag a backlog card onto Done (desktop) | `updateTaskStatusAction` → `DONE` | the card moves (A move) |
-| A7 | Finish | drag a Todo card onto Done | `updateTaskStatusAction` → `DONE` | the card moves (A move) |
+| A15 | Finish by dragging (desktop) | drag a Todo card onto Done (desktop) | `updateTaskStatusAction` → `DONE` | the card moves (A move), and nothing is tossed (FX-2) |
 | A10 | Select a card | press a Todo card anywhere, on either width | — | the card is selected and shows its ✓ Complete (TAP-1), and an open day's list closes (DAY-4) |
 | A11 | Cancel the selection | press the selected card again, press outside the Todo cards, press Esc, open a day's list or open the backlog | — | the card goes back to normal, with nothing finished (TAP-2) |
 | A12 | Complete | press ✓ Complete on the selected card, on either width | `updateTaskStatusAction` → `DONE` | the card plays its juice and is tossed into today's ring (FX-1, FX-2), then moves (A move) |
@@ -164,7 +168,7 @@ What plays when a card is selected, completed and counted. How each motion looks
 
 ### A move
 
-What happens when a card moves (A4, A6, A7, A9 and A12):
+What happens when a card moves (A4, A6, A9, A12 and A15):
 
 - **MV-6** The card moves before the server answers: as soon as it is dropped or its ↑ Todo is tapped, and, when it is completed with ✓ Complete, as soon as it has landed in today's ring (FX-2). It goes to its place in Todo (sorted as in COL-2), or, when it is finished, to the top of Done on desktop and off the board on mobile. At the same moment:
   - the counts follow it: the column it leaves and the one it lands in change their header counts (COL-6), and a card leaving the backlog takes the backlog's count down by one (BL-8)

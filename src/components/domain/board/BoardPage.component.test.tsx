@@ -666,6 +666,33 @@ const BoardFrame = ({board}: {board: BoardData}) => (
   </div>
 );
 
+/** A description long enough to run past two lines on any card. */
+const LONG_DESCRIPTION = Array.from(
+  {length: 12},
+  (_, index) => `Sentence ${index + 1} of a long description.`,
+).join(' ');
+
+/** The mid-week fixture with every task's description made long. */
+const WITH_LONG_DESCRIPTIONS = MID_WEEK_TASKS.map(task => ({
+  ...task,
+  description: LONG_DESCRIPTION,
+}));
+
+/**
+ * A card's description is cut off after two lines: it shows exactly two of
+ * its lines, the rest hidden behind an ellipsis.
+ */
+const expectCutOffAfterTwoLines = (card: HTMLElement) => {
+  const description = [...card.querySelectorAll<HTMLElement>('p')].find(
+    paragraph => paragraph.textContent === LONG_DESCRIPTION,
+  );
+  if (!description) throw new Error('No description on the card');
+  const lineHeight = parseFloat(getComputedStyle(description).lineHeight);
+  expect(Math.round(description.clientHeight / lineHeight)).toBe(2);
+  expect(description.scrollHeight).toBeGreaterThan(description.clientHeight);
+  expect(getComputedStyle(description).webkitLineClamp).toBe('2');
+};
+
 const renderBoard = (board: Partial<BoardData> = {}) =>
   renderPage(<BoardFrame board={{...MID_WEEK_BOARD, ...board}} />);
 
@@ -1349,6 +1376,16 @@ describe('Task cards', () => {
     expect(getDots(card)).toHaveLength(0);
     expect(getSegments(card)).toHaveLength(0);
     expect(card.innerText).not.toMatch(SIZE_TEXT);
+  });
+
+  it('CARD-9 a long description is cut off after two lines, in Todo and in the backlog', async () => {
+    await renderBoard({tasks: WITH_LONG_DESCRIPTIONS});
+
+    expectCutOffAfterTwoLines(getCard('TODO', TAX_REPORT_TITLE).card);
+
+    await openBacklog();
+    expectCutOffAfterTwoLines(getCard('BACKLOG', 'LeetCode').card);
+    expectCutOffAfterTwoLines(getCard('BACKLOG', BIO_LECTURE_4_TITLE).card);
   });
 
   it('CARD-2 CARD-9 R4 a Done card is dimmed, its title struck through, with no description, no action and no drag handle', async () => {

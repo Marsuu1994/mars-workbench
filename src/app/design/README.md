@@ -2,9 +2,9 @@
 
 `/design` documents implemented UI with the real components: a gallery tabbed by layer (Tokens & FX · UI · Application · Domain) and per-feature scenario pages (`/design/scenarios/<feature>/`) that render each screen with pinned fixture states. AGENTS.md › UI Workflow holds the rules every session needs — the console is the source of truth, and production comes first; this file is how the console works.
 
-## Local access
+## Access
 
-`npm run dev` serves `/design` and its scenario pages without signing in, so agents and the owner can browse, screenshot and debug UI straight away; production builds (Vercel previews included) keep the auth gate. The console renders fixtures only and never reads Supabase or the database, so it boots without the local Supabase stack running — a machine without `.env.local` (a cloud agent's container) only needs the local defaults:
+`/design` and its scenario pages are public in every build — `npm run dev`, Vercel previews and production — so anyone can open them without signing in, and agents and the owner can browse, screenshot and debug UI straight away. The console renders fixtures only and never reads Supabase or the database, so it boots without the local Supabase stack running — a machine without `.env.local` (a cloud agent's container) only needs the local defaults:
 
 ```bash
 npm run setup -- --no-db && npm run dev
