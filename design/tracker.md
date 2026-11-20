@@ -93,6 +93,12 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 
 ## Board
 
+### High
+
+- [ ] Take drag and drop off the board — the next PR after tap to complete (PR #133): every move already has a press (↑ Todo, ✓ Complete), and working around the drag library keeps costing focus and a11y behaviour (owner, 2026-11-20)
+  - Goes with it: the focus ring a Todo card pressed with a mouse draws beside its selected frame, and keeps after the selection is cancelled — the card is focused by script because the drag handle swallows the press (PR #133, round 2 · 3 and 4)
+  - Decide there: how a backlog task is finished without passing through Todo (A6), and what the spec's drag items become (CARD-12, BL-13, BL-18, A4, A6, A15)
+
 ### Future
 
 - [ ] Per-kind risk rules — Phase 1 switched risk off (badges, borders, 15:00 / 20:00 clock thresholds); bring it back per kind, as a colour on the card's signal line (never the kind edge): habit pace (amber when what's left needs every remaining day), project step carried 2× (amber — split it?), one-off due date (amber within 2 days, red on the day — the only red). First explored in PR #47's initial mockup (commit `d3ecc25`, Cards & risk screen); the research behind the rules, the options and the two columns they need (`carriedCount`, `dueAt`) in `design/spike/week-model-phase2-pain-points.md` › 痛点 5

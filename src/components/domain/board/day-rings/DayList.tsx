@@ -14,7 +14,7 @@ interface DayListProps {
   /** The day's finished tasks, in the list's order (toDayListCards) */
   cards: BoardCard[];
   onClose: () => void;
-  /** The close button, which takes focus when the list opens (DAY-5) */
+  /** The close button, which takes focus when the desktop panel opens (DAY-5) */
   closeButtonRef?: Ref<HTMLButtonElement>;
   /** The body's height cap: the desktop panel's, or the sheet's */
   bodyClassName?: string;

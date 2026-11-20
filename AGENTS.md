@@ -228,7 +228,7 @@ Delegate to a subagent only work whose tool output would outgrow the brief and t
   1. `design/tracker.md`: delete finished items and sub-bullets.
   2. README Current State: rewrite the sections the change touches.
   3. AGENTS.md, or a README it indexes: only when a rule or a directory's responsibility changed.
-  4. Run `npm run format`, then `lint`, `typecheck`, `knip`, `check:spec`, `check:duplicate-types`, `test:coverage` and `test:component` (and `check:themes` when CSS variables changed). `test:coverage` and not `npm test`: CI fails below the coverage floors, which `npm test` doesn't check. CI runs e2e; run `npm run test:e2e` too when a change touches a page's flow.
+  4. Run `npm run format`, then `lint`, `typecheck`, `knip`, `check:spec`, `check:duplicate-types`, `test:coverage` and `test:component` (and `check:themes` when CSS variables or keyframes changed). `test:coverage` and not `npm test`: CI fails below the coverage floors, which `npm test` doesn't check. CI runs e2e; run `npm run test:e2e` too when a change touches a page's flow.
 - **Act on submitted reviews only.** A pending review — comments drafted but not yet submitted — can still change: don't reply to, resolve or push for its comments; at most mention that one is pending.
 
 ## Commands
@@ -241,7 +241,7 @@ npm run typecheck    # tsc --noEmit (CI; needs the generated Prisma client)
 npm run knip         # Unused files, exports and dependencies (CI; config in knip.jsonc)
 npm run format       # Format all code with Prettier
 npm run format:check # Verify formatting (CI)
-npm run check:themes # Every theme declares the same CSS variables (CI)
+npm run check:themes # Every theme declares the same CSS variables, and no keyframe mixes a colour from a variable (CI)
 npm run check:review-log  # Every owner review on a PR has its entry in reviews/ (CI; GITHUB_REPOSITORY and PR_NUMBER locally)
 npm run check:mockup-links  # Every mockup a PR changes is linked from its description (CI; same env)
 npm run check:spec   # Every item in a spec v2 doc is held by a test that names it, and no legacy doc grows (CI); `-- --list <page>` lists each item's tests

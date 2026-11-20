@@ -193,6 +193,32 @@ export const findTopCardTitle = (
   status: Exclude<BoardStatus, 'BACKLOG'>,
 ) => findBoardColumn(page, status).getByRole('heading').first();
 
+/**
+ * What a keyframes rule sets a property to at its start, as the page's built
+ * stylesheet holds it: '' when the rule holds nothing. The build can leave a
+ * keyframe empty, and its animation then still plays and draws nothing, so a
+ * class on the element doesn't prove a motion shows.
+ */
+export const readKeyframesStart = (
+  page: Page,
+  name: string,
+  property: string,
+) =>
+  page.evaluate(
+    ([keyframesName, propertyName]) => {
+      const rules = [...document.styleSheets].flatMap(sheet => [
+        ...sheet.cssRules,
+      ]);
+      const keyframes = rules.find(
+        (rule): rule is CSSKeyframesRule =>
+          rule instanceof CSSKeyframesRule && rule.name === keyframesName,
+      );
+      const start = keyframes?.findRule('from');
+      return start?.style.getPropertyValue(propertyName) ?? '';
+    },
+    [name, property],
+  );
+
 // ─── Tap twice to complete ─────────────────────────────────────────────────
 
 /** A Todo card by its title, selected or not (its name changes when it is). */

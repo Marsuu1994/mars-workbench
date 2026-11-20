@@ -33,7 +33,7 @@ export const DayListSheetFrame = () => {
 
   return (
     <div className="flex h-full flex-col justify-end bg-base-200/20 p-3">
-      <div className="mx-auto flex max-h-[70vh] w-full max-w-[430px] flex-col overflow-hidden rounded-t-2xl border border-base-content/10 bg-base-100 shadow-lg">
+      <div className="mx-auto flex max-h-[70dvh] w-full max-w-[430px] flex-col overflow-hidden rounded-t-2xl border border-base-content/10 bg-base-100 shadow-lg">
         <DayList
           ring={today}
           cards={toDayListCards(doneCards, today.date)}

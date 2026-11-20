@@ -57,7 +57,10 @@ A theme is a **skin over a shared skeleton**, never a fork of components:
 
 The table below is the utility API and its **HUD skin** (shared by `mars-dark` /
 `mars-light`); [p5-dark.md](./p5-dark.md) specifies its own skin per utility. All
-utilities derive colors from daisyUI tokens via `color-mix()`. They live in
+utilities derive colors from daisyUI tokens via `color-mix()`. A keyframe never
+mixes one itself: Tailwind's fallback for `color-mix()` over a variable can't sit in
+a keyframe, and the build ships the keyframe empty, so the utility mixes the colour
+in a variable and the keyframe reads it (`npm run check:themes`). They live in
 `@layer components` — any Tailwind utility can override their properties. Loops
 animate opacity/transform only (composite-friendly); `prefers-reduced-motion`
 disables them, and the board's motion with them, except `fx-fade-out`.
@@ -93,7 +96,7 @@ disables them, and the board's motion with them, except `fx-fade-out`.
 | `fx-ring-grow` | 500ms transition of a ring's arcs to their new lengths | `DayRingGraphic` |
 | `fx-ring-tick` | Today's cell gives one small jump when a card is finished | today's `DayCell` |
 | `fx-ring-close` (+ `fx-ring-svg`, `fx-ring-check`, `fx-ring-spark`) | Today's ring closing: the ring turns once (700ms), its ✓ draws itself, and sparks fly out in the shares of the day's done kinds (`--fx-spark-angle`, `--fx-spark-color`); sparks are invisible outside it | today's `DayCell`, `DayRingGraphic` |
-| `fx-done-in` | 900ms success glow on a card landing at the top of Done, once | `DoneCard` |
+| `fx-done-in` | 900ms on a card landing at the top of Done, once: it starts fully lit inside a success frame and glow (`--fx-done-in-glow`), and dims into Done's look | `DoneCard` |
 | `fx-arm` (+ `fx-arm-mark`, `fx-arm-word`) | A selected Todo card's round mark grows into the filled ✓ (150ms transition) and **Complete** comes in beside it | `TodoCardAction` |
 | `fx-press` | Shrinks a pressable surface a little while it's held (`--fx-press-scale`, 0.985 by default) | Todo cards, day cells |
 | `fx-countdown` | Clock bar draining over `--fx-countdown-ms`; its `animationend` is the dismissal. Holds while its host is hovered and inside `data-time="frozen"` (scenario frames, gallery specimens); deliberately kept out of the reduced-motion list | `Toast` |

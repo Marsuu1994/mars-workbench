@@ -1193,15 +1193,19 @@ describe("A day's list", () => {
     expect(findDayListPanel()).toBeNull();
   });
 
-  it('DAY-5 on mobile closing the sheet moves focus back to the cell', async () => {
+  it('DAY-5 on mobile opening the sheet moves focus to the sheet itself, and closing it moves focus back to the cell', async () => {
     await useMobileWidth();
     await renderBoard(LAST_WEEK_BOARD);
     const monday = getDayCell(lastWeekDate(0));
 
     await userEvent.click(monday);
-    const close = getDayListClose(getOpenSheet());
-    await expect.poll(() => document.activeElement).toBe(close);
-    await userEvent.click(close);
+    const sheet = getOpenSheet();
+    // The sheet, not its close button: a button focused by the page draws
+    // its focus ring on a phone
+    await expect.poll(() => document.activeElement).toBe(sheet);
+    await sleep(100);
+    expect(document.activeElement).toBe(sheet);
+    await userEvent.click(getDayListClose(sheet));
 
     await expect.poll(() => document.activeElement).toBe(monday);
   });
@@ -1668,6 +1672,34 @@ describe('Backlog', () => {
     expect(readBacklogBadge(getOpenSheet())).toBe(String(BACKLOG_COUNT));
   });
 
+  it("BL-2 on mobile the sheet is at most three quarters of the screen's height, and a longer backlog scrolls inside it under the header", async () => {
+    // A screen short enough that the fixture's backlog is taller than the
+    // sheet may be
+    const screenHeight = 420;
+    await page.viewport(MOBILE_VIEWPORT.width, screenHeight);
+    await renderBoard();
+
+    await openBacklog();
+
+    const box = getOpenSheet().querySelector<HTMLElement>('.modal-box')!;
+    await expect
+      .poll(() => box.getBoundingClientRect().bottom)
+      .toBeCloseTo(screenHeight, 0);
+    expect(box.getBoundingClientRect().height).toBeLessThanOrEqual(
+      screenHeight * 0.75,
+    );
+    // The cards scroll inside the sheet, and the sheet itself doesn't, so
+    // its header stays
+    const scrollers = [box, ...box.querySelectorAll('*')].filter(
+      element =>
+        getComputedStyle(element).overflowY === 'auto' &&
+        element.scrollHeight > element.clientHeight + 1,
+    );
+    expect(scrollers).toHaveLength(1);
+    expect(scrollers[0]).not.toBe(box);
+    expect(scrollers[0].contains(getShownByTitle('Close backlog'))).toBe(false);
+  });
+
   it('BL-8 at exactly 8 the count shows the number', async () => {
     await renderBoard({tasks: [...MID_WEEK_TASKS, ...extraReadCopies(1)]});
 
@@ -1684,6 +1716,19 @@ describe('Backlog', () => {
     await userEvent.click(strip);
     expect(readBacklogBadge(getPanelHeader())).toBe('8+');
     expect(getPanelHeader().textContent).toContain('10 staged tasks');
+  });
+
+  it('BL-5 on mobile opening the sheet moves focus to the sheet itself, and closing it moves focus back to the pill', async () => {
+    await useMobileWidth();
+    await renderBoard();
+    const pill = getShownByTitle('Open backlog');
+
+    await userEvent.click(pill);
+    const sheet = getOpenSheet();
+    await expect.poll(() => document.activeElement).toBe(sheet);
+    await userEvent.click(getShownByTitle('Close backlog'));
+
+    await expect.poll(() => document.activeElement).toBe(pill);
   });
 
   it("BL-5 A2 A3 keyboard focus reaches only the side of the desktop backlog that's showing", async () => {
@@ -2345,7 +2390,13 @@ describe('Motion', () => {
     const {card} = getCard('DONE', TAX_REPORT_TITLE);
     expect(readColumnTitles('DONE')[0]).toBe(TAX_REPORT_TITLE);
     expect(glows.map(({element}) => element)).toEqual([card]);
-    expect(card.getAnimations().length).toBeGreaterThan(0);
+    // The glow starts from the card fully lit inside a success frame
+    const [glow] = card.getAnimations();
+    glow.pause();
+    glow.currentTime = 0;
+    expect(getComputedStyle(card).opacity).toBe('1');
+    expect(getComputedStyle(card).boxShadow).toMatch(/ 0px 0px 0px 2px/);
+    glow.play();
     // The glow ends, and the card is left in Done's look
     await expectAtRest(card);
     expect(getComputedStyle(card).opacity).toBe('0.5');

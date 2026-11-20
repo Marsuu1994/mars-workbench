@@ -35,6 +35,7 @@ import {
   pressTodoCard,
   pullWithTap,
   readArcLength,
+  readKeyframesStart,
   readMarkFills,
   readProgressLabel,
   trackRingCelebrations,
@@ -285,6 +286,10 @@ const runWeeksWork = async ({
         await expect(findTopCardTitle(page, 'DONE')).toHaveText(HABIT_TITLE);
         const habitCard = findCardOf(findBoardCard(page, 'DONE', HABIT_TITLE));
         await expect(habitCard).toHaveClass(/fx-done-in/);
+        // The glow as the build ships it: it starts from a frame around the card
+        expect(
+          await readKeyframesStart(page, 'fx-done-in', 'box-shadow'),
+        ).toContain('2px');
         await expectFirstMarkFilled(page, HABIT_TITLE);
         expect(await readProgressLabel(habitCard)).toBe(
           `1 of ${HABIT_RUNS} done this week`,

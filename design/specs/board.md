@@ -52,7 +52,7 @@ The top of the board is a row of rings, one for each day of the plan's week, Mon
 - **DAY-1** Today's cell and each cell before it are buttons. Pressing one opens that day's list (A13); pressing the same cell again closes it (A14). Only one day's list is open at a time: pressing another day's cell closes the open list and opens that day's. While its list is open, the day's cell is drawn as selected.
 - **DAY-2** Where the list opens:
   - desktop: in a panel floating under the row, below the day's cell, over the board. The board stays as it is behind it.
-  - mobile: in a sheet that rises from the bottom, at most 70% of the screen's height, with the board dimmed behind it.
+  - mobile: in a sheet that rises from the bottom, at most 70% of the height the screen shows at that moment (a phone's browser bars take some of it), with the board dimmed behind it.
 - **DAY-3** A day's list shows, from top to bottom:
   - its header: the day's name (**Today** for today), the day's count, **d of p done**, the same as its ring (RING-2), and a close button
   - a row for each task finished that day: the kind's icon and the task's title, and for a project step its project's name under the title. Habits come first, then project steps, then one-offs; within a kind, by when each was finished, the earliest first.
@@ -60,7 +60,7 @@ The top of the board is a row of rings, one for each day of the plan's week, Mon
 
   The list is read only: its rows can't be pressed, dragged or moved back (R7).
 - **DAY-4** The open list closes when the user presses its close button, presses its day's cell again, presses anywhere outside it (on mobile, the dimmed board), or presses Esc (A14). Opening the backlog (A2) or selecting a card (A10) closes it too, and opening a day's list cancels a selected card (TAP-2).
-- **DAY-5** Keyboard and screen-reader users: each day's cell that is a button can be reached with Tab and pressed with Enter or Space, and a screen reader hears whether its list is open. Opening a list moves focus to its close button, and closing it moves focus back to the day's cell. On desktop, a press outside the list is the exception: it leaves focus where that press put it, since the user has moved on to something else.
+- **DAY-5** Keyboard and screen-reader users: each day's cell that is a button can be reached with Tab and pressed with Enter or Space, and a screen reader hears whether its list is open. Opening a list moves focus into it, and closing it moves focus back to the day's cell. On desktop focus goes to the list's close button. On mobile it goes to the sheet itself, so that no button is drawn as focused before the user has reached for one; Tab then reaches the close button. On desktop, a press outside the list is the exception: it leaves focus where that press put it, since the user has moved on to something else.
 
 ## Columns
 
@@ -116,10 +116,10 @@ A Todo card is finished in two presses, on both widths: one to select it, and a 
 ## Backlog
 
 - **BL-1** The backlog holds the tasks waiting to be pulled onto the board: this week's habit tasks that aren't on it yet, and the project steps scheduled for this week. It never holds one-offs: tracking a one-off for this week puts it straight into Todo.
-- **BL-2** On desktop the backlog is a narrow strip along the board's right edge, which opens into a panel. On mobile it's a pill above the tab bar, which opens a sheet from the bottom with the board dimmed behind it.
+- **BL-2** On desktop the backlog is a narrow strip along the board's right edge, which opens into a panel. On mobile it's a pill above the tab bar, which opens a sheet from the bottom with the board dimmed behind it. The sheet is at most three quarters of the height the screen shows at that moment, so some of the dimmed board always stays above it to tap, which closes it. A backlog taller than that scrolls inside the sheet, under its header.
 - **BL-8** The strip or the pill, and the header of the panel or the sheet, show how many tasks are waiting: every habit task and every project step in the backlog, not how many groups there are. Up to 8 they show the number, 0 included; past 8 they show **8+**. A screen reader always hears the real number.
 - **BL-4** The backlog is closed every time the page loads; the page doesn't remember whether it was open.
-- **BL-5** Keyboard and screen-reader users only reach the part of the backlog that's showing: Tab skips the panel while it's closed, and skips the strip while the panel is open. Opening the backlog moves focus to its close button, and closing it moves focus back to the strip or the pill. When the page first loads, focus stays where it is.
+- **BL-5** Keyboard and screen-reader users only reach the part of the backlog that's showing: Tab skips the panel while it's closed, and skips the strip while the panel is open. Opening the backlog moves focus into it: to the panel's close button on desktop, and to the sheet itself on mobile (as a day's list does, DAY-5). Closing it moves focus back to the strip or the pill. When the page first loads, focus stays where it is.
 - **BL-20** No hint about dragging or tapping a task sits under the header of the panel or the sheet, on either width: the sections (BL-9), or the empty box (BL-19), come straight after it.
 - **BL-19** When the backlog is empty, its entry stays on both widths: the desktop strip and the mobile pill, and the header of the panel or the sheet, show 0 (BL-8). Opened, the panel or the sheet shows a dashed box in place of the cards: a title saying everything is on deck, then two sentences, that the week's plan is all on the board and that the user can adjust the plan to add more or call it a week. It has no button or link. When the user pulls the last task while it's open, it stays open and the box takes the cards' place.
 
@@ -162,7 +162,7 @@ What plays when a card is selected, completed and counted. How each motion looks
 | A10 | Select a card | press a Todo card anywhere, on either width | — | the card is selected and shows its ✓ Complete (TAP-1), and an open day's list closes (DAY-4) |
 | A11 | Cancel the selection | press the selected card again, press outside the Todo cards, press Esc, open a day's list or open the backlog | — | the card goes back to normal, with nothing finished (TAP-2) |
 | A12 | Complete | press ✓ Complete on the selected card, on either width | `updateTaskStatusAction` → `DONE` | the card plays its juice and is tossed into today's ring (FX-1, FX-2), then moves (A move) |
-| A13 | Open a day's list | press today's cell or a day's cell before it, in the row of rings | — | the day's list opens, in a panel on desktop or a sheet on mobile (DAY-2), and focus moves to its close button (DAY-5) |
+| A13 | Open a day's list | press today's cell or a day's cell before it, in the row of rings | — | the day's list opens, in a panel on desktop or a sheet on mobile (DAY-2), and focus moves into it (DAY-5) |
 | A14 | Close a day's list | its close button, its day's cell again, anywhere outside it, or Esc | — | it closes, and focus goes back to the day's cell, except after a press outside it on desktop (DAY-5) |
 | A8 | Open or close a project's queue | **+N more** with its chevron, on a project's backlog card | — | the steps behind its next one show in place of the sheets under it, or are hidden again (BL-12) |
 

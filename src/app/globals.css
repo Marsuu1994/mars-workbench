@@ -1002,7 +1002,16 @@ body {
   .fx-ring-close .fx-ring-spark {
     animation: fx-ring-spark 0.7s cubic-bezier(0.2, 0, 0, 1) forwards;
   }
+  /* Workaround (Tailwind): it rewrites a color-mix() over a variable into a
+     fallback inside @supports, which a keyframe can't hold, and the build
+     then leaves the keyframe empty without a word. So the glow's colour is
+     mixed here, and the keyframe only reads it (check:themes holds this). */
   .fx-done-in {
+    --fx-done-in-glow: color-mix(
+      in oklab,
+      var(--color-success) 40%,
+      transparent
+    );
     animation: fx-done-in 0.9s cubic-bezier(0.2, 0, 0, 1);
   }
   /* The round mark growing into ✓ Complete, and Complete coming in beside it */
@@ -1655,11 +1664,14 @@ body {
     opacity: 0;
   }
 }
+/* The card lands fully lit inside a success frame, then dims into Done's
+   look */
 @keyframes fx-done-in {
   from {
+    opacity: 1;
     box-shadow:
       0 0 0 2px var(--color-success),
-      0 0 18px color-mix(in oklab, var(--color-success) 40%, transparent);
+      0 0 18px var(--fx-done-in-glow);
   }
 }
 @keyframes fx-arm-in {
