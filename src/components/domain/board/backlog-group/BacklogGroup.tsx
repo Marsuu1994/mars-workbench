@@ -7,7 +7,7 @@ import {TaskKind} from '@/utils/taskUtils';
 import type {BacklogGroup as BacklogGroupModel} from '@/utils/backlogGroupUtils';
 import {useBoardPageContext} from '../BoardPageContext';
 import {TaskCardFace} from '../TaskCardFace';
-import {TaskCardFrame} from '../TaskCardFrame';
+import {taskCardFrameClass} from '../taskCardFrame';
 import {BacklogMoreCount} from './BacklogMoreCount';
 import {BacklogPile} from './BacklogPile';
 import {BacklogQueue} from './BacklogQueue';
@@ -60,16 +60,15 @@ export const BacklogGroup = ({group, variant}: BacklogGroupProps) => {
 
   return (
     <div className="flex flex-col">
-      <TaskCardFrame
-        kind={next.kind}
-        className="relative z-[1] border-base-content/10 bg-base-100"
+      <div
+        className={`${taskCardFrameClass(next.kind)} relative z-[1] border-base-content/10 bg-base-100`}
       >
         <TaskCardFace
           card={next}
           headExtra={renderMoreCount()}
           action={renderPullButton()}
         />
-      </TaskCardFrame>
+      </div>
       {showsQueue ? (
         <BacklogQueue cards={behind} variant={variant} />
       ) : (

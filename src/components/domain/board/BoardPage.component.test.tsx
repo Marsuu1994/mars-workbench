@@ -1887,12 +1887,14 @@ describe('Backlog groups', () => {
     await openBacklog();
     const {card: backlog} = getCard('BACKLOG', 'LeetCode');
     expect(isDraggable(getTodoCard(TAX_REPORT_TITLE))).toBe(false);
+    expect(isDraggable(getCard('DONE', 'LeetCode').card)).toBe(false);
     expect(isDraggable(backlog)).toBe(false);
     expect(getPullButton(backlog)).toBeDefined();
     await userEvent.click(getShownByTitle('Close backlog'));
 
     await useMobileWidth();
-    await expect.poll(() => getShownByTitle('Open backlog')).toBeTruthy();
+    // The phone's board, once the page has seen the new width: no Done
+    await expect.poll(() => findColumn('DONE')).toBeNull();
     expect(isDraggable(getTodoCard(TAX_REPORT_TITLE))).toBe(false);
     await openBacklog();
     const {card} = findCard(getOpenSheet(), 'Read');

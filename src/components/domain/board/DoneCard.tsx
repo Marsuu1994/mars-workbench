@@ -3,7 +3,7 @@
 import type {BoardCard} from '@/utils/boardCardUtils';
 import {useBoardPageContext} from './BoardPageContext';
 import {TaskCardFace} from './TaskCardFace';
-import {TaskCardFrame} from './TaskCardFrame';
+import {taskCardFrameClass} from './taskCardFrame';
 
 interface DoneCardProps {
   card: BoardCard;
@@ -19,14 +19,13 @@ export const DoneCard = ({card}: DoneCardProps) => {
   const {kind, task} = card;
 
   return (
-    <TaskCardFrame
-      kind={kind}
+    <div
       data-done-card={task.id}
-      className={`w-full flex-shrink-0 border-base-content/10 bg-base-100/70 opacity-50 shadow-[inset_0_0_18px_color-mix(in_oklab,var(--color-success)_12%,transparent)] ${
+      className={`${taskCardFrameClass(kind)} w-full flex-shrink-0 border-base-content/10 bg-base-100/70 opacity-50 shadow-[inset_0_0_18px_color-mix(in_oklab,var(--color-success)_12%,transparent)] ${
         freshDoneTaskId === task.id ? 'fx-done-in' : ''
       }`}
     >
       <TaskCardFace card={card} />
-    </TaskCardFrame>
+    </div>
   );
 };

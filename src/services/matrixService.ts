@@ -83,7 +83,8 @@ export async function trackTaskThisWeek(
 /**
  * Complete One-off: mark a matrix task DONE in place. An unassigned task is
  * credited to the current ACTIVE plan when there is one (same outcome as
- * track → drag to Done); without a plan it is simply closed, planId null.
+ * track → complete on the board); without a plan it is simply closed, planId
+ * null.
  */
 export async function completeMatrixTask(
   userId: string,

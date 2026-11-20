@@ -170,8 +170,7 @@ const pressOutsideSheet = (page: Page) =>
     .click({position: {x: 16, y: 16}});
 
 /** The Done column, which only desktop has (COL-6). */
-const findDoneColumn = (page: Page) =>
-  page.locator('[data-rfd-droppable-id="DONE"]');
+const findDoneColumn = (page: Page) => findBoardColumn(page, 'DONE');
 
 /** J12 on desktop, J13 on a phone: the same data and the same steps. */
 const runWeeksWork = async ({

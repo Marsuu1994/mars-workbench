@@ -5,7 +5,7 @@ import {useTranslations} from 'next-intl';
 import type {BoardCard} from '@/utils/boardCardUtils';
 import {useBoardPageContext} from './BoardPageContext';
 import {TaskCardFace} from './TaskCardFace';
-import {TaskCardFrame} from './TaskCardFrame';
+import {taskCardFrameClass} from './taskCardFrame';
 import {TodoCardAction} from './TodoCardAction';
 
 interface TodoCardProps {
@@ -38,8 +38,7 @@ export const TodoCard = ({card}: TodoCardProps) => {
   };
 
   return (
-    <TaskCardFrame
-      kind={kind}
+    <div
       data-todo-card={task.id}
       role="button"
       tabIndex={0}
@@ -52,7 +51,7 @@ export const TodoCard = ({card}: TodoCardProps) => {
       aria-describedby={faceId}
       onClick={() => pressTodoCard(task.id)}
       onKeyDown={handleKeyDown}
-      className={`fx-press w-full flex-shrink-0 cursor-pointer bg-base-100/70 ${
+      className={`${taskCardFrameClass(kind)} fx-press w-full flex-shrink-0 cursor-pointer bg-base-100/70 ${
         isSelected ? 'fx-card-selected' : 'border-base-content/10'
       }`}
     >
@@ -68,6 +67,6 @@ export const TodoCard = ({card}: TodoCardProps) => {
           }
         />
       </div>
-    </TaskCardFrame>
+    </div>
   );
 };

@@ -259,8 +259,7 @@ body {
   );
   --fx-depth: var(--color-base-300);
   --fx-card-bg: var(--color-base-100);
-  /* The thin sheets a backlog card sits on, nearest first; a lifted card's
-     placeholder takes the nearest one's colour */
+  /* The thin sheets a backlog card sits on, nearest first */
   --fx-pile: color-mix(
     in oklab,
     var(--color-base-100) 88%,
@@ -336,8 +335,7 @@ body {
   );
   --fx-depth: var(--color-base-300);
   --fx-card-bg: var(--color-base-100);
-  /* The thin sheets a backlog card sits on, nearest first; a lifted card's
-     placeholder takes the nearest one's colour */
+  /* The thin sheets a backlog card sits on, nearest first */
   --fx-pile: color-mix(
     in oklab,
     var(--color-base-300) 70%,
@@ -414,8 +412,7 @@ body {
   --fx-field: oklch(0.53 0.2 26); /* large red fields   #c51d24 */
   --fx-depth: oklch(0.36 0.13 25); /* depth layer       #721216 */
   --fx-card-bg: oklch(0.17 0.008 20); /* raised card     #191313 */
-  /* The thin sheets a backlog card sits on, nearest first; a lifted card's
-     placeholder takes the nearest one's colour */
+  /* The thin sheets a backlog card sits on, nearest first */
   --fx-pile: oklch(0.25 0.008 20);
   --fx-pile-far: oklch(0.21 0.006 20);
   --fx-pile-border: color-mix(
