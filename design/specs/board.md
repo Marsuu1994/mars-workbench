@@ -110,7 +110,7 @@ A Todo card is finished in two presses, on both widths: one to select it, and a 
 - **TAP-2** A selected card goes back to normal, with nothing finished, when the user presses it again anywhere but its ✓ Complete, presses anywhere outside the Todo cards, presses Esc, opens a day's list or opens the backlog (A11). Scrolling doesn't cancel it, and nothing cancels it on a timer.
 - **TAP-3** Only ✓ Complete finishes a card by pressing (A12). For 350 ms after it appears it ignores presses, so a quick double press on the round mark selects the card without finishing it.
 - **TAP-4** Keyboard and screen-reader users: each Todo card can be reached with Tab. Enter or Space on a card that isn't selected selects it; either key on the selected card completes it, as ✓ Complete does, after the same 350 ms (TAP-3); Esc cancels the selection (TAP-2). A screen reader hears whether the card is selected, and ✓ Complete is named after the task it finishes.
-- *(pending)* **TAP-5** A Todo card reached with Tab shows the focus ring. A card pressed with a mouse or a finger doesn't, whether the press selects it or cancels its selection.
+- **TAP-5** A Todo card reached with Tab shows the focus ring. A card pressed with a mouse or a finger doesn't, whether the press selects it or cancels its selection.
 
 ## Backlog
 
@@ -132,7 +132,6 @@ A Todo card is finished in two presses, on both widths: one to select it, and a 
   - the group's card shows the task after it, **+N more** goes down by one, and the sheets under it go down by one once fewer than three are behind
   - a project's open queue stays open, its first row now on the card, and is gone once no step is left behind the next one
   - when the group's last task leaves, its card is gone, and its section too once no group is left in it
-- *(removing)* **BL-18** On desktop, while the user drags a backlog card, its place in the panel holds a placeholder of the card's size, drawn like the pile's sheets and with nothing on it. Nothing else in the backlog changes until the card is dropped (BL-13): the sheets under it, the other groups and the count stay as they were. If the drag is cancelled, the card goes back into its place.
 
 ## Motion
 
@@ -154,10 +153,7 @@ What plays when a card is selected, completed and counted. How each motion looks
 | A1 | Start a plan | the empty board's button | — | the plan page opens |
 | A2 | Open the backlog | the strip (desktop) or the pill (mobile) | — | the panel or the sheet opens, and focus moves into it (BL-5) |
 | A3 | Close the backlog | the close button of the panel or the sheet | — | it closes, and focus goes back to the strip or the pill (BL-5) |
-| *(removing)* A4 | Pull to Todo (desktop) | drag a backlog card onto Todo | `updateTaskStatusAction` → `TODO` | the card moves (A move) |
 | A9 | Pull to Todo | tap ↑ Todo on a backlog card, on either width | `updateTaskStatusAction` → `TODO` | the card moves (A move), and the panel or the sheet stays open for the next one |
-| *(removing)* A6 | Finish from the backlog | drag a backlog card onto Done (desktop) | `updateTaskStatusAction` → `DONE` | the card moves (A move) |
-| *(removing)* A15 | Finish by dragging (desktop) | drag a Todo card onto Done (desktop) | `updateTaskStatusAction` → `DONE` | the card moves (A move), and nothing is tossed (FX-2) |
 | A10 | Select a card | press a Todo card anywhere, on either width | — | the card is selected and shows its ✓ Complete (TAP-1), and an open day's list closes (DAY-4) |
 | A11 | Cancel the selection | press the selected card again, press outside the Todo cards, press Esc, open a day's list or open the backlog | — | the card goes back to normal, with nothing finished (TAP-2) |
 | A12 | Complete | press ✓ Complete on the selected card, on either width | `updateTaskStatusAction` → `DONE` | the card plays its juice and is tossed into today's ring (FX-1, FX-2), then moves (A move) |
@@ -184,7 +180,6 @@ What happens when a card moves (A9 and A12):
 - **R2** The server only moves a task that's on the plan. A one-off still on the priority matrix gets onto the board by being tracked for this week, never by a move.
 - **R3** The server only moves the user's own tasks.
 - **R4** On the board, a card in Done can't be moved: it has no action and can't be selected (TAP-1).
-- **R5** On the board, nothing goes back into the backlog: no card in Todo or Done has an action that sends it there.
 - **R6** On the board, only a group's next task can be pulled out of the backlog: the steps in a project's queue have no ↑ Todo. Only the board holds this limit: the server doesn't check a task's place in its group when it moves it (R1), so a write path outside the board, such as a future Claude tool over MCP, wouldn't be held to it.
 - **R7** On the board, a day's list is read only: nothing in it can be moved back to Todo or the backlog. The server refuses that move too (R1).
 
@@ -215,11 +210,6 @@ When the server refuses a move, the card goes back as in MV-4.
   - complete the habit task (A12): it flies into today's ring and leaves Todo; the board has no Done, and today's ring reads **1 of 2 done**
   - open today's list (A13): the list opens in a sheet
   - reload: the habit task is in today's list, not on the board
-- *(removing)* **J14 Finish from the backlog - desktop-only**, with a habit's two tasks in the backlog, Todo empty and nothing done today:
-  - the board (ST-4): Todo and Done are empty, and today's ring reads **0 of 0 done**
-  - open the backlog (A2): the habit's card shows **+1 more**, on a pile of one sheet
-  - drag the habit's next task onto Done (A6): nothing is tossed (FX-2). It's on top of Done, its dot fills and a screen reader reads the habit's dots as one more done; Done's count goes up and the backlog's goes down, and the habit's card shows its second task as a plain card. Today's ring counts it as planned and done at once and closes: it celebrates (FX-4) and reads **All 1 done** (RING-5), and Todo shows that the day is clear (COL-8).
-  - reload: the task is still in Done, and today's ring is still closed, with no celebration
 - **J15 Wrap up the day - desktop**, with a habit task and a project step in Todo, the backlog holding more, and nothing done today:
   - the board (ST-4): Todo shows the two cards, Done is empty, and today's ring reads **0 of 2 done**
   - select the habit task (A10), then the step (A10): the selection moves to the step, and the habit task is back to normal

@@ -156,7 +156,6 @@ did.
 | `fx-card-selected` | Success border and glow | **Selected sticker**: the border's three free sides in solid success and a `3px 3px 0` success offset, hovered or not |
 | `fx-pile-sheet` | Thin sheet with a soft drop shadow | **Stacked sticker**: 1.5px border with no top edge, and a hard `2px 2px 0` base-300 offset in place of the soft shadow |
 | `fx-tucked` | No look of its own | 1.5px border with no top edge, the line of the card it hangs under |
-| `fx-target` | Orange dashed outline + pulsing halo | **Hazard target**: orange 2px dashed outline + flat diagonal hazard stripes (repeating-linear-gradient, hard stops — stripes are flat fills, not gradations) + opacity pulse. Channel unchanged |
 | `fx-glow` / `fx-glow-accent` | Soft luminous halo | **Pop shadow**: hard `4px 4px 0` **ink** offset at rest; hover/focus deepens to `5px 5px 0` blood-red (blood-orange for the accent variant). Depth stays ink/blood — a channel-colored offset under a same-channel fill would vanish. Buttons skew as a whole (oblique button text is allowed) and have no corner cuts |
 | `fx-chip` | currentColor rounded chip | currentColor **parallelogram**: `skewX(-10deg)`, 1.5px full-strength currentColor border, fill at 12%; text stays skewed (P5 labels are oblique). Derivation from `currentColor` unchanged — `text-*` pairing still works |
 | `fx-pip` | Round signal mark | Flat **diamond**: square corners rotated 45° (the `fx-led` stud language) |

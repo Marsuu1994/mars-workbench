@@ -19,10 +19,9 @@ interface DesktopBacklogProps {
 
 /**
  * Desktop-only collapsible right-edge backlog that stages BACKLOG tasks. The
- * user pulls a group's card with its ↑ Todo, or drags it onto Todo or Done.
- * Rendered inside BoardPage's DragDropContext, which also renders the
- * groups into it. Emptied, the strip stays and shows 0, and the panel shows
- * that everything is on deck.
+ * user pulls a group's card with its ↑ Todo. BoardPage renders the groups
+ * into it. Emptied, the strip stays and shows 0, and the panel shows that
+ * everything is on deck.
  */
 export const DesktopBacklog = ({count, children}: DesktopBacklogProps) => {
   const t = useTranslations('Board.Backlog');
@@ -92,10 +91,6 @@ export const DesktopBacklog = ({count, children}: DesktopBacklogProps) => {
     />
   );
 
-  // Each group is a drop zone with drops disabled (BacklogGroup): cards only
-  // leave the backlog. Without it, the collapsed backlog's invisible panel
-  // (kept mounted for the cross-fade, overlapping the Done column) wins
-  // dnd's geometric hit-test and steals Done drops.
   const renderBody = () => (
     <div className="flex-1 overflow-y-auto p-3">
       {count === 0 ? (

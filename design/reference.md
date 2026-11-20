@@ -20,7 +20,7 @@ Inventory of the handlers and data-access functions that already exist, so new w
 | `fetchBoardAction` | Load the board's data for `/kanban` | `boardService.fetchBoard` |
 | `getEmptyBoardStateAction` | Resolve no-active-plan state (new user vs. finished-plan recap) | `boardService.getEmptyBoardState` |
 | **`src/actions/taskActions.ts`** | | |
-| `updateTaskStatusAction` | Move a task forward on the board (a drag, ↑ Todo or ✓ Complete) | `boardService.moveBoardTask` |
+| `updateTaskStatusAction` | Move a task forward on the board (↑ Todo or ✓ Complete) | `boardService.moveBoardTask` |
 | `createAdhocTaskAction` | Add an unassigned ad-hoc task to a quadrant | `matrixService.addMatrixTask` |
 | **`src/actions/planActions.ts`** | | |
 | `fetchNewPlanFormAction` | Load `/kanban/plans/new`: templates and the pending plan to carry over | `planService.fetchNewPlanForm` |
@@ -84,7 +84,7 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | **`boardService.ts`** | |
 | `fetchBoard` | The board page's inputs for the active plan: `{plan, tasks, projects, expiredDailyCountByDate}` — plan narrowed to `BoardPlan`, the step cards' projects as a path lookup, and each past day's expired daily habit tasks for its ring (null = no active plan) |
 | `getEmptyBoardState` | Resolve the no-active-plan state (new user vs. finished-plan recap) |
-| `moveBoardTask` | A board move (drag, ↑ Todo, ✓ Complete): a forward move through `updateTaskStatus`, whose `WHERE` holds the allowed moves (refused = not found) |
+| `moveBoardTask` | A board move (↑ Todo, ✓ Complete): a forward move through `updateTaskStatus`, whose `WHERE` holds the allowed moves (refused = not found) |
 | **`planService.ts`** | |
 | `createPlan` | Create a plan from the plan form (templates, mode, ad-hoc and project-step links) |
 | `fetchNewPlanForm` | The new-plan form's inputs, synced first: templates, and the pending plan with its one-offs and unfinished steps to carry over |

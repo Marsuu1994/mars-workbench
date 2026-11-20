@@ -616,11 +616,6 @@ body {
   }
 } /* end @layer components */
 
-/* ── Drop-target highlight (mars-signal-orange channel) ──
-   Pulse is a pseudo-element whose OPACITY animates over a
-   pre-composited glow — zero repaint during drag. Defined with
-   @utility so it composes with responsive variants (md:fx-target).   */
-
 /* ── Corner brackets (targeting-reticle framing) ──
    Inset 2px so the square strokes clear the rounded corners.
    Bracket length overridable via --fx-bracket-len. @utility so it
@@ -644,29 +639,6 @@ body {
       var(--_g) 100% 100% / var(--_l) 1.5px,
       var(--_g) 100% 100% / 1.5px var(--_l);
     background-repeat: no-repeat;
-  }
-}
-
-@utility fx-target {
-  position: relative;
-  border-radius: var(--radius-box);
-  outline: 1px dashed color-mix(in oklab, var(--color-accent) 55%, transparent);
-  outline-offset: -1px;
-  background: color-mix(in oklab, var(--color-accent) 6%, transparent);
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    pointer-events: none;
-    box-shadow: 0 0 0 4px
-      color-mix(in oklab, var(--color-accent) 12%, transparent);
-    animation: fx-pulse-opacity 1.6s ease-in-out infinite;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    &::before {
-      animation: none;
-    }
   }
 }
 
@@ -1178,22 +1150,6 @@ body {
 [data-theme='p5-dark'] .fx-pip {
   border-radius: 0;
   transform: rotate(45deg) scale(0.875);
-}
-
-/* ── Hazard target: flat diagonal stripes, dashed edge ── */
-[data-theme='p5-dark'] .fx-target {
-  border-radius: 0;
-  outline: 2px dashed color-mix(in oklab, var(--color-accent) 80%, transparent);
-  background: repeating-linear-gradient(
-    -45deg,
-    color-mix(in oklab, var(--color-accent) 7%, transparent) 0 12px,
-    transparent 12px 24px
-  );
-}
-[data-theme='p5-dark'] .fx-target::before {
-  border-radius: 0;
-  box-shadow: inset 0 0 0 4px
-    color-mix(in oklab, var(--color-accent) 28%, transparent);
 }
 
 /* ── Chips: currentColor parallelograms (labels ride oblique) ── */

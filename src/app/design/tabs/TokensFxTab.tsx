@@ -96,11 +96,6 @@ export const TokensFxTab = () => {
               </p>
             </div>
           </Variant>
-          <Variant label="Drop target (fx-target)">
-            <div className="fx-target flex h-20 w-56 items-center justify-center">
-              <span className="fx-label text-accent">Drop here</span>
-            </div>
-          </Variant>
           <Variant label="Luminous rule (fx-rule)">
             <div className="flex w-56 flex-col gap-2">
               <span className="text-xs text-base-content/60">Section A</span>

@@ -71,13 +71,12 @@ disables them, and the board's motion with them, except `fx-fade-out`.
 | `fx-chrome` / `fx-chrome-glass` | Chrome slab (always solid) / chrome that may blur. The dock stays solid — it floats over a scrolling board, where backdrop blur re-filters every frame; the sidebar's backdrop is static, so glass is cheap there | dock (solid), sidebar (glass) |
 | `fx-panel` / `fx-panel-solid` | Console panel (glass / no-blur). Glass is for stationary chrome only — never in scroll containers | modals |
 | `fx-corners` | Targeting-reticle corner brackets (inset 2px to clear the radius) | task modal, gallery specimens |
-| `fx-card` / `fx-card-lift` | Card edge-light + hover lift (shadow only — the kind edge always wins); lift = drag state class swap | `TodoCard`, `DoneCard`, backlog cards |
+| `fx-card` / `fx-card-lift` | Card edge-light + hover lift (shadow only — the kind edge always wins); lift = drag state class swap | board cards (`TaskCardFrame`); the lift on a dragged project step |
 | `fx-card-selected` | A selected card's confirming frame, on an `fx-card`: a success border on the three sides the kind edge leaves, and a success glow inside and around the card; a hover doesn't replace it | `TodoCard` |
 | `fx-pile-sheet` | One thin sheet of a backlog card's pile: a soft drop shadow; its fill and border come from `--fx-pile`, `--fx-pile-far` and `--fx-pile-border` | backlog group pile |
 | `fx-tucked` | Marks a strip that hangs under a card with no top edge of its own; no look in the HUD skin, a hook for p5-dark's | a project's backlog queue |
 | `fx-kind-edge` + `fx-k-{success,secondary,info}` | A card's 3px left border in its kind's colour. Unlayered, so it beats the card's own Tailwind border utilities | task cards (via `TASK_KIND_STYLE`) |
 | `fx-pip` | One round mark of a card's progress signal; colour and size come from utilities | habit week dots |
-| `fx-target` | Drop-zone highlight, mars-orange channel; pulse = pseudo-element opacity (`@utility`, composes as `md:fx-target`) | board columns, gallery |
 | `fx-glow` / `fx-glow-accent` | Powered-up CTA halo | primary CTAs, sidebar logo |
 | `fx-chip` | Console chip from `currentColor` (border 28% / fill 10% / inset highlight) — pair with any `text-*` token | `SizeChip`, date pill |
 | `fx-label` (+`-bright`) | 11px mono uppercase 0.14em micro-label | column headers, quadrant titles, stat labels, "Workspace" |
@@ -144,7 +143,7 @@ ring grey (#115 R19).
 
 **1.3 The fewest actions, the least friction.** Every extra step is a reason to stop
 using the app; ask first whether a step can go — this is Phase 2's direction. A move
-becomes a tap on the card; dragging stays only as desktop's extra. Bad: the old three
+becomes a tap on the card, and the board has no dragging at all. Bad: the old three
 columns, a card walking Backlog → Todo → Doing → Done (#109 R11). Good: no Doing
 column (#109 R11); a card is completed by tapping it, not by dragging it into Done
 (#115 R7–8); a backlog card goes to the board with its `↑ Todo`, on both widths (#115
@@ -268,8 +267,7 @@ the mockup's tab K · Card).
 **5.2 One journey on both widths; desktop may add, never subtract.** Everything a
 phone can do, desktop does the same way, on the same card — one face on both widths;
 desktop's extra room may add a view or a gesture of its own. Good: tap twice to
-complete and `↑ Todo` on backlog cards on both widths, plus drag on desktop (#115
-R14); desktop's Done column, where phones open a day's list from its ring (#115 R10,
+complete and `↑ Todo` on backlog cards on both widths (#115 R14, #139); desktop's Done column, where phones open a day's list from its ring (#115 R10,
 R14).
 
 **5.3 Kinds differ by colour and mark, never by layout.** Habit green, project-step
@@ -310,7 +308,7 @@ micro (hover lift, glow ramp, press, a card's selection) · 240ms structural · 
 `fx-boot-in`. The board's finishing moment keeps a few timings off these tokens,
 each decided by the owner: the juices and the toss (300–440ms), the ring's 500ms
 arcs and 700ms close, and `fx-done-in`'s 900ms glow. Ambient loops are rare and
-slow: LED pulse 2.4s, target pulse 1.6s. Drag lift
+slow: the LED pulse, 2.4s. Drag lift
 is a class swap, never a transition. Backgrounds never move (except the login
 crawl). Theme specs may compress timings (p5-dark does) but never break the
 opacity/transform-only rule or the `prefers-reduced-motion` opt-out.

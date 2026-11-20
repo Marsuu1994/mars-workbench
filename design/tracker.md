@@ -93,13 +93,6 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 
 ## Board
 
-### High
-
-- [ ] Take drag and drop off the board — every move already has a press (↑ Todo, ✓ Complete), and working around the drag library kept costing focus and a11y behaviour (owner, 2026-11-20). The spec is written (`design/specs/board.md`: the items marked *(removing)*, and the reworded ones beside them); the build follows on the same PR once the owner has reviewed it
-  - Decided by the owner: a backlog task is no longer finished straight from the backlog (A6 goes, with nothing in its place), and Space on a Todo card does what Enter does
-  - Goes with it: the focus ring a Todo card pressed with a mouse drew beside its selected frame, and kept after the selection was cancelled (TAP-5)
-  - Open for the owner: the server still takes Backlog → Done (R1), which no action on the board uses any more; and whether R5 stays as the board's side of R1 now that no card has an action that goes backward
-
 ### Future
 
 - [ ] Per-kind risk rules — Phase 1 switched risk off (badges, borders, 15:00 / 20:00 clock thresholds); bring it back per kind, as a colour on the card's signal line (never the kind edge): habit pace (amber when what's left needs every remaining day), project step carried 2× (amber — split it?), one-off due date (amber within 2 days, red on the day — the only red). First explored in PR #47's initial mockup (commit `d3ecc25`, Cards & risk screen); the research behind the rules, the options and the two columns they need (`carriedCount`, `dueAt`) in `design/spike/week-model-phase2-pain-points.md` › 痛点 5
@@ -172,7 +165,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
     - Error presentation — one error language (tone, copy, placement, visual treatment) applied per flow, from PR #32's mockups as the plumbing spike decides
       - [ ] Plan form — create/update submit failures (`FormErrorAlert` banner above the actions)
       - [ ] Task modal — template create/edit and priority-task add failures (footer `FormErrorAlert`)
-      - [ ] Board — drag/status-update failures (currently silent optimistic rollback + `console.error`)
+      - [ ] Board — status-update failures (currently silent optimistic rollback + `console.error`)
         - Spec first: review `design/specs/board.md`'s error cases and decide whether they become a section of their own; today they are MV-4 and the Rules' closing line, and one isn't written at all: when a pull from an open queue fails and the step comes back, the queue opens again, since it was never closed (owner, 2026-11-19)
       - [ ] Priorities — reprioritize / track / complete / undo failures (currently silent optimistic rollback + `console.error`)
       - [ ] Projects — archive / unarchive and optimistic step writes (+ This week, ×, reorder) fail silently (rollback + `console.error`)

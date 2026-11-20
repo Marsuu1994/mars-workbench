@@ -26,7 +26,7 @@ const CHROMELESS_PREFIXES = ['/design', '/oauth'];
 /**
  * Routes whose page owns all scrolling, so <main> must not be a scroll
  * container there — otherwise the page header scrolls away with <main> and
- * mobile shows two scrollbars. Board/priorities/projects also need it
+ * mobile shows two scrollbars. Priorities and Projects also need it
  * because @hello-pangea/dnd Droppables support only one scroll parent. The
  * plans layout keeps its header fixed and scrolls the form body itself; the
  * Projects page scrolls its list and detail panes on their own.
