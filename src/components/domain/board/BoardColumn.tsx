@@ -17,19 +17,29 @@ interface BoardColumnProps {
 
 type BoardColumnStatus = typeof TaskStatus.TODO | typeof TaskStatus.DONE;
 
-const STATUS_STYLE: Record<
-  BoardColumnStatus,
-  {accent: string; ledColor: string; tagKey: 'todoTag' | 'doneTag'}
-> = {
+interface StatusStyle {
+  accent: string;
+  ledColor: string;
+  tagKey: 'todoTag' | 'doneTag';
+  /** On which widths the column shows at all */
+  shownOn: string;
+}
+
+const STATUS_STYLE: Record<BoardColumnStatus, StatusStyle> = {
   [TaskStatus.TODO]: {
     accent: 'md:border-l-info',
     ledColor: 'text-info',
     tagKey: 'todoTag',
+    shownOn: 'flex',
   },
+  // Done is desktop's. BoardPage doesn't render it on a phone, but the server
+  // renders the desktop page, so until the page knows its width CSS keeps
+  // Done off a phone's first paint.
   [TaskStatus.DONE]: {
     accent: 'md:border-l-success',
     ledColor: 'text-success',
     tagKey: 'doneTag',
+    shownOn: 'hidden md:flex',
   },
 };
 
@@ -47,7 +57,7 @@ export const BoardColumn = ({
 }: BoardColumnProps) => {
   const tStatus = useTranslations('Enums.TaskStatus');
   const tColumns = useTranslations('Board.Columns');
-  const {accent, ledColor, tagKey} = STATUS_STYLE[status];
+  const {accent, ledColor, tagKey, shownOn} = STATUS_STYLE[status];
 
   // Only one border-color utility is active at a time, so highlights override
   // the base color cleanly (no Tailwind class-ordering ambiguity). Drop
@@ -62,7 +72,7 @@ export const BoardColumn = ({
     <Droppable droppableId={status}>
       {(provided, snapshot) => (
         <div
-          className={`w-full md:min-w-[280px] md:flex-1 md:bg-base-200/10 md:rounded-xl flex flex-col transition-colors duration-200 ${columnBorder(
+          className={`w-full md:min-w-[280px] md:flex-1 md:bg-base-200/10 md:rounded-xl ${shownOn} flex-col transition-colors duration-200 ${columnBorder(
             snapshot.isDraggingOver,
           )}`}
         >

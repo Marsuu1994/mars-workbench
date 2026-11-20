@@ -18,6 +18,8 @@ const OPEN_CELL_CLASS =
 
 interface DayCellProps {
   ring: DayRing;
+  /** A day a phone's row doesn't show: hidden below the desktop width */
+  isOffPhoneRow?: boolean;
 }
 
 /**
@@ -28,7 +30,7 @@ interface DayCellProps {
  * when a card is finished (fx-ring-tick) and celebrates when its ring closes
  * (fx-ring-close).
  */
-export const DayCell = ({ring}: DayCellProps) => {
+export const DayCell = ({ring, isOffPhoneRow = false}: DayCellProps) => {
   const t = useTranslations('Board.Rings');
   const {openDayDate, toggleDay, tickKey, celebrationKey} =
     useBoardPageContext();
@@ -59,13 +61,14 @@ export const DayCell = ({ring}: DayCellProps) => {
     const element = motionRef.current;
     if (!isToday || celebrationKey === 0 || !element) return;
     restartAnimationClass(element, 'fx-ring-close');
-    const end = (event: AnimationEvent) => {
+    const handleAnimationEnd = (event: AnimationEvent) => {
       if (event.animationName === 'fx-ring-spin') {
         element.classList.remove('fx-ring-close');
       }
     };
-    element.addEventListener('animationend', end);
-    return () => element.removeEventListener('animationend', end);
+    element.addEventListener('animationend', handleAnimationEnd);
+    return () =>
+      element.removeEventListener('animationend', handleAnimationEnd);
   }, [isToday, celebrationKey]);
 
   const label = (): string => {
@@ -173,7 +176,7 @@ export const DayCell = ({ring}: DayCellProps) => {
 
   return (
     <div
-      className={`flex min-w-0 ${
+      className={`${isOffPhoneRow ? 'hidden md:flex' : 'flex'} min-w-0 ${
         isToday
           ? 'flex-[2.4] max-md:min-w-[132px] max-md:flex-[2]'
           : 'flex-1 max-md:min-w-[54px]'

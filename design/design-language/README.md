@@ -69,6 +69,7 @@ disables them, and the board's motion with them, except `fx-fade-out`.
 | `fx-panel` / `fx-panel-solid` | Console panel (glass / no-blur). Glass is for stationary chrome only — never in scroll containers | modals |
 | `fx-corners` | Targeting-reticle corner brackets (inset 2px to clear the radius) | task modal, gallery specimens |
 | `fx-card` / `fx-card-lift` | Card edge-light + hover lift (shadow only — the kind edge always wins); lift = drag state class swap | `TodoCard`, `DoneCard`, backlog cards |
+| `fx-card-selected` | A selected card's confirming frame, on an `fx-card`: a success border on the three sides the kind edge leaves, and a success glow inside and around the card; a hover doesn't replace it | `TodoCard` |
 | `fx-pile-sheet` | One thin sheet of a backlog card's pile: a soft drop shadow; its fill and border come from `--fx-pile`, `--fx-pile-far` and `--fx-pile-border` | backlog group pile |
 | `fx-tucked` | Marks a strip that hangs under a card with no top edge of its own; no look in the HUD skin, a hook for p5-dark's | a project's backlog queue |
 | `fx-kind-edge` + `fx-k-{success,secondary,info}` | A card's 3px left border in its kind's colour. Unlayered, so it beats the card's own Tailwind border utilities | task cards (via `TASK_KIND_STYLE`) |

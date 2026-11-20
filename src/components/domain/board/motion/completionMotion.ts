@@ -27,8 +27,21 @@ const JUICE_CLASS: Record<Juice, string> = {
 /** How many chips the burst throws, and the gold they alternate with */
 const BURST_CHIP_COUNT = 12;
 const BURST_GOLD = 'var(--color-warning)';
+/** How far a chip flies: this share of the card's longer side, plus up to
+    `jitter` px; its direction strays by up to `angleJitter` radians */
+const BURST_REACH = {ratio: 0.45, jitter: 40, angleJitter: 0.4};
+/** How far each chip turns as it flies, in degrees: the first, then this much
+    more for each one after it */
+const BURST_CHIP_TURN = {first: 200, step: 30};
+/** Where the burst's +1 starts: this far in from the card's right edge and
+    above its top, in px */
+const BURST_PLUS_OFFSET = {fromRight: 28, above: 6};
 /** How high the toss's arc rises above a straight line, in px */
 const TOSS_ARC_HEIGHT = 48;
+/** The copy flies above everything on the board, a lifted card included */
+const COPY_Z_INDEX = '60';
+/** The pose every juice ends in, which the toss starts from */
+const LIFT_POSE = 'rotate(-4deg) scale(1.07)';
 
 /** A juice at random, never the one played last (FX-1). */
 export function pickJuice(
@@ -82,7 +95,7 @@ function makeGhost(host: Element, card: HTMLElement): HTMLElement {
     margin: '0',
     width: `${rect.width}px`,
     height: `${rect.height}px`,
-    zIndex: '60',
+    zIndex: COPY_Z_INDEX,
     pointerEvents: 'none',
   });
   placeFixed(host, ghost, rect.left, rect.top);
@@ -95,11 +108,12 @@ function throwBurst(host: Element, card: HTMLElement, kindColor: string) {
   const rect = card.getBoundingClientRect();
   const centerX = rect.left + rect.width / 2;
   const centerY = rect.top + rect.height / 2;
-  const reach = Math.max(rect.width, rect.height) * 0.45;
+  const reach = Math.max(rect.width, rect.height) * BURST_REACH.ratio;
   for (let index = 0; index < BURST_CHIP_COUNT; index++) {
     const angle =
-      (index / BURST_CHIP_COUNT) * Math.PI * 2 + Math.random() * 0.4;
-    const distance = reach + Math.random() * 40;
+      (index / BURST_CHIP_COUNT) * Math.PI * 2 +
+      Math.random() * BURST_REACH.angleJitter;
+    const distance = reach + Math.random() * BURST_REACH.jitter;
     const chip = document.createElement('i');
     chip.className = 'fx-juice-chip';
     chip.setAttribute('aria-hidden', 'true');
@@ -109,7 +123,10 @@ function throwBurst(host: Element, card: HTMLElement, kindColor: string) {
     );
     chip.style.setProperty('--fx-chip-x', `${Math.cos(angle) * distance}px`);
     chip.style.setProperty('--fx-chip-y', `${Math.sin(angle) * distance}px`);
-    chip.style.setProperty('--fx-chip-turn', `${200 + index * 30}deg`);
+    chip.style.setProperty(
+      '--fx-chip-turn',
+      `${BURST_CHIP_TURN.first + index * BURST_CHIP_TURN.step}deg`,
+    );
     placeFixed(host, chip, centerX, centerY);
     chip.addEventListener('animationend', () => chip.remove());
   }
@@ -118,7 +135,12 @@ function throwBurst(host: Element, card: HTMLElement, kindColor: string) {
   plus.textContent = '+1';
   plus.setAttribute('aria-hidden', 'true');
   plus.style.setProperty('--fx-chip-color', kindColor);
-  placeFixed(host, plus, rect.right - 28, rect.top - 6);
+  placeFixed(
+    host,
+    plus,
+    rect.right - BURST_PLUS_OFFSET.fromRight,
+    rect.top - BURST_PLUS_OFFSET.above,
+  );
   plus.addEventListener('animationend', () => plus.remove());
 }
 
@@ -126,13 +148,13 @@ function throwBurst(host: Element, card: HTMLElement, kindColor: string) {
 async function toss(ghost: HTMLElement, ring: Element) {
   const from = ghost.getBoundingClientRect();
   const to = ring.getBoundingClientRect();
-  const dx = to.left + to.width / 2 - (from.left + from.width / 2);
-  const dy = to.top + to.height / 2 - (from.top + from.height / 2);
-  ghost.style.setProperty('--fx-toss-x', `${dx}px`);
-  ghost.style.setProperty('--fx-toss-y', `${dy}px`);
+  const shiftX = to.left + to.width / 2 - (from.left + from.width / 2);
+  const shiftY = to.top + to.height / 2 - (from.top + from.height / 2);
+  ghost.style.setProperty('--fx-toss-x', `${shiftX}px`);
+  ghost.style.setProperty('--fx-toss-y', `${shiftY}px`);
   ghost.style.setProperty(
     '--fx-toss-cy',
-    `${Math.min(dy, 0) / 2 - TOSS_ARC_HEIGHT}px`,
+    `${Math.min(shiftY, 0) / 2 - TOSS_ARC_HEIGHT}px`,
   );
   ghost.classList.add('fx-toss');
   await waitForAnimations(ghost);
@@ -173,7 +195,7 @@ export async function playCompletion({
   await waitForAnimations(ghost);
   // The juice ends in the lift pose fx-toss starts from
   ghost.classList.remove(JUICE_CLASS[juice]);
-  ghost.style.transform = 'rotate(-4deg) scale(1.07)';
+  ghost.style.transform = LIFT_POSE;
   await toss(ghost, ring);
   return () => ghost.remove();
 }

@@ -153,6 +153,7 @@ did.
 | `fx-panel` / `fx-panel-solid` | Glass console panel | **Paper panel**: base-100 fill, 2px solid paper border at 85%, hard `8px 8px 0` blood-red offset shadow; rectangular. Corner cuts are opt-in via `fx-cut` with a parent `drop-shadow` (a clip-path clips the box-shadow away). Both names = same opaque skin |
 | `fx-corners` | Cyan reticle brackets | **Crop marks**: same 8-stroke bracket geometry, 2px, phantom red — the calling card's print marks |
 | `fx-card` / `fx-card-lift` | Edge-light + glow hover | **Sticker card**: `--fx-card-bg` fill, 1.5px paper border at 14%, `3px 3px 0` ink offset at rest; hover = `4px 4px 0` primary offset + `translate(-1px,-1px)` (no border-color change — the kind edge still wins, at 4px here); lift (drag) = `7px 7px 0` blood-red + `rotate(-1.2deg)` class swap |
+| `fx-card-selected` | Success border and glow | **Selected sticker**: the border's three free sides in solid success and a `3px 3px 0` success offset, hovered or not |
 | `fx-pile-sheet` | Thin sheet with a soft drop shadow | **Stacked sticker**: 1.5px border with no top edge, and a hard `2px 2px 0` base-300 offset in place of the soft shadow |
 | `fx-tucked` | No look of its own | 1.5px border with no top edge, the line of the card it hangs under |
 | `fx-target` | Orange dashed outline + pulsing halo | **Hazard target**: orange 2px dashed outline + flat diagonal hazard stripes (repeating-linear-gradient, hard stops — stripes are flat fills, not gradations) + opacity pulse. Channel unchanged |
@@ -173,7 +174,8 @@ did.
 
 The board's finishing motion (`fx-juice-*`, `fx-toss`, `fx-slide`, `fx-fade-out`,
 `fx-ring-*`, `fx-done-in`, `fx-arm`, `fx-press`) has no skin of its own: it plays
-as in the HUD skin, in this theme's colours.
+as in the HUD skin, in this theme's colours. One rule keeps it so: a held sticker
+card still shrinks (`fx-press`), which its hover pop would otherwise outrank.
 
 ### New utilities (p5-dark only)
 

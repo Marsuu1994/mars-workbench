@@ -47,6 +47,15 @@ interface Selection {
 const TODO_CARD_SELECTOR = '[data-todo-card]';
 
 /**
+ * Workaround (iOS Safari): a tap on something that isn't clickable sends no
+ * click at all unless an element between it and <body> has a click handler,
+ * so the document's listener below would never hear a tap on the board's
+ * empty space, and a selected card or an open day's list would stay. With
+ * this empty handler on the page every tap on it is a click.
+ */
+const hearEveryTap = () => {};
+
+/**
  * The board page (/kanban): header, the row of day rings and the board in a
  * definite-height column (h-full against AppShell's <main>). Keeps the tasks
  * as state and derives everything else from them on every render: the
@@ -95,8 +104,8 @@ export const BoardPage = ({
   const todayRing = rings.find(({state}) => state === DayState.TODAY);
   // An empty Todo says the day is clear once something was finished today
   const isDayClear = todoCards.length === 0 && (todayRing?.doneCount ?? 0) > 0;
-  // Today's ring as last rendered: a ✓ Complete finishes its card after the
-  // toss, and a pull during the toss may have opened the ring again
+  // Today's ring as last rendered: ✓ Complete finishes its card after the
+  // toss, by when the ring it started from may have changed
   const todayRingRef = useRef(todayRing);
   useEffect(() => {
     todayRingRef.current = todayRing;
@@ -330,7 +339,11 @@ export const BoardPage = ({
 
   return (
     <BoardPageContext value={pageContext}>
-      <div ref={pageRef} className="flex h-full flex-col">
+      <div
+        ref={pageRef}
+        onClick={hearEveryTap}
+        className="flex h-full flex-col [-webkit-tap-highlight-color:transparent]"
+      >
         <BoardHeader periodKey={plan.periodKey} />
         <DayRingRow rings={rings} doneCards={doneCards} />
         <div className="min-h-0 flex-1">{renderBoard()}</div>

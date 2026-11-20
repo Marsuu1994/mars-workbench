@@ -52,8 +52,15 @@ export const DayRingRow = ({rings, doneCards}: DayRingRowProps) => {
   }, [isMobile]);
 
   const todayIndex = rings.findIndex(({state}) => state === DayState.TODAY);
+  // The days a phone's row shows. The server renders the desktop row, so
+  // until the page knows its width the other days are in the markup, and CSS
+  // keeps them off a phone's first paint (DayCell's isOffPhoneRow).
+  const phoneRange = getMobileDayRange(
+    Math.max(todayIndex, 0),
+    isMobile ? otherDayCount : MOBILE_OTHER_DAYS_BEFORE_MEASURE,
+  );
   const {first, last} = isMobile
-    ? getMobileDayRange(Math.max(todayIndex, 0), otherDayCount)
+    ? phoneRange
     : {first: 0, last: rings.length - 1};
   const shownRings = rings.slice(first, last + 1);
   const openRing = rings.find(({date}) => date === openDayDate) ?? null;
@@ -68,7 +75,14 @@ export const DayRingRow = ({rings, doneCards}: DayRingRowProps) => {
         className="relative flex flex-shrink-0 items-end gap-1 border-b border-base-content/10 bg-base-200/50 px-5 py-2 md:gap-1.5 md:px-4 md:py-2.5"
       >
         {shownRings.map(ring => (
-          <DayCell key={ring.date} ring={ring} />
+          <DayCell
+            key={ring.date}
+            ring={ring}
+            isOffPhoneRow={
+              ring.dayIndex < phoneRange.first ||
+              ring.dayIndex > phoneRange.last
+            }
+          />
         ))}
         {!isMobile && openRing && (
           <DayListPanel key={openRing.date} ring={openRing} cards={openCards} />

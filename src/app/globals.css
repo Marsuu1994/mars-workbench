@@ -578,6 +578,30 @@ body {
       0 0 0 1px color-mix(in oklab, var(--color-primary) 18%, transparent),
       var(--fx-shadow-hover);
   }
+  /* A selected Todo card's confirming frame: success on the three sides the
+     kind edge leaves, and a glow inside and around the card. A hover doesn't
+     replace it. */
+  .fx-card.fx-card-selected,
+  .fx-card.fx-card-selected:hover {
+    border-top-color: color-mix(
+      in oklab,
+      var(--color-success) 70%,
+      transparent
+    );
+    border-right-color: color-mix(
+      in oklab,
+      var(--color-success) 70%,
+      transparent
+    );
+    border-bottom-color: color-mix(
+      in oklab,
+      var(--color-success) 70%,
+      transparent
+    );
+    box-shadow:
+      inset 0 0 18px color-mix(in oklab, var(--color-success) 12%, transparent),
+      0 0 14px color-mix(in oklab, var(--color-success) 14%, transparent);
+  }
   .fx-card-lift {
     box-shadow:
       var(--fx-glow-primary),
@@ -1108,6 +1132,20 @@ body {
   box-shadow: 4px 4px 0 var(--color-primary);
   transform: translate(-1px, -1px);
 }
+/* The selected sticker: a success line and a success offset, hovered or not */
+[data-theme='p5-dark'] .fx-card.fx-card-selected,
+[data-theme='p5-dark'] .fx-card.fx-card-selected:hover {
+  border-top-color: var(--color-success);
+  border-right-color: var(--color-success);
+  border-bottom-color: var(--color-success);
+  box-shadow: 3px 3px 0 var(--color-success);
+}
+/* A held sticker shrinks: its hover pop would otherwise outrank fx-press */
+@media (prefers-reduced-motion: no-preference) {
+  [data-theme='p5-dark'] .fx-card.fx-press:active {
+    transform: scale(var(--fx-press-scale, 0.985));
+  }
+}
 [data-theme='p5-dark'] .fx-card-lift {
   box-shadow: 7px 7px 0 var(--fx-depth);
   transform: rotate(-1.2deg) translate(-2px, -2px);
@@ -1592,12 +1630,14 @@ body {
     transform: scale(1.08);
   }
 }
+/* The ring rests at rotate: -90deg (Tailwind's -rotate-90 sets rotate, not
+   transform), so the turn runs on rotate too: it starts and ends at rest */
 @keyframes fx-ring-spin {
   from {
-    transform: rotate(-90deg);
+    rotate: -90deg;
   }
   to {
-    transform: rotate(270deg);
+    rotate: 270deg;
   }
 }
 @keyframes fx-ring-draw {

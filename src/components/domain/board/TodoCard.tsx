@@ -14,11 +14,6 @@ import {useBoardPageContext} from './BoardPageContext';
 import {TaskCardFace} from './TaskCardFace';
 import {TodoCardAction} from './TodoCardAction';
 
-/** The selected card's confirming frame: a green border, the kind's edge
-    kept, and a glow inside and around it */
-const SELECTED_CARD_CLASS =
-  'border-success/70 shadow-[inset_0_0_18px_color-mix(in_oklab,var(--color-success)_12%,transparent),0_0_14px_color-mix(in_oklab,var(--color-success)_14%,transparent)]';
-
 interface TodoCardProps {
   card: BoardCard;
   /** Position within Todo: Draggable needs it */
@@ -51,8 +46,10 @@ export const TodoCard = ({card, index}: TodoCardProps) => {
     pressTodoCard(task.id);
   };
 
+  // A held key repeats: only the press itself counts, or holding Enter would
+  // select the card and then, past the guard, complete it
   const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.key !== 'Enter') return;
+    if (event.key !== 'Enter' || event.repeat) return;
     event.preventDefault();
     if (isSelected) completeCard(task.id);
     else pressTodoCard(task.id);
@@ -77,9 +74,10 @@ export const TodoCard = ({card, index}: TodoCardProps) => {
       }
       aria-describedby={faceId}
       onClick={handleClick}
-      onKeyDown={handleKeyDown}
+      // While the card is lifted, Enter is the drag's key, not the card's
+      onKeyDown={snapshot?.isDragging ? undefined : handleKeyDown}
       className={`card fx-card fx-press w-full flex-shrink-0 cursor-pointer border bg-base-100/70 ${edge} ${
-        isSelected ? SELECTED_CARD_CLASS : 'border-base-content/10'
+        isSelected ? 'fx-card-selected' : 'border-base-content/10'
       } ${snapshot?.isDragging ? 'fx-card-lift z-50 scale-[1.02]' : ''}`}
     >
       <div id={faceId}>
