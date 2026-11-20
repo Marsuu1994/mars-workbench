@@ -1,9 +1,8 @@
 'use client';
 
 import type {CSSProperties} from 'react';
-import type {TaskKind} from '@/utils/taskUtils';
 import type {DayRing} from '@/utils/dayRingUtils';
-import {RING_KIND_ORDER, toSparkKinds} from '@/utils/dayRingUtils';
+import {toRingArcShares, toSparkKinds} from '@/utils/dayRingUtils';
 import {TASK_KIND_STYLE} from '@/components/domain/shared/taskKindStyle';
 import {
   RING_ARC_GAP,
@@ -16,14 +15,6 @@ interface DayRingGraphicProps {
   ring: DayRing;
   /** Its size in px */
   size: number;
-}
-
-interface RingArc {
-  kind: TaskKind;
-  /** Its length along the ring, in px */
-  length: number;
-  /** Where it starts, in px from 12 o'clock */
-  offset: number;
 }
 
 /** The ✓ drawn in a closed ring's centre */
@@ -44,14 +35,7 @@ export const DayRingGraphic = ({ring, size}: DayRingGraphicProps) => {
   const center = size / 2;
   const checkSize = size * RING_CHECK_RATIO;
 
-  const arcs = RING_KIND_ORDER.reduce<RingArc[]>((list, kind) => {
-    const previous = list.at(-1);
-    const offset = previous ? previous.offset + previous.length : 0;
-    const length = plannedCount
-      ? (done[kind] / plannedCount) * circumference
-      : 0;
-    return [...list, {kind, length, offset}];
-  }, []);
+  const arcs = toRingArcShares(done, plannedCount);
 
   const renderSparks = () =>
     toSparkKinds(done, SPARK_COUNT).map((kind, index) => (
@@ -91,7 +75,7 @@ export const DayRingGraphic = ({ring, size}: DayRingGraphicProps) => {
           strokeWidth={stroke}
           className="stroke-base-content/10"
         />
-        {arcs.map(({kind, length, offset}) => (
+        {arcs.map(({kind, share, offset}) => (
           <circle
             key={kind}
             data-arc={kind}
@@ -100,8 +84,8 @@ export const DayRingGraphic = ({ring, size}: DayRingGraphicProps) => {
             r={radius}
             fill="none"
             strokeWidth={stroke}
-            strokeDasharray={`${Math.max(length - RING_ARC_GAP, 0)} ${circumference}`}
-            strokeDashoffset={-offset}
+            strokeDasharray={`${Math.max(share * circumference - RING_ARC_GAP, 0)} ${circumference}`}
+            strokeDashoffset={-offset * circumference}
             className={`fx-ring-grow ${TASK_KIND_STYLE[kind].stroke}`}
           />
         ))}

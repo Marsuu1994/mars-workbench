@@ -345,7 +345,7 @@ test('J14 finish a habit task straight from the backlog', async ({
 }) => {
   test.skip(
     isMobile,
-    'Desktop only: "on mobile a backlog task reaches Done only through Todo" (BL-17)',
+    'Desktop only: "on mobile a backlog task reaches Done only through Todo" (CARD-12)',
   );
   await trackRingCelebrations(page);
   await seedHabitWeek(seed);

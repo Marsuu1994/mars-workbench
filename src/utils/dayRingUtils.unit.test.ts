@@ -7,7 +7,9 @@ import {
   DayState,
   getMobileDayRange,
   getWeekDates,
+  isRingClosed,
   toDayListCards,
+  toRingArcShares,
   toSparkKinds,
   toDayRings,
 } from './dayRingUtils';
@@ -136,6 +138,45 @@ describe('toDayRings', () => {
     expect(rings[0].isClosed).toBe(true);
     // Nothing planned today: an empty track, not a closed ring
     expect(rings[2]).toMatchObject({plannedCount: 0, isClosed: false});
+  });
+
+  it('RING-3 gives each done task one equal part of the ring, habits first, then steps, then one-offs', () => {
+    const done = {
+      [TaskKind.HABIT]: 1,
+      [TaskKind.PROJECT]: 2,
+      [TaskKind.ONE_OFF]: 0,
+    };
+
+    expect(toRingArcShares(done, 4)).toEqual([
+      {kind: TaskKind.HABIT, share: 0.25, offset: 0},
+      {kind: TaskKind.PROJECT, share: 0.5, offset: 0.25},
+      {kind: TaskKind.ONE_OFF, share: 0, offset: 0.75},
+    ]);
+    expect(
+      toRingArcShares({...done, [TaskKind.PROJECT]: 0, [TaskKind.HABIT]: 0}, 0),
+    ).toEqual([
+      {kind: TaskKind.HABIT, share: 0, offset: 0},
+      {kind: TaskKind.PROJECT, share: 0, offset: 0},
+      {kind: TaskKind.ONE_OFF, share: 0, offset: 0},
+    ]);
+  });
+
+  it('RING-3 draws a day with more done than planned as a full ring, and counts it as closed', () => {
+    const done = {
+      [TaskKind.HABIT]: 1,
+      [TaskKind.PROJECT]: 1,
+      [TaskKind.ONE_OFF]: 2,
+    };
+
+    const shares = toRingArcShares(done, 2).map(({share}) => share);
+
+    expect(shares).toEqual([0.25, 0.25, 0.5]);
+    expect(shares.reduce((sum, share) => sum + share, 0)).toBe(1);
+    expect(isRingClosed(4, 2)).toBe(true);
+    expect(isRingClosed(1, 0)).toBe(true);
+    expect(isRingClosed(2, 2)).toBe(true);
+    expect(isRingClosed(1, 2)).toBe(false);
+    expect(isRingClosed(0, 0)).toBe(false);
   });
 
   it("RING-1 lays out the plan's week Monday to Sunday", () => {

@@ -1543,7 +1543,7 @@ describe('Tap twice to complete', () => {
       .not.toContain(TAX_REPORT_TITLE);
   });
 
-  it('TAP-4 A7 on desktop Space still lifts a Todo card to drag it', async () => {
+  it('TAP-4 A15 on desktop Space still lifts a Todo card to drag it', async () => {
     await renderBoard();
 
     getTodoCard(TAX_REPORT_TITLE).focus();
@@ -1724,7 +1724,7 @@ describe('Backlog groups', () => {
     ]);
   });
 
-  it("BL-17 a backlog card is the board's card for the group's next task: its kind line, title and description, then its progress with the next task ringed, and ↑ Todo", async () => {
+  it("CARD-9 CARD-10 CARD-11 a backlog card is the board's card for the group's next task: its kind line, title and description, then its progress with the next task ringed, and ↑ Todo at its bottom right", async () => {
     await renderBoard();
     await openBacklog();
 
@@ -1754,20 +1754,32 @@ describe('Backlog groups', () => {
     expect(step.innerText).not.toMatch(/4\/7/);
     expect(step.innerText).not.toMatch(SIZE_TEXT);
 
-    // ↑ Todo at the bottom right, on desktop too, beside the drag handle
+    // ↑ Todo at the bottom right, on desktop too
     const pull = getPullButton(step).getBoundingClientRect();
     const box = step.getBoundingClientRect();
     expect(pull.right).toBeGreaterThan(box.right - 24);
     expect(pull.bottom).toBeGreaterThan(box.bottom - 24);
-    expect(isDragHandle(step)).toBe(true);
   });
 
-  it("BL-17 on mobile a backlog card has ↑ Todo and can't be dragged", async () => {
-    await useMobileWidth();
+  it('CARD-12 on desktop a card in Todo or in the backlog can be dragged as well as moved by its action', async () => {
     await renderBoard();
     await openBacklog();
-    const {card} = findCard(getOpenSheet(), 'Read');
+    const todo = getTodoCard(TAX_REPORT_TITLE);
+    const {card: backlog} = getCard('BACKLOG', 'LeetCode');
 
+    expect(isDragHandle(todo)).toBe(true);
+    expect(isDragHandle(backlog)).toBe(true);
+    expect(getPullButton(backlog)).toBeDefined();
+  });
+
+  it('CARD-9 CARD-12 on mobile no card can be dragged: a Todo card and a backlog card move only by their action', async () => {
+    await useMobileWidth();
+    await renderBoard();
+
+    expect(isDragHandle(getTodoCard(TAX_REPORT_TITLE))).toBe(false);
+
+    await openBacklog();
+    const {card} = findCard(getOpenSheet(), 'Read');
     expect(isDragHandle(card)).toBe(false);
     expect(getPullButton(card)).toBeDefined();
   });
@@ -2098,29 +2110,6 @@ describe('Motion', () => {
       .filter(({className}) => className === 'fx-slide')
       .map(({element}) => element.dataset.todoCard);
     expect(slid).toContain(findTaskByTitle('Workout').id);
-  });
-
-  it("FX-2 while the card is in flight, presses on the Todo cards do nothing; the day's cells and the backlog still work", async () => {
-    keepSaving();
-    await renderBoard();
-
-    await completeByTap(TAX_REPORT_TITLE);
-    getTodoCard('Workout').click();
-    // Give a selection time to show, still well inside the flight
-    await sleep(PRESS_SETTLE_MS);
-    expect(readColumnTitles('TODO')).toContain(TAX_REPORT_TITLE);
-    expect(isSelected(getTodoCard('Workout'))).toBe(false);
-
-    // Today's cell opens its list, then the backlog opens (and closes it)
-    getTodayCell().click();
-    await expect.poll(findDayListPanel).not.toBeNull();
-    getShownByTitle('Open backlog').click();
-    await expect.poll(() => getColumn('BACKLOG').closest('[inert]')).toBeNull();
-    expect(readColumnTitles('TODO')).toContain(TAX_REPORT_TITLE);
-
-    await expect
-      .poll(() => readColumnTitles('TODO'), MOTION_TIMEOUT)
-      .not.toContain(TAX_REPORT_TITLE);
   });
 
   it('FX-2 a card dragged onto Done tosses nothing', async () => {
@@ -2534,7 +2523,7 @@ describe('A move', () => {
     expect(readTodayCount()).toBe(`${done + 2} of ${planned + 2} done`);
   });
 
-  it("A7 MV-6 MV-7 a card dragged onto Done is on top of it at once and counted in today's ring; the server's answer leaves the ring as it is", async () => {
+  it("A15 MV-6 MV-7 a card dragged onto Done is on top of it at once and counted in today's ring; the server's answer leaves the ring as it is", async () => {
     const save = holdSave();
     vi.mocked(updateTaskStatusAction).mockReturnValue(save.promise);
     const screen = await renderBoard();

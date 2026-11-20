@@ -37,8 +37,17 @@ export interface DayRing {
   planned: KindCounts;
   doneCount: number;
   plannedCount: number;
-  /** Something is planned and all of it is done */
+  /** Something is planned and all of it is done, or more is done than planned */
   isClosed: boolean;
+}
+
+/** One kind's arc on a ring, as shares of the whole ring (0 to 1). */
+export interface RingArcShare {
+  kind: TaskKind;
+  /** How much of the ring the arc covers */
+  share: number;
+  /** Where the arc starts, from 12 o'clock */
+  offset: number;
 }
 
 /** What toDayRings reads besides the tasks. */
@@ -119,8 +128,35 @@ export function toDayRings(
       planned,
       doneCount,
       plannedCount,
-      isClosed: plannedCount > 0 && doneCount === plannedCount,
+      isClosed: isRingClosed(doneCount, plannedCount),
     };
+  });
+}
+
+/**
+ * Whether a day's ring is closed (RING-3): something is planned and all of
+ * it is done. A day with more done than planned is closed too, whatever it
+ * planned.
+ */
+export const isRingClosed = (doneCount: number, plannedCount: number) =>
+  doneCount >= plannedCount && doneCount + plannedCount > 0;
+
+/**
+ * Each kind's arc on a day's ring, in the ring's order (RING-3): every done
+ * task takes one equal part of the ring, out of everything planned. A day
+ * with more done than planned fills the whole ring and no more.
+ */
+export function toRingArcShares(
+  done: KindCounts,
+  plannedCount: number,
+): RingArcShare[] {
+  const whole = Math.max(plannedCount, sumCounts(done));
+  let offset = 0;
+  return RING_KIND_ORDER.map(kind => {
+    const share = whole > 0 ? done[kind] / whole : 0;
+    const arc = {kind, share, offset};
+    offset += share;
+    return arc;
   });
 }
 
