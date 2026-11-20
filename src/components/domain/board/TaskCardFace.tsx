@@ -7,6 +7,7 @@ import {TaskKind, type HabitWeek} from '@/utils/taskUtils';
 import type {BoardCard} from '@/utils/boardCardUtils';
 import {SizeChip} from '@/components/domain/shared/SizeChip';
 import {cn} from '@/components/ui/cn';
+import {TaskCardDescription} from './TaskCardDescription';
 import {TaskCardHead} from './TaskCardHead';
 import {TaskCardSignal} from './TaskCardSignal';
 
@@ -71,11 +72,7 @@ export const TaskCardFace = ({card, className}: TaskCardFaceProps) => {
         {task.title}
       </h3>
 
-      {task.description && !isDone && (
-        <p className="-mt-0.5 text-xs leading-snug text-base-content/60 line-clamp-2 break-words">
-          {task.description}
-        </p>
-      )}
+      {!isDone && <TaskCardDescription description={task.description} />}
 
       <div className="flex flex-wrap items-center gap-2 min-h-[18px]">
         <TaskCardSignal card={card} variant="card" />

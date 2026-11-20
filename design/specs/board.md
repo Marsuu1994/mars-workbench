@@ -157,7 +157,7 @@ A Todo card is finished in two presses, on both widths: one to select it, and a 
 - *(removing)* **BL-10** — replaced by CARD-9 and CARD-12. A backlog card shows, from top to bottom:
   - kind: a habit card shows its kind, and a step card its project's name; neither shows details (no Daily × N or Weekly × N, no step n/N)
   - title: the next task's title
-  - description: the next task's description
+  - description: the next task's description, cut off after two lines
   - progress: a habit's week dots, or the project's path, with the next task's dot or step ringed. No size and no count of how many are done; a screen reader reads the dots or the path as how many are done out of the total.
 
   How they work at each width:
