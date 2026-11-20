@@ -109,7 +109,8 @@ A Todo card is finished in two presses, on both widths: one to select it, and a 
 - **TAP-1** Pressing anywhere on a Todo card selects it (A10). A selected card has a confirming frame, and its round mark turns into a filled ✓ with **Complete** beside it: together they are its ✓ Complete button. Its size and its place don't change, and nothing else on the board moves. At most one card is selected: pressing another Todo card moves the selection to it. Cards in Done and in the backlog can't be selected.
 - **TAP-2** A selected card goes back to normal, with nothing finished, when the user presses it again anywhere but its ✓ Complete, presses anywhere outside the Todo cards, presses Esc, opens a day's list or opens the backlog (A11). Scrolling doesn't cancel it, and nothing cancels it on a timer.
 - **TAP-3** Only ✓ Complete finishes a card by pressing (A12). For 350 ms after it appears it ignores presses, so a quick double press on the round mark selects the card without finishing it.
-- **TAP-4** Keyboard and screen-reader users: each Todo card can be reached with Tab. Enter or Space on a card that isn't selected selects it; either key on the selected card completes it, as ✓ Complete does, after the same 350 ms (TAP-3); Esc cancels the selection (TAP-2). A card reached with Tab shows the focus ring; a card pressed with a mouse or a finger doesn't, whether the press selects it or cancels its selection. A screen reader hears whether the card is selected, and ✓ Complete is named after the task it finishes.
+- **TAP-4** Keyboard and screen-reader users: each Todo card can be reached with Tab. Enter or Space on a card that isn't selected selects it; either key on the selected card completes it, as ✓ Complete does, after the same 350 ms (TAP-3); Esc cancels the selection (TAP-2). A screen reader hears whether the card is selected, and ✓ Complete is named after the task it finishes.
+- *(pending)* **TAP-5** A Todo card reached with Tab shows the focus ring. A card pressed with a mouse or a finger doesn't, whether the press selects it or cancels its selection.
 
 ## Backlog
 
@@ -182,7 +183,7 @@ What happens when a card moves (A9 and A12):
 - **R1** The server only moves a task forward: Backlog → Todo, Backlog → Done, or Todo → Done. It refuses any other move, so finished work stays counted.
 - **R2** The server only moves a task that's on the plan. A one-off still on the priority matrix gets onto the board by being tracked for this week, never by a move.
 - **R3** The server only moves the user's own tasks.
-- **R4** On the board, a card in Done can't be moved: it has no action, and pressing it does nothing.
+- **R4** On the board, a card in Done can't be moved: it has no action and can't be selected (TAP-1).
 - **R5** On the board, nothing goes back into the backlog: no card in Todo or Done has an action that sends it there.
 - **R6** On the board, only a group's next task can be pulled out of the backlog: the steps in a project's queue have no ↑ Todo. Only the board holds this limit: the server doesn't check a task's place in its group when it moves it (R1), so a write path outside the board, such as a future Claude tool over MCP, wouldn't be held to it.
 - **R7** On the board, a day's list is read only: nothing in it can be moved back to Todo or the backlog. The server refuses that move too (R1).

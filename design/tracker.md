@@ -96,9 +96,9 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 ### High
 
 - [ ] Take drag and drop off the board — every move already has a press (↑ Todo, ✓ Complete), and working around the drag library kept costing focus and a11y behaviour (owner, 2026-11-20). The spec is written (`design/specs/board.md`: the items marked *(removing)*, and the reworded ones beside them); the build follows on the same PR once the owner has reviewed it
-  - Decided by the owner: a backlog task is no longer finished straight from the backlog (A6 goes, with nothing in its place); Space on a Todo card does what Enter does; the `fx-target` utility goes with its last user
-  - Goes with it: the focus ring a Todo card pressed with a mouse drew beside its selected frame (TAP-4), and the three card shells' frame classes, written three times, fold into one
-  - Open for the owner: the server still takes Backlog → Done (R1), which no action on the board uses any more
+  - Decided by the owner: a backlog task is no longer finished straight from the backlog (A6 goes, with nothing in its place), and Space on a Todo card does what Enter does
+  - Goes with it: the focus ring a Todo card pressed with a mouse drew beside its selected frame, and kept after the selection was cancelled (TAP-5)
+  - Open for the owner: the server still takes Backlog → Done (R1), which no action on the board uses any more; and whether R5 stays as the board's side of R1 now that no card has an action that goes backward
 
 ### Future
 
