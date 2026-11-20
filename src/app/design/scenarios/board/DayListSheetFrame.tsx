@@ -11,8 +11,6 @@ import {
   SCENARIO_PROJECTS,
 } from './fixtures';
 
-const NOOP = () => {};
-
 /**
  * Today's list from the mid-week fixtures, rendered inline in a phone-width
  * sheet frame: the live mobile sheet is a top-layer <dialog>, which would
@@ -37,7 +35,7 @@ export const DayListSheetFrame = () => {
         <DayList
           ring={today}
           cards={toDayListCards(doneCards, today.date)}
-          onClose={NOOP}
+          onClose={() => {}}
         />
       </div>
     </div>
