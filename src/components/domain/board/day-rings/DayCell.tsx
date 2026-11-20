@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect, useRef, type ReactNode} from 'react';
+import {useEffect, useRef} from 'react';
 import {useTranslations} from 'next-intl';
 import {DayState, RING_KIND_ORDER, type DayRing} from '@/utils/dayRingUtils';
 import {useBoardPageContext} from '../BoardPageContext';
@@ -18,8 +18,6 @@ const OPEN_CELL_CLASS =
 
 interface DayCellProps {
   ring: DayRing;
-  /** Under the cell: its day's list, when it is open on desktop */
-  children?: ReactNode;
 }
 
 /**
@@ -30,16 +28,24 @@ interface DayCellProps {
  * when a card is finished (fx-ring-tick) and celebrates when its ring closes
  * (fx-ring-close).
  */
-export const DayCell = ({ring, children}: DayCellProps) => {
+export const DayCell = ({ring}: DayCellProps) => {
   const t = useTranslations('Board.Rings');
   const {openDayDate, toggleDay, tickKey, celebrationKey} =
     useBoardPageContext();
   const motionRef = useRef<HTMLSpanElement>(null);
-  const {date, dayIndex, state, done, planned, doneCount, plannedCount} = ring;
+  const {
+    date,
+    dayIndex,
+    state,
+    done,
+    planned,
+    doneCount,
+    plannedCount,
+    isClosed,
+  } = ring;
   const isToday = state === DayState.TODAY;
   const isFuture = state === DayState.FUTURE;
   const isOpen = openDayDate === date;
-  const isClosed = ring.isClosed;
   const dayName = t(`Days.${DAY_NAME_KEYS[dayIndex]}`);
 
   // The classes go on an element whose own className never changes, so a
@@ -156,6 +162,7 @@ export const DayCell = ({ring, children}: DayCellProps) => {
         type="button"
         data-day-cell={date}
         aria-label={label()}
+        title={label()}
         aria-expanded={isOpen}
         onClick={() => toggleDay(date)}
         className={cellClass}
@@ -166,14 +173,13 @@ export const DayCell = ({ring, children}: DayCellProps) => {
 
   return (
     <div
-      className={`relative flex min-w-0 ${
+      className={`flex min-w-0 ${
         isToday
           ? 'flex-[2.4] max-md:min-w-[132px] max-md:flex-[2]'
           : 'flex-1 max-md:min-w-[54px]'
       }`}
     >
       {renderCell()}
-      {children}
     </div>
   );
 };

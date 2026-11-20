@@ -58,11 +58,17 @@ describe('fetchBoard', () => {
     expect(await fetchBoard(userId)).toBeNull();
   });
 
-  it("ST-4 sends each past day's daily habit tasks that expired undone", async () => {
+  it("ST-4 RING-2 sends each past day's daily habit tasks that expired undone, whether they were left in the backlog or in Todo", async () => {
     const plan = await createMidWeek();
-    // Tuesday's visit generates Tuesday's run; Wednesday's expires both
+    // Tuesday's visit expires Monday's run, which never left the backlog, and
+    // generates Tuesday's, which is pulled into Todo and left there
     freezeTime('2026-10-13T19:00:00Z');
     await fetchBoard(userId);
+    const [tuesdayRun] = (
+      await getBoardTasksByPlanId(userId, plan.planId)
+    ).filter(task => task.title === 'Run');
+    await moveTasks(userId, [[tuesdayRun.id, TaskStatus.TODO]]);
+    // Wednesday's visit expires Tuesday's too
     freezeTime(WEDNESDAY_EVENING);
     await fetchBoard(userId);
     const tasks = await getBoardTasksByPlanId(userId, plan.planId);

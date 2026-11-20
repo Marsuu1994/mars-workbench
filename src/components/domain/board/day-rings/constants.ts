@@ -8,9 +8,9 @@ export const RING_ARC_GAP = 1.6;
 export const RING_CHECK_RATIO = 0.42;
 /** How many sparks fly out of a closing ring (FX-4) */
 export const SPARK_COUNT = 12;
-/** From this day on, the desktop panel hangs from its cell's right edge, so
-    it stays on the row */
-export const DAY_LIST_ALIGN_RIGHT_FROM = 4;
+/** How close to the row's left and right edges the desktop panel may come,
+    in px */
+export const DAY_LIST_ROW_INSET = 8;
 /** Each day's key under Board.Rings.Days, Monday first, by its dayIndex */
 export const DAY_NAME_KEYS = [
   'MON',

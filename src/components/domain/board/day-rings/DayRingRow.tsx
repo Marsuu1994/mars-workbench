@@ -30,7 +30,7 @@ const MOBILE_OTHER_DAYS_BEFORE_MEASURE = 3;
  * The top of the board: a row of rings, one for each day of the plan's week
  * (RING-1). Desktop shows all seven days; mobile shows today and as many
  * days before it as fit its width, measured as it resizes. The open day's
- * list floats under its cell on desktop and rises in a sheet on mobile.
+ * list floats under the row on desktop and rises in a sheet on mobile.
  */
 export const DayRingRow = ({rings, doneCards}: DayRingRowProps) => {
   const t = useTranslations('Board.Rings');
@@ -65,15 +65,14 @@ export const DayRingRow = ({rings, doneCards}: DayRingRowProps) => {
         ref={rowRef}
         role="group"
         aria-label={t('rowLabel')}
-        className="flex flex-shrink-0 items-end gap-1 border-b border-base-content/10 bg-base-200/50 px-5 py-2 md:gap-1.5 md:px-4 md:py-2.5"
+        className="relative flex flex-shrink-0 items-end gap-1 border-b border-base-content/10 bg-base-200/50 px-5 py-2 md:gap-1.5 md:px-4 md:py-2.5"
       >
         {shownRings.map(ring => (
-          <DayCell key={ring.date} ring={ring}>
-            {!isMobile && openRing?.date === ring.date && (
-              <DayListPanel ring={openRing} cards={openCards} />
-            )}
-          </DayCell>
+          <DayCell key={ring.date} ring={ring} />
         ))}
+        {!isMobile && openRing && (
+          <DayListPanel key={openRing.date} ring={openRing} cards={openCards} />
+        )}
       </div>
       {isMobile && <DayListSheet ring={openRing} cards={openCards} />}
     </>

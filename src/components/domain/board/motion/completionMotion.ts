@@ -51,9 +51,9 @@ async function waitForAnimations(element: Element): Promise<void> {
 
 /**
  * Appends a fixed element to `host` at the viewport point (left, top). A fixed
- * element's origin is its containing block's, which inside a frame with
- * `contain: layout` (the Design Console's) isn't the viewport's, so the
- * element is measured at (0, 0) first and moved by the difference.
+ * element's origin is its containing block's, which isn't the viewport's
+ * under any ancestor with a transform, a filter or `contain`, so the element
+ * is measured at (0, 0) first and moved by the difference.
  */
 function placeFixed(
   host: Element,

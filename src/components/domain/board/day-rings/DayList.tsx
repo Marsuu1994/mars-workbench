@@ -18,6 +18,8 @@ interface DayListProps {
   closeButtonRef?: Ref<HTMLButtonElement>;
   /** The body's height cap: the desktop panel's, or the sheet's */
   bodyClassName?: string;
+  /** An id for the day's name, when the list's shell is named after it */
+  titleId?: string;
 }
 
 /**
@@ -32,6 +34,7 @@ export const DayList = ({
   onClose,
   closeButtonRef,
   bodyClassName,
+  titleId,
 }: DayListProps) => {
   const t = useTranslations('Board.DayList');
   const tRings = useTranslations('Board.Rings');
@@ -43,7 +46,10 @@ export const DayList = ({
 
   const renderHeader = () => (
     <div className="flex flex-shrink-0 items-center gap-2 border-b border-base-content/10 px-3 py-2.5 fx-num text-[10.5px] uppercase tracking-[0.1em] text-base-content/55">
-      <b className="font-semibold tracking-[0.04em] text-base-content">
+      <b
+        id={titleId}
+        className="font-semibold tracking-[0.04em] text-base-content"
+      >
         {dayName}
       </b>
       <span>{t('count', {done: doneCount, planned: plannedCount})}</span>

@@ -59,6 +59,27 @@ describe('toDayRings', () => {
     expect(rings[2].done[TaskKind.PROJECT]).toBe(1);
   });
 
+  it('RING-2 takes today from KANBAN_TZ: late on a Los Angeles evening it is still that day', () => {
+    // 23:30 on Wednesday in Los Angeles, already Thursday in UTC
+    const lateWednesday = new Date('2026-10-15T06:30:00Z');
+
+    const rings = toDayRings([], {
+      periodKey: WEEK_KEY,
+      expiredDailyCountByDate: {},
+      now: lateWednesday,
+    });
+
+    expect(rings.map(({state}) => state)).toEqual([
+      DayState.PAST,
+      DayState.PAST,
+      DayState.TODAY,
+      DayState.FUTURE,
+      DayState.FUTURE,
+      DayState.FUTURE,
+      DayState.FUTURE,
+    ]);
+  });
+
   it("RING-2 plans today's done tasks and every Todo card, not the backlog", () => {
     const tasks = [
       habitDone('wed-run', MOMENTS.WEDNESDAY_NOON),
@@ -200,6 +221,8 @@ describe('toDayListCards', () => {
       habitDone('run-late', '2026-10-12T20:00:00Z'),
       habitDone('run-early', '2026-10-12T17:00:00Z'),
       habitDone('tuesday', '2026-10-13T17:00:00Z'),
+      // Monday evening in Los Angeles, already Tuesday in UTC
+      habitDone('run-night', '2026-10-13T05:30:00Z'),
       buildTask({id: 'todo', status: TaskStatus.TODO}),
     ];
 
@@ -207,10 +230,10 @@ describe('toDayListCards', () => {
 
     expect(
       toDayListCards(cards, '2026-10-12').map(({task}) => task.id),
-    ).toEqual(['run-early', 'run-late', 'step', 'one-off']);
+    ).toEqual(['run-early', 'run-late', 'run-night', 'step', 'one-off']);
   });
 
-  it('DAY-3 lists tasks finished at the same moment by id', () => {
+  it('lists tasks finished at the same moment by id, so the order never flickers', () => {
     const cards = ['run-b', 'run-a'].map(id => ({
       task: habitDone(id, '2026-10-12T17:00:00Z'),
     }));

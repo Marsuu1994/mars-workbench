@@ -205,6 +205,13 @@ const getTodoCard = (title: string) => getCard('TODO', title).card;
 const readHeaderCount = (status: 'TODO' | 'DONE') =>
   getColumnFrame(status).querySelector('.badge')?.textContent;
 
+/** An element's box as plain numbers: two DOMRects always look equal to toEqual. */
+const boxOf = (element: Element) => element.getBoundingClientRect().toJSON();
+
+/** Resolves once the element's own animations have ended and it is at rest. */
+const waitForRest = (element: Element) =>
+  Promise.all(element.getAnimations().map(({finished}) => finished));
+
 /** Whether dnd made the card a drag handle. */
 const isDragHandle = (card: HTMLElement) =>
   card.hasAttribute('data-rfd-drag-handle-draggable-id');
@@ -973,23 +980,46 @@ describe("A day's list", () => {
     expect(readDayListRows(getDayListPanel())).toHaveLength(TODAY_COUNTS.done);
   });
 
-  it('DAY-2 on desktop the list floats in a panel under the row, below its cell, over a board that stays as it is', async () => {
+  it('DAY-2 on desktop the list floats in a panel under the row, centred below its cell, over a board that stays as it is', async () => {
     await renderBoard(LAST_WEEK_BOARD);
-    const todoBox = getColumnFrame('TODO').getBoundingClientRect();
+    const todoBox = boxOf(getColumnFrame('TODO'));
     const tuesday = getDayCell(lastWeekDate(1));
 
     await userEvent.click(tuesday);
+    await waitForRest(getDayListPanel());
 
     const panel = getDayListPanel().getBoundingClientRect();
     const cell = tuesday.getBoundingClientRect();
-    expect(panel.top).toBeGreaterThanOrEqual(
-      getRingRow().getBoundingClientRect().bottom - 1,
+    expect(getDayListPanel().getAttribute('role')).toBe('dialog');
+    expect(page.getByRole('dialog', {name: 'Tue'}).element()).toBe(
+      getDayListPanel(),
     );
-    expect(panel.left).toBeLessThan(cell.right);
-    expect(panel.right).toBeGreaterThan(cell.left);
+    expect(panel.top).toBeGreaterThanOrEqual(cell.bottom);
+    expect(panel.top).toBeLessThan(cell.bottom + 12);
+    expect((panel.left + panel.right) / 2).toBeCloseTo(
+      (cell.left + cell.right) / 2,
+      0,
+    );
     // Over the board, which hasn't moved
     expect(panel.bottom).toBeGreaterThan(todoBox.top);
-    expect(getColumnFrame('TODO').getBoundingClientRect()).toEqual(todoBox);
+    expect(boxOf(getColumnFrame('TODO'))).toEqual(todoBox);
+  });
+
+  it("DAY-2 on desktop the first day's panel stays inside the row rather than centring off it", async () => {
+    await renderBoard(LAST_WEEK_BOARD);
+    const monday = getDayCell(lastWeekDate(0));
+
+    await userEvent.click(monday);
+    await waitForRest(getDayListPanel());
+
+    const panel = getDayListPanel().getBoundingClientRect();
+    const cell = monday.getBoundingClientRect();
+    const row = getRingRow().getBoundingClientRect();
+    expect(panel.left).toBeGreaterThanOrEqual(row.left);
+    expect(panel.left).toBeLessThan(cell.left);
+    expect((panel.left + panel.right) / 2).toBeGreaterThan(
+      (cell.left + cell.right) / 2,
+    );
   });
 
   it('DAY-2 on mobile the list rises in a sheet, at most 70% of the screen, over the dimmed board', async () => {
@@ -1412,7 +1442,7 @@ describe('Tap twice to complete', () => {
   it('TAP-1 A10 a press anywhere on a Todo card selects it: a confirming frame and ✓ Complete, with nothing on the board moving', async () => {
     await renderBoard();
     const card = getTodoCard(TAX_REPORT_TITLE);
-    const before = card.getBoundingClientRect();
+    const before = boxOf(card);
     const workoutTop = getTodoCard('Workout').getBoundingClientRect().top;
     const plainFrame = getComputedStyle(card).borderTopColor;
     expect(findCompleteButton(TAX_REPORT_TITLE)).toBeNull();
@@ -1424,7 +1454,7 @@ describe('Tap twice to complete', () => {
     const complete = getCompleteButton(TAX_REPORT_TITLE);
     expect(complete.textContent).toBe('Complete');
     expect(complete.checkVisibility()).toBe(true);
-    expect(card.getBoundingClientRect()).toEqual(before);
+    expect(boxOf(card)).toEqual(before);
     expect(getTodoCard('Workout').getBoundingClientRect().top).toBe(workoutTop);
   });
 
