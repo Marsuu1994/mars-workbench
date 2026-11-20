@@ -152,8 +152,8 @@ const MOTION_TIMEOUT = {timeout: 3000};
 type BoardColumnStatus = 'BACKLOG' | 'TODO' | 'DONE';
 
 /**
- * A column's drop zone, which dnd keys by status, or the desktop backlog's
- * panel. The board's cards are read from the DOM, retried with
+ * A column's list of cards, or the desktop backlog's panel. The board's
+ * cards are read from the DOM, retried with
  * `expect.poll` — a locator built from an element (`page.elementLocator`)
  * pins its text, which a move changes.
  */
@@ -161,7 +161,7 @@ const findColumn = (status: BoardColumnStatus) =>
   document.querySelector<HTMLElement>(
     status === 'BACKLOG'
       ? 'section[aria-label="Backlog"]'
-      : `[data-rfd-droppable-id="${status}"]`,
+      : `[data-board-column="${status}"]`,
   );
 
 const getColumn = (status: BoardColumnStatus) => {
@@ -170,7 +170,7 @@ const getColumn = (status: BoardColumnStatus) => {
   return column;
 };
 
-/** A board column's frame: its header over its drop zone. */
+/** A board column's frame: its header over its list of cards. */
 const getColumnFrame = (status: 'TODO' | 'DONE') => {
   const frame = getColumn(status).parentElement;
   if (!frame) throw new Error(`No ${status} frame`);
@@ -230,9 +230,20 @@ const centreOf = (element: Element) => {
 const sum = (numbers: number[]) =>
   numbers.reduce((total, number) => total + number, 0);
 
-/** Whether dnd made the card a drag handle. */
-const isDragHandle = (card: HTMLElement) =>
-  card.hasAttribute('data-rfd-drag-handle-draggable-id');
+/** Whether the card can be dragged: by the browser, or as a drag library's handle. */
+const isDraggable = (card: HTMLElement) =>
+  card.draggable || card.hasAttribute('data-rfd-drag-handle-draggable-id');
+
+/** How long a card's outline takes to come in or go (daisyUI's 0.2 s). */
+const OUTLINE_SETTLE_MS = 300;
+
+/** Whether the element draws the focus ring: an outline with a width and a
+    colour that shows. */
+const showsFocusRing = (element: HTMLElement) => {
+  const {outlineStyle, outlineWidth, outlineColor} = getComputedStyle(element);
+  const isTransparent = /, 0\)$|\/ 0\)$/.test(outlineColor);
+  return outlineStyle !== 'none' && outlineWidth !== '0px' && !isTransparent;
+};
 
 /** The shown element with this title: the backlog's strip and pill share one. */
 const getShownByTitle = (title: string) => {
@@ -327,34 +338,6 @@ const readHeldTransform = async (element: HTMLElement) => {
 const expectLetGo = (element: HTMLElement) =>
   expect.poll(() => getComputedStyle(element).transform).toBe('none');
 
-const readAnnouncement = () =>
-  document.querySelector('[id^="rfd-announcement"]')?.textContent ?? '';
-
-/**
- * @hello-pangea/dnd's keyboard drag, as the e2e drags: lift the card, step
- * it across the columns (Todo, Done, then the backlog panel on desktop),
- * drop — each step waiting on dnd's screen-reader announcement.
- */
-const dragCard = async (
-  from: BoardColumnStatus,
-  title: string,
-  steps: ('ArrowLeft' | 'ArrowRight')[],
-) => {
-  getCard(from, title).card.focus();
-  await userEvent.keyboard('[Space]');
-  await expect.poll(readAnnouncement).toMatch(/lifted/);
-  for (const step of steps) {
-    const before = readAnnouncement();
-    await userEvent.keyboard(`[${step}]`);
-    await expect.poll(readAnnouncement).not.toBe(before);
-  }
-  await userEvent.keyboard('[Space]');
-  await expect.poll(readAnnouncement).toMatch(/dropped/);
-};
-
-const dragTodoCardOntoDone = (title: string) =>
-  dragCard('TODO', title, ['ArrowRight']);
-
 // ─── Tap twice ─────────────────────────────────────────────────────────────
 
 const isSelected = (card: HTMLElement) =>
@@ -391,6 +374,14 @@ const completeByTap = async (title: string) => {
   await selectCard(title);
   await waitPastArmGuard();
   await userEvent.click(getCompleteButton(title));
+};
+
+/** Completes a Todo card and waits until it has landed and left Todo. */
+const completeAndLand = async (title: string) => {
+  await completeByTap(title);
+  await expect
+    .poll(() => readColumnTitles('TODO'), MOTION_TIMEOUT)
+    .not.toContain(title);
 };
 
 /** A press outside the Todo cards and the day's list: a column's header,
@@ -577,9 +568,7 @@ const readBacklogOutline = (container: Element) =>
 
 /** A group around its card: the card, and its pile or queue under it. */
 const getGroupOf = (card: HTMLElement) => {
-  const group =
-    card.closest('[data-rfd-droppable-id]')?.parentElement ??
-    card.parentElement;
+  const group = card.parentElement;
   if (!group) throw new Error('The card is in no group');
   return group;
 };
@@ -605,36 +594,6 @@ const getQueueToggle = (card: HTMLElement) => {
 /** The rows of every open queue in a container: step number, then title. */
 const readQueueRows = (container: Element) =>
   [...container.querySelectorAll('ol > li')].map(row => row.textContent);
-
-/** The place dnd keeps for a lifted card. */
-const getLiftPlaceholder = (container: Element) => {
-  const placeholder = container.querySelector<HTMLElement>(
-    '[data-rfd-placeholder-context-id]',
-  );
-  if (!placeholder) throw new Error('No placeholder in the backlog');
-  return placeholder;
-};
-
-/**
- * What the backlog shows besides a lifted card: the count, the other cards
- * and every pile, where each one sits.
- */
-const readBacklogLayout = (panel: HTMLElement) => ({
-  header: getPanelHeader().textContent,
-  moreCounts: [...panel.querySelectorAll<HTMLElement>('.card')].map(card =>
-    readMoreCount(card),
-  ),
-  cards: [...panel.querySelectorAll<HTMLElement>('.card')]
-    .filter(card => card.style.position !== 'fixed')
-    .map(card => ({
-      title: card.querySelector('h3')?.textContent,
-      top: Math.round(card.getBoundingClientRect().top),
-    }))
-    .filter(({title}) => title !== 'Read'),
-  sheetTops: [...panel.querySelectorAll('[aria-hidden="true"] > i')].map(
-    sheet => Math.round(sheet.getBoundingClientRect().top),
-  ),
-});
 
 /** The emptied backlog's box: a title, two sentences and no button or link. */
 const expectBacklogFinishBox = (container: Element) => {
@@ -1071,7 +1030,7 @@ describe("A day's list", () => {
     expect(findDayListPanel()).toBeNull();
   });
 
-  it("DAY-3 R7 a day's list shows its name and count, then its finished tasks, habits first, the earliest first, a step with its project; nothing in it can be pressed or dragged", async () => {
+  it("DAY-3 R7 a day's list shows its name and count, then its finished tasks, habits first, the earliest first, a step with its project; nothing in it can be pressed", async () => {
     await renderBoard(LAST_WEEK_BOARD);
 
     await userEvent.click(getDayCell(lastWeekDate(0)));
@@ -1094,13 +1053,10 @@ describe("A day's list", () => {
     expect(readDayListRows(tuesday)).toEqual([
       ['Lecture 3 — Membranes', 'Biomedical course'],
     ]);
-    // Each row has its kind's icon, and nothing to press or drag
+    // Each row has its kind's icon, and nothing to press
     const list = tuesday.querySelector('ul')!;
     expect(list.querySelectorAll('li svg')).toHaveLength(1);
-    expect(list.querySelector('button, a, [draggable="true"]')).toBeNull();
-    expect(
-      list.querySelector('[data-rfd-drag-handle-draggable-id]'),
-    ).toBeNull();
+    expect(list.querySelector('button, a, [role="button"]')).toBeNull();
   });
 
   it('DAY-3 a day with nothing finished reads Nothing yet', async () => {
@@ -1318,16 +1274,6 @@ describe('Todo when the day is clear', () => {
     expect(getColumn('TODO').textContent).toBe('');
   });
 
-  it('COL-8 a dragged last card shows the box as soon as it is dropped on Done, before the server answers', async () => {
-    keepSaving();
-    await renderBoard({tasks: withOnlyTodo([TAX_REPORT_TITLE])});
-    expect(findDayClearBox()).toBeNull();
-
-    await dragTodoCardOntoDone(TAX_REPORT_TITLE);
-
-    expectDayClearBox();
-  });
-
   it('COL-8 FX-2 a last card completed with ✓ Complete shows the box once it has landed in the ring', async () => {
     keepSaving();
     await renderBoard({tasks: withOnlyTodo([TAX_REPORT_TITLE])});
@@ -1468,7 +1414,7 @@ describe('Task cards', () => {
     expectCutOffAfterTwoLines(getCard('BACKLOG', BIO_LECTURE_4_TITLE).card);
   });
 
-  it('CARD-2 CARD-9 R4 a Done card is dimmed, its title struck through, with no description, no action and no drag handle', async () => {
+  it("CARD-2 CARD-9 R4 a Done card is dimmed, its title struck through, with no description and no action, and a press doesn't select it", async () => {
     await renderBoard();
 
     // The same habit, one task done and one still to do
@@ -1482,8 +1428,11 @@ describe('Task cards', () => {
     expect(todo.card.textContent).toContain('One medium, 45-min timer');
     expect(done.card.querySelector('button')).toBeNull();
 
-    expect(isDragHandle(done.card)).toBe(false);
-    expect(isDragHandle(todo.card)).toBe(true);
+    await userEvent.click(done.card);
+    await sleep(100);
+    expect(findSelectedCards()).toEqual([]);
+    expect(done.card.querySelector('button')).toBeNull();
+    expect(updateTaskStatusAction).not.toHaveBeenCalled();
   });
 });
 
@@ -1633,15 +1582,54 @@ describe('Tap twice to complete', () => {
       .not.toContain(TAX_REPORT_TITLE);
   });
 
-  it('TAP-4 on desktop Space still lifts a Todo card to drag it', async () => {
+  it('TAP-4 Space does what Enter does: it selects a card, and completes the selected one after the guard', async () => {
+    keepSaving();
+    await setReducedMotion(true);
     await renderBoard();
+    const card = getTodoCard(TAX_REPORT_TITLE);
 
-    getTodoCard(TAX_REPORT_TITLE).focus();
+    card.focus();
+    await userEvent.keyboard('[Space]');
+    expect(isSelected(card)).toBe(true);
+
+    // Within the guard, Space does nothing either
+    await userEvent.keyboard('[Space]');
+    expect(vibrations).toEqual([]);
+    expect(isSelected(getTodoCard(TAX_REPORT_TITLE))).toBe(true);
+
+    await waitPastArmGuard();
     await userEvent.keyboard('[Space]');
 
-    await expect.poll(readAnnouncement).toMatch(/lifted/);
-    expect(isSelected(getTodoCard(TAX_REPORT_TITLE))).toBe(false);
-    await userEvent.keyboard('{Escape}');
+    await expect
+      .poll(() => readColumnTitles('TODO'))
+      .not.toContain(TAX_REPORT_TITLE);
+    expect(updateTaskStatusAction).toHaveBeenCalledWith(
+      findTaskByTitle(TAX_REPORT_TITLE).id,
+      {status: TaskStatus.DONE},
+    );
+  });
+
+  it('TAP-5 a Todo card pressed with the mouse shows no focus ring, whether the press selects it or cancels its selection; a card reached with Tab shows it', async () => {
+    await renderBoard();
+    const card = getTodoCard(TAX_REPORT_TITLE);
+
+    await userEvent.click(card.querySelector('h3')!);
+    await expect.poll(() => isSelected(card)).toBe(true);
+    // Given the time a ring takes to come in, none has
+    await sleep(OUTLINE_SETTLE_MS);
+    expect(showsFocusRing(card)).toBe(false);
+
+    await userEvent.click(card.querySelector('h3')!);
+    await expect.poll(() => isSelected(card)).toBe(false);
+    await sleep(OUTLINE_SETTLE_MS);
+    expect(showsFocusRing(card)).toBe(false);
+
+    // By keyboard: Shift+Tab off the card and Tab back onto it
+    await userEvent.keyboard('{Shift>}{Tab}{/Shift}');
+    expect(document.activeElement).not.toBe(card);
+    await userEvent.keyboard('{Tab}');
+    expect(document.activeElement).toBe(card);
+    await expect.poll(() => showsFocusRing(card)).toBe(true);
   });
 });
 
@@ -1738,19 +1726,21 @@ describe('Backlog', () => {
       '[title="Close backlog"]',
     );
     if (!closeButton) throw new Error('No close button');
-    const {card: backlogCard} = getCard('BACKLOG', DESIGN_CASE_TITLE);
+    const pullButton = getPullButton(
+      getCard('BACKLOG', DESIGN_CASE_TITLE).card,
+    );
 
     // Closed: the faded-out panel stays mounted but out of reach
-    backlogCard.focus();
-    expect(document.activeElement).not.toBe(backlogCard);
+    pullButton.focus();
+    expect(document.activeElement).not.toBe(pullButton);
     closeButton.focus();
     expect(document.activeElement).not.toBe(closeButton);
 
     strip.focus();
     await userEvent.keyboard('{Enter}');
     await expect.poll(() => document.activeElement).toBe(closeButton);
-    backlogCard.focus();
-    expect(document.activeElement).toBe(backlogCard);
+    pullButton.focus();
+    expect(document.activeElement).toBe(pullButton);
     strip.focus();
     expect(document.activeElement).not.toBe(strip);
 
@@ -1892,26 +1882,23 @@ describe('Backlog groups', () => {
     expect(pull.bottom).toBeGreaterThan(box.bottom - 24);
   });
 
-  it('CARD-12 on desktop a card in Todo or in the backlog can be dragged as well as moved by its action', async () => {
+  it('CARD-9 CARD-12 no card can be dragged on either width: a Todo card and a backlog card move only by their action', async () => {
     await renderBoard();
     await openBacklog();
-    const todo = getTodoCard(TAX_REPORT_TITLE);
     const {card: backlog} = getCard('BACKLOG', 'LeetCode');
-
-    expect(isDragHandle(todo)).toBe(true);
-    expect(isDragHandle(backlog)).toBe(true);
+    expect(isDraggable(getTodoCard(TAX_REPORT_TITLE))).toBe(false);
+    expect(isDraggable(getCard('DONE', 'LeetCode').card)).toBe(false);
+    expect(isDraggable(backlog)).toBe(false);
     expect(getPullButton(backlog)).toBeDefined();
-  });
+    await userEvent.click(getShownByTitle('Close backlog'));
 
-  it('CARD-9 CARD-12 on mobile no card can be dragged: a Todo card and a backlog card move only by their action', async () => {
     await useMobileWidth();
-    await renderBoard();
-
-    expect(isDragHandle(getTodoCard(TAX_REPORT_TITLE))).toBe(false);
-
+    // The phone's board, once the page has seen the new width: no Done
+    await expect.poll(() => findColumn('DONE')).toBeNull();
+    expect(isDraggable(getTodoCard(TAX_REPORT_TITLE))).toBe(false);
     await openBacklog();
     const {card} = findCard(getOpenSheet(), 'Read');
-    expect(isDragHandle(card)).toBe(false);
+    expect(isDraggable(card)).toBe(false);
     expect(getPullButton(card)).toBeDefined();
   });
 
@@ -2015,7 +2002,7 @@ describe('Backlog groups', () => {
     ).toHaveLength(2);
   });
 
-  it("R6 the steps in a project's queue can't be dragged and have no ↑ Todo", async () => {
+  it("R6 only a group's next task can be pulled: the steps in a project's queue have no ↑ Todo", async () => {
     await useMobileWidth();
     await renderBoard();
     await openBacklog();
@@ -2027,65 +2014,8 @@ describe('Backlog groups', () => {
     await expect.poll(() => readQueueRows(getGroupOf(card))).toHaveLength(2);
     const rows = [...getGroupOf(card).querySelectorAll('li')];
     expect(rows).toHaveLength(2);
-    for (const row of rows) {
-      expect(row.querySelector('button')).toBeNull();
-      expect(row.closest('[data-rfd-drag-handle-draggable-id]')).toBeNull();
-    }
-  });
-
-  it("R6 on desktop only a group's next task is a drag handle", async () => {
-    await renderBoard();
-    await openBacklog();
-    const panel = getColumn('BACKLOG');
-    await userEvent.click(
-      getQueueToggle(getCard('BACKLOG', BIO_LECTURE_4_TITLE).card),
-    );
-
-    // One drag handle per group, whatever waits behind
-    await expect.poll(() => readQueueRows(panel)).toHaveLength(2);
-    const handles = [
-      ...panel.querySelectorAll('[data-rfd-drag-handle-draggable-id]'),
-    ].map(handle => handle.getAttribute('data-rfd-drag-handle-draggable-id'));
-    expect(handles).toHaveLength(4);
-    expect(handles).toContain(BIO_LECTURE_4_ID);
-    expect(handles).not.toContain('scn-step-bio-5');
-  });
-
-  it('BL-18 a lifted backlog card leaves a placeholder of its size, and nothing else changes until the drop; a cancelled drag puts it back', async () => {
-    keepSaving();
-    await renderBoard();
-    await openBacklog();
-    const panel = getColumn('BACKLOG');
-    const {card: read} = getCard('BACKLOG', 'Read');
-    const readBox = read.getBoundingClientRect();
-    const [sheet] = getPileSheets(read);
-    const before = readBacklogLayout(panel);
-
-    read.focus();
-    await userEvent.keyboard('[Space]');
-    await expect.poll(readAnnouncement).toMatch(/lifted/);
-    // Over Done: out of the backlog, where a shared list would close the gap
-    await userEvent.keyboard('[ArrowLeft]');
-    await expect.poll(readAnnouncement).toMatch(/to list DONE/);
-    await waitForRollbackWindow();
-
-    const placeholder = getLiftPlaceholder(panel);
-    const placeholderBox = placeholder.getBoundingClientRect();
-    expect(placeholderBox.height).toBeCloseTo(readBox.height, 0);
-    expect(placeholderBox.top).toBeCloseTo(readBox.top, 0);
-    expect(placeholder.textContent).toBe('');
-    expect(fillOf(placeholder)).toBe(fillOf(sheet));
-    expect(readBacklogLayout(panel)).toEqual(before);
-
-    await userEvent.keyboard('[Escape]');
-    await expect.poll(readAnnouncement).toMatch(/cancelled|returned/);
-    await expect
-      .poll(() => document.querySelector('[data-rfd-placeholder-context-id]'))
-      .toBeNull();
-    await expect
-      .poll(() => getCard('BACKLOG', 'Read').card.getBoundingClientRect().top)
-      .toBeCloseTo(readBox.top, 0);
-    expect(updateTaskStatusAction).not.toHaveBeenCalled();
+    for (const row of rows) expect(row.querySelector('button')).toBeNull();
+    expect(getPullButton(card)).toBeDefined();
   });
 });
 
@@ -2168,14 +2098,6 @@ describe('Motion', () => {
     'fx-juice-burst',
     'fx-juice-flip',
   ];
-
-  /** Completes a card and waits for it to leave Todo. */
-  const completeAndLand = async (title: string) => {
-    await completeByTap(title);
-    await expect
-      .poll(() => readColumnTitles('TODO'), MOTION_TIMEOUT)
-      .not.toContain(title);
-  };
 
   it('FX-1 ✓ Complete first plays a juice on a copy of the card where it stands, never the same one twice in a row', async () => {
     keepSaving();
@@ -2260,16 +2182,6 @@ describe('Motion', () => {
       .toBe(false);
   });
 
-  it('FX-2 a card dragged onto Done tosses nothing', async () => {
-    keepSaving();
-    await renderBoard();
-    const played = watchClasses([...JUICE_CLASSES, 'fx-toss']);
-
-    await dragTodoCardOntoDone(TAX_REPORT_TITLE);
-
-    expect(played).toEqual([]);
-  });
-
   it("FX-3 today's arcs grow to their new lengths, and today's cell gives one small jump, when a card is finished", async () => {
     keepSaving();
     await renderBoard();
@@ -2278,7 +2190,7 @@ describe('Motion', () => {
     expect(arc.classList.contains('fx-ring-grow')).toBe(true);
     expect(getComputedStyle(arc).transitionDuration).toMatch(/0\.5s/);
 
-    await dragTodoCardOntoDone(TAX_REPORT_TITLE);
+    await completeAndLand(TAX_REPORT_TITLE);
 
     expect(ticks.map(({element}) => element)).toEqual([getTodayMotion()]);
     await expectAtRest(getTodayMotion());
@@ -2291,7 +2203,7 @@ describe('Motion', () => {
     const [arc] = getTodayCell().querySelectorAll<SVGElement>('[data-arc]');
     expect(getComputedStyle(arc).transitionDuration).toBe('0s');
 
-    await dragTodoCardOntoDone(TAX_REPORT_TITLE);
+    await completeAndLand(TAX_REPORT_TITLE);
 
     expect(getTodayMotion().getAnimations()).toEqual([]);
   });
@@ -2301,7 +2213,7 @@ describe('Motion', () => {
     await renderBoard({tasks: withOnlyTodo([TAX_REPORT_TITLE])});
     const celebrations = watchClasses(['fx-ring-close']);
 
-    await dragTodoCardOntoDone(TAX_REPORT_TITLE);
+    await completeAndLand(TAX_REPORT_TITLE);
 
     expect(celebrations).toHaveLength(1);
     const motion = getTodayMotion();
@@ -2369,7 +2281,7 @@ describe('Motion', () => {
 
     await setReducedMotion(true);
     await renderBoard({tasks: withOnlyTodo([TAX_REPORT_TITLE])});
-    await dragTodoCardOntoDone(TAX_REPORT_TITLE);
+    await completeAndLand(TAX_REPORT_TITLE);
 
     expect(readTodayCount()).toBe('All 7 done');
     expect(hasCheck(getTodayCell())).toBe(true);
@@ -2385,7 +2297,7 @@ describe('Motion', () => {
     const glows = watchClasses(['fx-done-in']);
     const screen = await renderBoard();
 
-    await dragTodoCardOntoDone(TAX_REPORT_TITLE);
+    await completeAndLand(TAX_REPORT_TITLE);
 
     const {card} = getCard('DONE', TAX_REPORT_TITLE);
     expect(readColumnTitles('DONE')[0]).toBe(TAX_REPORT_TITLE);
@@ -2423,7 +2335,7 @@ describe('Motion', () => {
     await setReducedMotion(true);
     await renderBoard();
 
-    await dragTodoCardOntoDone(TAX_REPORT_TITLE);
+    await completeAndLand(TAX_REPORT_TITLE);
 
     expect(getCard('DONE', TAX_REPORT_TITLE).card.getAnimations()).toEqual([]);
   });
@@ -2456,7 +2368,7 @@ describe('Motion', () => {
     ).toEqual([]);
   });
 
-  it("FX-7 ✓ Complete asks for a short double pulse, and closing today's ring by either path a longer one, under reduced motion too", async () => {
+  it("FX-7 ✓ Complete asks for a short double pulse, and closing today's ring a longer one, under reduced motion too", async () => {
     keepSaving();
     await setReducedMotion(true);
     await renderBoard({tasks: withOnlyTodo([TAX_REPORT_TITLE, 'Workout'])});
@@ -2464,22 +2376,15 @@ describe('Motion', () => {
     await completeAndLand('Workout');
     expect(vibrations).toEqual([COMPLETE_VIBRATION]);
 
-    await dragTodoCardOntoDone(TAX_REPORT_TITLE);
-    expect(vibrations).toEqual([COMPLETE_VIBRATION, RING_CLOSE_VIBRATION]);
-    // A double pulse is on, off, on; the ring's is the longer of the two
-    const [complete, ringClose] = vibrations;
-    expect(complete).toHaveLength(3);
-    expect(sum(ringClose)).toBeGreaterThan(sum(complete));
-  });
-
-  it('FX-7 completing the last card with ✓ Complete asks for both pulses', async () => {
-    keepSaving();
-    await setReducedMotion(true);
-    await renderBoard({tasks: withOnlyTodo([TAX_REPORT_TITLE])});
-
     await completeAndLand(TAX_REPORT_TITLE);
-
-    expect(vibrations).toEqual([COMPLETE_VIBRATION, RING_CLOSE_VIBRATION]);
+    expect(vibrations).toEqual([
+      COMPLETE_VIBRATION,
+      COMPLETE_VIBRATION,
+      RING_CLOSE_VIBRATION,
+    ]);
+    // A double pulse is on, off, on; the ring's is the longer of the two
+    expect(COMPLETE_VIBRATION).toHaveLength(3);
+    expect(sum(RING_CLOSE_VIBRATION)).toBeGreaterThan(sum(COMPLETE_VIBRATION));
   });
 
   it("FX-8 Todo cards and the day's cells that are buttons shrink while held; Done cards, backlog cards and later days don't; under reduced motion nothing shrinks", async () => {
@@ -2516,7 +2421,7 @@ describe('Motion', () => {
 });
 
 describe('A move', () => {
-  it("A4 MV-6 BL-13 a group's next task dragged onto Todo lands in its place at once; the card shows the task after it and its open queue stays open until no step is left behind", async () => {
+  it("A9 MV-6 BL-13 on desktop ↑ Todo pulls a group's next task into its place in Todo at once and the panel stays open; the card shows the task after it and its open queue stays open until no step is left behind", async () => {
     keepSaving();
     await renderBoard();
     await openBacklog();
@@ -2524,8 +2429,9 @@ describe('A move', () => {
       getQueueToggle(getCard('BACKLOG', BIO_LECTURE_4_TITLE).card),
     );
 
-    // From the panel, one column left is Done and two is Todo
-    await dragCard('BACKLOG', BIO_LECTURE_4_TITLE, ['ArrowLeft', 'ArrowLeft']);
+    await userEvent.click(
+      getPullButton(getCard('BACKLOG', BIO_LECTURE_4_TITLE).card),
+    );
 
     expect(readColumnTitles('TODO')).toEqual([
       TAX_REPORT_TITLE,
@@ -2536,6 +2442,7 @@ describe('A move', () => {
       PDB_RENDER.title,
     ]);
     expect(readHeaderCount('TODO')).toBe('5');
+    expect(getColumn('BACKLOG').closest('[inert]')).toBeNull();
     expect(readBacklogBadge(getPanelHeader())).toBe(String(BACKLOG_COUNT - 1));
     // The queue's first row is now on the card, and the queue stays open
     const bio = getCard('BACKLOG', 'Lecture 5 — Immunity basics').card;
@@ -2545,33 +2452,15 @@ describe('A move', () => {
       status: TaskStatus.TODO,
     });
 
-    // The task that came up can be dragged out in turn
-    await dragCard('BACKLOG', BIO_LECTURE_TITLES[1], [
-      'ArrowLeft',
-      'ArrowLeft',
-    ]);
-    expect(readColumnTitles('TODO')).toContain(BIO_LECTURE_TITLES[1]);
+    // The task that came up can be pulled in turn
+    await userEvent.click(getPullButton(bio));
+    await expect
+      .poll(() => readColumnTitles('TODO'))
+      .toContain(BIO_LECTURE_TITLES[1]);
     // No step is left behind the last one: its queue is gone with the rest
     const lastLecture = getCard('BACKLOG', BIO_LECTURE_TITLES[2]).card;
     expect(readMoreCount(lastLecture)).toBeNull();
     expect(getGroupOf(lastLecture).querySelector('ol')).toBeNull();
-  });
-
-  it('A9 MV-6 on desktop ↑ Todo pulls the next task at once and the panel stays open', async () => {
-    keepSaving();
-    await renderBoard();
-    await openBacklog();
-
-    await userEvent.click(getPullButton(getCard('BACKLOG', 'Read').card));
-
-    expect(readColumnTitles('TODO')).toContain('Read');
-    expect(readHeaderCount('TODO')).toBe('5');
-    expect(getColumn('BACKLOG').closest('[inert]')).toBeNull();
-    expect(readBacklogBadge(getPanelHeader())).toBe(String(BACKLOG_COUNT - 1));
-    expect(updateTaskStatusAction).toHaveBeenCalledWith(
-      findTaskByTitle('Read').id,
-      {status: TaskStatus.TODO},
-    );
   });
 
   it('A9 MV-6 BL-13 on mobile ↑ Todo pulls the next task at once and the sheet stays open; the pile thins, then the group and its section go', async () => {
@@ -2589,7 +2478,6 @@ describe('A move', () => {
     const readCard = () => findCard(sheet, 'Read').card;
     expect(readMoreCount(readCard())).toBe('+3 more');
     expect(getPileSheets(readCard())).toHaveLength(3);
-    expect(isDragHandle(readCard())).toBe(false);
 
     // Each tap: +N more goes down by one; the sheets once fewer than three wait
     const expected = [
@@ -2617,27 +2505,6 @@ describe('A move', () => {
       .poll(() => readBacklogOutline(sheet))
       .toEqual(['Projects', BIO_LECTURE_4_TITLE]);
     expect(readBacklogBadge(sheet)).toBe('3');
-  });
-
-  it('A6 CARD-7 MV-6 a backlog card dragged onto Done fills its dot at once, and a screen reader reads one more done', async () => {
-    keepSaving();
-    await renderBoard();
-    await openBacklog();
-    const [stagedDot] = getDots(getCard('BACKLOG', DESIGN_CASE_TITLE).card);
-    const emptyFill = fillOf(stagedDot);
-
-    await dragCard('BACKLOG', DESIGN_CASE_TITLE, ['ArrowLeft']);
-
-    const {card} = getCard('DONE', DESIGN_CASE_TITLE);
-    const [doneDot] = getDots(card);
-    expect(fillOf(doneDot)).not.toBe(emptyFill);
-    expect(readProgressLabel(card)).toBe('1 of 1 done this week');
-    expect(readColumnTitles('DONE')[0]).toBe(DESIGN_CASE_TITLE);
-    expect(readBacklogBadge(getPanelHeader())).toBe(String(BACKLOG_COUNT - 1));
-    expect(updateTaskStatusAction).toHaveBeenCalledWith(
-      findTaskByTitle(DESIGN_CASE_TITLE).id,
-      {status: TaskStatus.DONE},
-    );
   });
 
   it('A12 MV-6 CARD-7 a card completed with ✓ Complete lands on top of Done on desktop, and every card showing its habit fills its dot', async () => {
@@ -2685,30 +2552,27 @@ describe('A move', () => {
       .toContainEqual([TAX_REPORT_TITLE]);
   });
 
-  it("MV-6 today's ring counts each move at once: a card finished from Todo adds a done, one pulled in adds a planned, one finished from the backlog adds both", async () => {
+  it("MV-6 today's ring counts each move at once: a card finished from Todo adds a done, and one pulled in adds a planned", async () => {
     keepSaving();
     await renderBoard();
     const {done, planned} = TODAY_COUNTS;
 
-    await dragTodoCardOntoDone(TAX_REPORT_TITLE);
+    await completeAndLand(TAX_REPORT_TITLE);
     expect(readTodayCount()).toBe(`${done + 1} of ${planned} done`);
 
     await openBacklog();
     await userEvent.click(getPullButton(getCard('BACKLOG', 'Read').card));
     expect(readTodayCount()).toBe(`${done + 1} of ${planned + 1} done`);
-
-    await dragCard('BACKLOG', DESIGN_CASE_TITLE, ['ArrowLeft']);
-    expect(readTodayCount()).toBe(`${done + 2} of ${planned + 2} done`);
   });
 
-  it("A15 MV-6 MV-7 a card dragged onto Done is on top of it at once and counted in today's ring; the server's answer leaves the ring as it is", async () => {
+  it("A12 MV-6 MV-7 a completed card is on top of Done and counted in today's ring once it has landed; the server's answer leaves the ring as it is", async () => {
     const save = holdSave();
     vi.mocked(updateTaskStatusAction).mockReturnValue(save.promise);
     const screen = await renderBoard();
     const {done, planned} = TODAY_COUNTS;
     const counted = `${done + 1} of ${planned} done`;
 
-    await dragTodoCardOntoDone(PDB_RENDER.title);
+    await completeAndLand(PDB_RENDER.title);
 
     expect(readColumnTitles('DONE')[0]).toBe(PDB_RENDER.title);
     expect(readTodayCount()).toBe(counted);
@@ -2738,8 +2602,8 @@ describe('A move', () => {
       .mockReturnValueOnce(otherSave.promise);
     const screen = await renderBoard();
 
-    await dragTodoCardOntoDone(PDB_RENDER.title);
-    await dragTodoCardOntoDone(TAX_REPORT_TITLE);
+    await completeAndLand(PDB_RENDER.title);
+    await completeAndLand(TAX_REPORT_TITLE);
     expect(readColumnTitles('DONE').slice(0, 2)).toEqual([
       TAX_REPORT_TITLE,
       PDB_RENDER.title,
@@ -2794,24 +2658,5 @@ describe('A move', () => {
       vibrations.filter(pattern => pattern === RING_CLOSE_VIBRATION),
     ).toHaveLength(1);
     observer.disconnect();
-  });
-
-  it('R5 nothing can be dropped into the backlog: a card stepped past Done stays on Done', async () => {
-    keepSaving();
-    await renderBoard();
-    await openBacklog();
-
-    getCard('TODO', TAX_REPORT_TITLE).card.focus();
-    await userEvent.keyboard('[Space]');
-    await expect.poll(readAnnouncement).toMatch(/lifted/);
-    await userEvent.keyboard('[ArrowRight]');
-    await expect.poll(readAnnouncement).toMatch(/to list DONE/);
-    await userEvent.keyboard('[ArrowRight]');
-    expect(readAnnouncement()).not.toMatch(/BACKLOG/);
-    await userEvent.keyboard('[Space]');
-    await expect.poll(readAnnouncement).toMatch(/dropped/);
-
-    expect(readColumnTitles('DONE')[0]).toBe(TAX_REPORT_TITLE);
-    expect(readColumnTitles('BACKLOG')).not.toContain(TAX_REPORT_TITLE);
   });
 });

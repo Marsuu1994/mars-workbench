@@ -12,8 +12,6 @@ import {
   completeTodoCard,
   countRingCelebrations,
   expectNoCelebration,
-  dragCardWithKeyboard,
-  dropLiftedCard,
   findBacklogCount,
   findBacklogGroup,
   findBacklogSections,
@@ -30,7 +28,6 @@ import {
   findTodayCell,
   findTodoCard,
   findTopCardTitle,
-  liftCard,
   openBacklog,
   pressTodoCard,
   pullWithTap,
@@ -118,15 +115,6 @@ const seedHabitWeek = (seed: Seed) =>
     newTemplates: [newHabit(HABIT_TITLE, TaskType.WEEKLY, HABIT_RUNS)],
   });
 
-/** Drags a backlog task onto Todo: the panel is right of Done, Done right of Todo. */
-const dragToTodo = (page: Page, title: string) =>
-  dragCardWithKeyboard(page, {
-    from: 'BACKLOG',
-    title,
-    keys: ['ArrowLeft', 'ArrowLeft'],
-    to: 'TODO',
-  });
-
 const closeBacklog = (page: Page, isMobile: boolean) =>
   (isMobile ? page.getByRole('dialog') : page)
     .getByTitle('Close backlog')
@@ -182,8 +170,7 @@ const pressOutsideSheet = (page: Page) =>
     .click({position: {x: 16, y: 16}});
 
 /** The Done column, which only desktop has (COL-6). */
-const findDoneColumn = (page: Page) =>
-  page.locator('[data-rfd-droppable-id="DONE"]');
+const findDoneColumn = (page: Page) => findBoardColumn(page, 'DONE');
 
 /** J12 on desktop, J13 on a phone: the same data and the same steps. */
 const runWeeksWork = async ({
@@ -236,9 +223,8 @@ const runWeeksWork = async ({
     await expect(findPileSheets(group)).toHaveCount(0);
   });
 
-  await test.step(`${isMobile ? 'A9' : 'A4'} BL-13 RING-2 pull the project's next step into Todo: its second step comes up as a plain card, and today's ring counts it`, async () => {
-    if (isMobile) await pullWithTap(page, true, STEP_TITLE);
-    else await dragToTodo(page, STEP_TITLE);
+  await test.step("A9 BL-13 RING-2 tap ↑ Todo on the project's card: its next step is in Todo, its second step comes up as a plain card, and today's ring counts it", async () => {
+    await pullWithTap(page, isMobile, STEP_TITLE);
     await expect(findTodoCard(page, STEP_TITLE)).toBeAttached();
     await expect(todoCount).toHaveText('1');
     await expect(findBacklogCount(page, isMobile, true)).toHaveText('3');
@@ -331,7 +317,7 @@ test("J12 a week's work on desktop: grouped, pulled, completed, and it all stays
   seed,
   isMobile,
 }) => {
-  test.skip(isMobile, 'Desktop drags; J13 is the same week on a phone');
+  test.skip(isMobile, 'J13 is the same week on a phone');
   await runWeeksWork({page, seed, isMobile});
 });
 
@@ -342,61 +328,6 @@ test("J13 a week's work on mobile: pulled with ↑ Todo, completed into today's 
 }) => {
   test.skip(!isMobile, 'J12 is the same week on desktop');
   await runWeeksWork({page, seed, isMobile});
-});
-
-test('J14 finish a habit task straight from the backlog', async ({
-  page,
-  seed,
-  isMobile,
-}) => {
-  test.skip(
-    isMobile,
-    'Desktop only: "on mobile a backlog task reaches Done only through Todo" (CARD-12)',
-  );
-  await trackRingCelebrations(page);
-  await seedHabitWeek(seed);
-  const doneCount = findColumnCount(page, 'DONE');
-  const todayCell = findTodayCell(page);
-
-  await test.step("ST-4 the board: Todo and Done are empty, and today's ring reads 0 of 0 done", async () => {
-    await openPage(page, '/kanban');
-    await expect(findColumnCount(page, 'TODO')).toHaveText('0');
-    await expect(doneCount).toHaveText('0');
-    await expect(todayCell).toContainText('0 of 0 done');
-  });
-
-  await test.step('A2 BL-11 open the backlog: the habit on a pile of one', async () => {
-    await openBacklog(page);
-    await expectOneBehind(page, false, HABIT_TITLE);
-  });
-
-  await test.step("A6 CARD-7 BL-13 RING-5 FX-4 COL-8 drag the habit's next task onto Done: its dot fills, today's ring closes and celebrates, and the day is clear", async () => {
-    await dragCardWithKeyboard(page, {
-      from: 'BACKLOG',
-      title: HABIT_TITLE,
-      keys: ['ArrowLeft'],
-      to: 'DONE',
-    });
-    const habitCard = findCardOf(findBoardCard(page, 'DONE', HABIT_TITLE));
-    await expect(findTopCardTitle(page, 'DONE')).toHaveText(HABIT_TITLE);
-    await expectFirstMarkFilled(page, HABIT_TITLE);
-    expect(await readProgressLabel(habitCard)).toBe(
-      `1 of ${HABIT_RUNS} done this week`,
-    );
-    await expect(doneCount).toHaveText('1');
-    await expect(findBacklogCount(page, false, true)).toHaveText('1');
-    await expectPlainCard(page, false, HABIT_TITLE);
-    await expect(todayCell).toContainText('All 1 done');
-    await expect.poll(() => countRingCelebrations(page)).toBe(1);
-    await expect(
-      findBoardColumn(page, 'TODO').getByText(DAY_CLEAR_TITLE),
-    ).toBeVisible();
-  });
-
-  await reloadPage(page);
-  await expect(findBoardCard(page, 'DONE', HABIT_TITLE)).toBeAttached();
-  await expect(todayCell).toContainText('All 1 done');
-  await expectNoCelebration(page);
 });
 
 /** J15 on desktop, J16 on a phone: the same data and the same steps. */
@@ -696,89 +627,59 @@ const expectAllOnDeck = async (page: Page, isMobile: boolean) => {
   await expect(findBacklogCount(page, isMobile, true)).toHaveText('0');
 };
 
-test('J19 clear the backlog on desktop', async ({page, seed, isMobile}) => {
-  test.skip(isMobile, 'Desktop drags; J20 is the mobile tap');
+/** J19 on desktop, J20 on a phone: the same data and the same steps. */
+const runClearBacklog = async ({
+  page,
+  seed,
+  isMobile,
+}: {
+  page: Page;
+  seed: Seed;
+  isMobile: boolean;
+}) => {
   await seedHabitWeek(seed);
-  const panel = findBoardColumn(page, 'BACKLOG');
 
-  await test.step('ST-4 the board: the strip shows 2', async () => {
+  await test.step('ST-4 the board: the strip or the pill shows 2', async () => {
     await openPage(page, '/kanban');
-    await expect(findBacklogCount(page, false, false)).toHaveText('2');
+    await expect(findBacklogCount(page, isMobile, false)).toHaveText('2');
   });
 
   await test.step('A2 BL-11 open the backlog: the habit on a pile of one', async () => {
     await openBacklog(page);
-    await expectOneBehind(page, false, HABIT_TITLE);
-    await expect(findBacklogCount(page, false, true)).toHaveText('2');
+    await expectOneBehind(page, isMobile, HABIT_TITLE);
+    await expect(findBacklogCount(page, isMobile, true)).toHaveText('2');
   });
 
-  await test.step('A9 BL-13 tap ↑ Todo on its card: its second task comes up as a plain card, and the panel stays open', async () => {
-    await pullWithTap(page, false, HABIT_TITLE);
-    await expectPlainCard(page, false, HABIT_TITLE);
-    await expect(panel).toBeVisible();
-    await expect(findBacklogCount(page, false, true)).toHaveText('1');
+  await test.step('A9 BL-13 tap ↑ Todo on its card: its second task comes up as a plain card, and the backlog stays open', async () => {
+    await pullWithTap(page, isMobile, HABIT_TITLE);
+    await expectPlainCard(page, isMobile, HABIT_TITLE);
+    await expect(findOpenBacklog(page, isMobile)).toBeVisible();
+    await expect(findBacklogCount(page, isMobile, true)).toHaveText('1');
   });
 
-  await test.step('BL-18 lift the last card: its place holds an empty placeholder, and the count stays', async () => {
-    await liftCard(page, {from: 'BACKLOG', title: HABIT_TITLE});
-    await page.keyboard.press('ArrowLeft');
-    await expect(page.locator('[aria-live]')).toContainText([/to list DONE/]);
-    const placeholder = panel.locator('[data-rfd-placeholder-context-id]');
-    await expect(placeholder).toBeVisible();
-    await expect(placeholder).toHaveText('');
-    await expect(findBacklogCount(page, false, true)).toHaveText('1');
+  await test.step('A9 BL-19 tap ↑ Todo again: the backlog stays open and shows that everything is on deck', async () => {
+    await pullWithTap(page, isMobile, HABIT_TITLE);
+    await expect(findOpenBacklog(page, isMobile)).toBeVisible();
+    await expectAllOnDeck(page, isMobile);
   });
 
-  await test.step('A4 BL-19 drop it on Todo: the panel shows that everything is on deck', async () => {
-    await dropLiftedCard(page, {keys: ['ArrowLeft'], to: 'TODO'});
-    await expectAllOnDeck(page, false);
-  });
-
-  await test.step('A3 BL-19 close the backlog: the strip stays and shows 0', async () => {
-    await closeBacklog(page, false);
-    await expect(findBacklogCount(page, false, false)).toHaveText('0');
+  await test.step('A3 BL-19 close the backlog: the strip or the pill stays and shows 0', async () => {
+    await closeBacklog(page, isMobile);
+    await expect(findBacklogCount(page, isMobile, false)).toHaveText('0');
   });
 
   await test.step('A2 BL-19 open it again: everything is on deck again', async () => {
     await openBacklog(page);
-    await expectAllOnDeck(page, false);
+    await expectAllOnDeck(page, isMobile);
   });
+};
+
+test('J19 clear the backlog on desktop', async ({page, seed, isMobile}) => {
+  test.skip(isMobile, 'J20 is the same week on a phone');
+  await runClearBacklog({page, seed, isMobile});
 });
 
 test('J20 clear the backlog on mobile', async ({page, seed, isMobile}) => {
   test.skip(!isMobile, 'J19 is the same week on desktop');
-  await seedHabitWeek(seed);
-
-  await test.step('ST-4 the board: the pill shows 2', async () => {
-    await openPage(page, '/kanban');
-    await expect(findBacklogCount(page, true, false)).toHaveText('2');
-  });
-
-  await test.step('A2 BL-11 open the backlog: the pill opens the sheet, the habit on a pile of one', async () => {
-    await openBacklog(page);
-    await expectOneBehind(page, true, HABIT_TITLE);
-    await expect(findBacklogCount(page, true, true)).toHaveText('2');
-  });
-
-  await test.step('A9 BL-13 pull its next task: the count reads 1', async () => {
-    await pullWithTap(page, true, HABIT_TITLE);
-    await expectPlainCard(page, true, HABIT_TITLE);
-    await expect(findBacklogCount(page, true, true)).toHaveText('1');
-  });
-
-  await test.step('A9 BL-19 pull the last one: the sheet stays open and shows that everything is on deck', async () => {
-    await pullWithTap(page, true, HABIT_TITLE);
-    await expect(page.getByRole('dialog')).toBeVisible();
-    await expectAllOnDeck(page, true);
-  });
-
-  await test.step('A3 BL-19 close the backlog: the pill stays and shows 0', async () => {
-    await closeBacklog(page, true);
-    await expect(findBacklogCount(page, true, false)).toHaveText('0');
-  });
-
-  await test.step('A2 BL-19 open it again: everything is on deck again', async () => {
-    await openBacklog(page);
-    await expectAllOnDeck(page, true);
-  });
+  await runClearBacklog({page, seed, isMobile});
 });

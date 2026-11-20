@@ -91,7 +91,7 @@ const BOARD_SCENARIOS: ScenarioTab[] = [
   {
     label: 'Board — backlog open (desktop)',
     title: 'Board — backlog open (desktop)',
-    note: "A play step opens the backlog: one card per habit and per project, in Habits then Projects. Each shows its next task; Read and Biomedical course sit on a pile of what waits behind, with +N more — only the project's opens. Each card is the board's shared card: ↑ Todo pulls its next task, and on desktop it can be dragged out too.",
+    note: "A play step opens the backlog: one card per habit and per project, in Habits then Projects. Each shows its next task; Read and Biomedical course sit on a pile of what waits behind, with +N more — only the project's opens. Each card is the board's shared card: ↑ Todo pulls its next task.",
     content: (
       <BoardPage
         plan={SCENARIO_PLAN}

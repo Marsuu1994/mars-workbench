@@ -38,7 +38,7 @@ const BURST_CHIP_TURN = {first: 200, step: 30};
 const BURST_PLUS_OFFSET = {fromRight: 28, above: 6};
 /** How high the toss's arc rises above a straight line, in px */
 const TOSS_ARC_HEIGHT = 48;
-/** The copy flies above everything on the board, a lifted card included */
+/** The copy flies above everything on the board */
 const COPY_Z_INDEX = '60';
 /** The pose every juice ends in, which the toss starts from */
 const LIFT_POSE = 'rotate(-4deg) scale(1.07)';

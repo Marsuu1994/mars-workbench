@@ -103,31 +103,20 @@ export const DomainTab = () => {
   const renderTodoCards = () => (
     <Section
       title="TodoCard"
-      description="The board's one card face, in Todo: the kind line (a step's project, a one-off's quadrant), the title, a two-line description, then the kind's signal — a habit's week dots with its own ringed, a step's path with its own outlined — and the corner mark. A press selects the card: it glows green and the mark grows into ✓ Complete, the only control that finishes it (the last specimen is selected). Desktop drags it to Done too."
+      description="The board's one card face, in Todo: the kind line (a step's project, a one-off's quadrant), the title, a two-line description, then the kind's signal — a habit's week dots with its own ringed, a step's path with its own outlined — and the corner mark. A press selects the card: it glows green and the mark grows into ✓ Complete, the only control that finishes it (the last specimen is selected)."
     >
       <BoardPageContext
         value={inertBoardPageContext({selectedTaskId: selectedCardId})}
       >
-        <DragDropContext onDragEnd={() => undefined}>
-          <Droppable droppableId="gallery-cards">
-            {provided => (
-              <div
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-                className="flex flex-wrap items-start gap-6"
-              >
-                {TODO_CARD_FIXTURES.map(({label, card}, index) => (
-                  <Variant key={card.task.id} label={label}>
-                    <div className="w-64">
-                      <TodoCard card={card} index={index} />
-                    </div>
-                  </Variant>
-                ))}
-                {provided.placeholder}
+        <Row>
+          {TODO_CARD_FIXTURES.map(({label, card}) => (
+            <Variant key={card.task.id} label={label}>
+              <div className="w-64">
+                <TodoCard card={card} />
               </div>
-            )}
-          </Droppable>
-        </DragDropContext>
+            </Variant>
+          ))}
+        </Row>
       </BoardPageContext>
     </Section>
   );
@@ -135,7 +124,7 @@ export const DomainTab = () => {
   const renderDoneCards = () => (
     <Section
       title="DoneCard"
-      description="The same face in Done (desktop): dimmed, the title struck through, no description and nothing to press or drag. A card finished on the page glows once as it lands."
+      description="The same face in Done (desktop): dimmed, the title struck through, no description and nothing to press. A card finished on the page glows once as it lands."
     >
       <BoardPageContext value={inertBoardPageContext()}>
         <Row>
@@ -186,7 +175,7 @@ export const DomainTab = () => {
   const renderBacklogGroups = () => (
     <Section
       title="BacklogGroup"
-      description="The backlog's groups as the mobile sheet shows them: one card per habit and per project, its next task on top — the kind (a step's project), +N more, the title, the description, the dots or the path with the next one ringed, and ↑ Todo — the board's shared card face. A pile of up to three sheets stands for what waits behind; a project's +N more opens its queue. Desktop can also drag the card out of the panel."
+      description="The backlog's groups as the mobile sheet shows them: one card per habit and per project, its next task on top — the kind (a step's project), +N more, the title, the description, the dots or the path with the next one ringed, and ↑ Todo — the board's shared card face. A pile of up to three sheets stands for what waits behind; a project's +N more opens its queue."
     >
       <BoardPageContext value={inertBoardPageContext()}>
         <div className="max-w-sm">
@@ -199,21 +188,19 @@ export const DomainTab = () => {
   const renderBoardColumn = () => (
     <Section
       title="BoardColumn"
-      description="One kanban column: LED-accented header with its tag (Today for Todo, This week for Done) and count badge, and a vertical droppable list — a frame the board renders its cards into."
+      description="One kanban column: LED-accented header with its tag (Today for Todo, This week for Done) and count badge, and a vertical list — a frame the board renders its cards into."
     >
       <BoardPageContext value={inertBoardPageContext()}>
-        <DragDropContext onDragEnd={() => undefined}>
-          <div className="max-w-sm">
-            <BoardColumn
-              status={BOARD_COLUMN_STATUS}
-              count={BOARD_COLUMN_CARDS.length}
-            >
-              {BOARD_COLUMN_CARDS.map((card, index) => (
-                <TodoCard key={card.task.id} card={card} index={index} />
-              ))}
-            </BoardColumn>
-          </div>
-        </DragDropContext>
+        <div className="max-w-sm">
+          <BoardColumn
+            status={BOARD_COLUMN_STATUS}
+            count={BOARD_COLUMN_CARDS.length}
+          >
+            {BOARD_COLUMN_CARDS.map(card => (
+              <TodoCard key={card.task.id} card={card} />
+            ))}
+          </BoardColumn>
+        </div>
       </BoardPageContext>
     </Section>
   );

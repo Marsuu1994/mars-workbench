@@ -22,7 +22,7 @@ export async function updateTaskStatusAction(taskId: string, input: unknown) {
 
   revalidatePath('/kanban');
   // Only AD_HOC tasks appear on the matrix (e.g. a tracked task marked DONE
-  // disappears from it) — don't invalidate it for every board drag.
+  // disappears from it) — don't invalidate it for every board move.
   if (task.type === TaskType.AD_HOC) {
     revalidatePath('/kanban/priorities');
   }

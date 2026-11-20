@@ -81,8 +81,8 @@ Choose **Done** in a matrix card's Move-to popover (desktop, via the hover "→"
 
 - Works without an active plan — that is the point of the flow; the no-plan hint bar says so. Without a plan the task keeps `planId = null` and its points are credited nowhere.
 - `planId` is only ever added (`null → active plan`), never re-attributed: an already-tracked card keeps its plan link. DONE tasks never return to the matrix except via Undo.
-- Tracked cards complete exactly like a board drag to Done — same Done column, same Today / Week credit.
-- No confirm; Undo is the only reverse path (a client can only ever detach a plan link, never attach one), and there is no "un-complete" on the board (Done cards are drag-locked, and the server refuses any move out of Done). A second completion replaces the toast — the first task's undo window ends.
+- Tracked cards complete exactly like a card completed on the board — same Done column, same Today / Week credit.
+- No confirm; Undo is the only reverse path (a client can only ever detach a plan link, never attach one), and there is no "un-complete" on the board (a Done card can't be moved, and the server refuses any move out of Done). A second completion replaces the toast — the first task's undo window ends.
 
 ---
 

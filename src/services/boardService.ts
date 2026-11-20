@@ -79,8 +79,9 @@ export async function fetchBoard(userId: string): Promise<BoardData | null> {
 }
 
 /**
- * Move a board card forward (Drag and Drop): the moves the board allows are
- * the DAL's `WHERE` (`updateTaskStatus`), so a refused move is not found.
+ * Move a board card forward (↑ Todo or ✓ Complete): the moves the board
+ * allows are the DAL's `WHERE` (`updateTaskStatus`), so a refused move is
+ * not found.
  */
 export async function moveBoardTask(
   userId: string,

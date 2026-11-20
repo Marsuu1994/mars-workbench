@@ -9,16 +9,16 @@ import {expect, waitForServerAction} from '../fixtures';
 /** How long ✓ Complete ignores presses after it appears, in ms (TAP-3). */
 const ARM_GUARD_MS = 350;
 
-/** The board's drop zones; BACKLOG is the desktop panel's. */
+/** The board's columns; BACKLOG is the desktop panel. */
 type BoardStatus = 'BACKLOG' | 'TODO' | 'DONE';
 
-/** A board column by status (the drop zones are keyed by it), or the desktop backlog's panel. */
+/** A board column's list of cards by status, or the desktop backlog's panel. */
 export const findBoardColumn = (page: Page, status: BoardStatus) =>
   status === 'BACKLOG'
     ? page.getByRole('region', {name: 'Backlog'})
-    : page.locator(`[data-rfd-droppable-id="${status}"]`);
+    : page.locator(`[data-board-column="${status}"]`);
 
-/** A card on the board by its title; Done cards aren't draggable, so not buttons. */
+/** A card on the board by its title; Done cards aren't buttons. */
 export const findBoardCard = (page: Page, status: BoardStatus, title: string) =>
   findBoardColumn(page, status).getByRole('heading', {name: title});
 
@@ -37,16 +37,13 @@ export const findBacklogCard = (page: Page, isMobile: boolean, title: string) =>
 
 /**
  * A backlog group around its card's title: the card, and the pile or the
- * queue under it. On desktop the card sits in its group's own drop zone.
+ * queue under it.
  */
 export const findBacklogGroup = (
   page: Page,
   isMobile: boolean,
   title: string,
-) =>
-  findCardOf(findBacklogCard(page, isMobile, title)).locator(
-    isMobile ? 'xpath=..' : 'xpath=ancestor::*[@data-rfd-droppable-id][1]/..',
-  );
+) => findCardOf(findBacklogCard(page, isMobile, title)).locator('xpath=..');
 
 /** The thin sheets under a backlog group's card. */
 export const findPileSheets = (group: Locator) =>
@@ -67,66 +64,6 @@ export const pullWithTap = async (
     .getByRole('button', {name: 'Todo'})
     .click();
   await pulled;
-};
-
-/** How long one Space press gets to lift the card before the lift is retried. */
-const LIFT_TIMEOUT_MS = 1000;
-
-interface KeyboardDrag {
-  from: BoardStatus;
-  title: string;
-  /** The steps across the columns: on desktop Todo, Done and the backlog panel run left to right */
-  keys: ('ArrowLeft' | 'ArrowRight' | 'ArrowDown')[];
-  to: Exclude<BoardStatus, 'BACKLOG'>;
-}
-
-/**
- * Lifts a card with @hello-pangea/dnd's keyboard drag, waiting for dnd's
- * screen-reader announcement.
- *
- * The lift retries until dnd announces it: a Space pressed before dnd has
- * wired the card's drag handle is ignored, and CI's slower runner sometimes
- * presses that early (the run on PR #109 waited 5 s on an empty announcer).
- */
-export const liftCard = async (
-  page: Page,
-  {from, title}: Pick<KeyboardDrag, 'from' | 'title'>,
-) => {
-  const announcements = page.locator('[aria-live]');
-  const card = findBoardColumn(page, from).getByRole('button', {
-    name: new RegExp(title),
-  });
-  await expect(async () => {
-    await card.focus();
-    await page.keyboard.press('Space');
-    await expect(announcements).toContainText([/lifted/], {
-      timeout: LIFT_TIMEOUT_MS,
-    });
-  }).toPass();
-};
-
-/** Steps a lifted card across the columns, drops it, and waits for the save. */
-export const dropLiftedCard = async (
-  page: Page,
-  {keys, to}: Pick<KeyboardDrag, 'keys' | 'to'>,
-) => {
-  const announcements = page.locator('[aria-live]');
-  for (const key of keys) await page.keyboard.press(key);
-  await expect(announcements).toContainText([new RegExp(`to list ${to}`)]);
-  const statusSaved = waitForServerAction(page, '/kanban');
-  await page.keyboard.press('Space');
-  await expect(announcements).toContainText([/dropped/]);
-  await statusSaved;
-};
-
-/**
- * @hello-pangea/dnd's keyboard drag: lift the card, step it across the
- * columns, drop it, and wait for the save — each step waiting on dnd's
- * screen-reader announcement.
- */
-export const dragCardWithKeyboard = async (page: Page, drag: KeyboardDrag) => {
-  await liftCard(page, drag);
-  await dropLiftedCard(page, drag);
 };
 
 /** A column's header count: how many cards it has (COL-6). */

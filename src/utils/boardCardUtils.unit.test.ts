@@ -29,7 +29,7 @@ const tasks = [
     type: TaskType.WEEKLY,
     status: TaskStatus.TODO,
   }),
-  // Dragged to Done on the board; the lookup still says TODO
+  // Finished on the board; the lookup still says TODO
   buildTask({
     id: 'unit-2',
     projectId: 'course',

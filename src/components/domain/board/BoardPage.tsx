@@ -1,7 +1,6 @@
 'use client';
 
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {DragDropContext, type DropResult} from '@hello-pangea/dnd';
 import {useTranslations} from 'next-intl';
 import type {BoardData} from '@/types/board';
 import {TaskStatus} from '@/utils/enums';
@@ -74,7 +73,6 @@ export const BoardPage = ({
   const tTodo = useTranslations('Board.Todo');
   const {isMobile} = useBreakpoint();
   const {localTasks, runOptimisticTaskUpdate} = useOptimisticTasks(tasks);
-  const [isDragging, setIsDragging] = useState(false);
   const [selection, setSelection] = useState<Selection | null>(null);
   const [isTossing, setIsTossing] = useState(false);
   const [openDayDate, setOpenDayDate] = useState<string | null>(null);
@@ -175,38 +173,20 @@ export const BoardPage = ({
     );
   }
 
-  // Finishes a task on the page, by ✓ Complete or a drag onto Done: today's
-  // cell jumps, and celebrates when this closes its ring (FX-3, FX-4)
-  function finishTask(taskId: string, isFromBacklog: boolean) {
+  // Finishes a Todo card once ✓ Complete's toss has landed: today's cell
+  // jumps, and celebrates when this closes its ring (FX-3, FX-4)
+  function finishTask(taskId: string) {
     const todayRing = todayRingRef.current;
     const closesToday =
       todayRing !== undefined &&
       !todayRing.isClosed &&
-      todayRing.doneCount + 1 ===
-        todayRing.plannedCount + (isFromBacklog ? 1 : 0);
+      todayRing.doneCount + 1 === todayRing.plannedCount;
     moveTask(taskId, TaskStatus.DONE, 'Failed to finish task:');
     setFreshDoneTaskId(taskId);
     setTickKey(prev => prev + 1);
     if (closesToday) {
       setCelebrationKey(prev => prev + 1);
       vibrate(RING_CLOSE_VIBRATION);
-    }
-  }
-
-  function handleDragEnd(result: DropResult) {
-    setIsDragging(false);
-    const {destination, source, draggableId} = result;
-
-    if (!destination) return;
-    if (destination.droppableId === source.droppableId) return;
-
-    // Only Todo and Done take drops: the backlog's groups are drag sources
-    // only — no un-pull back into the backlog.
-    const status = destination.droppableId;
-    if (status === TaskStatus.TODO) {
-      moveTask(draggableId, status, 'Failed to pull task to Todo:');
-    } else if (status === TaskStatus.DONE) {
-      finishTask(draggableId, source.droppableId !== TaskStatus.TODO);
     }
   }
 
@@ -256,7 +236,7 @@ export const BoardPage = ({
     }
     setIsTossing(false);
     setSelection(null);
-    finishTask(taskId, false);
+    finishTask(taskId);
   }
 
   function toggleDay(date: string) {
@@ -289,38 +269,22 @@ export const BoardPage = ({
         className="w-full flex-shrink-0"
       />
     ) : (
-      todoCards.map((card, index) => (
-        <TodoCard key={card.task.id} card={card} index={index} />
-      ))
+      todoCards.map(card => <TodoCard key={card.task.id} card={card} />)
     );
 
   const renderBoard = () => (
-    <DragDropContext
-      onDragStart={() => setIsDragging(true)}
-      onDragEnd={handleDragEnd}
-    >
+    <>
       <div className="flex h-full">
-        {/* Scroll ownership: @hello-pangea/dnd supports one scroll parent per
-            Droppable, so this row must not add scroll axes beyond what it
-            owns — md:overflow-y-hidden keeps it x-only on desktop (overflow-x
-            auto would otherwise force computed overflow-y to auto), and
-            <main> is overflow-hidden on /kanban (AppShell SELF_SCROLLING_ROUTES).
-            The remaining dev warning (scrollable columns inside this
-            scrollable row) is the library's known kanban limitation. */}
+        {/* On desktop this row scrolls sideways only, and each column scrolls
+            its own cards: md:overflow-y-hidden keeps overflow-x-auto from
+            turning the row's overflow-y to auto as well. <main> doesn't
+            scroll on /kanban (AppShell SELF_SCROLLING_ROUTES). */}
         <div className="flex-1 min-w-0 flex flex-col gap-3.5 md:flex-row md:gap-4 overflow-y-auto md:overflow-x-auto md:overflow-y-hidden p-4 max-md:pb-32">
-          <BoardColumn
-            status={TaskStatus.TODO}
-            count={todoCards.length}
-            isDragActive={isDragging}
-          >
+          <BoardColumn status={TaskStatus.TODO} count={todoCards.length}>
             {renderTodo()}
           </BoardColumn>
           {!isMobile && (
-            <BoardColumn
-              status={TaskStatus.DONE}
-              count={doneCards.length}
-              isDragActive={isDragging}
-            >
+            <BoardColumn status={TaskStatus.DONE} count={doneCards.length}>
               {doneCards.map(card => (
                 <DoneCard key={card.task.id} card={card} />
               ))}
@@ -334,7 +298,7 @@ export const BoardPage = ({
       <MobileBacklog count={backlogCount}>
         <BacklogGroupList sections={backlogSections} variant="mobile" />
       </MobileBacklog>
-    </DragDropContext>
+    </>
   );
 
   return (

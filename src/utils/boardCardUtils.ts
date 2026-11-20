@@ -70,7 +70,7 @@ export interface BoardCardInputs {
 
 /**
  * A step card's context from its project in the lookup. A step's own status
- * comes from the board's tasks when it is one of them, so a step dragged to
+ * comes from the board's tasks when it is one of them, so a step moved to
  * Done fills its mark at once (the lookup only changes on revalidation).
  */
 function toProjectStepContext(

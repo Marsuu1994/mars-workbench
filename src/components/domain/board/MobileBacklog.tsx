@@ -22,8 +22,7 @@ interface MobileBacklogProps {
  * browser's bars too). The sheet stages BACKLOG tasks; tapping
  * group card's "↑ Todo" button pulls its next task onto the board
  * (BACKLOG → TODO). The pill stays when the backlog is empty, showing 0. The
- * desktop equivalent is DesktopBacklog (drag-based); at md and up this
- * renders nothing.
+ * desktop equivalent is DesktopBacklog; at md and up this renders nothing.
  */
 export const MobileBacklog = ({count, children}: MobileBacklogProps) => {
   const t = useTranslations('Board.Backlog');
