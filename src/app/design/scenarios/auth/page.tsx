@@ -21,18 +21,21 @@ const AUTH_SCENARIOS: ScenarioTab[] = [
     label: 'Login',
     title: 'Login',
     note: 'Glow + grid atmosphere, brand mark, Google sign-in — the only unauthenticated screen.',
+    display: 'page',
     content: <LoginScenario />,
   },
   {
     label: 'OAuth consent',
     title: 'OAuth consent — request',
     note: 'Where Supabase sends a signed-in user when Claude asks to connect: client tile ⇄ brand mark, the approving account, what access it grants, the host the browser returns to, Deny / Allow.',
+    display: 'page',
     content: <ConsentScenario />,
   },
   {
     label: 'OAuth consent — invalid link',
     title: 'OAuth consent — invalid link',
     note: 'The authorization request is missing, unknown, expired or already decided — generic copy and a way home.',
+    display: 'page',
     content: (
       <AuthScreenScenario>
         <ConsentInvalidScreen />
