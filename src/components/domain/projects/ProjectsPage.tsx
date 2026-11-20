@@ -1,6 +1,6 @@
 'use client';
 
-import {useMemo, useState} from 'react';
+import {useMemo} from 'react';
 import {useSearchParams} from 'next/navigation';
 import {useTranslations} from 'next-intl';
 import {MapIcon, PlusIcon} from '@heroicons/react/24/outline';
@@ -21,6 +21,7 @@ import {
 } from '@/actions/projectActions';
 import {useOptimisticTasks} from '@/hooks/useOptimisticTasks';
 import {useWaitForFreshData} from '@/hooks/useWaitForFreshData';
+import {useUrlModalState} from '@/components/ui/overlay/useUrlModalState';
 import {EmptyState} from '@/components/ui/EmptyState';
 import {cn} from '@/components/ui/cn';
 import {ProjectDetail} from './project-detail/ProjectDetail';
@@ -31,14 +32,7 @@ import {
   ProjectsPageContext,
   type ProjectsPageContextValue,
 } from './ProjectsPageContext';
-import {getProjectHref, PROJECTS_HREF} from './constants';
-
-/** Which modal is open, and on what. */
-type OpenModal =
-  | {kind: 'newProject'}
-  | {kind: 'editProject'; projectId: string}
-  | {kind: 'addStep'; projectId: string}
-  | {kind: 'editStep'; stepId: string};
+import {getProjectHref, PROJECTS_HREF, PROJECTS_MODAL_KEYS} from './constants';
 
 const NO_STEPS: TaskItem[] = [];
 
@@ -46,10 +40,11 @@ const NO_STEPS: TaskItem[] = [];
  * The Projects page (/kanban/projects): the list beside the selected
  * project's path from md up, one of the two on mobile. Owns the page's
  * state — the steps as client state (+ This week, × and moves patch them
- * optimistically), the open modal — and every write, which its components
- * reach through ProjectsPageContext rather than callback props. The selected
- * project is the URL's `?project=`, changed on the client: refresh keeps it,
- * back steps through earlier selections, and nothing waits on the server.
+ * optimistically) — and every write, which its components reach through
+ * ProjectsPageContext rather than callback props. The selected project is
+ * the URL's `?project=`, and the open modal its `?modal=` (useUrlModalState),
+ * both changed on the client: refresh keeps them, back steps through earlier
+ * selections and closes a modal, and nothing waits on the server.
  */
 export const ProjectsPage = ({
   projects,
@@ -63,7 +58,8 @@ export const ProjectsPage = ({
     runOptimisticTaskUpdate,
     runOptimisticTasksUpdate,
   } = useOptimisticTasks(steps);
-  const [openModal, setOpenModal] = useState<OpenModal | null>(null);
+  const {openModal, showModal, closeModal} =
+    useUrlModalState(PROJECTS_MODAL_KEYS);
   const waitForFreshProjects = useWaitForFreshData(projects);
 
   const stepsByProjectId = useMemo(
@@ -81,16 +77,18 @@ export const ProjectsPage = ({
   const isDetailOpen =
     selectedProject !== undefined && selectedProject.id === projectParam;
 
-  const closeModal = () => setOpenModal(null);
-
   // Next's router follows pushState / replaceState without a request
   const showProject = (projectId: string) =>
     window.history.pushState(null, '', getProjectHref(projectId));
   const showProjectList = () =>
     window.history.pushState(null, '', PROJECTS_HREF);
 
+  // The new project takes the modal's place in history, so back from it
+  // returns to where New project was pressed, not to the modal
   const handleProjectSaved = (projectId: string) => {
-    if (openModal?.kind === 'newProject') showProject(projectId);
+    if (openModal?.kind === 'newProject') {
+      window.history.replaceState(null, '', getProjectHref(projectId));
+    }
   };
 
   // An archived project leaves the URL; the first active one takes over
@@ -160,17 +158,16 @@ export const ProjectsPage = ({
     );
   }
 
-  const openNewProject = () => setOpenModal({kind: 'newProject'});
+  const openNewProject = () => showModal('newProject', {});
 
   const pageContext: ProjectsPageContextValue = {
     activePlanId,
     showProject,
     showProjectList,
     openNewProject,
-    openEditProject: projectId =>
-      setOpenModal({kind: 'editProject', projectId}),
-    openAddStep: projectId => setOpenModal({kind: 'addStep', projectId}),
-    openEditStep: stepId => setOpenModal({kind: 'editStep', stepId}),
+    openEditProject: projectId => showModal('editProject', {projectId}),
+    openAddStep: projectId => showModal('addStep', {projectId}),
+    openEditStep: stepId => showModal('editStep', {stepId}),
     scheduleStep,
     takeStepBack,
     moveStep,
@@ -289,7 +286,7 @@ export const ProjectsPage = ({
   const renderProjectModal = () => {
     const editedProject =
       openModal?.kind === 'editProject'
-        ? projects.find(({id}) => id === openModal.projectId)
+        ? projects.find(({id}) => id === openModal.params.projectId)
         : undefined;
     return (
       <ProjectModal
@@ -307,7 +304,10 @@ export const ProjectsPage = ({
   const getStepModalTarget = (): StepModalTarget | null => {
     switch (openModal?.kind) {
       case 'addStep': {
-        const project = projects.find(({id}) => id === openModal.projectId);
+        // An archived project takes no new steps, whatever the URL says
+        const project = activeProjects.find(
+          ({id}) => id === openModal.params.projectId,
+        );
         if (!project) return null;
         return {
           mode: 'add',
@@ -316,7 +316,7 @@ export const ProjectsPage = ({
         };
       }
       case 'editStep': {
-        const step = localSteps.find(({id}) => id === openModal.stepId);
+        const step = localSteps.find(({id}) => id === openModal.params.stepId);
         const project = projects.find(({id}) => id === step?.projectId);
         if (!step || !project) return null;
         return {

@@ -72,6 +72,9 @@ const archiveProject = async (page: Page, title: string) => {
   const archived = waitForServerAction(page, '/kanban/projects');
   await modal.getByRole('button', {name: 'Archive', exact: true}).click();
   await archived;
+  // The modal closes, and leaves the URL, once the saved list has landed: a
+  // reload before that would open it again from the URL
+  await expect(modal).toBeHidden();
 };
 
 /**
@@ -158,5 +161,70 @@ test.describe('Edit Project Flow', () => {
     await expect(bookCard).toBeVisible();
     await expect(courseCard).toBeVisible();
     await expect(archivedHeader).toHaveCount(0);
+  });
+});
+
+// Spike design/spike/config-driven-modals.md › Option 2E: the open modal is
+// the URL's `?modal=`, so a link (a notification later) opens it directly
+test.describe('Modal URL Flow', () => {
+  test('a link opens a modal, closing it clears the URL, back closes one opened in the page', async ({
+    page,
+    seed,
+  }) => {
+    const {steps} = await seed.createProjectWithSteps(
+      COURSE.title,
+      COURSE.steps,
+    );
+    const [firstStep] = steps;
+    const modal = page.getByRole('dialog');
+    // FieldRow's label isn't tied to its input, so the field goes by placeholder
+    const titleField = modal.getByPlaceholder(
+      'e.g. Lecture 4 — Cell signaling',
+    );
+    const editStepUrl = new RegExp(`modal=editStep&stepId=${firstStep.id}`);
+
+    // Loaded with the modal in the URL: it opens on the step it names, and
+    // closing it takes the modal out of the URL
+    await openPage(
+      page,
+      `/kanban/projects?modal=editStep&stepId=${firstStep.id}`,
+    );
+    await expect(modal.getByText('Edit Step')).toBeVisible();
+    await expect(titleField).toHaveValue(COURSE.steps[0]);
+    // The footer's Cancel; the header's × is labelled Cancel too
+    await modal.getByText('Cancel', {exact: true}).click();
+    await expect(modal).toBeHidden();
+    await expect(page).not.toHaveURL(/modal=/);
+
+    // Opened in the page: back closes it, forward opens it again
+    await page.getByRole('button', {name: new RegExp(COURSE.title)}).click();
+    // Exact: a step's draggable row is a button too, named with all it holds
+    await page
+      .getByRole('button', {name: 'Edit step', exact: true})
+      .first()
+      .click();
+    await expect(page).toHaveURL(editStepUrl);
+    await expect(titleField).toHaveValue(COURSE.steps[0]);
+    await page.goBack();
+    await expect(modal).toBeHidden();
+    await expect(page).not.toHaveURL(/modal=/);
+    await page.goForward();
+    await expect(titleField).toHaveValue(COURSE.steps[0]);
+
+    // A save closes it once, back to the project it was opened from
+    const saved = waitForServerAction(page, '/kanban/projects');
+    await titleField.fill('Unit 1 — Morning routines');
+    await modal.getByRole('button', {name: 'Save changes'}).click();
+    await saved;
+    await expect(modal).toBeHidden();
+    await expect(page).not.toHaveURL(/modal=/);
+    await expectToSee(page, 'Unit 1 — Morning routines');
+
+    // A step that's gone opens nothing
+    await openPage(
+      page,
+      '/kanban/projects?modal=editStep&stepId=00000000-0000-4000-8000-00000000dead',
+    );
+    await expect(modal).toBeHidden();
   });
 });
