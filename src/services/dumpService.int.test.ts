@@ -1,7 +1,10 @@
+import {randomUUID} from 'node:crypto';
 import {beforeEach, describe, expect, it} from 'vitest';
 import {DUMP_PAGE_SIZE} from '@/utils/dump';
 import {newUserId} from '../../test/factories';
+import {MOMENTS, freezeTime} from '../../test/time';
 import {
+  captureDumpEntries,
   captureDumpEntry,
   countDumpFeed,
   fetchDumpFeedPage,
@@ -37,5 +40,40 @@ describe('the dump feed', () => {
     expect(await fetchDumpFeedPage(userId, 'not-a-cursor')).toEqual({
       error: 'invalidCursor',
     });
+  });
+});
+
+describe('capturing entries from the iOS app', () => {
+  it('keeps the moment each was written down, and stores one from the future as now', async () => {
+    freezeTime(MOMENTS.WEDNESDAY_NOON);
+    const now = new Date();
+    const earlier = new Date(now.getTime() - 3600000);
+    const later = new Date(now.getTime() + 3600000);
+    const earlierId = randomUUID();
+    const laterId = randomUUID();
+
+    const result = await captureDumpEntries(userId, [
+      {id: earlierId, content: 'Offline thought', capturedAt: earlier},
+      {id: laterId, content: 'Fast clock', capturedAt: later},
+    ]);
+
+    expect(result).toEqual({acceptedIds: [earlierId, laterId]});
+    const page = await fetchDumpFeedPage(userId, undefined);
+    expect(page).toMatchObject({
+      entries: [
+        {id: laterId, createdAt: now},
+        {id: earlierId, createdAt: earlier},
+      ],
+    });
+  });
+
+  it('writes an entry sent twice once', async () => {
+    const entry = {id: randomUUID(), content: 'Once', capturedAt: new Date()};
+
+    await captureDumpEntries(userId, [entry]);
+    const again = await captureDumpEntries(userId, [entry]);
+
+    expect(again).toEqual({acceptedIds: [entry.id]});
+    expect(await countDumpFeed(userId)).toBe(1);
   });
 });

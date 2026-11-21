@@ -12,7 +12,7 @@ import {
 } from './utils/enums';
 import {THEMES} from './utils/theme';
 import {AUTHORIZATION_ID_PATTERN, ConsentDecision} from './utils/oauthConsent';
-import {DUMP_ENTRY_MAX_LENGTH} from './utils/dump';
+import {DUMP_BATCH_LIMIT, DUMP_ENTRY_MAX_LENGTH} from './utils/dump';
 import {FREQ_MAX, FREQ_MIN} from './utils/planUtils';
 import {PROJECT_STEP_LIMIT} from './utils/projectUtils';
 import {ONE_OFF_BATCH_LIMIT} from './utils/oneOffUtils';
@@ -201,12 +201,29 @@ export const moveProjectStepSchema = z.object({
 // and the stored content is the trimmed string (interior newlines preserved).
 // .max() counts UTF-16 code units — the same unit as the textarea maxLength,
 // so client and server agree on what "10,000 characters" means.
-export const createDumpEntrySchema = z.object({
-  content: z
-    .string()
-    .trim()
-    .min(1, V.contentRequired)
-    .max(DUMP_ENTRY_MAX_LENGTH, V.contentTooLong),
+const dumpContentSchema = z
+  .string()
+  .trim()
+  .min(1, V.contentRequired)
+  .max(DUMP_ENTRY_MAX_LENGTH, V.contentTooLong);
+
+export const createDumpEntrySchema = z.object({content: dumpContentSchema});
+
+// What the iOS app sends (POST /api/v1/dump-entries): entries it saved on the
+// phone first, each with the id it gave the entry and the moment it was
+// written down. The id is lowercased, as Postgres returns it, since Swift
+// writes UUIDs in upper case.
+export const captureDumpEntriesSchema = z.object({
+  entries: z
+    .array(
+      z.object({
+        id: z.string().uuid().toLowerCase(),
+        content: dumpContentSchema,
+        capturedAt: z.string().datetime({offset: true}).pipe(z.coerce.date()),
+      }),
+    )
+    .min(1)
+    .max(DUMP_BATCH_LIMIT),
 });
 
 // The feed cursor is an opaque token on the wire: the client stores and echoes

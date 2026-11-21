@@ -12,8 +12,12 @@ import {
   getISOWeekKey,
 } from './dateUtils';
 
+export const DUMP_PAGE_PATH = '/kanban/dump';
 export const DUMP_PAGE_SIZE = 20;
 export const DUMP_ENTRY_MAX_LENGTH = 10000;
+// The most entries one native-app request may send: 50 full entries are about
+// 500 KB, well under a Vercel function's 4.5 MB request body.
+export const DUMP_BATCH_LIMIT = 50;
 
 const pad2 = (value: number) => String(value).padStart(2, '0');
 

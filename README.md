@@ -83,6 +83,7 @@ What you can do in the app today, page by page. How it is built lives in [design
 
 - Write down whatever is on your mind without sorting it. Entries are grouped by day, newest first.
 - For now it only keeps them; nothing processes them yet.
+- The iOS app (`mars-workbench-ios`) writes into the same feed: it opens straight into a text field, keeps each entry on the phone until it is sent, and the entry lands at the moment it was written down.
 
 ### Sign-in and settings
 

@@ -9,6 +9,7 @@ import {
   fetchDumpFeedPage,
 } from '../services/dumpService';
 import {getCurrentUserId} from '@/lib/auth/getCurrentUserId';
+import {DUMP_PAGE_PATH} from '@/utils/dump';
 
 /** Quick Capture flow: one entry, then the feed revalidates. */
 export async function createDumpEntryAction(input: unknown) {
@@ -18,7 +19,7 @@ export async function createDumpEntryAction(input: unknown) {
   const userId = await getCurrentUserId();
   const entry = await captureDumpEntry(userId, parsed.data.content);
 
-  revalidatePath('/kanban/dump');
+  revalidatePath(DUMP_PAGE_PATH);
   return {data: entry};
 }
 

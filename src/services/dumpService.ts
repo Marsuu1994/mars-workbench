@@ -1,6 +1,7 @@
 import {z} from 'zod';
 import {
   countDumpEntries,
+  createDumpEntries,
   createDumpEntry,
   getDumpEntriesPage,
   type DumpEntryItem,
@@ -45,6 +46,30 @@ export async function captureDumpEntry(
   content: string,
 ): Promise<DumpEntryItem> {
   return createDumpEntry(userId, {content});
+}
+
+/**
+ * Capture flow from the iOS app: entries it wrote down on the phone, possibly
+ * offline and long before they arrive. Each keeps the moment it was written
+ * down as its createdAt, except one from the future (a phone clock running
+ * fast), which is stored as now. Sending an entry again is harmless: its id is
+ * already stored, so nothing new is written, and it is accepted again so the
+ * app can drop it.
+ */
+export async function captureDumpEntries(
+  userId: string,
+  entries: {id: string; content: string; capturedAt: Date}[],
+): Promise<{acceptedIds: string[]}> {
+  const now = new Date();
+  await createDumpEntries(
+    userId,
+    entries.map(({id, content, capturedAt}) => ({
+      id,
+      content,
+      createdAt: capturedAt > now ? now : capturedAt,
+    })),
+  );
+  return {acceptedIds: entries.map(entry => entry.id)};
 }
 
 /**

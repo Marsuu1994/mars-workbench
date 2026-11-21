@@ -25,12 +25,14 @@ export const config = {
      * - favicon.ico (browser favicon)
      * - api/mcp (MCP endpoint: clients carry no session cookie and must get
      *   the endpoint's own response, never a redirect to the login page)
+     * - api/v1 (the native app's API: it authenticates with its own bearer
+     *   token, for the same reason)
      * - .well-known (OAuth discovery metadata, fetched without a session)
      * - sw.js and manifest.json (PWA files the login page loads too: a
      *   service worker script may not arrive through a redirect, and a
      *   redirected manifest parses as HTML)
      * - Public assets (svg, png, jpg, etc.)
      */
-    '/((?!_next/static|_next/image|favicon.ico|api/mcp|\\.well-known|sw\\.js$|manifest\\.json$|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api/mcp|api/v1/|\\.well-known|sw\\.js$|manifest\\.json$|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
