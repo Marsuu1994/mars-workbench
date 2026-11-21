@@ -136,8 +136,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 
 ### High
 
-- [ ] iOS Dump capture app — a native app that opens straight into a focused text field, saves each entry on the phone first and sends it in the background once online; it needs a write-only API with a fixed token, no sign-in (owner, 2026-11-21). Spike `design/spike/ios-dump-capture.md` (awaiting owner review); the app lives in its own repository
-  - [ ] API PR — `POST /api/v1/dump-entries`, a batch of entries with client ids, behind `NATIVE_API_TOKEN`
+- [ ] iOS Dump capture app — a native app that opens straight into a focused text field, saves each entry on the phone first and sends it in the background once online; it needs a write-only API with a fixed token, no sign-in (owner, 2026-11-21). Spike `design/spike/ios-dump-capture.md` (decided); the app lives in its own repository, `mars-workbench-ios`
   - [ ] iOS app, first PR — in the new repository
 
 ### Future

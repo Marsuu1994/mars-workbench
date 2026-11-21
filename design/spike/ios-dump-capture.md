@@ -1,10 +1,39 @@
 # Spike: iOS Dump capture app — 一个输入框的 native app，和它要的 API
 
-**Status: awaiting owner review** · 2026-11-21 · 回答 tracker 条目 *iOS Dump capture app*（Dump › High），是 *Native iOS app*（Cross-cutting › Future）的第一步 · 上游：`design/specs/dump.md`（Quick Capture Flow）、`design/spike/archived/board-desktop-phone-journeys.md` › Native iOS 的影响
+**Status: decided** · 2026-11-21（提出和拍板同一天）· 回答 tracker 条目 *iOS Dump capture app*（Dump › High），是 *Native iOS app*（Cross-cutting › Future）的第一步 · 上游：`design/specs/dump.md`（Quick Capture Flow）、`design/spike/archived/board-desktop-phone-journeys.md` › Native iOS 的影响
 
 > 语言约定：叙述用中文；产品名词、代码标识、Apple 的 API 名保留英文（dump entry、`captureDumpEntry`、`URLSession`、`@FocusState` …），和代码、文档一一对应。
 >
 > 这份 spike 先写在 mars-workbench 里。iOS app 的 repo 开好以后，把 Part 2 和 Part 4 复制过去当它的第一份设计文档；Part 1 留在这里，跟着 API 的实现 PR 走。
+
+## Decision · 拍板（2026-11-21）
+
+Owner 在对话里一个个回答；没回答的，owner 说「中间有什么要我做 decision 你先自己做决定」，按推荐走。
+
+| 问题 | 结论 | 带来的变化 |
+| --- | --- | --- |
+| Q1 · 服务端代码放哪 | **A**（按推荐），加 `src/api/` 层 | AGENTS.md 的 Project Structure 和 Layers 各改一句；`baseline.md` 的「No REST API routes」改写 |
+| Q2 · URL | `POST /api/v1/dump-entries`（按推荐） | — |
+| Q3 · 条目的时间 | **手机上记下的时间**（owner） | `createdAt = min(capturedAt, now)` |
+| Q4 · token 怎么进 app | **B，编译时写进去**（owner：「无所谓泄漏」） | 不做设置界面；token 写在不进 git 的 `Secrets.xcconfig` 里，经 `Info.plist` 读出 |
+| Q5 · 怎么提交 | 键盘上方的 Dump 按钮，回车是换行（按推荐） | — |
+| Q6 · 「N 条待上传」 | **显示**（owner） | 只在 outbox 不空或 token 无效时出现 |
+| Q7 · 草稿 | **保留**（owner） | 每次输入后存进 `UserDefaults`，提交后清掉 |
+| Q8 · 后台上传 | **A**（按推荐） | 前台 + 切后台 30 秒 + `BGAppRefreshTask` |
+| Q9 · 本地存储 | **A** 一个文件一条（按推荐） | — |
+| Q10 · 工程文件 | **XcodeGen**（按推荐） | `.xcodeproj` 不进 git |
+| Q11 · Swift package | **做**（按推荐） | `DumpCore` 在 Linux 上 `swift test` |
+| Q12 · 最低 iOS 版本 | 手机是 27.2.1（owner）；最低版本设 **iOS 17** | — |
+| Q13 · 服务端回 400 | **不删、不提示**（owner） | 移到 `outbox/rejected/`，不再重试；待上传的数字不算它们 |
+| Q14 · 账号和 CI/CD | **免费 Apple ID**（owner） | 只做 CI，不做 CD：Linux 上跑 `DumpCore` 的测试，macOS 上编译 app；装机用 Xcode ⌘R，每 7 天重装一次 |
+| Q15 · 新 repo | `Marsuu1994/mars-workbench-ios`（owner） | 这份 spike 的 Part 2、Part 4 复制过去；mars-workbench 的代码质量规则和 spike 的写法，按 iOS 改写后也搬过去（owner） |
+
+另外两个实现时定下的：
+
+- 第一版 PR 里，mars-workbench 这边 spike 的拍板和 API 的实现放在同一个 PR（`claude/ios-dump-native-api`），和 `archived/mcp-one-off-tasks.md` 一样。iOS app 在手机上用起来以后，这份 spike 再移到 `archived/`。
+- Bundle ID 用 `com.marsuu1994.workbench.dump`，App 名叫 Dump；服务端地址是 `https://mars-workbench.vercel.app`。
+
+下文的选项保留拍板前的样子；以这张表为准。
 
 ## 一页看完 · Summary
 
@@ -101,7 +130,7 @@ Content-Type: application/json
 
 | 环境变量（Vercel 上配，Production） | 值 |
 | --- | --- |
-| `NATIVE_API_TOKEN` | 一个随机长串：`openssl rand -base64 32` 生成 |
+| `NATIVE_API_TOKEN` | 一个随机长串：`openssl rand -hex 32` 生成（hex 而不是 base64：base64 里可能出现 `//`，在 iOS 的 `.xcconfig` 里 `//` 之后会被当成注释截掉） |
 | `NATIVE_API_USER_ID` | 你在 Supabase Auth 里的 user id（uuid） |
 
 - 请求的 `Authorization: Bearer …` 和 `NATIVE_API_TOKEN` 比较：两边先各做 SHA-256，再用 `crypto.timingSafeEqual` 比，这样比较的耗时不会泄露 token 猜对了几位。

@@ -26,6 +26,21 @@ export async function createDumpEntry(
 }
 
 /**
+ * Insert entries that carry their own id and createdAt (the iOS app's
+ * outbox). An id that is already stored is skipped, so sending the same
+ * entries again writes nothing new.
+ */
+export async function createDumpEntries(
+  userId: string,
+  entries: {id: string; content: string; createdAt: Date}[],
+): Promise<void> {
+  await prisma.dumpEntry.createMany({
+    data: entries.map(entry => ({...entry, userId})),
+    skipDuplicates: true,
+  });
+}
+
+/**
  * One feed page, newest first ((createdAt, id) DESC). The cursor is the last
  * row of the previous page; only rows strictly after it are returned, so the
  * feed stays stable while new entries are captured. Callers pass

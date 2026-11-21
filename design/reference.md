@@ -75,6 +75,14 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `create_one_off_tasks` | Add 1–20 one-offs to the priority matrix, on no week | `oneOffPlanningService.createOneOffTasks` |
 | `update_one_off_tasks` | Mark one-offs done and move them between quadrants, all or nothing | `oneOffPlanningService.patchOneOffTasks` |
 
+## Native API (src/api, served at /api/v1)
+
+The iOS app's HTTP endpoints (`design/spike/ios-dump-capture.md`). Every request needs `Authorization: Bearer <NATIVE_API_TOKEN>` and acts as `NATIVE_API_USER_ID` (`getNativeApiUserId`, `src/api/middleware/auth.ts`); while either variable is unset, every request is refused. `runRoute` (`src/api/middleware/runRoute.ts`) checks the token, parses and validates the JSON body, and shapes the answer: the route's result as JSON, or `{error: {code}}` with 401 `unauthorized`, 400 `invalid_body` (with zod's `issues`; nothing is written) or 500 `unexpected`.
+
+| Route | Body → answer | Calls |
+| --- | --- | --- |
+| `POST /api/v1/dump-entries` | `{entries: [{id, content, capturedAt}]}`, 1–50 entries, each `id` a UUID the app made and `capturedAt` an ISO time → `{acceptedIds}`, every id of the request in lower case, whether new or stored before | `dumpService.captureDumpEntries` |
+
 ## Services (src/services)
 
 `syncService.ts` flow-level spec: [specs/shared.md](./specs/shared.md).
@@ -131,6 +139,7 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `unscheduleProjectStep` | Take back a scheduled step still in the backlog |
 | **`dumpService.ts`** | |
 | `captureDumpEntry` | Quick Capture: one insert |
+| `captureDumpEntries` | The iOS app's entries: each keeps its client id and the moment it was written down (one from the future is stored as now); an id already stored writes nothing and is accepted again |
 | `fetchDumpFeedPage` | One feed page, newest first, with the opaque cursor encoded and decoded here (an undecodable one is an error) |
 | `countDumpFeed` | Total entry count for the dump title bar |
 | **`oauthConsentService.ts`** | |
@@ -208,5 +217,6 @@ Tools act for the user in `request.auth`, which `withMcpAuth` fills from a verif
 | `updateOrNull` | Run a guarded single-row `update`, null when its where matches nothing: one round trip, where the `updateMany` family takes three (BEGIN / COMMIT) |
 | **`dumpEntries.ts`** | |
 | `createDumpEntry` | Insert one dump entry (isProcessed defaults false) |
+| `createDumpEntries` | Insert entries with their own id and createdAt; an id already stored is skipped |
 | `getDumpEntriesPage` | One owner-scoped feed page, (createdAt, id) DESC, cursor + take |
 | `countDumpEntries` | Total entry count for the dump title bar |
