@@ -134,6 +134,12 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 
 ## Dump
 
+### High
+
+- [ ] iOS Dump capture app — a native app that opens straight into a focused text field, saves each entry on the phone first and sends it in the background once online; it needs a write-only API with a fixed token, no sign-in (owner, 2026-11-21). Spike `design/spike/ios-dump-capture.md` (awaiting owner review); the app lives in its own repository
+  - [ ] API PR — `POST /api/v1/dump-entries`, a batch of entries with client ids, behind `NATIVE_API_TOKEN`
+  - [ ] iOS app, first PR — in the new repository
+
 ### Future
 
 - [ ] Entry edit + delete (V1 is append-only)
@@ -190,7 +196,7 @@ How agents work on this repository: the experiments under `experiments/` (rules 
 
 ### Future
 
-- [ ] Native iOS app — a spike first, after Phase 2's board ships: an HTTP API over the services (route handlers, Bearer auth from Supabase's native sign-in; AGENTS.md's route-handler rule changes with it), offline and sync, the SwiftUI structure, and the web phone layout's role once the app exists (a maintained fallback, recommended). Groundwork in `design/spike/archived/board-desktop-phone-journeys.md` › Native iOS 的影响
+- [ ] Native iOS app — its first step is the iOS Dump capture app (Dump › High), whose API layer the rest grows on; the full app is a spike first, after Phase 2's board ships: an HTTP API over the services (route handlers, Bearer auth from Supabase's native sign-in; AGENTS.md's route-handler rule changes with it), offline and sync, the SwiftUI structure, and the web phone layout's role once the app exists (a maintained fallback, recommended). Groundwork in `design/spike/archived/board-desktop-phone-journeys.md` › Native iOS 的影响
 - [ ] Cron-driven sync — move the daily / end-of-period sync to a scheduled job (e.g. Vercel Cron hitting a route just after midnight in `KANBAN_TZ`); pages keep the idempotent `ensureSynced` as fallback. `runDailySync` / `runEndOfPeriodSync` are already standalone for this
 - [ ] User-configurable timezone — Date utils are currently anchored to `America/Los_Angeles` via `KANBAN_TZ` constant. Consider making this a user setting stored in the database for multi-user support or if the user relocates (traveling users)
 - [ ] Custom domain — move off `*.vercel.app`; update Supabase Site URL + Redirect URLs. The MCP connector URL (and its protected-resource `resource`) is tied to the domain, so a switch means re-adding the connector in Claude
